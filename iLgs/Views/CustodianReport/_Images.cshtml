@@ -15,8 +15,8 @@
         col.Bound(p => p.FileName).Width(100);
         col.Command(command =>
         {
-            command.Edit();
-            command.Destroy();
+            command.Edit();            
+            command.Destroy();            
             command.Custom("Preview").IconClass("k-icon k-i-eye").Click("onClickPreview");
             command.Custom("Download").IconClass("k-icon k-i-download").Click("onClickDownload");
         }).Width(100);
@@ -28,7 +28,7 @@
         @(Html.Kendo().Button().Name("btnUpload_" + @ViewData["imageId"]).Content("Upload")
             .HtmlAttributes(new { data_gridname = gridName })  // Add a data attribute
             .Events(e => e.Click("onClickUpload"))
-        )
+        )        
     </text>);
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ImagesTemplate").Window(w => w.Width(500).Title("Edit")))

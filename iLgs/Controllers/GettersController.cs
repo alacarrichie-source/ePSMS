@@ -157,7 +157,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.UserName.Contains(text) || p.UserProfile.NameFull.Contains(text));
             }
 
-            var retModel = model.Select(c => new { Id = c.Id, Email = c.Email, UserName = c.UserName, NameFull = c.UserProfile.NameFull }).ToList();            
+            var retModel = model.Select(c => new { Id = c.Id, Email = c.Email, UserName = c.UserName, NameFull = c.UserProfile.NameFull, Department = c.UserProfile.Department }).ToList();            
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }

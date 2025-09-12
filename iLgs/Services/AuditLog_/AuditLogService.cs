@@ -12,7 +12,7 @@ namespace iLgs.Services.AuditLog_
     {
         List<AuditLog> GetAuditLogs(string tableName, string recordId = null);
         string GetAuditHistory(string tableName, int recordId);
-        IQueryable<AuditLogVM> GetAuditLogsQueryable();
+        IQueryable<AuditLogVM> GetAuditLogsQueryable(string recordId = null);
         IQueryable<AuditLogDetailVM> GetAuditDetailsQueryable(Guid? auditLogId);
     }
 
@@ -63,9 +63,9 @@ namespace iLgs.Services.AuditLog_
             return history.ToString();
         }
 
-        public IQueryable<AuditLogVM> GetAuditLogsQueryable()
+        public IQueryable<AuditLogVM> GetAuditLogsQueryable(string recordId = null)
         {
-            return _db.AuditLogs
+            var query = _db.AuditLogs
                 .Select(al => new AuditLogVM
                 {
                     Id = al.Id,
@@ -76,8 +76,14 @@ namespace iLgs.Services.AuditLog_
                     UpdatedDt = al.UpdatedDt,
                     IpAddress = al.IpAddress,
                     DetailsCount = al.AuditLogDetails.Count
-                })
-                .OrderByDescending(al => al.UpdatedDt);
+                });
+                
+            if (!string.IsNullOrEmpty(recordId))
+            {
+                query = query.Where(a => a.RecordId.Contains(recordId));
+            }
+
+            return query.OrderByDescending(a => a.UpdatedDt).OrderByDescending(al => al.UpdatedDt);
         }
 
         public IQueryable<AuditLogDetailVM> GetAuditDetailsQueryable(Guid? auditLogId)

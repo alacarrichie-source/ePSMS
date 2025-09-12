@@ -33,7 +33,6 @@ namespace iLgs.Models
             this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.AccountableOfficers = new HashSet<AccountableOfficer>();
             this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
-            this.CustodianReports = new HashSet<CustodianReport>();
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportBldgItems1 = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
@@ -46,6 +45,8 @@ namespace iLgs.Models
             this.PsCardItems1 = new HashSet<PsCardItem>();
             this.PsCardItems2 = new HashSet<PsCardItem>();
             this.TrackingItems = new HashSet<TrackingItem>();
+            this.CustodianReports = new HashSet<CustodianReport>();
+            this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
         }
     
         public System.Guid Id { get; set; }
@@ -95,8 +96,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CustodianReport> CustodianReports { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems1 { get; set; }
@@ -120,5 +119,9 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItem> PsCardItems2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TrackingItem> TrackingItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReport> CustodianReports { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
     }
 }

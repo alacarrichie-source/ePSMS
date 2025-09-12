@@ -18,6 +18,11 @@ namespace iLgs.Utilities
 
         protected override IController GetControllerInstance(RequestContext requestContext, Type controllerType)
         {
+            if (controllerType == null)
+            {
+                throw new HttpException(404, $"Controller not found for path '{requestContext.HttpContext.Request.Path}'");
+            }
+
             return (IController)_serviceProvider.GetService(controllerType);
         }
     }

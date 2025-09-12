@@ -38,6 +38,8 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
         private readonly ICustodianReportItemIssuanceRpcPpeService _rpcPpeIssuanceService;
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
+        
         private readonly ICodextnService _codextnService;
         private readonly ICustodianReportUploadService _uploadService;
         private readonly IItemCodeService _itemCodeService;
@@ -56,6 +58,7 @@ namespace iLgs.Controllers
             ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
             ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
             ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
+            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
             ICodextnService codextnService,
             ICustodianReportUploadService custodianReportUploadService,
             IItemCodeService itemCodeService,
@@ -72,6 +75,7 @@ namespace iLgs.Controllers
             _areIssuanceService = custodianReportItemIssuanceAreService;
             _mrIssuanceService = custodianReportItemIssuanceMrService;
             _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
+            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
             _codextnService = codextnService;
             _uploadService = custodianReportUploadService;
             _itemCodeService = itemCodeService;
@@ -283,6 +287,107 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     await _custodianReportItemService.UnPostAsync(id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, user, date, true);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -2877,6 +2982,18 @@ namespace iLgs.Controllers
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<JsonResult> IsSubmitForCount(Guid? reportId, Guid? locationId)
+        {            
+            var data = await _custodianReportSubmitForCountService.GetByLocationAsync(reportId, locationId);
+            if (data == null || data.Status != "Submit")
+            {
+                return Json(new { IsSubmitForCount = false }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { IsSubmitForCount = true, UpdateDate = data.UpdatedDt.Value.ToShortDateString() }, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpPost]
         public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
         {
@@ -3004,7 +3121,7 @@ namespace iLgs.Controllers
         #region IMAGE UPLOADS
         public ActionResult _Images(Guid? imageId)
         {
-            ViewData["imageId"] = imageId;
+            ViewData["imageId"] = imageId;            
             return PartialView();
         }
 

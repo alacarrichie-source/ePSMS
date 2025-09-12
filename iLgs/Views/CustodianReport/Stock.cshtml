@@ -4,8 +4,8 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -21,8 +21,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("deptId")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -53,8 +53,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Location", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Location", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("sectionId")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -123,6 +123,7 @@
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(50);
+            col.Bound(c => c.IsPosted).Width(50);
             col.Command(command =>
             {
                 command.Edit();
@@ -147,6 +148,7 @@
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Upload").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Submit for Count").IconClass("k-icon k-i-track-changes-accept").Name("btnCount").HtmlAttributes(new { @class = "k-button", href = "", title = "Certifying that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team." });
             t.Search();
         })
         .Search(s =>
@@ -296,7 +298,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(80vh - 180px) !important;
+        height: calc(100vh - 330px) !important;
     }
 
 </style>
@@ -491,6 +493,7 @@
         grid.wrapper.find(".k-grid-btnUnpost").hide();
         grid.wrapper.find(".k-grid-btnDownload").hide();
         grid.wrapper.find(".k-grid-btnUpload").hide();
+        grid.wrapper.find(".k-grid-btnCount").hide();
     });
 
     function onShowNotification(e) {
@@ -543,12 +546,15 @@
     }
 
     function onChangeForYear(e) {
+        reportId = null;
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
+        trackingId = selectedId;
+        reportId = null;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
 
@@ -559,6 +565,8 @@
         var comboBox = this;
         if (!comboBox.value()) {
             selectedId = null;
+            trackingId = selectedId;
+            reportId = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
         }
     }
@@ -568,6 +576,8 @@
     function onSelectSectionId(e) {
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
+        trackingId = selectedId;
+        reportId = null;
         selectedSection = dataItem.Section;
         selectedSectionCode = dataItem.Code;
         $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
@@ -578,6 +588,8 @@
     function onChangeSectionId(e) {
         var comboBox = this;
         selectedId = null;
+        trackingId = selectedId;
+        reportId = null;
         //if (!comboBox.value()) {
         //    $("#grid").data("kendoGrid").dataSource.data([]);
         //}
@@ -610,6 +622,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
+    var trackingId = null;
     var postedBy = null;
 
     function onChangeGrid(e) {
@@ -617,6 +630,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        trackingId = selectedId;
         postedBy = selectedData.PostedBy;
 
         if (postedBy) {
@@ -628,6 +642,7 @@
         }
     }
 
+    var reportId = null;
     function onDataBoundGrid(e) {
         if (selectedId && selectedId != "00000000-0000-0000-0000-000000000000") {
             var dataItem = this.dataSource.get(selectedId);
@@ -654,6 +669,7 @@
             this.wrapper.find(".k-grid-btnDownload").hide();
         }
 
+        var grid = $("#grid");
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnExport", grid).hide();
             $(".k-grid-btnExportA", grid).hide();
@@ -662,6 +678,8 @@
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
             $(".k-grid-btnUpload", grid).hide();
+            $(".k-grid-btnCount", grid).hide();
+            reportId = null;
         }
         else {
             $(".k-grid-btnExport", grid).show();
@@ -669,6 +687,10 @@
             $(".k-grid-btnExportB", grid).show();
             $(".k-grid-btnExportC", grid).show();
             $(".k-grid-btnUpload", grid).show();
+            $(".k-grid-btnCount", grid).show();
+            var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
+            reportId = firstDataItem.ReportId;
+            setSubmitButton(reportId, $("#sectionId").val());
         }
     }
 
@@ -724,6 +746,7 @@
                 }, 50); // 0-50ms delay usually works well
             }
         }
+        trackingId = selectedId;
     }
 
     function onGridRequestEnd(e) {
@@ -736,6 +759,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+                trackingId = selectedId;
             }
         }
     }
@@ -917,6 +941,53 @@
         }
     });
 
+    $(".k-grid-btnCount").click(function (e) {
+        e.preventDefault();
+        var btnText = $(".k-grid-btnCount").text();
+        var msg = "Are you sure you want to " + btnText + "?";
+        if (btnText == "Submit for Count") {
+            msg = "Do you certify that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team?";
+        }
+        if (confirm(msg)) {        
+            var url = "";
+            if (btnText == "Submit for Count")
+            {
+                url = '@Url.Action("SubmitForCount", "CustodianReport")';
+            }
+            else
+            {
+                url = '@Url.Action("UnsubmitForCount", "CustodianReport")';
+            }
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {
+                    reportId: reportId,
+                    locationId: $("#sectionId").val(),
+                    accountGroup: '@ViewBag.AccountGroup'
+                },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        displayErrors(result.Errors);
+                        return false;
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    disabled.attr('disabled', 'disabled');
+                    alert(req.responseText);
+                    return false;
+                }
+            });
+        }
+    });
+
     function displayErrors(errors) {
         if (errors.length > 0) {
             // Concatenate all error messages into a single string
@@ -959,6 +1030,7 @@
         const tr = $(e.currentTarget).closest("tr");
         const dataItem = this.dataItem(tr);
         selectedId = dataItem.Id;
+        trackingId = selectedId;
         const rowitem = this.dataSource.get(dataItem.Id);
         this.select($('[data-uid=' + rowitem.uid + ']'));
 
@@ -1579,5 +1651,28 @@
 
         $("#ProRatedCost").data("kendoNumericTextBox").value(unitCost);
         $("#ProRatedCost").data("kendoNumericTextBox").trigger("change");
+    }
+
+    // SUBMIT FOR COUNT
+    function setSubmitButton(reportId, locationId)
+    {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("IsSubmitForCount", "CustodianReport")',
+            data: { reportId: reportId, locationId: locationId },
+            beforeSend: function () {
+                window.kendo.ui.progress($("body, .k-window"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("body, .k-window"), false);
+                var btn = $(".k-grid-btnCount")
+                var newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
+                btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+                window.kendo.ui.progress($("body, .k-window"), false);
+            }
+        });
     }
 </script>

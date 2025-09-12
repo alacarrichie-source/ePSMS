@@ -123,6 +123,7 @@ namespace iLgs
             services.AddScoped<ICustodianReportItemVehicleValidator, CustodianReportItemVehicleValidator>();
             services.AddScoped<ICustodianReportLandItemService, CustodianReportLandItemService>();
             services.AddScoped<ICustodianReportService, CustodianReportService>();
+            services.AddScoped<ICustodianReportSubmitForCountService, CustodianReportSubmitForCountService>();            
             services.AddScoped<ICustodianReportValidator, CustodianReportValidator>();
 
             // CUSTODIAN UPLOADS
@@ -139,6 +140,12 @@ namespace iLgs
             services.AddScoped<IItemCodeService, ItemCodeService>();
             services.AddScoped<IItemTypeExclusionService, ItemTypeExclusionService>();
             services.AddScoped<IItemTypeService, ItemTypeService>();
+
+            // NOTIFICATIONS                
+            services.AddScoped<INotificationMessageService, NotificationMessageService>();
+            services.AddScoped<INotificationMessageStatusService, NotificationMessageStatusService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<INotificationUserService, NotificationUserService>();
 
             // PAR/ICS
             services.AddScoped<IIcsParItemService, IcsParItemService>();
@@ -258,7 +265,6 @@ namespace iLgs
 
             // Build the service provider
             var provider = services.BuildServiceProvider();
-
             // 🔧 Set MVC dependency resolver
             DependencyResolver.SetResolver(new DefaultDependencyResolver(provider));
 

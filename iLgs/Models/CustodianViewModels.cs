@@ -41,16 +41,15 @@ namespace iLgs.Models
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }
-
+            public Nullable<System.DateTime> UpdatedDt { get; set; }                        
         }
     }
 
 
     [MetadataType(typeof(CustodianReportItem.Metadata))]
     public partial class CustodianReportItem
-    {
-        
+    {        
+        public bool? IsSubmitted { get; set; } // if submitted for count
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
         public string ItemTypeIndex { get; set; }
@@ -97,6 +96,15 @@ namespace iLgs.Models
         public string RpcPpeIssuedsTo { get; set; }
 
         public int? ForYear { get; set; }
+
+        [Display(Name = "Posted")]
+        public string IsPosted
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(this.PostedBy) ? "N" : "Y";
+            }
+        }
 
         internal sealed class Metadata
         {
@@ -404,7 +412,7 @@ namespace iLgs.Models
         //[Display(Name = "Pro-rated Set Cost")]
         ////public new Nullable<decimal> UnitCost { get => base.UnitCost; set => base.UnitCost = value; }
         //public Nullable<decimal> UnitCost { get; set; }
-        public string Category { get; set; }
+        public string Category { get; set; }        
     }
 
     public class CustodianReportItemVehicleVM : CustodianReportItem
@@ -456,7 +464,7 @@ namespace iLgs.Models
         //{
         //    this.AllField = new AllField();
         //}
-
+        public bool? IsSubmitted { get; set; }
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
 
@@ -701,7 +709,7 @@ namespace iLgs.Models
         //{
         //    this.AllField = new AllField();
         //}
-
+        public bool? IsSubmitted { get; set; }
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
 
@@ -1047,6 +1055,37 @@ namespace iLgs.Models
             [Required]
             [Display(Name = "Accountable Officer")]
             public string AccountableOfficer { get; set; }
+        }
+    }
+
+    public class CustodianReportSubmitForCountVM : CustodianReportSubmitForCount
+    {
+
+    }
+
+    [MetadataType(typeof(CustodianReportSubmitForCount.Metadata))]
+    public partial class CustodianReportSubmitForCount
+    {
+        public int ReportYear { get; set; }
+        public string Department { get; set; }
+        public string Location { get; set; }
+        public string LocationCode { get; set; }
+        public int? AccountGroup { get; set; }
+
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> ReportId { get; set; }
+            public Nullable<System.Guid> LocationId { get; set; }
+            public string Status { get; set; }
+            public string InsertedBy { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> UpdatedDt { get; set; }            
         }
     }
 }

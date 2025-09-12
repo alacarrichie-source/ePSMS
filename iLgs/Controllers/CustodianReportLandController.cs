@@ -25,16 +25,19 @@ namespace iLgs.Controllers
     {
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportLandItemService _custodianReportLandItemService;
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianLandUploadService _uploadService;
 
         public CustodianReportLandController(ICustodianReportService custodianReportService,
             ICustodianReportLandItemService custodianReportLandItemService,
+            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
             ICodextnService codextnService,
             ICustodianLandUploadService custodianLandUploadService)
         {
             _custodianReportService = custodianReportService;
             _custodianReportLandItemService = custodianReportLandItemService;
+            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
             _codextnService = codextnService;
             _uploadService = custodianLandUploadService;
         }
@@ -270,6 +273,108 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, user, date, false);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
 
         public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {

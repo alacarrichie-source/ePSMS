@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
+            this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
         }
     
         public System.Guid Id { get; set; }
@@ -45,5 +46,7 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReportItem> CustodianReportItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportLandItem> CustodianReportLandItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
     }
 }

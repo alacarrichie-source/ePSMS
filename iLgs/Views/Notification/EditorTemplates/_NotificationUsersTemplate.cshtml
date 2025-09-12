@@ -1,0 +1,79 @@
+﻿@model iLgs.Models.NotificationUserVM
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.NotificationId)
+    @Html.HiddenFor(model => model.UserId)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.UserName)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select User")
+                            .DataTextField("UserName")
+                            .DataValueField("UserName")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetDeptUserList", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("UserName").Title("User Name").Width("20%");
+                                c.Add().Field("NameFull").Title("Full Name").Width("40%");
+                                c.Add().Field("Department").Title("Department").Width("40%");
+                            })
+                            .Events(e => e.Select("onSelectUserName"))
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.UserName)
+                </div>
+            </div>
+        </div>        
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.UserFullName, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.UserFullName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.UserFullName)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.UserDepartment, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.UserDepartment).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.UserDepartment)
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+}
+
+
+
+
+
+

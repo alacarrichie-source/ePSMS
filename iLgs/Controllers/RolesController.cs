@@ -59,7 +59,7 @@ namespace iLgs.Controllers
             var isAdmin = _db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
             if (isAdmin)
             {
-                return Json(_db.AspNetRoles.ToDataSourceResult(request));
+                return Json(_db.AspNetRoles.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace iLgs.Controllers
                 //            ).Any()
                 //        ).ToDataSourceResult(request));                
                 var data = _db.AspNetRoles.Where(w => w.Id != "admin" && _db.AspNetUserRoles.Any(a => a.UserId == userId && a.RoleId.Contains(w.Id)));
-                return Json(data.ToDataSourceResult(request));
+                return Json(data.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -201,7 +201,8 @@ namespace iLgs.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    AspNetUserRole entity = SetAspNetUserRole(model);
+                    var entity = _db.AspNetUserRoles.FirstOrDefault(f => f.RoleId == model.RoleId && f.UserId == model.UserId);
+                    //AspNetUserRole entity = SetAspNetUserRole(model);
 
                     // Attach the entity
                     _db.AspNetUserRoles.Attach(entity);
@@ -209,7 +210,7 @@ namespace iLgs.Controllers
                     _db.AspNetUserRoles.Remove(entity);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
+                    _db.Entry(entity).State = EntityState.Deleted;
                     _db.SaveChanges();
 
                 }

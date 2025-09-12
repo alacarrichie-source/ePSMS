@@ -28,9 +28,20 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public JsonResult GetAuditLogs([DataSourceRequest] DataSourceRequest request)
+        public ActionResult _AuditTrail(string trackingId)
         {
-            var auditLogs = _auditLogService.GetAuditLogsQueryable(); // Make this IQueryable
+            ViewData["trackingId"] = trackingId;
+            return PartialView();
+        }
+
+        public ActionResult _AuditTrailScripts()
+        {
+            return PartialView();
+        }
+
+        public JsonResult GetAuditLogs([DataSourceRequest] DataSourceRequest request, string trackingId)
+        {
+            var auditLogs = _auditLogService.GetAuditLogsQueryable(trackingId); // Make this IQueryable
 
             // Apply filtering, sorting, paging
             var result = auditLogs.ToDataSourceResult(request);

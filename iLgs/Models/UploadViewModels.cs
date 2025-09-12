@@ -16,6 +16,7 @@ namespace iLgs.Models
         //public string PathName { get { return (this.Directory + this.FileName).Replace("/", "\\"); } } 
         public string PathName { get { return this.Directory + this.FileName; } }
         public Guid? PsCardItemId { get; set; }
+        
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }

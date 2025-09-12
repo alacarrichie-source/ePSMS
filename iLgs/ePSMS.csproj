@@ -317,6 +317,7 @@
     <Compile Include="Controllers\CustodianIirupController.cs" />
     <Compile Include="Controllers\CustodianReportBldgController.cs" />
     <Compile Include="Controllers\CustodianReportController.cs" />
+    <Compile Include="Controllers\CustodianReportCountController.cs" />
     <Compile Include="Controllers\CustodianReportLandController.cs" />
     <Compile Include="Controllers\DollarRateController.cs" />
     <Compile Include="Controllers\IcsParRptController.cs" />
@@ -325,6 +326,7 @@
     <Compile Include="Controllers\ItemCodeRequestController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\LocationController.cs" />
+    <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
@@ -436,6 +438,9 @@
     <Compile Include="Models\CustodianReportLandItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianReportSubmitForCount.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CustodianReportUpload.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -499,6 +504,19 @@
     <Compile Include="Models\Menubase.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Notification.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\NotificationMessage.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\NotificationMessageStatu.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\NotificationUser.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\NotificationViewModels.cs" />
     <Compile Include="Models\Order.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -858,6 +876,7 @@
     <Compile Include="Services\Codes\SemiExpendableService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemPhaseService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceRpcPpeService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportSubmitForCountService.cs" />
     <Compile Include="Services\Items\ItemCodeRequestService.cs" />
     <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
@@ -891,6 +910,10 @@
     <Compile Include="Services\Items\ItemTypeExclusionService.cs" />
     <Compile Include="Services\Logs\DatabaseLogger.cs" />
     <Compile Include="Services\Logs\DatabaseLoggerProvider.cs" />
+    <Compile Include="Services\Notifications_\NotificationMessageService.cs" />
+    <Compile Include="Services\Notifications_\NotificationMessageStatusService.cs" />
+    <Compile Include="Services\Notifications_\NotificationService.cs" />
+    <Compile Include="Services\Notifications_\NotificationUserService.cs" />
     <Compile Include="Services\ParIcs\IcsParItemService.cs" />
     <Compile Include="Services\ParIcs\IcsParService.cs" />
     <Compile Include="Services\ParIcs\IcsParSharedService.cs" />
@@ -4210,6 +4233,13 @@
     <Content Include="Views\ItemCard\_ImagesAdd.cshtml" />
     <Content Include="Views\ItemCard\EditorTemplates\_AddCostTemplate.cshtml" />
     <Content Include="Views\AuditTrail\Index.cshtml" />
+    <Content Include="Views\AuditTrail\_AuditTrail.cshtml" />
+    <Content Include="Views\AuditTrail\_AuditTrailScripts.cshtml" />
+    <Content Include="Views\CustodianReportCount\Index.cshtml" />
+    <Content Include="Views\Notification\Index.cshtml" />
+    <Content Include="Views\Notification\EditorTemplates\_NotificationTemplate.cshtml" />
+    <Content Include="Views\Notification\_NotificationUsers.cshtml" />
+    <Content Include="Views\Notification\EditorTemplates\_NotificationUsersTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />

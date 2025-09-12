@@ -23,6 +23,9 @@ namespace iLgs.Controllers
         protected static string sysAdmin = "PSMS_ADMIN";
 
         private bool InitMenu { get; set; }
+        private bool _isAdmin { get; set; }
+        private bool _isSysAdmin { get; set; }
+        
 
         protected HttpClient client;
 
@@ -43,17 +46,22 @@ namespace iLgs.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            ViewData["IsAdminUser"] = false;
             ViewData["MenuTreeList"] = null;
             if (User != null && User.Identity.IsAuthenticated)
             {
                 string userId = User.Identity.GetUserId();
+                
+                _isSysAdmin = false;
+                _isAdmin = Task.Run(async () => await GetUserInRole(userId, "admin")).Result;
 
+                if (!_isAdmin)
+                {
+                    _isSysAdmin = Task.Run(async () => await GetUserInRole(userId, sysAdmin)).Result;
+                }
 
-                var allMenu = Task.Run(async () => await GetMainMenu(User.Identity.GetUserId())).Result;
-
-
+                var allMenu = Task.Run(async () => await GetMainMenu(User.Identity.GetUserId())).Result;                               
                 bool isLocalhost = false;
-
                 string host = HttpContext.Request.Url.Host;
                 Console.WriteLine("Host = " + host);
                 if (host == "localhost" || host == "127.0.0.1" || host == "::1")
@@ -93,6 +101,7 @@ namespace iLgs.Controllers
                 menuTreeList = GetMenuTree(allMenu, menus);
 
                 ViewData["MenuTreeList"] = menuTreeList;
+                ViewData["IsAdminUser"] = _isAdmin || _isSysAdmin;
             }
 
             base.OnActionExecuting(filterContext);
@@ -136,8 +145,11 @@ namespace iLgs.Controllers
             IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
             if (userId != null)
             {
-                var admin = await GetUserInRole(userId, "admin");
-                var sysadmin = await GetUserInRole(userId, sysAdmin);
+                //var admin = await GetUserInRole(userId, "admin");
+                //var sysadmin = await GetUserInRole(userId, sysAdmin);
+
+                var admin = _isAdmin;
+                var sysadmin = _isSysAdmin;
 
                 ViewBag.ShowMenu = true;
                 if (admin || sysadmin)

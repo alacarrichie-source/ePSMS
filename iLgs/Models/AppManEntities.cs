@@ -449,24 +449,56 @@ namespace iLgs.Models
         //    return keyProperties?.KeyProperties.Any(k => k.Name == propertyName) ?? false;
         //}
 
+        //private bool IsPrimaryKey(DbEntityEntry entry, string propertyName)
+        //{
+        //    var objectContext = ((IObjectContextAdapter)this).ObjectContext;
+        //    var entityType = ObjectContext.GetObjectType(entry.Entity.GetType());
+
+        //    // Get EntitySet for this entity type
+        //    var entitySet = objectContext.MetadataWorkspace
+        //        .GetEntityContainer(objectContext.DefaultContainerName, DataSpace.CSpace)
+        //        .EntitySets
+        //        .FirstOrDefault(s => s.ElementType.Name == entityType.Name);
+
+        //    if (entitySet == null)
+        //        return false;
+
+        //    // Get key property names
+        //    var keyPropertyNames = entitySet.ElementType.KeyProperties.Select(k => k.Name);
+
+        //    return keyPropertyNames.Contains(propertyName);
+        //}
+
         private bool IsPrimaryKey(DbEntityEntry entry, string propertyName)
         {
             var objectContext = ((IObjectContextAdapter)this).ObjectContext;
             var entityType = ObjectContext.GetObjectType(entry.Entity.GetType());
 
-            // Get EntitySet for this entity type
-            var entitySet = objectContext.MetadataWorkspace
-                .GetEntityContainer(objectContext.DefaultContainerName, DataSpace.CSpace)
-                .EntitySets
-                .FirstOrDefault(s => s.ElementType.Name == entityType.Name);
+            // Get metadata for the entity type
+            var metadata = objectContext.MetadataWorkspace;
 
-            if (entitySet == null)
+            var entityMeta = metadata
+                .GetItems<EntityType>(DataSpace.CSpace)
+                .FirstOrDefault(e => e.Name == entityType.Name);
+
+            if (entityMeta == null)
                 return false;
 
-            // Get key property names
-            var keyPropertyNames = entitySet.ElementType.KeyProperties.Select(k => k.Name);
+            // Get the key property names in CSpace
+            var keyNames = entityMeta.KeyProperties.Select(k => k.Name);
 
-            return keyPropertyNames.Contains(propertyName);
+            // Map to the OSpace/CLR property names
+            var clrProperties = metadata
+                .GetItems<EntityType>(DataSpace.OSpace)
+                .FirstOrDefault(e => e.Name == entityType.Name)?
+                .Properties;
+
+            var mappedKeyNames = clrProperties?
+                .Where(p => keyNames.Contains(p.Name))
+                .Select(p => p.Name)
+                .ToList();
+
+            return mappedKeyNames != null && mappedKeyNames.Contains(propertyName);
         }
 
         //private bool IsPropertyModified(DbEntityEntry entry, string propertyName)

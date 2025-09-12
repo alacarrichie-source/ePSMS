@@ -106,7 +106,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
         public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<CustodianReport> CustodianReports { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
@@ -115,10 +114,16 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<AuditLogDetail> AuditLogDetails { get; set; }
-        public virtual DbSet<AuditLog> AuditLogs { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<TrackingItem> TrackingItems { get; set; }
         public virtual DbSet<Tracking> Trackings { get; set; }
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
+        public virtual DbSet<CustodianReport> CustodianReports { get; set; }
+        public virtual DbSet<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
+        public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
+        public virtual DbSet<NotificationMessageStatu> NotificationMessageStatus { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<NotificationUser> NotificationUsers { get; set; }
+        public virtual DbSet<AuditLog> AuditLogs { get; set; }
     }
 }

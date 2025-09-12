@@ -54,103 +54,106 @@ namespace iLgs.Services.CustodianReports
             _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
         }
 
-        private static Expression<Func<CustodianReportLandItem, CustodianReportLandItemVM>> CustodianReportLandItemProjection
-        = s => new CustodianReportLandItemVM
+        private static Expression<Func<CustodianReportLandItem, CustodianReportLandItemVM>> CustodianReportLandItemProjection(AppManEntities db)
         {
-            Id = s.Id,
-            MainDeptId = s.CustodianReport.DeptId,
-            AccountGroup = s.CustodianReport.AccountGroup,
-            ReportId = s.ReportId,
-            Fund = s.Fund,
-            PIN = s.PIN,
-            CustodianItemNo = s.CustodianItemNo,
-            SeriesNo = s.SeriesNo,
-            Type = s.Type,
-            Condition = s.Condition,
-            Description = s.Description,
-            LocationId = s.LocationId,
-            LocationCode = s.LocationCode,
-            Location = s.Location, // Barangay
-            SubLocation = s.SubLocation,
-            Address = s.Address,
-            LandMarks = s.LandMarks,
-            Area = s.Area,
-            Unit = s.Unit,
-            AreaXPrice = s.AreaXPrice,
-            PricePerSqm = s.PricePerSqm,
-            MarketValue = s.MarketValue,
-            PsNo = s.PsNo,
-            PropNo = s.PropNo,
-            OldPropNo = s.OldPropNo,
-            OldAmount = s.OldAmount,
-            AcqCost = s.AcqCost,
-            AcqDate = s.AcqDate,
-            FromDonation = s.FromDonation,
-            Vendor = s.Vendor,
-            Representative = s.Representative,
-            TctNo = s.TctNo,
-            OldTctNo = s.OldTctNo,
-            DRPNo = s.DRPNo,
-            DRPDate = s.DRPDate,
-            OldDRPNo = s.OldDRPNo,
-            OldDRPDate = s.OldDRPDate,
-            Remarks = s.Remarks,
-            CGT = s.CGT,
-            CGTCompromise = s.CGTCompromise,
-            CGTInterest = s.CGTInterest,
-            CGTSurcharge = s.CGTInterest,
-            CGTTransferTax = s.CGTTransferTax,
-            CGTCompromiseCap = s.CGTCompromiseCap,
-            CGTInterestCap = s.CGTInterestCap,
-            CGTSurchargeCap = s.CGTSurchargeCap,
-            CGTTransferTaxCap = s.CGTTransferTaxCap,
-            DST = s.DST,
-            DSTCompromise = s.DSTCompromise,
-            DSTInterest = s.DSTInterest,
-            DSTSurcharge = s.DSTSurcharge,
-            DSTTransferTax = s.DSTTransferTax,
-            DSTCompromiseCap = s.DSTCompromiseCap,
-            DSTInterestCap = s.DSTInterestCap,
-            DSTSurchargeCap = s.DSTSurchargeCap,
-            DSTTransferTaxCap = s.DSTTransferTaxCap,
-            TransferTax = s.TransferTax,
-            Surcharge = s.Surcharge,
-            Interest = s.Interest,
-            TransferTaxCap = s.TransferTaxCap,
-            SurchargeCap = s.SurchargeCap,
-            InterestCap = s.InterestCap,
-            ConfirmationFee = s.ConfirmationFee,
-            TransferRegsFee = s.TransferRegsFee,
-            RealPropertyFee = s.RealPropertyFee,
-            ConfirmationFeeCap = s.ConfirmationFeeCap,
-            TransferRegsFeeCap = s.TransferRegsFeeCap,
-            RealPropertyFeeCap = s.RealPropertyFeeCap,
-            VAT = s.VAT,
-            EstateFee = s.EstateFee,
-            Titling = s.Titling,
-            CertificationFee = s.CertificationFee,
-            Relocation = s.Relocation,
-            Surveying = s.Surveying,
-            IncidentalExpenses = s.IncidentalExpenses,
-            VATCap = s.VATCap,
-            EstateFeeCap = s.EstateFeeCap,
-            TitlingCap = s.TitlingCap,
-            CertificationFeeCap = s.CertificationFeeCap,
-            RelocationCap = s.RelocationCap,
-            SurveyingCap = s.SurveyingCap,
-            IncidentalExpensesCap = s.IncidentalExpensesCap,
-            Account = s.Account,
-            ItemCodeId = s.ItemCodeId,
-            SubAccount = s.SubAccount,
-            Article = s.Article,
-            Annex = s.Annex,
-            InsertedBy = s.InsertedBy,
-            InsertedDt = s.InsertedDt,
-            PostedBy = s.PostedBy,
-            PostedDt = s.PostedDt,
-            ItemType_Code = s.ItemCode.ItemType.Code,
-            Item_Code = s.ItemCode.Code
-        };
+            return s => new CustodianReportLandItemVM
+            {
+                Id = s.Id,
+                MainDeptId = s.CustodianReport.DeptId,
+                AccountGroup = s.CustodianReport.AccountGroup,
+                ReportId = s.ReportId,
+                Fund = s.Fund,
+                PIN = s.PIN,
+                CustodianItemNo = s.CustodianItemNo,
+                SeriesNo = s.SeriesNo,
+                Type = s.Type,
+                Condition = s.Condition,
+                Description = s.Description,
+                LocationId = s.LocationId,
+                LocationCode = s.LocationCode,
+                Location = s.Location, // Barangay
+                SubLocation = s.SubLocation,
+                Address = s.Address,
+                LandMarks = s.LandMarks,
+                Area = s.Area,
+                Unit = s.Unit,
+                AreaXPrice = s.AreaXPrice,
+                PricePerSqm = s.PricePerSqm,
+                MarketValue = s.MarketValue,
+                PsNo = s.PsNo,
+                PropNo = s.PropNo,
+                OldPropNo = s.OldPropNo,
+                OldAmount = s.OldAmount,
+                AcqCost = s.AcqCost,
+                AcqDate = s.AcqDate,
+                FromDonation = s.FromDonation,
+                Vendor = s.Vendor,
+                Representative = s.Representative,
+                TctNo = s.TctNo,
+                OldTctNo = s.OldTctNo,
+                DRPNo = s.DRPNo,
+                DRPDate = s.DRPDate,
+                OldDRPNo = s.OldDRPNo,
+                OldDRPDate = s.OldDRPDate,
+                Remarks = s.Remarks,
+                CGT = s.CGT,
+                CGTCompromise = s.CGTCompromise,
+                CGTInterest = s.CGTInterest,
+                CGTSurcharge = s.CGTInterest,
+                CGTTransferTax = s.CGTTransferTax,
+                CGTCompromiseCap = s.CGTCompromiseCap,
+                CGTInterestCap = s.CGTInterestCap,
+                CGTSurchargeCap = s.CGTSurchargeCap,
+                CGTTransferTaxCap = s.CGTTransferTaxCap,
+                DST = s.DST,
+                DSTCompromise = s.DSTCompromise,
+                DSTInterest = s.DSTInterest,
+                DSTSurcharge = s.DSTSurcharge,
+                DSTTransferTax = s.DSTTransferTax,
+                DSTCompromiseCap = s.DSTCompromiseCap,
+                DSTInterestCap = s.DSTInterestCap,
+                DSTSurchargeCap = s.DSTSurchargeCap,
+                DSTTransferTaxCap = s.DSTTransferTaxCap,
+                TransferTax = s.TransferTax,
+                Surcharge = s.Surcharge,
+                Interest = s.Interest,
+                TransferTaxCap = s.TransferTaxCap,
+                SurchargeCap = s.SurchargeCap,
+                InterestCap = s.InterestCap,
+                ConfirmationFee = s.ConfirmationFee,
+                TransferRegsFee = s.TransferRegsFee,
+                RealPropertyFee = s.RealPropertyFee,
+                ConfirmationFeeCap = s.ConfirmationFeeCap,
+                TransferRegsFeeCap = s.TransferRegsFeeCap,
+                RealPropertyFeeCap = s.RealPropertyFeeCap,
+                VAT = s.VAT,
+                EstateFee = s.EstateFee,
+                Titling = s.Titling,
+                CertificationFee = s.CertificationFee,
+                Relocation = s.Relocation,
+                Surveying = s.Surveying,
+                IncidentalExpenses = s.IncidentalExpenses,
+                VATCap = s.VATCap,
+                EstateFeeCap = s.EstateFeeCap,
+                TitlingCap = s.TitlingCap,
+                CertificationFeeCap = s.CertificationFeeCap,
+                RelocationCap = s.RelocationCap,
+                SurveyingCap = s.SurveyingCap,
+                IncidentalExpensesCap = s.IncidentalExpensesCap,
+                Account = s.Account,
+                ItemCodeId = s.ItemCodeId,
+                SubAccount = s.SubAccount,
+                Article = s.Article,
+                Annex = s.Annex,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
+                ItemType_Code = s.ItemCode.ItemType.Code,
+                Item_Code = s.ItemCode.Code,
+                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit")
+            };
+        }
 
         public string GetStockNo(CustodianReportLandItem model)
         {
@@ -163,7 +166,7 @@ namespace iLgs.Services.CustodianReports
         {
             var data = await _db.CustodianReportLandItems
                 .Where(w => w.Id == id)
-                .Select(CustodianReportLandItemProjection).FirstOrDefaultAsync();
+                .Select(CustodianReportLandItemProjection(_db)).FirstOrDefaultAsync();
             return data;
         });
 
@@ -172,7 +175,7 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportLandItems
                 .AsNoTracking()
                 .Where(w => w.ReportId == reportId)
-                .Select(CustodianReportLandItemProjection);
+                .Select(CustodianReportLandItemProjection(_db));
             return data;
         }
 
@@ -181,7 +184,7 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportLandItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReportLandItemProjection);
+                .Select(CustodianReportLandItemProjection(_db));
 
             return data;
         }
@@ -189,6 +192,12 @@ namespace iLgs.Services.CustodianReports
         public ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+
+            if (model.ForYear == 0 || model.ForYear == null)
+            {
+                throw new InvalidValueException("For Year is Required.");
+            }
+
             ValidateRequired(model);
 
             model.AllField = SetAllField(model);
@@ -216,6 +225,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             model.ReportId = custodianReport.Id;
+            ValidateIfSubmitted(model);
 
             var entity = new CustodianReportLandItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
@@ -237,6 +247,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
             //ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
@@ -258,6 +269,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -763,10 +775,10 @@ namespace iLgs.Services.CustodianReports
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
             }
 
-            if (model.ForYear == 0 || model.ForYear == null)
-            {
-                _imex.UpsertDataList("For Year", "Field is Required.");
-            }
+            //if (model.ForYear == 0 || model.ForYear == null)
+            //{
+            //    _imex.UpsertDataList("For Year", "Field is Required.");
+            //}
 
             //if (!model.Area.HasValue)
             //{
@@ -821,6 +833,16 @@ namespace iLgs.Services.CustodianReports
             if (entity.PostedDt == null)
             {
                 throw new RecordNotYetPostedException($"Record is not yet posted!");
+            }
+        }
+
+        private void ValidateIfSubmitted(CustodianReportLandItem model)
+        {
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            if (submitForCount != null)
+            {
+                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
             }
         }
 

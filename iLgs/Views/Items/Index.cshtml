@@ -236,12 +236,14 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+                trackingId = selectedId;
             }
         }
     }
 
     var selectedGrid = null;
     var selectedId = null;
+    var trackingId = null;
     var selecteItemId = null;
     var selecteItemFieldId = null;
 
@@ -250,6 +252,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        trackingId = selectedId;
         selectedItemId = null;
         selectedItemFieldId = null;
     }
@@ -267,12 +270,13 @@
             //var firstRow = this.tbody.find("tr.k-master-row").first();
             //this.expandRow(firstRow);
 
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
+            // Attach a handler to the "detailExpand" event            
         }
+
+        this.bind("detailExpand", function (e) {
+            // Select the expanded master row
+            this.select(e.masterRow);
+        });
 
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrint_", grid).hide();
@@ -291,6 +295,7 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+        trackingId = selectedId;
     }
 
     function onGridDeleteClick(e) {
@@ -375,18 +380,20 @@
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
-            }            
+            }
             if (e.type == "create") {
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedItemId = newRecord.Id;
+                trackingId = selectedItemId;
             }
         }
     }
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selecteItemId = selectedData.Id;
+        selectedItemId = selectedData.Id;
+        trackingId = selectedItemId;
     }
 
     function onDataBoundGridItems(e) {
@@ -395,10 +402,11 @@
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
         }
+        //else {
+        //    var row = e.sender.tbody.find("tr:first");
+        //    this.select(row);
+        //}
     }
 
     function onEditGridItems(e) {
@@ -505,10 +513,11 @@
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
         }
+        //else {
+        //    var row = e.sender.tbody.find("tr:first");
+        //    this.select(row);
+        //}
     }
 
     function onEditGridItemFields(e) {
@@ -552,7 +561,7 @@
 
         //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         //AIRItem("E", dataItem.Id);
-    }    
+    }
     //
 </script>
 

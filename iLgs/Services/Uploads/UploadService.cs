@@ -138,6 +138,8 @@ namespace iLgs.Services
                 throw new RecordNotFoundException("No files to upload!");
             }
 
+            ValidateIfSubmitted(model);
+
             if (string.IsNullOrWhiteSpace(model.Description))
             {
                 throw new InvalidValueException("Description is Required!");
@@ -196,7 +198,47 @@ namespace iLgs.Services
             }
             return model;
         }
-        
+
+        private void ValidateIfSubmitted(Upload model)
+        {
+            Guid? reportId = null;
+            Guid? locationId = null;
+            var custodianReportItem = _db.CustodianReportItems.FirstOrDefault(f => f.Id == model.ImageId);
+            if (custodianReportItem != null)
+            {
+                reportId = custodianReportItem.ReportId;
+                locationId = custodianReportItem.LocationId;
+            }
+            else
+            {
+                var custodianReportBldgItem = _db.CustodianReportBldgItems.FirstOrDefault(f => f.Id == model.ImageId);
+                if (custodianReportBldgItem != null)
+                {
+                    reportId = custodianReportBldgItem.ReportId;
+                    locationId = custodianReportBldgItem.LocationId;
+                }
+                else
+                {
+                    var custodianReportLandItem = _db.CustodianReportLandItems.FirstOrDefault(f => f.Id == model.ImageId);
+                    if (custodianReportLandItem != null)
+                    {
+                        reportId = custodianReportLandItem.ReportId;
+                        locationId = custodianReportLandItem.LocationId;
+                    }
+                }
+            }
+
+            if (reportId != null)
+            {
+                var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == reportId && f.LocationId == locationId && f.Status == "Submit");
+                if (submitForCount != null)
+                {
+                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                    throw new RecordAlreadyPostedException(msg);
+                }
+            }
+        }
+
         public byte[] DownloadFile(string fileName)
         {
             try
@@ -221,7 +263,8 @@ namespace iLgs.Services
         }
 
         public virtual async ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date)
-        {            
+        {
+            ValidateIfSubmitted(model);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -244,6 +287,7 @@ namespace iLgs.Services
 
         public virtual async ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date)
         {
+            ValidateIfSubmitted(model);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 

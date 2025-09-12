@@ -58,6 +58,7 @@ namespace iLgs.Services.CustodianReports
         {
             ValidateIfNull(model);
             ValidateIfPosted(model.BldgItemId);
+            ValidateIfSubmitted(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -84,6 +85,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity.BldgItemId);
+            ValidateIfSubmitted(model);
             ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
@@ -103,6 +105,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity.BldgItemId);
+            ValidateIfSubmitted(model);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -162,10 +165,21 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateIfPosted(Guid? bldgItemId)
         {
-            var reportItem = _db.CustodianReportBldgItems.Include(i => i.CustodianReport).Where(w => w.Id == bldgItemId).SingleOrDefault();
+            var reportItem = _db.CustodianReportBldgItems.Where(w => w.Id == bldgItemId).SingleOrDefault();
             if (reportItem.PostedDt != null)
             {
                 var msg = $"Record already posted by {reportItem.PostedBy} on {reportItem.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfSubmitted(CustodianReportBldgItemPhas model)
+        {
+            var custodianReportBldgItem = _db.CustodianReportBldgItems.FirstOrDefault(f => f.Id == model.BldgItemId);
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == custodianReportBldgItem.ReportId && f.LocationId == custodianReportBldgItem.LocationId && f.Status == "Submit");
+            if (submitForCount != null)
+            {
+                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
                 throw new RecordAlreadyPostedException(msg);
             }
         }

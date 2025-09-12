@@ -144,6 +144,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
+    var trackingId = null;
     var selecteItemId = null;
     var codeHdg = null;
     var hdg1 = null;
@@ -155,6 +156,7 @@
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
+        trackingId = selectedId;
         selectedItemId = null;
     }
 
@@ -168,6 +170,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+                trackingId = selectedId;
             }
         }
     }
@@ -201,7 +204,7 @@
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
         }
-
+        trackingId = selectedId;
     }
 
     function onGridDeleteClick(e) {

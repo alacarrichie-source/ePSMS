@@ -144,5 +144,38 @@ namespace iLgs.Utilities
         {
             return new DateTime((int)forYear, 12, 31);
         }
+
+        public static string GetFieldTrim(string fieldName, bool toProper = true)
+        {
+            var trim = string.Empty;
+            var x = fieldName;
+
+            if (toProper)
+            {
+                x = Utility.ToProperCase(fieldName);
+            }
+
+            x = x.Replace(" ", "");
+
+            if (x.Length < 7)
+            {
+                trim = $"/{x}";
+            }
+            else
+            {
+                trim = $"/{x.Substring(0, 3) + x.Substring(x.Length - 3)}";
+            }
+            return trim;
+        }
+
+        public static string GetAfBrand(string brand)
+        {
+            return Utility.ToProperCase(brand).Replace(" ", "");
+        }
+
+        public static string GetAfModel(string model)
+        {
+            return Utility.ToProperCase(model).Replace(" ", "");
+        }
     }
 }

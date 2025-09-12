@@ -258,7 +258,6 @@
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianDisposals" />
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianIRRUPs" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItemPhas" Width="1.5" PointX="5.25" PointY="44.25" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReport" Width="1.5" PointX="0.75" PointY="59.375" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItem" Width="1.5" PointX="3" PointY="64.75" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="3" PointY="79.875" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportLandItem" Width="1.5" PointX="3" PointY="33.375" />
@@ -266,14 +265,17 @@
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItemPhases_CustodianReportBldgItems" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportItems_CustodianReports" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportUpload" Width="1.5" PointX="5.25" PointY="64.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportUploads_CustodianReportBldgItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportUploads_CustodianReportItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportUploads_CustodianReportLandItems" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReport" Width="1.5" PointX="0.75" PointY="64.75" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportItems_CustodianReports" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportSubmitForCount" Width="1.5" PointX="3" PointY="102.75" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports" />
         </Diagram>
       <Diagram DiagramId="6ed46f20c55b4c3f89ae9de029a504b5" Name="Item Codes" >
         <EntityTypeShape EntityType="AppManModel.ItemTypeExclusion" Width="1.5" PointX="3" PointY="1.25" />
@@ -298,6 +300,16 @@
         <EntityTypeShape EntityType="AppManModel.Tracking" Width="1.5" PointX="0.75" PointY="0.75" />
         <AssociationConnector Association="AppManModel.FK_TrackingItems_Trackings" />
       </Diagram>
+      <Diagram DiagramId="59864e305dda44b3bb6d66651c01f5bf" Name="Notifications" >
+        <EntityTypeShape EntityType="AppManModel.NotificationMessage" Width="1.5" PointX="3" PointY="1.375" />
+        <EntityTypeShape EntityType="AppManModel.NotificationMessageStatu" Width="1.5" PointX="5.25" PointY="3" />
+        <EntityTypeShape EntityType="AppManModel.Notification" Width="1.5" PointX="0.75" PointY="3" />
+        <AssociationConnector Association="AppManModel.FK_NotificationMessages_Notifications" />
+        <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages" />
+        <EntityTypeShape EntityType="AppManModel.NotificationUser" Width="1.5" PointX="3" PointY="4.875" />
+        <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationUsers" />
+        <AssociationConnector Association="AppManModel.FK_NotificationUsers_Notifications" />
+        </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

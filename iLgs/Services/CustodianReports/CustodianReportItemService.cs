@@ -67,7 +67,7 @@ namespace iLgs.Services.CustodianReports
             model.AllField = SetAllField(model);
             return _allFieldService.GetCustodianStockNo(model);
         }
-
+        
         public IQueryable<CustodianReportItem> GetByReportId(Guid? reportId) =>
         _exceptionService.TryCatch(() =>
         {
@@ -118,6 +118,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             model.ReportId = custodianReport.Id;
+            ValidateIfSubmitted(model);
             ValidateFieldsOnCreateUpdate(model, Mode.ADD);
             ValidateSerials(model, Mode.EDIT);
 
@@ -138,6 +139,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItems.Include(i => i.CustodianReport).FirstOrDefaultAsync(f => f.Id == model.Id);
             ValidateRecord(entity, model.Id);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
             ValidateUser(entity, model);
             ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
             ValidateSerials(model, Mode.EDIT);
@@ -319,6 +321,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItems.FirstOrDefaultAsync(f => f.Id == model.Id);
             ValidateRecord(entity, model.Id);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
             // manually remove, cascade is not working due to multiple relationship.
             var custodianReportUpload = await _db.CustodianReportUploads.FindAsync(entity.Id);
@@ -1807,6 +1810,16 @@ namespace iLgs.Services.CustodianReports
             if (entity.PostedDt != null)
             {
                 var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfSubmitted(CustodianReportItem model)
+        {
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            if (submitForCount != null)
+            {
+                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
                 throw new RecordAlreadyPostedException(msg);
             }
         }

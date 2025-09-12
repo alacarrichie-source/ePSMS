@@ -5,8 +5,8 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -22,8 +22,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("deptId")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -54,8 +54,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Location", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Location", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("sectionId")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -89,8 +89,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Account", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Account", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("mainAccount")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -120,8 +120,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Sub-account 1", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Sub-account 1", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("subAccount1")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -151,8 +151,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Sub-account 2", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Sub-account 2", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("subAccount2")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -181,8 +181,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Sub-account 3", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Sub-account 3", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("subAccount3")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -211,8 +211,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Sub-account 4", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Sub-account 4", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("subAccount4")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -241,8 +241,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("As of", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("As of", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().DatePicker().Value(DateTime.Now)
                 .Name("asOf")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })                
@@ -279,6 +279,7 @@
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);
+            col.Bound(c => c.IsPosted).Width(50);
         })
         .ToolBar(t =>
         {
@@ -458,7 +459,7 @@
 </script>
 
 <script type="text/javascript">
-
+    var trackingId = null;
     function DataAccount() {
         var text = $("#mainAccount").data("kendoMultiColumnComboBox").text();
         return {
@@ -734,12 +735,15 @@
     }
 
     function onChangeForYear(e) {
+        selectedId = null;
+        trackingId = selectedId;
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
+        trackingId = selectedId;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
         $("#grid").data("kendoGrid").dataSource.read();
@@ -748,6 +752,7 @@
     function onSelectSectionId(e) {
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
+        trackingId = selectedId;
         $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
         $("#grid").data("kendoGrid").dataSource.read();
@@ -755,7 +760,8 @@
 
     function onChangeSectionId(e) {
         var comboBox = this;
-        selectedId = null;        
+        trackingId = null;
+        trackingId = selectedId;
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
@@ -790,6 +796,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        trackingId = selectedId;
         postedBy = selectedData.PostedBy;
 
         if (postedBy) {
@@ -846,7 +853,7 @@
             var accountGroup = '@ViewBag.AccountGroup';
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selectedId = null;
+            selectedId = null;            
             e.model.set("MainDeptId", $("#deptId").val());
             e.model.set("AccountGroup", accountGroup);
         } else {
@@ -854,6 +861,7 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+        trackingId = selectedId;
     }
 
     function onGridRequestEnd(e) {
@@ -926,6 +934,7 @@
                     // Save the inserted record ID if available
                     if (response.Data && response.Data[0] && response.Data[0].Id) {
                         selectedId = response.Data[0].Id; // Save the ID of the new record
+                        trackingId = selectedId;
                     }
 
                     // Handle validation errors if any

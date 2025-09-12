@@ -65,75 +65,78 @@ namespace iLgs.Services.CustodianReports
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
         }
 
-        public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase => _custodianReportBldgItemPhase;              
+        public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase => _custodianReportBldgItemPhase;
 
-        private static Expression<Func<CustodianReportBldgItem, CustodianReportBldgItemVM>> CustodianReportBldgItemProjection
-        = s => new CustodianReportBldgItemVM
+        private static Expression<Func<CustodianReportBldgItem, CustodianReportBldgItemVM>> CustodianReportBldgItemProjection(AppManEntities db)
         {
-            Id = s.Id,
-            MainDeptId = s.CustodianReport.DeptId,
-            AccountGroup = s.CustodianReport.AccountGroup,
-            ReportId = s.ReportId,
-            Fund = s.Fund,
-            CustodianItemNo = s.CustodianItemNo,
-            SeriesNo = s.SeriesNo,
-            FromDonation = s.FromDonation,
-            Account = s.Account,
-            ItemCodeId = s.ItemCodeId,
-            SubAccount = s.SubAccount,
-            Article = s.Article,
-            BldgItem = s.BldgItem,
-            PsNo = s.PsNo,
-            PoNo = s.PoNo,
-            PropNo = s.PropNo,
-            OldAmount = s.OldAmount,
-            PoDate = s.PoDate,
-            AcqCost = s.AcqCost,
-            DeptId = s.DeptId,
-            Department = s.Department,
-            LocationId = s.LocationId,
-            LocationCode = s.LocationCode,
-            Location = s.Location,
-            SubLocation = s.SubLocation,
-            AcqMonth = s.AcqMonth,
-            AcqYear = s.AcqYear,
-            AcqDay = s.AcqDay,
-            AcqDate = s.AcqDate,
-            Address = s.Address,
-            ProjectName = s.ProjectName,
-            BuildingType = s.BuildingType,
-            Area = s.Area,
-            AppraiseValue = s.AppraiseValue,
-            TotalAmount = s.TotalAmount,
-            PhaseNo = s.PhaseNo,
-            PhaseAmountMooe = s.PhaseAmountMooe,
-            PhaseAmountCo = s.PhaseAmountCo,
-            StartYear = s.StartYear,
-            StartMonth = s.StartMonth,
-            StartDay = s.StartDay,
-            StartDate = s.StartDate,
-            TargetYear = s.TargetYear,
-            TargetMonth = s.TargetMonth,
-            TargetDay = s.TargetDay,
-            TargetDate = s.TargetDate,
-            PercentComplete = s.PercentComplete,
-            CompletionYear = s.CompletionYear,
-            CompletionMonth = s.CompletionMonth,
-            CompletionDay = s.CompletionDay,
-            CompletionDate = s.CompletionDate,
-            Status = s.Status,
-            Condition = s.Condition,
-            Remarks = s.Remarks,
-            Annex = s.Annex,
-            InsertedBy = s.InsertedBy,
-            InsertedDt = s.InsertedDt,
-            PostedBy = s.PostedBy,
-            PostedDt = s.PostedDt,
-            Longitude = s.Longitude,
-            Latitude = s.Latitude,
-            ItemType_Code = s.ItemCode.ItemType.Code,
-            Item_Code = s.ItemCode.Code
-        };
+            return s => new CustodianReportBldgItemVM
+            {
+                Id = s.Id,
+                MainDeptId = s.CustodianReport.DeptId,
+                AccountGroup = s.CustodianReport.AccountGroup,
+                ReportId = s.ReportId,
+                Fund = s.Fund,
+                CustodianItemNo = s.CustodianItemNo,
+                SeriesNo = s.SeriesNo,
+                FromDonation = s.FromDonation,
+                Account = s.Account,
+                ItemCodeId = s.ItemCodeId,
+                SubAccount = s.SubAccount,
+                Article = s.Article,
+                BldgItem = s.BldgItem,
+                PsNo = s.PsNo,
+                PoNo = s.PoNo,
+                PropNo = s.PropNo,
+                OldAmount = s.OldAmount,
+                PoDate = s.PoDate,
+                AcqCost = s.AcqCost,
+                DeptId = s.DeptId,
+                Department = s.Department,
+                LocationId = s.LocationId,
+                LocationCode = s.LocationCode,
+                Location = s.Location,
+                SubLocation = s.SubLocation,
+                AcqMonth = s.AcqMonth,
+                AcqYear = s.AcqYear,
+                AcqDay = s.AcqDay,
+                AcqDate = s.AcqDate,
+                Address = s.Address,
+                ProjectName = s.ProjectName,
+                BuildingType = s.BuildingType,
+                Area = s.Area,
+                AppraiseValue = s.AppraiseValue,
+                TotalAmount = s.TotalAmount,
+                PhaseNo = s.PhaseNo,
+                PhaseAmountMooe = s.PhaseAmountMooe,
+                PhaseAmountCo = s.PhaseAmountCo,
+                StartYear = s.StartYear,
+                StartMonth = s.StartMonth,
+                StartDay = s.StartDay,
+                StartDate = s.StartDate,
+                TargetYear = s.TargetYear,
+                TargetMonth = s.TargetMonth,
+                TargetDay = s.TargetDay,
+                TargetDate = s.TargetDate,
+                PercentComplete = s.PercentComplete,
+                CompletionYear = s.CompletionYear,
+                CompletionMonth = s.CompletionMonth,
+                CompletionDay = s.CompletionDay,
+                CompletionDate = s.CompletionDate,
+                Status = s.Status,
+                Condition = s.Condition,
+                Remarks = s.Remarks,
+                Annex = s.Annex,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
+                Longitude = s.Longitude,
+                Latitude = s.Latitude,
+                ItemType_Code = s.ItemCode.ItemType.Code,
+                Item_Code = s.ItemCode.Code,
+                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit")
+            };
+        }
 
         public string GetStockNo(CustodianReportBldgItem model)
         {
@@ -146,7 +149,7 @@ namespace iLgs.Services.CustodianReports
         {
             var data = await _db.CustodianReportBldgItems
                 .Where(w => w.Id == id)
-                .Select(CustodianReportBldgItemProjection).FirstOrDefaultAsync();
+                .Select(CustodianReportBldgItemProjection(_db)).FirstOrDefaultAsync();
             return data;
         });
 
@@ -155,7 +158,7 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
                 .Where(w => w.ReportId == reportId)
-                .Select(CustodianReportBldgItemProjection);
+                .Select(CustodianReportBldgItemProjection(_db));
             return data;
         }
 
@@ -164,7 +167,7 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReportBldgItemProjection);
+                .Select(CustodianReportBldgItemProjection(_db));
 
             return data;
         }
@@ -174,22 +177,19 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReportBldgItemProjection);
+                .Select(CustodianReportBldgItemProjection(_db));
 
             return data;
         }
 
         private void ValidateRequired(CustodianReportBldgItemVM model)
         {
+            _imex = new InvalidModelException();
+
             if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
             {
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
-            }
-
-            if (model.ForYear == 0 || model.ForYear == null)
-            {
-                _imex.UpsertDataList("For Year", "Field is Required.");                
-            }
+            }            
 
             //if (string.IsNullOrWhiteSpace(model.PhaseNo))
             //{
@@ -215,6 +215,12 @@ namespace iLgs.Services.CustodianReports
         public ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+
+            if (model.ForYear == 0 || model.ForYear == null)
+            {
+                throw new InvalidValueException("For Year is Required.");
+            }
+
             ValidateRequired(model);
 
             model.AllField = SetAllField(model);
@@ -242,7 +248,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             model.ReportId = custodianReport.Id;
-
+            ValidateIfSubmitted(model);
             var entity = new CustodianReportBldgItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
@@ -263,6 +269,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
             //ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
@@ -284,6 +291,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -776,6 +784,16 @@ namespace iLgs.Services.CustodianReports
             if (entity.PostedDt != null)
             {
                 var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfSubmitted(CustodianReportBldgItem model)
+        {
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            if (submitForCount != null)
+            {
+                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
                 throw new RecordAlreadyPostedException(msg);
             }
         }

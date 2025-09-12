@@ -1,0 +1,88 @@
+﻿<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            @*<div class="card-header">
+                    <h3 class="card-title">Audit Logs</h3>
+                </div>*@
+            <div class="card-body">
+                @(Html.Kendo().Grid<iLgs.Models.AuditLogVM>()
+                    .Name("auditGrid")
+                    //.HtmlAttributes(new { @class = "audit-trail-grid" })
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.UpdatedDt).Title("Date/Time").Format("{0:yyyy-MM-dd HH:mm:ss}").Width(150);
+                        //columns.Bound(p => p.TableName).Title("Table").Width(120);
+                        columns.Bound(p => p.Action).Title("Action").Width(100)
+                            .ClientTemplate("#= getActionTemplate(data) #");
+                        //columns.Bound(p => p.RecordId).Title("Record ID").Width(150);
+                        columns.Bound(p => p.UpdatedBy).Title("User").Width(120);
+                        columns.Bound(p => p.IpAddress).Title("IP Address").Width(120);
+                        columns.Bound(p => p.DetailsCount).Title("Changes").Width(80);
+                        columns.Command(command =>
+                        {
+                            command.Custom("ViewDetails").Text("Details").IconClass("k-icon k-i-list-roman-lower").Click("showAuditDetails");
+                        }).Width(100);
+                    })
+                    .ToolBar(t =>
+                    {
+                        t.Search();
+                    })
+                    .Pageable(pager => pager
+                        .Input(false)
+                        .Numeric(true)
+                        .Info(true)
+                        .PreviousNext(true)
+                        .Refresh(true)
+                        .PageSizes(true)
+                        .ButtonCount(5)
+                    )
+                    .Sortable()
+                    .Filterable()
+                    .NoRecords()
+                    .Scrollable(s => s.Height(410))
+                    .Selectable(s => s.Mode(GridSelectionMode.Single))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(s => s.Add(a => a.UpdatedDt).Descending())
+                        .Read(read => read.Action("GetAuditLogs", "AuditTrail", new { trackingId = ViewData["trackingId"]}))
+                        .PageSize(20)
+                    )                    
+                    .Events(events => events.DataBound("onDataBoundAuditGrid"))
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Audit Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(Html.Kendo().Grid<iLgs.Models.AuditLogDetailVM>()
+                    .Name("detailsGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.FieldName).Title("Property").Width(150);
+                        columns.Bound(p => p.ChangeDescription).Title("Change").ClientTemplate("#= getChangeTemplate(data) #");
+                    })
+                    .Scrollable()
+                    .Scrollable(s => s.Height(300))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Read(read => read.Action("GetAuditDetails", "AuditTrail").Data("getAuditLogId"))
+                    )
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

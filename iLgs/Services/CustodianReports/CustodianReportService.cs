@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Items;
 using System;
@@ -1525,7 +1526,7 @@ namespace iLgs.Services.CustodianReports
                 ).ToListAsync();
             if (!psCardItemTransfers.Any())
             {
-                throw new RecordNotFoundException($"No records where found for year {forYear}.");
+                throw new NotFoundException($"No records where found for year {forYear}.");
             }
 
             IQueryable<ItemCodeVM> itemCodes = null;

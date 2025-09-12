@@ -732,7 +732,7 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        var genName = Utility.ToProperCase(af.GenericName);
+                        var genName = Utility.ToProperCase(af.GenericName).Replace(" ", "");
                         if (genName.Length >= 3)
                         {
                             stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
@@ -748,7 +748,7 @@ namespace iLgs.Services.AllFields
                 {
                     if (!string.IsNullOrWhiteSpace(af.DosageVolume))
                     {
-                        stockNo += $"/{af.DosageVolume}";
+                        stockNo += $"/{af.DosageVolume.Replace(" ", "")}";
                     }
                 }
                 else
@@ -761,7 +761,7 @@ namespace iLgs.Services.AllFields
                         }
                         else
                         {
-                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                            stockNo += "/" + af.DosageStrength.Replace(" ", "");
                         }
                     }
                     if (!string.IsNullOrWhiteSpace(af.DosageForm))
@@ -794,7 +794,7 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                        stockNo += "/" + Utility.GetAfBrand(af.Brand);
                     }
                 }
             }
@@ -874,8 +874,8 @@ namespace iLgs.Services.AllFields
         {
             string stockNo = "";
             if (!af.SerialNo.IsNullOrWhiteSpaceX())
-            {
-                stockNo += $"/{af.SerialNo}";
+            {                
+                stockNo += Utility.GetFieldTrim(af.SerialNo);
             }
             else
             {
@@ -885,7 +885,7 @@ namespace iLgs.Services.AllFields
                 }
                 else
                 {
-                    stockNo += $"/{af.PropNo}";
+                    stockNo += Utility.GetFieldTrim(af.PropNo);
                 }
             }
             return stockNo;
@@ -896,19 +896,19 @@ namespace iLgs.Services.AllFields
             string stockNo = "";
             if (!af.PlateNo.IsNullOrWhiteSpaceX())
             {
-                stockNo += $"/{af.PlateNo}";
+                stockNo += Utility.GetFieldTrim(af.PlateNo.ToUpper(), false);
             }
             else
             {
                 if (!af.BodyNo.IsNullOrWhiteSpaceX())
                 {
-                    stockNo += $"/{af.BodyNo}";
+                    stockNo += Utility.GetFieldTrim(af.BodyNo);
                 }
                 else
                 {
                     if (!af.MVFileNo.IsNullOrWhiteSpaceX())
                     {
-                        stockNo += $"/{af.MVFileNo}";
+                        stockNo += Utility.GetFieldTrim(af.MVFileNo);
                     }
                 }
             }
@@ -938,7 +938,7 @@ namespace iLgs.Services.AllFields
             }
             else
             {
-                stockNo += $"/{af.Brand}";
+                stockNo += $"/{Utility.GetAfBrand(af.Brand)}";
             }
             return stockNo;
         }
@@ -948,44 +948,43 @@ namespace iLgs.Services.AllFields
             string stockNo = "";
             if (!af.Model_.IsNullOrWhiteSpaceX())
             {
-                stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                stockNo += $"/{Utility.GetAfModel(af.Model_)}";                
             }
             else
             {
                 if (!af.Dimension.IsNullOrWhiteSpaceX())
                 {
-                    stockNo += $"/{af.Dimension}";
+                    stockNo += Utility.GetFieldTrim(af.Dimension, false);
                 }
                 else
                 {
                     if (!af.Size.IsNullOrWhiteSpaceX())
                     {
-                        //stockNo += $"/{af.Dimension}";
-                        stockNo += $"/{af.Size}";
+                        stockNo += Utility.GetFieldTrim(af.Size, false);
                     }
                     else
                     {
                         if (!af.Weight.IsNullOrWhiteSpaceX())
                         {
-                            stockNo += $"/{af.Weight}";
+                            stockNo += Utility.GetFieldTrim(af.Weight, false);
                         }
                         else
                         {
                             if (!af.Materials.IsNullOrWhiteSpaceX())
                             {
-                                stockNo += $"/{af.Materials}";
+                                stockNo += Utility.GetFieldTrim(af.Materials);
                             }
                             else
                             {
                                 if (!af.Capacity.IsNullOrWhiteSpaceX())
                                 {
-                                    stockNo += $"/{af.Capacity}";
+                                    stockNo += Utility.GetFieldTrim(af.Capacity, false);
                                 }
                                 else
                                 {
                                     if (!af.Color.IsNullOrWhiteSpaceX())
                                     {
-                                        stockNo += $"/{af.Color}";
+                                        stockNo += Utility.GetFieldTrim(af.Color);
                                     }
                                 }
                             }
@@ -1001,19 +1000,19 @@ namespace iLgs.Services.AllFields
             string stockNo = "";
             if (!af.Model_.IsNullOrWhiteSpaceX())
             {
-                stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                stockNo += $"/{Utility.GetAfModel(af.Model_)}";
             }
             else
             {
                 if (!af.Weight.IsNullOrWhiteSpaceX())
                 {
-                    stockNo += $"/{af.Weight}";
+                    stockNo += Utility.GetFieldTrim(af.Weight, false);
                 }
                 else
                 {
                     if (!af.Color.IsNullOrWhiteSpaceX())
                     {
-                        stockNo += $"/{af.Color}";
+                        stockNo += Utility.GetFieldTrim(af.Color);
                     }
                 }
             }
@@ -1038,7 +1037,7 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        var genName = Utility.ToProperCase(af.GenericName);
+                        var genName = Utility.ToProperCase(af.GenericName).Replace(" ", "");
                         if (genName.Length >= 3)
                         {
                             stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
@@ -1054,7 +1053,7 @@ namespace iLgs.Services.AllFields
                 {
                     if (!string.IsNullOrWhiteSpace(af.DosageVolume))
                     {
-                        stockNo += $"/{af.DosageVolume}";
+                        stockNo += $"/{af.DosageVolume.Replace(" ", "")}";
                     }
                 }
                 else
@@ -1067,7 +1066,7 @@ namespace iLgs.Services.AllFields
                         }
                         else
                         {
-                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                            stockNo += "/" + af.DosageStrength.Replace(" ", "");
                         }
                     }
                     if (!string.IsNullOrWhiteSpace(af.DosageForm))
@@ -1078,7 +1077,8 @@ namespace iLgs.Services.AllFields
                         }
                         else
                         {
-                            stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                            var df = af.DosageForm.Replace(" ", "");
+                            stockNo += "/" + df.PadRight(3, 'X').Substring(0, 3);
                         }
                     }
                 }
@@ -1100,7 +1100,7 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                        stockNo += "/" + Utility.GetAfBrand(af.Brand);
                     }
                 }
             }
@@ -1126,7 +1126,7 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        stockNo += $"/{af.Brand}";
+                        stockNo += $"/{Utility.GetAfBrand(af.Brand)}";
                     }
                 }
                 else
@@ -1143,17 +1143,17 @@ namespace iLgs.Services.AllFields
                         {
                             if (!string.IsNullOrWhiteSpace(af.Color))
                             {
-                                stockNo += $"/{af.Color}";
+                                stockNo += Utility.GetFieldTrim(af.Color);
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.Weight}";
+                            stockNo += Utility.GetFieldTrim(af.Weight, false);
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.Model_}";
+                        stockNo += $"/{Utility.GetAfModel(af.Model_)}";
                     }
                 }
                 else
@@ -1172,37 +1172,37 @@ namespace iLgs.Services.AllFields
                                         {
                                             if (!string.IsNullOrWhiteSpace(af.Color))
                                             {
-                                                stockNo += $"/{af.Color}";
+                                                stockNo += Utility.GetFieldTrim(af.Color);
                                             }
                                         }
                                         else
                                         {
-                                            stockNo += $"/{af.Capacity}";
+                                            stockNo += Utility.GetFieldTrim(af.Capacity, false);
                                         }
                                     }
                                     else
                                     {
-                                        stockNo += $"/{af.Materials}";
+                                        stockNo += Utility.GetFieldTrim(af.Materials);
                                     }
                                 }
                                 else
                                 {
-                                    stockNo += $"/{af.Weight}";
+                                    stockNo += Utility.GetFieldTrim(af.Weight, false);
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.Size}";
+                                stockNo += Utility.GetFieldTrim(af.Size, false);
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.Dimension}";
+                            stockNo += Utility.GetFieldTrim(af.Dimension, false);
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.Model_}";
+                        stockNo += Utility.GetAfModel(af.Model_);
                     }
                 }
             }
@@ -1217,12 +1217,12 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        stockNo += $"/{af.PropNo}";
+                        stockNo += Utility.GetFieldTrim(af.PropNo, false);
                     }
                 }
                 else
                 {
-                    stockNo += $"/{af.SerialNo}";
+                    stockNo += Utility.GetFieldTrim(af.SerialNo);
                 }
             }
             else if (group == CategoryGroup.SERIAL_B)
@@ -1238,27 +1238,27 @@ namespace iLgs.Services.AllFields
                             {
                                 if (!string.IsNullOrWhiteSpace(af.MVFileNo))
                                 {
-                                    stockNo += $"/{af.MVFileNo}";
+                                    stockNo += Utility.GetFieldTrim(af.MVFileNo);
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.BodyNo}";
+                                stockNo += Utility.GetFieldTrim(af.BodyNo);
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.PlateNo.ToUpper()}";
+                            stockNo += Utility.GetFieldTrim(af.PlateNo.ToUpper(), false);
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.PropNo}";
+                        stockNo += Utility.GetFieldTrim(af.PropNo);
                     }
                 }
                 else
                 {
-                    stockNo += $"/{af.SerialNo}";
+                    stockNo += Utility.GetFieldTrim(af.SerialNo, false);
                 }
             }
             else if (group == CategoryGroup.SERIAL_C)
@@ -1282,47 +1282,47 @@ namespace iLgs.Services.AllFields
                                             {
                                                 if (!string.IsNullOrWhiteSpace(af.Color))
                                                 {
-                                                    stockNo += $"/{af.Color}";
+                                                    stockNo += Utility.GetFieldTrim(af.Color);
                                                 }
                                             }
                                             else
                                             {
-                                                stockNo += $"/{af.Capacity}";
+                                                stockNo += Utility.GetFieldTrim(af.Capacity, false);
                                             }
                                         }
                                         else
                                         {
-                                            stockNo += $"/{af.Materials}";
+                                            stockNo += Utility.GetFieldTrim(af.Materials);
                                         }
                                     }
                                     else
                                     {
-                                        stockNo += $"/{af.Weight}";
+                                        stockNo += Utility.GetFieldTrim(af.Weight, false);
                                     }
                                 }
                                 else
                                 {
-                                    stockNo += $"/{af.Size}";
+                                    stockNo += Utility.GetFieldTrim(af.Size, false);
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.Dimension}";
+                                stockNo += Utility.GetFieldTrim(af.Dimension, false);
                             }
                         }
                         else
                         {
-                            stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                            stockNo += $"/{Utility.GetAfModel(af.Model_)}";
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.PropNo}";
+                        stockNo += Utility.GetFieldTrim(af.PropNo, false);
                     }
                 }
                 else
                 {
-                    stockNo += $"/{af.SerialNo}";
+                    stockNo += Utility.GetFieldTrim(af.SerialNo, false);
                 }
             }
             else if (group == CategoryGroup.SERIAL)
@@ -1352,66 +1352,65 @@ namespace iLgs.Services.AllFields
                                                         {
                                                             if (!string.IsNullOrWhiteSpace(af.Color))
                                                             {
-                                                                stockNo += $"/{af.Color}";
+                                                                stockNo += Utility.GetFieldTrim(af.Color);
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            stockNo += $"/{af.Capacity}";
+                                                            stockNo += Utility.GetFieldTrim(af.Capacity, false);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        stockNo += $"/{af.Materials}";
+                                                        stockNo += Utility.GetFieldTrim(af.Materials);
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    stockNo += $"/{af.Weight}";
+                                                    stockNo += Utility.GetFieldTrim(af.Weight, false);
                                                 }
                                             }
                                             else
                                             {
-                                                stockNo += $"/{af.Size}";
+                                                stockNo += Utility.GetFieldTrim(af.Size, false);
                                             }
                                         }
                                         else
                                         {
-                                            stockNo += $"/{af.Dimension}";
+                                            stockNo += Utility.GetFieldTrim(af.Dimension, false);
                                         }
                                     }
                                     else
                                     {
-                                        stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                                        stockNo += $"/{Utility.GetAfModel(af.Model_)}";
                                     }
                                 }
                                 else
                                 {
-                                    stockNo += $"/{af.MVFileNo}";
+                                    stockNo += Utility.GetFieldTrim(af.MVFileNo);
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.BodyNo}";
+                                stockNo += Utility.GetFieldTrim(af.BodyNo);
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.PlateNo.ToUpper()}";
+                            stockNo += Utility.GetFieldTrim(af.PlateNo.ToUpper(), false);
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.PropNo}";
+                        stockNo += Utility.GetFieldTrim(af.PropNo, false);
                     }
                 }
                 else
                 {
-                    stockNo += $"/{af.SerialNo}";
+                    stockNo += Utility.GetFieldTrim(af.SerialNo, false);
                 }
             }
             return stockNo;
         }
-
     }
 }

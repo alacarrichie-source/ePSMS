@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.AspNetUserRoles = new HashSet<AspNetUserRole>();
             this.UserCodes = new HashSet<UserCode>();
             this.DepartmentUsers = new HashSet<DepartmentUser>();
+            this.NotificationUsers = new HashSet<NotificationUser>();
         }
     
         public string Id { get; set; }
@@ -45,5 +46,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
         public virtual UserProfile UserProfile { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NotificationUser> NotificationUsers { get; set; }
     }
 }

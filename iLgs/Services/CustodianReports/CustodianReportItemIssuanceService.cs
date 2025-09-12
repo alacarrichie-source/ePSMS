@@ -54,6 +54,7 @@ namespace iLgs.Services.CustodianReports
         {
             ValidateIfNull(model);
             ValidateIfPosted(model.ReportItemId);
+            ValidateIfSubmitted(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -80,6 +81,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItemIssuances.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity.ReportItemId);
+            ValidateIfSubmitted(model);
             ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
@@ -99,6 +101,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItemIssuances.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity.ReportItemId);
+            ValidateIfSubmitted(model);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -149,14 +152,25 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateIfPosted(Guid? reportItemId)
         {
-            var reportItem = _db.CustodianReportItems.Include(i => i.CustodianReport).Where(w => w.Id == reportItemId).SingleOrDefault();
-            if (reportItem.CustodianReport.PostedDt != null)
+            var reportItem = _db.CustodianReportItems.Where(w => w.Id == reportItemId).SingleOrDefault();
+            if (reportItem.PostedDt != null)
             {
-                var msg = $"Record already posted by {reportItem.CustodianReport.PostedBy} on {reportItem.CustodianReport.PostedDt}, cannot update!";
+                var msg = $"Record already posted by {reportItem.PostedBy} on {reportItem.PostedDt}, cannot update!";
                 throw new RecordAlreadyPostedException(msg);
             }
         }
-        
+
+        private void ValidateIfSubmitted(CustodianReportItemIssuance model)
+        {
+            var custodianReportItem = _db.CustodianReportItems.FirstOrDefault(f => f.Id == model.ReportItemId);
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == custodianReportItem.ReportId && f.LocationId == custodianReportItem.LocationId && f.Status == "Submit");
+            if (submitForCount != null)
+            {
+                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
         private void ValidateUser(CustodianReportItemIssuance entity, CustodianReportItemIssuance model)
         {
             if (entity.InsertedBy != model.UpdatedBy)

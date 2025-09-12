@@ -1,10 +1,7 @@
 ﻿@using Kendo.Mvc.UI.Fluent
 
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    //IEnumerable<TreeViewItemModel> smsToken = HttpContext.Current.Session["MainMenuTree"] as IEnumerable<TreeViewItemModel>;
-    //IEnumerable<TreeViewItemModel> menuTree = HttpContext.Current.Session["MainMenuTree"] as IEnumerable<TreeViewItemModel>;
-
+    Layout = "~/Views/Shared/_Layout.cshtml";    
     IEnumerable<TreeViewItemModel> menuTree = (IEnumerable<TreeViewItemModel>)ViewData["MenuTreeList"];
 }
 <head>
@@ -12,28 +9,9 @@
     <script src="@Url.Content("~/Content/Sidebar/dist/hc-offcanvas-nav.js")"></script>
 </head>
 
-@*<div>
-        <div id="container" class="k-content k-drawer-expanded">
-            @RenderBody()
-        </div>
-
-        <nav id="main-nav">
-            @if (Request.IsAuthenticated)
-                {
-                @RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);
-            }
-        </nav>
-    </div>*@
-
-
-@*<nav id="main-nav">
-        @if (Request.IsAuthenticated)
-                {
-            @RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);
-        }
-    </nav>*@
-
 <main role="main" class="k-content" style="height: 100%!important">
+    @if (Request.IsAuthenticated)
+    {
     @(Html.Kendo().AppBar()
                 .Name("appbar")
                 .ThemeColor(AppBarThemeColor.Inherit)
@@ -43,17 +21,31 @@
                     items.Add().Template("<span id='menuIcon' href='\\#'><span class='k-icon k-i-menu' onclick='toggleDrawer()'></span></span>").Type(AppBarItemType.ContentItem);
                     items.Add().Type(AppBarItemType.Spacer).Width("16px");
                     items.Add().Template("<div class='title'>" + @ViewData["Title"] + "</div>").Type(AppBarItemType.ContentItem);
-                    items.Add().Type(AppBarItemType.Spacer);
-                    items.Add().Template("<div class='app-bar-link'><span class='k-icon k-i-notification'><span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span></span></div>").Type(AppBarItemType.ContentItem);
+                    if (ViewData["IsAdminUser"] as bool? == true)
+                    {
+                        items.Add().Type(AppBarItemType.Spacer);
+                        //items.Add().Template("<div class='app-bar-link'><span class='k-icon k-i-track-changes' title='Track Changes' onclick='openTrackChanges()'><span class='k-icon k-i-notification' title='Notifications' onclick='openNotifications()><span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span></span></div>").Type(AppBarItemType.ContentItem);
+                        items.Add().Template(@"
+                            <div class='app-bar-link'>
+                                <span class='k-icon k-i-track-changes' title='Track Changes' onclick='openTrackChanges()'></span>
+                                <span class='k-icon k-i-notification' title='Notifications' onclick='openNotifications()'>
+                                    <span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span>
+                                </span>
+                            </div>
+                        ").Type(AppBarItemType.ContentItem);
+                    }
                     items.Add().Type(AppBarItemType.Spacer).Width("8px");
                     //items.Add().Template("<a href='" + @Url.Action("About", "Home") + "' class='k-link app-bar-link'>About</a>").Type(AppBarItemType.ContentItem);
                     //items.Add().Template("<a href='" + @Url.Action("Contact", "Home") + "' class='k-link app-bar-link'>Contact</a>").Type(AppBarItemType.ContentItem);
                 })
     )
+    }
     <div id="main-div" style="height: 100%!important;">
         @RenderBody()
     </div>
 </main>
+
+<div id="windowAppLayout"></div>
 
 <nav id="main-nav">
     @if (Request.IsAuthenticated)
@@ -124,6 +116,10 @@ if (subItems != null)
         background-repeat: no-repeat;
         background-attachment: fixed;
         }*@
+
+@section Scripts {
+
+    @Html.Action("_AuditTrailScripts", "AuditTrail")
 
 <style>    
     .offcanvas-nav footer {
@@ -251,77 +247,77 @@ if (subItems != null)
 <script type="text/javascript">
     // as a jQuery plugin
     var $nav = $('#main-nav').hcOffcanvasNav({
-            // Customize the text for the close/back labels.
-            insertClose: true,
-            insertBack: true,
-            labelClose: 'Close',
-            labelBack: 'Back',
-            levelTitleAsBack: true,
-            disableAutoOpen: true,
+        // Customize the text for the close/back labels.
+        insertClose: true,
+        insertBack: true,
+        labelClose: 'Close',
+        labelBack: 'Back',
+        levelTitleAsBack: true,
+        disableAutoOpen: true,
 
-            ////Specify the screen width at which breakppint the plugin hides the regular navigation.
-            //disableAt: 1024,
+        ////Specify the screen width at which breakppint the plugin hides the regular navigation.
+        //disableAt: 1024,
 
-            ////Push the main content to the other side when the HC MobileNav is toggled.
-            pushContent: '#container', //true, // default false
+        ////Push the main content to the other side when the HC MobileNav is toggled.
+        pushContent: '#container', //true, // default false
 
-            ////Set the direction of the HC MobileNav. Possible values: 'left'(default), 'right', 'top' and 'bottom'
+        ////Set the direction of the HC MobileNav. Possible values: 'left'(default), 'right', 'top' and 'bottom'
 
-            //position: 'left',
+        //position: 'left',
 
 
-            //// width & height
-            //width: 280,
-            height: 'auto',
+        //// width & height
+        //width: 280,
+        height: 'auto',
 
-            //// enable swipe gestures
-            swipeGestures: true,
+        //// enable swipe gestures
+        swipeGestures: true,
 
-            //// initialize the menu in expanded mode
-            //expanded: true,
+        //// initialize the menu in expanded mode
+        //expanded: true,
 
-            //// overlap / expand / none
-            //levelOpen: 'overlap',
+        //// overlap / expand / none
+        //levelOpen: 'overlap',
 
-            //// in pixels
-            //levelSpacing: 40,
+        //// in pixels
+        //levelSpacing: 40,
 
-            //// shows titles for submenus
-            //levelTitles: false,
+        //// shows titles for submenus
+        //levelTitles: false,
 
-            //// close sub levels when the nav closes
-            //closeOpenLevels: true,
+        //// close sub levels when the nav closes
+        //closeOpenLevels: true,
 
-            //// clear active levels when the nav closes
-            //closeActiveLevel: false,
+        //// clear active levels when the nav closes
+        //closeActiveLevel: false,
 
-            //// the title of the first level
-            navTitle: 'Main Menu',
+        //// the title of the first level
+        navTitle: 'Main Menu',
 
-            //// extra CSS class(es)
-            //navClass: '',
+        //// extra CSS class(es)
+        //navClass: '',
 
-            //// disable body scroll
-            disableBody: false,
+        //// disable body scroll
+        disableBody: false,
 
-            //// close the nav on click
-            //closeOnClick: true,
+        //// close the nav on click
+        //closeOnClick: true,
 
-            //// custom toggle element
-            //customToggle: null,
-            //customToggle: '#appBar',
+        //// custom toggle element
+        //customToggle: null,
+        //customToggle: '#appBar',
 
-            //// prepend or append the menu to body
-            //bodyInsert: 'append'
+        //// prepend or append the menu to body
+        //bodyInsert: 'append'
 
-            //// should original menus and their items classes be preserved or excluded.
-            //keepClasses: true,
+        //// should original menus and their items classes be preserved or excluded.
+        //keepClasses: true,
 
-            //// remove original menu from the DOM
-            removeOriginalNav: true
+        //// remove original menu from the DOM
+        removeOriginalNav: true
 
-            // enable RTL mode
-            //rtl: false
+        // enable RTL mode
+        //rtl: false
     });
     var Nav = $nav.data('hcOffcanvasNav');
     var sw = 0;
@@ -347,10 +343,9 @@ if (subItems != null)
         var width = window.innerWidth;
         var height = window.innerHeight;
 
-        if (sw == 1)
-        {
+        if (sw == 1) {
             width -= 280;
-            container.style.width = width + 'px';            
+            container.style.width = width + 'px';
             //container.classList.remove('body-opaque');  // Remove a style class
         }
         else {
@@ -369,11 +364,45 @@ if (subItems != null)
             // do something when `open` action is triggered
             sw = 1;
             resizeWidgets();
-        } else if (e.data.action == 'close')
-        {
+        } else if (e.data.action == 'close') {
             sw = 0;
             resizeWidgets();
         }
     });
 
+    function openTrackChanges() {
+        if (typeof trackingId !== "undefined" && trackingId) {
+
+            var url = '@Url.Action("_AuditTrail", "AuditTrail")?trackingId=' + trackingId;
+
+            $("#windowAppLayout").append("<div id='windowAudit'></div>");
+            var mywindow = $("#windowAudit")
+                    .kendoWindow({
+                        actions: ["Maximize", "Minimize", "Close"],
+                        resizable: true,
+                        draggable: true,
+                        modal: true,
+                        visible: false,
+                        deactivate: function () {
+                            this.destroy();
+                        }
+                    }).data("kendoWindow");
+            mywindow.setOptions({
+                title: "Audit Trail",
+                width: 1200,
+                height: 600
+            });
+            mywindow.refresh({
+                url: url
+            });
+            mywindow.center();
+            mywindow.open();
+        }
+    }
+
+    function openNotifications()
+    {
+        return;
+    }
 </script>
+}
