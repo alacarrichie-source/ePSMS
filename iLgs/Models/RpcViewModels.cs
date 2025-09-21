@@ -9,7 +9,9 @@ namespace iLgs.Models
     public class RPCI_VM
     {        
         public System.Guid Id { get; set; }
-       
+
+        public string Type { get; set; }
+
         [Required]
         [Display(Name = "As Of")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]

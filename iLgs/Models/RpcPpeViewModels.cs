@@ -17,7 +17,7 @@ namespace iLgs.Models
             public Nullable<int> AccountGroup { get; set; }
             
             [Required]
-            [Display(Name = "As Of Date")]
+            [Display(Name = "As of Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AsOf { get; set; }
 

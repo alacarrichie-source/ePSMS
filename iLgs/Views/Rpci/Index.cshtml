@@ -34,14 +34,14 @@
     .ToolBar(t =>
     {
         t.Create().Text("Add New Record");
-        t.Custom().Text("Print RPCI").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print List").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Print Summary").IconClass("k-icon k-i-print").Name("btnPrintPOSum").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(500).Title("RPCI")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(500).Title(@ViewBag.Header)))
     .Search(s =>
     {
         s.Field(o => o.AsOf, "contains");
@@ -82,7 +82,7 @@
             a.Add(p => p.AcqCost).Sum();
         })
         .Sort(s => s.Add(a => a.AsOf).Descending())
-        .Read(read => read.Action("RpciRead", "Rpci", new { isPosted = @ViewData["IsPosted"] }))
+        .Read(read => read.Action("RpciRead", "Rpci", new { isPosted = @ViewData["IsPosted"], type = @ViewData["Type"] }))
         .Create(create => create.Action("RpciCreate", "Rpci"))
         .Update(update => update.Action("RpciUpdate", "Rpci"))
         .Destroy(destroy => destroy.Action("RpciDestroy", "Rpci"))
@@ -342,6 +342,7 @@
             selectedAsOf = null;
             e.container.find("[id=EditDiv]").toggle(false);
             e.model.set("IsPosted", '@ViewData["IsPosted"]');
+            e.model.set("Type", '@ViewData["Type"]');
 
             //var popupWindow = e.container.data("kendoWindow");
             //// Change the width of the pop-up window when entering edit mode
@@ -633,13 +634,13 @@
                     }
                 }).data("kendoWindow");
         mywindow.setOptions({
-            title: "RPCI Printing",
+            title: "@ViewBag.Header Printing",
             width: 400,
             height: 280
         });
 
         mywindow.refresh({
-            url: '@Url.Action("_PrintSum", "Rpci")?isPosted=' + '@ViewData["IsPosted"]'
+            url: '@Url.Action("_PrintSum", "Rpci")?isPosted=' + '@ViewData["IsPosted"]' + '&type=@ViewData["Type"]'
         });
         mywindow.center().open();
     });

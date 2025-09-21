@@ -20,16 +20,22 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly INotificationService _notificationService;
         private readonly INotificationUserService _notificationUserService;
+        private readonly INotificationMessageService _notificationMessageService;
+        private readonly INotificationMessageStatusService _notificationMessageStatusService;
         private readonly IUserService _userService;
 
         public NotificationController(AppManEntities db,
             INotificationService notificationService,
             INotificationUserService notificationUserService,
+            INotificationMessageService notificationMessageService,
+            INotificationMessageStatusService notificationMessageStatusService,
             IUserService userService)
         {
             _db = db;
             _notificationService = notificationService;
             _notificationUserService = notificationUserService;
+            _notificationMessageService = notificationMessageService;
+            _notificationMessageStatusService = notificationMessageStatusService;
             _userService = userService;
         }
 
@@ -159,17 +165,17 @@ namespace iLgs.Controllers
         }
 
         #region NOTIFICATION USERS
-        public ActionResult _NotificationUsers(Guid notificationId)
+        public ActionResult _NotificationUsers(Guid? notificationId)
         {
             ViewData["NotificationId"] = notificationId;
             return PartialView();
         }
 
-        public ActionResult _NotificationUserRead([DataSourceRequest] DataSourceRequest request, Guid notificationId)
+        public ActionResult _NotificationUserRead([DataSourceRequest] DataSourceRequest request, Guid? notificationId)
         {
             var data = _notificationUserService.GetAll(notificationId);
 
-            return Json(data.ToDataSourceResult(request));
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -286,5 +292,38 @@ namespace iLgs.Controllers
         }
         #endregion
 
+        [Authorize]
+        public async Task<JsonResult> GetNotificationCount()
+        {
+            var userId = User.Identity.GetUserId();
+            var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
+            return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _Notifications()
+        {
+            return PartialView();
+        }
+
+        public ActionResult _NotificationScripts()
+        {
+            return PartialView();
+        }
+
+        public ActionResult _NotificationsRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var userId = User.Identity.GetUserId();
+            var data = _notificationMessageStatusService.GetAllByUserId(userId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public async Task<ActionResult> _NotificationDetails(Guid? notificationMessageStatusId)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            DateTime date = System.DateTime.Now;
+            var model = await _notificationMessageStatusService.ReadByIdAsync(notificationMessageStatusId, user, date);
+            return PartialView("_NotificationDetails", model);
+        }
     }
 }

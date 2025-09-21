@@ -98,6 +98,12 @@
       <HintPath>..\packages\Microsoft.AspNet.Identity.Owin.2.2.1\lib\net45\Microsoft.AspNet.Identity.Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.4.3\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -325,6 +331,7 @@
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ItemCodeRequestController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
+    <Compile Include="Controllers\ItemListController.cs" />
     <Compile Include="Controllers\LocationController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
@@ -793,11 +800,23 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Reports\RpcPpeVehicles.cs">
+    <Compile Include="Reports\RpcPpeRegistry.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>RpcPpeRegistry.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpcPpeVehicles-2.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpcPpeVehicles-2.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpcPpeVehicles.cs">
       <DependentUpon>RpcPpeVehicles.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\RpcPpe_Old.cs">
       <AutoGen>True</AutoGen>
@@ -908,6 +927,7 @@
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\DollarRate_\DollarRateService.cs" />
     <Compile Include="Services\Items\ItemTypeExclusionService.cs" />
+    <Compile Include="Services\Items\ItemUploadService.cs" />
     <Compile Include="Services\Logs\DatabaseLogger.cs" />
     <Compile Include="Services\Logs\DatabaseLoggerProvider.cs" />
     <Compile Include="Services\Notifications_\NotificationMessageService.cs" />
@@ -1187,6 +1207,7 @@
     <Compile Include="Controllers\BaseConroller.cs" />
     <Compile Include="Utilities\DefaultDependencyResolver.cs" />
     <Compile Include="Utilities\ServiceProviderControllerFactory.cs" />
+    <Compile Include="Utilities\SignalRHubs.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Utility.cs" />
     <Compile Include="Utilities\ValidationService.cs" />
@@ -1195,6 +1216,7 @@
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
     <Content Include="Assets\Logo.png" />
+    <Content Include="Assets\NoImageAvailable.png" />
     <Content Include="Assets\product-logo.png" />
     <Content Include="Assets\Login1.PNG" />
     <Content Include="Assets\Login2.PNG" />
@@ -1805,6 +1827,8 @@
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.signalR-2.4.3.js" />
+    <Content Include="Scripts\jquery.signalR-2.4.3.min.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
@@ -4240,6 +4264,13 @@
     <Content Include="Views\Notification\EditorTemplates\_NotificationTemplate.cshtml" />
     <Content Include="Views\Notification\_NotificationUsers.cshtml" />
     <Content Include="Views\Notification\EditorTemplates\_NotificationUsersTemplate.cshtml" />
+    <Content Include="Views\ItemList\Index.cshtml" />
+    <Content Include="Views\ItemList\_AllItemListView.cshtml" />
+    <Content Include="Views\ItemList\_TileItemCard.cshtml" />
+    <Content Include="Views\ItemList\Details.cshtml" />
+    <Content Include="Views\Notification\_Notifications.cshtml" />
+    <Content Include="Views\Notification\_NotificationScripts.cshtml" />
+    <Content Include="Views\Notification\_NotificationDetails.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4695,6 +4726,14 @@
     <EmbeddedResource Include="Reports\RpcPpeEquipment.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpeEquipment.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpeRegistry.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeRegistry.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpeVehicles-2.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeVehicles-2.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Reports\RpcPpeVehicles.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>

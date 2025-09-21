@@ -73,6 +73,11 @@ namespace iLgs.Models
     [MetadataType(typeof(NotificationMessageStatu.Metadata))]
     public partial class NotificationMessageStatu
     {
+        public string Sender { get; set; }
+        public DateTime? SendDate { get; set; }
+        public string Subject { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }

@@ -21,6 +21,7 @@ namespace iLgs.Services
         //bool IsAnnexDUser(string userName);
 
         AspNetUser GetByUserName(string userName);
+        AspNetUser GetById(string userId);
     }
 
     public class UserService : IUserService
@@ -80,6 +81,12 @@ namespace iLgs.Services
         public AspNetUser GetByUserName(string userName)
         {
             var data = _db.AspNetUsers.Where(w => w.UserName == userName).SingleOrDefault();
+            return data;
+        }
+
+        public AspNetUser GetById(string userId)
+        {
+            var data = _db.AspNetUsers.Where(w => w.Id == userId).SingleOrDefault();
             return data;
         }
 

@@ -185,4 +185,12 @@ namespace iLgs.Models
         }
         
     }
+
+    public class SubAccountTreeVM
+    {
+        public Guid Id { get; set; }
+        public string Code { get; set; }
+        public string Description { get; set; }
+        public string ArticleSw { get; set; }        
+    }
 }

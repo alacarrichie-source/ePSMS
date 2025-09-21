@@ -22,7 +22,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual NotificationMessage NotificationMessage { get; set; }
         public virtual NotificationUser NotificationUser { get; set; }
+        public virtual NotificationMessage NotificationMessage { get; set; }
     }
 }

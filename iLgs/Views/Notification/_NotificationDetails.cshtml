@@ -1,0 +1,18 @@
+﻿@model iLgs.Models.NotificationMessageStatuVM
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h4 class="card-title text-primary mb-3">@Model.Subject</h4>
+        <h5 class="card-title text-primary mb-3">@Model.Type</h5>
+
+        <p class="card-text">
+            <span class="font-weight-bold">Description:</span><br />
+            @Model.Description
+        </p>
+        <hr />
+        <p class="text-muted small mb-0">
+            <i class="k-icon k-i-calendar"></i>
+            @Model.SendDate.Value.ToString("MMMM dd, yyyy hh:mm tt")
+        </p>
+    </div>
+</div>

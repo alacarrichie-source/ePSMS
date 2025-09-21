@@ -35,26 +35,41 @@ namespace iLgs.Controllers
             _codextnService = codextnService;
         }
 
-        public ActionResult NotPosted()
+        public ActionResult SemiExpendable()
         {
-            ViewData["IsPosted"] = false;
-            ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Not Posted Records";
-            
+            ViewData["Type"] = "SE";
+            ViewData["IsPosted"] = true;
+            ViewBag.Title = "Semi-Expendable";
+            ViewBag.Header = "Semi-Expendable";
+
             return View("Index");
         }
+
+        public ActionResult NotPosted()
+        {
+            ViewBag.Type = "RPCI";
+            ViewData["IsPosted"] = false;
+            ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Not Posted Records";
+            ViewBag.Header = "RPCI";
+
+            return View("Index");
+        }        
 
 
         // GET: Rpci
         public ActionResult Index()
         {
+            ViewData["Type"] = "RPCI";
             ViewData["IsPosted"] = true;
             ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Posted Records";
+            ViewBag.Header = "RPCI";
+
             return View();
         }
 
-        public ActionResult RpciRead([DataSourceRequest] DataSourceRequest request, bool? isPosted)
+        public ActionResult RpciRead([DataSourceRequest] DataSourceRequest request, bool? isPosted, string type)
         {
-            var data = _rpciService.GetAll(isPosted);
+            var data = _rpciService.GetAll(isPosted, type);
 
             var result = new JsonNetResult
             {
@@ -425,7 +440,7 @@ namespace iLgs.Controllers
 
 
         #region PRINTOUTS        
-        public ActionResult RpciRpt(Guid? id, int save)
+        public async Task<ActionResult> RpciRpt(Guid? id, int save)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -454,10 +469,19 @@ namespace iLgs.Controllers
             }
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var type = (await _rpciService.GetByIdAsync(id))?.Type;
 
             rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("@dAsOf", null);
             rpt.SetParameterValue("@uRpciId", id.ToString());
+            if (type == "RPCI")
+            {
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+            }
+            else if (type == "SE")
+            {
+                rpt.SetParameterValue("TITLE", "SEMI-EXPENDABLES");
+            }
 
             if (save == 0)
             {
@@ -475,14 +499,15 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult _PrintSum(bool isPosted)
+        public ActionResult _PrintSum(bool isPosted, string type)
         {
             var date = DateTime.Now;
             var model = new RsmiPrintVM()
             {
                 IsPosted = isPosted,
                 DateFrom = date,
-                DateTo = date
+                DateTo = date,
+                RpciType = type
             };
 
             return PartialView(model);
@@ -490,94 +515,140 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> RpciSumRpt(RsmiPrintVM model)
         {
-            Sections crSections;
-            ReportDocument crReportDocument, crSubreportDocument;
-            SubreportObject crSubreportObject;
-            ReportObjects crReportObjects;
-            ConnectionInfo crConnectionInfo;
-            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
-            Tables crTables;
-            TableLogOnInfo crTableLogOnInfo;
-            crReportDocument = new ReportDocument();
+            //Sections crSections;
+            //ReportDocument crReportDocument, crSubreportDocument;
+            //SubreportObject crSubreportObject;
+            //ReportObjects crReportObjects;
+            //ConnectionInfo crConnectionInfo;
+            //CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            //Tables crTables;
+            //TableLogOnInfo crTableLogOnInfo;
+            //crReportDocument = new ReportDocument();
 
-            if (model.Type == "1")
-            {
-                crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciAcctSum.rpt"));
-            }
-            else
-            {
-                crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciPoSum.rpt"));
-            }
+            //if (model.Type == "1")
+            //{
+            //    crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciAcctSum.rpt"));
+            //}
+            //else
+            //{
+            //    crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciPoSum.rpt"));
+            //}
 
-            string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = _db.Database.Connection.ConnectionString.ToString();
-            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+            //var _db = new AppManEntities();
+
+            //string user = ControllerContext.HttpContext.User.Identity.Name;
+            //string conString = _db.Database.Connection.ConnectionString.ToString();            
+            //SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            //string un = decoder.UserID;
+            //string pw = decoder.Password;
+            //string svr = decoder.DataSource;
+            //string db_ = decoder.InitialCatalog;
+
+            //crDatabase = crReportDocument.Database;
+            //crTables = crDatabase.Tables;
+            //crConnectionInfo = new ConnectionInfo();
+            //crConnectionInfo.ServerName = svr;
+            //crConnectionInfo.DatabaseName = db_;
+            //crConnectionInfo.UserID = un;
+            //crConnectionInfo.Password = pw;
+
+            //foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            //{
+            //    crTableLogOnInfo = aTable.LogOnInfo;
+            //    crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+            //    aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            //}
+
+
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
 
             string un = decoder.UserID;
             string pw = decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
-            crDatabase = crReportDocument.Database;
-            crTables = crDatabase.Tables;
-            crConnectionInfo = new ConnectionInfo();
-            crConnectionInfo.ServerName = svr;
-            crConnectionInfo.DatabaseName = db_;
-            crConnectionInfo.UserID = un;
-            crConnectionInfo.Password = pw;
-
-            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            ReportClass rpt = new ReportClass();
+            if (model.Type == "1")
             {
-                crTableLogOnInfo = aTable.LogOnInfo;
-                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
-                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpciAcctSum.rpt"));
             }
+            else
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpciPoSum.rpt"));
+            }
+            rpt.Load();
+            rpt.Refresh();
+
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                logonInfo.ConnectionInfo.IntegratedSecurity = true;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
             // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
             // set the sections object to the current report's section 
-            crSections = crReportDocument.ReportDefinition.Sections;
-            // loop through all the sections to find all the report objects 
-            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
-            {
-                crReportObjects = crSection.ReportObjects;
-                //loop through all the report objects in there to find all subreports 
-                foreach (ReportObject crReportObject in crReportObjects)
-                {
-                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
-                    {
-                        crSubreportObject = (SubreportObject)crReportObject;
-                        //open the subreport object and logon as for the general report 
-                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
-                        crDatabase = crSubreportDocument.Database;
-                        crTables = crDatabase.Tables;
-                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
-                        {
-                            crTableLogOnInfo = aTable.LogOnInfo;
-                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
-                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
-                        }
-                    }
-                }
-            }
+            //crSections = crReportDocument.ReportDefinition.Sections;
+            //// loop through all the sections to find all the report objects 
+            //foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            //{
+            //    crReportObjects = crSection.ReportObjects;
+            //    //loop through all the report objects in there to find all subreports 
+            //    foreach (ReportObject crReportObject in crReportObjects)
+            //    {
+            //        if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+            //        {
+            //            crSubreportObject = (SubreportObject)crReportObject;
+            //            //open the subreport object and logon as for the general report 
+            //            crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+            //            crDatabase = crSubreportDocument.Database;
+            //            crTables = crDatabase.Tables;
+            //            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            //            {
+            //                crTableLogOnInfo = aTable.LogOnInfo;
+            //                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+            //                aTable.ApplyLogOnInfo(crTableLogOnInfo);                            
+            //            }
+            //        }
+            //    }
+            //}
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description;
+            var type = model.RpciType;
 
-            crReportDocument.SetParameterValue("LGU", lgu);
-            crReportDocument.SetParameterValue("@cFund", model.Fund);
-            crReportDocument.SetParameterValue("@dAsOfDate", model.DateFrom);
-            crReportDocument.SetParameterValue("@bIsPosted", model.IsPosted);
+            rpt.SetParameterValue("LGU", lgu);
+            rpt.SetParameterValue("@cType", model.RpciType);
+            rpt.SetParameterValue("@cFund", model.Fund);
+            rpt.SetParameterValue("@dAsOfDate", model.DateFrom);
+            rpt.SetParameterValue("@bIsPosted", model.IsPosted);
+            if (type == "RPCI")
+            {
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+            }
+            else if (type == "SE")
+            {
+                rpt.SetParameterValue("TITLE", "SEMI-EXPENDABLES");
+            }
 
             if (model.SavePrints)
             {
-                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
-                crReportDocument.Close();
-                crReportDocument.Dispose();
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+                rpt.Close();
+                rpt.Dispose();
                 return File(stream, "application/xlsx", $"RpciSumRpt.xls");
             }
             else
             {
-                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
-                crReportDocument.Close();
-                crReportDocument.Dispose();
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                rpt.Close();
+                rpt.Dispose();
                 return File(stream, "application/pdf");
             }
         }

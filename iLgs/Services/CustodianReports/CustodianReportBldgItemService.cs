@@ -560,6 +560,25 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(o => o.LocationCode)
                             .ThenBy(o => o.CustodianItemNo);
 
+                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    ws.Row(4).Cell(2).SetValue(hdg);
+                }
+                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                if (id == null)
+                {
+                    ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                }
+                else
+                {
+                    ws.Row(8).Cell(3).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
@@ -567,22 +586,22 @@ namespace iLgs.Services.CustodianReports
                         itemCode = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //if (!string.IsNullOrWhiteSpace(annex))
+                        //{
+                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                        //    ws.Row(4).Cell(2).SetValue(hdg);
+                        //}
+                        //ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                        if (id == null)
-                        {
-                            ws.Row(8).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
-                        else
-                        {
-                            ws.Row(8).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
+                        //if (id == null)
+                        //{
+                        //    ws.Row(8).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        //}
+                        //else
+                        //{
+                        //    ws.Row(8).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        //}
                         sw = 0;
                     }
 

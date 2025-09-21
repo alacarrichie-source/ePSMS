@@ -58,7 +58,6 @@ namespace iLgs.Models
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
@@ -117,13 +116,14 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<TrackingItem> TrackingItems { get; set; }
         public virtual DbSet<Tracking> Trackings { get; set; }
-        public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<CustodianReport> CustodianReports { get; set; }
         public virtual DbSet<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
-        public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
         public virtual DbSet<NotificationMessageStatu> NotificationMessageStatus { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
         public virtual DbSet<NotificationUser> NotificationUsers { get; set; }
         public virtual DbSet<AuditLog> AuditLogs { get; set; }
+        public virtual DbSet<RPCI> RPCIs { get; set; }
+        public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
+        public virtual DbSet<UserProfile> UserProfiles { get; set; }
     }
 }

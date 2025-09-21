@@ -1,0 +1,60 @@
+﻿<style>
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        color: #fff;
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    .modal-footer .btn {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .disabled-row {
+        background-color: #f0f0f0 !important;
+        color: #999 !important;
+    }
+</style>
+
+<script>    
+    function readNotification(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //$("#notificationDetailsModal").data("notificationMessageStatusId", dataItem.Id).modal("show");
+
+        $("#notificationDetailsModal .modal-body")
+            .load('@Url.Action("_NotificationDetails", "Notification")?notificationMessageStatusId=' + dataItem.Id, function () {
+                $("#notificationDetailsModal").modal('show');
+        });
+        //alert(dataItem.Id);
+    }
+
+    function getNotificationMessageStatusId() {
+        return { notificationMessageStatusId: $("#notificationDetailsModal").data("notificationMessageStatusId") };
+    }
+
+    function onDataBoundGridNotification(e) {
+        var grid = this;
+        var items = grid.items(); // Get all the rows (tr elements) in the grid
+        items.each(function (index, row) {
+            var dataItem = grid.dataItem(row); // Get the corresponding data item for each row
+            if (dataItem.IsRead === true) {
+                $(row).addClass("disabled-row"); // Add a custom class to disabled rows
+            }
+        });
+    }
+
+    function onCloseModalClick(e) {
+        // Hide the modal
+        $('#notificationDetailsModal').modal('hide');
+        $("#notificationGrid").data("kendoGrid").dataSource.read();        
+    }
+
+</script>

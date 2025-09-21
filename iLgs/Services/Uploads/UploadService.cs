@@ -28,6 +28,9 @@ namespace iLgs.Services
         ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date);
 
         byte[] DownloadFile(string fileName);
+        ValueTask<ActionResult> GetThumbnailPhotoByIdAsync(Guid? imageId);
+        ValueTask<ActionResult> GetLargePhotoByIdAsync(Guid? imageId);
+
         Task<bool> IsFileNameExistAsync(string fileName);
         ValueTask CopyAsync(Guid? imageId, string directoryPath, string user, DateTime date);
     }
@@ -128,6 +131,50 @@ namespace iLgs.Services
 
             //// Return the file content to be viewed in the browser
             //return File(fileBytes, mimeType);
+        }
+
+        public async ValueTask<ActionResult> GetThumbnailPhotoByIdAsync(Guid? imageId)
+        {
+            var upload = await _db.Uploads.FirstOrDefaultAsync(p => p.ImageId == imageId && p.Description == "Thumbnail");
+            if (upload == null)
+            {
+                return null;
+            }
+
+            var fileName = upload.FileName;
+            var physicalPath = Path.Combine(_directory, fileName);
+            var fileExt = Path.GetExtension(fileName).Substring(1).ToLower();
+
+            if (fileExt == "pdf")
+            {
+                return new FilePathResult(physicalPath, "application/pdf");
+            }
+            else
+            {
+                return new FilePathResult(physicalPath, "image/jpg");
+            }
+        }
+
+        public async ValueTask<ActionResult> GetLargePhotoByIdAsync(Guid? imageId)
+        {
+            var upload = await _db.Uploads.FirstOrDefaultAsync(p => p.ImageId == imageId && p.Description == "Large");
+            if (upload == null)
+            {
+                return null;
+            }
+
+            var fileName = upload.FileName;
+            var physicalPath = Path.Combine(_directory, fileName);
+            var fileExt = Path.GetExtension(fileName).Substring(1).ToLower();
+
+            if (fileExt == "pdf")
+            {
+                return new FilePathResult(physicalPath, "application/pdf");
+            }
+            else
+            {
+                return new FilePathResult(physicalPath, "image/jpg");
+            }
         }
 
 

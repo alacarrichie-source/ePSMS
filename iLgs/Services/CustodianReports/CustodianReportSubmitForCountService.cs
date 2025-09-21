@@ -23,8 +23,8 @@ namespace iLgs.Services.CustodianReports
 
         ValueTask<CustodianReportSubmitForCountVM> DeleteAsync(CustodianReportSubmitForCountVM model, string user, DateTime date);
 
-        ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string user, DateTime date, bool isLocationRequired);
-        ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string user, DateTime date);
+        ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date, bool isLocationRequired);
+        ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date);
     }
 
     public class CustodianReportSubmitForCountService : BaseValidator, ICustodianReportSubmitForCountService
@@ -34,19 +34,22 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportSubmitForCountVM> _vmExceptionService;
         private readonly IUserService _userService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly INotificationMessageService _notificationMessageService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportSubmitForCountService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportSubmitForCountVM> vmExceptionService,
             IUserService userService,
-            IItemCodeService itemCodeService)
+            IItemCodeService itemCodeService,
+            INotificationMessageService notificationMessageService)
         {
             _db = db;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _userService = userService;
             _itemCodeService = itemCodeService;
+            _notificationMessageService = notificationMessageService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);
         }
 
@@ -54,7 +57,7 @@ namespace iLgs.Services.CustodianReports
         {
             return s => new CustodianReportSubmitForCountVM
             {
-                Id = s.Id,               
+                Id = s.Id,                               
                 ReportId = s.ReportId,
                 LocationId = s.LocationId,
                 Status = s.Status,
@@ -72,13 +75,18 @@ namespace iLgs.Services.CustodianReports
 
         public IQueryable<CustodianReportSubmitForCountVM> GetAll()
         {
-            var data = _db.CustodianReportSubmitForCounts.Select(Projection()).AsNoTracking();
+            var data = _db.CustodianReportSubmitForCounts
+                .Include(i => i.CustodianReport.Codextn)
+                .Include(i => i.Codextn)                
+                .Select(Projection()).AsNoTracking();
             return data;
         }
 
         public IQueryable<CustodianReportSubmitForCountVM> GetByReportYear(int? reportYear)
         {
             var data = _db.CustodianReportSubmitForCounts
+                .Include(i => i.CustodianReport.Codextn)
+                .Include(i => i.Codextn)
                 .Where(w => w.CustodianReport.AsOf.Value.Year == reportYear)
                 .Select(Projection()).AsNoTracking();
             return data;
@@ -87,6 +95,8 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportSubmitForCountVM> GetByReportYearAccountGroup(int? reportYear, int? accountGroup)
         {
             var data = _db.CustodianReportSubmitForCounts
+                .Include(i => i.CustodianReport.Codextn)
+                .Include(i => i.Codextn)
                 .Where(w => w.CustodianReport.AsOf.Value.Year == reportYear && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(Projection()).AsNoTracking();
             return data;
@@ -95,6 +105,8 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportSubmitForCountVM> GetByReportId(Guid? reportId)
         {
             var data = _db.CustodianReportSubmitForCounts
+                .Include(i => i.CustodianReport.Codextn)
+                .Include(i => i.Codextn)
                 .Where(w => w.CustodianReport.Id == reportId)
                 .Select(Projection()).AsNoTracking();
             return data;
@@ -135,7 +147,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });        
 
-        public ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string user, DateTime date, bool isLocationRequired) =>
+        public ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date, bool isLocationRequired) =>
         _vmExceptionService.TryCatch(async () =>
         {
             if (reportId == null)
@@ -198,10 +210,15 @@ namespace iLgs.Services.CustodianReports
             }
             await _db.SaveChangesAsync();
 
+            model = await GetByLocationAsync(reportId, locationId);
+
+            var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
+            await _notificationMessageService.NotifyUsers("Custodian Count", "Submit", description, user, date);
+
             return model;
         });
 
-        public ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string user, DateTime date) =>
+        public ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
             if (reportId == null)
@@ -232,6 +249,9 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportSubmitForCounts.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+
+            var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
+            await _notificationMessageService.NotifyUsers("Custodian Count", "Unsubmit", description, user, date);
 
             return model;            
         });

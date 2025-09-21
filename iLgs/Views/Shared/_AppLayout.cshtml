@@ -1,7 +1,7 @@
 ﻿@using Kendo.Mvc.UI.Fluent
 
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";    
+    Layout = "~/Views/Shared/_Layout.cshtml";
     IEnumerable<TreeViewItemModel> menuTree = (IEnumerable<TreeViewItemModel>)ViewData["MenuTreeList"];
 }
 <head>
@@ -12,7 +12,7 @@
 <main role="main" class="k-content" style="height: 100%!important">
     @if (Request.IsAuthenticated)
     {
-    @(Html.Kendo().AppBar()
+        @(Html.Kendo().AppBar()
                 .Name("appbar")
                 .ThemeColor(AppBarThemeColor.Inherit)
                 .HtmlAttributes(new { style = "height: 48px" })
@@ -24,21 +24,20 @@
                     if (ViewData["IsAdminUser"] as bool? == true)
                     {
                         items.Add().Type(AppBarItemType.Spacer);
-                        //items.Add().Template("<div class='app-bar-link'><span class='k-icon k-i-track-changes' title='Track Changes' onclick='openTrackChanges()'><span class='k-icon k-i-notification' title='Notifications' onclick='openNotifications()><span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span></span></div>").Type(AppBarItemType.ContentItem);
                         items.Add().Template(@"
                             <div class='app-bar-link'>
                                 <span class='k-icon k-i-track-changes' title='Track Changes' onclick='openTrackChanges()'></span>
-                                <span class='k-icon k-i-notification' title='Notifications' onclick='openNotifications()'>
-                                    <span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span>
+                                <span class='k-icon k-i-notification' title='Notifications' onclick='openNotifications()' style='position: relative;'>
+                                    <span id='notificationBadge'></span>
                                 </span>
                             </div>
-                        ").Type(AppBarItemType.ContentItem);
+                            ").Type(AppBarItemType.ContentItem);
                     }
                     items.Add().Type(AppBarItemType.Spacer).Width("8px");
                     //items.Add().Template("<a href='" + @Url.Action("About", "Home") + "' class='k-link app-bar-link'>About</a>").Type(AppBarItemType.ContentItem);
                     //items.Add().Template("<a href='" + @Url.Action("Contact", "Home") + "' class='k-link app-bar-link'>Contact</a>").Type(AppBarItemType.ContentItem);
                 })
-    )
+        )
     }
     <div id="main-div" style="height: 100%!important;">
         @RenderBody()
@@ -46,6 +45,7 @@
 </main>
 
 <div id="windowAppLayout"></div>
+<button id="dialog" class="k-button k-button-solid-base k-button-solid k-button-md k-rounded-md"></button>
 
 <nav id="main-nav">
     @if (Request.IsAuthenticated)
@@ -109,19 +109,140 @@ if (subItems != null)
 }
 }
 
-@*body {
-        background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        }*@
-
 @section Scripts {
 
-    @Html.Action("_AuditTrailScripts", "AuditTrail")
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.connection.notificationHub.client.refreshUserNotification = function () {
+                console.log("refresh user notification called");
+                RefreshNotification();
+            }
 
-<style>    
+            $.connection.notificationHub.client.refreshNotification = function () {
+                console.log("refresh notification called");
+                RefreshNotification();
+            }
+
+            $.connection.hub.start()
+            .done(function () {
+                console.log("Hub Started");
+                RefreshNotification();
+            })
+            .fail(function () {
+                console.log("Error");
+            });
+        });
+
+        function RefreshNotification()
+        {
+            var badge = $("#notificationBadge").kendoBadge({
+                themeColor: "error",
+                size: "small",
+                shape: "rounded",
+                fill: "solid",
+                position: "edge",
+                align: "top end",                    
+            }).data("kendoBadge");
+
+            $.get('@Url.Action("GetNotificationCount","Notification")', function (data) {
+                if (data) {
+                    console.log("Notification Count:", data.Notifications);
+                    var $badge = $("#notificationBadge");
+
+                    if (data.Notifications > 0) {
+                        var $bell = $(".k-i-notification"); // bell icon span
+
+                        $badge.stop(true, true).fadeOut(100, function () {
+                            $badge.text(String(data.Notifications)).fadeIn(120);
+
+                            // Trigger bell ring
+                            $bell.removeClass("ringing");          // reset
+                            void $bell[0].offsetWidth;             // force reflow
+                            $bell.addClass("ringing");             // play animation
+                        });
+                    }
+                    else {
+                        $badge.text("0").fadeIn(120);
+                    }
+                }
+            });
+        }
+
+    </script>
+
+    @Html.Action("_AuditTrailScripts", "AuditTrail")
+    @Html.Action("_NotificationScripts", "Notification")
+}
+
+<style>
+    @@keyframes ring {
+        0% {
+            transform: rotate(0);
+        }
+
+        10% {
+            transform: rotate(25deg);
+        }
+
+        20% {
+            transform: rotate(-20deg);
+        }
+
+        30% {
+            transform: rotate(15deg);
+        }
+
+        40% {
+            transform: rotate(-10deg);
+        }
+
+        50% {
+            transform: rotate(5deg);
+        }
+
+        60% {
+            transform: rotate(-2deg);
+        }
+
+        70%, 100% {
+            transform: rotate(0);
+        }
+    }
+
+    .ringing {
+        animation: ring 0.8s ease-in-out;
+        transform-origin: top center; /* pivot like a hanging bell */
+    }
+
+    @@keyframes badge-bounce {
+        0% {
+            transform: translateY(0) scale(1);
+        }
+
+        30% {
+            transform: translateY(-6px) scale(1.15);
+        }
+
+        50% {
+            transform: translateY(0) scale(1);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    #notificationBadge.bounce {
+        animation: badge-bounce 420ms cubic-bezier(.23,1,.32,1);
+        will-change: transform;
+    }
+
+    #notificationBadge {
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
     .offcanvas-nav footer {
         padding: 1em;
         background-color: #f8f8f8;
@@ -319,6 +440,7 @@ if (subItems != null)
         // enable RTL mode
         //rtl: false
     });
+
     var Nav = $nav.data('hcOffcanvasNav');
     var sw = 0;
     var isDrawerVisible = true;
@@ -377,16 +499,16 @@ if (subItems != null)
 
             $("#windowAppLayout").append("<div id='windowAudit'></div>");
             var mywindow = $("#windowAudit")
-                    .kendoWindow({
-                        actions: ["Maximize", "Minimize", "Close"],
-                        resizable: true,
-                        draggable: true,
-                        modal: true,
-                        visible: false,
-                        deactivate: function () {
-                            this.destroy();
-                        }
-                    }).data("kendoWindow");
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
             mywindow.setOptions({
                 title: "Audit Trail",
                 width: 1200,
@@ -402,7 +524,30 @@ if (subItems != null)
 
     function openNotifications()
     {
-        return;
+        var url = '@Url.Action("_Notifications", "Notification")';
+
+        $("#windowAppLayout").append("<div id='windowNotification'></div>");
+        var mywindow = $("#windowNotification")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                        RefreshNotification();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Notifications",
+            width: 1200,
+            height: 600
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
     }
 </script>
-}

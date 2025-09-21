@@ -6,6 +6,7 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Type)
     @Html.HiddenFor(model => model.Account)
     @Html.HiddenFor(model => model.Department)
     @Html.HiddenFor(model => model.IsPosted)

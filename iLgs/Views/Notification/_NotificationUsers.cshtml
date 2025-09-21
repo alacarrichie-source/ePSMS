@@ -50,7 +50,7 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             model.Field(p => p.NotificationId).DefaultValue(@ViewData["NotificaitonId"]);
         })
-        .Read(read => read.Action("_NotificationUserRead", "Notification", new { notificationId = @ViewData["NotificaitonId"] }))
+        .Read(read => read.Action("_NotificationUserRead", "Notification", new { notificationId = @ViewData["NotificationId"] }))
         .Create(create => create.Action("_NotificationUserCreate", "Notification"))
         .Update(update => update.Action("_NotificationUserUpdate", "Notification"))
         .Destroy(destroy => destroy.Action("_NotificationUserDestroy", "Notification"))

@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = ViewBag.SubCategory;
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<style>
+    .category-content-container {
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+        margin-top: 19px;
+    }
+
+    .no-product-msg {
+        text-align: center;
+        padding: 2%;
+    }
+
+    @@media (max-width: 768px) {
+        .category-content-container {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .items-listView-container .k-listview .k-listview-content {
+            justify-content: center;
+        }
+    }
+
+    .k-checkbox-wrap {
+        align-self: auto !important;
+    }
+</style>
+
+<style>
+    .items-listView-container {
+        width: 100%;
+    }
+
+        .items-listView-container .k-listview {
+            margin: 24px auto auto auto;
+        }
+
+            .items-listView-container .k-listview .k-listview-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: start;
+                flex-wrap: wrap;
+                gap: 40px;
+            }
+
+        .items-listView-container .k-pager-wrap {
+            margin-top: 48px;
+            border: none;
+            background: none;
+        }
+
+            .items-listView-container .k-pager-wrap .k-pager-sizes > .k-picker {
+                border: 1px solid #605E5C;
+                border-radius: 2px;
+            }
+
+    @@media (max-width: 1500px) {
+        .items-listView-container {
+            width: 60vw;
+            margin: 0 auto;
+        }
+
+            .items-listView-container .k-listview .k-listview-content {
+                justify-content: center;
+            }
+    }
+
+    @@media (max-width: 1024px) {
+        .items-listView-container {
+            width: 50vw;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .items-listView-container {
+            width: 100%;
+        }
+
+            .items-listView-container .k-listview .k-card {
+                max-width: 100%;
+                height: auto;
+            }
+
+                .items-listView-container .k-listview .k-card .k-card-image-container {
+                    height: auto;
+                }
+    }
+</style>
+
+<div class="category-page-container wrap-width">
+    @*@(Html.Kendo().Breadcrumb()
+        .Name("breadcrumb")
+        .Navigational(true)
+        .Items(items =>
+        {
+            items.Add()
+                .Type(BreadcrumbItemType.RootItem)
+                .Href(@Url.Action("Index", "Home"))
+                .ShowText(false)
+                .Icon("home")
+                .ShowIcon(true);
+            items.Add()
+                .Type(BreadcrumbItemType.Item)
+                .Href(@Url.Action("GetCategory", "Home", new { categoryName = ViewBag.Category }))
+                .Text(ViewBag.Category)
+                .ShowText(true);
+            items.Add()
+                .Type(BreadcrumbItemType.Item)
+                .Href(@Url.Action("Category", "Products", new { subCategory = ViewBag.SubCategory }))
+                .Text(ViewBag.SubCategory)
+                .ShowText(true);
+        })
+    )*@
+
+    <div class="category-content-container">
+        @*@await Html.PartialAsync("_MainControls.cshtml")*@
+        @Html.Partial("_AllItemListView")
+    </div>
+</div>
+
+<script type="text/html" id="item-template">
+    @Html.Partial("_TileItemCard")
+</script>
+
+@*<script type="text/html" id="item-template-list">
+    @Html.Partial("_TileProductCartList")
+</script>*@
+
+<span hidden id="subCategory">@ViewBag.SubCategory</span>

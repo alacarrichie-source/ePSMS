@@ -37,7 +37,8 @@ namespace iLgs.Models
             PPE = 2,
             VEHICLE = 3,
             LAND = 4,
-            BUILDING = 5
+            BUILDING = 5,
+            REGISTRY = 6
         }
 
         public enum CategoryGroup

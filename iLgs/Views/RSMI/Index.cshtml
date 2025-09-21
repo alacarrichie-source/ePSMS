@@ -19,7 +19,7 @@
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Custodian).Width(50);
+            //col.Bound(c => c.Custodian).Width(50);
             col.Bound(c => c.PostedBy).Width(50);
             col.Bound(c => c.PostedDt).Width(50);
             col.Command(command =>
@@ -29,15 +29,28 @@
                 command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             }).Width(100);
         })
-        .ToolBar(toolbar =>
+        .ToolBar(t =>
         {
-        toolbar.Template(@<text>
-                @(Html.Kendo().Button().Name("btnAdd").Content("Add New Record").Enable(false)
-                    .Events(e => e.Click("onClickBtnAdd"))
-                )
-                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print RSMI").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
-                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print Summary").Name("btnPrintSum").Events(e => e.Click("onClickBtnPrintSum")).Enable(true))                            
-        </text>);
+            @*t.Template(@<text>
+                    @(Html.Kendo().IconClass("k-icon k-i-add").Button().Name("btnAdd").Content("Add New Record").Enable(false)
+                        .Events(e => e.Click("onClickBtnAdd"))
+                    )
+                    @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print RSMI").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
+                    @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print Summary").Name("btnPrintSum").Events(e => e.Click("onClickBtnPrintSum")).Enable(true))                            
+            </text>);*@
+            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAdd").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Print RSMI").IconClass("k-icon k-i-print").Name("btnPrint").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Print Summary").IconClass("k-icon k-i-print").Name("btnPrintSum").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.Fund, "contains");
+            s.Field(o => o.SerialNo, "contains");
+            s.Field(o => o.PostedBy, "contains");
+            //s.Field(o => o.InvoiceNo, "contains");
         })
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
         .Pageable(pager => pager
@@ -71,6 +84,10 @@
                 model.Field(p => p.Fund).Editable(false);
                 model.Field(p => p.Date).Editable(false);
                 model.Field(p => p.SerialNo).Editable(false);
+                model.Field(p => p.Qty).Editable(false);
+                model.Field(p => p.Amount).Editable(false);
+                model.Field(p => p.PostedBy).Editable(false);
+                model.Field(p => p.PostedDt).Editable(false);
             })
             .Aggregates(a =>
             {
@@ -199,6 +216,11 @@
 )
 </script>
 
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
+)
+
 <div id="windowcontainer"></div>
 
 <style>
@@ -211,6 +233,12 @@
         overflow-x: hidden;
     }
 
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
     .k-prompt-container, .k-window-content {
         overflow-x: hidden;
     }
@@ -221,6 +249,7 @@
         margin-right: 0;
         width: 7em;
     }
+
 </style>
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
@@ -237,6 +266,12 @@
 </script>
 
 <script type="text/javascript">
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
     function GridError(args) {
         if (args.errors) {
             var validationError = true;
@@ -317,13 +352,23 @@
         }
     }
 
+    var postedBy = null;
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
         selectedItemId = null;
 
-        //var gridItems = $("#gridItems_" + selectedId).data("kendoGrid")
-        //gridItems.dataSource.read();
+        var grid = $("#grid");
+        postedBy = selectedData.PostedBy;
+
+        if (postedBy) {
+            $(".k-grid-btnUnpost", grid).show();
+            $(".k-grid-btnPost", grid).hide();
+        } else {
+            $(".k-grid-btnUnpost", grid).hide();
+            $(".k-grid-btnPost", grid).show();
+        }
+
     }
 
     function onDataBoundGrid(e) {
@@ -346,9 +391,19 @@
             });
         }
         var records = this.dataSource.total();
-        $("#btnAdd").data('kendoButton').enable(true);
-        $("#btnPrint").data('kendoButton').enable(records > 0);
-        $("#btnPrintSum").data('kendoButton').enable(records > 0);
+        //$("#btnPrint").data('kendoButton').enable(records > 0);
+        //$("#btnPrintSum").data('kendoButton').enable(records > 0);
+        var grid = $("#grid");
+        if (records == 0) {
+            $(".k-grid-btnPrint", grid).hide();
+            $(".k-grid-btnPrintSum", grid).hide();
+            $(".k-grid-btnPost", grid).hide();
+            $(".k-grid-btnUnpost", grid).hide();
+        }
+        else {
+            $(".k-grid-btnPrint", grid).show();
+            $(".k-grid-btnPrintSum", grid).show();
+        }
     }
 
     function onEditGrid(e) {
@@ -396,22 +451,23 @@
 
     // Printing
 
-    function onClickBtnPrint(e) {
+    $(".k-grid-btnPrint").click(function (e) {
+        e.preventDefault();
         //window.kendo.ui.progress(document.body, true);
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    //activate: function () {
-                    //    window.kendo.ui.progress(document.body, false);
-                    //},
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                //activate: function () {
+                //    window.kendo.ui.progress(document.body, false);
+                //},
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
         mywindow.setOptions({
             title: "RSMI Printing",
             width: 400,
@@ -422,20 +478,21 @@
             url: '@Url.Action("_PrintRsmi", "RSMI")'
         });
         mywindow.center().open();
-    }
+    });
 
-    function onClickBtnPrintSum(e) {
+    $(".k-grid-btnPrintSum").click(function (e) {
+        e.preventDefault();
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
         mywindow.setOptions({
             title: "RSMI Printing",
             width: 400,
@@ -446,7 +503,72 @@
             url: '@Url.Action("_PrintSum", "RSMI")'
         });
         mywindow.center().open();
-    }
+    });
+
+    $(".k-grid-btnPost").click(function (e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("Record was already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post selected record?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("RsmiPost", "RSMI")',
+                    data: { id: selectedId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Record was successfully posted...", "info");
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    });
+
+    $(".k-grid-btnUnpost").click(function (e) {
+        e.preventDefault();
+        var msg = "Unpost selcted record?";
+
+        if (confirm(msg)) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("RsmiUnpost", "RSMI")',
+                data: { id: selectedId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    });
 
 </script>
 

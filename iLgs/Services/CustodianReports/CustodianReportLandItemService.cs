@@ -586,16 +586,6 @@ namespace iLgs.Services.CustodianReports
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
 
-
-                //if (id != null)
-                //{
-                //    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //}
-                //else
-                //{
-                //    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //}                
-
                 if (id != null)
                 {
                     reportItems = reportItems.Where(w => w.ReportId == id);
@@ -608,28 +598,46 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(o => o.CustodianItemNo)
                             .ThenBy(t => t.ItemCode.ItemNoIndex);
 
+                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    ws.Row(4).Cell(2).SetValue(hdg);
+                }
+                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");                
+
+                if (id == null)
+                {
+                    ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                }
+                else
+                {
+                    ws.Row(6).Cell(3).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
                         //account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //if (!string.IsNullOrWhiteSpace(annex))
+                        //{
+                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                        //    ws.Row(4).Cell(2).SetValue(hdg);
+                        //}
+                        //ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        ////ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                        if (id == null)
-                        {
-                            ws.Row(6).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
-                        else
-                        {
-                            ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
+                        //if (id == null)
+                        //{
+                        //    ws.Row(6).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        //}
+                        //else
+                        //{
+                        //    ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        //}
                         sw = 0;
                     }
 

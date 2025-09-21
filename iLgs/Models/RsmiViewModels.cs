@@ -157,6 +157,7 @@ namespace iLgs.Models
 
     public class RsmiPrintVM : IValidatableObject
     {
+        public string RpciType { get; set; }
         public System.Guid Id { get; set; }
         public bool IsPosted { get; set; }
 

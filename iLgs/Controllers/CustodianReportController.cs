@@ -38,8 +38,7 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
         private readonly ICustodianReportItemIssuanceRpcPpeService _rpcPpeIssuanceService;
-        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
-        
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;        
         private readonly ICodextnService _codextnService;
         private readonly ICustodianReportUploadService _uploadService;
         private readonly IItemCodeService _itemCodeService;
@@ -58,7 +57,7 @@ namespace iLgs.Controllers
             ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
             ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
             ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
+            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,            
             ICodextnService codextnService,
             ICustodianReportUploadService custodianReportUploadService,
             IItemCodeService itemCodeService,
@@ -75,7 +74,7 @@ namespace iLgs.Controllers
             _areIssuanceService = custodianReportItemIssuanceAreService;
             _mrIssuanceService = custodianReportItemIssuanceMrService;
             _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
+            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;            
             _codextnService = codextnService;
             _uploadService = custodianReportUploadService;
             _itemCodeService = itemCodeService;
@@ -320,7 +319,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
             {
@@ -335,8 +334,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, user, date, true);
+                    
+                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, true);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -371,7 +370,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
             {
@@ -386,8 +385,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, user, date);
+                    
+                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -3002,18 +3001,18 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public ActionResult ExcelExportReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup)
+        public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return ExcelExport(forYear, reportId, deptId, sectionId, accountGroup, "", null, "", "", "", "");
+            return await ExcelExport(forYear, reportId, deptId, sectionId, accountGroup, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExport(forYear, null, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExport(forYear, null, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -3036,8 +3035,8 @@ namespace iLgs.Controllers
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
+                var locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
@@ -3045,18 +3044,18 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExportAnnex(forYear, null, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExportAnnex(forYear, null, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExportAnnexReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return ExcelExportAnnex(forYear, reportId, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
+            return await ExcelExportAnnex(forYear, reportId, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -3079,8 +3078,8 @@ namespace iLgs.Controllers
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
+                var locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {

@@ -29,7 +29,6 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
 
-
         public RpcPpeController(AppManEntities db, IRpcPpeService rpcPpeService, IRpcPpeItemService rpcPpeItemService,
             ICodextnService codextnService, IUserService userService)
         {
@@ -62,6 +61,14 @@ namespace iLgs.Controllers
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)AccountGroup.SUPPLIES;
             ViewBag.Title = "Report on the Physical Count of Supplies";
+            return View("Index");
+        }
+
+        public ActionResult Registry()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.REGISTRY;
+            ViewBag.Title = "Report on the Physical Count of Registry";
             return View("Index");
         }
 
@@ -333,20 +340,30 @@ namespace iLgs.Controllers
             string pw = decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
+            string title = "REPORT ON THE PHYSICAL COUNT OF ";
 
             ReportClass rpt = new ReportClass();
             if (accountGroup == (int?)AccountGroup.PPE)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeEquipment.rpt"));
+                title += "EQUIPMENT";
             }
             else if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeVehicles.rpt"));
+                title += "VEHICLES";
             }
             else if (accountGroup == (int?)AccountGroup.SUPPLIES)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeSupplies.rpt"));
+                title += "SUPPLIES";
             }
+            else if (accountGroup == (int?)AccountGroup.REGISTRY)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeRegistry.rpt"));
+                title += "REGISTRY";
+            }
+
             rpt.Load();
             rpt.Refresh();
 
@@ -364,7 +381,7 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            //rpt.SetParameterValue("LGU", lgu);
+            rpt.SetParameterValue("TITLE", title);
             rpt.SetParameterValue("@uRpcId", id.ToString());
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);

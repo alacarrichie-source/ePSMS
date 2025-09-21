@@ -18,7 +18,6 @@ namespace iLgs.Models
         public Codextn()
         {
             this.DepartmentUsers = new HashSet<DepartmentUser>();
-            this.RPCIs = new HashSet<RPCI>();
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
             this.PsCardItemIssuances1 = new HashSet<PsCardItemIssuance>();
             this.CustodianDisposals = new HashSet<CustodianDisposal>();
@@ -47,6 +46,7 @@ namespace iLgs.Models
             this.TrackingItems = new HashSet<TrackingItem>();
             this.CustodianReports = new HashSet<CustodianReport>();
             this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
+            this.RPCIs = new HashSet<RPCI>();
         }
     
         public System.Guid Id { get; set; }
@@ -65,8 +65,6 @@ namespace iLgs.Models
         public virtual CodeMast CodeMast { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RPCI> RPCIs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -123,5 +121,7 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReport> CustodianReports { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RPCI> RPCIs { get; set; }
     }
 }

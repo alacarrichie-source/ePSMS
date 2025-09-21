@@ -527,7 +527,7 @@ namespace iLgs.Services.CustodianReports
             entity.UpcomingPar = model.UpcomingPar;
             entity.UpcomingIcs = model.UpcomingIcs;
             entity.Type = model.Type;
-            entity.Annex = model.Annex;
+            entity.Annex = model.Annex?.ToUpper();
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
             entity.SetLotAmount = model.SetLotAmount;
@@ -1195,14 +1195,40 @@ namespace iLgs.Services.CustodianReports
                 var ws = wb.Worksheet(1);
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var userId = _userService.GetByUserName(userName).Id;
-                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);                
                 var reportItems = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
                     forYear, id, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount1, userId).AsQueryable();
 
+                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
                     reportItems = reportItems.Where(w => w.Annex != "D");
                 }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    ws.Row(4).Cell(2).SetValue(hdg);
+                }
+                if (asOf.HasValue)
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                }
+                else
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                }
+                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                if (id == null)
+                {
+                    if (deptId == null || deptId == Guid.Empty)
+                    {
+                        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                    }
+                }
+
+                ws.Row(10).Cell(2).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
 
                 foreach (var reportItem in reportItems)
                 {
@@ -1212,30 +1238,30 @@ namespace iLgs.Services.CustodianReports
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
                         department = reportItem.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //if (!string.IsNullOrWhiteSpace(annex))
+                        //{
+                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                        //    ws.Row(4).Cell(2).SetValue(hdg);
+                        //}
+                        //if (asOf.HasValue)
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        //}
+                        //else
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        //}
+                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-                        }
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
 
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         sw = 0;
                     }
 
@@ -1377,11 +1403,39 @@ namespace iLgs.Services.CustodianReports
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 var reportItems = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
                     forYear, id, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
+                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
                     reportItems = reportItems.Where(w => w.Annex != "D");
                 }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    ws.Row(4).Cell(2).SetValue(hdg);
+                }
+
+                if (asOf.HasValue)
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                }
+                else
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                }
+
+                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                if (id == null)
+                {
+                    if (deptId == null || deptId == Guid.Empty)
+                    {
+                        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                    }
+                }
+
+                ws.Row(10).Cell(2).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
 
                 foreach (var reportItem in reportItems)
                 {
@@ -1391,32 +1445,32 @@ namespace iLgs.Services.CustodianReports
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
                         department = reportItem.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
+                        //if (!string.IsNullOrWhiteSpace(annex))
+                        //{
+                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                        //    ws.Row(4).Cell(2).SetValue(hdg);
+                        //}
 
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
+                        //if (asOf.HasValue)
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        //}
+                        //else
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        //}
 
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-                        }
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
 
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         sw = 0;
                     }
 
@@ -1560,11 +1614,37 @@ namespace iLgs.Services.CustodianReports
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
                     forYear, id, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
+                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
                     reportItems = reportItems.Where(w => w.Annex != "D");
                 }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    ws.Row(4).Cell(2).SetValue(hdg);
+                }
+                if (asOf.HasValue)
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                }
+                else
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                }
+                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                if (id == null)
+                {
+                    if (deptId == null || deptId == Guid.Empty)
+                    {
+                        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                    }
+                }
+
+                ws.Row(10).Cell(2).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
 
                 foreach (var reportItem in reportItems)
                 {
@@ -1574,30 +1654,30 @@ namespace iLgs.Services.CustodianReports
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
                         department = reportItem.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //if (!string.IsNullOrWhiteSpace(annex))
+                        //{
+                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                        //    ws.Row(4).Cell(2).SetValue(hdg);
+                        //}
+                        //if (asOf.HasValue)
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        //}
+                        //else
+                        //{
+                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        //}
+                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-                        }
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
 
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         sw = 0;
                     }
 

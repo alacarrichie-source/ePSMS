@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
+        ValueTask<List<SubAccountTreeVM>> GetSubAccountTreeAsync(string itemCode);
         string GetSubAccounts(Guid? id);
         string GetSubAccount(Guid? id, int pos);
         string GetSubAccountCode(Guid? id);
@@ -180,6 +182,12 @@ namespace iLgs.Services.Items
             return data;
         });
 
+        public async ValueTask<List<SubAccountTreeVM>> GetSubAccountTreeAsync(string itemCode)
+        {
+            var data = await _db.Database.SqlQuery<SubAccountTreeVM>("Select * from dbo.fn_SubAccountTree({0})", itemCode).ToListAsync();
+            return data;
+        }
+
         public string GetSubAccountCode(Guid? id)
         {
             var itemCode = _db.ItemCodes.FirstOrDefault(f => f.Id == id);
@@ -302,7 +310,7 @@ namespace iLgs.Services.Items
             }
 
             return "";
-        }
+        }        
 
         private void ValidateFields(ItemCodeVM model)
         {

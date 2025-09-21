@@ -1,0 +1,78 @@
+﻿<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                @(Html.Kendo().Grid<iLgs.Models.NotificationMessageStatuVM>()
+                    .Name("notificationGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Sender).Width(50);
+                        columns.Bound(p => p.Subject).Width(70);
+                        columns.Bound(p => p.Type).Width(70);
+                        columns.Bound(p => p.Description).Width(250);
+                        columns.Bound(p => p.SendDate).Title("Date/Time").Format("{0:yyyy-MM-dd HH:mm:ss}").Width(70);
+                        columns.Command(command =>
+                        {
+                            command.Custom("ReadNotification").Text("Read").IconClass("k-icon k-i-hyperlink-open-sm").Click("readNotification");
+                        }).Width(60);
+                    })
+                    .ToolBar(t =>
+                    {
+                        t.Search();
+                    })
+                    .Pageable(pager => pager
+                        .Input(false)
+                        .Numeric(true)
+                        .Info(true)
+                        .PreviousNext(true)
+                        .Refresh(true)
+                        .PageSizes(true)
+                        .ButtonCount(5)
+                    )
+                    .Sortable()
+                    .Filterable()
+                    .NoRecords()
+                    .Scrollable(s => s.Height(410))
+                    .Selectable(s => s.Mode(GridSelectionMode.Single))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(s => s.Add(a => a.SendDate).Descending())
+                        .Read(read => read.Action("_NotificationsRead", "Notification"))
+                        .PageSize(20)
+                    )
+                    .Events(events => events.DataBound("onDataBoundGridNotification"))
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+ @*Details Modal*@ 
+<div class="modal fade" id="notificationDetailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notification Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+
+            <div class="modal-footer">
+                @(Html.Kendo().Button()
+                .Name("btnCloseModal")
+                .Content("Close")
+                .HtmlAttributes(new { @class = "btn btn-secondary", type = "button" })
+                .Events(ev => ev.Click("onCloseModalClick"))
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

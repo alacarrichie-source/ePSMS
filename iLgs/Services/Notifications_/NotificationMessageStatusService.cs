@@ -16,7 +16,9 @@ namespace iLgs.Services.CustodianReports
     {
         IQueryable<NotificationMessageStatuVM> GetAllByNotificationMessageId(Guid? notificationMessageId);
         IQueryable<NotificationMessageStatuVM> GetAllByNotificationUserId(Guid? notificationUserId);
+        IQueryable<NotificationMessageStatuVM> GetAllByUserId(string userId);
         ValueTask<NotificationMessageStatuVM> GetByIdAsync(Guid? id);
+        ValueTask<NotificationMessageStatuVM> ReadByIdAsync(Guid? id, string user, DateTime date);
 
         ValueTask<NotificationMessageStatuVM> CreateAsync(NotificationMessageStatuVM model, string user, DateTime date);
         ValueTask<NotificationMessageStatuVM> UpdateAsync(NotificationMessageStatuVM model, string user, DateTime date);
@@ -48,6 +50,11 @@ namespace iLgs.Services.CustodianReports
             return s => new NotificationMessageStatuVM
             {
                 Id = s.Id,
+                Sender = s.NotificationMessage.CreatedBy,
+                SendDate = s.NotificationMessage.CreatedDt,
+                Subject = s.NotificationMessage.Notification.Name,
+                Type = s.NotificationMessage.Message,
+                Description = s.NotificationMessage.Description,
                 NotificationMessageId = s.NotificationMessageId,
                 NotificationUserId = s.NotificationUserId,
                 IsRead = s.IsRead,
@@ -60,6 +67,8 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<NotificationMessageStatuVM> GetAllByNotificationMessageId(Guid? notificationMessageId)
         {
             var data = _db.NotificationMessageStatus
+                .Include(i => i.NotificationMessage.Notification)
+                .Include(i => i.NotificationUser)
                 .Where(w => w.NotificationMessageId == notificationMessageId)
                 .Select(Projection()).AsNoTracking();
             return data;
@@ -68,7 +77,19 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<NotificationMessageStatuVM> GetAllByNotificationUserId(Guid? notificationUserId)
         {
             var data = _db.NotificationMessageStatus
+                .Include(i => i.NotificationMessage.Notification)
+                .Include(i => i.NotificationUser)
                 .Where(w => w.NotificationUserId == notificationUserId)
+                .Select(Projection()).AsNoTracking();
+            return data;
+        }
+
+        public IQueryable<NotificationMessageStatuVM> GetAllByUserId(string userId)
+        {
+            var data = _db.NotificationMessageStatus
+                .Include(i => i.NotificationMessage.Notification)
+                .Include(i => i.NotificationUser)
+                .Where(w => w.NotificationUser.UserId == userId)
                 .Select(Projection()).AsNoTracking();
             return data;
         }
@@ -76,8 +97,25 @@ namespace iLgs.Services.CustodianReports
         public async ValueTask<NotificationMessageStatuVM> GetByIdAsync(Guid? id)
         {
             var data = await _db.NotificationMessageStatus
+                .Include(i => i.NotificationMessage.Notification)
+                .Include(i => i.NotificationUser)
                 .Where(w => w.Id == id)
                 .Select(Projection()).AsNoTracking().FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async ValueTask<NotificationMessageStatuVM> ReadByIdAsync(Guid? id, string user, DateTime date)
+        {
+            var data = await GetByIdAsync(id);
+            if (data != null && data.IsRead != true)
+            {
+                data.IsRead = true;
+                data.IsReadAt = date;
+                data.UpdatedBy = user;
+                data.UpdatedDt = date;
+
+                data = await UpdateAsync(data, user, date);
+            }
             return data;
         }
 

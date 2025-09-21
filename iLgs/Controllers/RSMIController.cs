@@ -1,5 +1,7 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
@@ -73,187 +75,35 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
-                else
-                {
-                    if (_db.RSMIs.Any(a => a.Date >= model.DateFrom && a.Date <= model.DateTo))
-                    {
-                        ModelState.AddModelError("Period", "Period entered already exists..");
-                    }
-                }
 
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-
-                    //var rsmiItemList = _db.PsCardItemIssuances.AsNoTracking()
-                    //    .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
-                    //    .Select(s => new RSMIItemVM
-                    //    {
-                    //        ItemCodeId = s.PsCardItem.PsCard.ItemCodeId,
-                    //        RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
-                    //        Date = s.IssuedDate,
-                    //        Fund = s.PsCardItem.PsCard.Fund,
-                    //        RCC = s.PsCardItem.FPP,
-                    //        PoNo = s.PsCardItem.PoNo,
-                    //        Department = s.PsCardItem.DeptDisplay,
-                    //        LocationCode = s.Codextn1.Code,
-                    //        Location = s.Codextn1.Description,
-                    //        ItemCode = s.PsCardItem.PsCard.ItemCode.Code,
-                    //        StockNo = s.PsCardItem.PsCard.PsNo,
-                    //        ItemName = s.PsCardItem.Description,
-                    //        Unit = s.PsCardItem.Unit,
-                    //        UnitCost = s.PsCardItem.UnitCost,
-                    //        Qty = s.Qty,
-                    //        Amount = s.Amount,
-                    //        AccountCode = s.PsCardItem.PsCard.ItemCode.AccountCode
-                    //    }).ToList();
-
-                    var rsmiItemList = await _db.PsCardItemTransferIssuances.AsNoTracking()
-                        .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
-                        .Select(s => new RSMIItemVM
-                        {
-                            ItemCodeId = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCodeId,
-                            RisNo = s.PsCardItemTransfer.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
-                            Date = s.IssuedDate,
-                            Fund = s.PsCardItemTransfer.PsCardItem.PsCard.Fund,
-                            RCC = s.PsCardItemTransfer.PsCardItem.FPP,
-                            PoNo = s.PsCardItemTransfer.PsCardItem.PoNo,
-                            Department = s.PsCardItemTransfer.PsCardItem.DeptDisplay,
-                            LocationCode = s.Codextn1.Code,
-                            Location = s.Codextn1.Description,
-                            ItemCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.Code,
-                            StockNo = s.PsCardItemTransfer.PsCardItem.PsCard.PsNo,
-                            ItemName = s.PsCardItemTransfer.PsCardItem.Description,
-                            Unit = s.PsCardItemTransfer.PsCardItem.Unit,
-                            UnitCost = s.PsCardItemTransfer.PsCardItem.UnitCost,
-                            Qty = (int?)s.Qty,
-                            Amount = s.Amount,
-                            AccountCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.AccountCode
-                        }).ToListAsync();
-
-                    if (!rsmiItemList.Any())
-                    {
-                        ModelState.AddModelError("Period", "No Issuances found on period entered.");
-                    }
-                    else
-                    {
-                        //var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund, g.RCC })
-                        //    .Select(s => new { s.Key.Date, s.Key.Fund, s.Key.RCC }).ToList();
-                        DateTime? groupDate = null;
-                        string serialNo = "";
-                        var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund})
-                            .Select(s => new { s.Key.Date, s.Key.Fund }).OrderBy(o => o.Fund).ThenBy(o => o.Date).ToList();
-                        
-                        foreach (var rsmiDate in rsmiDateList)
-                        {
-                            if (groupDate != rsmiDate.Date)
-                            {
-                                serialNo = NextSerialNo(rsmiDate.Fund, rsmiDate.Date);
-                                groupDate = rsmiDate.Date;
-                            }
-                            var entity = new RSMI()
-                            {
-                                Id = Guid.NewGuid(),
-                                Date = rsmiDate.Date,
-                                Fund = rsmiDate.Fund,
-                                SerialNo = serialNo,
-                                Custodian = model.Custodian,
-                                PostedBy = model.PostedBy,
-                                PostedDt = model.PostedDt,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-
-                            var itemIssuedList = rsmiItemList
-                                .Where(w => w.Fund == rsmiDate.Fund && w.Date == rsmiDate.Date).ToList();
-
-                            foreach (var itemIssued in itemIssuedList)
-                            {                                
-                                var rsmiItem = new RSMIItem()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    RsmiId = entity.Id,
-                                    ItemCodeId = itemIssued.ItemCodeId,
-                                    RisNo = itemIssued.RisNo,
-                                    PoNo = itemIssued.PoNo,
-                                    Department = itemIssued.Department,
-                                    RCC = itemIssued.RCC,
-                                    LocationCode = itemIssued.LocationCode,
-                                    Location = itemIssued.Location,
-                                    ItemCode = itemIssued.ItemCode,
-                                    StockNo = itemIssued.StockNo,
-                                    ItemName = itemIssued.ItemName,
-                                    Unit = itemIssued.Unit,
-                                    UnitCost = itemIssued.UnitCost,
-                                    Qty = itemIssued.Qty,
-                                    Amount = itemIssued.Amount,
-                                    AccountCode = itemIssued.AccountCode,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                entity.RSMIItems.Add(rsmiItem);
-                            }
-
-                            var recapList = entity.RSMIItems.GroupBy(g => new { g.StockNo, g.AccountCode, g.UnitCost })
-                                .Select(s => new
-                                {
-                                    StockNo = s.Key.StockNo,
-                                    AccountCode = s.Key.AccountCode,
-                                    UnitCost = s.Key.UnitCost,
-                                    Qty = s.Sum(f => f.Qty),
-                                    TotalCost = s.Sum(f => f.Amount)
-                                }).ToList();
-
-                            foreach (var recap in recapList)
-                            {
-                                var rsmiRecap = new RSMIRecap()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    RsmiId = entity.Id,
-                                    StockNo = recap.StockNo,
-                                    Qty = recap.Qty,
-                                    UnitCost = recap.UnitCost,
-                                    TotalCost = recap.TotalCost,
-                                    AccountCode = recap.AccountCode,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                entity.RSMIRecaps.Add(rsmiRecap);
-                            }
-
-                            _db.RSMIs.Add(entity);
-                            await _db.SaveChangesAsync();
-                        }
-                    }                    
+                    model = await _rsmiService.GenerateAsync(model, user, date);
                 }
+
+            }                     
+
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
-
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
-            else
-            {
-                return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-            }                        
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
         
         [AcceptVerbs(HttpVerbs.Post)]
@@ -273,28 +123,35 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = _db.RSMIs.Find(model.Id);
-                    entity.Custodian = model.Custodian;
-                    entity.PostedBy = model.PostedBy;
-                    entity.PostedDt = model.PostedDt;
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
-
-                    _db.RSMIs.Attach(entity);
-                    _db.Entry(entity).State = EntityState.Modified;
-                    await _db.SaveChangesAsync();
+                    model = await _rsmiService.UpdateAsync(model, user, date);
+                    
                 }
+            }
+            //catch (Exception e)
+            //{
+            //    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+            //         "please contact tech support with this message: " + e.Message);
+            //}
+
+            //return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -313,28 +170,124 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = _db.RSMIs.Find(model.Id);
-
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    _db.RSMIs.Attach(entity);
-                    _db.Entry(entity).State = EntityState.Modified;
-                    await _db.SaveChangesAsync();
-
-                    entity = _db.RSMIs.Find(model.Id);
-                    _db.RSMIs.Attach(entity);
-                    _db.RSMIs.Remove(entity);
-                    await _db.SaveChangesAsync();                    
+                    model = await _rsmiService.DeleteAsync(model, user, date);
                 }
+            }
+            //catch (Exception e)
+            //{
+            //    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+            //         "please contact tech support with this message: " + e.Message);
+            //}
+
+            //return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> RsmiPost(Guid? id)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rsmiService.PostAsync(id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> RsmiUnPost(Guid? id)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rsmiService.UnPostAsync(id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult RSMIItemRead([DataSourceRequest] DataSourceRequest request, Guid? rsmiId)
@@ -598,29 +551,6 @@ namespace iLgs.Controllers
                 return File(stream, "application/pdf");
             }
         }
-        #endregion
-
-        public string NextSerialNo(string fund, DateTime? date)
-        {
-            string yyyy = date.Value.Year.ToString().Trim();
-            string mm = date.Value.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            var data = _db.RSMIs.Where(w => w.Fund == fund && w.Date.Value.Year == date.Value.Year && w.Date.Value.Month == date.Value.Month).OrderByDescending(o => o.SerialNo).FirstOrDefault();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.SerialNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
+        #endregion        
     }
 }

@@ -56,6 +56,7 @@ namespace iLgs
             //    ClientId = "",
             //    ClientSecret = ""
             //});
+            app.MapSignalR();
         }
     }
 }

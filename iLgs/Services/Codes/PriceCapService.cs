@@ -53,7 +53,7 @@ namespace iLgs.Services.Codes
             return data;
         }
 
-        public new async ValueTask<PriceCapVM> GetByIdAsync(Guid id)
+        public async ValueTask<PriceCapVM> GetByIdAsync(Guid id)
         {
             var data = await _db.Codextns.Where(w => w.CodeMast.Code == "PRICE-CAP" && w.Id == id)
                 .Select(CodextnProjection).FirstOrDefaultAsync();
@@ -119,6 +119,7 @@ namespace iLgs.Services.Codes
 
         private void ValidateFields(PriceCapVM model, Mode mode)
         {
+            _imex = new InvalidModelException();
             if (string.IsNullOrWhiteSpace(model.Code))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Code)), "Field is required.");

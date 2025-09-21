@@ -1065,6 +1065,7 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="NotificationId" Type="uniqueidentifier" />
           <Property Name="Message" Type="varchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar" MaxLength="300" />
           <Property Name="CreatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="CreatedDt" Type="datetime" />
         </EntityType>
@@ -1955,6 +1956,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Type" Type="varchar" MaxLength="50" />
           <Property Name="AsOf" Type="date" />
           <Property Name="Fund" Type="varchar" MaxLength="50" />
           <Property Name="FromDonation" Type="bit" />
@@ -5239,11 +5241,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
           </AssociationSet>
           <EntitySet Name="PsCardItemUnitGroupDescriptions" EntityType="AppManModel.PsCardItemUnitGroupDescription" />
-          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
-          <AssociationSet Name="FK_RPCIs_Codextn" Association="AppManModel.FK_RPCIs_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RPCI" EntitySet="RPCIs" />
-          </AssociationSet>
           <EntitySet Name="PsCardItemIssuances" EntityType="AppManModel.PsCardItemIssuance" />
           <AssociationSet Name="FK_PsCardItemIssuances_Codextn" Association="AppManModel.FK_PsCardItemIssuances_Codextn">
             <End Role="Codextn" EntitySet="Codextns" />
@@ -5254,10 +5251,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsCardItemIssuance" EntitySet="PsCardItemIssuances" />
           </AssociationSet>
           <EntitySet Name="RPCIDepLocs" EntityType="AppManModel.RPCIDepLoc" />
-          <AssociationSet Name="FK_RPCIDepLocs_RPCIs" Association="AppManModel.FK_RPCIDepLocs_RPCIs">
-            <End Role="RPCI" EntitySet="RPCIs" />
-            <End Role="RPCIDepLoc" EntitySet="RPCIDepLocs" />
-          </AssociationSet>
           <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           <EntitySet Name="CustodianDisposals" EntityType="AppManModel.CustodianDisposal" />
           <AssociationSet Name="FK_CustodianDisposals_Codextn" Association="AppManModel.FK_CustodianDisposals_Codextn">
@@ -5280,10 +5273,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_ItemTypeExclusions_ItemTypes" Association="AppManModel.FK_ItemTypeExclusions_ItemTypes">
             <End Role="ItemType" EntitySet="ItemTypes" />
             <End Role="ItemTypeExclusion" EntitySet="ItemTypeExclusions" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RPCIs_ItemTypes" Association="AppManModel.FK_RPCIs_ItemTypes">
-            <End Role="ItemType" EntitySet="ItemTypes" />
-            <End Role="RPCI" EntitySet="RPCIs" />
           </AssociationSet>
           <EntitySet Name="ItemCodes" EntityType="AppManModel.ItemCode" />
           <AssociationSet Name="FK_ItemCodes_ItemTypes" Association="AppManModel.FK_ItemCodes_ItemTypes">
@@ -5437,10 +5426,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <AssociationSet Name="FK_RPCIItems_ItemCodes" Association="AppManModel.FK_RPCIItems_ItemCodes">
             <End Role="ItemCode" EntitySet="ItemCodes" />
-            <End Role="RPCIItem" EntitySet="RPCIItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RPCIItems_RPCIs1" Association="AppManModel.FK_RPCIItems_RPCIs1">
-            <End Role="RPCI" EntitySet="RPCIs" />
             <End Role="RPCIItem" EntitySet="RPCIItems" />
           </AssociationSet>
           <EntitySet Name="PsCardItemIssuanceItems" EntityType="AppManModel.PsCardItemIssuanceItem" />
@@ -5750,11 +5735,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Tracking" EntitySet="Trackings" />
             <End Role="TrackingItem" EntitySet="TrackingItems" />
           </AssociationSet>
-          <EntitySet Name="UserProfiles" EntityType="AppManModel.UserProfile" />
-          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="AppManModel.FK_UserProfiles_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="UserProfile" EntitySet="UserProfiles" />
-          </AssociationSet>
           <EntitySet Name="CustodianReports" EntityType="AppManModel.CustodianReport" />
           <AssociationSet Name="FK_CustodianReports_Codextn" Association="AppManModel.FK_CustodianReports_Codextn">
             <End Role="Codextn" EntitySet="Codextns" />
@@ -5781,17 +5761,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="CustodianReport" EntitySet="CustodianReports" />
             <End Role="CustodianReportSubmitForCount" EntitySet="CustodianReportSubmitForCounts" />
           </AssociationSet>
-          <EntitySet Name="NotificationMessages" EntityType="AppManModel.NotificationMessage" />
           <EntitySet Name="NotificationMessageStatus" EntityType="AppManModel.NotificationMessageStatu" />
           <EntitySet Name="Notifications" EntityType="AppManModel.Notification" />
-          <AssociationSet Name="FK_NotificationMessages_Notifications" Association="AppManModel.FK_NotificationMessages_Notifications">
-            <End Role="Notification" EntitySet="Notifications" />
-            <End Role="NotificationMessage" EntitySet="NotificationMessages" />
-          </AssociationSet>
-          <AssociationSet Name="FK_NotificationMessageStatus_NotificationMessages" Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages">
-            <End Role="NotificationMessage" EntitySet="NotificationMessages" />
-            <End Role="NotificationMessageStatu" EntitySet="NotificationMessageStatus" />
-          </AssociationSet>
           <EntitySet Name="NotificationUsers" EntityType="AppManModel.NotificationUser" />
           <AssociationSet Name="FK_NotificationUsers_AspNetUsers" Association="AppManModel.FK_NotificationUsers_AspNetUsers">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -5809,6 +5780,37 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_AuditLogDetails_AuditLogs" Association="AppManModel.FK_AuditLogDetails_AuditLogs">
             <End Role="AuditLog" EntitySet="AuditLogs" />
             <End Role="AuditLogDetail" EntitySet="AuditLogDetails" />
+          </AssociationSet>
+          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
+          <AssociationSet Name="FK_RPCIs_Codextn" Association="AppManModel.FK_RPCIs_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RPCI" EntitySet="RPCIs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIs_ItemTypes" Association="AppManModel.FK_RPCIs_ItemTypes">
+            <End Role="ItemType" EntitySet="ItemTypes" />
+            <End Role="RPCI" EntitySet="RPCIs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIDepLocs_RPCIs" Association="AppManModel.FK_RPCIDepLocs_RPCIs">
+            <End Role="RPCI" EntitySet="RPCIs" />
+            <End Role="RPCIDepLoc" EntitySet="RPCIDepLocs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIItems_RPCIs1" Association="AppManModel.FK_RPCIItems_RPCIs1">
+            <End Role="RPCI" EntitySet="RPCIs" />
+            <End Role="RPCIItem" EntitySet="RPCIItems" />
+          </AssociationSet>
+          <EntitySet Name="NotificationMessages" EntityType="AppManModel.NotificationMessage" />
+          <AssociationSet Name="FK_NotificationMessages_Notifications" Association="AppManModel.FK_NotificationMessages_Notifications">
+            <End Role="Notification" EntitySet="Notifications" />
+            <End Role="NotificationMessage" EntitySet="NotificationMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK_NotificationMessageStatus_NotificationMessages" Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages">
+            <End Role="NotificationMessage" EntitySet="NotificationMessages" />
+            <End Role="NotificationMessageStatu" EntitySet="NotificationMessageStatus" />
+          </AssociationSet>
+          <EntitySet Name="UserProfiles" EntityType="AppManModel.UserProfile" />
+          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="AppManModel.FK_UserProfiles_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="UserProfile" EntitySet="UserProfiles" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -5895,8 +5897,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="UserInfo" Relationship="AppManModel.FK_UserInfos_AspNetUsers" FromRole="AspNetUser" ToRole="UserInfo" />
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="DepartmentUsers" Relationship="AppManModel.FK_DepartmentUsers_AspNetUsers" FromRole="AspNetUser" ToRole="DepartmentUser" />
-          <NavigationProperty Name="UserProfile" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="AspNetUser" ToRole="UserProfile" />
           <NavigationProperty Name="NotificationUsers" Relationship="AppManModel.FK_NotificationUsers_AspNetUsers" FromRole="AspNetUser" ToRole="NotificationUser" />
+          <NavigationProperty Name="UserProfile" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="AspNetUser" ToRole="UserProfile" />
         </EntityType>
         <Association Name="AspNetUserAspNetUserRole">
           <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="1" />
@@ -6618,7 +6620,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
           <NavigationProperty Name="DepartmentUsers" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="Codextn" ToRole="DepartmentUser" />
-          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
           <NavigationProperty Name="PsCardItemIssuances" Relationship="AppManModel.FK_PsCardItemIssuances_Codextn" FromRole="Codextn" ToRole="PsCardItemIssuance" />
           <NavigationProperty Name="PsCardItemIssuances1" Relationship="AppManModel.FK_PsCardItemIssuances_Codextn1" FromRole="Codextn" ToRole="PsCardItemIssuance" />
           <NavigationProperty Name="CustodianDisposals" Relationship="AppManModel.FK_CustodianDisposals_Codextn" FromRole="Codextn" ToRole="CustodianDisposal" />
@@ -6647,6 +6648,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="TrackingItems" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="Codextn" ToRole="TrackingItem" />
           <NavigationProperty Name="CustodianReports" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="Codextn" ToRole="CustodianReport" />
           <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="Codextn" ToRole="CustodianReportSubmitForCount" />
+          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
           </EntityType>
         <Association Name="FK_Codextn_Codextn">
           <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
@@ -6747,46 +6749,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="SurveyingCap" Type="Boolean" />
           <Property Name="IncidentalExpensesCap" Type="Boolean" />
         </EntityType>
-        <EntityType Name="RPCI">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="AsOf" Type="DateTime" Precision="0" />
-          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="FromDonation" Type="Boolean" />
-          <Property Name="InvDist" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ItemTypeId" Type="Guid" />
-          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="DeptId" Type="Guid" />
-          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Nullable="false" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="RPCI" ToRole="Codextn" />
-          <NavigationProperty Name="RPCIDepLocs" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCI" ToRole="RPCIDepLoc" />
-          <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="RPCI" ToRole="ItemType" />
-          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCI" ToRole="RPCIItem" />
-          <Property Name="IsPosted" Type="Boolean" />
-        </EntityType>
-        <Association Name="FK_RPCIs_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCI">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItemIssuance">
           <Key>
             <PropertyRef Name="Id" />
@@ -6850,20 +6812,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCIDepLoc" ToRole="RPCI" />
         </EntityType>
-        <Association Name="FK_RPCIDepLocs_RPCIs">
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RPCIDepLoc" Role="RPCIDepLoc" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RPCI">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCIDepLoc">
-              <PropertyRef Name="RpciId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Upload">
           <Key>
             <PropertyRef Name="Id" />
@@ -7049,9 +6997,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="ItemTypeExclusions" Relationship="AppManModel.FK_ItemTypeExclusions_ItemTypes" FromRole="ItemType" ToRole="ItemTypeExclusion" />
-          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="ItemType" ToRole="RPCI" />
           <NavigationProperty Name="ItemCodes" Relationship="AppManModel.FK_ItemCodes_ItemTypes" FromRole="ItemType" ToRole="ItemCode" />
           <Property Name="FormulaNo" Type="Int32" />
+          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="ItemType" ToRole="RPCI" />
         </EntityType>
         <Association Name="FK_ItemTypeExclusions_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
@@ -7061,18 +7009,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ItemTypeExclusion">
-              <PropertyRef Name="ItemTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RPCIs_ItemTypes">
-          <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ItemType">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCI">
               <PropertyRef Name="ItemTypeId" />
             </Dependent>
           </ReferentialConstraint>
@@ -8016,20 +7952,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RPCIItem">
               <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RPCIItems_RPCIs1">
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RPCI">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCIItem">
-              <PropertyRef Name="RpciId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9980,50 +9902,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="UserProfile">
-          <Key>
-            <PropertyRef Name="UserId" />
-          </Key>
-          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="Birthday" Type="DateTime" Precision="3" />
-          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
-          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
-          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="UserProfile" ToRole="AspNetUser" />
-        </EntityType>
-        <Association Name="FK_UserProfiles_AspNetUsers">
-          <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.UserProfile" Role="UserProfile" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="UserProfile">
-              <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="CustodianReport">
           <Key>
             <PropertyRef Name="Id" />
@@ -10142,18 +10020,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="NotificationMessage">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="NotificationId" Type="Guid" />
-          <Property Name="Message" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="CreatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Notification" Relationship="AppManModel.FK_NotificationMessages_Notifications" FromRole="NotificationMessage" ToRole="Notification" />
-          <NavigationProperty Name="NotificationMessageStatus" Relationship="AppManModel.FK_NotificationMessageStatus_NotificationMessages" FromRole="NotificationMessage" ToRole="NotificationMessageStatu" />
-        </EntityType>
         <EntityType Name="NotificationMessageStatu">
           <Key>
             <PropertyRef Name="Id" />
@@ -10165,8 +10031,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="IsReadAt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="NotificationMessage" Relationship="AppManModel.FK_NotificationMessageStatus_NotificationMessages" FromRole="NotificationMessageStatu" ToRole="NotificationMessage" />
           <NavigationProperty Name="NotificationUser" Relationship="AppManModel.FK_NotificationMessageStatus_NotificationUsers" FromRole="NotificationMessageStatu" ToRole="NotificationUser" />
+          <NavigationProperty Name="NotificationMessage" Relationship="AppManModel.FK_NotificationMessageStatus_NotificationMessages" FromRole="NotificationMessageStatu" ToRole="NotificationMessage" />
         </EntityType>
         <EntityType Name="Notification">
           <Key>
@@ -10179,33 +10045,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="NotificationMessages" Relationship="AppManModel.FK_NotificationMessages_Notifications" FromRole="Notification" ToRole="NotificationMessage" />
           <NavigationProperty Name="NotificationUsers" Relationship="AppManModel.FK_NotificationUsers_Notifications" FromRole="Notification" ToRole="NotificationUser" />
+          <NavigationProperty Name="NotificationMessages" Relationship="AppManModel.FK_NotificationMessages_Notifications" FromRole="Notification" ToRole="NotificationMessage" />
         </EntityType>
-        <Association Name="FK_NotificationMessages_Notifications">
-          <End Type="AppManModel.Notification" Role="Notification" Multiplicity="0..1" />
-          <End Type="AppManModel.NotificationMessage" Role="NotificationMessage" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Notification">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="NotificationMessage">
-              <PropertyRef Name="NotificationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_NotificationMessageStatus_NotificationMessages">
-          <End Type="AppManModel.NotificationMessage" Role="NotificationMessage" Multiplicity="0..1" />
-          <End Type="AppManModel.NotificationMessageStatu" Role="NotificationMessageStatu" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="NotificationMessage">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="NotificationMessageStatu">
-              <PropertyRef Name="NotificationMessageId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="NotificationUser">
           <Key>
             <PropertyRef Name="Id" />
@@ -10283,6 +10125,168 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="AuditLogDetail">
               <PropertyRef Name="AuditLogId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RPCI">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AsOf" Type="DateTime" Precision="0" />
+          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="FromDonation" Type="Boolean" />
+          <Property Name="InvDist" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ItemTypeId" Type="Guid" />
+          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="DeptId" Type="Guid" />
+          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="IsPosted" Type="Boolean" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="RPCI" ToRole="Codextn" />
+          <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="RPCI" ToRole="ItemType" />
+          <NavigationProperty Name="RPCIDepLocs" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCI" ToRole="RPCIDepLoc" />
+          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCI" ToRole="RPCIItem" />
+        </EntityType>
+        <Association Name="FK_RPCIs_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCI">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RPCIs_ItemTypes">
+          <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCI">
+              <PropertyRef Name="ItemTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RPCIDepLocs_RPCIs">
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCIDepLoc" Role="RPCIDepLoc" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCI">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIDepLoc">
+              <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RPCIItems_RPCIs1">
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCI">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIItem">
+              <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="NotificationMessage">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="NotificationId" Type="Guid" />
+          <Property Name="Message" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Notification" Relationship="AppManModel.FK_NotificationMessages_Notifications" FromRole="NotificationMessage" ToRole="Notification" />
+          <NavigationProperty Name="NotificationMessageStatus" Relationship="AppManModel.FK_NotificationMessageStatus_NotificationMessages" FromRole="NotificationMessage" ToRole="NotificationMessageStatu" />
+        </EntityType>
+        <Association Name="FK_NotificationMessages_Notifications">
+          <End Type="AppManModel.Notification" Role="Notification" Multiplicity="0..1" />
+          <End Type="AppManModel.NotificationMessage" Role="NotificationMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Notification">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="NotificationMessage">
+              <PropertyRef Name="NotificationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_NotificationMessageStatus_NotificationMessages">
+          <End Type="AppManModel.NotificationMessage" Role="NotificationMessage" Multiplicity="0..1" />
+          <End Type="AppManModel.NotificationMessageStatu" Role="NotificationMessageStatu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NotificationMessage">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="NotificationMessageStatu">
+              <PropertyRef Name="NotificationMessageId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserProfile">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Birthday" Type="DateTime" Precision="3" />
+          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="UserProfile" ToRole="AspNetUser" />
+        </EntityType>
+        <Association Name="FK_UserProfiles_AspNetUsers">
+          <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.UserProfile" Role="UserProfile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserProfile">
+              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -10809,31 +10813,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="UnitGroupId" ColumnName="UnitGroupId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RPCIs">
-            <EntityTypeMapping TypeName="AppManModel.RPCI">
-              <MappingFragment StoreEntitySet="RPCIs">
-                <ScalarProperty Name="IsPosted" ColumnName="IsPosted" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
-                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
-                <ScalarProperty Name="VerifiedBy" ColumnName="VerifiedBy" />
-                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
-                <ScalarProperty Name="CertifiedCorrectBy" ColumnName="CertifiedCorrectBy" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
-                <ScalarProperty Name="Account" ColumnName="Account" />
-                <ScalarProperty Name="ItemTypeId" ColumnName="ItemTypeId" />
-                <ScalarProperty Name="InvDist" ColumnName="InvDist" />
-                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
-                <ScalarProperty Name="AsOf" ColumnName="AsOf" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -12571,36 +12550,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="UserProfiles">
-            <EntityTypeMapping TypeName="AppManModel.UserProfile">
-              <MappingFragment StoreEntitySet="UserProfiles">
-                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Section" ColumnName="Section" />
-                <ScalarProperty Name="Division" ColumnName="Division" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
-                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
-                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
-                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
-                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
-                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
-                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
-                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
-                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
-                <ScalarProperty Name="Sex" ColumnName="Sex" />
-                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
-                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
-                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
-                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
-                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="CustodianReports">
             <EntityTypeMapping TypeName="AppManModel.CustodianReport">
               <MappingFragment StoreEntitySet="CustodianReports">
@@ -12632,17 +12581,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Status" ColumnName="Status" />
                 <ScalarProperty Name="LocationId" ColumnName="LocationId" />
                 <ScalarProperty Name="ReportId" ColumnName="ReportId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="NotificationMessages">
-            <EntityTypeMapping TypeName="AppManModel.NotificationMessage">
-              <MappingFragment StoreEntitySet="NotificationMessages">
-                <ScalarProperty Name="CreatedDt" ColumnName="CreatedDt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="Message" ColumnName="Message" />
-                <ScalarProperty Name="NotificationId" ColumnName="NotificationId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -12698,6 +12636,74 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Action" ColumnName="Action" />
                 <ScalarProperty Name="TableName" ColumnName="TableName" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RPCIs">
+            <EntityTypeMapping TypeName="AppManModel.RPCI">
+              <MappingFragment StoreEntitySet="RPCIs">
+                <ScalarProperty Name="IsPosted" ColumnName="IsPosted" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
+                <ScalarProperty Name="VerifiedBy" ColumnName="VerifiedBy" />
+                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
+                <ScalarProperty Name="CertifiedCorrectBy" ColumnName="CertifiedCorrectBy" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
+                <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="ItemTypeId" ColumnName="ItemTypeId" />
+                <ScalarProperty Name="InvDist" ColumnName="InvDist" />
+                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="AsOf" ColumnName="AsOf" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="NotificationMessages">
+            <EntityTypeMapping TypeName="AppManModel.NotificationMessage">
+              <MappingFragment StoreEntitySet="NotificationMessages">
+                <ScalarProperty Name="CreatedDt" ColumnName="CreatedDt" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="NotificationId" ColumnName="NotificationId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserProfiles">
+            <EntityTypeMapping TypeName="AppManModel.UserProfile">
+              <MappingFragment StoreEntitySet="UserProfiles">
+                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
+                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
+                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
+                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
+                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
+                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
+                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
+                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
+                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
+                <ScalarProperty Name="Sex" ColumnName="Sex" />
+                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
+                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
+                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

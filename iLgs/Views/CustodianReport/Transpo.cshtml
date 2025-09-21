@@ -138,7 +138,12 @@
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Upload").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Submit for Count").IconClass("k-icon k-i-track-changes-accept").Name("btnCount").HtmlAttributes(new { @class = "k-button", href = "", title = "Certifying that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team." });
+            t.Custom().Text("Submit for Count").IconClass("k-icon k-i-track-changes-accept").Name("btnCount").HtmlAttributes(new
+            {
+                id = "btnCount",
+                @class = "k-button",
+                href = ""
+            });
             t.Search();
         })
         .Search(s =>
@@ -199,6 +204,13 @@
             .Save("onSaveGrid")
         )
         .AutoBind(false)
+)
+
+@(Html.Kendo().Tooltip()
+  .For("#btnCount")
+  .Position(TooltipPosition.Top)
+  .Animation(true)
+  .Content("Certifying that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -708,7 +720,7 @@
 
         if (e.model.isNew()) {
             if (!$("#sectionId").val()) {
-                alert("Please select a section before proceeding.");
+                alert("Please select a location before proceeding.");
                 var wnd = e.container && e.container.data("kendoWindow");
                 if (wnd) {
                     wnd.close();
@@ -966,7 +978,7 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "Do you certify that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
             var url = "";
@@ -984,7 +996,8 @@
                 data: {
                     reportId: reportId,
                     locationId: $("#sectionId").val(),
-                    accountGroup: '@ViewBag.AccountGroup'
+                    accountGroup: '@ViewBag.AccountGroup',
+                    url: window.location.href
                 },
                 async: true,
                 beforeSend: function () {

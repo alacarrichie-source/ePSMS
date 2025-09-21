@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.PurchaseOrder;
 using System;
 using System.Data.Entity;
@@ -11,7 +12,7 @@ namespace iLgs.Services.RPC
     public interface IRpciService
     {
         IQueryable<RPCI_VM> GetAll();
-        IQueryable<RPCI_VM> GetAll(bool? isPosted);
+        IQueryable<RPCI_VM> GetAll(bool? isPosted, string type);
         IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id);
         ValueTask<RPCI> GetByIdAsync(Guid? id);
         ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
@@ -30,19 +31,29 @@ namespace iLgs.Services.RPC
         private readonly IExceptionService<RPCI_VM> _vmExceptionService;
         private readonly IExceptionService<RPCI> _exceptionService;
         private readonly IOrderService _orderService;
+        private readonly IPriceCapService _priceCapService;
+
+        private decimal? _priceCap;
 
         public RpciService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<RPCI_VM> vmExceptionService,
             IExceptionService<RPCI> exceptionService,
-            IOrderService orderService)
+            IOrderService orderService,
+            IPriceCapService priceCapService)
         {
             _db = db;
             _db.Database.CommandTimeout = 3000;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
-            _orderService = orderService;            
+            _orderService = orderService;
+            _priceCapService = priceCapService;
+        }
+
+        private decimal GetPriceCap()
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
         public ValueTask<RPCI> GetByIdAsync(Guid? id) =>
@@ -94,6 +105,7 @@ namespace iLgs.Services.RPC
                 .Select(s => new RPCI_VM
                 {
                     Id = s.Id,
+                    Type = s.Type,
                     AsOf = s.AsOf,
                     Fund = s.Fund,
                     FromDonation = s.FromDonation,
@@ -117,11 +129,11 @@ namespace iLgs.Services.RPC
             return data;
         });
 
-        public IQueryable<RPCI_VM> GetAll(bool? isPosted) =>
+        public IQueryable<RPCI_VM> GetAll(bool? isPosted, string type) =>
         _vmExceptionService.TryCatch(() =>
         {
             var data = GetAll();
-            return data.Where(w => w.IsPosted == isPosted);
+            return data.Where(w => w.IsPosted == isPosted && w.Type == type);
         });
 
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
@@ -134,7 +146,7 @@ namespace iLgs.Services.RPC
 
             //if (model.DeptId != null) {                 
             //&& a.Account == model.Account 
-            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
+            if (await _db.RPCIs.AnyAsync(a => a.Type == model.Type && a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
                  && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId                 
                  && a.DeptId == model.DeptId && a.IsPosted == model.IsPosted))
             {
@@ -146,9 +158,9 @@ namespace iLgs.Services.RPC
             {
                 model.Account = "ALL";
             }
-
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
-                model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted);
+            var priceCap = GetPriceCap();
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
+                model.Type, model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted, priceCap);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
         });
@@ -237,6 +249,7 @@ namespace iLgs.Services.RPC
             var entity = new RPCI()
             {
                 Id = model.Id,
+                Type = model.Type,
                 AsOf = model.AsOf,
                 Fund = model.Fund,
                 FromDonation = model.FromDonation,

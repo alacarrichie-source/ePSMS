@@ -140,6 +140,7 @@ namespace iLgs
             services.AddScoped<IItemCodeService, ItemCodeService>();
             services.AddScoped<IItemTypeExclusionService, ItemTypeExclusionService>();
             services.AddScoped<IItemTypeService, ItemTypeService>();
+            services.AddScoped<IItemUploadService, ItemUploadService>();
 
             // NOTIFICATIONS                
             services.AddScoped<INotificationMessageService, NotificationMessageService>();

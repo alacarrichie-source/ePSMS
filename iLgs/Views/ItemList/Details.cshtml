@@ -1,0 +1,373 @@
+﻿@{
+    ViewData["Title"] = "Product Details";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+model iLgs.Models.ItemCodeVM;
+
+<style>
+    .model-details {
+    display: flex;
+    flex-direction: row;
+    margin-top: 49px;
+    gap: 40px
+}
+
+.model-details .model-image-container {
+    width: 453px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+    .model-details .model-image-container .model-image {
+        width: 100%;
+    }
+
+.model-details .model-info-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-info-container .model-heading {
+    display: flex;
+    flex-direction: column;
+}
+
+    .model-info-container .model-heading .model-title {
+        font-weight: 600;
+        font-size: 42px;
+        line-height: 59px;
+        color: var(--eshop-black);
+    }
+
+.model-info-container .splitter1 {
+    border: 1px solid #EDEBE9;
+    width: 100%;
+    margin-top: 21px;
+    margin-bottom: 12px;
+}
+
+.model-info-container .model-data {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+}
+
+.model-info-container .model-data-left-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 500px;
+}
+
+    .model-info-container .model-data-left-container .model-data-row {
+        display: flex;
+        flex-direction: row;
+        flex: 1 1 auto;
+    }
+
+    .model-info-container .model-data-left-container .title {
+        display: flex;
+        color: #605E5C;
+        flex: 0 0 20%;
+    }
+
+.model-info-container .model-data-left-container .size .k-dropdownlist {
+    width: 174px;
+}
+
+    .model-info-container .model-data-right-container .price {
+        font-weight: 600;
+        font-size: 42px;
+        line-height: 59px;
+        color: var(--eshop-blue);
+        text-align: right;
+    }
+
+.model-info-container .model-data-right-container .buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-top: 24px;
+}
+
+    .model-info-container .model-data-right-container .buttons-container .k-button {
+        width: 330px;
+        height: 38px;
+    }
+
+.model-details-container .splitter2 {
+    margin-top: 80px;
+    margin-bottom: 80px;
+    border: 1px solid #EDEBE9;
+}
+
+.similar-products-title {
+    font-size: 32px;
+    line-height: 45px;
+    color: var(--eshop-black);
+    margin-bottom: 24px;
+}
+
+.similar-products .k-listview .k-listview-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+@@media (max-width: 1500px) {
+    .similar-products .k-listview .k-listview-content {
+        justify-content: center;
+    }
+
+    .model-info-container .model-data-right-container .buttons-container .k-button {
+        width: 100%;
+    }
+}
+
+@@media (max-width: 1024px) {
+    .model-details {
+        flex-direction: column;
+    }
+
+        .model-details .model-image-container {
+            align-self: center;
+            width: auto;
+        }
+
+    .model-info-container .model-data {
+        flex-direction: column;
+    }
+
+    .model-info-container .model-data-left-container {
+        min-width: 100%;
+    }
+}
+
+@@media (max-width: 768px) {
+    .model-info-container .model-data-left-container .title {
+        flex: 0 0 30%;
+    }
+
+    .similar-products-title {
+        text-align: center;
+    }
+
+    .similar-products .k-listview-content .k-card {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+@@media (max-width: 480px) {
+    .model-info-container .model-data-left-container .title {
+        flex: 0 0 40%;
+    }
+}
+
+</style>
+<div class="model-details-container wrap-width">
+    @(Html.Kendo().Breadcrumb()
+        .Name("breadcrumb")
+        .Navigational(true)
+        .Items(items =>
+        {
+            items.Add()
+            .Type(BreadcrumbItemType.RootItem)
+            .Href(@Url.Action("Index", "ItemList"))
+            .ShowText(false)
+            .Icon("home")
+            .ShowIcon(true);
+            //items.Add()
+            //.Type(BreadcrumbItemType.Item)
+            //.Href(@Url.Action("GetCategory", "Home", new { categoryName = Model.Category }))
+            //.Text(Model.Category)
+            //.ShowText(true);
+            //items.Add()
+            //.Type(BreadcrumbItemType.Item)
+            //.Href(@Url.Action("Category", "Products", new { subCategory = Model.SubCategory }))
+            //.Text(Model.SubCategory)
+            //.ShowText(true);
+            //items.Add()
+            //.Type(BreadcrumbItemType.Item)
+            //.Href(@Url.Action("Details", "Products", new { productId = Model.Id }))
+            //.Text(Model.Name)
+            //.ShowText(true);
+        })
+    )
+    <div class="model-details">
+        <div class="model-image-container">
+            <img class="model-image" src="@Url.Action("GetLargePhotoById", "ItemList")?photoId=@Model.Id" />
+        </div>
+        <div class="model-info-container">
+            <div class="model-heading">
+                <div class="model-title">
+                    @{
+                        if (Model.Description == null)
+                        {
+                            @Model.Code
+                        }
+                        else
+                        {
+                            @Model.Description
+                        }
+                    }
+                </div>
+                @*@(Html.Kendo().Rating()
+                    .Name("productRating")
+                    .Min(1)
+                    .Max(5)
+                    .Precision("half")
+                    .Value(@Model.AverageRating)
+                    .Readonly(true)
+                    .Label(false)
+                )*@
+            </div>
+            <hr class="splitter1">
+            <div class="model-data">
+                <div class="model-data-left-container">
+                    <div class="model-data-row">
+                        <span class="title">Item Name</span>
+                        <span class="value">@Model.Description</span>
+                    </div>
+                    <div class="model-data-row">
+                        <span class="title">Item Code</span>
+                        <span class="value">@Model.Code</span>
+                    </div>
+                    @*@{
+                        if (Model.Size != null)
+                        {
+                            <div class="model-data-row">
+                                <span class="title">Size</span>
+                                <span class="value size">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("sizePicker")
+                                    .Value(@Model.Size)
+                                    .FillMode(FillMode.None)
+                                    .Rounded(Rounded.None)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetAvailableSizes", "Products", new { productId = @Model.Id });
+                                        });
+                                    })
+                                    .Events(e => e.Change(@<text>function () { selectAlternateProductVersion(@Model.ModelId); }</text>))
+                                    )
+                                </span>
+                            </div>
+                        }
+                    }*@
+                    @*@{
+                        if (Model.Weight != 0)
+                        {
+                            <div class="model-data-row">
+                                <span class="title">Weight</span>
+                                <span class="value">@Model.Weight</span>
+                            </div>
+                        }
+                    }
+                    @{
+                        if (Model.Color != null)
+                        {
+                            <div class="model-data-row">
+                                <span class="title">Color</span>
+                                <div class="value"><ul id="colorPicker"></ul></div>
+                            </div>
+                        }
+                    }*@
+                    @{
+                        if (Model.Description != null)
+                        {
+                            <div class="model-data-row">
+                                <span class="title">Description</span>
+                                <span class="value model-description">@Model.Description</span>
+                            </div>
+                        }
+                    }
+                </div>
+                @*<div class="model-data-right-container">
+                    @{
+                        if (Model.DiscountPct != 0)
+                        {
+                            <div class="price"> @(string.Format("{0:C}", Model.FinalPrice))</div>
+                        }
+                        else
+                        {
+                            <div class="price">$@Model.ListPrice.ToString("N2")</div>
+                        }
+                    }
+                    <div class="buttons-container">
+                        @(Html.Kendo().Button()
+                            .Name("addToCartButton_" + @Model.Id)
+                            .Content("Add to cart")
+                            .ThemeColor(ThemeColor.Primary)
+                            .Icon("cart")
+                            .HtmlAttributes(new { type = "button" })
+                            .Events(e => e.Click("addProductToShoppingCart"))
+                            .Enable(Model.InStock > 0)
+                        )
+                        @(Html.Kendo().Button()
+                            .Name("addToFavoritesButton_" + @Model.Id)
+                            .Content("Add to Favorites")
+                            .Icon("heart-outline")
+                            .HtmlAttributes(new { type = "button" })
+                            .Events(e => e.Click("addProductToFavorites"))
+                        )
+                    </div>
+                </div>*@
+            </div>
+        </div>
+    </div>
+
+    @*<hr class="splitter2">
+
+    @{
+        if (Model.ModelId != null)
+        {
+            <div class="similar-products">
+                <div class="similar-products-title">Similar Products</div>
+                @(Html.Kendo().ListView<Models.ViewModels.ProductAllViewModel>()
+                    .Name("similarProductsListView")
+                    .TagName("div")
+                    .ClientTemplateId("product-template")
+                    .Navigatable()
+                    .Bordered(false)
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .Read(r => r.Action("ReadSimilarProducts", "Products", new { productId = Model.Id, subCategoryId = @Model.SubCategoryId, count = 4 }).Type(HttpVerbs.Get))
+                    )
+                    .Events(e => e.DataBound("distinguishFavorites"))
+                )
+            </div>}
+    }*@
+</div>
+
+<script type="text/html" id="item-template">
+    @Html.Partial("_TileItemCard")
+</script>
+
+<script>
+	@*$(document).ready(function () {
+		var productId = "@Model.Id";
+		var modelId = "@Model.ModelId";
+
+		$.get('@Url.Action("GetAvailableColors","Products")?productId=' + productId, function (data) {
+			if(data.length > 0) {
+				$("#colorPicker").kendoRadioGroup({
+					items: data,
+
+					layout: "horizontal",
+					value: "@Model.Color",
+					change: function () { selectAlternateProductVersion(modelId); }
+				});
+			}
+		});
+
+		distinguishFavorites();
+	});*@
+</script>

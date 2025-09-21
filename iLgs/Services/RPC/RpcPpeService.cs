@@ -36,12 +36,16 @@ namespace iLgs.Services.RPC
         private readonly IExceptionService<RpcPpe> _exceptionService;
         private readonly IOrderService _orderService;
         private readonly ICodextnService _codextnService;
+        private readonly IPriceCapService _priceCapService;
+
+        private decimal? _priceCap;
 
         public RpcPpeService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<RpcPpe> exceptionService,
             IOrderService orderService,
-            ICodextnService codextnService)
+            ICodextnService codextnService,
+            IPriceCapService priceCapService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RpcPpe>(propertyName);
@@ -49,6 +53,12 @@ namespace iLgs.Services.RPC
             _exceptionService = exceptionService;
             _orderService = orderService;
             _codextnService = codextnService;
+            _priceCapService = priceCapService;
+        }
+
+        private decimal GetPriceCap()
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
         public ValueTask<RpcPpe> GetByIdAsync(Guid? id) =>
@@ -106,6 +116,10 @@ namespace iLgs.Services.RPC
             {
                 menuId = "rpc_vehicle";
             }
+            else if (accountGroup == (int?)AccountGroup.REGISTRY)
+            {
+                menuId = "rpc_registry";
+            }
             return menuId;
         }
 
@@ -158,7 +172,8 @@ namespace iLgs.Services.RPC
             {
                 model.Department = null;
             }
-            await _db.Database.ExecuteSqlCommandAsync("Exec RpcPpe_Generate {0}, {1}, {2}, {3}, {4}", model.AccountGroup, model.AsOf, model.DeptId, user, date);            
+            var priceCap = GetPriceCap();
+            await _db.Database.ExecuteSqlCommandAsync("Exec RpcPpe_Generate {0}, {1}, {2}, {3}, {4}, {5}", model.AccountGroup, model.AsOf, model.DeptId, user, date, priceCap);            
 
             return model;
         });
@@ -286,6 +301,7 @@ namespace iLgs.Services.RPC
 
         public void ValidateFieldsOnCreateUpdate(RpcPpe model)
         {
+            _imex = new InvalidModelException();
             if (!model.AsOf.HasValue)
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.AsOf)), "Field is required.");
@@ -310,7 +326,7 @@ namespace iLgs.Services.RPC
 
             if (model.DeptId.HasValue)
             {
-                if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
+                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.DeptId))
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
                 }

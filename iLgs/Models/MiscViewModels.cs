@@ -16,4 +16,12 @@ namespace iLgs.Models
     {
         public Guid Id { get; set; }
     }
+
+    public class BreadCrumbItemVM
+    {
+        public string Text { get; set; }
+        public string Href { get; set; }
+        public string Icon { get; set; }
+        public bool IsRoot { get; set; }
+    }
 }

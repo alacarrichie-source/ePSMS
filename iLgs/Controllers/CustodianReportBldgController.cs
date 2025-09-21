@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
 using iLgs.Utilities;
@@ -26,16 +27,19 @@ namespace iLgs.Controllers
         private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
         private readonly ICustodianBldgUploadService _uploadService;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
+        private readonly ICodextnService _codextnService;
 
         public CustodianReportBldgController(ICustodianReportService custodianReportService,
             ICustodianReportBldgItemService custodianReportBldgItemService,
             ICustodianBldgUploadService custodianBldgUploadService, 
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService)
+            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
+            ICodextnService codextnService)
         {
             _custodianReportService = custodianReportService;
             _custodianReportBldgItemService = custodianReportBldgItemService;
             _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
             _uploadService = custodianBldgUploadService;
+            _codextnService = codextnService;
         }
 
         public ActionResult BldgQuery()
@@ -277,7 +281,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
             {
@@ -292,8 +296,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, user, date, false);
+                    
+                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, false);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -328,7 +332,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup)
+        public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
             {
@@ -343,8 +347,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, user, date);
+                    
+                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1016,8 +1020,8 @@ namespace iLgs.Controllers
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportBldgItemService.ProcessExcelFile(reportId, templateFilePath, accountGroup);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
+                var locationCode = (await _codextnService.GetByIdAsync(report.DeptId))?.Code;
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
@@ -1034,7 +1038,7 @@ namespace iLgs.Controllers
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(null, templateFilePath, accountGroup, annex);
 
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
@@ -1051,8 +1055,8 @@ namespace iLgs.Controllers
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(reportId, templateFilePath, report.AccountGroup, annex);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
+                var locationCode = (await _codextnService.GetByIdAsync(report.DeptId))?.Code;
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_s{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {

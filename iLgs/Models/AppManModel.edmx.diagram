@@ -36,7 +36,7 @@
         <EntityTypeShape EntityType="AppManModel.LocationBudget" Width="1.5" PointX="17.25" PointY="14.75" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
-        <EntityTypeShape EntityType="AppManModel.UserProfile" Width="1.5" PointX="3" PointY="2.5" />
+        <EntityTypeShape EntityType="AppManModel.UserProfile" Width="1.5" PointX="3" PointY="2.625" />
         <AssociationConnector Association="AppManModel.FK_UserProfiles_AspNetUsers" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
@@ -84,10 +84,10 @@
         <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="13" PointY="10" />
         <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="10.75" PointY="10" />
         <AssociationConnector Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" />
-        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.75" PointY="4.75" />
         <EntityTypeShape EntityType="AppManModel.RPCIDepLoc" Width="1.5" PointX="8" PointY="10.5" />
-        <AssociationConnector Association="AppManModel.FK_RPCIDepLocs_RPCIs" />
         <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="8" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.75" PointY="4.125" />
+        <AssociationConnector Association="AppManModel.FK_RPCIDepLocs_RPCIs" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs1" />
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="85" >
@@ -301,14 +301,14 @@
         <AssociationConnector Association="AppManModel.FK_TrackingItems_Trackings" />
       </Diagram>
       <Diagram DiagramId="59864e305dda44b3bb6d66651c01f5bf" Name="Notifications" >
-        <EntityTypeShape EntityType="AppManModel.NotificationMessage" Width="1.5" PointX="3" PointY="1.375" />
         <EntityTypeShape EntityType="AppManModel.NotificationMessageStatu" Width="1.5" PointX="5.25" PointY="3" />
         <EntityTypeShape EntityType="AppManModel.Notification" Width="1.5" PointX="0.75" PointY="3" />
-        <AssociationConnector Association="AppManModel.FK_NotificationMessages_Notifications" />
-        <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages" />
         <EntityTypeShape EntityType="AppManModel.NotificationUser" Width="1.5" PointX="3" PointY="4.875" />
         <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationUsers" />
         <AssociationConnector Association="AppManModel.FK_NotificationUsers_Notifications" />
+        <EntityTypeShape EntityType="AppManModel.NotificationMessage" Width="1.5" PointX="3" PointY="1.125" />
+        <AssociationConnector Association="AppManModel.FK_NotificationMessages_Notifications" />
+        <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
