@@ -341,156 +341,111 @@
     $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
+        
+        window.kendo.ui.progress($(document.body), true);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var sectionId = $("#sectionId").val();        
+        var url = "@Url.Action("ExcelExportReport", "CustodianReport")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            "&sectionId=" + sectionId +
+            '&accountGroup=@ViewBag.AccountGroup';
 
-            var forYear = $("#forYear").val();
-            // Get the ID of the selected row
-            var reportId = selectedData.ReportId;
-            var deptId = $("#deptId").val();
-            var sectionId = $("#sectionId").val();
-
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportReport", "CustodianReport")?forYear=" + forYear +
-                "&reportId=" + reportId +
-                "&deptId=" + deptId +
-                "&sectionId=" + sectionId +
-                '&accountGroup=@ViewBag.AccountGroup';
-
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportA").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
+        window.kendo.ui.progress($(document.body), true);
 
-            var forYear = $("#forYear").val();
-            // Get the ID of the selected row
-            var reportId = selectedData.ReportId;
-            var deptId = $("#deptId").val();
-            var sectionId = $("#sectionId").val();
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var sectionId = $("#sectionId").val();
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            "&sectionId=" + sectionId +
+            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
 
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-                "&reportId=" + reportId +
-                "&deptId=" + deptId +
-                "&sectionId=" + sectionId +
-                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
-
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportB").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
+        window.kendo.ui.progress($(document.body), true);
 
-            var forYear = $("#forYear").val();
-            // Get the ID of the selected row
-            var reportId = selectedData.ReportId;
-            var deptId = $("#deptId").val();
-            var sectionId = $("#sectionId").val();
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var sectionId = $("#sectionId").val();
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            "&sectionId=" + sectionId +
+            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
 
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-                "&reportId=" + reportId +
-                "&deptId=" + deptId +
-                "&sectionId=" + sectionId +
-                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
-
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportC").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
+        
+        window.kendo.ui.progress($(document.body), true);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var sectionId = $("#sectionId").val();
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            "&sectionId=" + sectionId +
+            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
 
-            var forYear = $("#forYear").val();
-            // Get the ID of the selected row
-            var reportId = selectedData.ReportId;
-            var deptId = $("#deptId").val();
-            var sectionId = $("#sectionId").val();
-
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-                "&reportId=" + reportId +
-                "&deptId=" + deptId +
-                "&sectionId=" + sectionId +
-                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
-
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportD").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
+        window.kendo.ui.progress($(document.body), true);
 
-            var forYear = $("#forYear").val();
-            // Get the ID of the selected row
-            var reportId = selectedData.ReportId;
-            var deptId = $("#deptId").val();
-            var sectionId = $("#sectionId").val();
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var sectionId = $("#sectionId").val();
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            "&sectionId=" + sectionId +
+            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
 
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-                "&reportId=" + reportId +
-                "&deptId=" + deptId +
-                "&sectionId=" + sectionId +
-                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
-
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(document).ready(function () {
@@ -672,21 +627,29 @@
             //});
         }
 
+        var grid = $("#grid");
         if ($("#deptId").data("kendoMultiColumnComboBox").value()) {
             this.wrapper.find(".k-grid-add").show();
             this.wrapper.find(".k-grid-btnDownload").show();
+            $(".k-grid-btnExport", grid).show();
+            $(".k-grid-btnExportA", grid).show();
+            $(".k-grid-btnExportB", grid).show();
+            $(".k-grid-btnExportC", grid).show();
         }
         else {
             this.wrapper.find(".k-grid-add").hide();
             this.wrapper.find(".k-grid-btnDownload").hide();
-        }
-
-        var grid = $("#grid");
-        if (this.dataSource.data().length == 0) {
             $(".k-grid-btnExport", grid).hide();
             $(".k-grid-btnExportA", grid).hide();
             $(".k-grid-btnExportB", grid).hide();
             $(".k-grid-btnExportC", grid).hide();
+        }
+
+        if (this.dataSource.data().length == 0) {
+            //$(".k-grid-btnExport", grid).hide();
+            //$(".k-grid-btnExportA", grid).hide();
+            //$(".k-grid-btnExportB", grid).hide();
+            //$(".k-grid-btnExportC", grid).hide();
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
             $(".k-grid-btnUpload", grid).hide();
@@ -694,10 +657,10 @@
             reportId = null;
         }
         else {
-            $(".k-grid-btnExport", grid).show();
-            $(".k-grid-btnExportA", grid).show();
-            $(".k-grid-btnExportB", grid).show();
-            $(".k-grid-btnExportC", grid).show();
+            //$(".k-grid-btnExport", grid).show();
+            //$(".k-grid-btnExportA", grid).show();
+            //$(".k-grid-btnExportB", grid).show();
+            //$(".k-grid-btnExportC", grid).show();
             $(".k-grid-btnUpload", grid).show();
             $(".k-grid-btnCount", grid).show();
             var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
@@ -960,8 +923,8 @@
         if (btnText == "Submit for Count") {
             msg = "As the Custodian, do you certify that the count has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
         }
-        if (confirm(msg)) {        
-            var url = "";            
+        if (confirm(msg)) {
+            var url = "";
             if (btnText == "Submit for Count")
             {
                 url = '@Url.Action("SubmitForCount", "CustodianReport")';
@@ -1450,7 +1413,7 @@
             window.location.href = url;
             window.kendo.ui.progress($(document.body), false);
         } else {
-            alert("Please select a row to export.");
+            alert("Please select a row.");
         }
     }
 

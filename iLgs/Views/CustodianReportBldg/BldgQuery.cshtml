@@ -471,166 +471,145 @@
     $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
-            var forYear = $("#forYear").val();
-            var deptId = $("#deptId").val();
-            var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
-            var subAccount1 = $("#subAccount1").val();
-            var subAccount2 = $("#subAccount2").val();
-            var subAccount3 = $("#subAccount3").val();
-            var subAccount4 = $("#subAccount4").val();
-            var asOf = $("#asOf").val();
-            // Construct the URL for the Excel export
-
-            var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
-                + '&mainAccount=' + mainAccount + '&asOf=' + asOf
-                + '&subAccount1=' + subAccount1
-                + '&subAccount2=' + subAccount2
-                + '&subAccount3=' + subAccount3
-                + '&subAccount4=' + subAccount4;
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
+        var subAccount1 = $("#subAccount1").val();
+        var subAccount2 = $("#subAccount2").val();
+        var subAccount3 = $("#subAccount3").val();
+        var subAccount4 = $("#subAccount4").val();
+        var asOf = $("#asOf").val();
+        // Construct the URL for the Excel export
+        var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&subAccount1=' + subAccount1
+            + '&subAccount2=' + subAccount2
+            + '&subAccount3=' + subAccount3
+            + '&subAccount4=' + subAccount4;
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportA").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
-            var forYear = $("#forYear").val();
-            var deptId = $("#deptId").val();
-            var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
-            var subAccount1 = $("#subAccount1").val();
-            var subAccount2 = $("#subAccount2").val();
-            var subAccount3 = $("#subAccount3").val();
-            var subAccount4 = $("#subAccount4").val();
-            var asOf = $("#asOf").val();
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
-                + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
-                + '&subAccount1=' + subAccount1
-                + '&subAccount2=' + subAccount2
-                + '&subAccount3=' + subAccount3
-                + '&subAccount4=' + subAccount4;
+        window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
+        var subAccount1 = $("#subAccount1").val();
+        var subAccount2 = $("#subAccount2").val();
+        var subAccount3 = $("#subAccount3").val();
+        var subAccount4 = $("#subAccount4").val();
+        var asOf = $("#asOf").val();
+        // Construct the URL for the Excel export
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&subAccount1=' + subAccount1
+            + '&subAccount2=' + subAccount2
+            + '&subAccount3=' + subAccount3
+            + '&subAccount4=' + subAccount4;
 
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportB").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
-            var forYear = $("#forYear").val();
-            var deptId = $("#deptId").val();
-            var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
-            var subAccount1 = $("#subAccount1").val();
-            var subAccount2 = $("#subAccount2").val();
-            var subAccount3 = $("#subAccount3").val();
-            var subAccount4 = $("#subAccount4").val();
-            var asOf = $("#asOf").val();
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
-                + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
-                + '&subAccount1=' + subAccount1
-                + '&subAccount2=' + subAccount2
-                + '&subAccount3=' + subAccount3
-                + '&subAccount4=' + subAccount4;
+        window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
+        var subAccount1 = $("#subAccount1").val();
+        var subAccount2 = $("#subAccount2").val();
+        var subAccount3 = $("#subAccount3").val();
+        var subAccount4 = $("#subAccount4").val();
+        var asOf = $("#asOf").val();
+        // Construct the URL for the Excel export
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&subAccount1=' + subAccount1
+            + '&subAccount2=' + subAccount2
+            + '&subAccount3=' + subAccount3
+            + '&subAccount4=' + subAccount4;
 
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportC").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
-            var forYear = $("#forYear").val();
-            var deptId = $("#deptId").val();
-            var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
-            var subAccount1 = $("#subAccount1").val();
-            var subAccount2 = $("#subAccount2").val();
-            var subAccount3 = $("#subAccount3").val();
-            var subAccount4 = $("#subAccount4").val();
-            var asOf = $("#asOf").val();
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
-                + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
-                + '&subAccount1=' + subAccount1
-                + '&subAccount2=' + subAccount2
-                + '&subAccount3=' + subAccount3
-                + '&subAccount4=' + subAccount4;
+        window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
+        var subAccount1 = $("#subAccount1").val();
+        var subAccount2 = $("#subAccount2").val();
+        var subAccount3 = $("#subAccount3").val();
+        var subAccount4 = $("#subAccount4").val();
+        var asOf = $("#asOf").val();
+        // Construct the URL for the Excel export
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&subAccount1=' + subAccount1
+            + '&subAccount2=' + subAccount2
+            + '&subAccount3=' + subAccount3
+            + '&subAccount4=' + subAccount4;
 
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(".k-grid-btnExportD").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
-        var grid = $("#grid").data("kendoGrid");
-        var selectedRow = grid.select();
-        var selectedData = grid.dataItem(selectedRow);
+        //var grid = $("#grid").data("kendoGrid");
+        //var selectedRow = grid.select();
+        //var selectedData = grid.dataItem(selectedRow);
 
-        if (selectedData) {
-            window.kendo.ui.progress($(document.body), true);
-            var forYear = $("#forYear").val();
-            var deptId = $("#deptId").val();
-            var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
-            var subAccount1 = $("#subAccount1").val();
-            var subAccount2 = $("#subAccount2").val();
-            var subAccount3 = $("#subAccount3").val();
-            var subAccount4 = $("#subAccount4").val();
-            var asOf = $("#asOf").val();
-            // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
-                + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
-                + '&subAccount1=' + subAccount1
-                + '&subAccount2=' + subAccount2
-                + '&subAccount3=' + subAccount3
-                + '&subAccount4=' + subAccount4;
+        window.kendo.ui.progress($(document.body), true);
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
+        var subAccount1 = $("#subAccount1").val();
+        var subAccount2 = $("#subAccount2").val();
+        var subAccount3 = $("#subAccount3").val();
+        var subAccount4 = $("#subAccount4").val();
+        var asOf = $("#asOf").val();
+        // Construct the URL for the Excel export
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&subAccount1=' + subAccount1
+            + '&subAccount2=' + subAccount2
+            + '&subAccount3=' + subAccount3
+            + '&subAccount4=' + subAccount4;
 
-            // Redirect to the export URL to trigger download
-            window.location.href = url;
-            window.kendo.ui.progress($(document.body), false);
-        } else {
-            alert("Please select a row to export.");
-        }
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);        
     });
 
     $(document).ready(function () {

@@ -3001,18 +3001,18 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup)
+        public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return await ExcelExport(forYear, reportId, deptId, sectionId, accountGroup, "", null, "", "", "", "");
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, "", "", "", "");
         }
 
         public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return await ExcelExport(forYear, null, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public async Task<ActionResult> ExcelExport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -3033,9 +3033,13 @@ namespace iLgs.Controllers
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
-                var locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                var locationCode = "ALL";
+                if (deptId != null)
+                {
+                    locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                }
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
@@ -3047,15 +3051,15 @@ namespace iLgs.Controllers
         public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return await ExcelExportAnnex(forYear, null, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return await ExcelExportAnnex(forYear, reportId, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -3076,9 +3080,13 @@ namespace iLgs.Controllers
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
-                var locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                var locationCode = "ALL";
+                if (deptId != null)
+                {
+                    locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                }
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)

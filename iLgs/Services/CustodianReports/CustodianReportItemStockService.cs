@@ -186,7 +186,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
+                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
             }
             return data ?? Enumerable.Empty<CustodianReportItemStockVM>().AsQueryable();
         }
@@ -196,7 +196,7 @@ namespace iLgs.Services.CustodianReports
             IQueryable<CustodianReportItemStockVM> data = null;
             var userId = _userService.GetByUserName(userName).Id;
             var userIsAdmin = _userService.IsUserNameAdmin(userName);
-            data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+            data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
             
             return data;
         }

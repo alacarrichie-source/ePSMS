@@ -27,8 +27,8 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup);
-        MemoryStream ProcessExcelAnnexFile(Guid? id, string templateFilePath, int? accountGroup, string annex);
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
+        MemoryStream ProcessExcelAnnexFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex);
     }
 
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
@@ -445,7 +445,7 @@ namespace iLgs.Services.CustodianReports
             entity.PostedDt = model.PostedDt;
         }
 
-        public MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -453,7 +453,7 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath);
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
         }
         private void SetRowColValue(IXLWorksheet ws, CustodianReportLandItem reportItem, int row, bool isAnnex)
         {
@@ -558,12 +558,12 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(total);
         }
 
-        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath)
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
         {
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, "", "");
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
         }
 
-        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath, string hdg, string annex)
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex)
         {
             
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
@@ -578,7 +578,7 @@ namespace iLgs.Services.CustodianReports
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId                    
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear)
                     .AsNoTracking();
 
                 if (!string.IsNullOrWhiteSpace(annex))
@@ -586,9 +586,9 @@ namespace iLgs.Services.CustodianReports
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
 
-                if (id != null)
+                if (deptId != null)
                 {
-                    reportItems = reportItems.Where(w => w.ReportId == id);
+                    reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
                 }
                 
 
@@ -596,24 +596,46 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(o => o.CustodianReport.Department)                            
                             .ThenBy(o => o.LocationCode)
                             .ThenBy(o => o.CustodianItemNo)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex);
-
-                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
+                            .ThenBy(t => t.ItemCode.ItemNoIndex);                
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
                     ws.Row(2).Cell(2).SetValue($"Annex {annex}");
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
-                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");                
+                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
 
-                if (id == null)
-                {
-                    ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                //if (deptId == null)
+                //{
+                //    if (reportItems.Any())
+                //    {
+                //        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
+                //        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                //    }
+                //}
+                //else
+                //{
+                //    var codextn = _db.Codextns.Find(deptId);
+                //    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
+                //}
+
+                if (deptId == null || deptId == Guid.Empty)
+                {                    
+                    if (reportItems.Any())
+                    {
+                        var reportId = reportItems.First().ReportId;
+                        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportId);
+                        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                    }
+                    else
+                    {
+                        ws.Row(6).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                    }
                 }
                 else
                 {
-                    ws.Row(6).Cell(3).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                    var codextn = _db.Codextns.Find(deptId);
+                    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
                 foreach (var reportItem in reportItems)
@@ -656,7 +678,7 @@ namespace iLgs.Services.CustodianReports
 
                         var custCellVal = ws.Row(row).Cell(3);
                         custCellVal.Style.Alignment.WrapText = false;
-                        if (id == null)
+                        if (deptId == null)
                         {
                             custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
                         }
@@ -750,7 +772,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public MemoryStream ProcessExcelAnnexFile(Guid? id, string templateFilePath, int? accountGroup, string annex)
+        public MemoryStream ProcessExcelAnnexFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -772,7 +794,7 @@ namespace iLgs.Services.CustodianReports
             {
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
             }
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, hdg, annex);
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
         }
         
 

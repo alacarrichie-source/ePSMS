@@ -505,21 +505,23 @@ namespace iLgs.Controllers
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<ActionResult> ExcelExportAll(int? accountGroup)
+        public async Task<ActionResult> ExcelExportAll(int? forYear, int? accountGroup)
         {
-            return await ExcelExport(null, accountGroup);
+            return await ExcelExport(forYear, null, accountGroup);
         }
 
-        public async Task<ActionResult> ExcelExport(Guid? reportId, int? accountGroup)
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
             {
                 string exportFileName = "CustodianLand";
-
-                var report = await _custodianReportService.GetByIdAsync(reportId);                
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelFile(reportId, templateFilePath, accountGroup);
-                var locationCode = (await _codextnService.GetByIdAsync(report.DeptId))?.Code;
+                var stream = _custodianReportLandItemService.ProcessExcelFile(forYear, deptId, templateFilePath, accountGroup);
+                string locationCode = "ALL";
+                if (deptId != null)
+                {
+                    locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                }
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
@@ -528,14 +530,14 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(int? accountGroup, string annex)
+        public ActionResult ExcelExportAnnexAll(int? forYear, int? accountGroup, string annex)
         {
             try
             {
                 string exportFileName = $"CustodianStructureAnnex";
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(null, templateFilePath, accountGroup, annex);
+                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(forYear, null, templateFilePath, accountGroup, annex);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
@@ -545,16 +547,18 @@ namespace iLgs.Controllers
             }
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(Guid reportId, string annex)
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, int? accountGroup, string annex)
         {
             try
             {
                 string exportFileName = $"CustodianLandAnnex";    
-
-                var report = await _custodianReportService.GetByIdAsync(reportId);
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(reportId, templateFilePath, report.AccountGroup, annex);
-                var locationCode = (await _codextnService.GetByIdAsync(report.DeptId))?.Code;
+                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(forYear, deptId, templateFilePath, accountGroup, annex);
+                var locationCode = "ALL";
+                if (deptId != null)
+                {
+                    locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                }
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)

@@ -30,8 +30,8 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup);
-        MemoryStream ProcessExcelFileAnnex(Guid? id, string templateFilePath, int? accontGroup, string annex);
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accontGroup, string annex);
 
         ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase { get; }
     }
@@ -439,7 +439,7 @@ namespace iLgs.Services.CustodianReports
             entity.Longitude = model.Longitude;
         }
 
-        public MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -447,7 +447,7 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath);
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
         }
 
         private string GetSubAccount(string itemCode)
@@ -466,8 +466,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(7).SetValue(reportItem.SubLocation);
             ws.Row(row).Cell(8).SetValue(reportItem.Latitude);
             ws.Row(row).Cell(9).SetValue(reportItem.Longitude);
-            ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);
-            //ws.Row(row).Cell(11).SetValue(reportItem.ProjectName);
+            ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);            
             ws.Row(row).Cell(12).SetValue(reportItem.BuildingType);
             
             if (reportItem.FromDonation == true)
@@ -478,12 +477,8 @@ namespace iLgs.Services.CustodianReports
             {
                 ws.Row(row).Cell(14).SetValue("Purchased");
             }
-            //ws.Row(row).Cell(15).SetValue(reportItem.StartDate.HasValue ? reportItem.StartDate.Value.Year.ToString() : "");
-            //ws.Row(row).Cell(16).SetValue(reportItem.AcqDate.HasValue ? reportItem.AcqDate.Value.Year.ToString() : "");
             ws.Row(row).Cell(17).SetValue(reportItem.Area);
             ws.Row(row).Cell(18).SetValue(reportItem.AppraiseValue);
-            //ws.Row(row).Cell(19).SetValue(reportItem.OldAmount);
-            //ws.Row(row).Cell(20).SetValue(reportItem.AcqCost);
             if (reportItem.CustodianReportBldgItemPhases.Any())
             {
                 var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
@@ -504,26 +499,20 @@ namespace iLgs.Services.CustodianReports
                 ws.Row(row).Cell(32).SetValue(engAmt.Remarks);
             }            
             
-            //ws.Row(row).Cell(25).SetValue(reportItem.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
-            //ws.Row(row).Cell(26).SetValue(reportItem.TargetDate.HasValue ? $"{reportItem.TargetDate.Value.Month}/{reportItem.TargetDate.Value.Year}" : "");
-            //ws.Row(row).Cell(27).SetValue(reportItem.PercentComplete);
-            //ws.Row(row).Cell(28).SetValue(reportItem.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
-            //ws.Row(row).Cell(29).SetValue(reportItem.Status);
             ws.Row(row).Cell(30).SetValue(reportItem.Fund);
             ws.Row(row).Cell(31).SetValue(reportItem.Condition);
-            //ws.Row(row).Cell(32).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
                 ws.Row(row).Cell(33).SetValue(reportItem.Annex);
             }
         }
 
-        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath)
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
         {
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, "", "");
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
         }
 
-        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath, string hdg, string annex)
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -539,7 +528,7 @@ namespace iLgs.Services.CustodianReports
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.CustodianReportBldgItemPhases)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear)
                     .AsNoTracking();
 
                 if (!string.IsNullOrWhiteSpace(annex))
@@ -547,9 +536,9 @@ namespace iLgs.Services.CustodianReports
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
                 
-                if (id != null)
+                if (deptId != null)
                 {
-                    reportItems = reportItems.Where(w => w.ReportId == id);
+                    reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
 
                 }
 
@@ -559,9 +548,7 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(o => o.CustodianReport.Department)
                             .ThenBy(o => o.LocationCode)
                             .ThenBy(o => o.CustodianItemNo);
-
-                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == id);
-
+                                
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
                     ws.Row(2).Cell(2).SetValue($"Annex {annex}");
@@ -570,13 +557,37 @@ namespace iLgs.Services.CustodianReports
                 ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
                 ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                if (id == null)
+                //if (deptId == null)
+                //{                    
+                //    if (reportItems.Any())
+                //    {                        
+                //        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
+                //        ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                //    }
+                //}
+                //else
+                //{
+                //    var codextn = _db.Codextns.Find(deptId);
+                //    ws.Row(8).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
+                //}
+
+                if (deptId == null || deptId == Guid.Empty)
                 {
-                    ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                    if (reportItems.Any())
+                    {
+                        var reportId = reportItems.First().ReportId;
+                        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportId);
+                        ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                    }
+                    else
+                    {
+                        ws.Row(3).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                    }
                 }
                 else
                 {
-                    ws.Row(8).Cell(3).SetValue($"{report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+                    var codextn = _db.Codextns.Find(deptId);
+                    ws.Row(3).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
                 foreach (var reportItem in reportItems)
@@ -636,7 +647,7 @@ namespace iLgs.Services.CustodianReports
                         custCellVal.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         custCellVal.Style.Font.Bold = true;
                         custCellVal.Style.Alignment.WrapText = false;
-                        if (id == null)
+                        if (deptId == null)
                         {
                             custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
                         }
@@ -764,7 +775,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public MemoryStream ProcessExcelFileAnnex(Guid? id, string templateFilePath, int? accountGroup, string annex)
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -787,7 +798,7 @@ namespace iLgs.Services.CustodianReports
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
             }
 
-            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, hdg, annex);
+            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
         }
 
         private void ValidateRecord(CustodianReportBldgItem entity)
