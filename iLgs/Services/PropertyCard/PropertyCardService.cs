@@ -12,7 +12,7 @@ namespace iLgs.Services.PropertyCard
     public interface IPropertyCardService : IPsCardService
     {
         IQueryable<PropertyCardVM> GetAll();
-        ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
+        ValueTask<PropertyCardVM> GetByIdAsync(Guid id);
         ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
@@ -50,7 +50,7 @@ namespace iLgs.Services.PropertyCard
             return data;
         });
 
-        public ValueTask<PropertyCardVM> GetByIdAsync(Guid? id) => _propCardVMexceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> GetByIdAsync(Guid id) => _propCardVMexceptionService.TryCatch(async () =>
         {            
             var data = _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                .Where(w => w.ItemCode.ItemType.Category != "S")

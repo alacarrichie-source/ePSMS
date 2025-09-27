@@ -9,6 +9,7 @@ using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.SqlServer;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,8 +31,13 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
-        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accontGroup, string annex);
+        //MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
+        //MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accontGroup, string annex);
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);        
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
 
         ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase { get; }
     }
@@ -72,6 +78,7 @@ namespace iLgs.Services.CustodianReports
             return s => new CustodianReportBldgItemVM
             {
                 Id = s.Id,
+                //CustodianItemIndex = (decimal?)SqlFunctions.TryParse(c.CustodianItemNo),
                 MainDeptId = s.CustodianReport.DeptId,
                 AccountGroup = s.CustodianReport.AccountGroup,
                 ReportId = s.ReportId,
@@ -439,7 +446,14 @@ namespace iLgs.Services.CustodianReports
             entity.Longitude = model.Longitude;
         }
 
-        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName)
+        {
+            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, "", "", "", "", userName);
+        }
+
+        //public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -447,7 +461,9 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
+            //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
         private string GetSubAccount(string itemCode)
@@ -475,61 +491,76 @@ namespace iLgs.Services.CustodianReports
             }
             else
             {
-                ws.Row(row).Cell(14).SetValue("Purchased");
+                ws.Row(row).Cell(13).SetValue("Purchased");
             }
-            ws.Row(row).Cell(17).SetValue(reportItem.Area);
-            ws.Row(row).Cell(18).SetValue(reportItem.AppraiseValue);
+            ws.Row(row).Cell(16).SetValue(reportItem.Area);
+            ws.Row(row).Cell(17).SetValue(reportItem.AppraiseValue);
             if (reportItem.CustodianReportBldgItemPhases.Any())
             {
                 var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
                 ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
-                ws.Row(row).Cell(15).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
-                ws.Row(row).Cell(16).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
-                ws.Row(row).Cell(19).SetValue(engAmt.OldAmount);
-                ws.Row(row).Cell(20).SetValue(engAmt.AcqCost);
-                ws.Row(row).Cell(21).SetValue(engAmt.PhaseNo);
-                ws.Row(row).Cell(22).SetValue(engAmt.CapitalOutlay);
-                ws.Row(row).Cell(23).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
-                ws.Row(row).Cell(24).SetValue(engAmt.MOOE);
-                ws.Row(row).Cell(25).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                ws.Row(row).Cell(26).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
-                ws.Row(row).Cell(27).SetValue(engAmt.PercentComplete);
-                ws.Row(row).Cell(28).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                ws.Row(row).Cell(29).SetValue(engAmt.Status);
-                ws.Row(row).Cell(32).SetValue(engAmt.Remarks);
+                ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
+                //ws.Row(row).Cell(15).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");                
+                ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
+                ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
+                ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
+                ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
+                ws.Row(row).Cell(22).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
+                ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
+                ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
+                ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
+                ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                ws.Row(row).Cell(28).SetValue(engAmt.Status);
+                ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
             }            
             
-            ws.Row(row).Cell(30).SetValue(reportItem.Fund);
-            ws.Row(row).Cell(31).SetValue(reportItem.Condition);
+            ws.Row(row).Cell(29).SetValue(reportItem.Fund);
+            ws.Row(row).Cell(30).SetValue(reportItem.Condition);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(33).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(32).SetValue(reportItem.Annex);
             }
         }
 
-        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
+        //private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
+        //{
+        //    return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
+        //}
+
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
-        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex)
+        //private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex)
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
+            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 int sw = 1;
                 int row = 12;
+                string itemTypeIndex = "";
                 string itemCode = "";
                 string account = "";
                 string department = "";
                 decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
+                var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var reportItems = _db.CustodianReportBldgItems
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.CustodianReportBldgItemPhases)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear)
-                    .AsNoTracking();
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear);                    
+
+                if (!string.IsNullOrWhiteSpace(subAccount))
+                {
+                    reportItems = reportItems.Where(w => w.Item_Code.StartsWith(subAccount));
+                }
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
@@ -547,7 +578,7 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(t => t.ItemCode.ItemNoIndex)
                             .ThenBy(o => o.CustodianReport.Department)
                             .ThenBy(o => o.LocationCode)
-                            .ThenBy(o => o.CustodianItemNo);
+                            .ThenBy(o => o.CustodianItemNo).AsNoTracking();
                                 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
@@ -581,19 +612,20 @@ namespace iLgs.Services.CustodianReports
                     }
                     else
                     {
-                        ws.Row(3).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
                     }
                 }
                 else
                 {
                     var codextn = _db.Codextns.Find(deptId);
-                    ws.Row(3).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
+                    ws.Row(8).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
+                        itemTypeIndex = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
                         itemCode = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
@@ -616,8 +648,10 @@ namespace iLgs.Services.CustodianReports
                         sw = 0;
                     }
 
-                    if (reportItem.ItemCode != null && (itemCode != reportItem.ItemCode.ItemNoIndex || department != reportItem.CustodianReport.Department))
+                    //if (reportItem.ItemCode != null && (itemCode != reportItem.ItemCode.ItemNoIndex || department != reportItem.CustodianReport.Department))
+                    if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
                     {
+                        itemTypeIndex = reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
                         itemCode = reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
@@ -720,20 +754,20 @@ namespace iLgs.Services.CustodianReports
                                 //ws.Row(row).Cell(21).SetValue(otherEngAmount.CapitalOutlay);
                                 //ws.Row(row).Cell(23).SetValue(otherEngAmount.MOOE);
                                 ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
-                                ws.Row(row).Cell(15).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
-                                ws.Row(row).Cell(16).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
-                                ws.Row(row).Cell(19).SetValue(engAmt.OldAmount);
-                                ws.Row(row).Cell(20).SetValue(engAmt.AcqCost);
-                                ws.Row(row).Cell(21).SetValue(engAmt.PhaseNo);
-                                ws.Row(row).Cell(22).SetValue(engAmt.CapitalOutlay);
+                                ws.Row(row).Cell(14).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
+                                ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
+                                ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
+                                ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
+                                ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
+                                ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
                                 //ws.Row(row).Cell(23).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
-                                ws.Row(row).Cell(24).SetValue(engAmt.MOOE);
-                                ws.Row(row).Cell(25).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                                ws.Row(row).Cell(26).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
-                                ws.Row(row).Cell(27).SetValue(engAmt.PercentComplete);
-                                ws.Row(row).Cell(28).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                                ws.Row(row).Cell(29).SetValue(engAmt.Status);
-                                ws.Row(row).Cell(32).SetValue(engAmt.Remarks);
+                                ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
+                                ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                                ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
+                                ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
+                                ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                                ws.Row(row).Cell(28).SetValue(engAmt.Status);
+                                ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
                                 if (string.IsNullOrWhiteSpace(annex))
                                 {
                                     ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
@@ -775,7 +809,9 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
+        //public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -798,7 +834,9 @@ namespace iLgs.Services.CustodianReports
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
             }
 
-            return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
+            //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
         private void ValidateRecord(CustodianReportBldgItem entity)

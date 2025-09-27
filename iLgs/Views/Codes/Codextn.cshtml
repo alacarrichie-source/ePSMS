@@ -5,79 +5,104 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.CodextnVM>()
-    .Name("gridItems")
-    .HtmlAttributes(new { @class = "max-grid" })
-    .Columns(columns =>
+@if (ViewBag.UseOtp == true && ViewBag.IsValid != true)
+{
+    using (Html.BeginForm("Issuance", "Codes", FormMethod.Post, new { id = "otpForm" }))
     {
-        columns.Bound(o => o.Code).Width(70).Title(Model.CodeHdg ?? "Code");
-        columns.Bound(o => o.Description).Width(200).Title(Model.Desc1Hdg ?? "Description");
-        columns.Bound(o => o.Desc2).Width(100).Title(Model.Desc2Hdg ?? "Desc2");
-        columns.Bound(o => o.Desc3).Width(70).Title(Model.Desc3Hdg ?? "Desc3");
-        columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
-        columns.Bound(o => o.Desc5).Width(70).Title(Model.Desc5Hdg ?? "Desc5");
-        columns.Command(command =>
-        {
-            command.Edit();
-            command.Destroy();
-        }).Width(120);
-    })
-    .ToolBar(t =>
-    {
-        t.Create().Text("Add New Record");
-        t.Search();
-    })
-    .Search(s =>
-    {
-        s.Field(o => o.Code, "contains");
-        s.Field(o => o.Description, "contains");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(true)
-        .ButtonCount(5)
-    )
-    .Filterable()
-    .NoRecords()
-    .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(430))
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Sortable()
-    .Editable()
-    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnGenTemplate").Window(w => w.Width(500).Title(ViewData["code"] + " Item")))
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(20)
-        .Events(events => events.Error("GridError"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-            model.Field(p => p.MastId).DefaultValue(Model.Id);
-            model.Field(p => p.CodeHdg).DefaultValue(Model.CodeHdg);
-            model.Field(p => p.Desc1Hdg).DefaultValue(Model.Desc1Hdg);
-            model.Field(p => p.Desc2Hdg).DefaultValue(Model.Desc2Hdg);
-            model.Field(p => p.Desc3Hdg).DefaultValue(Model.Desc3Hdg);
-            model.Field(p => p.Desc4Hdg).DefaultValue(Model.Desc4Hdg);
-            model.Field(p => p.Desc5Hdg).DefaultValue(Model.Desc5Hdg);
-        })
-        .Read(read => read.Action("CodextnRead", "Codes", new { mastId = Model.Id }))
-        .Create(create => create.Action("CodextnCreate", "Codes"))
-        .Update(update => update.Action("CodextnUpdate", "Codes"))
-        .Destroy(destroy => destroy.Action("CodextnDestroy", "Codes"))
-    )
-    .Events(events => events
-        .Change("onChangeGridItems")
-        .Edit("onEditGridItems")
-        .DataBound("onDataBoundGridItems")
-    )
-.AutoBind(true)
-)
+        @*@Html.AntiForgeryToken()*@
+        @Html.ValidationSummary(true)
+        <br />
+        <div class="row">
+            @Html.Label("Enter OTP:", htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-1">
+                @(Html.Kendo().TextBox().Name("pin").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessage("pin")
+            </div>
+            <div class="col-md-1">
+                @(Html.Kendo().Button()
+                .Name("submit")
+                .Content("Submit")
+                .HtmlAttributes(new { type = "submit" }))
+            </div>
+        </div>
+    }
+}
+else
+{
 
+@(Html.Kendo().Grid<iLgs.Models.CodextnVM>()
+        .Name("gridItems")
+        .HtmlAttributes(new { @class = "max-grid" })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Code).Width(70).Title(Model.CodeHdg ?? "Code");
+            columns.Bound(o => o.Description).Width(200).Title(Model.Desc1Hdg ?? "Description");
+            columns.Bound(o => o.Desc2).Width(100).Title(Model.Desc2Hdg ?? "Desc2");
+            columns.Bound(o => o.Desc3).Width(70).Title(Model.Desc3Hdg ?? "Desc3");
+            columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
+            columns.Bound(o => o.Desc5).Width(70).Title(Model.Desc5Hdg ?? "Desc5");
+            columns.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+            }).Width(120);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add New Record");
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.Code, "contains");
+            s.Field(o => o.Description, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(430))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .Editable()
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnGenTemplate").Window(w => w.Width(500).Title(ViewData["code"] + " Item")))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.MastId).DefaultValue(Model.Id);
+                model.Field(p => p.CodeHdg).DefaultValue(Model.CodeHdg);
+                model.Field(p => p.Desc1Hdg).DefaultValue(Model.Desc1Hdg);
+                model.Field(p => p.Desc2Hdg).DefaultValue(Model.Desc2Hdg);
+                model.Field(p => p.Desc3Hdg).DefaultValue(Model.Desc3Hdg);
+                model.Field(p => p.Desc4Hdg).DefaultValue(Model.Desc4Hdg);
+                model.Field(p => p.Desc5Hdg).DefaultValue(Model.Desc5Hdg);
+            })
+            .Read(read => read.Action("CodextnRead", "Codes", new { mastId = Model.Id }))
+            .Create(create => create.Action("CodextnCreate", "Codes"))
+            .Update(update => update.Action("CodextnUpdate", "Codes"))
+            .Destroy(destroy => destroy.Action("CodextnDestroy", "Codes"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+    .AutoBind(true)
+)
+}
 <div id="windowcontainer"></div>
 
 <style>
@@ -112,6 +137,11 @@
 
 
 <script type="text/javascript">
+    function onSubmitClicked(e) {        
+        e.preventDefault(); 
+        $("#otpForm").submit();
+    }
+
     function GridError(args) {
         if (args.errors) {
             var validationError = true;

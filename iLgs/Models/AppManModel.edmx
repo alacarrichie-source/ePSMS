@@ -1907,12 +1907,32 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="RPCIItemExtns">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RpciItemId" Type="uniqueidentifier" />
+          <Property Name="PsCardItemTransferItemId" Type="uniqueidentifier" />
+          <Property Name="ContentNo" Type="int" />
+          <Property Name="CustItemNo" Type="varchar" MaxLength="50" />
+          <Property Name="PropNo" Type="varchar" MaxLength="200" />
+          <Property Name="Annex" Type="char" MaxLength="1" />
+          <Property Name="OldPropNo" Type="varchar" MaxLength="200" />
+          <Property Name="SeriesNo" Type="varchar" MaxLength="10" />
+          <Property Name="AcqCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="datetime" />
+          <Property Name="SerialNo" Type="varchar" MaxLength="50" />
+          <Property Name="Condition" Type="varchar" MaxLength="200" />
+          <Property Name="Remarks" Type="varchar" MaxLength="200" />
+        </EntityType>
         <EntityType Name="RPCIItems">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RpciId" Type="uniqueidentifier" />
+          <Property Name="PsCardItemTransferId" Type="uniqueidentifier" />
           <Property Name="ItemCodeId" Type="uniqueidentifier" />
           <Property Name="ItemCode" Type="varchar" MaxLength="50" />
           <Property Name="Account" Type="varchar" MaxLength="200" />
@@ -4079,6 +4099,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RPCIItemExtns_RPCIItems">
+          <End Role="RPCIItems" Type="Self.RPCIItems" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RPCIItemExtns" Type="Self.RPCIItemExtns" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCIItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIItemExtns">
+              <PropertyRef Name="RpciItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RPCIItems_Codextn">
           <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
           <End Role="RPCIItems" Type="Self.RPCIItems" Multiplicity="*" />
@@ -4424,6 +4458,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RPCEFFOPPEItems" EntityType="Self.RPCEFFOPPEItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCEFFOPPEs" EntityType="Self.RPCEFFOPPEs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIDepLocs" EntityType="Self.RPCIDepLocs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RPCIItemExtns" EntityType="Self.RPCIItemExtns" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIItems" EntityType="Self.RPCIItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIs" EntityType="Self.RPCIs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RpcPpeItems" EntityType="Self.RpcPpeItems" Schema="dbo" store:Type="Tables" />
@@ -5034,6 +5069,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RPCIDepLocs_RPCIs" Association="Self.FK_RPCIDepLocs_RPCIs">
             <End Role="RPCIs" EntitySet="RPCIs" />
             <End Role="RPCIDepLocs" EntitySet="RPCIDepLocs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIItemExtns_RPCIItems" Association="Self.FK_RPCIItemExtns_RPCIItems">
+            <End Role="RPCIItems" EntitySet="RPCIItems" />
+            <End Role="RPCIItemExtns" EntitySet="RPCIItemExtns" />
           </AssociationSet>
           <AssociationSet Name="FK_RPCIItems_Codextn" Association="Self.FK_RPCIItems_Codextn">
             <End Role="Codextn" EntitySet="Codextn" />
@@ -5811,6 +5850,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="AppManModel.FK_UserProfiles_AspNetUsers">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="UserProfile" EntitySet="UserProfiles" />
+          </AssociationSet>
+          <EntitySet Name="RPCIItemExtns" EntityType="AppManModel.RPCIItemExtn" />
+          <AssociationSet Name="FK_RPCIItemExtns_RPCIItems" Association="AppManModel.FK_RPCIItemExtns_RPCIItems">
+            <End Role="RPCIItem" EntitySet="RPCIItems" />
+            <End Role="RPCIItemExtn" EntitySet="RPCIItemExtns" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -7930,6 +7974,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="RPCIItem" ToRole="Codextn" />
           <NavigationProperty Name="ItemCode1" Relationship="AppManModel.FK_RPCIItems_ItemCodes" FromRole="RPCIItem" ToRole="ItemCode" />
           <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCIItem" ToRole="RPCI" />
+          <Property Name="PsCardItemTransferId" Type="Guid" />
+          <NavigationProperty Name="RPCIItemExtns" Relationship="AppManModel.FK_RPCIItemExtns_RPCIItems" FromRole="RPCIItem" ToRole="RPCIItemExtn" />
         </EntityType>
         <Association Name="FK_RPCIItems_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -10290,6 +10336,40 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="RPCIItemExtn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpciItemId" Type="Guid" />
+          <Property Name="PsCardItemTransferItemId" Type="Guid" />
+          <Property Name="ContentNo" Type="Int32" />
+          <Property Name="CustItemNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="OldPropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="DateTime" Precision="3" />
+          <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="RPCIItem" Relationship="AppManModel.FK_RPCIItemExtns_RPCIItems" FromRole="RPCIItemExtn" ToRole="RPCIItem" />
+        </EntityType>
+        <Association Name="FK_RPCIItemExtns_RPCIItems">
+          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCIItemExtn" Role="RPCIItemExtn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCIItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIItemExtn">
+              <PropertyRef Name="RpciItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -11430,6 +11510,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="RPCIItems">
             <EntityTypeMapping TypeName="AppManModel.RPCIItem">
               <MappingFragment StoreEntitySet="RPCIItems">
+                <ScalarProperty Name="PsCardItemTransferId" ColumnName="PsCardItemTransferId" />
                 <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
                 <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
                 <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
@@ -12704,6 +12785,26 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
                 <ScalarProperty Name="NameLast" ColumnName="NameLast" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RPCIItemExtns">
+            <EntityTypeMapping TypeName="AppManModel.RPCIItemExtn">
+              <MappingFragment StoreEntitySet="RPCIItemExtns">
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Condition" ColumnName="Condition" />
+                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
+                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
+                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
+                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
+                <ScalarProperty Name="OldPropNo" ColumnName="OldPropNo" />
+                <ScalarProperty Name="Annex" ColumnName="Annex" />
+                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
+                <ScalarProperty Name="CustItemNo" ColumnName="CustItemNo" />
+                <ScalarProperty Name="ContentNo" ColumnName="ContentNo" />
+                <ScalarProperty Name="PsCardItemTransferItemId" ColumnName="PsCardItemTransferItemId" />
+                <ScalarProperty Name="RpciItemId" ColumnName="RpciItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

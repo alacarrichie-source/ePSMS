@@ -71,6 +71,7 @@ namespace iLgs.Controllers
             ViewData["IsWithItemExtn"] = model.IsWithItemExtn;
             ViewData["ItemExtnName"] = _psCardService.GetItemExtnName(cardItemId);
             ViewData["DefaultLocation"] = locationId ?? deptId;
+            ViewBag.DefaultLocation = locationId ?? deptId;
             return PartialView();
         }
         

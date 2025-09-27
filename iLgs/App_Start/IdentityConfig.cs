@@ -25,7 +25,7 @@ namespace iLgs
             // Plug in your email service here to send an email.
 
 
-            MailMessage email = new MailMessage(new MailAddress("noreply@ilgsCalamba.com", "iLGS - Calamba (do not reply)"),
+            MailMessage email = new MailMessage(new MailAddress("noreply@epsmslaspinas.gmail.com", "ePSMS - Las Pinas City (do not reply)"),
             new MailAddress(message.Destination));
 
             email.Subject = message.Subject;

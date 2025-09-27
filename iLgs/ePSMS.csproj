@@ -318,6 +318,7 @@
     <Compile Include="Controllers\AnnexDController.cs" />
     <Compile Include="Controllers\AuditTrailController.cs" />
     <Compile Include="Controllers\BudgetController.cs" />
+    <Compile Include="Controllers\CardController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
     <Compile Include="Controllers\CustodianIirupController.cs" />
@@ -653,6 +654,9 @@
     <Compile Include="Models\RPCIItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RPCIItemExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\RpcPpe.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -888,6 +892,7 @@
     <Compile Include="Services\AIRs_\AirUploadService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\AuditLog_\AuditLogService.cs" />
+    <Compile Include="Services\Card\CardService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
@@ -4271,6 +4276,7 @@
     <Content Include="Views\Notification\_Notifications.cshtml" />
     <Content Include="Views\Notification\_NotificationScripts.cshtml" />
     <Content Include="Views\Notification\_NotificationDetails.cshtml" />
+    <Content Include="Views\CustodianReportLand\LandQuery.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4621,6 +4627,7 @@
     <Folder Include="Exceptions\Orders\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
+    <Folder Include="Views\Card\" />
     <Folder Include="Views\CustodianUpload\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\IcsParRpt\" />

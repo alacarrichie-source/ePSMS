@@ -25,10 +25,7 @@ namespace iLgs.Services.PropertyCard
         string GetItemFieldsPartialView(string category);
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
-        string GetStockNo(PsCardVM model);
-        //string GetItemExtnNameByItmExtnId(Guid? id);
-        //string GetItemExtnName(Guid? id);
-
+        string GetStockNo(PsCardVM model);        
         bool IsPosted(Guid psCardId);
         bool IsPosted(PsCard psCard);
         bool IsPosted(PsCardItem psCardItem);
@@ -39,9 +36,7 @@ namespace iLgs.Services.PropertyCard
 
         IAllFieldService AllField { get; }
         IPsCardItemService PsCardItem { get; }
-        //IPsCardItemExtnService PsCardItemExtn { get; }
-        //IPsCardItemIssuanceService PsCardItemIssuance { get; }
-
+        
         ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date);
 
     }
@@ -54,8 +49,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PsCard> _exceptionService;
         protected readonly IAllFieldService _allFieldService;
         protected readonly IPsCardSharedService _psCardSharedService;
-        protected readonly IPsCardItemService _psCardItemService;
-        //protected readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
+        protected readonly IPsCardItemService _psCardItemService;        
 
         public PsCardService(AppManEntities db,            
             ICreateAndLogExceptions exceptions,
@@ -63,8 +57,7 @@ namespace iLgs.Services.PropertyCard
             IExceptionService<PsCard> exceptionService,
             IAllFieldService allFieldService,
             IPsCardSharedService psCardSharedService,
-            IPsCardItemService psCardItemService
-            //,IPsCardItemIssuanceService psCardItemIssuanceService
+            IPsCardItemService psCardItemService            
             )
         {
             _db = db;
@@ -73,13 +66,11 @@ namespace iLgs.Services.PropertyCard
             _exceptionService = exceptionService;
             _allFieldService = allFieldService;
             _psCardSharedService = psCardSharedService;
-            _psCardItemService = psCardItemService;
-            //_psCardItemIssuanceService = psCardItemIssuanceService;
+            _psCardItemService = psCardItemService;            
         }
 
         public IAllFieldService AllField => _allFieldService;
-        public IPsCardItemService PsCardItem => _psCardItemService;
-        //public IPsCardItemIssuanceService PsCardItemIssuance => _psCardItemIssuanceService;
+        public IPsCardItemService PsCardItem => _psCardItemService;        
 
         public IQueryable<PsCardVM> GetAll(string userName) => _vmExceptionService.TryCatch(() =>
         {            
@@ -284,12 +275,7 @@ namespace iLgs.Services.PropertyCard
             {
                 throw new InvalidValueException("Article is Required!");
             }
-
-            //if (string.IsNullOrWhiteSpace(model.Description))
-            //{
-            //    throw new InvalidValueException("Description is Required!");
-            //}
-
+            
             if (string.IsNullOrWhiteSpace(model.Fund))
             {
                 throw new InvalidValueException("Fund is Required!");

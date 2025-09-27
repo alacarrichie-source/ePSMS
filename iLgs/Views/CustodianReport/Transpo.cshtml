@@ -210,7 +210,7 @@
   .For("#btnCount")
   .Position(TooltipPosition.Top)
   .Animation(true)
-  .Content("Certifying that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
+  .Content("Certifying that the count has been COMPLETED (annexes A, B, and C) by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -345,7 +345,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportA").click(function (e) {
@@ -367,7 +367,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportB").click(function (e) {
@@ -388,7 +388,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportC").click(function (e) {
@@ -409,7 +409,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportD").click(function (e) {
@@ -430,7 +430,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(document).ready(function () {
@@ -631,7 +631,7 @@
             $(".k-grid-btnExportB").hide();
             $(".k-grid-btnExportC").hide();
         }
-                
+
         if (this.dataSource.data().length == 0) {
             //$(".k-grid-btnExport").hide();
             //$(".k-grid-btnExportA").hide();
@@ -920,7 +920,7 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
             var url = "";

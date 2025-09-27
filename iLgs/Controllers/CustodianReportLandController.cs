@@ -42,6 +42,14 @@ namespace iLgs.Controllers
             _uploadService = custodianLandUploadService;
         }
 
+        public ActionResult LandQuery()
+        {
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.LAND;
+            ViewBag.Title = "Custodian Report - Land - Query";
+            ViewBag.ForYear = DateTime.Now.Year;
+            return View();
+        }
+
         public ActionResult Index()
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.LAND;
@@ -278,9 +286,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -330,8 +337,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -379,6 +385,14 @@ namespace iLgs.Controllers
         public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
             var data = _custodianReportLandItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _ItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportLandItemService.GetAllByAcctGroup(forYear, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -505,18 +519,35 @@ namespace iLgs.Controllers
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<ActionResult> ExcelExportAll(int? forYear, int? accountGroup)
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
         {
-            return await ExcelExport(forYear, null, accountGroup);
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, int? accountGroup)
+        public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
+        {
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, "", "", "", "");
+        }
+
+        public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+        {
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+        }
+
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
                 string exportFileName = "CustodianLand";
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelFile(forYear, deptId, templateFilePath, accountGroup);
+                var stream = _custodianReportLandItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 string locationCode = "ALL";
                 if (deptId != null)
                 {
@@ -530,30 +561,27 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(int? forYear, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+          , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            try
-            {
-                string exportFileName = $"CustodianStructureAnnex";
-
-                var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(forYear, null, templateFilePath, accountGroup, annex);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(500, ex.Message);
-            }
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
+        {
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
+        }
+
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
-                string exportFileName = $"CustodianLandAnnex";    
+                string exportFileName = $"CustodianLandAnnex";
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportLandItemService.ProcessExcelAnnexFile(forYear, deptId, templateFilePath, accountGroup, annex);
+                var stream = _custodianReportLandItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
                 if (deptId != null)
                 {
@@ -565,7 +593,7 @@ namespace iLgs.Controllers
             {
                 return new HttpStatusCodeResult(500, ex.Message);
             }
-        }
+        }        
 
         #region UPLOADS
         public ActionResult _Images(Guid? imageId)
@@ -763,8 +791,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -815,9 +842,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Upload(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {

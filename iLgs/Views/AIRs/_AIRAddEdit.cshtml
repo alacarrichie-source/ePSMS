@@ -20,8 +20,8 @@
                 <div class="col-md-12">
                     @(Html.Kendo().MaskedTextBoxFor(model => model.AIRNo).Mask("0000-00-0000")
                                 .PromptChar(" ")
-                                //.Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
-                                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                                @*.Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
                     @Html.ValidationMessageFor(model => model.AIRNo)
                 </div>
             </div>

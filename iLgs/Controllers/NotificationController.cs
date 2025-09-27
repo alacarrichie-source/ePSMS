@@ -292,13 +292,13 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        [Authorize]
-        public async Task<JsonResult> GetNotificationCount()
-        {
-            var userId = User.Identity.GetUserId();
-            var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
-            return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
-        }
+        //[Authorize] //moved to getters
+        //public async Task<JsonResult> GetNotificationCount()
+        //{
+        //    var userId = User.Identity.GetUserId();
+        //    var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
+        //    return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
+        //}
 
         public ActionResult _Notifications()
         {

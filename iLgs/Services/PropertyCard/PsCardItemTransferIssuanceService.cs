@@ -419,9 +419,21 @@ namespace iLgs.Services.PropertyCard
                         }
 
                         var year = model.IssuedDate.Value.Year.ToString().Trim();
-                        if (!issuanceYears.Any(a => a.Description == year))
+                        var issuanceYear = issuanceYears.FirstOrDefault(f => f.Description == year);
+                        if (issuanceYear == null)
                         {
                             _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance for this year is not allowed.");
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
+                            {
+                                var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
+                                if (model.IssuedDate.Value.Date > cutOffDate)
+                                {
+                                    _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                                }
+                            }
                         }
                     }
                     else

@@ -18,7 +18,10 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.AIRNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.AIRNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @(Html.Kendo().MaskedTextBoxFor(model => model.AIRNo).Mask("0000-00-0000")
+                                .PromptChar(" ")
+                                .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                    @*@(Html.Kendo().TextBoxFor(model => model.AIRNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))*@
                     @Html.ValidationMessageFor(model => model.AIRNo)
                 </div>
             </div>

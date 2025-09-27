@@ -44,8 +44,8 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
             model.Field(p => p.PsCardItemTransferId).DefaultValue(@ViewData["TransferId"]);
-            model.Field(p => p.DeptId).DefaultValue(ViewData["DeptId"]);
-            model.Field(p => p.LocationId).DefaultValue(ViewData["DefaultLocation"]);
+            model.Field(p => p.DeptId).DefaultValue(@ViewData["DeptId"]);
+            model.Field(p => p.LocationId).DefaultValue(@ViewData["DefaultLocation"]);
             model.Field(p => p.UnitCost).DefaultValue(@ViewData["UnitCost"]);
             model.Field(p => p.IssuedToSw).DefaultValue(1);
         })

@@ -480,7 +480,7 @@ namespace iLgs.Controllers
             }
             else if (type == "SE")
             {
-                rpt.SetParameterValue("TITLE", "SEMI-EXPENDABLES");
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY");
             }
 
             if (save == 0)
@@ -634,7 +634,7 @@ namespace iLgs.Controllers
             }
             else if (type == "SE")
             {
-                rpt.SetParameterValue("TITLE", "SEMI-EXPENDABLES");
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY");
             }
 
             if (model.SavePrints)

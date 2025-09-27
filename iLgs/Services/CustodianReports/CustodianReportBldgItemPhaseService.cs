@@ -6,6 +6,7 @@ using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -13,48 +14,75 @@ namespace iLgs.Services.CustodianReports
 {
     public interface ICustodianReportBldgItemPhaseService
     {
-        IQueryable<CustodianReportBldgItemPhas> GetByBldgItemId(Guid? bldgItemId);
-        ValueTask<CustodianReportBldgItemPhas> GetByIdAsync(Guid id);
-        ValueTask<CustodianReportBldgItemPhas> CreateAsync(CustodianReportBldgItemPhas model, string user, DateTime date);
-        ValueTask<CustodianReportBldgItemPhas> UpdateAsync(CustodianReportBldgItemPhas model, string user, DateTime date);
-        ValueTask<CustodianReportBldgItemPhas> DeleteAsync(CustodianReportBldgItemPhas model, string user, DateTime date);
+        IQueryable<CustodianReportBldgItemPhasVM> GetByBldgItemId(Guid? bldgItemId);
+        ValueTask<CustodianReportBldgItemPhasVM> GetByIdAsync(Guid id);
+        ValueTask<CustodianReportBldgItemPhasVM> CreateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
+        ValueTask<CustodianReportBldgItemPhasVM> UpdateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
+        ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
     }
 
     public class CustodianReportBldgItemPhaseService : BaseValidator, ICustodianReportBldgItemPhaseService
     {
         protected readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
-        private readonly IExceptionService<CustodianReportBldgItemPhas> _exceptionService;
+        private readonly IExceptionService<CustodianReportBldgItemPhasVM> _exceptionService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportBldgItemPhaseService(AppManEntities db, 
             ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportBldgItemPhas> exceptionService,
+            IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
             IUserService userService)
         {
             _db = db;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
             _userService = userService;
-            _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhas>;
+            _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhasVM>;
         }
 
-        public ValueTask<CustodianReportBldgItemPhas> GetByIdAsync(Guid id) =>
+        private Expression<Func<CustodianReportBldgItemPhas, CustodianReportBldgItemPhasVM>> Projection()
+        {
+            return s => new CustodianReportBldgItemPhasVM
+            {
+                Id = s.Id,
+                BldgItemId = s.BldgItemId,
+                PhaseNo = s.PhaseNo,
+                CapitalOutlay = s.CapitalOutlay,
+                MOOE = s.MOOE,
+                ProjectName = s.ProjectName,
+                StartDate = s.StartDate,
+                TargetDate = s.TargetDate,
+                AcqDate = s.AcqDate,
+                CompletionDate = s.CompletionDate,
+                PercentComplete = s.PercentComplete,
+                Status = s.Status,
+                OldAmount = s.OldAmount,
+                AcqCost = s.AcqCost,
+                Remarks = s.Remarks,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                UpdatedBy = s.UpdatedBy,
+                UpdatedDt = s.UpdatedDt
+            };
+        }
+
+        public ValueTask<CustodianReportBldgItemPhasVM> GetByIdAsync(Guid id) =>
         _exceptionService.TryCatch(async () =>
         {
-            var data = await _db.CustodianReportBldgItemPhases.Where(w => w.Id == id).FirstOrDefaultAsync();
+            var data = await _db.CustodianReportBldgItemPhases.Where(w => w.Id == id).Select(Projection()).FirstOrDefaultAsync();
             return data;
         });
 
-        public IQueryable<CustodianReportBldgItemPhas> GetByBldgItemId(Guid? bldgItemId) =>
+        public IQueryable<CustodianReportBldgItemPhasVM> GetByBldgItemId(Guid? bldgItemId) =>
         _exceptionService.TryCatch(() =>
         {
-            var data = _db.CustodianReportBldgItemPhases.AsNoTracking().Where(w => w.BldgItemId == bldgItemId).AsQueryable();
+            var data = _db.CustodianReportBldgItemPhases.Where(w => w.BldgItemId == bldgItemId)
+                .Select(Projection()).AsNoTracking();
             return data;
         });
 
-        public virtual async ValueTask<CustodianReportBldgItemPhas> CreateAsync(CustodianReportBldgItemPhas model, string user, DateTime date)
+        public virtual async ValueTask<CustodianReportBldgItemPhasVM> CreateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
             ValidateIfNull(model);
             ValidateIfPosted(model.BldgItemId);
@@ -75,7 +103,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         }
 
-        public virtual async ValueTask<CustodianReportBldgItemPhas> UpdateAsync(CustodianReportBldgItemPhas model, string user, DateTime date)
+        public virtual async ValueTask<CustodianReportBldgItemPhasVM> UpdateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
             ValidateIfNull(model);
 
@@ -97,7 +125,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         }
 
-        public virtual async ValueTask<CustodianReportBldgItemPhas> DeleteAsync(CustodianReportBldgItemPhas model, string user, DateTime date)
+        public virtual async ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -120,7 +148,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         }
 
-        protected void MapModelToEntityFields(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhas model, Mode mode)
+        protected void MapModelToEntityFields(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhasVM model, Mode mode)
         {
             if (mode == Mode.ADD)
             {
@@ -147,7 +175,7 @@ namespace iLgs.Services.CustodianReports
             entity.UpdatedDt = model.UpdatedDt;
         }
 
-        private void ValidateIfNull(CustodianReportBldgItemPhas model)
+        private void ValidateIfNull(CustodianReportBldgItemPhasVM model)
         {
             if (model is null)
             {
@@ -173,7 +201,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateIfSubmitted(CustodianReportBldgItemPhas model)
+        private void ValidateIfSubmitted(CustodianReportBldgItemPhasVM model)
         {
             var custodianReportBldgItem = _db.CustodianReportBldgItems.FirstOrDefault(f => f.Id == model.BldgItemId);
             var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == custodianReportBldgItem.ReportId && f.LocationId == custodianReportBldgItem.LocationId && f.Status == "Submit");
@@ -184,7 +212,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateUser(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhas model)
+        private void ValidateUser(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhasVM model)
         {
             if (entity.InsertedBy != model.UpdatedBy)
             {
@@ -196,7 +224,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateEntry(CustodianReportBldgItemPhas model, Mode mode)
+        private void ValidateEntry(CustodianReportBldgItemPhasVM model, Mode mode)
         {
             if (string.IsNullOrWhiteSpace(model.PhaseNo))
             {

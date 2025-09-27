@@ -13,11 +13,14 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.AIRItemId)
-    
+    @Html.HiddenFor(model => model.SetLotNo)
+    @Html.HiddenFor(model => model.SetLotQtyNo)
+    @Html.HiddenFor(model => model.IsAutoGen)
+
 
     <fieldset>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             @Html.LabelFor(m => m.SetLotNo, htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
                 @(Html.Kendo().TextBoxFor(m => m.SetLotNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -31,7 +34,7 @@
                 @(Html.Kendo().TextBoxFor(m => m.SetLotQtyNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.SetLotQtyNo)
             </div>
-        </div>
+        </div>*@
 
         <div class="row k-mb-2">
             @Html.LabelFor(m => m.ContentNo, htmlAttributes: new { @class = "col-md-3" })
@@ -49,13 +52,13 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
-                @Html.LabelFor(m => m.IsAutoGen, "Auto Generated", htmlAttributes: new { @class = "col-md-3" })
-                <div class="col-md-1">
-                    @(Html.Kendo().SwitchFor(m => m.IsAutoGen).Enabled(false).Messages(c => c.Checked("YES").Unchecked("NO")))
-                    @Html.ValidationMessageFor(m => m.IsAutoGen)
-                </div>            
-        </div>
+        @*<div class="row k-mb-2">
+            @Html.LabelFor(m => m.IsAutoGen, "Auto Generated", htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-1">
+                @(Html.Kendo().SwitchFor(m => m.IsAutoGen).Enabled(false).Messages(c => c.Checked("YES").Unchecked("NO")))
+                @Html.ValidationMessageFor(m => m.IsAutoGen)
+            </div>            
+        </div>*@
 
         @*<div class="row k-mb-2">
             @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-3" })

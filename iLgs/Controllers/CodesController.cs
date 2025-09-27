@@ -7,10 +7,13 @@ using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -22,15 +25,42 @@ namespace iLgs.Controllers
         private ICodextnService _codextnService;
         private IDepartmentUserService _departmentUserService;
         private IAccountableOfficerService _accountableOfficerService;
-
-        public CodesController(AppManEntities db, 
+        private ApplicationUserManager _userManager;
+        
+        public CodesController(AppManEntities db,
             ICodextnService codextnService, IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService)
         {
-            _db = db;
+            _db = db;            
             _codextnService = codextnService;
             _departmentUserService = departmentUserService;
-            _accountableOfficerService = accountableOfficerService;
+            _accountableOfficerService = accountableOfficerService;        
         }
+
+
+        //public ApplicationSignInManager SignInManager
+        //{
+        //    get
+        //    {
+        //        return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+        //    }
+        //    private set
+        //    {
+        //        _signInManager = value;
+        //    }
+        //}
+
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
+
         // GET: Codes
         public ActionResult Index()
         {
@@ -55,12 +85,44 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
-        public async Task<ActionResult> Issuance()
+        
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> Issuance(string pin)
         {
+            var userId = User.Identity.GetUserId();
+            var key = $"{userId}_Issuances";
             var code = "ISSUANCE-YEAR";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "PO Issuance Year";
+            ViewBag.IsValid = false;
+            ViewBag.UseOtp = false;
+
+            //if (string.IsNullOrWhiteSpace(pin))
+            //{                
+            //    var random = new Random();
+            //    int number = random.Next(0, 10000);
+            //    pin = number.ToString("D4"); // formats with leading zeros
+
+            //    HttpContext.Session.Remove(key);  // removes just this key                
+            //    HttpContext.Session[key] = pin;  // sets it to null                
+
+            //    await UserManager.SendEmailAsync(userId, "ePSMS One-Time PIN", $"{pin} is your One-Time PIN. DO NOT SHARE YOUR OTP, If you did not request this, please inform the Admin.");
+            //}
+            //else
+            //{
+            //    var keyPin = HttpContext.Session[key] as string;
+
+            //    if (keyPin != pin)
+            //    {
+            //        ModelState.AddModelError("pin", "Invalid Value.");
+            //    }
+            //    else
+            //    {
+            //        ViewBag.IsValid = true;
+            //    }
+            //}
+                        
             return View("Codextn", codeMast);
         }
 

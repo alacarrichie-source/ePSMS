@@ -147,5 +147,13 @@ namespace iLgs.Models
             DELETE,
             POST
         }
+
+        public enum CardCategory
+        {
+            PROPERTY = 1,
+            STOCK = 2, 
+            SE = 3, // SEMI-EXPENDABLE
+            CONSUMABLE = 4
+        }
     }
 }

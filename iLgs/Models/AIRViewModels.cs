@@ -20,7 +20,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "AIR No.")]
         public string AIRNo { get; set; }
 

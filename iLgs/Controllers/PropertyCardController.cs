@@ -172,7 +172,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId, string mode)
+        public async Task<ActionResult> _PropertyCardAddEdit(Guid cardId, string mode)
         {
             var data = await _propertyCardService.GetByIdAsync(cardId);
             if (data == null)

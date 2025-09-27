@@ -24,6 +24,9 @@ using iLgs.Services.StockCards;
 using iLgs.Services.Uploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -53,6 +56,34 @@ namespace iLgs
 
             // Register your DbContext (EF6)
             services.AddScoped<AppManEntities>(sp => new AppManEntities());
+
+            //// Identity stores
+            //services.AddScoped<IUserStore<ApplicationUser>>(sp =>
+            //    new UserStore<ApplicationUser>(sp.GetRequiredService<AppManEntities>()));
+
+            ////services.AddScoped<IRoleStore<IdentityRole>>(sp =>
+            ////    new RoleStore<IdentityRole>(sp.GetRequiredService<AppManEntities>()));
+
+            //// Managers
+            ////services.AddScoped<ApplicationUserManager>();
+            ////services.AddScoped<ApplicationSignInManager>();
+
+            //services.AddScoped<ApplicationUserManager>(sp =>
+            //{
+            //    var store = sp.GetRequiredService<IUserStore<ApplicationUser>>();
+            //    var manager = new ApplicationUserManager(store);
+
+            //    // configure token provider
+            //    var dataProtectionProvider = new Microsoft.Owin.Security.DataProtection.DpapiDataProtectionProvider("MyApp");
+            //    manager.UserTokenProvider =
+            //        new DataProtectorTokenProvider<ApplicationUser>(
+            //            dataProtectionProvider.Create("ASP.NET Identity"))
+            //        {
+            //            TokenLifespan = TimeSpan.FromHours(1)
+            //        };
+
+            //    return manager;
+            //});
 
             // register api controllers
             var controllers = typeof(MvcApplication).Assembly

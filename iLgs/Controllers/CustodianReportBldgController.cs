@@ -284,9 +284,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> SubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -335,9 +334,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -586,7 +584,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemPhaseCreate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhas model)
+        public async Task<ActionResult> _ItemPhaseCreate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhasVM model)
         {
             try
             {
@@ -626,7 +624,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemPhaseUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhas model)
+        public async Task<ActionResult> _ItemPhaseUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhasVM model)
         {
             try
             {
@@ -666,7 +664,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemPhaseDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportBldgItemPhas model)
+        public async Task<ActionResult> _ItemPhaseDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportBldgItemPhasVM model)
         {
             try
             {
@@ -896,9 +894,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Download(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -949,9 +946,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Upload(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
-            {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -1006,19 +1002,42 @@ namespace iLgs.Controllers
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<ActionResult> ExcelExportAll(int? forYear, int? accountGroup)
+        //public async Task<ActionResult> ExcelExportAll(int? forYear, int? accountGroup)
+        //{
+        //    return await ExcelExport(forYear, null, accountGroup);
+        //}
+
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
         {
-            return await ExcelExport(forYear, null, accountGroup);
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, int? accountGroup)
+        public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
+        {
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, "", "", "", "");
+        }
+
+        public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+        {
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+        }
+
+        //public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, int? accountGroup)
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
                 string exportFileName = "CustodianStructure";
-                
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, templateFilePath, accountGroup);
+                //var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, templateFilePath, accountGroup);
+                var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 string locationCode = "ALL";
                 if (deptId != null)
                 {
@@ -1032,42 +1051,77 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(int? forYear, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+          , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            try
-            {
-                string exportFileName = $"CustodianStructureAnnex";
-
-                var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, null, templateFilePath, accountGroup, annex);
-
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(500, ex.Message);
-            }
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, int? accountGroup, string annex)
+        public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
+        {
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
+        }
+
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
-                string exportFileName = $"CustodianStructureAnnex";
-                
+                string exportFileName = $"CustodianStructureAnnex";                
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, templateFilePath, accountGroup, annex);
+                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
                 if (deptId != null)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_s{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
                 return new HttpStatusCodeResult(500, ex.Message);
             }
         }
+
+
+        //public ActionResult ExcelExportAnnexAll(int? forYear, int? accountGroup, string annex)
+        //{
+        //    try
+        //    {
+        //        string exportFileName = $"CustodianStructureAnnex";
+
+        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
+        //        var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, null, templateFilePath, accountGroup, annex);
+
+        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new HttpStatusCodeResult(500, ex.Message);
+        //    }
+        //}
+
+        //public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, int? accountGroup, string annex)
+        //{
+        //    try
+        //    {
+        //        string exportFileName = $"CustodianStructureAnnex";
+
+        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
+        //        var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, templateFilePath, accountGroup, annex);
+        //        var locationCode = "ALL";
+        //        if (deptId != null)
+        //        {
+        //            locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+        //        }
+        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_s{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new HttpStatusCodeResult(500, ex.Message);
+        //    }
+        //}
     }
 }

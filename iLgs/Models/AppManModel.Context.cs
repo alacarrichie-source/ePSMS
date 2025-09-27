@@ -125,5 +125,6 @@ namespace iLgs.Models
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
+        public virtual DbSet<RPCIItemExtn> RPCIItemExtns { get; set; }
     }
 }

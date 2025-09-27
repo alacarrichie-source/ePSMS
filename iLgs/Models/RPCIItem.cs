@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class RPCIItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public RPCIItem()
+        {
+            this.RPCIItemExtns = new HashSet<RPCIItemExtn>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
@@ -53,9 +59,12 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public Nullable<System.Guid> PsCardItemTransferId { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual ItemCode ItemCode1 { get; set; }
         public virtual RPCI RPCI { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RPCIItemExtn> RPCIItemExtns { get; set; }
     }
 }

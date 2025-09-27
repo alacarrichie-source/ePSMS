@@ -222,9 +222,9 @@
         .Name("grid")
         .Columns(col =>
         {
-            col.Bound(c => c.CustodianItemIndex).Hidden();
-            col.Bound(c => c.MainDeptName).Width(70);
             col.Bound(c => c.CustodianItemNo).Width(70);
+            //col.Bound(c => c.CustodianItemIndex).Width(70);
+            col.Bound(c => c.MainDeptName).Width(70);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
@@ -301,10 +301,10 @@
             {
                 a.Add(p => p.AcqCost).Sum();
             })
-            .Sort(s =>
-            {
-                s.Add(a => a.CustodianItemIndex);
-            })
+            //.Sort(s =>
+            //{
+            //    s.Add(a => a.CustodianItemIndex);
+            //})
             .Read(read => read.Action("_ItemReadAll", "CustodianReportBldg").Data("DataGrid"))
         )
         .Events(events => events
@@ -485,7 +485,7 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         // Construct the URL for the Excel export
-        var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+        var url = "@Url.Action("ExcelExportAll", "CustodianReportBldg")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&mainAccount=' + mainAccount + '&asOf=' + asOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
@@ -513,7 +513,7 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         // Construct the URL for the Excel export
-        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReportBldg")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
@@ -542,7 +542,7 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         // Construct the URL for the Excel export
-        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReportBldg")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
@@ -571,7 +571,7 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         // Construct the URL for the Excel export
-        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReportBldg")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
@@ -600,7 +600,7 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         // Construct the URL for the Excel export
-        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+        var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReportBldg")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
@@ -688,6 +688,7 @@
 
     function DataGrid() {
         return {
+            forYear: $("#forYear").val(),
             accountGroup: '@ViewBag.AccountGroup'
         };
     }

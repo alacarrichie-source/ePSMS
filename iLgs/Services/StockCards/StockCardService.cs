@@ -5,7 +5,9 @@ using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
 using System;
 using System.Data.Entity;
+using System.Data.Entity.SqlServer;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace iLgs.Services.StockCards
@@ -45,9 +47,116 @@ namespace iLgs.Services.StockCards
             _userService = userService;
         }
 
+        private Expression<Func<PsCard, StockCardVM>> Projection()
+        {
+            //var codeLookup = _db.ItemCodes.ToDictionary(x => x.Code, x => x.Description);
+            return s => new StockCardVM
+            {
+                Id = s.Id,
+                ItemCodeId = s.ItemCodeId,
+                Item = s.ItemCode.Description,
+                ItemNo = s.ItemCode.ItemNo,
+                ItemCode = s.ItemCode.Code,
+                ItemType = s.ItemCode.ItemType.Description,
+                ItemTypeCode = s.ItemCode.ItemType.Code,
+                PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
+                CardCategory = s.CardCategory,
+                Description = s.Description,
+                SubAccountCode = s.SubAccountCode,
+                //// Before 1st dot
+                //SubAccount1 = _db.ItemCodes
+                //    .Where(f => f.Code ==
+                //        (SqlFunctions.CharIndex(".", s.ItemCode.Code) > 0
+                //            ? DbFunctions.Left(s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code) - 1)
+                //            : s.ItemCode.Code))
+                //    .Select(f => f.Description)
+                //    .FirstOrDefault(),
+
+                //// Before 2nd dot
+                //SubAccount2 = _db.ItemCodes
+                //    .Where(f => f.Code ==
+                //        (SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) > 0
+                //            ? DbFunctions.Left(
+                //                s.ItemCode.Code,
+                //                SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) - 1
+                //              )
+                //            : s.ItemCode.Code))
+                //    .Select(f => f.Description)
+                //    .FirstOrDefault(),
+
+                //// Before 3rd dot
+                //SubAccount3 = _db.ItemCodes
+                //    .Where(f => f.Code ==
+                //        (SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) + 1) > 0
+                //            ? DbFunctions.Left(
+                //                s.ItemCode.Code,
+                //                SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code, SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) + 1) - 1
+                //              )
+                //            : s.ItemCode.Code))
+                //    .Select(f => f.Description)
+                //    .FirstOrDefault(),
+
+                //// Before 4th dot
+                //SubAccount4 = _db.ItemCodes
+                //    .Where(f => f.Code ==
+                //        (SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                    SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                        SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) + 1) + 1) > 0
+                //            ? DbFunctions.Left(
+                //                s.ItemCode.Code,
+                //                SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                    SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                        SqlFunctions.CharIndex(".", s.ItemCode.Code,
+                //                            SqlFunctions.CharIndex(".", s.ItemCode.Code) + 1) + 1) + 1) - 1
+                //              )
+                //            : s.ItemCode.Code))
+                //    .Select(f => f.Description)
+                //    .FirstOrDefault(),
+                SubAccount1 = GetBeforeNthDot(s.ItemCode.Code, 1),
+                SubAccount2 = GetBeforeNthDot(s.ItemCode.Code, 2),
+                SubAccount3 = GetBeforeNthDot(s.ItemCode.Code, 3),
+                SubAccount4 = GetBeforeNthDot(s.ItemCode.Code, 4),
+                Fund = s.Fund,
+                Unit = s.Unit,
+                PsNo = s.PsNo,
+                PsName = s.PsName,
+                PrevPsNo = s.PrevPsNo,
+                FromDonation = s.FromDonation,
+                Amount = s.Amount,
+                AllField = s.AllField,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
+                ItemCount = s.PsCardItems.Count(),
+                NotPosted = s.PsCardItems.Count(c => c.PostedBy != "" && c.PostedBy != null)
+            };
+        }
+
+        private string GetBeforeNthDot(string input, int n)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            int pos = -1;
+            for (int i = 0; i < n; i++)
+            {
+                pos = input.IndexOf('.', pos + 1);
+                if (pos == -1) return input; // no more dots
+            }
+            return input.Substring(0, pos);
+        }
+
         public new IQueryable<StockCardVM> GetAll(string userName)
-        {            
+        {
             var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();
+            //var data = _db.PsCards.Where(w => w.ItemCode.ItemType.Category == "S")
+            //    .Select(Projection()).AsNoTracking();
+
+            //if (!string.IsNullOrWhiteSpace(userName))
+            //{
+            //    data = data.Where(w => w.InsertedBy == userName);
+            //}
+
             return data;
         }
 

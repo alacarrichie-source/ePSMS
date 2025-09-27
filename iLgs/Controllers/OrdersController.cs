@@ -55,7 +55,7 @@ namespace iLgs.Controllers
             _unitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
             _itemCodeService = itemCodeService;
             _allFieldService = allFieldService;
-            _uploadPoService = orderUploadService.Create("PO");
+            _uploadPoService = orderUploadService.Create("ORDERS");
             _uploadCafoaService = orderUploadService.Create("CAFOA");
         }
 

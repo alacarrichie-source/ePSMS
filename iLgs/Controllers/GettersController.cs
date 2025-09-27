@@ -1,6 +1,7 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
+using iLgs.Services.CustodianReports;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -19,18 +20,21 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly ILocationService _locationService;
         private readonly ILocationBudgetService _locationBudgetService;
+        private readonly INotificationMessageService _notificationMessageService;
         private readonly IUserService _userService;
 
         public GettersController(AppManEntities db, 
             ICodextnService codextnService,
             ILocationService locationService,
             ILocationBudgetService locationBudgetService,
+            INotificationMessageService notificationMessageService,
             IUserService userService)
         {
             _db = db;
             _codextnService = codextnService;
             _locationService = locationService;
             _locationBudgetService = locationBudgetService;
+            _notificationMessageService = notificationMessageService;
             _userService = userService;
         }
 
@@ -1030,6 +1034,13 @@ namespace iLgs.Controllers
         {
             
             return Json(new { Date = DateTime.Now.ToShortDateString() }, JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<JsonResult> GetNotificationCount()
+        {
+            var userId = User.Identity.GetUserId();
+            var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
+            return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
         }
     }
     

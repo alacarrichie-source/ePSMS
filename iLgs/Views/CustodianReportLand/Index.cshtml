@@ -158,7 +158,7 @@
   .For("#btnCount")
   .Position(TooltipPosition.Top)
   .Animation(true)
-  .Content("Certifying that the count has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
+  .Content("Certifying that the count has been COMPLETED (annexes A, B, and C) by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -299,7 +299,9 @@
 
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
-        var url = "@Url.Action("ExcelExport", "CustodianReportLand")?forYear=" + forYear + "&deptId=" + deptId + '&accountGroup=@ViewBag.AccountGroup';
+        var url = "@Url.Action("ExcelExportReport", "CustodianReportLand")?forYear=" + forYear +
+            "&deptId=" + deptId +
+            '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
@@ -317,11 +319,13 @@
 
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
-        var url = "@Url.Action("ExcelExportAnnex", "CustodianReportLand")?forYear=" + forYear + "&deptId=" + deptId + '&annex=A';
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportLand")?forYear=" + forYear +
+            "&deptId=" + deptId + '&annex=A' +
+            '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportB").click(function (e) {
@@ -335,11 +339,13 @@
 
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
-        var url = "@Url.Action("ExcelExportAnnex", "CustodianReportLand")?forYear=" + forYear + "&deptId=" + deptId + '&annex=B';
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportLand")?forYear=" + forYear +
+            "&deptId=" + deptId + '&annex=B' +
+            '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportC").click(function (e) {
@@ -352,12 +358,14 @@
         window.kendo.ui.progress($(document.body), true);
 
         var forYear = $("#forYear").val();
-        var deptId = $("#deptId").val();
-        var url = "@Url.Action("ExcelExportAnnex", "CustodianReportLand")?forYear=" + forYear + "&deptId=" + deptId + '&annex=C';
+        var deptId = $("#deptId").val();        
+        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportLand")?forYear=" + forYear +
+            "&deptId=" + deptId + '&annex=C' +
+            '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(document).ready(function () {
@@ -498,7 +506,7 @@
             $(".k-grid-btnExportB", grid).hide();
             $(".k-grid-btnExportC", grid).hide();
         }
-        
+
         if (this.dataSource.data().length == 0) {
             //$(".k-grid-btnExport", grid).hide();
             //$(".k-grid-btnExportA", grid).hide();
@@ -761,7 +769,7 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
             var url = "";

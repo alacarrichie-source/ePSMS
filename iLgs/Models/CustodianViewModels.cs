@@ -720,8 +720,20 @@ namespace iLgs.Models
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
-        [Display(Name = "Custodian Item Index")]
+        [Display(Name = "Custodian Item No.")]
         public decimal? CustodianItemIndex { get; set; }
+        //public decimal? CustodianItemIndex
+        //{
+        //    get
+        //    {
+        //        if (decimal.TryParse(this.CustodianItemNo, out var value))
+        //        {
+        //            return value;
+        //        }
+        //        return null;
+        //    }
+        //}
+
         public int? ForYear { get; set; }
 
         internal sealed class Metadata
@@ -790,7 +802,9 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Day")]
             public Nullable<int> AcqDay { get; set; }
 
-            [Display(Name = "RPCPPE Year of Construction")]
+            //[Display(Name = "RPCPPE Year of Construction")]
+            [Display(Name = "Acquisition Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             [Display(Name = "Property Number")]
@@ -890,6 +904,11 @@ namespace iLgs.Models
     }
 
     public class CustodianReportBldgItemVM : CustodianReportBldgItem
+    {
+
+    }
+
+    public class CustodianReportBldgItemPhasVM : CustodianReportBldgItemPhas
     {
 
     }

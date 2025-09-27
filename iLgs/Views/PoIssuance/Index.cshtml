@@ -610,8 +610,8 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selectedItemId = null;
-            //e.model.set("PsCardItemTransferId", parentModel.TransferId);
+            selectedItemId = null;            
+            //e.model.set("LocationId", '@ViewBag.DefaultLocation');
         } else {
             selectedItemId = e.model.get("Id");
             //e.model.set("UnitCost", parentModel.UnitCost);
