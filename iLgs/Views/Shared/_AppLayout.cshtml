@@ -114,16 +114,57 @@ if (subItems != null)
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript">
+        var notificationHub = $.connection.notificationHub;
+        var chatHub = $.connection.chatHub;
+        var notificationName = "@ViewBag.NotificationName";
         $(document).ready(function () {
-            $.connection.notificationHub.client.refreshUserNotification = function () {
+            notificationHub.client.refreshUserNotification = function () {
                 console.log("refresh user notification called");
                 RefreshNotification();
             }
 
-            $.connection.notificationHub.client.refreshNotification = function () {
+            notificationHub.client.refreshNotification = function () {
                 console.log("refresh notification called");
                 RefreshNotification();
             }
+
+            // Define what happens when a message arrives
+            chatHub.client.broadcastMessage = function (user, message, time) {
+                console.log('broadcast');
+                //$("#chatWindowMessages").append(
+                //    "<div><strong>" + user + "</strong>: " + message + " <small>" + time + "</small></div>"
+                //);
+
+                 // Check if this message is from the current user
+                var currentUser = "@User.Identity.Name"; // Razor will render the logged-in username
+                var isCurrentUser = (user === currentUser);
+
+                // Build the message bubble
+                var bubble = `
+                    <div class="message ${isCurrentUser ? "message-right" : "message-left"}">
+                        ${message}
+                        <div class="meta">
+                            ${!isCurrentUser ? user + " · " : ""}${time}
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+                `;
+
+                // Append to chat window
+                $("#chatWindow").append(bubble);
+
+                // Auto-scroll to bottom
+                var chatWindow = $("#chatWindow");
+                chatWindow.scrollTop(chatWindow[0].scrollHeight);
+            }
+
+            chatHub.client.sendTest = function (message) {
+                console.log("sendTest called : " + message);
+            }
+
+            $.connection.hub.error(function (err) {
+                console.error("SignalR error: ", err);
+            });
 
             $.connection.hub.start()
             .done(function () {
@@ -143,7 +184,7 @@ if (subItems != null)
                 shape: "rounded",
                 fill: "solid",
                 position: "edge",
-                align: "top end",                    
+                align: "top end",
             }).data("kendoBadge");
 
             $.get('@Url.Action("GetNotificationCount", "Getters")', function (data) {
@@ -173,7 +214,7 @@ if (subItems != null)
     </script>
 
     @Html.Action("_AuditTrailScripts", "AuditTrail")
-    @Html.Action("_NotificationScripts", "Notification")
+    @Html.Action("_NotificationScripts", "Notification")    
 }
 
 <style>
@@ -549,5 +590,45 @@ if (subItems != null)
         });
         mywindow.center();
         mywindow.open();
+    }
+
+    function openChat(notificationMessage) {
+        if (typeof trackingId !== "undefined" && trackingId) {
+
+            var url = '@Url.Action("_Chat", "Chat")?conversationId=' + trackingId + "&notificationName=@ViewBag.NotificationName&notificationMessage=" + notificationMessage;
+
+            // remove old chat window if exists
+            if ($("#windowChat").length) {
+                $("#windowChat").data("kendoWindow").destroy();
+                $("#windowChat").remove();
+            }
+
+            // create new one
+            $("#windowAppLayout").append("<div id='windowChat'></div>");
+            var mywindow = $("#windowChat").kendoWindow({
+                actions: ["Maximize", "Minimize", "Close"],
+                resizable: true,
+                draggable: true,
+                modal: true,
+                visible: false,
+                deactivate: function () {
+                    this.destroy();
+                },
+                title: "Messages",
+                width: "60%",
+                height: "70%", // set an initial height to help centering
+                refresh: function () {
+                    this.center();   // re-center AFTER content load
+                }
+            }).data("kendoWindow");
+
+            // Refresh with content URL
+            mywindow.refresh({
+                url: url
+            });
+
+            // Open AFTER refresh is called
+            mywindow.open();
+        }
     }
 </script>

@@ -4,6 +4,7 @@ using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Items;
 using iLgs.Services.Uploads;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
@@ -18,6 +19,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
+    [AppAuthorize("ITEMCODEREQUEST")]
     public class ItemCodeRequestController : BaseController
     {
         private readonly AppManEntities _db;
@@ -39,6 +41,7 @@ namespace iLgs.Controllers
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(user);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.NotificationName = "Item Code Request";
             return View();
         }
 

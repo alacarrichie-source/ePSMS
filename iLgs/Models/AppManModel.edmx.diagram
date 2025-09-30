@@ -312,6 +312,9 @@
         <AssociationConnector Association="AppManModel.FK_NotificationMessages_Notifications" />
         <AssociationConnector Association="AppManModel.FK_NotificationMessageStatus_NotificationMessages" />
         </Diagram>
+      <Diagram DiagramId="58f773ecb67644bfb81a4fee4f50e703" Name="Chat" >
+        <EntityTypeShape EntityType="AppManModel.Chat" Width="1.5" PointX="0.75" PointY="0.75" />
+      </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

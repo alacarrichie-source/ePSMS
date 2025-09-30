@@ -99,7 +99,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
-        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
@@ -126,5 +125,7 @@ namespace iLgs.Models
         public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<RPCIItemExtn> RPCIItemExtns { get; set; }
+        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
+        public virtual DbSet<Chat> Chats { get; set; }
     }
 }

@@ -15,6 +15,7 @@ namespace iLgs.Models
     public partial class ItemCodeRequest
     {
         public System.Guid Id { get; set; }
+        public string RequestNo { get; set; }
         public Nullable<System.Guid> DepartmentId { get; set; }
         public string Description { get; set; }
         public string Remarks { get; set; }

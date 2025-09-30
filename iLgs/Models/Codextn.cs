@@ -31,7 +31,6 @@ namespace iLgs.Models
             this.RpcPpes = new HashSet<RpcPpe>();
             this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.AccountableOfficers = new HashSet<AccountableOfficer>();
-            this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportBldgItems1 = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
@@ -47,6 +46,7 @@ namespace iLgs.Models
             this.CustodianReports = new HashSet<CustodianReport>();
             this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
             this.RPCIs = new HashSet<RPCI>();
+            this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
         }
     
         public System.Guid Id { get; set; }
@@ -92,8 +92,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AccountableOfficer> AccountableOfficers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems1 { get; set; }
@@ -123,5 +121,7 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCI> RPCIs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
     }
 }

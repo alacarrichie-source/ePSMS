@@ -8,7 +8,11 @@ namespace iLgs.Models
 {
     public class ItemCodeRequestVM
     {
+        public string Url { get; set; }
         public System.Guid Id { get; set; }
+
+        [Display(Name = "Request No.")]
+        public string RequestNo { get; set; }
 
         [Required]
         [Display(Name = "Requesting Department")]

@@ -21,6 +21,7 @@ namespace iLgs.Models
             this.UserCodes = new HashSet<UserCode>();
             this.DepartmentUsers = new HashSet<DepartmentUser>();
             this.NotificationUsers = new HashSet<NotificationUser>();
+            this.Chats = new HashSet<Chat>();
         }
     
         public string Id { get; set; }
@@ -48,5 +49,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NotificationUser> NotificationUsers { get; set; }
         public virtual UserProfile UserProfile { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Chat> Chats { get; set; }
     }
 }

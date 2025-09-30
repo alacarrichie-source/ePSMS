@@ -7,6 +7,7 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
+        col.Bound(c => c.RequestNo).Width(70);
         col.Bound(c => c.Department).Width(70);
         col.Bound(c => c.Description).Width(70);
         col.Bound(c => c.Remarks).Width(100);
@@ -16,7 +17,7 @@
         col.Bound(c => c.IsForDistribution).Width(50).ClientTemplate("#= IsForDistribution ? 'Y' : 'N' #").EditorTemplateName("_IsForDistributionTemplate");
         col.Bound(c => c.IsIncorporated).Width(50).ClientTemplate("#= IsIncorporated ? 'Y' : 'N' #").EditorTemplateName("_IsIncorporatedTemplate");
         col.Bound(c => c.Status).Width(70);
-        col.Bound(c => c.StatusRemarks).Width(100);
+        //col.Bound(c => c.StatusRemarks).Width(100);
         col.Bound(c => c.InsertedBy).Width(50);
         col.Bound(c => c.InsertedDt).Width(70);
         col.Command(command =>
@@ -24,7 +25,8 @@
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             command.Custom("Status").IconClass("k-icon k-i-book").Click("onClickStatus").Visible("CheckIsAdmin");
-        }).Width(150);
+            command.Custom("Messages").IconClass("k-icon k-i-comment").Click("onClickMessages");
+        }).Width(200);
     })
     .ToolBar(t =>
     {
@@ -36,6 +38,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemCodeRequestTemplate").Window(w => w.Width(800).Title("Item Code Request")))
     .Search(s =>
     {
+        s.Field(o => o.RequestNo, "contains");
         s.Field(o => o.Department, "contains");
         s.Field(o => o.Description, "contains");
         s.Field(o => o.Remarks, "contains");
@@ -126,6 +129,8 @@
 
 
 <div id="windowcontainer"></div>
+
+@*@Html.Action("_ChatScripts", "Chat")*@
 
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
@@ -357,7 +362,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
-
+                trackingId = selectedId;
                 if (selectedId) {
 
                     var grid = $("#grid").data("kendoGrid");
@@ -384,6 +389,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
+    var trackingId = null;
     //var selectedAsOf = null;
     //var selecteItemId = null;
     //var postedBy = null;
@@ -393,6 +399,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        trackingId = selectedId;
         //selectedAsOf = selectedData.AsOf;
         //selectedItemId = null;
         //postedBy = selectedData.PostedBy;
@@ -450,6 +457,8 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+        trackingId = selectedId;
+        e.model.set("Url", window.location.href);
     }
 
     function onClickStatus(e) {
@@ -463,11 +472,24 @@
         //// Add the "selected" class to the clicked row
         //$(e.currentTarget).closest("tr").addClass("selected");
         selectedId = dataItem.Id;
+        trackingId = selectedId;
         dataItem.set("StatusSw", true);
         selectedGrid.editRow(dataItem);
 
         var fieldStatus = $('#DIV_STATUS');
         fieldStatus.removeClass('hidden');
+    }
+
+    function onClickMessages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        selectedId = dataItem.Id;
+        trackingId = selectedId;
+
+        this.select($('[data-uid=' + dataItem.uid + ']'));
+        setTimeout(function () { openChat("Source: " + window.location.href + ", Request No: " + dataItem.RequestNo); }, 100);        
     }
 
     function onGridDeleteClick(e) {
@@ -815,7 +837,7 @@
                 var row = selectedGrid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
                 selectedGrid.expandRow(row);
             }
-        });        
+        });
     }
     // END GRID IMAGES
 </script>

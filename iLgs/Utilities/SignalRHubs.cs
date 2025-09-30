@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNet.SignalR;
+﻿using iLgs.Models;
+using Microsoft.AspNet.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace iLgs.Utilities
@@ -37,5 +39,40 @@ namespace iLgs.Utilities
         {
             Clients.Caller.Announce(msg);
         }
-    }        
+    }
+
+    public class ChatHub : Hub
+    {
+        public ChatHub()
+        {
+
+        }
+
+        public void Send(string name, string message)
+        {
+            //var hubContext = GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
+            ////hubContext.Clients.All.broadcastMessage(name, message, DateTime.Now.ToString("HH:mm"));
+            //hubContext.Clients.All.sendTest(message);
+
+            Clients.All.sendTest($"{name}: {message}");
+        }
+        
+        public void Send(string conversationId, string userName, Chat message)
+        {
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
+            hubContext.Clients.Group(conversationId)
+                       .broadcastMessage(userName, message.Text, message.SentAt.Value.ToString("HH:mm"));            
+        }
+
+        public Task JoinConversation(string conversationId)
+        {
+            var connectionId = Context.ConnectionId;
+            return Groups.Add(connectionId, conversationId);
+        }
+
+        public Task LeaveConversation(string conversationId)
+        {
+            return Groups.Remove(Context.ConnectionId, conversationId);
+        }
+    }
 }

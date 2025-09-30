@@ -105,7 +105,7 @@ namespace iLgs.Services.CustodianReports
             foreach(var notificationUser in notificationUsers)
             {
                 var userName = _userService.GetById(notificationUser.UserId)?.UserName;
-                if (!string.IsNullOrEmpty(userName))
+                if (!string.IsNullOrEmpty(userName) && userName != user)
                 {                    
                     hub.RefreshUserNotification(userName);
                 }

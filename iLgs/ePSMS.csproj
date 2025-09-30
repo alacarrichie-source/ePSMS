@@ -320,6 +320,7 @@
     <Compile Include="Controllers\BudgetController.cs" />
     <Compile Include="Controllers\CardController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
+    <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
     <Compile Include="Controllers\CustodianIirupController.cs" />
     <Compile Include="Controllers\CustodianReportBldgController.cs" />
@@ -408,6 +409,9 @@
     </Compile>
     <Compile Include="Models\AuditLogViewModels.cs" />
     <Compile Include="Models\CategoryDictionary.cs" />
+    <Compile Include="Models\Chat.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -4277,6 +4281,8 @@
     <Content Include="Views\Notification\_NotificationScripts.cshtml" />
     <Content Include="Views\Notification\_NotificationDetails.cshtml" />
     <Content Include="Views\CustodianReportLand\LandQuery.cshtml" />
+    <Content Include="Views\Chat\_Chat.cshtml" />
+    <Content Include="Views\Chat\_ChatScripts.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />

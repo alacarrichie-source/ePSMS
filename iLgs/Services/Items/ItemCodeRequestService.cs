@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
+using iLgs.Services.CustodianReports;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -31,12 +32,14 @@ namespace iLgs.Services.Items
         private readonly IExceptionService<ItemCodeRequestVM> _exceptionService;
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
+        private readonly INotificationMessageService _notificationMessageService;
 
         public ItemCodeRequestService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<ItemCodeRequestVM> exceptionService,
             ICodextnService codextnService,
-            IUserService userService)
+            IUserService userService,
+            INotificationMessageService notificationMessageService)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<ItemCodeRequestVM>;
@@ -44,12 +47,14 @@ namespace iLgs.Services.Items
             _exceptionService = exceptionService;
             _codextnService = codextnService;
             _userService = userService;
+            _notificationMessageService = notificationMessageService;
         }
 
         private static Expression<Func<ItemCodeRequest, ItemCodeRequestVM>> Projection
         = s => new ItemCodeRequestVM
         {
             Id = s.Id,
+            RequestNo = s.RequestNo,
             DepartmentId = s.DepartmentId,
             Description = s.Description,
             Remarks = s.Remarks,
@@ -110,12 +115,16 @@ namespace iLgs.Services.Items
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
+            model.RequestNo = NextRequestNo((DateTime)model.InsertedDt);
 
             var entity = new ItemCodeRequest();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
             _db.ItemCodeRequests.Add(entity);
             await _db.SaveChangesAsync();
+
+            var description = $"Source: {model.Url}, Request No: {model.RequestNo}";
+            await _notificationMessageService.NotifyUsers("Item Code Request", "New", description, user, date);
 
             return model;
         });
@@ -150,6 +159,10 @@ namespace iLgs.Services.Items
            _db.ItemCodeRequests.Attach(entity);
            _db.Entry(entity).State = EntityState.Modified;
            await _db.SaveChangesAsync();
+
+           var description = $"Source: {model.Url}, Request No: {model.RequestNo}";
+           await _notificationMessageService.NotifyUsers("Item Code Request", "Update", description, user, date);
+
            return model;
        });
 
@@ -186,6 +199,7 @@ namespace iLgs.Services.Items
                 entity.Id = model.Id;
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
+                entity.RequestNo = model.RequestNo;
             }
 
             entity.DepartmentId = model.DepartmentId;
@@ -197,6 +211,29 @@ namespace iLgs.Services.Items
             entity.IsIncorporated = model.IsIncorporated;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+        }
+
+        private string NextRequestNo(DateTime date)
+        {
+            string yyyy = date.Year.ToString().Trim();
+            string mm = date.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var data = _db.ItemCodeRequests.Where(w => w.InsertedDt.Value.Year == date.Year).OrderByDescending(o => o.RequestNo).FirstOrDefault();
+            if (data == null)
+            {
+                return keyName + "-" + "0001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.RequestNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
+            }
         }
 
         private void ValidateIfNull(ItemCodeRequestVM model)

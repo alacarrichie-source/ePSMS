@@ -1,0 +1,35 @@
+﻿<script type="text/javascript">
+    $(document).ready(function () {
+        var conversationId = "@ViewBag.ConversationId";
+        var chat = $.connection.chatHub;
+
+        // Define what happens when a message arrives
+        chat.client.broadcastMessage = function (user, message, time) {
+            $("#chatWindowMessages").append(
+                "<div><strong>" + user + "</strong>: " + message + " <small>" + time + "</small></div>"
+            );
+        };
+
+        // When hub is already connected, join group immediately
+        if ($.connection.hub.state === $.signalR.connectionState.connected) {
+            chat.server.joinConversation(conversationId);
+        } else {
+            // If hub is still connecting, wait until it finishes
+            $.connection.hub.start().done(function () {
+                chat.server.joinConversation(conversationId);
+            });
+        }
+
+        // Send message
+        $("#sendBtn").click(function () {
+            var text = $("#messageInput").val();
+            if (!text) return;
+
+            $.post("@Url.Action("Send", "Chat")",
+                { conversationId: conversationId, text: text }
+            );
+
+            $("#messageInput").val("");
+        });
+    });
+</script>
