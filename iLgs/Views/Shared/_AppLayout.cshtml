@@ -187,7 +187,7 @@ if (subItems != null)
                 align: "top end",
             }).data("kendoBadge");
 
-            $.get('@Url.Action("GetNotificationCount", "Getters")', function (data) {
+            $.get('@Url.Action("GetNotificationCount", "Notification")', function (data) {
                 if (data) {
                     console.log("Notification Count:", data.Notifications);
                     var $badge = $("#notificationBadge");

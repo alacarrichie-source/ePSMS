@@ -14,7 +14,8 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("NOTIFICATION")]
+    //[AppAuthorize("NOTIFICATION")]
+    [Authorize]
     public class NotificationController : BaseController
     {
         private readonly AppManEntities _db;
@@ -292,13 +293,13 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        //[Authorize] //moved to getters
-        //public async Task<JsonResult> GetNotificationCount()
-        //{
-        //    var userId = User.Identity.GetUserId();
-        //    var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
-        //    return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
-        //}
+        //[AllowAnonymous]
+        public async Task<JsonResult> GetNotificationCount()
+        {
+            var userId = User.Identity.GetUserId();
+            var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
+            return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
+        }
 
         public ActionResult _Notifications()
         {
