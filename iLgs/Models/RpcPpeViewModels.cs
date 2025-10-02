@@ -138,8 +138,8 @@ namespace iLgs.Models
             public Nullable<int> TransferIn { get; set; }
             public Nullable<int> QtyBalance { get; set; }
 
-            [Display(Name = "Amount")]
-            public Nullable<decimal> TotalCost { get; set; }
+            [Display(Name = "Acquisition Cost")]
+            public Nullable<decimal> AcqCost { get; set; }
 
             [Display(Name = "Old Amount")]
             public Nullable<decimal> OldAmount { get; set; }
@@ -279,5 +279,14 @@ namespace iLgs.Models
             public Nullable<decimal> SetLotAmount { get; set; }
             public string SetLotRemarks { get; set; }
         }
+    }
+
+    public class RpcPrintVM 
+    {        
+        public Guid? Id { get; set; }
+        public int? AccountGroup { get; set; }
+        public bool Save { get; set; }
+
+        public string Annex { get; set; }
     }
 }

@@ -91,7 +91,6 @@ namespace iLgs.Models
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
-        public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
@@ -127,5 +126,8 @@ namespace iLgs.Models
         public virtual DbSet<RPCIItemExtn> RPCIItemExtns { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<Chat> Chats { get; set; }
+        public virtual DbSet<RpcPpeItemBuilding> RpcPpeItemBuildings { get; set; }
+        public virtual DbSet<RpcPpeItemLand> RpcPpeItemLands { get; set; }
+        public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
     }
 }

@@ -1,0 +1,136 @@
+﻿@model iLgs.Models.RpcPrintVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.AccountGroup)
+    @Html.HiddenFor(m => m.Save)
+    
+    <div class="row k-mb-2">
+        <div class="fieldhdg">
+            <h5>Select Annex</h5>
+        </div>
+        <ul class="fieldlist">
+            <li>
+                @(Html.Kendo().RadioButtonFor(m => m.Annex).Checked(true).Value("").Label("All"));
+            </li>
+            <li>
+                @(Html.Kendo().RadioButtonFor(m => m.Annex).Value("A").Label("Annex A"));
+            </li>
+            <li>
+                @(Html.Kendo().RadioButtonFor(m => m.Annex).Value("B").Label("Annex B"));
+            </li>
+            <li>
+               @(Html.Kendo().RadioButtonFor(m => m.Annex).Value("C").Label("Annex C"));
+            </li>            
+        </ul>
+    </div>    
+
+    <div class="row k-mb-2">
+        <div id="span_submit">
+            @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
+            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        </div>
+    </div>
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .fieldhdg {
+        margin: 0 4em;
+    }
+
+    .fieldlist {
+        margin: 0 0 -1em;
+        padding: 1;
+    }
+
+    .fieldlist li {
+        list-style: none;
+        padding-bottom: 1em;
+    }
+
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    #span_submit {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: 16em;
+    }
+</style>
+
+<script type="text/javascript">
+
+    //$("#divRange").addClass("hidden");
+
+    $("#btnPrintSubmit").click(function (e) {
+        $("#Save").val(false).trigger('change');
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Print();
+        }
+    })
+
+    $("#btnSaveSubmit").click(function (e) {
+        $("#Save").val(true).trigger('change');
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Export();
+        }
+    })
+
+    function Print() {
+        //var formData = {};
+        //$.each($("#form").serializeArray(), function (_, field) {
+        //    formData[field.name] = field.value;
+        //});
+        var data = $("#form").serialize();
+        var url = '@Url.Action("RpcPpeRpt", "RpcPpe")' + '?' + data;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+
+    function Export() {
+        var data = $("#form").serialize();
+        var url = '@Url.Action("RpcPpeRpt", "RpcPpe")' + '?' + data;
+
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);
+    }
+</script>
+
+
+
+
+
+

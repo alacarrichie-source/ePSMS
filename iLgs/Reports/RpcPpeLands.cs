@@ -16,14 +16,14 @@ namespace iLgs.Reports {
     using CrystalDecisions.CrystalReports.Engine;
     
     
-    public class RpcPpeVehicles : ReportClass {
+    public class RpcPpeLands : ReportClass {
         
-        public RpcPpeVehicles() {
+        public RpcPpeLands() {
         }
         
         public override string ResourceName {
             get {
-                return "RpcPpeVehicles.rpt";
+                return "RpcPpeLands.rpt";
             }
             set {
                 // Do nothing
@@ -41,7 +41,7 @@ namespace iLgs.Reports {
         
         public override string FullResourceName {
             get {
-                return "iLgs.Reports.RpcPpeVehicles.rpt";
+                return "iLgs.Reports.RpcPpeLands.rpt";
             }
             set {
                 // Do nothing
@@ -186,9 +186,9 @@ namespace iLgs.Reports {
     }
     
     [System.Drawing.ToolboxBitmapAttribute(typeof(CrystalDecisions.Shared.ExportOptions), "report.bmp")]
-    public class CachedRpcPpeVehicles : Component, ICachedReport {
+    public class CachedRpcPpeLands : Component, ICachedReport {
         
-        public CachedRpcPpeVehicles() {
+        public CachedRpcPpeLands() {
         }
         
         [Browsable(false)]
@@ -225,7 +225,7 @@ namespace iLgs.Reports {
         }
         
         public virtual CrystalDecisions.CrystalReports.Engine.ReportDocument CreateReport() {
-            RpcPpeVehicles rpt = new RpcPpeVehicles();
+            RpcPpeLands rpt = new RpcPpeLands();
             rpt.Site = this.Site;
             return rpt;
         }

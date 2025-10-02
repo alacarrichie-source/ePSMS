@@ -1364,6 +1364,7 @@
           <Property Name="SurveyingCap" Type="bit" />
           <Property Name="IncidentalExpensesCap" Type="bit" />
           <Property Name="CapitalOutlayOrExpense" Type="char" MaxLength="1" />
+          <Property Name="TotalCap" Type="numeric" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="PsCardItemExtnOthers">
           <Key>
@@ -2007,6 +2008,97 @@
           <Property Name="UpdatedDt" Type="datetime" Nullable="false" />
           <Property Name="IsPosted" Type="bit" />
         </EntityType>
+        <EntityType Name="RpcPpeItemBuildings">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RpcPpeItemId" Type="uniqueidentifier" />
+          <Property Name="Address" Type="varchar" MaxLength="200" />
+          <Property Name="BuildingItem" Type="varchar" MaxLength="200" />
+          <Property Name="ProjectName" Type="varchar" MaxLength="200" />
+          <Property Name="BuildingType" Type="varchar" MaxLength="100" />
+          <Property Name="Area" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AppraisedValue" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="TotalAmount" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="PhaseNo" Type="varchar" MaxLength="50" />
+          <Property Name="PhaseAmountCo" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="PhaseAmountMooe" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="StartDate" Type="date" />
+          <Property Name="TargetDate" Type="date" />
+          <Property Name="PercentComplete" Type="numeric" Precision="6" Scale="2" />
+          <Property Name="CompletionDate" Type="date" />
+          <Property Name="Status" Type="varchar" MaxLength="50" />
+          <Property Name="Latitude" Type="float" />
+          <Property Name="Longitude" Type="float" />
+        </EntityType>
+        <EntityType Name="RpcPpeItemLands">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RpcPpeItemId" Type="uniqueidentifier" />
+          <Property Name="PIN" Type="varchar" MaxLength="50" />
+          <Property Name="Address" Type="varchar" MaxLength="200" />
+          <Property Name="LandMarks" Type="varchar" MaxLength="200" />
+          <Property Name="MarketValue" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="PricePerSqm" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AreaXPrice" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Vendor" Type="varchar" MaxLength="200" />
+          <Property Name="Representative" Type="varchar" MaxLength="200" />
+          <Property Name="TctNo" Type="varchar" MaxLength="50" />
+          <Property Name="OldTctNo" Type="varchar" MaxLength="50" />
+          <Property Name="DRPNo" Type="varchar" MaxLength="50" />
+          <Property Name="DRPDate" Type="date" />
+          <Property Name="OldDRPNo" Type="varchar" MaxLength="50" />
+          <Property Name="OldDRPDate" Type="date" />
+          <Property Name="CGT" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CGTTransferTax" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CGTSurcharge" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CGTInteest" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CGTCompromise" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CGTTransferTaxCap" Type="bit" />
+          <Property Name="CGTSurchargeCap" Type="bit" />
+          <Property Name="CGTInterestCap" Type="bit" />
+          <Property Name="CGTCompromiseCap" Type="bit" />
+          <Property Name="DST" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="DSTTransferTax" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="DSTSurcharge" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="DSTInterest" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="DSTCompromise" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="DSTTransferTaxCap" Type="bit" />
+          <Property Name="DSTSurchargeCap" Type="bit" />
+          <Property Name="DSTInterestCap" Type="bit" />
+          <Property Name="DSTCompromiseCap" Type="bit" />
+          <Property Name="TransferTax" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Surcharge" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Interest" Type="numeric" Precision="18" Scale="0" />
+          <Property Name="TransferTaxCap" Type="bit" />
+          <Property Name="SurchargeCap" Type="bit" />
+          <Property Name="InterestCap" Type="bit" />
+          <Property Name="ConfirmationFee" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="TransferRegsFee" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="RealPropertyTax" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="ConfirmationFeeCap" Type="bit" />
+          <Property Name="TransferRegsFeeCap" Type="bit" />
+          <Property Name="RealPropertyTaxCap" Type="bit" />
+          <Property Name="VAT" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="EstateTax" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Titling" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CerttificationFee" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Relocation" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Surveying" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="IncidentalExpenses" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="VATCap" Type="bit" />
+          <Property Name="EstateTaxCap" Type="bit" />
+          <Property Name="TitlingCap" Type="bit" />
+          <Property Name="CertificationFeeCap" Type="bit" />
+          <Property Name="RelocationCap" Type="bit" />
+          <Property Name="SurveyingCap" Type="bit" />
+          <Property Name="IncidentalExpensesCap" Type="bit" />
+          <Property Name="CapitalOutlayOrExpense" Type="char" MaxLength="1" />
+          <Property Name="TotalCap" Type="numeric" Precision="18" Scale="2" />
+        </EntityType>
         <EntityType Name="RpcPpeItems">
           <Key>
             <PropertyRef Name="Id" />
@@ -2015,8 +2107,9 @@
           <Property Name="RpcPpeId" Type="uniqueidentifier" />
           <Property Name="PsCardItemExtnId" Type="uniqueidentifier" />
           <Property Name="Fund" Type="varchar" MaxLength="10" />
-          <Property Name="CustodianItemNo" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="CustodianItemNo" Type="varchar" MaxLength="50" />
           <Property Name="SeriesNo" Type="varchar" MaxLength="10" />
+          <Property Name="DateIssue" Type="datetime" />
           <Property Name="FromDonation" Type="bit" />
           <Property Name="InvDist" Type="varchar" MaxLength="50" />
           <Property Name="Account" Type="varchar" MaxLength="200" />
@@ -2040,7 +2133,10 @@
           <Property Name="Qty" Type="int" />
           <Property Name="TransferIn" Type="int" />
           <Property Name="QtyBalance" Type="int" />
-          <Property Name="TotalCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AddCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AcqCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="datetime" />
+          <Property Name="ProRatedCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="OldAmount" Type="numeric" Precision="18" Scale="2" />
           <Property Name="OldPsNo" Type="varchar" MaxLength="200" />
           <Property Name="PsNo" Type="varchar" MaxLength="200" />
@@ -2089,6 +2185,7 @@
           <Property Name="MrOfficer" Type="varchar" MaxLength="200" />
           <Property Name="IcsNo" Type="varchar" MaxLength="50" />
           <Property Name="IcsIssuedTo" Type="varchar" MaxLength="200" />
+          <Property Name="IcsOfficer" Type="varchar" MaxLength="200" />
           <Property Name="UpcomingPar" Type="varchar" MaxLength="200" />
           <Property Name="UpcomingIcs" Type="varchar" MaxLength="200" />
           <Property Name="Type" Type="varchar" MaxLength="200" />
@@ -4198,6 +4295,34 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RpcPpeItemBuildings_RpcPpeItems">
+          <End Role="RpcPpeItems" Type="Self.RpcPpeItems" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RpcPpeItemBuildings" Type="Self.RpcPpeItemBuildings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RpcPpeItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItemBuildings">
+              <PropertyRef Name="RpcPpeItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItemLands_RpcPpeItems">
+          <End Role="RpcPpeItems" Type="Self.RpcPpeItems" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RpcPpeItemLands" Type="Self.RpcPpeItemLands" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RpcPpeItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItemLands">
+              <PropertyRef Name="RpcPpeItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RpcPpeItems_Codextn">
           <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
           <End Role="RpcPpeItems" Type="Self.RpcPpeItems" Multiplicity="*" />
@@ -4485,6 +4610,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RPCIItemExtns" EntityType="Self.RPCIItemExtns" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIItems" EntityType="Self.RPCIItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIs" EntityType="Self.RPCIs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RpcPpeItemBuildings" EntityType="Self.RpcPpeItemBuildings" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RpcPpeItemLands" EntityType="Self.RpcPpeItemLands" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RpcPpeItems" EntityType="Self.RpcPpeItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RpcPpes" EntityType="Self.RpcPpes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RSMI" EntityType="Self.RSMI" Schema="dbo" store:Type="Tables" />
@@ -5122,6 +5249,14 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="ItemTypes" EntitySet="ItemTypes" />
             <End Role="RPCIs" EntitySet="RPCIs" />
           </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItemBuildings_RpcPpeItems" Association="Self.FK_RpcPpeItemBuildings_RpcPpeItems">
+            <End Role="RpcPpeItems" EntitySet="RpcPpeItems" />
+            <End Role="RpcPpeItemBuildings" EntitySet="RpcPpeItemBuildings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItemLands_RpcPpeItems" Association="Self.FK_RpcPpeItemLands_RpcPpeItems">
+            <End Role="RpcPpeItems" EntitySet="RpcPpeItems" />
+            <End Role="RpcPpeItemLands" EntitySet="RpcPpeItemLands" />
+          </AssociationSet>
           <AssociationSet Name="FK_RpcPpeItems_Codextn" Association="Self.FK_RpcPpeItems_Codextn">
             <End Role="Codextn" EntitySet="Codextn" />
             <End Role="RpcPpeItems" EntitySet="RpcPpeItems" />
@@ -5501,27 +5636,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsCardItemIssuanceItem" EntitySet="PsCardItemIssuanceItems" />
           </AssociationSet>
           <EntitySet Name="PsCardItemTransferItems" EntityType="AppManModel.PsCardItemTransferItem" />
-          <EntitySet Name="RpcPpeItems" EntityType="AppManModel.RpcPpeItem" />
           <EntitySet Name="RpcPpes" EntityType="AppManModel.RpcPpe" />
-          <AssociationSet Name="FK_RpcPpeItems_Codextn" Association="AppManModel.FK_RpcPpeItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RpcPpeItems_Codextn1" Association="AppManModel.FK_RpcPpeItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_RpcPpes_Codextn" Association="AppManModel.FK_RpcPpes_Codextn">
             <End Role="Codextn" EntitySet="Codextns" />
             <End Role="RpcPpe" EntitySet="RpcPpes" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RpcPpeItems_ItemCodes" Association="AppManModel.FK_RpcPpeItems_ItemCodes">
-            <End Role="ItemCode" EntitySet="ItemCodes" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RpcPpeItems_RpcPpes" Association="AppManModel.FK_RpcPpeItems_RpcPpes">
-            <End Role="RpcPpe" EntitySet="RpcPpes" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
           </AssociationSet>
           <EntitySet Name="AIRItemExtns" EntityType="AppManModel.AIRItemExtn" />
           <AssociationSet Name="FK_AIRItemExtns_AIRItems" Association="AppManModel.FK_AIRItemExtns_AIRItems">
@@ -5579,10 +5697,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsCardItemTransferItems_PsCardItemExtns" Association="AppManModel.FK_PsCardItemTransferItems_PsCardItemExtns">
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
             <End Role="PsCardItemTransferItem" EntitySet="PsCardItemTransferItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RpcPpeItems_PsCardItemExtns" Association="AppManModel.FK_RpcPpeItems_PsCardItemExtns">
-            <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
           </AssociationSet>
           <EntitySet Name="AccountableOfficers" EntityType="AppManModel.AccountableOfficer" />
           <AssociationSet Name="FK_AccountableOfficers_Codextn" Association="AppManModel.FK_AccountableOfficers_Codextn">
@@ -5888,6 +6002,37 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_Chats_AspNetUsers" Association="AppManModel.FK_Chats_AspNetUsers">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="Chat" EntitySet="Chats" />
+          </AssociationSet>
+          <EntitySet Name="RpcPpeItemBuildings" EntityType="AppManModel.RpcPpeItemBuilding" />
+          <EntitySet Name="RpcPpeItemLands" EntityType="AppManModel.RpcPpeItemLand" />
+          <EntitySet Name="RpcPpeItems" EntityType="AppManModel.RpcPpeItem" />
+          <AssociationSet Name="FK_RpcPpeItems_Codextn" Association="AppManModel.FK_RpcPpeItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_Codextn1" Association="AppManModel.FK_RpcPpeItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_ItemCodes" Association="AppManModel.FK_RpcPpeItems_ItemCodes">
+            <End Role="ItemCode" EntitySet="ItemCodes" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_PsCardItemExtns" Association="AppManModel.FK_RpcPpeItems_PsCardItemExtns">
+            <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItemBuildings_RpcPpeItems" Association="AppManModel.FK_RpcPpeItemBuildings_RpcPpeItems">
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+            <End Role="RpcPpeItemBuilding" EntitySet="RpcPpeItemBuildings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItemLands_RpcPpeItems" Association="AppManModel.FK_RpcPpeItemLands_RpcPpeItems">
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+            <End Role="RpcPpeItemLand" EntitySet="RpcPpeItemLands" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_RpcPpes" Association="AppManModel.FK_RpcPpeItems_RpcPpes">
+            <End Role="RpcPpe" EntitySet="RpcPpes" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -6706,8 +6851,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RISses" Relationship="AppManModel.FK_RISs_Codextn" FromRole="Codextn" ToRole="RISs" />
           <NavigationProperty Name="IcsPars" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="Codextn" ToRole="IcsPar" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="Codextn" ToRole="RPCIItem" />
-          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
-          <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
           <NavigationProperty Name="RpcPpes" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="Codextn" ToRole="RpcPpe" />
           <NavigationProperty Name="PsCardItemExtns" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="Codextn" ToRole="PsCardItemExtn" />
           <NavigationProperty Name="AccountableOfficers" Relationship="AppManModel.FK_AccountableOfficers_Codextn" FromRole="Codextn" ToRole="AccountableOfficer" />
@@ -6727,6 +6870,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="Codextn" ToRole="CustodianReportSubmitForCount" />
           <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
           <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
+          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
           </EntityType>
         <Association Name="FK_Codextn_Codextn">
           <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
@@ -6826,6 +6971,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="RelocationCap" Type="Boolean" />
           <Property Name="SurveyingCap" Type="Boolean" />
           <Property Name="IncidentalExpensesCap" Type="Boolean" />
+          <Property Name="TotalCap" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="PsCardItemIssuance">
           <Key>
@@ -7115,12 +7261,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_ItemCodes" FromRole="ItemCode" ToRole="OrderItem" />
           <NavigationProperty Name="RSMIItems" Relationship="AppManModel.FK_RSMIItems_ItemCodes" FromRole="ItemCode" ToRole="RSMIItem" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_ItemCodes" FromRole="ItemCode" ToRole="RPCIItem" />
-          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="ItemCode" ToRole="RpcPpeItem" />
           <NavigationProperty Name="PsCards" Relationship="AppManModel.FK_PsCards_ItemCodes" FromRole="ItemCode" ToRole="PsCard" />
           <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportItem" />
           <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportLandItem" />
           <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="ItemCode" ToRole="RisItem" />
+          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="ItemCode" ToRole="RpcPpeItem" />
         </EntityType>
         <Association Name="FK_ItemCodes_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
@@ -8080,104 +8226,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="IcsParItem" Relationship="AppManModel.FK_PsCardItemTransferItems_IcsParItems" FromRole="PsCardItemTransferItem" ToRole="IcsParItem" />
           <NavigationProperty Name="PsCardItemTransfer" Relationship="AppManModel.FK_PsCardItemTransferItems_PsCardItemTransfers" FromRole="PsCardItemTransferItem" ToRole="PsCardItemTransfer" />
         </EntityType>
-        <EntityType Name="RpcPpeItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RpcPpeId" Type="Guid" />
-          <Property Name="PsCardItemExtnId" Type="Guid" />
-          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="CustodianItemNo" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="FromDonation" Type="Boolean" />
-          <Property Name="InvDist" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ItemCodeId" Type="Guid" />
-          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PoDate" Type="DateTime" Precision="0" />
-          <Property Name="AirNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="AirDate" Type="DateTime" Precision="0" />
-          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Unit" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="SetLotNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="DeptId" Type="Guid" />
-          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="DeptCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="LocationId" Type="Guid" />
-          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Qty" Type="Int32" />
-          <Property Name="TransferIn" Type="Int32" />
-          <Property Name="QtyBalance" Type="Int32" />
-          <Property Name="TotalCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="OldPsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="Brand" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Model_" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Dimension" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Size" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Weight" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Materials" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Capacity" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Color" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="GenericName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="DosageStrength" Type="String" MaxLength="520" FixedLength="false" Unicode="false" />
-          <Property Name="DosageForm" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="DosageVolume" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Multipliers" Type="Int32" />
-          <Property Name="SerialNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="OldPropNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="PropNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="YearModel" Type="Int32" />
-          <Property Name="PlateNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="BodyNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="MVFileNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="EngineNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="ChasisNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="CRN" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="CRDate" Type="DateTime" Precision="0" />
-          <Property Name="OrNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="OrDate" Type="DateTime" Precision="0" />
-          <Property Name="InsPolicyNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="ConductionNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="ItemSerialNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="OtherDesc" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="OtherQty" Type="Int32" />
-          <Property Name="Condition" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="ParNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ParIssuedto" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="AccountableOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="AreNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="AreIssuedto" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="AreOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="MrNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="MrIssuedTo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="MrOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="IcsNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="IcsIssuedTo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="UpcomingPar" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="UpcomingIcs" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Type" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <Property Name="SetLotAmount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="SetLotRemarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="RpcPpeItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="RpcPpeItem" ToRole="Codextn" />
-          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="RpcPpeItem" ToRole="ItemCode" />
-          <NavigationProperty Name="RpcPpe" Relationship="AppManModel.FK_RpcPpeItems_RpcPpes" FromRole="RpcPpeItem" ToRole="RpcPpe" />
-          <NavigationProperty Name="PsCardItemExtn" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="RpcPpeItem" ToRole="PsCardItemExtn" />
-        </EntityType>
         <EntityType Name="RpcPpe">
           <Key>
             <PropertyRef Name="Id" />
@@ -8203,30 +8251,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="RpcPpe" ToRole="Codextn" />
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_RpcPpes" FromRole="RpcPpe" ToRole="RpcPpeItem" />
         </EntityType>
-        <Association Name="FK_RpcPpeItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RpcPpeItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RpcPpes_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
           <End Type="AppManModel.RpcPpe" Role="RpcPpe" Multiplicity="*" />
@@ -8236,32 +8260,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RpcPpe">
               <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RpcPpeItems_ItemCodes">
-          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ItemCode">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RpcPpeItems_RpcPpes">
-          <End Type="AppManModel.RpcPpe" Role="RpcPpe" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RpcPpe">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="RpcPpeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -8594,7 +8592,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="PsCardItemExtn" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemIssuanceItems" Relationship="AppManModel.FK_PsCardItemIssuanceItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="PsCardItemIssuanceItem" />
           <NavigationProperty Name="PsCardItemTransferItems" Relationship="AppManModel.FK_PsCardItemTransferItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="PsCardItemTransferItem" />
-          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="RpcPpeItem" />
           <Property Name="AddCost" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
           <NavigationProperty Name="PsCardItemExtnAddCosts" Relationship="AppManModel.FK_PsCardItemExtnAddCosts_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="PsCardItemExtnAddCost" />
@@ -8602,6 +8599,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="AcqDate" Type="DateTime" Precision="3" />
           <NavigationProperty Name="IcsParItems" Relationship="AppManModel.FK_IcsParItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="IcsParItem" />
           <NavigationProperty Name="PsCardItem" Relationship="AppManModel.FK_PsCardItemExtns_PsCardItems" FromRole="PsCardItemExtn" ToRole="PsCardItem" />
+          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="RpcPpeItem" />
         </EntityType>
         <Association Name="FK_PsCardItemExtns_AIRItemExtns">
           <End Type="AppManModel.AIRItemExtn" Role="AIRItemExtn" Multiplicity="0..1">
@@ -8649,18 +8647,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="PsCardItemTransferItem">
-              <PropertyRef Name="PsCardItemExtnId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RpcPpeItems_PsCardItemExtns">
-          <End Type="AppManModel.PsCardItemExtn" Role="PsCardItemExtn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsCardItemExtn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
               <PropertyRef Name="PsCardItemExtnId" />
             </Dependent>
           </ReferentialConstraint>
@@ -10428,6 +10414,294 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="RpcPpeItemBuilding">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpcPpeItemId" Type="Guid" />
+          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="BuildingItem" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ProjectName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="BuildingType" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Area" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AppraisedValue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TotalAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PhaseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PhaseAmountCo" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PhaseAmountMooe" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="StartDate" Type="DateTime" Precision="0" />
+          <Property Name="TargetDate" Type="DateTime" Precision="0" />
+          <Property Name="PercentComplete" Type="Decimal" Precision="6" Scale="2" />
+          <Property Name="CompletionDate" Type="DateTime" Precision="0" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Latitude" Type="Double" />
+          <Property Name="Longitude" Type="Double" />
+          <NavigationProperty Name="RpcPpeItem" Relationship="AppManModel.FK_RpcPpeItemBuildings_RpcPpeItems" FromRole="RpcPpeItemBuilding" ToRole="RpcPpeItem" />
+        </EntityType>
+        <EntityType Name="RpcPpeItemLand">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpcPpeItemId" Type="Guid" />
+          <Property Name="PIN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="LandMarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="MarketValue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PricePerSqm" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AreaXPrice" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Vendor" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Representative" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="TctNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="OldTctNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DRPDate" Type="DateTime" Precision="0" />
+          <Property Name="OldDRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="OldDRPDate" Type="DateTime" Precision="0" />
+          <Property Name="CGT" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTTransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTSurcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTInteest" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTCompromise" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTTransferTaxCap" Type="Boolean" />
+          <Property Name="CGTSurchargeCap" Type="Boolean" />
+          <Property Name="CGTInterestCap" Type="Boolean" />
+          <Property Name="CGTCompromiseCap" Type="Boolean" />
+          <Property Name="DST" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTTransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTSurcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTInterest" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTCompromise" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTTransferTaxCap" Type="Boolean" />
+          <Property Name="DSTSurchargeCap" Type="Boolean" />
+          <Property Name="DSTInterestCap" Type="Boolean" />
+          <Property Name="DSTCompromiseCap" Type="Boolean" />
+          <Property Name="TransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Surcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Interest" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="TransferTaxCap" Type="Boolean" />
+          <Property Name="SurchargeCap" Type="Boolean" />
+          <Property Name="InterestCap" Type="Boolean" />
+          <Property Name="ConfirmationFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TransferRegsFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="RealPropertyTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="ConfirmationFeeCap" Type="Boolean" />
+          <Property Name="TransferRegsFeeCap" Type="Boolean" />
+          <Property Name="RealPropertyTaxCap" Type="Boolean" />
+          <Property Name="VAT" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="EstateTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Titling" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CerttificationFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Relocation" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Surveying" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IncidentalExpenses" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="VATCap" Type="Boolean" />
+          <Property Name="EstateTaxCap" Type="Boolean" />
+          <Property Name="TitlingCap" Type="Boolean" />
+          <Property Name="CertificationFeeCap" Type="Boolean" />
+          <Property Name="RelocationCap" Type="Boolean" />
+          <Property Name="SurveyingCap" Type="Boolean" />
+          <Property Name="IncidentalExpensesCap" Type="Boolean" />
+          <Property Name="CapitalOutlayOrExpense" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="TotalCap" Type="Decimal" Precision="18" Scale="2" />
+          <NavigationProperty Name="RpcPpeItem" Relationship="AppManModel.FK_RpcPpeItemLands_RpcPpeItems" FromRole="RpcPpeItemLand" ToRole="RpcPpeItem" />
+        </EntityType>
+        <EntityType Name="RpcPpeItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpcPpeId" Type="Guid" />
+          <Property Name="PsCardItemExtnId" Type="Guid" />
+          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="CustodianItemNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="DateIssue" Type="DateTime" Precision="3" />
+          <Property Name="FromDonation" Type="Boolean" />
+          <Property Name="InvDist" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PoDate" Type="DateTime" Precision="0" />
+          <Property Name="AirNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AirDate" Type="DateTime" Precision="0" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Unit" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SetLotNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DeptId" Type="Guid" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="DeptCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LocationId" Type="Guid" />
+          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="TransferIn" Type="Int32" />
+          <Property Name="QtyBalance" Type="Int32" />
+          <Property Name="AddCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="DateTime" Precision="3" />
+          <Property Name="ProRatedCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="OldPsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="Brand" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Model_" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Dimension" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Size" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Weight" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Materials" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Capacity" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Color" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="GenericName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="DosageStrength" Type="String" MaxLength="520" FixedLength="false" Unicode="false" />
+          <Property Name="DosageForm" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="DosageVolume" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Multipliers" Type="Int32" />
+          <Property Name="SerialNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="OldPropNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="PropNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="YearModel" Type="Int32" />
+          <Property Name="PlateNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="BodyNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="MVFileNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="EngineNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="ChasisNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="CRN" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="CRDate" Type="DateTime" Precision="0" />
+          <Property Name="OrNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="OrDate" Type="DateTime" Precision="0" />
+          <Property Name="InsPolicyNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="ConductionNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="ItemSerialNo" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="OtherDesc" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="OtherQty" Type="Int32" />
+          <Property Name="Condition" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="ParNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ParIssuedto" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="AccountableOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="AreNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AreIssuedto" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="AreOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="MrNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="MrIssuedTo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="MrOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="IcsNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IcsIssuedTo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="IcsOfficer" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="UpcomingPar" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="UpcomingIcs" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Type" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="SetLotAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SetLotRemarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="RpcPpeItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="RpcPpeItem" ToRole="Codextn" />
+          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="RpcPpeItem" ToRole="ItemCode" />
+          <NavigationProperty Name="PsCardItemExtn" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="RpcPpeItem" ToRole="PsCardItemExtn" />
+          <NavigationProperty Name="RpcPpeItemBuildings" Relationship="AppManModel.FK_RpcPpeItemBuildings_RpcPpeItems" FromRole="RpcPpeItem" ToRole="RpcPpeItemBuilding" />
+          <NavigationProperty Name="RpcPpeItemLands" Relationship="AppManModel.FK_RpcPpeItemLands_RpcPpeItems" FromRole="RpcPpeItem" ToRole="RpcPpeItemLand" />
+          <NavigationProperty Name="RpcPpe" Relationship="AppManModel.FK_RpcPpeItems_RpcPpes" FromRole="RpcPpeItem" ToRole="RpcPpe" />
+        </EntityType>
+        <Association Name="FK_RpcPpeItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_ItemCodes">
+          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCode">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="ItemCodeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_PsCardItemExtns">
+          <End Type="AppManModel.PsCardItemExtn" Role="PsCardItemExtn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsCardItemExtn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="PsCardItemExtnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItemBuildings_RpcPpeItems">
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RpcPpeItemBuilding" Role="RpcPpeItemBuilding" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RpcPpeItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItemBuilding">
+              <PropertyRef Name="RpcPpeItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItemLands_RpcPpeItems">
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RpcPpeItemLand" Role="RpcPpeItemLand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RpcPpeItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItemLand">
+              <PropertyRef Name="RpcPpeItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_RpcPpes">
+          <End Type="AppManModel.RpcPpe" Role="RpcPpe" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RpcPpe">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="RpcPpeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -11638,100 +11912,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RpcPpeItems">
-            <EntityTypeMapping TypeName="AppManModel.RpcPpeItem">
-              <MappingFragment StoreEntitySet="RpcPpeItems">
-                <ScalarProperty Name="SetLotRemarks" ColumnName="SetLotRemarks" />
-                <ScalarProperty Name="SetLotAmount" ColumnName="SetLotAmount" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Annex" ColumnName="Annex" />
-                <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="UpcomingIcs" ColumnName="UpcomingIcs" />
-                <ScalarProperty Name="UpcomingPar" ColumnName="UpcomingPar" />
-                <ScalarProperty Name="IcsIssuedTo" ColumnName="IcsIssuedTo" />
-                <ScalarProperty Name="IcsNo" ColumnName="IcsNo" />
-                <ScalarProperty Name="MrOfficer" ColumnName="MrOfficer" />
-                <ScalarProperty Name="MrIssuedTo" ColumnName="MrIssuedTo" />
-                <ScalarProperty Name="MrNo" ColumnName="MrNo" />
-                <ScalarProperty Name="AreOfficer" ColumnName="AreOfficer" />
-                <ScalarProperty Name="AreIssuedto" ColumnName="AreIssuedto" />
-                <ScalarProperty Name="AreNo" ColumnName="AreNo" />
-                <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
-                <ScalarProperty Name="ParIssuedto" ColumnName="ParIssuedto" />
-                <ScalarProperty Name="ParNo" ColumnName="ParNo" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="Condition" ColumnName="Condition" />
-                <ScalarProperty Name="OtherQty" ColumnName="OtherQty" />
-                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
-                <ScalarProperty Name="ItemSerialNo" ColumnName="ItemSerialNo" />
-                <ScalarProperty Name="ConductionNo" ColumnName="ConductionNo" />
-                <ScalarProperty Name="InsPolicyNo" ColumnName="InsPolicyNo" />
-                <ScalarProperty Name="OrDate" ColumnName="OrDate" />
-                <ScalarProperty Name="OrNo" ColumnName="OrNo" />
-                <ScalarProperty Name="CRDate" ColumnName="CRDate" />
-                <ScalarProperty Name="CRN" ColumnName="CRN" />
-                <ScalarProperty Name="ChasisNo" ColumnName="ChasisNo" />
-                <ScalarProperty Name="EngineNo" ColumnName="EngineNo" />
-                <ScalarProperty Name="MVFileNo" ColumnName="MVFileNo" />
-                <ScalarProperty Name="BodyNo" ColumnName="BodyNo" />
-                <ScalarProperty Name="PlateNo" ColumnName="PlateNo" />
-                <ScalarProperty Name="YearModel" ColumnName="YearModel" />
-                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
-                <ScalarProperty Name="OldPropNo" ColumnName="OldPropNo" />
-                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
-                <ScalarProperty Name="Multipliers" ColumnName="Multipliers" />
-                <ScalarProperty Name="DosageVolume" ColumnName="DosageVolume" />
-                <ScalarProperty Name="DosageForm" ColumnName="DosageForm" />
-                <ScalarProperty Name="DosageStrength" ColumnName="DosageStrength" />
-                <ScalarProperty Name="GenericName" ColumnName="GenericName" />
-                <ScalarProperty Name="Color" ColumnName="Color" />
-                <ScalarProperty Name="Capacity" ColumnName="Capacity" />
-                <ScalarProperty Name="Materials" ColumnName="Materials" />
-                <ScalarProperty Name="Weight" ColumnName="Weight" />
-                <ScalarProperty Name="Size" ColumnName="Size" />
-                <ScalarProperty Name="Dimension" ColumnName="Dimension" />
-                <ScalarProperty Name="Model_" ColumnName="Model_" />
-                <ScalarProperty Name="Brand" ColumnName="Brand" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
-                <ScalarProperty Name="OldPsNo" ColumnName="OldPsNo" />
-                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
-                <ScalarProperty Name="TotalCost" ColumnName="TotalCost" />
-                <ScalarProperty Name="QtyBalance" ColumnName="QtyBalance" />
-                <ScalarProperty Name="TransferIn" ColumnName="TransferIn" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
-                <ScalarProperty Name="Location" ColumnName="Location" />
-                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
-                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
-                <ScalarProperty Name="DeptCode" ColumnName="DeptCode" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
-                <ScalarProperty Name="SetLotNo" ColumnName="SetLotNo" />
-                <ScalarProperty Name="Unit" ColumnName="Unit" />
-                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
-                <ScalarProperty Name="AirDate" ColumnName="AirDate" />
-                <ScalarProperty Name="AirNo" ColumnName="AirNo" />
-                <ScalarProperty Name="PoDate" ColumnName="PoDate" />
-                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
-                <ScalarProperty Name="Article" ColumnName="Article" />
-                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
-                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
-                <ScalarProperty Name="Account" ColumnName="Account" />
-                <ScalarProperty Name="InvDist" ColumnName="InvDist" />
-                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
-                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
-                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
-                <ScalarProperty Name="PsCardItemExtnId" ColumnName="PsCardItemExtnId" />
-                <ScalarProperty Name="RpcPpeId" ColumnName="RpcPpeId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="RpcPpes">
             <EntityTypeMapping TypeName="AppManModel.RpcPpe">
               <MappingFragment StoreEntitySet="RpcPpes">
@@ -11973,6 +12153,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </EntityTypeMapping>
             <EntityTypeMapping TypeName="IsTypeOf(AppManModel.PsCardItemExtnLand)" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
               <MappingFragment StoreEntitySet="PsCardItemExtnLands">
+                <ScalarProperty Name="TotalCap" ColumnName="TotalCap" />
                 <ScalarProperty Name="IncidentalExpensesCap" ColumnName="IncidentalExpensesCap" />
                 <ScalarProperty Name="SurveyingCap" ColumnName="SurveyingCap" />
                 <ScalarProperty Name="RelocationCap" ColumnName="RelocationCap" />
@@ -12874,6 +13055,198 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="SentAt" ColumnName="SentAt" />
                 <ScalarProperty Name="SenderId" ColumnName="SenderId" />
                 <ScalarProperty Name="ConversationId" ColumnName="ConversationId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RpcPpeItemBuildings">
+            <EntityTypeMapping TypeName="AppManModel.RpcPpeItemBuilding">
+              <MappingFragment StoreEntitySet="RpcPpeItemBuildings">
+                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
+                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="CompletionDate" ColumnName="CompletionDate" />
+                <ScalarProperty Name="PercentComplete" ColumnName="PercentComplete" />
+                <ScalarProperty Name="TargetDate" ColumnName="TargetDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="PhaseAmountMooe" ColumnName="PhaseAmountMooe" />
+                <ScalarProperty Name="PhaseAmountCo" ColumnName="PhaseAmountCo" />
+                <ScalarProperty Name="PhaseNo" ColumnName="PhaseNo" />
+                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+                <ScalarProperty Name="AppraisedValue" ColumnName="AppraisedValue" />
+                <ScalarProperty Name="Area" ColumnName="Area" />
+                <ScalarProperty Name="BuildingType" ColumnName="BuildingType" />
+                <ScalarProperty Name="ProjectName" ColumnName="ProjectName" />
+                <ScalarProperty Name="BuildingItem" ColumnName="BuildingItem" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="RpcPpeItemId" ColumnName="RpcPpeItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RpcPpeItemLands">
+            <EntityTypeMapping TypeName="AppManModel.RpcPpeItemLand">
+              <MappingFragment StoreEntitySet="RpcPpeItemLands">
+                <ScalarProperty Name="TotalCap" ColumnName="TotalCap" />
+                <ScalarProperty Name="CapitalOutlayOrExpense" ColumnName="CapitalOutlayOrExpense" />
+                <ScalarProperty Name="IncidentalExpensesCap" ColumnName="IncidentalExpensesCap" />
+                <ScalarProperty Name="SurveyingCap" ColumnName="SurveyingCap" />
+                <ScalarProperty Name="RelocationCap" ColumnName="RelocationCap" />
+                <ScalarProperty Name="CertificationFeeCap" ColumnName="CertificationFeeCap" />
+                <ScalarProperty Name="TitlingCap" ColumnName="TitlingCap" />
+                <ScalarProperty Name="EstateTaxCap" ColumnName="EstateTaxCap" />
+                <ScalarProperty Name="VATCap" ColumnName="VATCap" />
+                <ScalarProperty Name="IncidentalExpenses" ColumnName="IncidentalExpenses" />
+                <ScalarProperty Name="Surveying" ColumnName="Surveying" />
+                <ScalarProperty Name="Relocation" ColumnName="Relocation" />
+                <ScalarProperty Name="CerttificationFee" ColumnName="CerttificationFee" />
+                <ScalarProperty Name="Titling" ColumnName="Titling" />
+                <ScalarProperty Name="EstateTax" ColumnName="EstateTax" />
+                <ScalarProperty Name="VAT" ColumnName="VAT" />
+                <ScalarProperty Name="RealPropertyTaxCap" ColumnName="RealPropertyTaxCap" />
+                <ScalarProperty Name="TransferRegsFeeCap" ColumnName="TransferRegsFeeCap" />
+                <ScalarProperty Name="ConfirmationFeeCap" ColumnName="ConfirmationFeeCap" />
+                <ScalarProperty Name="RealPropertyTax" ColumnName="RealPropertyTax" />
+                <ScalarProperty Name="TransferRegsFee" ColumnName="TransferRegsFee" />
+                <ScalarProperty Name="ConfirmationFee" ColumnName="ConfirmationFee" />
+                <ScalarProperty Name="InterestCap" ColumnName="InterestCap" />
+                <ScalarProperty Name="SurchargeCap" ColumnName="SurchargeCap" />
+                <ScalarProperty Name="TransferTaxCap" ColumnName="TransferTaxCap" />
+                <ScalarProperty Name="Interest" ColumnName="Interest" />
+                <ScalarProperty Name="Surcharge" ColumnName="Surcharge" />
+                <ScalarProperty Name="TransferTax" ColumnName="TransferTax" />
+                <ScalarProperty Name="DSTCompromiseCap" ColumnName="DSTCompromiseCap" />
+                <ScalarProperty Name="DSTInterestCap" ColumnName="DSTInterestCap" />
+                <ScalarProperty Name="DSTSurchargeCap" ColumnName="DSTSurchargeCap" />
+                <ScalarProperty Name="DSTTransferTaxCap" ColumnName="DSTTransferTaxCap" />
+                <ScalarProperty Name="DSTCompromise" ColumnName="DSTCompromise" />
+                <ScalarProperty Name="DSTInterest" ColumnName="DSTInterest" />
+                <ScalarProperty Name="DSTSurcharge" ColumnName="DSTSurcharge" />
+                <ScalarProperty Name="DSTTransferTax" ColumnName="DSTTransferTax" />
+                <ScalarProperty Name="DST" ColumnName="DST" />
+                <ScalarProperty Name="CGTCompromiseCap" ColumnName="CGTCompromiseCap" />
+                <ScalarProperty Name="CGTInterestCap" ColumnName="CGTInterestCap" />
+                <ScalarProperty Name="CGTSurchargeCap" ColumnName="CGTSurchargeCap" />
+                <ScalarProperty Name="CGTTransferTaxCap" ColumnName="CGTTransferTaxCap" />
+                <ScalarProperty Name="CGTCompromise" ColumnName="CGTCompromise" />
+                <ScalarProperty Name="CGTInteest" ColumnName="CGTInteest" />
+                <ScalarProperty Name="CGTSurcharge" ColumnName="CGTSurcharge" />
+                <ScalarProperty Name="CGTTransferTax" ColumnName="CGTTransferTax" />
+                <ScalarProperty Name="CGT" ColumnName="CGT" />
+                <ScalarProperty Name="OldDRPDate" ColumnName="OldDRPDate" />
+                <ScalarProperty Name="OldDRPNo" ColumnName="OldDRPNo" />
+                <ScalarProperty Name="DRPDate" ColumnName="DRPDate" />
+                <ScalarProperty Name="DRPNo" ColumnName="DRPNo" />
+                <ScalarProperty Name="OldTctNo" ColumnName="OldTctNo" />
+                <ScalarProperty Name="TctNo" ColumnName="TctNo" />
+                <ScalarProperty Name="Representative" ColumnName="Representative" />
+                <ScalarProperty Name="Vendor" ColumnName="Vendor" />
+                <ScalarProperty Name="AreaXPrice" ColumnName="AreaXPrice" />
+                <ScalarProperty Name="PricePerSqm" ColumnName="PricePerSqm" />
+                <ScalarProperty Name="MarketValue" ColumnName="MarketValue" />
+                <ScalarProperty Name="LandMarks" ColumnName="LandMarks" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="PIN" ColumnName="PIN" />
+                <ScalarProperty Name="RpcPpeItemId" ColumnName="RpcPpeItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RpcPpeItems">
+            <EntityTypeMapping TypeName="AppManModel.RpcPpeItem">
+              <MappingFragment StoreEntitySet="RpcPpeItems">
+                <ScalarProperty Name="SetLotRemarks" ColumnName="SetLotRemarks" />
+                <ScalarProperty Name="SetLotAmount" ColumnName="SetLotAmount" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Annex" ColumnName="Annex" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="UpcomingIcs" ColumnName="UpcomingIcs" />
+                <ScalarProperty Name="UpcomingPar" ColumnName="UpcomingPar" />
+                <ScalarProperty Name="IcsOfficer" ColumnName="IcsOfficer" />
+                <ScalarProperty Name="IcsIssuedTo" ColumnName="IcsIssuedTo" />
+                <ScalarProperty Name="IcsNo" ColumnName="IcsNo" />
+                <ScalarProperty Name="MrOfficer" ColumnName="MrOfficer" />
+                <ScalarProperty Name="MrIssuedTo" ColumnName="MrIssuedTo" />
+                <ScalarProperty Name="MrNo" ColumnName="MrNo" />
+                <ScalarProperty Name="AreOfficer" ColumnName="AreOfficer" />
+                <ScalarProperty Name="AreIssuedto" ColumnName="AreIssuedto" />
+                <ScalarProperty Name="AreNo" ColumnName="AreNo" />
+                <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
+                <ScalarProperty Name="ParIssuedto" ColumnName="ParIssuedto" />
+                <ScalarProperty Name="ParNo" ColumnName="ParNo" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Condition" ColumnName="Condition" />
+                <ScalarProperty Name="OtherQty" ColumnName="OtherQty" />
+                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
+                <ScalarProperty Name="ItemSerialNo" ColumnName="ItemSerialNo" />
+                <ScalarProperty Name="ConductionNo" ColumnName="ConductionNo" />
+                <ScalarProperty Name="InsPolicyNo" ColumnName="InsPolicyNo" />
+                <ScalarProperty Name="OrDate" ColumnName="OrDate" />
+                <ScalarProperty Name="OrNo" ColumnName="OrNo" />
+                <ScalarProperty Name="CRDate" ColumnName="CRDate" />
+                <ScalarProperty Name="CRN" ColumnName="CRN" />
+                <ScalarProperty Name="ChasisNo" ColumnName="ChasisNo" />
+                <ScalarProperty Name="EngineNo" ColumnName="EngineNo" />
+                <ScalarProperty Name="MVFileNo" ColumnName="MVFileNo" />
+                <ScalarProperty Name="BodyNo" ColumnName="BodyNo" />
+                <ScalarProperty Name="PlateNo" ColumnName="PlateNo" />
+                <ScalarProperty Name="YearModel" ColumnName="YearModel" />
+                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
+                <ScalarProperty Name="OldPropNo" ColumnName="OldPropNo" />
+                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
+                <ScalarProperty Name="Multipliers" ColumnName="Multipliers" />
+                <ScalarProperty Name="DosageVolume" ColumnName="DosageVolume" />
+                <ScalarProperty Name="DosageForm" ColumnName="DosageForm" />
+                <ScalarProperty Name="DosageStrength" ColumnName="DosageStrength" />
+                <ScalarProperty Name="GenericName" ColumnName="GenericName" />
+                <ScalarProperty Name="Color" ColumnName="Color" />
+                <ScalarProperty Name="Capacity" ColumnName="Capacity" />
+                <ScalarProperty Name="Materials" ColumnName="Materials" />
+                <ScalarProperty Name="Weight" ColumnName="Weight" />
+                <ScalarProperty Name="Size" ColumnName="Size" />
+                <ScalarProperty Name="Dimension" ColumnName="Dimension" />
+                <ScalarProperty Name="Model_" ColumnName="Model_" />
+                <ScalarProperty Name="Brand" ColumnName="Brand" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="OldPsNo" ColumnName="OldPsNo" />
+                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
+                <ScalarProperty Name="ProRatedCost" ColumnName="ProRatedCost" />
+                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
+                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
+                <ScalarProperty Name="AddCost" ColumnName="AddCost" />
+                <ScalarProperty Name="QtyBalance" ColumnName="QtyBalance" />
+                <ScalarProperty Name="TransferIn" ColumnName="TransferIn" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
+                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
+                <ScalarProperty Name="DeptCode" ColumnName="DeptCode" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
+                <ScalarProperty Name="SetLotNo" ColumnName="SetLotNo" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="AirDate" ColumnName="AirDate" />
+                <ScalarProperty Name="AirNo" ColumnName="AirNo" />
+                <ScalarProperty Name="PoDate" ColumnName="PoDate" />
+                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
+                <ScalarProperty Name="Article" ColumnName="Article" />
+                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="InvDist" ColumnName="InvDist" />
+                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
+                <ScalarProperty Name="DateIssue" ColumnName="DateIssue" />
+                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
+                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="PsCardItemExtnId" ColumnName="PsCardItemExtnId" />
+                <ScalarProperty Name="RpcPpeId" ColumnName="RpcPpeId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

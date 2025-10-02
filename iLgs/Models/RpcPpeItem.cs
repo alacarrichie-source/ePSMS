@@ -14,12 +14,20 @@ namespace iLgs.Models
     
     public partial class RpcPpeItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public RpcPpeItem()
+        {
+            this.RpcPpeItemBuildings = new HashSet<RpcPpeItemBuilding>();
+            this.RpcPpeItemLands = new HashSet<RpcPpeItemLand>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpcPpeId { get; set; }
         public Nullable<System.Guid> PsCardItemExtnId { get; set; }
         public string Fund { get; set; }
-        public Nullable<decimal> CustodianItemNo { get; set; }
+        public string CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
+        public Nullable<System.DateTime> DateIssue { get; set; }
         public Nullable<bool> FromDonation { get; set; }
         public string InvDist { get; set; }
         public string Account { get; set; }
@@ -43,7 +51,10 @@ namespace iLgs.Models
         public Nullable<int> Qty { get; set; }
         public Nullable<int> TransferIn { get; set; }
         public Nullable<int> QtyBalance { get; set; }
-        public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> AcqCost { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
+        public Nullable<decimal> ProRatedCost { get; set; }
         public Nullable<decimal> OldAmount { get; set; }
         public string OldPsNo { get; set; }
         public string PsNo { get; set; }
@@ -92,6 +103,7 @@ namespace iLgs.Models
         public string MrOfficer { get; set; }
         public string IcsNo { get; set; }
         public string IcsIssuedTo { get; set; }
+        public string IcsOfficer { get; set; }
         public string UpcomingPar { get; set; }
         public string UpcomingIcs { get; set; }
         public string Type { get; set; }
@@ -106,7 +118,11 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
         public virtual ItemCode ItemCode { get; set; }
-        public virtual RpcPpe RpcPpe { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RpcPpeItemBuilding> RpcPpeItemBuildings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RpcPpeItemLand> RpcPpeItemLands { get; set; }
+        public virtual RpcPpe RpcPpe { get; set; }
     }
 }

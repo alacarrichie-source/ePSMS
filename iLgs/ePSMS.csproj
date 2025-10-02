@@ -667,6 +667,12 @@
     <Compile Include="Models\RpcPpeItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RpcPpeItemBuilding.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RpcPpeItemLand.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\RpcPpeViewModels.cs" />
     <Compile Include="Models\RpcViewModels.cs" />
     <Compile Include="Models\RSMI.cs">
@@ -808,16 +814,28 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Reports\RpcPpeRegistry.cs">
+    <Compile Include="Reports\RpcPpeLands.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>RpcPpeRegistry.rpt</DependentUpon>
+      <DependentUpon>RpcPpeLands.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Reports\RpcPpeVehicles-2.cs">
+    <Compile Include="Reports\RpcPpeRegistry.cs">
+      <DependentUpon>RpcPpeRegistry.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RpcPpeStructures.cs">
+      <DependentUpon>RpcPpeStructures.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RpcPpeSupplies.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>RpcPpeVehicles-2.rpt</DependentUpon>
+      <DependentUpon>RpcPpeSupplies.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\RpcPpeVehicles.cs">
@@ -4628,6 +4646,7 @@
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnLandTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnBldgTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\RpcPpe\_Print.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4740,13 +4759,21 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpeEquipment.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpeLands.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeLands.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Reports\RpcPpeRegistry.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpeRegistry.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Reports\RpcPpeVehicles-2.rpt">
+    <EmbeddedResource Include="Reports\RpcPpeStructures.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>RpcPpeVehicles-2.cs</LastGenOutput>
+      <LastGenOutput>RpcPpeStructures.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpeSupplies.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeSupplies.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Reports\RpcPpeVehicles.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>

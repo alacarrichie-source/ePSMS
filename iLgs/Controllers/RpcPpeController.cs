@@ -60,7 +60,7 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)AccountGroup.SUPPLIES;
-            ViewBag.Title = "Report on the Physical Count of Supplies";
+            ViewBag.Title = "Report on the Physical Count of Supplies (With ICS)";
             return View("Index");
         }
 
@@ -69,6 +69,22 @@ namespace iLgs.Controllers
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)AccountGroup.REGISTRY;
             ViewBag.Title = "Report on the Physical Count of Registry";
+            return View("Index");
+        }
+
+        public ActionResult Land()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.LAND;
+            ViewBag.Title = "Report on the Physical Count of Land";
+            return View("Index");
+        }
+
+        public ActionResult Structure()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.BUILDING;
+            ViewBag.Title = "Report on the Physical Count of Structures";
             return View("Index");
         }
 
@@ -326,11 +342,19 @@ namespace iLgs.Controllers
         }
 
         #region PRINTOUTS
-        //public ActionResult RpciRpt(DateTime? asAt)
-        //{
-        //    return RpciRpt(asAt, "");
-        //}
-        public ActionResult RpcPpeRpt(Guid? id, int? accountGroup)
+        public ActionResult _Print(Guid? id, int? accountGroup)
+        {
+            var model = new RpcPrintVM()
+            {
+                Id = id,
+                AccountGroup = accountGroup,
+                Save = false
+            };
+
+            return PartialView(model);
+        }
+
+        public ActionResult RpcPpeRpt(Guid? id, int? accountGroup, bool save, string annex)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -341,28 +365,42 @@ namespace iLgs.Controllers
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
             string title = "REPORT ON THE PHYSICAL COUNT OF ";
-
+            string account = "";
             ReportClass rpt = new ReportClass();
             if (accountGroup == (int?)AccountGroup.PPE)
             {
-                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeEquipment.rpt"));
-                title += "EQUIPMENT";
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeSupplies.rpt"));
+                //rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeEquipment.rpt"));
+                account = "EQUIPMENT";
             }
             else if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeVehicles.rpt"));
-                title += "VEHICLES";
+                account = "VEHICLES";
             }
             else if (accountGroup == (int?)AccountGroup.SUPPLIES)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeSupplies.rpt"));
-                title += "SUPPLIES";
+                account = "SUPPLIES (WITH ICS)";
             }
             else if (accountGroup == (int?)AccountGroup.REGISTRY)
             {
-                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeRegistry.rpt"));
-                title += "REGISTRY";
+                //rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeRegistry.rpt"));
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeSupplies.rpt"));
+                account = "REGISTRY";
             }
+            else if (accountGroup == (int?)AccountGroup.BUILDING)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeStructures.rpt"));
+                account = "STRUCTURES";
+            }
+            else if (accountGroup == (int?)AccountGroup.LAND)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeLands.rpt"));
+                account = "LAND";
+            }
+
+            title += account;
 
             rpt.Load();
             rpt.Refresh();
@@ -383,12 +421,22 @@ namespace iLgs.Controllers
 
             rpt.SetParameterValue("TITLE", title);
             rpt.SetParameterValue("@uRpcId", id.ToString());
-
-            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
-            rpt.Close();
-            rpt.Dispose();
-            return File(stream, "application/pdf");
-
+            rpt.SetParameterValue("@cAnnex", annex == "on" ? "" : annex);
+            
+            if (save)
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/xlsx", $"RPC {account}.xls");
+            }
+            else
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/pdf");                
+            }
         }
         #endregion
     }

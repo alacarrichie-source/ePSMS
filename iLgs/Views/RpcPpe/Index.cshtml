@@ -24,6 +24,7 @@
     {
         t.Create().Text("Generate");
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
@@ -274,10 +275,16 @@
             });
         }
 
+        var grid = $("#grid");
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrint_", grid).hide();
+            //$(".k-grid-btnExport_", grid).hide();
             $(".k-grid-btnPost_", grid).hide();
             $(".k-grid-btnUnpost_", grid).hide();
+        }
+        else {
+            $(".k-grid-btnPrint_", grid).show();
+            //$(".k-grid-btnExport_", grid).show();
         }
     }
 
@@ -308,7 +315,7 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             $("#AsOf").data("kendoDatePicker").enable(false);
-            $("#Department").data("kendoMultiColumnComboBox").enable(false);
+            $("#DeptId").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
         }
     }
@@ -537,10 +544,7 @@
 
     $(".k-grid-btnPrint_").click(function (e) {
         e.preventDefault();
-        //var AsOf = new Date(selectedAsOf);
-
-        var url = '@Url.Action("RpcPpeRpt", "RpcPpe")?id=' + selectedId + "&accountGroup=" + '@ViewBag.AccountGroup';
-
+        @*var url = '@Url.Action("RpcPpeRpt", "RpcPpe")?id=' + selectedId + "&accountGroup=" + '@ViewBag.AccountGroup' + "&save=0";
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
                 .kendoWindow({
@@ -563,7 +567,51 @@
             url: url
         });
         mywindow.center();
-        mywindow.open();
+        mywindow.open();*@
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RPC Printing",
+            width: 400,
+            height: 250
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_Print", "RpcPpe")?id=' + selectedId + "&accountGroup=" + '@ViewBag.AccountGroup' 
+        });
+        mywindow.center().open();
+    });
+
+    $(".k-grid-btnExport_").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
+
+        if (selectedData) {
+            window.kendo.ui.progress($(document.body), true);
+            // Get the ID of the selected row
+            var reportId = selectedData.Id;
+
+            // Construct the URL for the Excel export
+            var url = '@Url.Action("RpcPpeRpt", "RpcPpe")?id=' + selectedId + "&accountGroup=" + '@ViewBag.AccountGroup' + "&save=1";
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
     });
 
     // _RpcTemplate
@@ -576,7 +624,7 @@
     function onChangeDeptId(e) {
         var comboBox = this;
         if (!comboBox.value()) {
-            $("#Department").val("").trigger("change");            
+            $("#Department").val("").trigger("change");
         }
     }
     // end _RpcTempate

@@ -265,6 +265,92 @@ namespace iLgs.Services.PropertyCard
             entity.SurveyingCap = model.SurveyingCap;
             entity.IncidentalExpensesCap = model.IncidentalExpensesCap;
             entity.CapitalOutlayOrExpense = model.CapitalOutlayOrExpense;
+            decimal? totalCap = 0;
+            if (model.CGTCompromiseCap.Value == true)
+            {
+                totalCap += model.CGTCompromise;
+            }
+            if (model.CGTInterestCap.Value == true)
+            {
+                totalCap += model.CGTInteest;
+            }
+            if (model.CGTSurchargeCap.Value == true)
+            {
+                totalCap += model.CGTSurcharge;
+            }
+            if (model.CGTTransferTaxCap.Value == true)
+            {
+                totalCap += model.CGTTransferTax;
+            }
+            if (model.DSTCompromiseCap.Value == true)
+            {
+                totalCap += model.DSTCompromise;
+            }
+            if (model.DSTInterestCap.Value == true)
+            {
+                totalCap += model.DSTInterest;
+            }
+            if (model.DSTSurchargeCap.Value == true)
+            {
+                totalCap += model.DSTSurcharge;
+            }
+            if (model.DSTTransferTaxCap.Value == true)
+            {
+                totalCap += model.DSTTransferTax;
+            }            
+            if (model.TransferTaxCap.Value == true)
+            {
+                totalCap += model.TransferTax;
+            }
+            if (model.SurchargeCap.Value == true)
+            {
+                totalCap += model.Surcharge;
+            }
+            if (model.InterestCap.Value == true)
+            {
+                totalCap += model.Interest;
+            }
+            if (model.ConfirmationFeeCap.Value == true)
+            {
+                totalCap += model.ConfirmationFee;
+            }
+            if (model.TransferRegsFeeCap.Value == true)
+            {
+                totalCap += model.TransferRegsFee;
+            }
+            if (model.RealPropertyTaxCap.Value == true)
+            {
+                totalCap += model.RealPropertyTax;
+            }
+            if (model.VATCap.Value == true)
+            {
+                totalCap += model.VAT;
+            }
+            if (model.EstateTaxCap.Value == true)
+            {
+                totalCap += model.EstateTax;
+            }
+            if (model.TitlingCap.Value == true)
+            {
+                totalCap += model.Titling;
+            }
+            if (model.CertificationFeeCap.Value == true)
+            {
+                totalCap += model.CerttificationFee;
+            }
+            if (model.RelocationCap.Value == true)
+            {
+                totalCap += model.Relocation;
+            }
+            if (model.SurveyingCap.Value == true)
+            {
+                totalCap += model.Surveying;
+            }
+            if (model.IncidentalExpensesCap.Value == true)
+            {
+                totalCap += model.IncidentalExpenses;
+            }
+            entity.TotalCap = totalCap;
         }
 
         public ValueTask<PsCardItemExtnLandVM> DeleteAsync(PsCardItemExtnLandVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>

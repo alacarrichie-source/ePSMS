@@ -18,7 +18,7 @@
                     col.Bound(c => c.ConductionNo).Width(70);
                 }
                 col.Bound(c => c.Unit).Width(70);
-                col.Bound(c => c.TotalCost).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                col.Bound(c => c.AcqCost).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                     .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 //col.Command(command =>
@@ -56,7 +56,7 @@
                 })
                 .Aggregates(a =>
                 {
-                    a.Add(p => p.TotalCost).Sum();
+                    a.Add(p => p.AcqCost).Sum();
                 })
                 .Sort(s =>
                 {

@@ -120,6 +120,14 @@ namespace iLgs.Services.RPC
             {
                 menuId = "rpc_registry";
             }
+            else if (accountGroup == (int?)AccountGroup.BUILDING)
+            {
+                menuId = "rpc_structure";
+            }
+            else if (accountGroup == (int?)AccountGroup.LAND)
+            {
+                menuId = "rpc_land";
+            }
             return menuId;
         }
 
