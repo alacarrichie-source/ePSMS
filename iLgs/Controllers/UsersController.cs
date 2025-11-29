@@ -53,7 +53,7 @@ namespace iLgs.Controllers
 
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserUpdate([DataSourceRequest] DataSourceRequest request, Menubase model)
+        public async Task<ActionResult> UserUpdate([DataSourceRequest] DataSourceRequest request, Menubase model)
         {
             try
             {
@@ -66,7 +66,7 @@ namespace iLgs.Controllers
 
                     _db.Menubases.Attach(model);
                     _db.Entry(model).State = EntityState.Modified;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -80,7 +80,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserDestroy([DataSourceRequest]DataSourceRequest request, Menubase model)
+        public async Task<ActionResult> UserDestroy([DataSourceRequest]DataSourceRequest request, Menubase model)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                 }
             }
@@ -206,7 +206,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserProfilesUpdate([DataSourceRequest] DataSourceRequest request, AspNetUsers_View model)
+        public async Task<ActionResult> UserProfilesUpdate([DataSourceRequest] DataSourceRequest request, AspNetUsers_View model)
         {
             try
             {
@@ -221,7 +221,7 @@ namespace iLgs.Controllers
 
                         entity = SetUserProfile(model, "A");
                         _db.UserProfiles.Add(entity);
-                        _db.SaveChanges();
+                        await _db.SaveChangesAsync();
                     }
                     else
                     {
@@ -231,7 +231,7 @@ namespace iLgs.Controllers
                         aspNetUser.Active = model.Active;
                         _db.AspNetUsers.Attach(aspNetUser);
                         _db.Entry(aspNetUser).State = EntityState.Modified;
-                        _db.SaveChanges();
+                        await _db.SaveChangesAsync();
 
 
                         string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -240,7 +240,7 @@ namespace iLgs.Controllers
                         model.UpdatedBy = user;
                         model.UpdatedDt = date;
 
-                        int id = _db.Database.ExecuteSqlCommand("Exec UserProfile_Update {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}",
+                        int id = await _db.Database.ExecuteSqlCommandAsync("Exec UserProfile_Update {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}",
                             model.Id, model.NameLast, model.NameFirst, model.NameMid, model.NameFull, model.Birthday,
                             model.Sex, model.TelNo, model.MobileNo, model.AddressHouseNo, model.AddressStreet, model.AddressSubdivision,
                             model.AddressBarangay, model.AddressCity, model.AddressProvince, model.AddressZipCode, model.InsertedBy, model.InsertedDt, model.UpdatedBy,
@@ -282,7 +282,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                 }
             }
@@ -382,7 +382,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserCodesCreate([DataSourceRequest] DataSourceRequest request, UserCodes_View model)
+        public async Task<ActionResult> UserCodesCreate([DataSourceRequest] DataSourceRequest request, UserCodes_View model)
         {
             try
             {
@@ -392,7 +392,7 @@ namespace iLgs.Controllers
                     UserCode e = SetUserCode(model, "A");
 
                     _db.UserCodes.Add(e);
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                 }
             }
@@ -408,7 +408,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserCodesUpdate([DataSourceRequest] DataSourceRequest request, UserCodes_View model)
+        public async Task<ActionResult> UserCodesUpdate([DataSourceRequest] DataSourceRequest request, UserCodes_View model)
         {
             try
             {
@@ -418,7 +418,7 @@ namespace iLgs.Controllers
 
                     _db.UserCodes.Attach(e);
                     _db.Entry(model).State = EntityState.Modified;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -432,7 +432,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult UserCodesDestroy([DataSourceRequest]DataSourceRequest request, UserCodes_View model)
+        public async Task<ActionResult> UserCodesDestroy([DataSourceRequest]DataSourceRequest request, UserCodes_View model)
         {
             try
             {
@@ -447,7 +447,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                 }
             }
@@ -484,7 +484,7 @@ namespace iLgs.Controllers
         }        
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult MenuAccessSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, string sysCode, int childId)
+        public async Task<ActionResult> MenuAccessSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, string sysCode, int childId)
         {
             try
             {
@@ -507,7 +507,7 @@ namespace iLgs.Controllers
                     };
 
                     _db.MenuAccesses.Add(access);
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                     model.IsAllowed = true;
                 }
                 else
@@ -518,7 +518,7 @@ namespace iLgs.Controllers
 
                     _db.MenuAccesses.Attach(access);
                     _db.Entry(access).State = EntityState.Modified;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                     model.IsAllowed = (bool) access.IsAllowed;
                 }
@@ -553,7 +553,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult AccessActionSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, Guid accessId, Guid? actionId)
+        public async Task<ActionResult> AccessActionSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, Guid accessId, Guid? actionId)
         {
             try
             {
@@ -578,7 +578,7 @@ namespace iLgs.Controllers
                     };
 
                     _db.MenuAccessActions.Add(action);
-                    _db.SaveChanges();                    
+                    await _db.SaveChangesAsync();                    
                 }
                 else
                 {
@@ -588,7 +588,7 @@ namespace iLgs.Controllers
 
                     _db.MenuAccessActions.Attach(rec);
                     _db.Entry(rec).State = EntityState.Modified;
-                    _db.SaveChanges();                    
+                    await _db.SaveChangesAsync();                    
                 }
             }
             catch (Exception e)

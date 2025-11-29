@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace iLgs.Services.Items
 
     public class ItemUploadService : UploadService, IItemUploadService
     {
-        public ItemUploadService(AppManEntities db)
-            : base(db, "ITEM")
+        public ItemUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory,  "ITEM")
         {
 
         }

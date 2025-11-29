@@ -15,7 +15,7 @@ namespace iLgs.Services.PurchaseRequest
     {
         IQueryable<RequestItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
-        void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
+        Task UpdateRequestItemAsync(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> UpdateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
     }
@@ -122,16 +122,16 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             //var totalCost = entity.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            UpdateRequestItem(model.RequestItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
+            await UpdateRequestItemAsync(model.RequestItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
 
             return model;
         });
 
         //public void UpdateRequestItem(Guid? requestItemId, decimal? groupTotalCost, decimal? priceRate, string user, DateTime date)
-        public void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
+        public async Task UpdateRequestItemAsync(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
-            var reqItem = _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefault();
-            var unitGroup = _db.RequestItemUnitGroups.Include(i => i.RisItemUnitGroup).Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefault();
+            var reqItem = await _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefaultAsync();
+            var unitGroup = await _db.RequestItemUnitGroups.Include(i => i.RisItemUnitGroup).Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefaultAsync();
             //var setUnitCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
             //var setTotalCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost;
             //var setQty = _db.RisItemUnitGroups.Where(w => w.Id == unitGroup.RisItemUnitGroupId).FirstOrDefault().Qty;                
@@ -155,7 +155,7 @@ namespace iLgs.Services.PurchaseRequest
             reqItem.UpdatedDt = date;
             _db.RequestItems.Attach(reqItem);
             _db.Entry(reqItem).State = EntityState.Modified;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         public void ValidateOnUpdate(RequestItemUnitGroupDescriptionItemVM model)

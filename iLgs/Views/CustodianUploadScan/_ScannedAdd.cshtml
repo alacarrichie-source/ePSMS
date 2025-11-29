@@ -1,0 +1,70 @@
+﻿@model iLgs.Models.Upload
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formUpload", id = "formUpload" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.ImageId)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        @Html.LabelFor(m => m.Description, new { @class = "text-right col-md-2" })
+        <div class="col-md-10">
+            @*@(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.Description)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Document Type")
+                    .DataTextField("Description")
+                    .DataValueField("Description")
+                    .ValuePrimitive(true)
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetUploadList", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Description").Title("Document Type").Width("1000%").Template("#= columnTemplate(data.Description) #");
+                    })
+            //.Suggest(true)
+            )
+            @Html.ValidationMessageFor(m => m.Description)
+        </div>
+    </div>
+
+    <br />
+
+    <div>You can only upload <strong>XLS</strong>,<strong>PDF</strong>, <strong>GIF</strong>, <strong>JPG</strong>, <strong>PNG</strong> files.</div>
+    <div>Maximum allowed file size is <strong>@ViewData["fileSize"]MB</strong>.</div>
+    @(Html.Kendo().Upload()
+            .Name("files")
+            .Async(a => a
+            .Save("_ScannedUpload", "CustodianUploadScan")
+                .AutoUpload(false)
+            )
+        .Events(e => e.Upload("UploadParaScan").Remove("UploadParaScan")
+            .Success("onUploadSuccessScan")
+            .Error("onUploadScanError"))
+        .Validation(validation =>
+        {
+            validation.MaxFileSize(104857600); // 100 MB in bytes
+            validation.AllowedExtensions(new string[] { ".xlsx", ".xls", ".docx", ".doc", ".pdf", ".gif", ".jpg", ".jpeg", ".png" });
+        })
+    )
+}
+
+
+
+
+
+

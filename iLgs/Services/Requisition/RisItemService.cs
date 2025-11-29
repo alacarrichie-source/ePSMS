@@ -84,7 +84,8 @@ namespace iLgs.Services.Requisition
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
                     AllField = s.AllField,
-                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo                    
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).ToList()
                 .Select(s => new RisItemEntryVM {
                     Id = s.Id,
@@ -111,7 +112,8 @@ namespace iLgs.Services.Requisition
                     Department = s.Department,
                     IsPosted = s.IsPosted,
                     AllField = s.AllField,
-                    SetLotNo = s.SetLotNo
+                    SetLotNo = s.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).FirstOrDefault();
             return data;
         }
@@ -144,7 +146,8 @@ namespace iLgs.Services.Requisition
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
                     AllField = s.AllField,
-                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -172,7 +175,8 @@ namespace iLgs.Services.Requisition
                     Department = s.Department,
                     IsPosted = s.IsPosted,
                     AllField = s.AllField,
-                    SetLotNo = s.SetLotNo
+                    SetLotNo = s.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).FirstOrDefault();
             return data;
         }
@@ -213,7 +217,8 @@ namespace iLgs.Services.Requisition
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
                     AllField = s.AllField,
-                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -241,7 +246,8 @@ namespace iLgs.Services.Requisition
                     Department = s.Department,
                     IsPosted = s.IsPosted,
                     AllField = s.AllField,
-                    SetLotNo = s.SetLotNo
+                    SetLotNo = s.SetLotNo,
+                    PpmpCode = s.PpmpCode
                 }).AsQueryable();
             return data;
         });
@@ -286,7 +292,8 @@ namespace iLgs.Services.Requisition
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
+                UpdatedDt = model.UpdatedDt,
+                PpmpCode = model.PpmpCode
             };
 
             //entity = SetItemEntity(entity, model);
@@ -356,6 +363,7 @@ namespace iLgs.Services.Requisition
             entity.QtyRequest = model.QtyRequest;
             entity.QtyIssue = model.QtyIssue;
             entity.Remarks = model.Remarks ?? "";
+            entity.PpmpCode = model.PpmpCode;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -374,7 +382,7 @@ namespace iLgs.Services.Requisition
             // PO, Description, Qty
             // AIR, Qty            
 
-            var prItem = _db.RequestItems.Where(w => w.RisItemId == model.Id).FirstOrDefault();
+            var prItem = await _db.RequestItems.FirstOrDefaultAsync(f => f.RisItemId == model.Id);
             if (prItem != null)
             {
                 prItem.Qty = model.QtyRequest;
@@ -382,7 +390,7 @@ namespace iLgs.Services.Requisition
                 _db.RequestItems.Attach(prItem);
                 _db.Entry(prItem).State = EntityState.Modified;
 
-                var poItem = _db.OrderItems.Where(w => w.RequestItemId == prItem.Id).FirstOrDefault();
+                var poItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.RequestItemId == prItem.Id);
                 if (poItem != null)
                 {
                     poItem.Qty = model.QtyRequest;
@@ -392,7 +400,7 @@ namespace iLgs.Services.Requisition
                     _db.OrderItems.Attach(poItem);
                     _db.Entry(poItem).State = EntityState.Modified;
 
-                    var airItem = _db.AIRItems.Where(w => w.OrderItemId == poItem.Id).FirstOrDefault();
+                    var airItem = await _db.AIRItems.FirstOrDefaultAsync(f => f.OrderItemId == poItem.Id);
                     airItem.Qty = model.QtyRequest;
                     _db.AIRItems.Attach(airItem);
                     _db.Entry(airItem).State = EntityState.Modified;

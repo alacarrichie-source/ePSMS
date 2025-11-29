@@ -314,6 +314,7 @@ namespace iLgs.Services.PurchaseOrder
                     UnitCost = requestItem.UnitCost,
                     Amount = requestItem.TotalCost,
                     PriceRate = requestItem.PriceRate,
+                    PpmpCode = requestItem.RisItem.PpmpCode,
                     InsertedBy = user,
                     InsertedDt = insertedDt,
                     UpdatedBy = user,
@@ -797,20 +798,35 @@ namespace iLgs.Services.PurchaseOrder
                 .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
             {
-                if (Enum.TryParse(orderItem.ItemCode.ItemType.Code, out Category c))
+                //if (Enum.TryParse(orderItem.ItemCode.ItemType.Code, out Category c))
+                //{
+                //    if (_allFieldService.IsBrandRequired(c))
+                //    {
+                //        var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+                //        if (allfield == null)
+                //        {
+                //            throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+                //        }
+                //        {
+                //            if (string.IsNullOrWhiteSpace(allfield.Brand))
+                //            {
+                //                brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+                //            }
+                //        }
+                //    }
+                //}
+
+                if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
                 {
-                    if (_allFieldService.IsBrandRequired(c))
+                    var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+                    if (allfield == null)
                     {
-                        var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
-                        if (allfield == null)
+                        throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+                    }
+                    {
+                        if (string.IsNullOrWhiteSpace(allfield.Brand))
                         {
-                            throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
-                        }
-                        {
-                            if (string.IsNullOrWhiteSpace(allfield.Brand))
-                            {
-                                brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
-                            }
+                            brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
                         }
                     }
                 }

@@ -178,7 +178,7 @@ namespace iLgs.Services.PurchaseOrder
                 {
                     var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
                     var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
-                    _orderItemUnitGroupDescriptionItemService.UpdateOrderItem(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
+                    await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
                 }
             }
 

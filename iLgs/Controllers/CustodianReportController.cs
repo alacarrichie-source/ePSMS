@@ -14,6 +14,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -38,9 +39,10 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
         private readonly ICustodianReportItemIssuanceRpcPpeService _rpcPpeIssuanceService;
-        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;        
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianReportUploadService _uploadService;
+        private readonly ICustodianDeptUploadService _scanUploadService;        
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IAnnexDService _annexDService;
@@ -57,9 +59,10 @@ namespace iLgs.Controllers
             ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
             ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
             ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,            
+            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
             ICodextnService codextnService,
             ICustodianReportUploadService custodianReportUploadService,
+            ICustodianDeptUploadService custodianScanUploadService,
             IItemCodeService itemCodeService,
             IUserService userService, IAnnexDService annexDService)
         {
@@ -74,9 +77,10 @@ namespace iLgs.Controllers
             _areIssuanceService = custodianReportItemIssuanceAreService;
             _mrIssuanceService = custodianReportItemIssuanceMrService;
             _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;            
+            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
             _codextnService = codextnService;
             _uploadService = custodianReportUploadService;
+            _scanUploadService = custodianScanUploadService.Create("SCAN");
             _itemCodeService = itemCodeService;
             _userService = userService;
             _annexDService = annexDService;
@@ -93,7 +97,8 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Supplies";
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -102,8 +107,27 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
             return View();
+        }
+
+        public ActionResult StockDemand()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
+            ViewBag.Title = "Custodian Report - Supplies";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = true;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);            
+            ViewBag.IsAdmin = isAdmin;
+
+            return View("Stock");
         }
 
         public ActionResult StockQuery()
@@ -112,7 +136,8 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Supplies";
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -121,7 +146,8 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             return View();
         }
 
@@ -129,10 +155,10 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
-            ViewBag.Title = "Custodian Report - Equipment";
-
+            ViewBag.Title = "Custodian Report - Equipment";            
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -141,8 +167,27 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
             return View();
+        }
+
+        public ActionResult PpeDemand()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Equipment";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = true;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View("Ppe");
         }
 
         public ActionResult PpeQuery()
@@ -152,7 +197,8 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Equipment";
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -161,7 +207,8 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             return View();
         }
 
@@ -172,7 +219,8 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Vehicles";
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -181,8 +229,27 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
             return View();
+        }
+
+        public ActionResult TranspoDemand()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Vehicles";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = true;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View("Transpo");
         }
 
         public ActionResult TranspoQuery()
@@ -192,7 +259,8 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Vehicles";
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
             {
                 ViewBag.AnnexDUser = true;
             }
@@ -201,8 +269,31 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             return View();
+        }
+
+        public ActionResult Uploads()
+        {
+            ViewBag.Title = "Custodian Report - Uploads";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;            
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            
+            return View();
+        }
+
+        public ActionResult UploadsRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? locationId)
+        {
+            var data = _uploadService.GetAllCustodianUploads(forYear, deptId, locationId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
         }
 
         #region CUSTODIAN REPORT
@@ -323,20 +414,25 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
-                Access access = await accessTask;
-                if (!access.AllowPost)
-                {
-                    ModelState.AddModelError("GridError", "Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-                    
-                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, true);
-                }
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //Access access = await accessTask;
+                //if (!access.AllowPost)
+                //{
+                //    ModelState.AddModelError("GridError", "Access Denied!");
+                //}
+                //else
+                //{
+                //    string user = ControllerContext.HttpContext.User.Identity.Name;
+                //    DateTime date = System.DateTime.Now;
+
+                //    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, true);
+                //}
+
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                DateTime date = System.DateTime.Now;
+
+                await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, true);
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -374,20 +470,25 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
-                Access access = await accessTask;
-                if (!access.AllowUnpost)
-                {
-                    ModelState.AddModelError("GridError", "Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-                    
-                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
-                }
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //Access access = await accessTask;
+                //if (!access.AllowUnpost)
+                //{
+                //    ModelState.AddModelError("GridError", "Access Denied!");
+                //}
+                //else
+                //{
+                //    string user = ControllerContext.HttpContext.User.Identity.Name;
+                //    DateTime date = System.DateTime.Now;
+
+                //    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
+                //}
+
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                DateTime date = System.DateTime.Now;
+
+                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -443,10 +544,10 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -550,8 +651,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -574,10 +674,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -681,8 +781,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -705,10 +804,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -812,8 +911,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -944,8 +1042,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1075,8 +1172,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1206,8 +1302,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1337,8 +1432,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1468,8 +1562,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1599,8 +1692,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1730,9 +1822,8 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
-                {
+                else
+                { 
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
@@ -1861,8 +1952,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1992,8 +2082,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2123,8 +2212,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2254,8 +2342,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2385,8 +2472,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2516,8 +2602,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2647,8 +2732,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2778,8 +2862,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2803,19 +2886,19 @@ namespace iLgs.Controllers
         #region PRINTOUTS
         public async Task<ActionResult> StickerRpt(Guid? id, int? accountGroup)
         {
-            Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
-            Access access = await accessTask;
-            if (!access.AllowPrint)
-            {
-                return new HttpStatusCodeResult(401, "Access Denied");
-            }
+            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            //Access access = await accessTask;
+            //if (!access.AllowPrint)
+            //{
+            //    return new HttpStatusCodeResult(401, "Access Denied");
+            //}
 
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
-
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            string pw = rptKey; // decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
@@ -2839,7 +2922,7 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.DatabaseName = db_;
                 logonInfo.ConnectionInfo.UserID = un;
                 logonInfo.ConnectionInfo.Password = pw;
-                logonInfo.ConnectionInfo.IntegratedSecurity = true;
+                logonInfo.ConnectionInfo.IntegratedSecurity = false;
                 table.ApplyLogOnInfo(logonInfo);
             }
 
@@ -2853,22 +2936,21 @@ namespace iLgs.Controllers
 
         }
 
-
         public async Task<ActionResult> CustodianStockRpt(Guid? id, int? accountGroup)
         {
-            Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
-            Access access = await accessTask;
-            if (!access.AllowDelete)
-            {
-                return new HttpStatusCodeResult(401, "Access Denied");
-            }
+            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            //Access access = await accessTask;
+            //if (!access.AllowDelete)
+            //{
+            //    return new HttpStatusCodeResult(401, "Access Denied");
+            //}
 
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
-
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            string pw = rptKey; // decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
@@ -2888,7 +2970,7 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.DatabaseName = db_;
                 logonInfo.ConnectionInfo.UserID = un;
                 logonInfo.ConnectionInfo.Password = pw;
-                logonInfo.ConnectionInfo.IntegratedSecurity = true;
+                logonInfo.ConnectionInfo.IntegratedSecurity = false;
                 table.ApplyLogOnInfo(logonInfo);
             }
 
@@ -2983,7 +3065,7 @@ namespace iLgs.Controllers
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<JsonResult> IsSubmitForCount(Guid? reportId, Guid? locationId)
-        {            
+        {
             var data = await _custodianReportSubmitForCountService.GetByLocationAsync(reportId, locationId);
             if (data == null || data.Status != "Submit")
             {
@@ -2991,6 +3073,14 @@ namespace iLgs.Controllers
             }
 
             return Json(new { IsSubmitForCount = true, UpdateDate = data.UpdatedDt.Value.ToShortDateString() }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<JsonResult> GetSetLotCount(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo)
+        {
+            var count = await _custodianReportItemService.GetSetLotNoCountAsync(forYear, deptId, locationId, custodianReportItemId, setLotNo);
+            var amount = await _custodianReportItemService.GetSetLotNoAmountAsync(forYear, deptId, locationId, custodianReportItemId, setLotNo);
+            return Json(new { Count = count, Amount = amount }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -3128,7 +3218,7 @@ namespace iLgs.Controllers
         #region IMAGE UPLOADS
         public ActionResult _Images(Guid? imageId)
         {
-            ViewData["imageId"] = imageId;            
+            ViewData["imageId"] = imageId;
             return PartialView();
         }
 
@@ -3166,8 +3256,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -3313,6 +3402,7 @@ namespace iLgs.Controllers
                 return HttpNotFound("File not found"); // Handle not found case
             }
         }
+        
         #endregion
 
         #region DOWNLOAD RECORDS
@@ -3419,6 +3509,21 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
-        #endregion  
+
+        public async Task<ActionResult> UpdateSetLotRemarks(int forYear)
+        {
+            try
+            {
+                await _custodianReportItemService.UpdateAllSetLotRemarksAsync(forYear);
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
+
+            return new HttpStatusCodeResult(200, "Update Complete");            
+        }
+
+        #endregion
     }
 }

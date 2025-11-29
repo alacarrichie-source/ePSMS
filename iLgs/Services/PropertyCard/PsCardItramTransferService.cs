@@ -282,7 +282,7 @@ namespace iLgs.Services.PropertyCard
                     };
                     _db.PsCardItemTransferItems.Add(PsCardItemTransferItem);
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
             else
             {

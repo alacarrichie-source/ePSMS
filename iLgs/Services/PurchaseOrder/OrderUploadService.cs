@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -16,20 +17,20 @@ namespace iLgs.Services.PurchaseOrder
 
     public class OrderUploadService : UploadService, IOrderUploadService
     {
-        public OrderUploadService(AppManEntities db)
-            : base(db, "ORDERS")
+        public OrderUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "ORDERS")
         {
         }
 
         // Constructor for other uploads like "REQUEST"
-        public OrderUploadService(AppManEntities db, string type)
-            : base(db, type)
+        public OrderUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string type)
+            : base(db, appManEntitiesFactory, type)
         {
         }
 
         public IOrderUploadService Create(string type)
         {
-            return new OrderUploadService(_db, type);
+            return new OrderUploadService(_db, _contextFactory, type);
         }
 
         private async Task<bool> IsPostedAsync(Guid? imageId)

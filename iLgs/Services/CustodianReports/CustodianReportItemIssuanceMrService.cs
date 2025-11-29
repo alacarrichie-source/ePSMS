@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -25,10 +26,11 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportItemIssuanceMrVM> _xtraExceptionService;
         
         public CustodianReportItemIssuanceMrService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItemIssuance> exceptionService,
             IExceptionService<CustodianReportItemIssuanceMrVM> xtraExceptionService,
-            IUserService userService) : base(db, exceptions, exceptionService, userService)
+            IUserService userService) : base(db, appManEntitiesFactory, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }

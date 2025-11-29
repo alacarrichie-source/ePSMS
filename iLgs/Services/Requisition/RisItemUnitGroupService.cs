@@ -4,6 +4,7 @@ using iLgs.Services.Validators;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace iLgs.Services.Requisition
@@ -11,7 +12,7 @@ namespace iLgs.Services.Requisition
     public interface IRisItemUnitGroupService
     {
         IQueryable<RisItemUnitGroupVM> GetByRisId(Guid? risId);
-        ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id);
+        ValueTask<RisItemUnitGroupVM> GetByIdAsync(Guid? id);
         ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date);
         ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date);
         ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date);        
@@ -36,28 +37,28 @@ namespace iLgs.Services.Requisition
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
             _validator = validator;
-        }        
+        }
 
-        public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatch(async () =>
+        private static Expression<Func<RisItemUnitGroup, RisItemUnitGroupVM>> Projection
+        = s => new RisItemUnitGroupVM
         {
-            var data = await _db.RisItemUnitGroups.FindAsync(id);
-            return data;
+            Id = s.Id,
+            RisId = s.RisId,
+            SetLotNo = s.SetLotNo,
+            Qty = s.Qty,
+            Unit = s.Unit,
+            InsertedDt = s.InsertedDt
+        };
+
+        public ValueTask<RisItemUnitGroupVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
+        {
+            return await _db.RisItemUnitGroups.Where(w => w.Id == id).Select(Projection).FirstOrDefaultAsync();
         });
 
         public IQueryable<RisItemUnitGroupVM> GetByRisId(Guid? risId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RisItemUnitGroups.Where(w => w.RisId == risId)
-                .Select(s => new RisItemUnitGroupVM
-                {
-                    Id = s.Id,
-                    RisId = s.RisId,     
-                    SetLotNo = s.SetLotNo,
-                    Qty = s.Qty,
-                    Unit = s.Unit,
-                    InsertedDt = s.InsertedDt                    
-                });
+            var data = _db.RisItemUnitGroups.Where(w => w.RisId == risId).Select(Projection);                
             return data;
         });
 

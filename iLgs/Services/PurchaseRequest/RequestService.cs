@@ -17,8 +17,8 @@ namespace iLgs.Services.PurchaseRequest
     {
         IQueryable<RequestVM> GetAll();
         ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId);
-        Task<Request> GetByIdAsync(Guid? prId);
-        Task<Request> GetByPrNoAsync(string prNo);
+        Task<RequestVM> GetByIdAsync(Guid? prId);
+        Task<RequestVM> GetByPrNoAsync(string prNo);
         Task<bool> IsAnyPrNoAsync(Guid id, string prNo);
         Task<bool> IsAnyRisNoAsync(Guid id, string risNo);
         bool IsPosted(Guid requestId);
@@ -115,9 +115,9 @@ namespace iLgs.Services.PurchaseRequest
             return data;
         }
 
-        public async Task<Request> GetByIdAsync(Guid? prId)
+        public Task<RequestVM> GetByIdAsync(Guid? prId)
         {
-            return await _db.Requests.FindAsync(prId);
+            return _db.Requests.Where(w => w.Id == prId).Select(Projection).FirstOrDefaultAsync();
         }
 
         public async Task<bool> IsAnyPrNoAsync(Guid id, string prNo)
@@ -130,9 +130,9 @@ namespace iLgs.Services.PurchaseRequest
             return await _db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
         }
 
-        public async Task<Request> GetByPrNoAsync(string prNo)
+        public Task<RequestVM> GetByPrNoAsync(string prNo)
         {
-            return await _db.Requests.Where(w => w.PrNo == prNo).FirstOrDefaultAsync();
+            return _db.Requests.Where(w => w.PrNo == prNo).Select(Projection).FirstOrDefaultAsync();
         }
 
         public bool IsPosted(Guid requestId)

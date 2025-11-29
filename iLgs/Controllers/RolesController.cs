@@ -75,14 +75,14 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult RolesCreate([DataSourceRequest] DataSourceRequest request, AspNetRole model)
+        public async Task<ActionResult> RolesCreate([DataSourceRequest] DataSourceRequest request, AspNetRole model)
         {
             try
             {
                 if (model != null && ModelState.IsValid)
                 {
                     _db.AspNetRoles.Add(model);
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -97,7 +97,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult RolesUpdate([DataSourceRequest] DataSourceRequest request, AspNetRole model)
+        public async Task<ActionResult> RolesUpdate([DataSourceRequest] DataSourceRequest request, AspNetRole model)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace iLgs.Controllers
                     
                     _db.AspNetRoles.Attach(model);
                     _db.Entry(model).State = EntityState.Modified;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -120,7 +120,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult RolesDestroy([DataSourceRequest]DataSourceRequest request, AspNetRole model)
+        public async Task<ActionResult> RolesDestroy([DataSourceRequest]DataSourceRequest request, AspNetRole model)
         {
             try
             {
@@ -133,8 +133,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    _db.SaveChanges();
-
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -159,7 +158,7 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         //[AcceptVerbs(HttpVerbs.Get)]
         //public ActionResult UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
-        public ActionResult UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
+        public async Task<ActionResult> UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
         {
             try
             {
@@ -169,7 +168,7 @@ namespace iLgs.Controllers
                     AspNetUserRole entity = SetAspNetUserRole(model);
 
                     _db.AspNetUserRoles.Add(entity);
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                     model.CompKeyId = model.UserId + model.RoleId;
                 }
             }
@@ -195,7 +194,7 @@ namespace iLgs.Controllers
 
         [AcceptVerbs(HttpVerbs.Post)]
         //[AcceptVerbs(HttpVerbs.Get)]
-        public ActionResult UserInRoleDestroy([DataSourceRequest]DataSourceRequest request, AspNetUserRoles_View model)
+        public async Task<ActionResult> UserInRoleDestroy([DataSourceRequest]DataSourceRequest request, AspNetUserRoles_View model)
         {
             try
             {
@@ -211,7 +210,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     _db.Entry(entity).State = EntityState.Deleted;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
 
                 }
             }

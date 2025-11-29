@@ -1178,7 +1178,7 @@ namespace iLgs.Services.ParIcs
 
                     _db.IcsPars.Attach(icsPar);
                     _db.Entry(icsPar).State = EntityState.Modified;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
 

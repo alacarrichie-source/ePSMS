@@ -21,7 +21,7 @@ namespace iLgs.Services.CustodianReports
         string GetStockNo(CustodianReportLandItem model);
         ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
         IQueryable<CustodianReportLandItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date);
@@ -38,21 +38,27 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<CustodianReportLandItemVM> _vmExceptionService;
         private readonly IExceptionService<CustodianReportLandItem> _exceptionService;
+        private readonly ICustodianLandUploadService _custodianLandUploadService;
         private readonly IAllFieldService _allFieldService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportLandItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<CustodianReportLandItemVM> vmExceptionService,
             IExceptionService<CustodianReportLandItem> exceptionService,
+            ICustodianLandUploadService custodianLandUploadService,
             IAllFieldService allFieldService,
             IUserService userService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
+            _custodianLandUploadService = custodianLandUploadService;
             _allFieldService = allFieldService;
             _userService = userService;
             _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
@@ -152,6 +158,8 @@ namespace iLgs.Services.CustodianReports
                 Annex = s.Annex,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
+                UpdatedBy = s.UpdatedBy,
+                UpdatedDt = s.UpdatedDt,
                 PostedBy = s.PostedBy,
                 PostedDt = s.PostedDt,
                 ItemType_Code = s.ItemCode.ItemType.Code,
@@ -184,13 +192,16 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
         {
             var data = _db.CustodianReportLandItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReportLandItemProjection(_db));
-
+            if (data.Any() && isDemand == true)
+            {
+                data = data.Where(w => w.Annex == "C");
+            }
             return data;
         }
 
@@ -222,33 +233,36 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
-            if (custodianReport == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                custodianReport = new CustodianReport();
-                custodianReport.Id = Guid.NewGuid();
-                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
-                custodianReport.DeptId = model.MainDeptId;
-                custodianReport.Department = model.MainDeptName;
-                custodianReport.AccountGroup = model.AccountGroup;
-                custodianReport.InsertedBy = user;
-                custodianReport.InsertedDt = date;
-                custodianReport.UpdatedBy = user;
-                custodianReport.UpdatedDt = date;
-                _db.CustodianReports.Add(custodianReport);
-                await _db.SaveChangesAsync();
+                var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+                if (custodianReport == null)
+                {
+                    custodianReport = new CustodianReport();
+                    custodianReport.Id = Guid.NewGuid();
+                    custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
+                    custodianReport.DeptId = model.MainDeptId;
+                    custodianReport.Department = model.MainDeptName;
+                    custodianReport.AccountGroup = model.AccountGroup;
+                    custodianReport.InsertedBy = user;
+                    custodianReport.InsertedDt = date;
+                    custodianReport.UpdatedBy = user;
+                    custodianReport.UpdatedDt = date;
+                    ctx.CustodianReports.Add(custodianReport);
+                    await ctx.SaveChangesAsync();
+                }
+
+                model.ReportId = custodianReport.Id;
+                await ValidateIfSubmittedAsync(model);
+
+                var entity = new CustodianReportLandItem();
+                MapModelToEntityFields(entity, model, Mode.ADD);
+
+                ctx.CustodianReportLandItems.Add(entity);
+                await ctx.SaveChangesAsync();
+
+                return model;
             }
-
-            model.ReportId = custodianReport.Id;
-            ValidateIfSubmitted(model);
-
-            var entity = new CustodianReportLandItem();
-            MapModelToEntityFields(entity, model, Mode.ADD);
-
-            _db.CustodianReportLandItems.Add(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
         });
 
         public ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -259,19 +273,21 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
-            //ValidateUser(entity, model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportLandItems.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+                await ValidateIfSubmittedAsync(model);
+                
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                //ctx.CustodianReportLandItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianReportLandItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return model;
+                return model;
+            }
         });
 
         public ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -281,65 +297,73 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportLandItems.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+                await ValidateIfSubmittedAsync(model);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.CustodianReportLandItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //ctx.CustodianReportLandItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianReportLandItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.CustodianReportLandItems.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
 
-            return model;
+                return model;
+            }
         });
 
         public ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportLandItems.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-
-            ICustodianLandUploadService uploadService = new CustodianLandUploadService(_db);
-            if (!uploadService.GetAllByImageId(id).Any())
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException("No uploaded images found for this record, cannot post!");
+                var entity = await ctx.CustodianReportLandItems.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+
+                if (!_custodianLandUploadService.GetAllByImageId(id).Any())
+                {
+                    throw new NotFoundException("No uploaded images found for this record, cannot post!");
+                }
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //ctx.CustodianReportLandItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
             }
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.CustodianReportLandItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
         });
 
         public ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportLandItems.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfNotPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportLandItems.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfNotPosted(entity);
 
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = "";
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.CustodianReportLandItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //ctx.CustodianReportLandItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         private AllField SetAllField(CustodianReportLandItem custodianReportItem)
@@ -649,13 +673,13 @@ namespace iLgs.Services.CustodianReports
                 //{
                 //    if (reportItems.Any())
                 //    {
-                //        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
+                //        var report = ctx.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
                 //        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
                 //    }
                 //}
                 //else
                 //{
-                //    var codextn = _db.Codextns.Find(deptId);
+                //    var codextn = ctx.Codextns.Find(deptId);
                 //    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 //}
 
@@ -847,6 +871,8 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRequired(CustodianReportLandItemVM model)
         {
+            _imex = new InvalidModelException();
+
             if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
             {
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
@@ -877,6 +903,14 @@ namespace iLgs.Services.CustodianReports
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.OldTctNo)), "Field is required.");
             //}
 
+
+            if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
+            {
+                if (string.IsNullOrWhiteSpace(model.Remarks))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
+                }
+            }
             _imex.ThrowIfContainsErrors();
         }
 
@@ -913,9 +947,9 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateIfSubmitted(CustodianReportLandItem model)
+        private async Task ValidateIfSubmittedAsync(CustodianReportLandItem model)
         {
-            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            var submitForCount = await _db.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
             if (submitForCount != null)
             {
                 var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";

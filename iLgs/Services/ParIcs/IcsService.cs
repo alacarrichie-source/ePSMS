@@ -731,7 +731,7 @@ namespace iLgs.Services.ParIcs
 
                                 _db.IcsParUnitGroups.Add(icsParUnitGroup);
                                 _db.Entry(icsParUnitGroup).State = EntityState.Added;
-                                _db.SaveChanges();
+                                await _db.SaveChangesAsync();
                             }
                         }
                     }
@@ -1049,7 +1049,7 @@ namespace iLgs.Services.ParIcs
 
                                 _db.IcsParUnitGroups.Add(icsParUnitGroup);
                                 _db.Entry(icsParUnitGroup).State = EntityState.Added;
-                                _db.SaveChanges();
+                                await _db.SaveChangesAsync();
                             }
                         }
                     }
@@ -1340,7 +1340,7 @@ namespace iLgs.Services.ParIcs
 
                             _db.IcsParUnitGroups.Add(icsParUnitGroup);
                             _db.Entry(icsParUnitGroup).State = EntityState.Added;
-                            _db.SaveChanges();
+                            await _db.SaveChangesAsync();
                         }
                     }
                 }

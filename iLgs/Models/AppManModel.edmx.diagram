@@ -38,6 +38,7 @@
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         <EntityTypeShape EntityType="AppManModel.UserProfile" Width="1.5" PointX="3" PointY="2.625" />
         <AssociationConnector Association="AppManModel.FK_UserProfiles_AspNetUsers" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicleRepair" Width="1.5" PointX="15.375" PointY="0.75" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="2.75" PointY="0.75" />
@@ -92,7 +93,7 @@
         <EntityTypeShape EntityType="AppManModel.RPCIItemExtn" Width="1.5" PointX="10.25" PointY="3.5" />
         <AssociationConnector Association="AppManModel.FK_RPCIItemExtns_RPCIItems" />
       </Diagram>
-      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="85" >
+      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="98" >
         <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescription" Width="1.5" PointX="4" PointY="3.375" />
         <EntityTypeShape EntityType="AppManModel.C__MigrationHistory" Width="1.5" PointX="0.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserClaim" Width="1.5" PointX="2.75" PointY="0.75" />
@@ -175,8 +176,6 @@
         <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" Width="1.5" PointX="6.25" PointY="16.25" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" />
         <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="26.375" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroup" Width="1.5" PointX="1.75" PointY="2.625" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemIssuanceItem" Width="1.5" PointX="8.5" PointY="22.625" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemIssuanceItems_PsCardItemIssuances" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemTransferItem" Width="1.5" PointX="8.5" PointY="8.75" />
@@ -196,17 +195,19 @@
         <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroup" Width="1.5" PointX="1.75" PointY="2.625" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" >
         <EntityTypeShape EntityType="AppManModel.RisItemUnitGroupDescriptionItem" Width="1.5" PointX="8.25" PointY="5.75" />
         <EntityTypeShape EntityType="AppManModel.RisItemUnitGroupDescription" Width="1.5" PointX="5.375" PointY="1" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItemUnitGroupDescriptions" />
         <EntityTypeShape EntityType="AppManModel.RISs" Width="2.375" PointX="0.75" PointY="3.625" />
-        <EntityTypeShape EntityType="AppManModel.RisItem" Width="1.5" PointX="3.875" PointY="5.5" />
+        <EntityTypeShape EntityType="AppManModel.RisItem" Width="1.5" PointX="3.875" PointY="5.375" />
         <AssociationConnector Association="AppManModel.FK_RisItems_RISs" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" />
         </Diagram>
-      <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" ZoomLevel="88" >
+      <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" ZoomLevel="124" >
         <EntityTypeShape EntityType="AppManModel.PsCardItemExtnLand" Width="1.5" PointX="25.25" PointY="8.875" />
         <EntityTypeShape EntityType="AppManModel.IcsPartUnitGroupDescription" Width="1.5" PointX="15.875" PointY="16.5" />
         <EntityTypeShape EntityType="AppManModel.IcsParUnitGroupDescriptionItem" Width="1.5" PointX="18.125" PointY="9.5" />
@@ -218,7 +219,7 @@
         <EntityTypeShape EntityType="AppManModel.IcsParUpdate" Width="1.5" PointX="15.875" PointY="20.5" />
         <AssociationConnector Association="AppManModel.FK_IcsParUpdates_IcsPars" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemExtnOther" Width="1.5" PointX="23" PointY="8.875" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="1.5" PointX="15.875" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="2.25" PointX="15.875" PointY="0.75" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnLand" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnOther" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemExtnBuilding" Width="1.5" PointX="20.75" PointY="8.875" />
@@ -227,8 +228,6 @@
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnBuilding" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemExtnAddCost" Width="1.5" PointX="18.125" PointY="3" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemExtnAddCosts_PsCardItemExtns" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicleRepair" Width="1.5" PointX="12.75" PointY="3.125" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemExtnVehicleRepairs_PsCardItemExtnVehicles" />
         <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="21.125" PointY="3.375" />
         <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
         <AssociationConnector Association="AppManModel.FK_IcsParItems_PsCardItemExtns" />
@@ -259,14 +258,12 @@
         <EntityTypeShape EntityType="AppManModel.CustodianIIRUP" Width="1.5" PointX="3" PointY="59.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianDisposals" />
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianIRRUPs" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItemPhas" Width="1.5" PointX="5.25" PointY="44.25" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItem" Width="1.5" PointX="3" PointY="64.75" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="3" PointY="79.875" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportLandItem" Width="1.5" PointX="3" PointY="33.375" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItemPhases_CustodianReportBldgItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportUpload" Width="1.5" PointX="5.25" PointY="64.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportUploads_CustodianReportBldgItems" />
@@ -278,6 +275,8 @@
         <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportSubmitForCount" Width="1.5" PointX="3" PointY="102.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItemPhas" Width="1.5" PointX="5.25" PointY="71.375" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItemPhases_CustodianReportBldgItems" />
         </Diagram>
       <Diagram DiagramId="6ed46f20c55b4c3f89ae9de029a504b5" Name="Item Codes" >
         <EntityTypeShape EntityType="AppManModel.ItemTypeExclusion" Width="1.5" PointX="3" PointY="1.25" />

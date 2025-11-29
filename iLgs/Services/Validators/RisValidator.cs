@@ -200,6 +200,18 @@ namespace iLgs.Services.Validators
                 }
             }
 
+            if (string.IsNullOrWhiteSpace(model.IssuedBy))
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.IssuedBy)), "Field is required.");
+            }
+            else
+            {
+                if (!_codextnService.GetByMastCode("ISSUED-BY").Where(w => w.Description == model.IssuedBy).Any())
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.IssuedBy)), "Invalid value");
+                }                
+            }
+
             ex.ThrowIfContainsErrors();
         }
 

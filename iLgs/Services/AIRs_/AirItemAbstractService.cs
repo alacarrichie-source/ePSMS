@@ -55,9 +55,10 @@ namespace iLgs.Services.AIRs_
                     || c == CatAccountableFormsSupply()
                     || c == CatNonAccountableFornsSupply()
                     || c == CatMilitarySupply()
-                    || c == CatOtherSupplies()
+                    || c == CatOtherSupplies()                    
                     || c == CatDrugsSupply()
-                    || c == CatRepairSupply()
+                    || c == CatSemiExpendableFurnitureSupply()
+                    || c == CatSemiExpendableMachinerySupply()
                     )
                 {
                     itemExtnName = "ItemExtnOther";

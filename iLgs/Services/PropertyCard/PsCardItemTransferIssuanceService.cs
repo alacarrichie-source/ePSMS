@@ -111,7 +111,7 @@ namespace iLgs.Services.PropertyCard
                 }
 
                 model.Qty = selectedIds.Count();
-                var psCardItemTransferIssuance = CreatePsCardItemTransferIssuance(model);
+                var psCardItemTransferIssuance = await CreatePsCardItemTransferIssuanceAsync(model);
 
                 foreach (var selectedId in selectedIds)
                 {
@@ -131,11 +131,11 @@ namespace iLgs.Services.PropertyCard
                     };
                     _db.PsCardItemTransferIssuanceItems.Add(psCardItemTransferIssuanceItem);
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
             else
             {
-                var psCardItemIssuance = CreatePsCardItemTransferIssuance(model);
+                var psCardItemIssuance = await CreatePsCardItemTransferIssuanceAsync(model);
             }
 
             await UpdatePsItems(model.PsCardItemTransferId, user, date);
@@ -143,13 +143,13 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public PsCardItemTransferIssuance CreatePsCardItemTransferIssuance(PsCardItemTransferIssuanceVM model)
+        public async Task<PsCardItemTransferIssuance> CreatePsCardItemTransferIssuanceAsync(PsCardItemTransferIssuanceVM model)
         {
             var entity = new PsCardItemTransferIssuance();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
             _db.PsCardItemTransferIssuances.Add(entity);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return entity;
         }

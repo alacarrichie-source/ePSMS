@@ -15,6 +15,7 @@ namespace iLgs.Services
         IQueryable<ItemTypeVM> GetAll();
         Task<ItemType> GetByIdAsync(Guid id);
         IQueryable<ItemType> GetRpciAccounts(string text);
+        IQueryable<CustodianAccountVM> GetCustodianMainAccounts(int? accountGroup, string text);
 
         Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date);
         Task<ItemTypeVM> UpdateAsync(ItemTypeVM model, string user, DateTime date);
@@ -71,6 +72,13 @@ namespace iLgs.Services
             }
             return data;
         }
+
+        public IQueryable<CustodianAccountVM> GetCustodianMainAccounts(int? accountGroup, string text)
+        {
+            var data = _db.Database.SqlQuery<CustodianAccountVM>("Exec ItemCodes_GetCustodianMainAccount {0}, {1}", accountGroup, text).AsQueryable().AsNoTracking();
+            return data;
+        }
+
         public async Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date)
         {
             ValidateRequired(model);

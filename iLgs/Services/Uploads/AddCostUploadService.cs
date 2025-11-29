@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace iLgs.Services.Uploads
 
     public class AddCostUploadService : UploadService, IAddCostUploadService
     {
-        public AddCostUploadService(AppManEntities db)
-            : base(db, "ADDCOST")
+        public AddCostUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "ADDCOST")
         {
         }
 

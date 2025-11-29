@@ -20,21 +20,21 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly ILocationService _locationService;
         private readonly ILocationBudgetService _locationBudgetService;
-        private readonly INotificationMessageService _notificationMessageService;
+        private readonly INotificationMessageService _notificationMessageService;        
         private readonly IUserService _userService;
 
         public GettersController(AppManEntities db, 
             ICodextnService codextnService,
             ILocationService locationService,
             ILocationBudgetService locationBudgetService,
-            INotificationMessageService notificationMessageService,
+            INotificationMessageService notificationMessageService,            
             IUserService userService)
         {
             _db = db;
             _codextnService = codextnService;
             _locationService = locationService;
             _locationBudgetService = locationBudgetService;
-            _notificationMessageService = notificationMessageService;
+            _notificationMessageService = notificationMessageService;            
             _userService = userService;
         }
 
@@ -191,7 +191,10 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
             }
 
-            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4,
+            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description,
+                Desc2 = c.Description,
+                Desc3 = department,
+                c.Desc4,
                 Section = department.Trim() + (department == c.Description ? "" : "/" + c.Description.Trim())}).OrderBy(o => o.Code).ToList();
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
@@ -292,11 +295,26 @@ namespace iLgs.Controllers
             var model = _db.Codextns.Where(w => w.CodeMast.Code == "PS-CATEGORY").AsNoTracking();            
             if (!string.IsNullOrEmpty(text))
             {
-                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+                model = model.Where(p => p.Id.ToString() == text || p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
             }
 
             var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
             retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });            
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetItemType(string text)
+        {
+
+            var model = _db.ItemTypes.AsNoTracking().AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description }).ToList();
+            retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL" });
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
@@ -950,6 +968,53 @@ namespace iLgs.Controllers
             }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetCustodianLandMainAccounts(int? accountGroup, string text)
+        {
+            List<CustodianAccountVM> model;
+
+            var query = _db.CustodianReportLandItems
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.ItemCode.ItemType.Description.Contains(text));
+            }
+
+            model = query
+                .GroupBy(g => new { g.ItemCode.ItemType.Id, g.ItemCode.ItemType.Description })
+                .Select(s => new CustodianAccountVM { Id = s.Key.Id, MainAccount = s.Key.Description })
+                .OrderBy(o => o.MainAccount)
+                .ToList();
+
+            // Insert "ALL" at the top
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianBldgMainAccounts(int? accountGroup, string text)
+        {
+            List<CustodianAccountVM> model;
+
+            var query = _db.CustodianReportBldgItems
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.ItemCode.ItemType.Description.Contains(text));
+            }
+
+            model = query
+                .GroupBy(g => new { g.ItemCode.ItemType.Id, g.ItemCode.ItemType.Description })
+                .Select(s => new CustodianAccountVM { Id = s.Key.Id, MainAccount = s.Key.Description })
+                .OrderBy(o => o.MainAccount)
+                .ToList();
+            
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
         {
             List<CustodianAccountVM> model;
@@ -1041,7 +1106,7 @@ namespace iLgs.Controllers
             var userId = User.Identity.GetUserId();
             var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
             return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
-        }
+        }        
     }
     
     public class GetPsNoVM
@@ -1067,14 +1132,7 @@ namespace iLgs.Controllers
     {
         public string Code { get; set; }
         public string Description { get; set; }        
-    }
-
-    public class CustodianAccountVM
-    {
-        public Guid Id { get; set; }
-        public string MainAccount { get; set; }
-        public string MainDesc { get; set; }
-    }
+    }    
 
     public class GetDepartmentVM
     {

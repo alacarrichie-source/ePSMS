@@ -1,6 +1,8 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Items;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -145,6 +147,15 @@ namespace iLgs.Controllers
                 MainDescCode = c.MainDescCode,
                 Category = c.Category
             }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
+        {
+            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.MainAccount).ToList();
+            // Insert "ALL" at the top
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianItemStocks(string text)

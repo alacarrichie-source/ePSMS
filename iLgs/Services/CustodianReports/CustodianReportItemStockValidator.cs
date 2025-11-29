@@ -62,8 +62,16 @@ namespace iLgs.Services.CustodianReports
         {
             var ex = new InvalidModelException();
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+
+            if (itemCode == null)
+            {
+                ex.UpsertDataList("ItemCode", "Invalid Value.");
+            }
+            else
+            {
+                string partialView = AllFieldsUtil.GetPartialView(itemCode);
+                _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+            }
 
             if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
             {

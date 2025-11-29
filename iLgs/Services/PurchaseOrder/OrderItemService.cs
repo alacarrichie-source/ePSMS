@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
@@ -92,7 +93,8 @@ namespace iLgs.Services.PurchaseOrder
                 Amount = s.Amount,
                 PriceRate = s.PriceRate,
                 InsertedDt = s.InsertedDt,
-                SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo
+                SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
+                PpmpCode = s.PpmpCode
             };
         }
 
@@ -122,16 +124,18 @@ namespace iLgs.Services.PurchaseOrder
 
         private void ValidateFields(OrderItemVM model)
         {
-            if (Enum.TryParse(model.PsType, out Category c))
-            {
-                if (_allFieldService.IsBrandRequired(c))
-                {
-                    if (string.IsNullOrWhiteSpace(model.AllField.Brand))
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.AllField.Brand)), "Field is required.");
-                    }
-                }                                   
-            }
+            _imex = new InvalidModelException();
+
+            //if (Enum.TryParse(model.PsType, out Category c))
+            //{
+            //    if (_allFieldService.IsBrandRequired(c))
+            //    {
+            //        if (string.IsNullOrWhiteSpace(model.AllField.Brand))
+            //        {
+            //            _imex.UpsertDataList(_getDisplayName(nameof(model.AllField.Brand)), "Field is required.");
+            //        }
+            //    }                                   
+            //}
 
             _imex.ThrowIfContainsErrors();
         }
@@ -272,7 +276,8 @@ namespace iLgs.Services.PurchaseOrder
             entity.UnitCost = model.UnitCost;
             entity.Amount = model.Amount;
             entity.PriceRate = model.PriceRate;
-            
+            entity.PpmpCode = model.PpmpCode;
+
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
             //entity.RequestItem = requestItem;

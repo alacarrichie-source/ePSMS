@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using iLgs.Services.Logs;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
@@ -37,27 +38,50 @@ namespace iLgs.Services
             catch (InvalidModelException invalidException)
             {
                 throw CreateAndLogValidationException(invalidException);
+                //throw new ValidationException(invalidException);
             }
             catch (InvalidValueException invalidValueException)
             {
-                throw CreateAndLogValidationException(invalidValueException);
+                //throw CreateAndLogValidationException(invalidValueException);
+                throw new ValidationException(invalidValueException);
             }
             catch (NotFoundException nullException)
             {
-                throw CreateAndLogValidationException(nullException);
+                throw CreateAndLogValidationException(nullException);                
             }
             catch (ArgumentOutOfRangeException outOfRangeException)
             {
                 throw CreateAndLogValidationException(outOfRangeException);
             }
-            //catch (DbEntityValidationException dbEntityValidationException)
-            //{
-            //    // Manually create a new DbEntityValidationException with a custom inner exception
-            //    var newInnerException = new Exception(dbEntityValidationException.Message); // This is the custom inner exception
-            //    var newDbEntityValidationException = new DbEntityValidationException("Validation failed for one or more entities.", dbEntityValidationException.EntityValidationErrors, newInnerException);
-                
-            //    throw CreateAndLogValidationException(newInnerException);
-            //}
+            catch (DbEntityValidationException dbEntityValidationException)
+            {
+                //// Manually create a new DbEntityValidationException with a custom inner exception
+                //var newInnerException = new Exception(dbEntityValidationException.Message); // This is the custom inner exception
+                //var newDbEntityValidationException = new DbEntityValidationException("Validation failed for one or more entities.", dbEntityValidationException.EntityValidationErrors, newInnerException);
+
+                //throw CreateAndLogValidationException(newInnerException);
+
+                // Build a detailed validation error message
+                var validationErrors = dbEntityValidationException.EntityValidationErrors
+                    .SelectMany(e => e.ValidationErrors)
+                    .Select(e => $"{e.PropertyName}: {e.ErrorMessage}");
+
+                var fullErrorMessage = string.Join("; ", validationErrors);
+                var detailedMessage = $"{dbEntityValidationException.Message} The validation errors are: {fullErrorMessage}";
+
+                // Log the detailed validation info
+                //_logger.LogError(detailedMessage);
+
+                // Create a wrapped exception preserving the details
+                var newDbEntityValidationException = new DbEntityValidationException(
+                    detailedMessage,
+                    dbEntityValidationException.EntityValidationErrors,
+                    dbEntityValidationException
+                );
+
+                // Pass the rich exception (with validation details) to your centralized handler
+                throw CreateAndLogValidationException(newDbEntityValidationException);
+            }
             catch (SqlException sqlException)
             {
                 var failedStorageException =
@@ -68,7 +92,7 @@ namespace iLgs.Services
             catch (RecordAlreadyPostedException alreadyPostedException)
             {
                 //throw CreateAndLogLockedException(alreadyPostedException);
-                throw CreateAndLogValidationException(alreadyPostedException);
+                throw CreateAndLogValidationException(alreadyPostedException);                
             }
             catch (RecordNotYetPostedException notYetPostedException)
             {
@@ -133,27 +157,27 @@ namespace iLgs.Services
                 throw CreateAndLogServiceException(failedServiceException);
             }
         }
-
+        
         private ValidationException CreateAndLogValidationException(Xeption exception)
         {            
             var validationException = new ValidationException(exception);
-            //_loggingService.LogError(validationException);
+            _loggingService.LogError(validationException);
 
             return validationException;
         }
 
-        private ValidationException CreateAndLogAlreadyExistsException(Xeption exception)
+        private AlreadyExistsException CreateAndLogAlreadyExistsException(Xeption exception)
         {
-            var validationException = new ValidationException(exception);
-            //_loggingService.LogError(validationException);
+            var alreadyExistsException = new AlreadyExistsException(exception);
+            _loggingService.LogError(alreadyExistsException);
 
-            return validationException;
+            return alreadyExistsException;
         }
 
         private ValidationException CreateAndLogValidationException(DbEntityValidationException exception)
         {
             var validationException = new ValidationException(exception);
-            //_loggingService.LogError(validationException);
+            _loggingService.LogError(validationException);
 
             return validationException;
         }
@@ -161,20 +185,20 @@ namespace iLgs.Services
         private ValidationException CreateAndLogValidationException(Exception exception)
         {
             var validationException = new ValidationException(exception);
-            //_loggingService.LogError(validationException);
+            _loggingService.LogError(validationException);
 
             return validationException;
         }
 
-        private ValidationException CreateAndLogLockedException(Xeption exception)
+        private RecordLockedException CreateAndLogLockedException(Xeption exception)
         {
-            var validationException = new ValidationException(exception);
+            var lockedException = new RecordLockedException(exception);
             //var lockedException =
             //    new RecordLockedException(validationException);
 
-            //_loggingService.LogError(validationException);
+            _loggingService.LogError(lockedException);
 
-            return validationException;
+            return lockedException;
         }
 
 
@@ -184,7 +208,7 @@ namespace iLgs.Services
             var dependencyValidationException =
                 new DependencyValidationException(exception);
 
-            //_loggingService.LogError(dependencyValidationException);
+            _loggingService.LogError(dependencyValidationException);
 
             //int logId = _loggingService.LogErrorWithId(LogLevel.Error, exception.Message, exception.ToString());
 
@@ -198,7 +222,7 @@ namespace iLgs.Services
         private DependencyException CreateAndLogDependencyException(Exception exception)
         {
             var dependencyException = new DependencyException(exception);
-            //_loggingService.LogError(dependencyException);
+            _loggingService.LogError(dependencyException);
             
             return dependencyException;
         }
@@ -206,7 +230,7 @@ namespace iLgs.Services
         private DependencyException CreateAndLogCriticalDependencyException(Exception exception)
         {
             var dependencyException = new DependencyException(exception);
-            //_loggingService.LogCritical(dependencyException);
+            _loggingService.LogCritical(dependencyException);
 
             return dependencyException;
         }
@@ -214,7 +238,7 @@ namespace iLgs.Services
         private ServiceException CreateAndLogServiceException(Exception exception)
         {
             var serviceException = new ServiceException(exception);
-            //_loggingService.LogError(serviceException);
+            _loggingService.LogError(serviceException);
 
             return serviceException;
         }

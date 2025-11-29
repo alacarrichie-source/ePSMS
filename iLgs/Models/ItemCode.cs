@@ -24,8 +24,8 @@ namespace iLgs.Models
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
-            this.RisItems = new HashSet<RisItem>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
+            this.RisItems = new HashSet<RisItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -61,8 +61,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItem> RisItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RisItem> RisItems { get; set; }
     }
 }

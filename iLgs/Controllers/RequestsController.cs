@@ -11,6 +11,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Configuration;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
@@ -669,9 +670,9 @@ namespace iLgs.Controllers
         {
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
-            
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            string pw = rptKey; // decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
@@ -688,7 +689,7 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.DatabaseName = db_;
                 logonInfo.ConnectionInfo.UserID = un;
                 logonInfo.ConnectionInfo.Password = pw;
-                logonInfo.ConnectionInfo.IntegratedSecurity = true;
+                logonInfo.ConnectionInfo.IntegratedSecurity = false;
                 table.ApplyLogOnInfo(logonInfo);
             }
 

@@ -19,5 +19,6 @@ namespace iLgs.Models
         public string ErrorCode { get; set; }
         public string Description { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string InsertedBy { get; set; }
     }
 }

@@ -1,0 +1,422 @@
+﻿@model iLgs.Models.RIS_VM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formRis", id = "formRis" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IssuanceSw)
+    @Html.HiddenFor(model => model.Mode)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.RisNo, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().MaskedTextBoxFor(model => model.RisNo).Mask("0000-00-0000")
+                            .PromptChar(" ")
+                            .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.RisNo)
+            </div>
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.RisDate, "LabelDate")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().DatePickerFor(model => model.RisDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("onChangeRisDate"))
+                )
+                @Html.ValidationMessageFor(model => model.RisDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.OfficeId, "LabelGuid")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.OfficeId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Office")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetUserDepartmentsAsync", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Events(e => e.Select("onSelectOffice").Change("onChangeOffice"))
+                )
+
+                @Html.ValidationMessageFor(model => model.OfficeId)
+            </div>
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.Office, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.Office).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.Office)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.FPP, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.FPP)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select FPP")
+                            .DataTextField("Code")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetFpp", "Getters").Data("DataFpp");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Events(e => { e.Select("onSelectFpp"); })
+                )
+                @Html.ValidationMessageFor(model => model.FPP)
+            </div>
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.Fund, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                            .Enable(false)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Fund")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                )
+                @Html.ValidationMessageFor(model => model.Fund)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.Purpose, "Label")
+            </div>
+            <div class="col-md-11">
+                @(Html.Kendo().TextBoxFor(model => model.Purpose).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.Purpose)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.RequestedBy, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.RequestedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.RequestedBy)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.RequestedByDesignation, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.RequestedByDesignation).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.RequestedByDesignation)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.RequestedDate, "LabelDate")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().DatePickerFor(model => model.RequestedDate))
+                @Html.ValidationMessageFor(model => model.RequestedDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ApprovedBy, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.ApprovedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ApprovedBy)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ApprovedByDesignation, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.ApprovedByDesignation).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ApprovedByDesignation)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ApprovedDate, "LabelDate")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().DatePickerFor(model => model.ApprovedDate))
+                @Html.ValidationMessageFor(model => model.ApprovedDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.IssuedBy, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.IssuedBy)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Issued By")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodes", "Getters", new { mastCode = "ISSUED-BY" });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Name").Width("60%");
+                                c.Add().Field("Desc2").Title("Designation").Width("40%");
+                            })
+                            .Events(e => { e.Select("onSelectIssuedBy"); })
+                )
+                @Html.ValidationMessageFor(model => model.IssuedBy)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.IssuedByDesignation, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.IssuedByDesignation).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.IssuedByDesignation)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.IssuedDate, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().DatePickerFor(model => model.IssuedDate).Enable(false))
+                @Html.ValidationMessageFor(model => model.IssuedDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ReceivedBy, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.ReceivedBy).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ReceivedBy)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ReceivedByDesignation, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().TextBoxFor(model => model.ReceivedByDesignation).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ReceivedByDesignation)
+            </div>
+
+            <div class="col-md-1">
+                @Html.DisplayFor(model => model.ReceivedDate, "Label")
+            </div>
+            <div class="col-md-3">
+                @(Html.Kendo().DatePickerFor(model => model.ReceivedDate).Enable(false))
+                @Html.ValidationMessageFor(model => model.ReceivedDate)
+            </div>
+        </div>
+
+        <hr />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSaveSelection"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancelSelection"))
+                </span>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @(Html.Kendo().TabStrip()
+                    .Name("tabStrip_")
+                    .TabPosition(TabStripTabPosition.Top)
+                    .Animation(animation =>
+                    {
+                        animation.Open(config =>
+                        {
+                            config.Fade(FadeDirection.In);
+                        });
+                    })
+                    .Events(e => e.Select("onSelectTabStrip"))
+                    .SelectedIndex(0)
+                    .Items(items =>
+                    {
+                        items.Add().Text("Items")
+                                .Selected(true)
+                                .LoadContentFrom("_RISItem", "RIS", new { risId = ViewData["risId"] });
+                        items.Add().Text("Groups")
+                            .LoadContentFrom("_RISItemUnitGroup", "RIS", new { risId = ViewData["risId"] });
+                    })
+                )
+            </div>
+        </div>
+    </fieldset>
+}
+
+@*@helper RenderRisItems()
+    {
+        @(Html.Kendo().Grid<iLgs.Models.RisItemEntryVM>()
+                        .Name("gridItems_")
+                        .Columns(col =>
+                        {
+                            col.Bound(c => c.Category).Width(50);
+                            col.Bound(c => c.PsNoDisplay).Width(100);
+                            col.Bound(c => c.Unit).Width(30);
+                            col.Bound(c => c.ItemName).Width(100);
+                            col.Bound(c => c.Description).Width(200);
+                            col.Bound(c => c.QtyRequest).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                            col.Bound(c => c.QtyIssue).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                            col.Bound(c => c.Remarks).Width(70);
+                            col.Bound(c => c.SetLotNo).Width(50);
+                            col.Command(command =>
+                            {
+                                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");
+                                command.Destroy();
+                            }).Width(100);
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Template(@<text>
+                                @(Html.Kendo().Button().Name("btnAddItem_@ViewBag.RisId").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
+                            </text>);
+                        })
+                        .Pageable(pager => pager
+                            .Input(false)
+                            .Numeric(true)
+                            .Info(true)
+                            .PreviousNext(true)
+                            .Refresh(true)
+                            .PageSizes(true)
+                            .ButtonCount(5)
+                        )
+                        .Filterable()
+                        .NoRecords()
+                        .Resizable(r => r.Columns(true))
+                        .Selectable(s => s.Mode(GridSelectionMode.Single))
+                        .Sortable()
+                        .Scrollable(s => s.Height(150))
+                        //.ClientDetailTemplateId("IssuedItems")
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+                            .Model(model =>
+                            {
+                                model.Id(p => p.Id);
+                                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                            })
+                            .Aggregates(a =>
+                            {
+                                a.Add(p => p.QtyRequest).Sum();
+                                a.Add(p => p.QtyIssue).Sum();
+                            })
+                            .Sort(s =>
+                            {
+                                s.Add(a => a.InsertedDt);
+                            })
+                            .Read(read => read.Action("_RISItemRead", "RIS").Data("DataGetRisId"))
+                            .Create(create => create.Action("_RISItemCreate", "RIS"))
+                            .Update(update => update.Action("_RISItemUpdate", "RIS"))
+                            .Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
+                        )
+                        .Events(events => events
+                            .Change("onChangeGridItems")
+                            .Edit("onEditGridItems")
+                            .DataBound("onDataBoundGridItems")
+                        )
+                        .AutoBind(true)
+        )
+    }*@
+
+<script type="text/javascript">
+
+    $("#btnSaveSelection").click(function (e) {
+        e.preventDefault();
+        var validator = $("#formRis").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+
+            //var grid = $("#gridItems_").data("kendoGrid");
+            //if (grid.dataSource.total() == 0) {
+            //    if (!confirm("Save with empty items?")) {
+            //        return;
+            //    }
+            //}
+
+            SaveRecords(e, false);
+        }
+    });
+
+    $("#btnCancelSelection").click(function (e) {
+        e.preventDefault();
+        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+    $("#addInvoice").click(function () {
+        var invoiceTemplate = $("#invoiceTemplate").html();
+        $("#invoiceContainer").append(invoiceTemplate);
+    });
+
+    // Remove book row
+    //$(".remove-invoice").click(function (e) {
+    //    alert('x');
+    //    $(this).closest(".invoice-row").remove();
+    //});
+
+    $(document).on("click", ".remove-invoice", function () {
+        $(this).closest(".invoice-row").remove();
+    });
+</script>

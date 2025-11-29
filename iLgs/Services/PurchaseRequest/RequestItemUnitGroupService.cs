@@ -176,7 +176,7 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     var priceRate = unitGroupDescriptionItem.RequestItem.PriceRate ?? 0;
                     var unitCost = unitGroupDescriptionItem.RequestItem.UnitCost ?? 0;
-                    _requestItemUnitGroupDescriptionItemService.UpdateRequestItem(unitGroupDescriptionItem.RequestItemId, priceRate, unitCost, user, date);
+                    await _requestItemUnitGroupDescriptionItemService.UpdateRequestItemAsync(unitGroupDescriptionItem.RequestItemId, priceRate, unitCost, user, date);
                 }
             }
 

@@ -28,7 +28,7 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">
-                    @Html.DisplayFor(m => m.ItemCodeId, "Label")
+                    @Html.DisplayFor(m => m.ItemCodeId, "LabelGuid")
                 </div>
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
@@ -164,7 +164,7 @@
                     @Html.DisplayFor(m => m.PropNo, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.PropNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PropNo)
                 </div>
             </div>
@@ -222,7 +222,7 @@
                     @Html.DisplayFor(model => model.LocationId, "LabelGuid")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                    @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
                             .DataTextField("Code")
@@ -245,7 +245,30 @@
                             })
                             .Events(e => e.Select("onSelectLocationId"))
                     //.Suggest(true)
-                    )
+                    )*@
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Location")
+                        .DataTextField("Code")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserSectionsAsync", "Getters").Data("DataLocationId");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("50");
+                            c.Add().Field("Desc3").Title("Main-Location").Width("300");
+                            c.Add().Field("Desc2").Title("Location").Width("300");
+                        })
+                        .Events(e => e.Select("onSelectLocationId"))
+                    )                    
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
             </div>
@@ -330,7 +353,13 @@
                     @Html.DisplayFor(m => m.SetLotNo, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.SetLotNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @*@(Html.Kendo().TextBoxFor(m => m.SetLotNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
+                    @(Html.Kendo().MaskedTextBoxFor(m => m.SetLotNo)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Mask("L000")
+                        .PromptChar(" ")
+                        .Events(e => e.Change("onChangeSetLotNo"))
+                    )                    
                     @Html.ValidationMessageFor(m => m.SetLotNo)
                 </div>
             </div>

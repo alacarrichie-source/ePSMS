@@ -81,7 +81,6 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         public virtual DbSet<IcsParUnitGroup> IcsParUnitGroups { get; set; }
@@ -100,14 +99,11 @@ namespace iLgs.Models
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
-        public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
-        public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportUpload> CustodianReportUploads { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<AuditLogDetail> AuditLogDetails { get; set; }
@@ -129,5 +125,9 @@ namespace iLgs.Models
         public virtual DbSet<RpcPpeItemBuilding> RpcPpeItemBuildings { get; set; }
         public virtual DbSet<RpcPpeItemLand> RpcPpeItemLands { get; set; }
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
+        public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
     }
 }

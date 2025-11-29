@@ -717,7 +717,8 @@ namespace iLgs.Services.AIRs_
                             UpdatedBy = user,
                             UpdatedDt = date,
                             PostedBy = user,
-                            PostedDt = date
+                            PostedDt = date,
+                            PpmpCode = orderItem.PpmpCode
                         };
 
                         var psCardItemTransfer = new PsCardItemTransfer()

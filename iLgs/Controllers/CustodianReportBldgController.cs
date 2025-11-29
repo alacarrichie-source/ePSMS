@@ -46,7 +46,7 @@ namespace iLgs.Controllers
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure - Query";
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();            
             return View();
         }
 
@@ -54,8 +54,18 @@ namespace iLgs.Controllers
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure";
-            ViewBag.ForYear = DateTime.Now.Year;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
             return View();
+        }
+
+        public ActionResult BldgDemand()
+        {
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
+            ViewBag.Title = "Custodian Report - Structure";
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = true;
+            return View("Index");
         }
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
@@ -380,9 +390,9 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
+        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
         {
-            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup);
+            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, isDemand);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -804,6 +814,7 @@ namespace iLgs.Controllers
         }
 
 
+        [HttpPost]
         public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model)
         {
             try

@@ -20,6 +20,7 @@ namespace iLgs.Models
         public Nullable<decimal> CapitalOutlay { get; set; }
         public Nullable<decimal> MOOE { get; set; }
         public string ProjectName { get; set; }
+        public string BuildingType { get; set; }
         public Nullable<System.DateTime> StartDate { get; set; }
         public Nullable<System.DateTime> TargetDate { get; set; }
         public Nullable<System.DateTime> AcqDate { get; set; }

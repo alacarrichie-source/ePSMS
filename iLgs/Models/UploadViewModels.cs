@@ -29,9 +29,19 @@ namespace iLgs.Models
             public string Description { get; set; }
             public string ServerIpAddress { get; set; }
             public string VirtualDirectory { get; set; }
+
+            [Display(Name = "Uploaded By")]
             public string InsertedBy { get; set; }
+
+            [Display(Name = "Upload Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
+
+            [Display(Name = "Updated By")]
             public string UpdatedBy { get; set; }
+
+            [Display(Name = "Update Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
         }
     }

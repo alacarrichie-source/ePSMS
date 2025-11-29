@@ -13,6 +13,7 @@ using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
 using iLgs.Services.DollarRate_;
 using iLgs.Services.Items;
+using iLgs.Services.Logs;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PoIssuance;
 using iLgs.Services.PropertyCard;
@@ -55,6 +56,8 @@ namespace iLgs
             var services = new ServiceCollection();
 
             // Register your DbContext (EF6)
+            services.AddScoped<AppManEntities>();
+            services.AddSingleton<IAppManEntitiesFactory, AppManEntitiesFactory>();
             services.AddScoped<AppManEntities>(sp => new AppManEntities());
 
             //// Identity stores
@@ -158,10 +161,11 @@ namespace iLgs
             services.AddScoped<ICustodianReportValidator, CustodianReportValidator>();
 
             // CUSTODIAN UPLOADS
+            services.AddScoped<ICustodianDeptUploadService, CustodianDeptUploadService>();
             services.AddScoped<ICustodianBldgUploadService, CustodianBldgUploadService>();
             services.AddScoped<ICustodianIirupUploadService, CustodianIirupUploadService>();
             services.AddScoped<ICustodianLandUploadService, CustodianLandUploadService>();
-            services.AddScoped<ICustodianReportUploadService, CustodianReportUploadService>();
+            services.AddScoped<ICustodianReportUploadService, CustodianReportUploadService>();            
 
             // DOLLAR RATE
             services.AddScoped<IDollarRateService, DollarRateService>();
@@ -284,7 +288,7 @@ namespace iLgs
             services.AddScoped<IItemCodeService, ItemCodeService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRsmiService, RsmiService>();
-            services.AddScoped<Func<string, UploadService>>(sp => subDir => new UploadService(sp.GetRequiredService<AppManEntities>(), subDir));
+            services.AddScoped<Func<string, UploadService>>(sp => subDir => new UploadService(sp.GetRequiredService<AppManEntities>(), sp.GetRequiredService<AppManEntitiesFactory>(), subDir));
 
             // Register controllers
             var controllerTypes = typeof(MvcApplication).Assembly.GetTypes()
@@ -304,6 +308,10 @@ namespace iLgs
             // 🔧 Set Web API dependency resolver
             GlobalConfiguration.Configuration.DependencyResolver = new DefaultWebApiDependencyResolver(provider);
             ControllerBuilder.Current.SetControllerFactory(new ServiceProviderControllerFactory(provider));
+
+            // 2025.10.04
+            var serializer = GlobalConfiguration.Configuration.Formatters.JsonFormatter.SerializerSettings;
+            serializer.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
         }
     }
 }

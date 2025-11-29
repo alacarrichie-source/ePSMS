@@ -1,18 +1,13 @@
-﻿using ClosedXML.Excel;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
+using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.SqlServer;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -20,7 +15,7 @@ namespace iLgs.Services.CustodianReports
     {
         new ValueTask<CustodianReportItemStockVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId, string userName);
-        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand);
         IQueryable<CustodianReportItemStockVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date);
         ValueTask<CustodianReportItemStockVM> UpdateAsync(CustodianReportItemStockVM model, string user, DateTime date);
@@ -34,13 +29,14 @@ namespace iLgs.Services.CustodianReports
         private readonly IAnnexDService _annexDService;
 
         public CustodianReportItemStockService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,            
             IUserService userService,
             IExceptionService<CustodianReportItemStockVM> xtraExceptionService,
             ICustodianReportItemStockValidator validator,
-            IAnnexDService annexDService) : base(db, allFieldService, exceptions, exceptionService, userService)
+            IAnnexDService annexDService) : base(db, appManEntitiesFactory, allFieldService, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
             _validator = validator;
@@ -179,7 +175,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName)
+        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand)
         {
             IQueryable<CustodianReportItemStockVM> data = null;
             if (deptId != null)
@@ -187,6 +183,10 @@ namespace iLgs.Services.CustodianReports
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
+                if (data.Any() && isDemand == true)
+                {
+                    data = data.Where(w => w.Annex == "C");
+                }
             }
             return data ?? Enumerable.Empty<CustodianReportItemStockVM>().AsQueryable();
         }

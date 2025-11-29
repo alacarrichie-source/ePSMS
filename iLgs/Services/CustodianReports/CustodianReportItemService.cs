@@ -9,6 +9,7 @@ using System;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -25,6 +26,12 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
+
+        Task<int> GetSetLotNoCountAsync(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo);
+        Task<decimal?> GetSetLotNoAmountAsync(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo);
+
+        Task UpdateAllSetLotRemarksAsync(int forYear);
+
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
@@ -35,6 +42,7 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportItemService : BaseValidator, ICustodianReportItemService
     {
         protected readonly AppManEntities _db;
+        protected readonly IAppManEntitiesFactory _contextFactory;
         protected readonly IAllFieldService _allFieldService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportItem> _exceptionService;
@@ -42,12 +50,14 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,
             IUserService userService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _allFieldService = allFieldService;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
@@ -93,42 +103,52 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new InvalidValueException("For Year is Required.");
             }
-
+            var asOfDate = Utility.GetAsOfDate((int)model.ForYear);
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
-            if (custodianReport == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                custodianReport = new CustodianReport();
-                custodianReport.Id = Guid.NewGuid();
-                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
-                custodianReport.DeptId = model.MainDeptId;
-                custodianReport.Department = model.MainDeptName;
-                custodianReport.AccountGroup = model.AccountGroup;
-                custodianReport.InsertedBy = user;
-                custodianReport.InsertedDt = date;
-                custodianReport.UpdatedBy = user;
-                custodianReport.UpdatedDt = date;
-                _db.CustodianReports.Add(custodianReport);
-                await _db.SaveChangesAsync();
+                var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+                if (custodianReport == null)
+                {
+                    custodianReport = new CustodianReport();
+                    custodianReport.Id = Guid.NewGuid();
+                    custodianReport.AsOf = asOfDate;
+                    custodianReport.DeptId = model.MainDeptId;
+                    custodianReport.Department = model.MainDeptName;
+                    custodianReport.AccountGroup = model.AccountGroup;
+                    custodianReport.InsertedBy = user;
+                    custodianReport.InsertedDt = date;
+                    custodianReport.UpdatedBy = user;
+                    custodianReport.UpdatedDt = date;
+                    ctx.CustodianReports.Add(custodianReport);
+                    await ctx.SaveChangesAsync();
+                }
+
+                model.ReportId = custodianReport.Id;
+                ValidateIfSubmitted(model);
+                if (!string.IsNullOrWhiteSpace(model.SetLotNo))
+                {
+                    model.SetLotNo = model.SetLotNo.Trim();
+                }
+
+                ValidateFieldsOnCreateUpdate(model, Mode.ADD);
+                ValidateSerials(model, Mode.EDIT);
+
+                var entity = new CustodianReportItem();
+                MapModelToEntityFields(entity, model, Mode.ADD);
+
+                ctx.CustodianReportItems.Add(entity);
+
+                await ctx.SaveChangesAsync();
+                await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, model.LocationId, model.SetLotNo);
+
+                return model;
             }
-
-            model.ReportId = custodianReport.Id;
-            ValidateIfSubmitted(model);
-            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
-            ValidateSerials(model, Mode.EDIT);
-
-            var entity = new CustodianReportItem();
-            MapModelToEntityFields(entity, model, Mode.ADD);
-
-            _db.CustodianReportItems.Add(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
         }
 
         public virtual async ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date)
@@ -136,23 +156,97 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportItems.Include(i => i.CustodianReport).FirstOrDefaultAsync(f => f.Id == model.Id);
-            ValidateRecord(entity, model.Id);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
-            ValidateUser(entity, model);
-            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
-            ValidateSerials(model, Mode.EDIT);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportItems.Include(i => i.CustodianReport).FirstOrDefaultAsync(f => f.Id == model.Id);
+                var prevSetLotNo = entity.SetLotNo;
+                var prevLocationId = entity.LocationId;
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                ValidateRecord(entity, model.Id);
+                ValidateIfPosted(entity);
+                ValidateIfSubmitted(model);
+                //ValidateUser(entity, model);
 
-            _db.CustodianReportItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                if (!string.IsNullOrWhiteSpace(model.SetLotNo))
+                {
+                    model.SetLotNo = model.SetLotNo.Trim();
+                }
 
-            return model;
+                ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
+                ValidateSerials(model, Mode.EDIT);
+
+                MapModelToEntityFields(entity, model, Mode.EDIT);
+
+                //ctx.CustodianReportItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                var asOfDate = Utility.GetAsOfDate((int)model.ForYear);
+                if (prevSetLotNo != model.SetLotNo)
+                {
+                    await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, prevLocationId, prevSetLotNo);
+                }
+                await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, model.LocationId, model.SetLotNo);
+
+                return model;
+            }
         }
 
+        public async Task UpdateAllSetLotRemarksAsync(int forYear)
+        {
+            var asOfDate = Utility.GetAsOfDate(forYear);                        
+            var custudianReportItemGroups = await _db.CustodianReportItems
+               .Where(w => w.CustodianReport.AsOf == asOfDate && (w.SetLotNo.StartsWith("S") || w.SetLotNo.StartsWith("L")))
+               .GroupBy(g => new { g.CustodianReport.DeptId, g.LocationId, g.SetLotNo })
+               .Select(g => new { g.Key.DeptId, g.Key.LocationId, g.Key.SetLotNo })
+               .ToListAsync();
+
+            foreach (var custodianReportItemGroup in custudianReportItemGroups)
+            {
+                await UpdateSetLotRemarksRawAsync(asOfDate, 
+                    custodianReportItemGroup.DeptId, 
+                    custodianReportItemGroup.LocationId,
+                    custodianReportItemGroup.SetLotNo);
+            }
+
+        }
+
+        private async Task UpdateSetLotRemarksRawAsync(DateTime asOfDate, Guid? deptId, Guid? locationId, string setLotNo)
+        {
+            if (string.IsNullOrWhiteSpace(setLotNo))
+            {
+                return;
+            }
+
+            var items = await _db.CustodianReportItems
+                .Where(w => w.CustodianReport.AsOf == asOfDate
+                    && w.CustodianReport.DeptId == deptId
+                    && w.LocationId == locationId
+                    && w.SetLotNo == setLotNo)
+                .OrderBy(o => o.Annex)
+                .ThenBy(t => t.ItemCode.ItemType.GroupCode)
+                .ThenBy(t => t.ItemCode.ItemType.Code)
+                .ThenBy(t => t.ItemCode.ItemNoIndex)
+                .Select(s => new { s.Id })
+                .ToListAsync();
+
+            if (items.Any())
+            {
+                var total = items.Count;
+                var sb = new StringBuilder();
+
+                int index = 1;
+                foreach (var item in items)
+                {
+                    var remarks = $"{index++} of {total}";
+                    sb.AppendLine($"UPDATE CustodianReportItems SET SetLotRemarks = '{remarks}' WHERE Id = '{item.Id}';");
+                }
+
+                var sql = sb.ToString();
+                await _db.Database.ExecuteSqlCommandAsync(TransactionalBehavior.EnsureTransaction, sql);
+            }
+        }
+        
         private void ValidateSerials(CustodianReportItem model, Mode mode)
         {
             _imex = new InvalidModelException();
@@ -249,6 +343,16 @@ namespace iLgs.Services.CustodianReports
         {
             _imex = new InvalidModelException();
 
+            if (!string.IsNullOrWhiteSpace(model.SetLotNo) && model.SetLotNo.Contains(" "))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Space is not allowed in Set/Lot No.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.SetLotNo) && model.SetLotNo.Length == 1)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Invalid Value.");
+            }
+
             if (!string.IsNullOrWhiteSpace(model.SetLotNo) && (!model.SetLotAmount.HasValue || model.SetLotAmount == 0))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotAmount)), "Set/Lot Amount is Required if with Set/Lot No.");
@@ -265,7 +369,7 @@ namespace iLgs.Services.CustodianReports
             //    //if ((model.SetLotAmount.HasValue && model.SetLotAmount > 0) && !string.IsNullOrWhiteSpace(model.SetLotNo))
             //    if (!string.IsNullOrWhiteSpace(model.SetLotNo))
             //    {
-            //        if (_db.CustodianReportItems.Any(a => a.ReportId == model.ReportId 
+            //        if (ctx.CustodianReportItems.Any(a => a.ReportId == model.ReportId 
             //            && a.LocationCode == model.LocationCode
             //            && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
             //        {
@@ -278,21 +382,25 @@ namespace iLgs.Services.CustodianReports
             {
                 if (mode == Mode.ADD)
                 {
-                    if (_db.CustodianReportItems.Any(a => a.ReportId == model.ReportId
+                    var item = _db.CustodianReportItems.Where(a => a.ReportId == model.ReportId
                         && a.LocationCode == model.LocationCode
-                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
+                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount && a.SetLotAmount > 0);
+                    if (item.Any())
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot Amount with different value already exist for the same Set/Lot No.");
+                        var amount = item.FirstOrDefault().SetLotAmount;
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), $"Set/Lot Amount with a value of {amount.Value:N2} already exist for the same Set/Lot No.");
                     }
                 }
                 else
                 {
-                    if (_db.CustodianReportItems.Any(a => a.Id != model.Id 
+                    var item = _db.CustodianReportItems.Where(a => a.Id != model.Id
                         && a.ReportId == model.ReportId
                         && a.LocationCode == model.LocationCode
-                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
+                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount && a.SetLotAmount > 0);
+                    if (item.Any())
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot Amount with different value already exist for the same Set/Lot No.");
+                        var amount = item.FirstOrDefault().SetLotAmount;
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), $"Set/Lot Amount with a value of {amount.Value:N2} already exist for the same Set/Lot No.");
                     }
                 }
             
@@ -310,6 +418,14 @@ namespace iLgs.Services.CustodianReports
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
+            {
+                if (string.IsNullOrWhiteSpace(model.Remarks))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
+                }
+            }
+
             _imex.ThrowIfContainsErrors();
         }
 
@@ -318,67 +434,90 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportItems.FirstOrDefaultAsync(f => f.Id == model.Id);
-            ValidateRecord(entity, model.Id);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
-
-            // manually remove, cascade is not working due to multiple relationship.
-            var custodianReportUpload = await _db.CustodianReportUploads.FindAsync(entity.Id);
-            if (custodianReportUpload != null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                _db.CustodianReportUploads.Remove(entity.CustodianReportUpload);
-                _db.Entry(entity.CustodianReportUpload).State = EntityState.Deleted;
-                await _db.SaveChangesAsync();
+                var entity = await ctx.CustodianReportItems.FirstOrDefaultAsync(f => f.Id == model.Id);
+                ValidateRecord(entity, model.Id);
+                ValidateIfPosted(entity);
+                ValidateIfSubmitted(model);
+
+                // manually remove, cascade is not working due to multiple relationship.
+                var custodianReportUpload = await ctx.CustodianReportUploads.FindAsync(entity.Id);
+                if (custodianReportUpload != null)
+                {
+                    ctx.CustodianReportUploads.Remove(entity.CustodianReportUpload);
+                    //ctx.Entry(entity.CustodianReportUpload).State = EntityState.Deleted;
+                    await ctx.SaveChangesAsync();
+                }
+
+                //entity.UpdatedBy = model.UpdatedBy;
+                //entity.UpdatedDt = model.UpdatedDt;
+
+                //ctx.CustodianReportItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                //await ctx.SaveChangesAsync();
+
+                var reportId = entity.ReportId;
+                var locationId = entity.LocationId;
+                var setLotNo = entity.SetLotNo;
+
+                ctx.CustodianReportItems.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+
+                await ctx.SaveChangesAsync();
+
+                var custodianReport = await ctx.CustodianReports.Where(w => w.Id == reportId).FirstOrDefaultAsync();
+                if (custodianReport != null)
+                {
+                    var asOfDate = (DateTime)custodianReport.AsOf;
+                    var deptId = custodianReport.DeptId;
+                    await UpdateSetLotRemarksRawAsync(asOfDate, deptId, locationId, setLotNo);
+                }
+
+                return model;
             }
-
-            //entity.UpdatedBy = model.UpdatedBy;
-            //entity.UpdatedDt = model.UpdatedDt;
-
-            //_db.CustodianReportItems.Attach(entity);
-            //_db.Entry(entity).State = EntityState.Modified;
-            //await _db.SaveChangesAsync();
-
-            _db.CustodianReportItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-            return model;
         }
 
         public virtual ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportItems.FindAsync(id);
-            ValidateRecord(entity, id);
-            ValidateIfPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportItems.FindAsync(id);
+                ValidateRecord(entity, id);
+                ValidateIfPosted(entity);
 
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.CustodianReportItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //ctx.CustodianReportItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         public virtual ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportItems.FindAsync(id);
-            ValidateRecord(entity, id);
-            ValidateIfNotPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportItems.FindAsync(id);
+                ValidateRecord(entity, id);
+                ValidateIfNotPosted(entity);
 
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = "";
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.CustodianReportItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //ctx.CustodianReportItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         protected AllField SetAllField(CustodianReportItem custodianReportItem)
@@ -417,7 +556,7 @@ namespace iLgs.Services.CustodianReports
             model.DosageStrength = model.AllField.DosageStrength;
             model.DosageVolume = model.AllField.DosageVolume;
             model.Multipliers = model.AllField.Multipliers;
-            model.DosageForm = model.AllField.SerialNo;
+            // model.SerialNo = model.AllField.SerialNo;
             model.PropNo = model.AllField.PropNo;
 
             model.SerialNo = model.AllField.SerialNo;
@@ -461,7 +600,7 @@ namespace iLgs.Services.CustodianReports
             entity.AcqDate = model.AcqDate;
             entity.UnitCost = model.UnitCost;
             entity.Unit = model.Unit;
-            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotNo = string.IsNullOrWhiteSpace(model.SetLotNo) ? model.SetLotNo : model.SetLotNo.ToUpper();
             entity.DeptId = model.DeptId;
             entity.Department = model.Department;
             entity.LocationId = model.LocationId;
@@ -530,7 +669,16 @@ namespace iLgs.Services.CustodianReports
             entity.Annex = model.Annex?.ToUpper();
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-            entity.SetLotAmount = model.SetLotAmount;
+            if (!string.IsNullOrWhiteSpace(model.SetLotNo) && (model.SetLotNo.ToUpper().StartsWith("S") || model.SetLotNo.ToUpper().StartsWith("L")))
+            {
+                entity.SetLotAmount = model.SetLotAmount;
+                entity.TotalCost = 0;
+            }
+            else
+            {
+                entity.TotalCost = model.TotalCost;
+                entity.SetLotAmount = 0;
+            }
             entity.SetLotRemarks = model.SetLotRemarks;
             entity.PriceRate = model.PriceRate;
             entity.ProRatedCost = model.ProRatedCost;
@@ -540,6 +688,31 @@ namespace iLgs.Services.CustodianReports
 
             //entity.PostedBy = model.PostedBy;
             //entity.PostedDt = model.PostedDt;
+        }
+
+        public async Task<int> GetSetLotNoCountAsync(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo)
+        {
+            if (string.IsNullOrWhiteSpace(setLotNo))
+            {
+                return 0;
+            }
+
+            return await _db.CustodianReportItems.Where(w => w.CustodianReport.DeptId == deptId
+                && w.CustodianReport.AsOf.Value.Year == forYear
+                && w.LocationId == locationId && w.SetLotNo == setLotNo && w.Id != custodianReportItemId).CountAsync();
+        }
+
+        public async Task<decimal?> GetSetLotNoAmountAsync(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo)
+        {
+            if (string.IsNullOrWhiteSpace(setLotNo))
+            {
+                return 0;
+            }
+
+            return (await _db.CustodianReportItems.Where(w => w.CustodianReport.DeptId == deptId
+                && w.CustodianReport.AsOf.Value.Year == forYear
+                && w.LocationId == locationId && w.SetLotNo == setLotNo && w.SetLotAmount > 0 
+                && w.Id != custodianReportItemId).Select(s => s.SetLotAmount).FirstOrDefaultAsync());
         }
 
         public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName)
@@ -629,20 +802,20 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.AirDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
 
-            //var pars = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ics = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ares = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var mrs = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var pars = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ics = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ares = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var mrs = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
 
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(pars) ? "" : "\r\n" + pars)} " +
             //    $"/ {(reportItem.IcsNo ?? "") + (string.IsNullOrWhiteSpace(ics) ? "" : "\r\n" + ics)} " +
             //    $"/ {(reportItem.AreNo ?? "") + (string.IsNullOrWhiteSpace(ares) ? "" : "\r\n" + ares)} " +
             //    $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(mrs) ? "" : "\r\n" + mrs)}");
 
-            //var parOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var icsOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var areOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var mrOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var parOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var icsOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var areOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var mrOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
 
 
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(parOfficers) ? "" : "\r\n" + parOfficers)} " +
@@ -650,19 +823,19 @@ namespace iLgs.Services.CustodianReports
             //    $"/ {(reportItem.AreOfficer ?? "") + (string.IsNullOrWhiteSpace(areOfficers) ? "" : "\r\n" + areOfficers)} " +
             //    $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(mrOfficers) ? "" : "\r\n" + mrOfficers)}");
 
-            //var parIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var icsIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var areIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var mrIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var parIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var icsIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var areIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var mrIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(parIssuedTo) ? "" : "\r\n" + parIssuedTo)} " +
             //    $"/ {(reportItem.IcsIssuedTo ?? "") + (string.IsNullOrWhiteSpace(icsIssuedTo) ? "" : "\r\n" + icsIssuedTo)} " +
             //    $"/ {(reportItem.AreIssuedTo ?? "") + (string.IsNullOrWhiteSpace(areIssuedTo) ? "" : "\r\n" + areIssuedTo)} " +
             //    $"/ {(reportItem.MrIssuedTo ?? "") + (string.IsNullOrWhiteSpace(mrIssuedTo) ? "" : "\r\n" + mrIssuedTo)}");
 
-            //var pars = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ics = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ares = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var mrs = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var pars = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ics = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ares = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var mrs = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
 
             ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.Par) ? "" : "\r\n" + reportItem.Par)} " +
                 $"/ {(reportItem.IcsNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.Ics) ? "" : "\r\n" + reportItem.Ics)} " +
@@ -742,10 +915,10 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.AirDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
 
-            //var pars = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ics = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ares = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var mrs = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var pars = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ics = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ares = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var mrs = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
 
             ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.Par) ? "" : "\r\n" + reportItem.Par)} " +
                 $"/ {(reportItem.IcsNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.Ics) ? "" : "\r\n" + reportItem.Ics)} " +
@@ -753,10 +926,10 @@ namespace iLgs.Services.CustodianReports
                 $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.Mr) ? "" : "\r\n" + reportItem.Mr)}" +
                 $"/ {(reportItem.RpcPpeNo ?? "") + (string.IsNullOrWhiteSpace(reportItem.RpcPpe) ? "" : "\r\n" + reportItem.RpcPpe)}");
 
-            //var parOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var icsOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var areOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var mrOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var parOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var icsOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var areOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var mrOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
 
             ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(reportItem.ParOfficers) ? "" : "\r\n" + reportItem.ParOfficers)} " +
                 $"/ {(reportItem.IcsOfficer ?? "") + (string.IsNullOrWhiteSpace(reportItem.IcsOfficer) ? "" : "\r\n" + reportItem.IcsOfficers)} " +
@@ -764,10 +937,10 @@ namespace iLgs.Services.CustodianReports
                 $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(reportItem.MrOfficers) ? "" : "\r\n" + reportItem.MrOfficers)}" +
                 $"/ {(reportItem.RpcPpeOfficer ?? "") + (string.IsNullOrWhiteSpace(reportItem.RpcPpeOfficers) ? "" : "\r\n" + reportItem.RpcPpeOfficers)}");
 
-            //var parIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var icsIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var areIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var mrIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var parIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var icsIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var areIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var mrIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
 
             ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(reportItem.ParIssuedsTo) ? "" : "\r\n" + reportItem.ParIssuedsTo)} " +
                 $"/ {(reportItem.IcsIssuedTo ?? "") + (string.IsNullOrWhiteSpace(reportItem.IcsIssuedsTo) ? "" : "\r\n" + reportItem.IcsIssuedsTo)} " +
@@ -845,20 +1018,20 @@ namespace iLgs.Services.CustodianReports
 
             ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
 
-            //var pars = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ics = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var ares = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
-            //var mrs = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var pars = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ics = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var ares = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //var mrs = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
 
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(pars) ? "" : "\r\n" + pars)} " +
             //    $"/ {(reportItem.IcsNo ?? "") + (string.IsNullOrWhiteSpace(ics) ? "" : "\r\n" + ics)} " +
             //    $"/ {(reportItem.AreNo ?? "") + (string.IsNullOrWhiteSpace(ares) ? "" : "\r\n" + ares)} " +
             //    $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(mrs) ? "" : "\r\n" + mrs)}");
 
-            //var parOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var icsOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var areOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
-            //var mrOfficers = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var parOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var icsOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var areOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            //var mrOfficers = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
 
 
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(parOfficers) ? "" : "\r\n" + parOfficers)} " +
@@ -866,10 +1039,10 @@ namespace iLgs.Services.CustodianReports
             //    $"/ {(reportItem.AreOfficer ?? "") + (string.IsNullOrWhiteSpace(areOfficers) ? "" : "\r\n" + areOfficers)} " +
             //    $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(mrOfficers) ? "" : "\r\n" + mrOfficers)}");
 
-            //var parIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var icsIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var areIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
-            //var mrIssuedTo = string.Join("\r\n", _db.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var parIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var icsIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ICS").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var areIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            //var mrIssuedTo = string.Join("\r\n", ctx.CustodianReportItemIssuances.Where(w => w.ReportItemId == reportItem.ReportId && w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
             //ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(parIssuedTo) ? "" : "\r\n" + parIssuedTo)} " +
             //    $"/ {(reportItem.IcsIssuedTo ?? "") + (string.IsNullOrWhiteSpace(icsIssuedTo) ? "" : "\r\n" + icsIssuedTo)} " +
             //    $"/ {(reportItem.AreIssuedTo ?? "") + (string.IsNullOrWhiteSpace(areIssuedTo) ? "" : "\r\n" + areIssuedTo)} " +
@@ -1235,7 +1408,16 @@ namespace iLgs.Services.CustodianReports
                     var codextn = _db.Codextns.Find(deptId);
                     ws.Row(10).Cell(2).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
-                
+
+                if (!reportItems.Any())
+                {
+                    var accountCell = ws.Row(6).Cell(2);
+                    accountCell.SetValue(mainAccount);
+                    accountCell.Style.Font.Bold = true;
+                    accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    accountCell.Style.Alignment.WrapText = false;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
@@ -1243,32 +1425,14 @@ namespace iLgs.Services.CustodianReports
                         itemTypeIndex = reportItem.ItemTypeIndex;
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
-                        department = reportItem.Department;
-                        //if (!string.IsNullOrWhiteSpace(annex))
-                        //{
-                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                        //    ws.Row(4).Cell(2).SetValue(hdg);
-                        //}
-                        //if (asOf.HasValue)
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        //}
-                        //else
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        //}
-                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        //if (id == null)
-                        //{
-                        //    if (deptId == null || deptId == Guid.Empty)
-                        //    {
-                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        //    }
-                        //}
-
-                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        department = reportItem.Department;                        
                         sw = 0;
+
+                        var accountCell = ws.Row(6).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
                     }
 
                     if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.Department)
@@ -1450,6 +1614,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(10).Cell(2).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
+                if (!reportItems.Any())
+                {
+                    var accountCell = ws.Row(6).Cell(2);
+                    accountCell.SetValue(mainAccount);
+                    accountCell.Style.Font.Bold = true;
+                    accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    accountCell.Style.Alignment.WrapText = false;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
@@ -1457,34 +1630,14 @@ namespace iLgs.Services.CustodianReports
                         itemTypeIndex = reportItem.ItemTypeIndex;
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
-                        department = reportItem.Department;
-                        //if (!string.IsNullOrWhiteSpace(annex))
-                        //{
-                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                        //    ws.Row(4).Cell(2).SetValue(hdg);
-                        //}
-
-                        //if (asOf.HasValue)
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        //}
-                        //else
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        //}
-
-                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        //if (id == null)
-                        //{
-                        //    if (deptId == null || deptId == Guid.Empty)
-                        //    {
-                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        //    }
-                        //}
-
-                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        department = reportItem.Department;                        
                         sw = 0;
+
+                        var accountCell = ws.Row(6).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
                     }
 
                     if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.Department)
@@ -1666,6 +1819,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(10).Cell(2).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
+                if (!reportItems.Any())
+                {
+                    var accountCell = ws.Row(6).Cell(2);
+                    accountCell.SetValue(mainAccount);
+                    accountCell.Style.Font.Bold = true;
+                    accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    accountCell.Style.Alignment.WrapText = false;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
@@ -1674,31 +1836,13 @@ namespace iLgs.Services.CustodianReports
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
                         department = reportItem.Department;
-                        //if (!string.IsNullOrWhiteSpace(annex))
-                        //{
-                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                        //    ws.Row(4).Cell(2).SetValue(hdg);
-                        //}
-                        //if (asOf.HasValue)
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        //}
-                        //else
-                        //{
-                        //    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        //}
-                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        //if (id == null)
-                        //{
-                        //    if (deptId == null || deptId == Guid.Empty)
-                        //    {
-                        //        ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        //    }
-                        //}
-
-                        //ws.Row(10).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         sw = 0;
+
+                        var accountCell = ws.Row(6).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
                     }
 
                     if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.Department)

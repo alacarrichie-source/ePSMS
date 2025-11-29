@@ -310,7 +310,7 @@ namespace iLgs.Controllers
                     model.UpdatedDt = model.InsertedDt;
 
                     _db.CodeMasts.Add(model);
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -361,7 +361,7 @@ namespace iLgs.Controllers
 
                         _db.CodeMasts.Attach(entity);
                         _db.Entry(entity).State = EntityState.Modified;
-                        _db.SaveChanges();
+                        await _db.SaveChangesAsync();
                     }
                 }
             }
@@ -399,7 +399,7 @@ namespace iLgs.Controllers
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)

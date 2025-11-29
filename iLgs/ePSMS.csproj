@@ -321,12 +321,14 @@
     <Compile Include="Controllers\CardController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\ChatController.cs" />
+    <Compile Include="Controllers\CustodianAccountabilityController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
     <Compile Include="Controllers\CustodianIirupController.cs" />
     <Compile Include="Controllers\CustodianReportBldgController.cs" />
     <Compile Include="Controllers\CustodianReportController.cs" />
     <Compile Include="Controllers\CustodianReportCountController.cs" />
     <Compile Include="Controllers\CustodianReportLandController.cs" />
+    <Compile Include="Controllers\CustodianUploadScanController.cs" />
     <Compile Include="Controllers\DollarRateController.cs" />
     <Compile Include="Controllers\IcsParRptController.cs" />
     <Compile Include="Controllers\IcsParUpdateController.cs" />
@@ -335,6 +337,7 @@
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\ItemListController.cs" />
     <Compile Include="Controllers\LocationController.cs" />
+    <Compile Include="Controllers\LoggingController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
@@ -385,6 +388,7 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AllFieldsViewModels.cs" />
+    <Compile Include="Models\AppManEntieis_bak.cs" />
     <Compile Include="Models\AppManEntities.cs" />
     <Compile Include="Models\AspNetRole.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -468,6 +472,7 @@
     <Compile Include="Models\ErrorLog.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ErrorLogViewModels.cs" />
     <Compile Include="Models\IcsPar.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -923,6 +928,7 @@
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemPhaseService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceRpcPpeService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportSubmitForCountService.cs" />
+    <Compile Include="Services\CustodianUploads\CustodianDeptUploadService.cs" />
     <Compile Include="Services\Items\ItemCodeRequestService.cs" />
     <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
@@ -966,7 +972,7 @@
     <Compile Include="Services\ParIcs\IcsParSharedService.cs" />
     <Compile Include="Services\ParIcs\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
-    <Compile Include="Services\LoggingService.cs" />
+    <Compile Include="Services\Logs\LoggingService.cs" />
     <Compile Include="Services\ParIcs\IcsSharedService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnAddCostService.cs" />
@@ -1232,6 +1238,7 @@
     <Compile Include="Utilities\AllFieldsUtil.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
+    <Compile Include="Utilities\AppManEntitiesFactory.cs" />
     <Compile Include="Utilities\DefaultDependencyResolver.cs" />
     <Compile Include="Utilities\ServiceProviderControllerFactory.cs" />
     <Compile Include="Utilities\SignalRHubs.cs" />
@@ -4301,6 +4308,15 @@
     <Content Include="Views\CustodianReportLand\LandQuery.cshtml" />
     <Content Include="Views\Chat\_Chat.cshtml" />
     <Content Include="Views\Chat\_ChatScripts.cshtml" />
+    <Content Include="Views\Items\_PrintItem.cshtml" />
+    <Content Include="Views\CustodianReport\Uploads.cshtml" />
+    <Content Include="Views\Logging\Index.cshtml" />
+    <Content Include="Views\CustodianAccountability\Index.cshtml" />
+    <Content Include="Views\CustodianAccountability\_ImagesAdd.cshtml" />
+    <Content Include="Views\CustodianAccountability\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\CustodianUploadScan\_Scanned.cshtml" />
+    <Content Include="Views\CustodianUploadScan\_ScannedAdd.cshtml" />
+    <Content Include="Views\CustodianUploadScan\EditorTemplates\_ScannedTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4647,6 +4663,9 @@
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnBldgTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\RpcPpe\_Print.cshtml" />
+    <Content Include="Views\RIS\_RISAddEdit.cshtml" />
+    <Content Include="Views\RIS\_RISItemUnitGroupAddEdit.cshtml" />
+    <Content Include="Views\Requests\_RequestAddEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4812,7 +4831,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

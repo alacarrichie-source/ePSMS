@@ -118,7 +118,9 @@ namespace iLgs.Services.PropertyCard
                         || c == CatMilitarySupply()
                         || c == CatOtherSupplies()
                         || c == CatDrugsSupply()
-                        || c == CatRepairSupply()
+                        || c == CatFuelOilSupply()
+                        || c == CatSemiExpendableFurnitureSupply()
+                        || c == CatSemiExpendableMachinerySupply()
                         )
                     {
                         itemExtnName = "ItemExtnOther";

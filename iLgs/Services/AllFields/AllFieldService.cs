@@ -708,10 +708,24 @@ namespace iLgs.Services.AllFields
 
         public bool IsBrandRequired(Category c)
         {
-            return (c == CatMachineriesProp() || c == CatTransportationProp() || c == CatFurnituresProp() || c == CatOtherProperties()
-                    || c == CatMedicalSupply() || c == CatAgriculturalSupply() || c == CatAnimalSupplies() || c == CatConstructionMaterialsSupply()
-                    || c == CatOfficeSupplies() || c == CatAccountableFormsSupply() || c == CatNonAccountableFornsSupply() || c == CatMilitarySupply()
-                    || c == CatOtherSupplies() || c == CatRepairSupply()) || c == CatDrugsSupply();
+            return (c == CatMachineriesProp() 
+                    || c == CatTransportationProp() 
+                    || c == CatFurnituresProp() 
+                    || c == CatOtherProperties()
+                    || c == CatMedicalSupply() 
+                    || c == CatAgriculturalSupply() 
+                    || c == CatAnimalSupplies() 
+                    || c == CatConstructionMaterialsSupply()
+                    || c == CatOfficeSupplies() 
+                    || c == CatAccountableFormsSupply() 
+                    || c == CatNonAccountableFornsSupply() 
+                    || c == CatMilitarySupply()
+                    || c == CatOtherSupplies()
+                   //|| c == CatRepairSupply()) 
+                    || c == CatFuelOilSupply()
+                    || c == CatSemiExpendableFurnitureSupply()
+                    || c == CatSemiExpendableMachinerySupply() 
+                    || c == CatDrugsSupply());
         }
 
         //string partialView = AllFieldsUtil.GetPartialView(itemCode);

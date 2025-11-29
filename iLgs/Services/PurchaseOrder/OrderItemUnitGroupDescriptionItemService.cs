@@ -11,7 +11,7 @@ namespace iLgs.Services.PurchaseOrder
     {
         IQueryable<OrderItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
-        void UpdateOrderItem(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
+        Task UpdateOrderItemAsync(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> CreateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> DeleteAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
@@ -166,15 +166,15 @@ namespace iLgs.Services.PurchaseOrder
             //_db.Entry(item).State = EntityState.Modified;
             //await _db.SaveChangesAsync();
 
-            UpdateOrderItem(model.OrderItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
+            await UpdateOrderItemAsync(model.OrderItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
 
             return model;
         });
 
-        public void UpdateOrderItem(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
+        public async Task UpdateOrderItemAsync(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
-            var orderItem = _db.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefault();
-            var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefault();
+            var orderItem = await _db.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
+            var unitGroup = await _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefaultAsync();
             //var totalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
             //var setUnitCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
             //var setTotalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
@@ -198,7 +198,7 @@ namespace iLgs.Services.PurchaseOrder
             orderItem.UpdatedDt = date;
             _db.OrderItems.Attach(orderItem);
             _db.Entry(orderItem).State = EntityState.Modified;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
     }
 }

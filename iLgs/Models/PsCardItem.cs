@@ -83,6 +83,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PostedDt { get; set; }
         public Nullable<decimal> ProRatedCost { get; set; }
         public Nullable<int> OtherQty { get; set; }
+        public string PpmpCode { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

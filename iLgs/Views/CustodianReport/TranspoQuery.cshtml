@@ -102,6 +102,7 @@
                     source.Read(read =>
                     {
                         read.Action("GetCustodianMainAccounts", "Getters").Data("DataAccount");
+                        //read.Action("GetCustodianMainAccounts", "ItemHelper").Data("DataAccount");
                     })
                     .ServerFiltering(true);
                 })
@@ -258,7 +259,7 @@
         {
             col.Bound(c => c.CustodianItemIndex).Hidden();
             col.Bound(c => c.MainDeptName).Width(70);
-            col.Bound(c => c.CustodianItemNo).Width(70);
+            col.Bound(c => c.CustodianItemNo).Width(50);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
@@ -274,11 +275,11 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.Description).Width(70);
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);
-            col.Bound(c => c.IsPosted).Width(50);
+            col.Bound(c => c.IsPosted).Width(30);
         })
         .ToolBar(t =>
         {

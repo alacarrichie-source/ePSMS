@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace iLgs.Services.PoIssuance
 
     public class PoIssuanceUploadService : UploadService, IPoIssuanceUploadService
     {
-        public PoIssuanceUploadService(AppManEntities db)
-            : base(db, "ISSUANCE")
+        public PoIssuanceUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "ISSUANCE")
         {
         }
 

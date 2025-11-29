@@ -49,11 +49,7 @@ namespace iLgs.Utilities
         }
 
         public void Send(string name, string message)
-        {
-            //var hubContext = GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
-            ////hubContext.Clients.All.broadcastMessage(name, message, DateTime.Now.ToString("HH:mm"));
-            //hubContext.Clients.All.sendTest(message);
-
+        {           
             Clients.All.sendTest($"{name}: {message}");
         }
         

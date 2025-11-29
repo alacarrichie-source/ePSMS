@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -15,8 +16,8 @@ namespace iLgs.Services.ParIcs
 
     public class ParIcsUploadService : UploadService, IParIcsUploadService
     {
-        public ParIcsUploadService(AppManEntities db) 
-            : base(db, "PAR")
+        public ParIcsUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory) 
+            : base(db, appManEntitiesFactory, "PAR")
         {            
         }
         

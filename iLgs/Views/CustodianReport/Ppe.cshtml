@@ -8,6 +8,7 @@
         <div class="col-md-9">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
+                .Enable(false)
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Decimals(0)
                 .Spinners(false)
@@ -23,30 +24,60 @@
     <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().MultiColumnComboBox()
-                .Name("deptId")
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                .Placeholder("Select Department")
-                .DataTextField("Description")
-                .DataValueField("Id")
-                .ValuePrimitive(true)
-                .Filter(FilterType.Contains)
-                .DataSource(source =>
-                {
-                    source.Read(read =>
-                    {
-                        read.Action("GetUserDepartmentsAsync", "Getters");
-                    })
-                    .ServerFiltering(true);
-                })
-                .Columns(c =>
-                {
-                    c.Add().Field("Code").Title("Code").Width("30%");
-                    c.Add().Field("Description").Title("Description").Width("70%");
-                })
-                .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
-                .Suggest(true)
-            )
+            @if (ViewBag.IsDemand)
+            {
+                @(Html.Kendo().MultiColumnComboBox()
+                        .Name("deptId")
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Department")
+                        .DataTextField("Description")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetDepartments", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("30%");
+                            c.Add().Field("Description").Title("Description").Width("70%");
+                        })
+                        .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
+                        .Suggest(true)
+                )
+            }
+            else
+            {
+                @(Html.Kendo().MultiColumnComboBox()
+                        .Name("deptId")
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Department")
+                        .DataTextField("Description")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserDepartmentsAsync", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("30%");
+                            c.Add().Field("Description").Title("Description").Width("70%");
+                        })
+                        .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
+                        .Suggest(true)
+                )
+            }
         </div>
     </div>
 </div>
@@ -94,7 +125,7 @@
         .Columns(col =>
         {
             col.Bound(c => c.CustodianItemIndex).Hidden();
-            col.Bound(c => c.CustodianItemNo).Width(70);
+            col.Bound(c => c.CustodianItemNo).Width(50);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
@@ -108,43 +139,63 @@
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.AcqDate).Width(50);
+            col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.Description).Width(70);
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(50);
-            col.Bound(c => c.IsPosted).Width(50);
-            col.Command(command =>
+            col.Bound(c => c.UpdatedBy).Width(50);
+            col.Bound(c => c.UpdatedDt).Width(50);
+            col.Bound(c => c.IsPosted).Width(30);
+            if (ViewBag.IsDemand)
             {
-                command.Edit();
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
-                command.Custom("Sticker").IconClass("k-icon k-i-print").Click("onGridPrintClick");
-                //command.Destroy();
-            }).Width(172);
+                col.Bound(c => c.Remarks).Width(70);
+                col.Command(command =>
+                {
+                    command.Edit();
+                }).Width(50);
+            }
+            else
+            {
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
+                    command.Custom("Sticker").IconClass("k-icon k-i-print").Click("onGridPrintClick");
+                }).Width(172);
+            }
         })
         .ToolBar(t =>
         {
-            t.Create().Text("Add New Record");
-            t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
-
-            if (ViewBag.AnnexDUser == true)
+            if (ViewBag.IsDemand)
             {
-                t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
             }
-            t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Upload").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Submit for Count").IconClass("k-icon k-i-track-changes-accept").Name("btnCount").HtmlAttributes(new
+            else
             {
-                id = "btnCount",
-                @class = "k-button",
-                href = ""                
-            });            
+                t.Create().Text("Add New Record");
+                t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+
+                if (ViewBag.AnnexDUser == true)
+                {
+                    t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
+                }
+                t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
+                //t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
+                //t.Custom().Text("Upload").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Submit for Count").IconClass("k-icon k-i-track-changes-accept").Name("btnCount").HtmlAttributes(new
+                {
+                    id = "btnCount",
+                    @class = "k-button",
+                    href = ""
+                });
+            }
             t.Search();
         })
         .Search(s =>
@@ -157,7 +208,7 @@
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
         })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width(1000).Title("Equipment Item")))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width("80%").Title("Equipment Item")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -304,7 +355,6 @@
         overflow-x: auto;
         height: calc(100vh - 330px) !important;
     }
-
 </style>
 
 
@@ -332,9 +382,10 @@
         grid.wrapper.find(".k-grid-btnExportD").hide();
         grid.wrapper.find(".k-grid-btnPost").hide();
         grid.wrapper.find(".k-grid-btnUnpost").hide();
-        grid.wrapper.find(".k-grid-btnDownload").hide();
-        grid.wrapper.find(".k-grid-btnUpload").hide();
+        //grid.wrapper.find(".k-grid-btnDownload").hide();
+        //grid.wrapper.find(".k-grid-btnUpload").hide();
         grid.wrapper.find(".k-grid-btnCount").hide();
+        grid.wrapper.find(".k-grid-btnFiles").hide();
     });
 
     var trackingId = null;
@@ -364,7 +415,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportA").click(function (e) {
@@ -385,7 +436,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportB").click(function (e) {
@@ -406,7 +457,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportC").click(function (e) {
@@ -427,7 +478,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportD").click(function (e) {
@@ -448,7 +499,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     function onShowNotification(e) {
@@ -505,11 +556,13 @@
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
+    var deptCode = null;
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
         trackingId = selectedId;
         reportId = null;
+        deptCode = dataItem.Code;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
         $("#grid").data("kendoGrid").dataSource.read();
@@ -521,6 +574,7 @@
             selectedId = null;
             trackingId = selectedId;
             reportId = null;
+            deptCode = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
         }
     }
@@ -536,7 +590,7 @@
         selectedSectionCode = dataItem.Code;
         $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
-        $("#grid").data("kendoGrid").dataSource.read();
+        //$("#grid").data("kendoGrid").dataSource.read();
     }
 
     function onChangeSectionId(e) {
@@ -561,6 +615,17 @@
         };
     }
 
+    function DataLocationId() {
+        var text = $("#LocationId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#LocationId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#deptId").val(),
+            text: text
+        };
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -570,7 +635,8 @@
             forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
             sectionId: $("#sectionId").val(),
-            accountGroup: '@ViewBag.AccountGroup'
+            accountGroup: '@ViewBag.AccountGroup',
+            isDemand: '@ViewBag.IsDemand'
         };
     }
 
@@ -616,21 +682,23 @@
         var grid = $("#grid");
         if ($("#deptId").data("kendoMultiColumnComboBox").value()) {
             this.wrapper.find(".k-grid-add").show();
-            this.wrapper.find(".k-grid-btnDownload").show();
+            //this.wrapper.find(".k-grid-btnDownload").show();
             $(".k-grid-btnExport", grid).show();
             $(".k-grid-btnExportA", grid).show();
             $(".k-grid-btnExportB", grid).show();
             $(".k-grid-btnExportC", grid).show();
+            $(".k-grid-btnFiles", grid).show();
         }
         else {
             this.wrapper.find(".k-grid-add").hide();
-            this.wrapper.find(".k-grid-btnDownload").hide();
+            //this.wrapper.find(".k-grid-btnDownload").hide();
             $(".k-grid-btnExport", grid).hide();
             $(".k-grid-btnExportA", grid).hide();
             $(".k-grid-btnExportB", grid).hide();
             $(".k-grid-btnExportC", grid).hide();
+            $(".k-grid-btnFiles", grid).hide();
         }
-        
+
         if (this.dataSource.data().length == 0) {
             //$(".k-grid-btnExport", grid).hide();
             //$(".k-grid-btnExportA", grid).hide();
@@ -661,7 +729,7 @@
 
         if (e.model.isNew()) {
             if (!$("#sectionId").val()) {
-                alert("Please select a loccation before proceeding.");
+                alert("Please select a location before proceeding.");
                 var wnd = e.container && e.container.data("kendoWindow");
                 if (wnd) {
                     wnd.close();
@@ -689,7 +757,9 @@
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
             var dataItem = e.model;
-            if (IsPosted(dataItem)) {
+            e.model.set("ForYear", $("#forYear").val());
+            e.model.set("MainDeptId", $("#deptId").val());
+            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True') {
                 setTimeout(function () {
                     var popup = e.container;
 
@@ -918,7 +988,7 @@
             msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
-            var url = "";           
+            var url = "";
             if (btnText == "Submit for Count")
             {
                 url = '@Url.Action("SubmitForCount", "CustodianReport")';
@@ -1094,9 +1164,12 @@
 
         if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
             var dataItem = comboBox.dataItem();
-            $("#SubAccount").val(dataItem.MainDesc).trigger("change");
-            $("#Account").val(dataItem.TypeDesc).trigger("change");
-            RefreshDivs(dataItem);
+            console.log(dataItem);
+            if (dataItem) {
+                $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+                $("#Account").val(dataItem.TypeDesc).trigger("change");
+                RefreshDivs(dataItem);
+            }
         }
     }
 
@@ -1123,7 +1196,7 @@
         var mywindow = $("#window").data("kendoWindow");
         if (mywindow) {
             mywindow.setOptions({
-                width: "1000",
+                width: "80%",
                 height: "auto"
             });
             mywindow.center(); // Optional: Center the window after resizing
@@ -1631,5 +1704,235 @@
             }
         });
     }
+
+
+    function onChangeSetLotNo()
+    {
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var locationId = $("#LocationId").val();
+        var custodianReportItemId = $("#Id").val();
+        var setLotNo = $("#SetLotNo").data("kendoMaskedTextBox").value();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetSetLotCount", "CustodianReport")',
+            data: {
+                foryear: forYear,
+                deptId: deptId,
+                locationId: locationId,
+                custodianReportItemId: custodianReportItemId,
+                setLotNo: setLotNo
+            },
+            beforeSend: function () {
+                window.kendo.ui.progress($("body, .k-window"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("body, .k-window"), false);
+                if (result.Count > 0)
+                {
+                    //$("#popupNotification").kendoNotification({
+                    //    autoHideAfter: 0, // don't auto-close
+                    //    button: true,     // show close button
+                    //    stacking: "down"  // optional: position new messages downward
+                    //});
+                    var popupNotification = $("#popupNotification").data("kendoNotification");
+                    popupNotification.show("Set/Lot Number " + setLotNo + " was already used " + result.Count + " time(s), " + "Amount = " + result.Amount.toLocaleString(), "info");
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+                window.kendo.ui.progress($("body, .k-window"), false);
+            }
+        });
+    }
+
+    // scanned documents (must be same in, stock, ppe, transpo, bldg.index, land.index)
+    var selectedGridScanItem = null;
+
+    function GridUploadScanError(e) {
+        if (e.errors) {
+
+            var subgrid = $("#gridScan").data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
+    function onUploadScanError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function DataGridScan() {
+        return {
+            accountGroup: '@ViewBag.AccountGroup'
+        };
+    }
+
+    $(".k-grid-btnFiles").click(function (e) {
+        e.preventDefault();
+        var myTitle = "Scanned Documents";
+        var width = "70%";
+        //var height = "70%";
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_Scanned", "CustodianUploadScan")',
+            data: {
+                deptCode: deptCode,
+                accountGroup: '@ViewBag.AccountGroup',
+                isAdmin: '@ViewBag.IsAdmin'
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+                //attachUploadEvent();
+            }
+        });
+        mywindow.open();
+    });
+
+    function onClickUploadScan(e) {
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        var gridName = $(button).data("gridname");
+        selectedGrid = $("#" + gridName).data("kendoGrid");
+        var deptCode = '@ViewData["deptCode"]';
+        var myUrl = '@Url.Action("_ScannedAdd", "CustodianUploadScan")?deptCode=' + deptCode +'&accountGroup=@ViewBag.AccountGroup';
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onUploadSuccessScan(e)
+    {
+        $("#gridScan").data("kendoGrid").dataSource.read();
+    }
+
+    function UploadParaScan(e) {
+        e.data = { deptCode: deptCode, Description: $("#Description").val(), accountGroup: '@ViewBag.AccountGroup' }
+    }
+
+    function onClickPreviewScan(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridScanItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("ScannedPreviewUpload", "CustodianUploadScan")?id=' + selectedGridScanItem;
+
+        window.open(myUrl, "_blank");
+
+    }
+
+    function onClickDownloadScan(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("ScannedDownloadFile", "CustodianUploadScan")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row.");
+        }
+    }
+
+    function onEditGridScan(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedGridScanItem = null;
+        } else {
+            selectedGridScanItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridScanItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridScan(e) {
+        if (selectedGridScanItem) {
+            var dataItem = this.dataSource.get(selectedGridScanItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onDeleteGridScan(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+    // end scanned documents
 </script>
 

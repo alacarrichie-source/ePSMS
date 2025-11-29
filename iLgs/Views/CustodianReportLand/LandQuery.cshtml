@@ -68,7 +68,8 @@
                 {
                     source.Read(read =>
                     {
-                        read.Action("GetCustodianMainAccounts", "Getters").Data("DataAccount");
+                        read.Action("GetCustodianLandMainAccounts", "Getters").Data("DataAccount");
+                        //read.Action("GetCustodianMainAccounts", "ItemHelper").Data("DataAccount");
                     })
                     .ServerFiltering(true);
                 })
@@ -222,7 +223,7 @@
         .Name("grid")
         .Columns(col =>
         {
-            col.Bound(c => c.CustodianItemNo).Width(70);
+            col.Bound(c => c.CustodianItemNo).Width(50);
             //col.Bound(c => c.CustodianItemIndex).Width(70);
             col.Bound(c => c.MainDeptName).Width(70);
             col.Bound(c => c.Account).Width(70);
@@ -240,7 +241,7 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.Description).Width(70);
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);

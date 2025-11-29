@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -15,14 +16,14 @@ namespace iLgs.Services.AIRs_
 
     public class AirUploadService : UploadService, IAirUploadService
     {
-        public AirUploadService(AppManEntities db)
-            : base(db, "AIR")
+        public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "AIR")
         {
         }
 
         // Constructor for other uploads like "REQUEST"
-        public AirUploadService(AppManEntities db, string type)
-            : base(db, type)
+        public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string type)
+            : base(db, appManEntitiesFactory, type)
         {
         }
 

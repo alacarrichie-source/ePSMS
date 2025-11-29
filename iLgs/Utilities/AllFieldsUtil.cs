@@ -66,7 +66,8 @@ namespace iLgs.Utilities
                 {
                     retval = CategoryGroup.DRUGS;
                 }
-                else if (c == CatRepairSupply())
+                //else if (c == CatRepairSupply())
+                else if (c == CatFuelOilSupply())
                 {
                     if (itemCode.Contains("-1.1") || itemCode.Contains("-2.1") || itemCode.Contains("-3.1") || itemCode.Contains("-4.1")
                         || itemCode.Contains("-7.1") || itemCode.Contains("-8.1") || itemCode.Contains("-9.1"))

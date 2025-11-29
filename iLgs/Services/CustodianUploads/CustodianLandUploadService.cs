@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -19,8 +20,8 @@ namespace iLgs.Services.CustodianUploads
 
     public class CustodianLandUploadService : UploadService, ICustodianLandUploadService
     {
-        public CustodianLandUploadService(AppManEntities db)
-            : base(db, "CUSTODIAN")
+        public CustodianLandUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "CUSTODIAN")
         {
         }
 

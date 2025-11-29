@@ -14,6 +14,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
@@ -911,9 +912,9 @@ namespace iLgs.Controllers
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
-
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            string pw = rptKey; // decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
@@ -924,7 +925,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
-            crConnectionInfo.IntegratedSecurity = true;
+            crConnectionInfo.IntegratedSecurity = false;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
@@ -1004,9 +1005,9 @@ namespace iLgs.Controllers
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
-
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            string pw = rptKey; // decoder.Password;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
@@ -1017,7 +1018,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
-            crConnectionInfo.IntegratedSecurity = true;
+            crConnectionInfo.IntegratedSecurity = false;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {

@@ -338,7 +338,8 @@ namespace iLgs.Controllers
         {
             Settings = new JsonSerializerSettings
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Error
+                //ReferenceLoopHandling = ReferenceLoopHandling.Error
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
         }
 

@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -23,10 +24,11 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportItemIssuanceRpcPpeVM> _xtraExceptionService;
 
         public CustodianReportItemIssuanceRpcPpeService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItemIssuance> exceptionService,
             IExceptionService<CustodianReportItemIssuanceRpcPpeVM> xtraExceptionService,
-            IUserService userService) : base(db, exceptions, exceptionService, userService)
+            IUserService userService) : base(db, appManEntitiesFactory, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }

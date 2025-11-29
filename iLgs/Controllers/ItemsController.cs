@@ -12,6 +12,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -517,23 +518,57 @@ namespace iLgs.Controllers
             return null;
         }
 
-        public async Task<ActionResult> ItemCodeRpt(Guid itemTypeId)
+        public ActionResult _PrintItem(Guid? itemTypeId)
+        {
+            var data = new ItemCodePrintVM()
+            {
+                CategoryId = itemTypeId,
+                SavePrints = false
+            };
+
+            return PartialView(data);
+        }
+
+        public ActionResult TestDb()
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
-                Access access = await accessTask;
-                if (access == null)
-                {
-                    throw new Exception("Access Denied!");
-                }
+                var name = _db.Database.Connection.Database;
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                string conString = _db.Database.Connection.ConnectionString.ToString();
+                SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
+                string un = decoder.UserID;
+                string pw = decoder.Password;
+                string svr = decoder.DataSource;
+                string db_ = decoder.InitialCatalog;
+                
+                return Content($"Database Connected: Name = {name}, un = {un}, pw = {pw}, svr = {svr}, db = {db_}, integrated security = {decoder.IntegratedSecurity}" );
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ViewBag.Error = e.Message;
-                return View("Error");
+                return Content("DB Error: " + ex.Message);
             }
+        }
+
+
+        public ActionResult ItemCodeRpt(ItemCodePrintVM model)
+        {
+            //try
+            //{
+            //    Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
+            //    Access access = await accessTask;
+            //    if (access == null)
+            //    {
+            //        throw new Exception("Access Denied!");
+            //    }
+
+            //}
+            //catch (Exception e)
+            //{
+            //    ViewBag.Error = e.Message;
+            //    return View("Error");
+            //}
 
             Sections crSections;
             ReportDocument rpt, crSubreportDocument;
@@ -550,20 +585,27 @@ namespace iLgs.Controllers
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
-
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
             string un = decoder.UserID;
-            string pw = decoder.Password;
+            //string pw = decoder.Password;
+            string pw = rptKey;
             string svr = decoder.DataSource;
             string db_ = decoder.InitialCatalog;
 
+            //string un = "sa_psms_lpc";
+            //string pw = "grace2023@lpc";
+            //string svr = "dataserver3";
+            //string db_ = "ePSMS";
+
             crDatabase = rpt.Database;
             crTables = crDatabase.Tables;
+
             crConnectionInfo = new ConnectionInfo();
             crConnectionInfo.ServerName = svr;
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
-            crConnectionInfo.IntegratedSecurity = true;
+            crConnectionInfo.IntegratedSecurity = false;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
@@ -598,16 +640,85 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            //string user = ControllerContext.HttpContext.User.Identity.Name;
 
-            rpt.SetParameterValue("@cItemTypeId", itemTypeId.ToString());
+            //var rpt = new ReportDocument();
+            //rpt.Load(Server.MapPath("~/Reports/ItemCode.rpt"));
+            //rpt.Refresh();
+
+            //// get full EF connection string
+            //string efConString = _db.Database.Connection.ConnectionString;
+
+            //// extract provider connection string if EF uses metadata
+            //string realConString = efConString;
+            //if (efConString.Contains("provider connection string"))
+            //{
+            //    int start = efConString.IndexOf("provider connection string=\"") + "provider connection string=\"".Length;
+            //    int end = efConString.LastIndexOf("\"");
+            //    realConString = efConString.Substring(start, end - start);
+            //}
+
+            //var decoder = new SqlConnectionStringBuilder(realConString);
+
+            //ConnectionInfo connectionInfo = new ConnectionInfo
+            //{
+            //    ServerName = "Ws2016",
+            //    DatabaseName = "ePSMS",
+            //    UserID = "sa_psms_lpc",
+            //    Password = "grace2023@lpc",
+            //    IntegratedSecurity = false
+            //};
+
+            //foreach (Table table in rpt.Database.Tables)
+            //{
+            //    TableLogOnInfo logonInfo = table.LogOnInfo;
+            //    logonInfo.ConnectionInfo = connectionInfo;
+            //    table.ApplyLogOnInfo(logonInfo);
+            //    table.Location = table.Location; // keep table alias
+            //}
+
+            //foreach (ReportDocument subReport in report.Subreports)
+            //{
+            //    foreach (Table subTable in subReport.Database.Tables)
+            //    {
+            //        TableLogOnInfo logonInfo = subTable.LogOnInfo;
+            //        logonInfo.ConnectionInfo = connectionInfo;
+            //        subTable.ApplyLogOnInfo(logonInfo);
+            //    }
+            //}
+
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var itemTypeId = model.CategoryId == Guid.Empty ? null : model.CategoryId.ToString();
+
+            rpt.SetParameterValue("@cItemTypeId", itemTypeId);
             rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("USER", user);
 
-            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
-            rpt.Close();
-            rpt.Dispose();
-            return File(stream, "application/pdf");
+            if (model.SavePrints)
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/xlsx", $"ItemCodeRpt.xls");
+            }
+            else
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/pdf");
+            }            
+        }
+
+        private void ApplyConnectionInfo(ReportDocument report, ConnectionInfo connectionInfo)
+        {
+            foreach (Table table in report.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo = connectionInfo;
+                table.ApplyLogOnInfo(logonInfo);
+                table.Location = table.Location;
+            }
         }
     }
 }

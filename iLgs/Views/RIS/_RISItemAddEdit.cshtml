@@ -65,6 +65,19 @@
             <div class="col-md-12">
                 <div class="col-md-6`">
                     <div class="col-md-2">
+                        @Html.DisplayFor(m => m.PpmpCode, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                </div>                
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-6`">
+                    <div class="col-md-2">
                         @Html.DisplayFor(m => m.Category, "Label")
                     </div>
                     <div class="col-md-10">

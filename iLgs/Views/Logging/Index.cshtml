@@ -1,0 +1,108 @@
+﻿@*@model IEnumerable<iLgs.Models.ErrorLog>*@
+
+@{
+    ViewBag.Title = "Error Logs";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+@*<table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th style="width: 120px;">Error Code</th>
+            <th style="width: 180px;">Source</th>
+            <th>Description</th>
+            <th style="width: 160px;">Log Date</th>
+            <th style="width: 120px;">Logged By</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var log in Model)
+            {
+                <tr>
+                    <td>@log.ErrorCode</td>
+                    <td>@log.ErrorSource</td>
+                    <td>
+                        <div class="log-description">
+                            @Html.Raw(Html.Encode(log.Description).Replace(Environment.NewLine, "<br />"))
+                        </div>
+                    </td>
+                    <td>@log.InsertedDt</td>
+                    <td>@log.InsertedBy</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No error logs found.</td>
+            </tr>
+        }
+    </tbody>
+</table>*@
+
+
+@(Html.Kendo().Grid<iLgs.Models.ErrorLog>()
+    .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
+    .Columns(col =>
+    {
+        col.Bound(c => c.ErrorCode).Width(50);
+        col.Bound(c => c.ErrorSource).Width(70);
+        col.Bound(c => c.Description).ClientTemplate("#= kendo.htmlEncode(Description).replace(/\\n/g, '<br />') #").Width(200);
+        col.Bound(c => c.InsertedBy).Width(50);
+        col.Bound(c => c.InsertedDt).Width(70);
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.ErrorCode, "contains");
+        s.Field(o => o.ErrorSource, "contains");
+        s.Field(o => o.Description, "contains");
+        s.Field(o => o.InsertedBy, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        //.Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Sort(s => s.Add(a => a.InsertedDt).Descending())
+        .Read(read => read.Action("Read", "Logging"))
+    )
+)
+
+<style>
+    .log-description {
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+        word-wrap: break-word;
+    }
+
+    table {
+        font-size: 0.95rem;
+    }
+</style>

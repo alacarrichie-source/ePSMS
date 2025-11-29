@@ -136,7 +136,13 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string CategoryDesc { get; set; }
+        public string CategoryDesc { get; set; }        
+    }
+
+    public class ItemCodePrintVM
+    {
+        public Nullable<System.Guid> CategoryId { get; set; }        
+        public bool SavePrints { get; set; }
     }
 
     public class ItemCodePreviewVM

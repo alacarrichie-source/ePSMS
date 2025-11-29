@@ -121,6 +121,8 @@ namespace iLgs.Services.CustodianReports
 
         public void ValidateOnPost(Guid id)
         {
+            _imex = new InvalidModelException();
+
             var entity = _db.CustodianReports.Find(id);
             if (entity == null)
             {

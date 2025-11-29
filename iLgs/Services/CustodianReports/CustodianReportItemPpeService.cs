@@ -16,7 +16,7 @@ namespace iLgs.Services.CustodianReports
         new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
         IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -29,13 +29,14 @@ namespace iLgs.Services.CustodianReports
         private readonly IAnnexDService _annexDService;
         
         public CustodianReportItemPpeService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,
             IExceptionService<CustodianReportItemPpeVM> xtraExceptionService,
             ICustodianReportItemPpeValidator validator,
             IAnnexDService annexDService,
-            IUserService userService) : base(db, allFieldService, exceptions, exceptionService, userService)
+            IUserService userService) : base(db, appManEntitiesFactory, allFieldService, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
             _validator = validator;
@@ -174,7 +175,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
         
-        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName)
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
             if (deptId != null)
@@ -183,7 +184,11 @@ namespace iLgs.Services.CustodianReports
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
                     var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                    
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                    if (data.Any() && isDemand == true)
+                    {
+                        data = data.Where(w => w.Annex == "C");
+                    }
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();

@@ -38,6 +38,16 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
+                @Html.DisplayFor(m => m.BuildingType, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.BuildingType).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.BuildingType)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
                 @Html.DisplayFor(m => m.StartDate, "LabelDate")
             </div>
             <div class="col-md-4">

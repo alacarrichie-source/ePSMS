@@ -24,7 +24,7 @@ namespace iLgs.Services.CustodianReports
         string GetStockNo(CustodianReportBldgItem model);
         ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
         IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
@@ -33,7 +33,7 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
         //MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
         //MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accontGroup, string annex);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);        
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
         MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
@@ -45,6 +45,7 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<CustodianReportBldgItemVM> _vmExceptionService;
         private readonly IExceptionService<CustodianReportBldgItem> _exceptionService;
         private readonly ICustodianReportItemPpeValidator _validator;
@@ -52,16 +53,20 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IUserService _userService;
         private readonly ICustodianReportBldgItemPhaseService _custodianReportBldgItemPhase;
+        private readonly ICustodianBldgUploadService _custodianBldgUploadService;
 
         public CustodianReportBldgItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<CustodianReportBldgItemVM> vmExceptionService,
             IExceptionService<CustodianReportBldgItem> exceptionService,
             IAllFieldService allFieldService,
             IUserService userService,
             ICustodianReportBldgItemPhaseService custodianReportBldgItemPhase,
-            ICustodianReportItemPpeValidator validator)
+            ICustodianReportItemPpeValidator validator,
+            ICustodianBldgUploadService custodianBldgUploadService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
             _validator = validator;
@@ -69,6 +74,7 @@ namespace iLgs.Services.CustodianReports
             _userService = userService;
             _custodianReportBldgItemPhase = custodianReportBldgItemPhase;
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
+            _custodianBldgUploadService = custodianBldgUploadService;
         }
 
         public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase => _custodianReportBldgItemPhase;
@@ -78,7 +84,6 @@ namespace iLgs.Services.CustodianReports
             return s => new CustodianReportBldgItemVM
             {
                 Id = s.Id,
-                //CustodianItemIndex = (decimal?)SqlFunctions.TryParse(c.CustodianItemNo),
                 MainDeptId = s.CustodianReport.DeptId,
                 AccountGroup = s.CustodianReport.AccountGroup,
                 ReportId = s.ReportId,
@@ -135,6 +140,8 @@ namespace iLgs.Services.CustodianReports
                 Annex = s.Annex,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
+                UpdatedBy = s.UpdatedBy,
+                UpdatedDt = s.UpdatedDt,
                 PostedBy = s.PostedBy,
                 PostedDt = s.PostedDt,
                 Longitude = s.Longitude,
@@ -142,6 +149,7 @@ namespace iLgs.Services.CustodianReports
                 ItemType_Code = s.ItemCode.ItemType.Code,
                 Item_Code = s.ItemCode.Code,
                 IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit")
+                //IsSubmitted = s.CustodianReport.CustodianReportSubmitForCounts.Any(a => a.Status == "Submit" && a.LocationId == s.LocationId)
             };
         }
 
@@ -163,18 +171,23 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId)
         {
             var data = _db.CustodianReportBldgItems
-                .AsNoTracking()
-                .Where(w => w.ReportId == reportId)
-                .Select(CustodianReportBldgItemProjection(_db));
+            .AsNoTracking()
+            .Where(w => w.ReportId == reportId)
+            .Select(CustodianReportBldgItemProjection(_db));
             return data;
         }
 
-        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
         {
             var data = _db.CustodianReportBldgItems
-                .AsNoTracking()
-                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReportBldgItemProjection(_db));
+            .AsNoTracking()
+            .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+            .Select(CustodianReportBldgItemProjection(_db));
+
+            if (data.Any() && isDemand == true)
+            {
+                data = data.Where(w => w.Annex == "C");
+            }
 
             return data;
         }
@@ -182,9 +195,9 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
             var data = _db.CustodianReportBldgItems
-                .AsNoTracking()
-                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReportBldgItemProjection(_db));
+            .AsNoTracking()
+            .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.AccountGroup == accountGroup)
+            .Select(CustodianReportBldgItemProjection(_db));
 
             return data;
         }
@@ -196,7 +209,7 @@ namespace iLgs.Services.CustodianReports
             if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
             {
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
-            }            
+            }
 
             //if (string.IsNullOrWhiteSpace(model.PhaseNo))
             //{
@@ -206,6 +219,14 @@ namespace iLgs.Services.CustodianReports
             //if (!model.PhaseAmountCo.HasValue)
             //{
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseAmountCo)), "Field is required.");
+            //}
+
+            //if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
+            //{
+            //    if (string.IsNullOrWhiteSpace(model.Remarks))
+            //    {
+            //        _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
+            //    }
             //}
 
             _imex.ThrowIfContainsErrors();
@@ -237,32 +258,35 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
-            if (custodianReport == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                custodianReport = new CustodianReport();
-                custodianReport.Id = Guid.NewGuid();
-                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
-                custodianReport.DeptId = model.MainDeptId;
-                custodianReport.Department = model.MainDeptName;
-                custodianReport.AccountGroup = model.AccountGroup;
-                custodianReport.InsertedBy = user;
-                custodianReport.InsertedDt = date;
-                custodianReport.UpdatedBy = user;
-                custodianReport.UpdatedDt = date;
-                _db.CustodianReports.Add(custodianReport);
-                await _db.SaveChangesAsync();
+                var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+                if (custodianReport == null)
+                {
+                    custodianReport = new CustodianReport();
+                    custodianReport.Id = Guid.NewGuid();
+                    custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
+                    custodianReport.DeptId = model.MainDeptId;
+                    custodianReport.Department = model.MainDeptName;
+                    custodianReport.AccountGroup = model.AccountGroup;
+                    custodianReport.InsertedBy = user;
+                    custodianReport.InsertedDt = date;
+                    custodianReport.UpdatedBy = user;
+                    custodianReport.UpdatedDt = date;
+                    ctx.CustodianReports.Add(custodianReport);
+                    await ctx.SaveChangesAsync();
+                }
+
+                model.ReportId = custodianReport.Id;
+                ValidateIfSubmitted(model, ctx);
+                var entity = new CustodianReportBldgItem();
+                MapModelToEntityFields(entity, model, Mode.ADD);
+
+                ctx.CustodianReportBldgItems.Add(entity);
+                await ctx.SaveChangesAsync();
+
+                return model;
             }
-
-            model.ReportId = custodianReport.Id;
-            ValidateIfSubmitted(model);
-            var entity = new CustodianReportBldgItem();
-            MapModelToEntityFields(entity, model, Mode.ADD);
-
-            _db.CustodianReportBldgItems.Add(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
         });
 
         public ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -273,19 +297,21 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
-            //ValidateUser(entity, model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportBldgItems.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+                ValidateIfSubmitted(model, ctx);
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.CustodianReportBldgItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //ctx.CustodianReportBldgItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            return model;
+                return model;
+            }
         });
 
         public ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -295,65 +321,73 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-            ValidateIfSubmitted(model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportBldgItems.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+                ValidateIfSubmitted(model, ctx);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.CustodianReportBldgItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //ctx.CustodianReportBldgItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianReportBldgItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.CustodianReportBldgItems.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
 
-            return model;
+                return model;
+            }
         });
 
         public ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportBldgItems.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-
-            ICustodianBldgUploadService uploadService = new CustodianBldgUploadService(_db);
-            if (!uploadService.GetAllByImageId(id).Any())
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException("No uploaded images found for this record, cannot post!");
+                var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+
+                if (!_custodianBldgUploadService.GetAllByImageId(id).Any())
+                {
+                    throw new NotFoundException("No uploaded images found for this record, cannot post!");
+                }
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //ctx.CustodianReportBldgItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
             }
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.CustodianReportBldgItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
         });
 
         public ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianReportBldgItems.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfNotPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfNotPosted(entity);
 
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = "";
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.CustodianReportBldgItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //ctx.CustodianReportBldgItems.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         private AllField SetAllField(CustodianReportBldgItem custodianReportItem)
@@ -482,9 +516,9 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(7).SetValue(reportItem.SubLocation);
             ws.Row(row).Cell(8).SetValue(reportItem.Latitude);
             ws.Row(row).Cell(9).SetValue(reportItem.Longitude);
-            ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);            
-            ws.Row(row).Cell(12).SetValue(reportItem.BuildingType);
-            
+            ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);
+            //ws.Row(row).Cell(12).SetValue(reportItem.BuildingType);
+
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(13).SetValue("From Donation");
@@ -499,6 +533,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
                 ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
+                ws.Row(row).Cell(12).SetValue(engAmt.BuildingType);
                 ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
                 //ws.Row(row).Cell(15).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");                
                 ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
@@ -513,8 +548,8 @@ namespace iLgs.Services.CustodianReports
                 ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
                 ws.Row(row).Cell(28).SetValue(engAmt.Status);
                 ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
-            }            
-            
+            }
+
             ws.Row(row).Cell(29).SetValue(reportItem.Fund);
             ws.Row(row).Cell(30).SetValue(reportItem.Condition);
             if (!isAnnex)
@@ -539,6 +574,7 @@ namespace iLgs.Services.CustodianReports
             , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
+
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 int sw = 1;
@@ -555,7 +591,7 @@ namespace iLgs.Services.CustodianReports
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.CustodianReportBldgItemPhases)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear);                    
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear);
 
                 if (!string.IsNullOrWhiteSpace(subAccount))
                 {
@@ -566,7 +602,7 @@ namespace iLgs.Services.CustodianReports
                 {
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
-                
+
                 if (deptId != null)
                 {
                     reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
@@ -579,7 +615,7 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(o => o.CustodianReport.Department)
                             .ThenBy(o => o.LocationCode)
                             .ThenBy(o => o.CustodianItemNo).AsNoTracking();
-                                
+
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
                     ws.Row(2).Cell(2).SetValue($"Annex {annex}");
@@ -592,13 +628,13 @@ namespace iLgs.Services.CustodianReports
                 //{                    
                 //    if (reportItems.Any())
                 //    {                        
-                //        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
+                //        var report = ctx.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
                 //        ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
                 //    }
                 //}
                 //else
                 //{
-                //    var codextn = _db.Codextns.Find(deptId);
+                //    var codextn = ctx.Codextns.Find(deptId);
                 //    ws.Row(8).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 //}
 
@@ -856,9 +892,9 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateIfSubmitted(CustodianReportBldgItem model)
+        private void ValidateIfSubmitted(CustodianReportBldgItem model, AppManEntities ctx)
         {
-            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            var submitForCount = ctx.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
             if (submitForCount != null)
             {
                 var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";

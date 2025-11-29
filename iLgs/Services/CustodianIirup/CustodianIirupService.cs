@@ -29,17 +29,24 @@ namespace iLgs.Services.CustodianIirup
     public class CustodianIirupService : BaseValidator, ICustodianIirupService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianIIRUP> _exceptionService;
+        private readonly ICustodianIirupUploadService _custodianIirupUploadService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianIirupService(AppManEntities db, ICreateAndLogExceptions createAndLogExceptions, 
-            IExceptionService<CustodianIIRUP> exceptionService)
+        public CustodianIirupService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
+            ICreateAndLogExceptions createAndLogExceptions, 
+            IExceptionService<CustodianIIRUP> exceptionService,
+            ICustodianIirupUploadService custodianIirupUploadService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = createAndLogExceptions;
             _exceptionService = exceptionService;
             _getDisplayName = Utility.GetDisplayName<CustodianIIRUP>;
+            _custodianIirupUploadService = custodianIirupUploadService;
         }
 
         public IQueryable<CustodianIIRUP> GetAll() =>
@@ -60,49 +67,54 @@ namespace iLgs.Services.CustodianIirup
         public ValueTask<CustodianIIRUP> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianIIRUPs.FindAsync(id);
-
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
-            ValidateFields(entity, Mode.POST);
-
-            ICustodianIirupUploadService uploadService = new CustodianIirupUploadService(_db);
-            var irrupItems = await _db.CustodianIirupItems.Include(i => i.CustodianDisposal).Where(w => w.CustodianIirupId == entity.Id).ToListAsync();
-            foreach(var item in irrupItems)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                if (!uploadService.GetAllByImageId(item.Id).Any())
-                {
-                    throw new NotFoundException($"No uploaded images found for Transmittal No. [{item.CustodianDisposal.TransmittalNo}], cannot post!");
-                }
-            }
-            
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                var entity = await ctx.CustodianIIRUPs.FindAsync(id);
 
-            _db.CustodianIIRUPs.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
+                ValidateFields(entity, Mode.POST);
+
+                var irrupItems = await ctx.CustodianIirupItems.Include(i => i.CustodianDisposal).Where(w => w.CustodianIirupId == entity.Id).ToListAsync();
+                foreach (var item in irrupItems)
+                {
+                    if (!_custodianIirupUploadService.GetAllByImageId(item.Id).Any())
+                    {
+                        throw new NotFoundException($"No uploaded images found for Transmittal No. [{item.CustodianDisposal.TransmittalNo}], cannot post!");
+                    }
+                }
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //ctx.CustodianIIRUPs.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         public ValueTask<CustodianIIRUP> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.CustodianIIRUPs.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfNotPosted(entity);
-            
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianIIRUPs.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfNotPosted(entity);
 
-            _db.CustodianIIRUPs.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                entity.PostedBy = "";
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //ctx.CustodianIIRUPs.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                return entity;
+            }
         });
 
         public ValueTask<CustodianIIRUP> CreateAsync(CustodianIIRUP model, string user, DateTime date) =>
@@ -117,60 +129,67 @@ namespace iLgs.Services.CustodianIirup
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            var entity = new CustodianIIRUP();
-            MapModelToEntityFields(entity, model, Mode.ADD);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = new CustodianIIRUP();
+                MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.CustodianIIRUPs.Add(entity);
-            await _db.SaveChangesAsync();
+                ctx.CustodianIIRUPs.Add(entity);
+                await ctx.SaveChangesAsync();
 
-            return model;
+                return model;
+            }
         });
 
         public ValueTask<CustodianIIRUP> UpdateAsync(CustodianIIRUP model, string user, DateTime date) =>
        _exceptionService.TryCatch(async () =>
        {
            ValidateIfNull(model);
+           using (var ctx = await _contextFactory.CreateContextAsync())
+           {
+               var entity = await ctx.CustodianIIRUPs.FindAsync(model.Id);
+               ValidateRecord(entity);
+               ValidateIfPosted(entity);
+               ValidateFields(model, Mode.EDIT);
 
-           var entity = await _db.CustodianIIRUPs.FindAsync(model.Id);
-           ValidateRecord(entity);
-           ValidateIfPosted(entity);
-           ValidateFields(model, Mode.EDIT);
+               model.UpdatedBy = user;
+               model.UpdatedDt = date;
 
-           model.UpdatedBy = user;
-           model.UpdatedDt = date;
+               MapModelToEntityFields(entity, model, Mode.EDIT);
 
-           MapModelToEntityFields(entity, model, Mode.EDIT);
-
-           _db.CustodianIIRUPs.Attach(entity);
-           _db.Entry(entity).State = EntityState.Modified;
-           await _db.SaveChangesAsync();
-           return model;
+               //ctx.CustodianIIRUPs.Attach(entity);
+               //ctx.Entry(entity).State = EntityState.Modified;
+               await ctx.SaveChangesAsync();
+               return model;
+           }
        });
 
         public ValueTask<CustodianIIRUP> DeleteAsync(CustodianIIRUP model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianIIRUPs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
 
-            var entity = await _db.CustodianIIRUPs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
 
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                //ctx.CustodianIIRUPs.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianIIRUPs.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                ctx.CustodianIIRUPs.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianIIRUPs.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-
-            return model;
+                return model;
+            }
         });
 
         public void MapModelToEntityFields(CustodianIIRUP entity, CustodianIIRUP model, Mode mode)

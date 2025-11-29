@@ -227,7 +227,7 @@ namespace iLgs.Services.PropertyCard
                 fieldSw.Type = (c == CatMachineriesProp() || c == CatTransportationProp() || c == CatFurnituresProp() || c == CatOtherProperties() ||
                     c == CatMedicalSupply() || c == CatAgriculturalSupply() || c == CatAnimalSupplies() || c == CatConstructionMaterialsSupply() ||
                     c == CatOfficeSupplies() || c == CatAccountableFormsSupply() || c == CatNonAccountableFornsSupply() || c == CatMilitarySupply() ||
-                    c == CatRepairSupply() || c == CatOtherSupplies());
+                    c == CatFuelOilSupply() || c == CatOtherSupplies());
             }
             return fieldSw;
         }
@@ -253,7 +253,9 @@ namespace iLgs.Services.PropertyCard
                     || c == CatAccountableFormsSupply()
                     || c == CatNonAccountableFornsSupply()
                     || c == CatMilitarySupply()
-                    || c == CatOtherSupplies())
+                    || c == CatOtherSupplies()
+                    || c == CatSemiExpendableFurnitureSupply()
+                    || c == CatSemiExpendableMachinerySupply())
                 {
                     partialView = "_ItemFieldBrand";
                 }
@@ -261,7 +263,7 @@ namespace iLgs.Services.PropertyCard
                 {
                     partialView = "_ItemFieldDrugs";
                 }
-                else if (c == CatRepairSupply())
+                else if (c == CatFuelOilSupply())
                 {
                     partialView = "_ItemFieldSerial";
                 }

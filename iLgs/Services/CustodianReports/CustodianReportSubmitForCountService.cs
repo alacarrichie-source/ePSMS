@@ -30,6 +30,7 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportSubmitForCountService : BaseValidator, ICustodianReportSubmitForCountService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportSubmitForCountVM> _vmExceptionService;
         private readonly IUserService _userService;
@@ -38,6 +39,7 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportSubmitForCountService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportSubmitForCountVM> vmExceptionService,
             IUserService userService,
@@ -45,6 +47,7 @@ namespace iLgs.Services.CustodianReports
             INotificationMessageService notificationMessageService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _userService = userService;
@@ -137,14 +140,16 @@ namespace iLgs.Services.CustodianReports
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.Id == model.Id);
+                ValidateRecord(entity, model.Id);
 
-            var entity = await _db.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.Id == model.Id);
-            ValidateRecord(entity, model.Id);
-            
-            _db.CustodianReportSubmitForCounts.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-            return model;
+                ctx.CustodianReportSubmitForCounts.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+                return model;
+            }
         });        
 
         public ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date, bool isLocationRequired) =>
@@ -161,61 +166,64 @@ namespace iLgs.Services.CustodianReports
             }
 
             var isNew = false;
-            var model = await GetByLocationAsync(reportId, locationId);
-            if (model == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                model = new CustodianReportSubmitForCountVM()
+                var model = await GetByLocationAsync(reportId, locationId);
+                if (model == null)
                 {
-                    Id = Guid.NewGuid(),
-                    ReportId = reportId,
-                    LocationId = locationId,
-                    InsertedBy = user,
-                    InsertedDt = date
-                };
-                isNew = true;
+                    model = new CustodianReportSubmitForCountVM()
+                    {
+                        Id = Guid.NewGuid(),
+                        ReportId = reportId,
+                        LocationId = locationId,
+                        InsertedBy = user,
+                        InsertedDt = date
+                    };
+                    isNew = true;
+                }
+
+                if (model.Status == "Submit")
+                {
+                    throw new RecordAlreadyExistsException("Department/Location", "Already Submitted.");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+                model.Status = "Submit";
+
+                if (isNew)
+                {
+                    var entity = new CustodianReportSubmitForCount();
+                    entity.Id = model.Id;
+                    entity.ReportId = model.ReportId;
+                    entity.LocationId = model.LocationId;
+                    entity.Status = model.Status;
+                    entity.InsertedBy = model.InsertedBy;
+                    entity.InsertedDt = model.InsertedDt;
+                    entity.UpdatedBy = model.UpdatedBy;
+                    entity.UpdatedDt = model.UpdatedDt;
+
+                    ctx.CustodianReportSubmitForCounts.Add(entity);
+                }
+                else
+                {
+                    var entity = await ctx.CustodianReportSubmitForCounts.FindAsync(model.Id);
+                    entity.Status = model.Status;
+                    entity.UpdatedBy = model.UpdatedBy;
+                    entity.UpdatedDt = model.UpdatedDt;
+
+                    ctx.CustodianReportSubmitForCounts.Attach(entity);
+                    ctx.Entry(entity).State = EntityState.Modified;
+                }
+                await ctx.SaveChangesAsync();
+
+                model = await GetByLocationAsync(reportId, locationId);
+
+                var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
+                await _notificationMessageService.NotifyUsers("Custodian Count", "Submit", description, user, date);
+
+                return model;
             }
-            
-            if (model.Status == "Submit")
-            {
-                throw new RecordAlreadyExistsException("Department/Location", "Already Submitted.");
-            }            
-                        
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-            model.Status = "Submit";                      
-
-            if (isNew)
-            {
-                var entity = new CustodianReportSubmitForCount();
-                entity.Id = model.Id;
-                entity.ReportId = model.ReportId;
-                entity.LocationId = model.LocationId;
-                entity.Status = model.Status;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                _db.CustodianReportSubmitForCounts.Add(entity);
-            }
-            else
-            {
-                var entity = await _db.CustodianReportSubmitForCounts.FindAsync(model.Id);
-                entity.Status = model.Status;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                _db.CustodianReportSubmitForCounts.Attach(entity);
-                _db.Entry(entity).State = EntityState.Modified;
-            }
-            await _db.SaveChangesAsync();
-
-            model = await GetByLocationAsync(reportId, locationId);
-
-            var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
-            await _notificationMessageService.NotifyUsers("Custodian Count", "Submit", description, user, date);
-
-            return model;
         });
 
         public ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date) =>
@@ -225,35 +233,37 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NullException();
             }
-
-            var model = await GetByLocationAsync(reportId, locationId);
-            if (model == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException("No submitted records found for this department/location.");
+                var model = await GetByLocationAsync(reportId, locationId);
+                if (model == null)
+                {
+                    throw new NotFoundException("No submitted records found for this department/location.");
+                }
+
+                if (model.Status != "Submit")
+                {
+                    throw new RecordAlreadyExistsException("Department/Location", "Status is already unsubmit.");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+                model.Status = "Unsubmit";
+
+                var entity = await ctx.CustodianReportSubmitForCounts.FindAsync(model.Id);
+                entity.Status = model.Status;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                ctx.CustodianReportSubmitForCounts.Attach(entity);
+                ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
+                await _notificationMessageService.NotifyUsers("Custodian Count", "Unsubmit", description, user, date);
+
+                return model;
             }
-
-            if (model.Status != "Submit")
-            {
-                throw new RecordAlreadyExistsException("Department/Location", "Status is already unsubmit.");
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-            model.Status = "Unsubmit";
-
-            var entity = await _db.CustodianReportSubmitForCounts.FindAsync(model.Id);
-            entity.Status = model.Status;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.CustodianReportSubmitForCounts.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
-            await _notificationMessageService.NotifyUsers("Custodian Count", "Unsubmit", description, user, date);
-
-            return model;            
         });
 
         private void ValidateIfNull(CustodianReportSubmitForCountVM model)

@@ -179,13 +179,14 @@ namespace iLgs.Models
             [Display(Name = "Department Display")]
             public string Department { get; set; }
 
+            [Required]
             [Display(Name = "Location Code")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             public string LocationCode { get; set; }
             public string Location { get; set; }
 
-            [Display(Name = "Sub-Location")]
+            [Display(Name = "Actual Location")]
             public string SubLocation { get; set; }
 
             [Display(Name = "Acquisition Cost")]
@@ -685,7 +686,12 @@ namespace iLgs.Models
             [Display(Name = "Inserted Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
+
+            [Display(Name = "Updated By")]
             public string UpdatedBy { get; set; }
+
+            [Display(Name = "Updated Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
 
             [Display(Name = "Posted By")]
@@ -889,7 +895,12 @@ namespace iLgs.Models
             [Display(Name = "Inserted Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
+
+            [Display(Name = "Updated By")]
             public string UpdatedBy { get; set; }
+
+            [Display(Name = "Updated Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
 
             [Display(Name = "Posted By")]
@@ -934,6 +945,9 @@ namespace iLgs.Models
             [Display(Name = "Project Name")]
             public string ProjectName { get; set; }
 
+            [Display(Name = "Construction Type")]
+            public string BuildingType { get; set; }
+
             [Display(Name = "Year of Construction")]
             public Nullable<System.DateTime> StartDate { get; set; }
 
@@ -961,9 +975,18 @@ namespace iLgs.Models
             public Nullable<decimal> AcqCost { get; set; }
             public string Remarks { get; set; }
 
+            [Display(Name = "Inserted By")]
             public string InsertedBy { get; set; }
+
+            [Display(Name = "Inserted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
+
+            [Display(Name = "Updated By")]
             public string UpdatedBy { get; set; }
+
+            [Display(Name = "Updated By")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
         }
         
@@ -1106,5 +1129,12 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }            
         }
+    }
+
+    public class CustodianAccountVM
+    {
+        public Guid? Id { get; set; }
+        public string MainAccount { get; set; }
+        public string MainDesc { get; set; }
     }
 }

@@ -354,6 +354,9 @@ namespace iLgs.Models
         public string SubAccount { get; set; }
         public string Account { get; set; }
         public string Fund { get; set; }
+
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
     }
 
     public class PsCardItemIssuanceVM

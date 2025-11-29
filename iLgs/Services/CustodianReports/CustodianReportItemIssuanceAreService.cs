@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -23,13 +24,13 @@ namespace iLgs.Services.CustodianReports
     {
         private readonly string _refType = "ARE";
         private readonly IExceptionService<CustodianReportItemIssuanceAreVM> _xtraExceptionService;
-
    
         public CustodianReportItemIssuanceAreService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItemIssuance> exceptionService,
             IExceptionService<CustodianReportItemIssuanceAreVM> xtraExceptionService,
-            IUserService userService) : base(db, exceptions, exceptionService, userService)
+            IUserService userService) : base(db, appManEntitiesFactory, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }

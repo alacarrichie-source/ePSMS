@@ -582,7 +582,7 @@ namespace iLgs.Services.PoIssuance
             };
 
             _db.PsCardItemTransfers.Add(psCardItemTransfer);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             // update parent record
             await _psCardService.PsCardItem.PsCardItemTransfer.UpdatePsCardItemTransfer(psCardItemTransferSource.Id, user, date);
@@ -595,9 +595,9 @@ namespace iLgs.Services.PoIssuance
             
         }
        
-        private PsCardItem CreatePsCardItem(PsCardItem sourcePsCardItem, Guid? transferRefId, Guid? locationId, int? transOut, string user, DateTime date)
+        private async Task<PsCardItem> CreatePsCardItemAsync(PsCardItem sourcePsCardItem, Guid? transferRefId, Guid? locationId, int? transOut, string user, DateTime date)
         {
-            var targetPsCardItem = _db.PsCardItems.AsNoTracking().FirstOrDefault(f => f.Id == sourcePsCardItem.Id); // load source value, then use this as target            
+            var targetPsCardItem = await _db.PsCardItems.AsNoTracking().FirstOrDefaultAsync(f => f.Id == sourcePsCardItem.Id); // load source value, then use this as target            
 
             targetPsCardItem.Id = Guid.NewGuid();
             targetPsCardItem.TransferRefId = transferRefId;
@@ -616,7 +616,7 @@ namespace iLgs.Services.PoIssuance
             targetPsCardItem.UpdatedDt = date;
 
             _db.PsCardItems.Add(targetPsCardItem);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             var totalTransferOut = _db.PsCardItemTransfers.Where(w => w.PsCardItemId == sourcePsCardItem.Id).Sum(s => s.Qty) ?? 0;
             var qtyBal = ((sourcePsCardItem.Qty ?? 0) + (sourcePsCardItem.TransferIn ?? 0)) - ((sourcePsCardItem.QtyIss ?? 0) + totalTransferOut);
@@ -630,7 +630,7 @@ namespace iLgs.Services.PoIssuance
 
             _db.PsCardItems.Attach(sourcePsCardItem);
             _db.Entry(sourcePsCardItem).State = EntityState.Modified;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return targetPsCardItem;
         }

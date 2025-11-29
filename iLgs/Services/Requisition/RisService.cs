@@ -14,10 +14,10 @@ namespace iLgs.Services.Requisition
     {
         IQueryable<RIS_VM> GetAll();
         ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId);
-        ValueTask<RISs> GetByIdAsync(Guid id);
-        ValueTask<RISs> GetByRisNoAsync(string risNo);
-        ValueTask<RISs> GetByOrderIdAsync(Guid orderId);
-        ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo);
+        Task<RIS_VM> GetByIdAsync(Guid id);
+        Task<RIS_VM> GetByRisNoAsync(string risNo);
+        Task<RIS_VM> GetByOrderIdAsync(Guid orderId);
+        Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);
         bool IsPosted(Guid risId);
         bool IsPosted(RISs ris);
         bool IsPosted(RisItem risItem);
@@ -25,9 +25,9 @@ namespace iLgs.Services.Requisition
         bool IsPosted(RisItemUnitGroupDescription risItemunitGroupDescription);
         bool IsPosted(RisItemUnitGroupDescriptionItem risItemunitGroupDescriptionItem);
 
-        ValueTask<bool> IsPostedAsync(Guid risId);
-        ValueTask<bool> IsPrPostedAsync(Guid risId);
-        ValueTask<bool> IsWithPrAsync(Guid risId);
+        Task<bool> IsPostedAsync(Guid risId);
+        Task<bool> IsPrPostedAsync(Guid risId);
+        Task<bool> IsWithPrAsync(Guid risId);
 
         void ValidateIfPosted(Guid risId);
 
@@ -63,7 +63,7 @@ namespace iLgs.Services.Requisition
             _validator = validator;
         }        
 
-        private static Expression<Func<RISs, RIS_VM>> RisProjection
+        private static Expression<Func<RISs, RIS_VM>> Projection
         = s => new RIS_VM
         {
             Id = s.Id,
@@ -103,13 +103,13 @@ namespace iLgs.Services.Requisition
             if (await _userService.IsAdminAsync(userId))
             {
                 data = _db.RISses.AsNoTracking()
-                    .Select(RisProjection).OrderByDescending(o => o.RisNo);
+                    .Select(Projection).OrderByDescending(o => o.RisNo);
             }
             else
             {
                 data = _db.RISses.AsNoTracking()
                     .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))                    
-                    .Select(RisProjection).OrderByDescending(o => o.RisNo);
+                    .Select(Projection).OrderByDescending(o => o.RisNo);
             }
             return data;
         }
@@ -117,35 +117,31 @@ namespace iLgs.Services.Requisition
         public IQueryable<RIS_VM> GetAll() 
         {
             var data = _db.RISses
-                .Select(RisProjection).OrderByDescending(o => o.RisNo);
+                .Select(Projection);
             return data;
         }
 
-        public async ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo)
+        public Task<bool> GetAnyRisNoAsync(Guid risId, string risNo)
         {
-            return await _db.RISses.AnyAsync(a => a.Id != risId && a.RisNo == risNo);
+            return _db.RISses.AnyAsync(a => a.Id != risId && a.RisNo == risNo);
         }
 
-        public ValueTask<RISs> GetByIdAsync(Guid id) =>
-        _risExceptionService.TryCatch(async () =>
+        public Task<RIS_VM> GetByIdAsync(Guid id) 
         {
-            var data = await _db.RISses.FindAsync(id);
-            return data;
-        });
+            return _db.RISses.Where(w => w.Id == id).Select(Projection).FirstOrDefaultAsync();
+        }
 
-        public ValueTask<RISs> GetByRisNoAsync(string risNo) =>
-        _risExceptionService.TryCatch(async () =>
+        public Task<RIS_VM> GetByRisNoAsync(string risNo) 
         {
-            return await _db.RISses.Where(w => w.RisNo == risNo).FirstOrDefaultAsync();
-        });
+            return _db.RISses.Where(w => w.RisNo == risNo).Select(Projection).FirstOrDefaultAsync();
+        }
 
-        public ValueTask<RISs> GetByOrderIdAsync(Guid orderId) =>
-        _risExceptionService.TryCatch(async () =>
+        public Task<RIS_VM> GetByOrderIdAsync(Guid orderId) 
         {
-            return await _db.RISses.Where(w => w.Requests.Any(a => a.Orders.Any(b => b.Id == orderId))).FirstOrDefaultAsync();
-        });
+            return _db.RISses.Where(w => w.Requests.Any(a => a.Orders.Any(b => b.Id == orderId))).Select(Projection).FirstOrDefaultAsync();
+        }
 
-        public async ValueTask<bool> IsPostedAsync(Guid risId)
+        public async Task<bool> IsPostedAsync(Guid risId)
         {
             var entity = await _db.RISses.FindAsync(risId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
@@ -186,7 +182,7 @@ namespace iLgs.Services.Requisition
             return IsPosted(risId);
         }
 
-        public async ValueTask<bool> IsPrPostedAsync(Guid risId)
+        public async Task<bool> IsPrPostedAsync(Guid risId)
         {
             var pr = await _db.Requests.Where(a => a.RisId == risId).AsNoTracking().FirstOrDefaultAsync();
             if (pr != null)
@@ -196,9 +192,9 @@ namespace iLgs.Services.Requisition
             return false;
         }
 
-        public async ValueTask<bool> IsWithPrAsync(Guid risId)
+        public Task<bool> IsWithPrAsync(Guid risId)
         {
-            return await _db.Requests.AnyAsync(a => a.RisId == risId);
+            return _db.Requests.AnyAsync(a => a.RisId == risId);
         }
 
         public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
@@ -279,9 +275,8 @@ namespace iLgs.Services.Requisition
         _risVmExceptionService.TryCatch(async () =>
             {
                 _validator.ValidateOnCreate(model);
-                //await ValidateOnCreate(model);
-
-                model.Id = Guid.NewGuid();
+                
+                //model.Id = Guid.NewGuid(); assigned in the partial view call
                 if (string.IsNullOrWhiteSpace(model.RisNo))
                 {
                     model.RisNo = NextRisNo((DateTime)model.RisDate);

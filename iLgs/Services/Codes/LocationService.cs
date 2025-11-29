@@ -82,7 +82,7 @@ namespace iLgs.Services.Codes
 
                         db.Codextns.Attach(entity);
                         db.Entry(entity).State = EntityState.Modified;
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
                     }
                 }
             }

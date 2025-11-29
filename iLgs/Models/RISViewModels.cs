@@ -7,6 +7,12 @@ using System.Web;
 
 namespace iLgs.Models
 {
+    public class RisEntryViewModels
+    {
+        public RIS_VM Ris { get; set; }
+        public List<RisItemEntryVM> RisItems { get; set; }
+    }
+
     public class RISlipVM
     {        
         public System.Guid Id { get; set; }
@@ -101,6 +107,9 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
+
         // Transients
 
         public string StockNo { get; set; }
@@ -111,6 +120,7 @@ namespace iLgs.Models
 
     public class RIS_VM
     {        
+        public string Mode { get; set; }
         public System.Guid Id { get; set; }
 
         [Required]
@@ -196,6 +206,8 @@ namespace iLgs.Models
 
         public bool IsPosted { get; set; }
         public bool IssuanceSw { get; set; }
+
+        public List<RisItemEntryVM> RisItems { get; set; }
     }
 
     public class RisItemCommonVM
@@ -239,6 +251,9 @@ namespace iLgs.Models
 
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
+
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
     }
 
     public class RisItemVM : RisItemCommonVM

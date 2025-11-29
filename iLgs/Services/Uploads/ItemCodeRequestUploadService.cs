@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -15,8 +16,8 @@ namespace iLgs.Services.Uploads
 
     public class ItemCodeRequestUploadService : UploadService, IItemCodeRequestUploadService
     {
-        public ItemCodeRequestUploadService(AppManEntities db)
-            : base(db, "ITEMCODE")
+        public ItemCodeRequestUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+            : base(db, appManEntitiesFactory, "ITEMCODE")
         {
         }
 

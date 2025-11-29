@@ -270,7 +270,7 @@
             //var firstRow = this.tbody.find("tr.k-master-row").first();
             //this.expandRow(firstRow);
 
-            // Attach a handler to the "detailExpand" event            
+            // Attach a handler to the "detailExpand" event
         }
 
         this.bind("detailExpand", function (e) {
@@ -307,10 +307,20 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
+    
+    function DataCategoryId() {
+        var text = $("#CategoryId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#CategoryId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            text: text
+        };
+    }
 
     $(".k-grid-btnPrint_").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("ItemCodeRpt", "Items")?itemTypeId=' + selectedId;
+        @*var url = '@Url.Action("ItemCodeRpt", "Items")?itemTypeId=' + selectedId;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -334,7 +344,28 @@
             url: url
         });
         mywindow.center();
-        mywindow.open();
+        mywindow.open();*@
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Item Code Printing",
+            width: 400            
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_PrintItem", "Items")?itemTypeId=' + selectedId
+        });
+        mywindow.center().open();
     });
 
     // Grid Item Codes

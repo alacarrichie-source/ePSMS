@@ -24,17 +24,20 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportBldgItemPhaseService : BaseValidator, ICustodianReportBldgItemPhaseService
     {
         protected readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportBldgItemPhasVM> _exceptionService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportBldgItemPhaseService(AppManEntities db, 
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
             IUserService userService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
             _userService = userService;
@@ -51,6 +54,7 @@ namespace iLgs.Services.CustodianReports
                 CapitalOutlay = s.CapitalOutlay,
                 MOOE = s.MOOE,
                 ProjectName = s.ProjectName,
+                BuildingType = s.BuildingType,
                 StartDate = s.StartDate,
                 TargetDate = s.TargetDate,
                 AcqDate = s.AcqDate,
@@ -94,13 +98,17 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = new CustodianReportBldgItemPhas();
-            MapModelToEntityFields(entity, model, Mode.ADD);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
 
-            _db.CustodianReportBldgItemPhases.Add(entity);
-            await _db.SaveChangesAsync();
+                var entity = new CustodianReportBldgItemPhas();
+                MapModelToEntityFields(entity, model, Mode.ADD);
 
-            return model;
+                ctx.CustodianReportBldgItemPhases.Add(entity);
+                await ctx.SaveChangesAsync();
+
+                return model;
+            }
         }
 
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> UpdateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
@@ -110,19 +118,22 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity.BldgItemId);
-            ValidateIfSubmitted(model);
-            ValidateUser(entity, model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportBldgItemPhases.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity.BldgItemId);
+                ValidateIfSubmitted(model);
+                ValidateUser(entity, model);
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.CustodianReportBldgItemPhases.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.CustodianReportBldgItemPhases.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            return model;
+                return model;
+            }
         }
 
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
@@ -130,22 +141,25 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity.BldgItemId);
-            ValidateIfSubmitted(model);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.CustodianReportBldgItemPhases.FindAsync(model.Id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity.BldgItemId);
+                ValidateIfSubmitted(model);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.CustodianReportBldgItemPhases.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.CustodianReportBldgItemPhases.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.CustodianReportBldgItemPhases.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-            return model;
+                ctx.CustodianReportBldgItemPhases.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+                return model;
+            }
         }
 
         protected void MapModelToEntityFields(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhasVM model, Mode mode)
@@ -162,6 +176,7 @@ namespace iLgs.Services.CustodianReports
             entity.CapitalOutlay= model.CapitalOutlay;
             entity.MOOE = model.MOOE;
             entity.ProjectName = model.ProjectName;
+            entity.BuildingType = model.BuildingType;
             entity.StartDate = model.StartDate;
             entity.TargetDate = model.TargetDate;
             entity.AcqDate = model.AcqDate;
