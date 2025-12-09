@@ -5,17 +5,19 @@ using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
     public interface IPropertyCardValidator
     {
-        bool IsPsNoAlreadyExists(PropertyCardVM model, Mode mode);
-        void ValidateOnCreate(PropertyCardVM model);
-        void ValidateOnUpdate(PropertyCardVM model);
-        void ValidateOnDelete(PropertyCardVM model);
+        Task<bool> IsPsNoAlreadyExistsAsync(PropertyCardVM model, Mode mode);
+        Task ValidateOnCreateAsync(PropertyCardVM model);
+        Task ValidateOnUpdateAsync(PropertyCardVM model);
+        Task ValidateOnDeleteAsync(PropertyCardVM model);
     }
 
     public class PropertyCardValidator : BaseValidator, IPropertyCardValidator
@@ -35,7 +37,7 @@ namespace iLgs.Services.PropertyCard
             _allFieldsValidator = allFieldsValidator;
             _itemCodeService = itemCodeService;
         }
-        public void ValidateOnCreate(PropertyCardVM model)
+        public async Task ValidateOnCreateAsync(PropertyCardVM model)
         {
             ValidateCard(model);
             Validate(
@@ -44,11 +46,12 @@ namespace iLgs.Services.PropertyCard
                 );
 
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            if (IsPsNoAlreadyExists(model, Mode.ADD))
+            if (await IsPsNoAlreadyExistsAsync(model, Mode.ADD))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exists.");
             }
@@ -57,7 +60,7 @@ namespace iLgs.Services.PropertyCard
         }
 
 
-        public void ValidateOnUpdate(PropertyCardVM model)
+        public async Task ValidateOnUpdateAsync(PropertyCardVM model)
         {
             ValidateCard(model);
             Validate(
@@ -66,30 +69,31 @@ namespace iLgs.Services.PropertyCard
                 );
 
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            if (IsPsNoAlreadyExists(model, Mode.EDIT))
+            if (await IsPsNoAlreadyExistsAsync(model, Mode.EDIT))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exists.");
             }
             ex.ThrowIfContainsErrors();
         }
 
-        public bool IsPsNoAlreadyExists(PropertyCardVM model, Mode mode)
+        public async Task<bool> IsPsNoAlreadyExistsAsync(PropertyCardVM model, Mode mode)
         {
             if (mode == Mode.ADD)
             {
-                return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund);
+                return await _db.PsCards.AnyAsync(a => a.PsNo == model.PsNo && a.Fund == model.Fund);
             }
-            return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id);
+            return await _db.PsCards.AnyAsync(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id);
         }
 
-        public void ValidateOnDelete(PropertyCardVM model)
+        public async Task ValidateOnDeleteAsync(PropertyCardVM model)
         {
             ValidateCard(model);
-            if (_db.PsCardItems.Any(a => a.PsCardId == model.Id))
+            if (await _db.PsCardItems.AnyAsync(a => a.PsCardId == model.Id))
             {
                 throw new RecordRelationshipException("Cannot delete card with items, please delete the items first.");
             }

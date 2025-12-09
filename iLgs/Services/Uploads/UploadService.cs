@@ -92,7 +92,7 @@ namespace iLgs.Services
             return await _db.Uploads.FindAsync(id);
         }
 
-        public async ValueTask<ActionResult> GetUploadedFileAsync(Guid? id)
+        public async ValueTask<ActionResult> GetUploadedFileAsyncOld(Guid? id)
         {
             var file = await GetByIdAsync(id);
             var fileName = file.FileName;
@@ -118,6 +118,52 @@ namespace iLgs.Services
             //// Return the file content to be viewed in the browser
             //return File(fileBytes, mimeType);
         }
+
+        public async ValueTask<ActionResult> GetUploadedFileAsync(Guid? id)
+        {
+            var file = await GetByIdAsync(id);
+            var fileName = file.FileName;
+
+            var physicalPath = Path.Combine(_directory, fileName);
+            var ext = Path.GetExtension(fileName).ToLower();
+
+            string mime;
+
+            switch (ext)
+            {
+                case ".jpg":
+                case ".jpeg":
+                    mime = "image/jpeg";
+                    break;
+
+                case ".png":
+                    mime = "image/png";
+                    break;
+
+                case ".gif":
+                    mime = "image/gif";
+                    break;
+
+                case ".bmp":
+                    mime = "image/bmp";
+                    break;
+
+                case ".webp":
+                    mime = "image/webp";
+                    break;
+
+                case ".pdf":
+                    mime = "application/pdf";
+                    break;
+
+                default:
+                    mime = "application/octet-stream";
+                    break;
+            }
+
+            return new FilePathResult(physicalPath, mime);
+        }
+
 
         public async ValueTask<ActionResult> GetImageIdFirstUploadAsync(Guid? imageId)
         {

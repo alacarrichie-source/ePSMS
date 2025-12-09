@@ -915,8 +915,10 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
             if (!string.IsNullOrWhiteSpace(partialView))
             {
@@ -937,8 +939,10 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
             if (!string.IsNullOrWhiteSpace(partialView))
             {
@@ -959,8 +963,10 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
             if (!string.IsNullOrWhiteSpace(partialView))
             {
@@ -981,8 +987,10 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
             if (!string.IsNullOrWhiteSpace(partialView))
             {
@@ -1003,8 +1011,10 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
             if (!string.IsNullOrWhiteSpace(partialView))
             {

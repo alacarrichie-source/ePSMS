@@ -266,6 +266,32 @@ namespace iLgs.Controllers
             }
         }
 
+        public async Task<ActionResult> PreviewUploadThumb(Guid id)
+        {
+            var fileResult = await _uploadService.GetUploadedFileAsync(id);
+            if (fileResult != null)
+            {
+                return fileResult; // Return the file result directly
+            }
+            else
+            {
+                return HttpNotFound("File not found"); // Handle not found case
+            }
+        }
+
+        public async Task<ActionResult> PreviewUploadX(Guid id)
+        {
+            var file = await _uploadService.GetUploadedFileAsync(id);
+
+            if (file == null)
+                return HttpNotFound("File not found");
+
+            // Pass the file URL to the view
+            string fileUrl = Url.Action("PreviewUploadThumb", "CustodianAccountability", new { id });
+
+            return View("PreviewUpload", model: fileUrl);
+        }
+
         public async Task<ActionResult> PreviewUpload(Guid id)
         {
             var fileResult = await _uploadService.GetUploadedFileAsync(id);
@@ -278,5 +304,6 @@ namespace iLgs.Controllers
                 return HttpNotFound("File not found"); // Handle not found case
             }
         }
+
     }
 }

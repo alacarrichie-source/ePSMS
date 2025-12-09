@@ -665,9 +665,9 @@ namespace iLgs.Controllers
 
         #region EXTRAS
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(OrderItemVM fields)
+        public async Task<JsonResult> GetDescription(OrderItemVM fields)
         {
-            var stockNo = _allFieldService.GetOrderStockNo(fields);
+            var stockNo = await _allFieldService.GetOrderStockNoAsync(fields);
 
             return Json(new { Description = "", StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
@@ -682,10 +682,12 @@ namespace iLgs.Controllers
                 {
                     model.AllField = allField;
                 }
-            }            
+            }
 
-            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             if (!string.IsNullOrEmpty(partialView))
             {
                 partialView = $"{partialView}";

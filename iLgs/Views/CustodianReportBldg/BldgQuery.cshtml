@@ -7,7 +7,7 @@
     <div class="col-md-6">
         @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().NumericTextBox()
+            @*@(Html.Kendo().NumericTextBox()
                 .Name("forYear")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Decimals(0)
@@ -15,6 +15,23 @@
                 .Events(e => e.Change("onChangeForYear"))
                 .Format("0")
                 .Value(@ViewBag.ForYear)
+            )*@
+            @(Html.Kendo().DropDownList()
+                .Name("forYear")
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GeReportingYearEnd", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Events(e => e.Change("onChangeForYear"))
             )
         </div>
     </div>
@@ -494,7 +511,7 @@
             + '&subAccount4=' + subAccount4;
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportA").click(function (e) {
@@ -523,7 +540,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportB").click(function (e) {
@@ -552,7 +569,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportC").click(function (e) {
@@ -581,7 +598,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(".k-grid-btnExportD").click(function (e) {
@@ -610,7 +627,7 @@
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);        
+        window.kendo.ui.progress($(document.body), false);
     });
 
     $(document).ready(function () {
@@ -1012,8 +1029,12 @@
             type: 'POST',
             url: url,
             data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
             success: function (data) {
                 fieldsContainer.html(data);
+                window.kendo.ui.progress($("#form"), false);
             }
         });
     }

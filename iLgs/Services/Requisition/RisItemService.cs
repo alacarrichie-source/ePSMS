@@ -18,8 +18,7 @@ namespace iLgs.Services.Requisition
         RisItemEntryVM GetVmById(Guid? id);
         RisItemEntryVM GetEntryVmById(Guid? id);
         string PsNoDisplay(RisItemEntryVM model);
-        string GetDescription(RisItemEntryVM entry);
-        //string GetPsDescription(PsCardVM entry);
+        Task<string> GetDescriptionAsync(RisItemEntryVM entry);        
 
         ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);
@@ -263,7 +262,7 @@ namespace iLgs.Services.Requisition
         public ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnCreate(model);
+            await _validator.ValidateOnCreateAsync(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -271,7 +270,7 @@ namespace iLgs.Services.Requisition
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            model.PsNo = PsNo(model);
+            model.PsNo = await PsNoAsync(model);
             model.PsNoDisplay = PsNoDisplay(model);
 
             var entity = new RisItem()
@@ -313,7 +312,7 @@ namespace iLgs.Services.Requisition
         public ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnDelete(model);
+            await _validator.ValidateOnDeleteAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -339,7 +338,7 @@ namespace iLgs.Services.Requisition
         public ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnUpdate(model);
+            await _validator.ValidateOnUpdateAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -348,7 +347,7 @@ namespace iLgs.Services.Requisition
                 .Include(i => i.AllField)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
-            model.PsNo = PsNo(model);
+            model.PsNo = await PsNoAsync(model);
             model.PsNoDisplay = PsNoDisplay(model);
 
             entity.RisId = model.RisId;
@@ -412,9 +411,9 @@ namespace iLgs.Services.Requisition
             return model;
         });        
 
-        private string PsNo(RisItemEntryVM fields)
+        private Task<string> PsNoAsync(RisItemEntryVM fields)
         {
-            return _allFieldService.GetRisStockNo(fields);
+            return _allFieldService.GetRisStockNoAsync(fields);
         }
 
         public string PsNoDisplay(RisItemEntryVM model)
@@ -434,9 +433,9 @@ namespace iLgs.Services.Requisition
             return display;
         }
 
-        public string GetDescription(RisItemEntryVM entry)
+        public Task<string> GetDescriptionAsync(RisItemEntryVM entry)
         {
-            return _allFieldService.GetRisDescription(entry);
+            return _allFieldService.GetRisDescriptionAsync(entry);
         }
     }
 }

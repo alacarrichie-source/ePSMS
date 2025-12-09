@@ -25,7 +25,7 @@ namespace iLgs.Services.PropertyCard
         string GetItemFieldsPartialView(string category);
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
-        string GetStockNo(PsCardVM model);        
+        Task<string> GetStockNoAsync(PsCardVM model);        
         bool IsPosted(Guid psCardId);
         bool IsPosted(PsCard psCard);
         bool IsPosted(PsCardItem psCardItem);
@@ -289,7 +289,7 @@ namespace iLgs.Services.PropertyCard
             }
         }     
         
-        public string GetStockNo(PsCardVM model) => _allFieldService.GetCardStockNo(model);
+        public async Task<string> GetStockNoAsync(PsCardVM model) => await _allFieldService.GetCardStockNoAsync(model);
                 
         public string GetDescription(PsCardVM fields) => "Please see attachment.";
 

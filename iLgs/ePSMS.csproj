@@ -4317,6 +4317,12 @@
     <Content Include="Views\CustodianUploadScan\_Scanned.cshtml" />
     <Content Include="Views\CustodianUploadScan\_ScannedAdd.cshtml" />
     <Content Include="Views\CustodianUploadScan\EditorTemplates\_ScannedTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_StockAreIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\StockUpdate.cshtml" />
+    <Content Include="Views\CustodianReportBldg\_TransferPhaseItems.cshtml" />
+    <Content Include="Views\CustodianReport\PpeUpdate.cshtml" />
+    <Content Include="Views\CustodianReport\TranspoUpdate.cshtml" />
+    <Content Include="Views\CustodianReportBldg\BldgUpdate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4666,6 +4672,7 @@
     <Content Include="Views\RIS\_RISAddEdit.cshtml" />
     <Content Include="Views\RIS\_RISItemUnitGroupAddEdit.cshtml" />
     <Content Include="Views\Requests\_RequestAddEdit.cshtml" />
+    <Content Include="Views\Shared\PreviewUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

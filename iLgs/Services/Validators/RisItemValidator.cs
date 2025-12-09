@@ -7,16 +7,18 @@ using iLgs.Services.Items;
 using iLgs.Services.Requisition;
 using iLgs.Utilities;
 using System;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
 {
     public interface IRisItemValidator
     {
-        void ValidateOnCreate(RisItemEntryVM model);
-        void ValidateOnUpdate(RisItemEntryVM model);
-        void ValidateOnDelete(RisItemEntryVM model);        
+        Task ValidateOnCreateAsync(RisItemEntryVM model);
+        Task ValidateOnUpdateAsync(RisItemEntryVM model);
+        Task ValidateOnDeleteAsync(RisItemEntryVM model);        
     }
 
     public class RisItemValidator: BaseValidator, IRisItemValidator
@@ -43,44 +45,45 @@ namespace iLgs.Services.Validators
             _allFieldsValidator = allFieldsValidator;
         }
 
-        public void ValidateOnCreate(RisItemEntryVM model)
+        public async Task ValidateOnCreateAsync(RisItemEntryVM model)
         {
             ValidateModel(model);
             ValidateIfPosted((Guid)model.RisId, Mode.ADD);
-            ValidateFieldsOnCreateUpdate(model);
+            await ValidateFieldsOnCreateUpdateAsync(model);
         }
 
-        public void ValidateOnUpdate(RisItemEntryVM model)
+        public async Task ValidateOnUpdateAsync(RisItemEntryVM model)
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
             ValidateIfPosted((Guid)model.RisId, Mode.EDIT);
-            ValidateFieldsOnCreateUpdate(model);
+            await ValidateFieldsOnCreateUpdateAsync(model);
         }
 
-        public void ValidateOnDelete(RisItemEntryVM model)
+        public async Task ValidateOnDeleteAsync(RisItemEntryVM model)
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
             ValidateIfPosted((Guid)model.RisId, Mode.DELETE);
 
-            var pr = _db.Requests.Where(w => w.RequestItems.Any(a => a.RisItemId == model.Id)).FirstOrDefault();
+            var pr = await _db.Requests.Where(w => w.RequestItems.Any(a => a.RisItemId == model.Id)).FirstOrDefaultAsync();
             if (pr != null)
             {
                 throw new RecordRelationshipException($"Record is in use by PR No. {pr.PrNo}, cannot delete!");
             }
 
-            if (_db.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == model.Id))
+            if (await _db.RisItemUnitGroupDescriptionItems.AnyAsync(a => a.RisItemId == model.Id))
             {
                 throw new RecordRelationshipException("Record is part of a group, cannot delete!");
             }
         }
 
-        public void ValidateFieldsOnCreateUpdate(RisItemEntryVM model)
+        public async Task ValidateFieldsOnCreateUpdateAsync(RisItemEntryVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
 
             //_allFieldsValidator.ValidateAllFields(model.AllField, model.PsType, model.ItemCode, ex);

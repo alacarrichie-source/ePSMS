@@ -284,7 +284,7 @@ namespace iLgs.Controllers
         public async Task<JsonResult> GetDescription(PropertyCardVM fields)
         {
             var description = _propertyCardService.GetDescription(fields);
-            var stockNo = _propertyCardService.GetStockNo(fields);
+            var stockNo = await _propertyCardService.GetStockNoAsync(fields);
             var psCard = await _propertyCardService.GetByPsNoAsync(stockNo);
 
             Guid id = Guid.NewGuid();
@@ -297,11 +297,11 @@ namespace iLgs.Controllers
             bool isDuplicateStockNo = false;
             if (fields.Mode == "A")
             {
-                isDuplicateStockNo = _propertyCardValidator.IsPsNoAlreadyExists(fields, Mode.ADD);
+                isDuplicateStockNo = await _propertyCardValidator.IsPsNoAlreadyExistsAsync(fields, Mode.ADD);
             }
             else
             {
-                isDuplicateStockNo = _propertyCardValidator.IsPsNoAlreadyExists(fields, Mode.EDIT);
+                isDuplicateStockNo = await _propertyCardValidator.IsPsNoAlreadyExistsAsync(fields, Mode.EDIT);
             }
 
             return Json(new { Description = description, StockNo = stockNo, Id = id, IsDuplicateStockNo = isDuplicateStockNo }, JsonRequestBehavior.AllowGet);
@@ -662,10 +662,11 @@ namespace iLgs.Controllers
                 model.AllField.Multipliers = 0;
             }
 
-            //string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
             return PartialView(partialView, model);
         }
 

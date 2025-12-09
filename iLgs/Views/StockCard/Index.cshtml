@@ -45,6 +45,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.Id).Hidden();
+        col.Bound(c => c.SemiExpendable).Width(40);
         col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.PsNo).Width(100);
         col.Bound(c => c.ItemType).Width(100);
@@ -57,6 +58,9 @@
         col.Bound(c => c.InsertedBy).Width(70).Title("Created by");
         col.Bound(c => c.ItemCount).Width(70);
         col.Bound(c => c.NotPosted).Width(70);
+        col.Bound(c => c.QtyBal).Width(70)
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")            
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
         //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
         {
@@ -85,6 +89,7 @@
     })
     .Search(s =>
     {
+        s.Field(o => o.SemiExpendable, "contains");
         s.Field(o => o.Fund, "contains");
         s.Field(o => o.PsNo, "contains");
         s.Field(o => o.ItemType, "contains");

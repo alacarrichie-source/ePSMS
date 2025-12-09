@@ -92,22 +92,22 @@ namespace iLgs.Utilities
             return retval;
         }
 
-        public static string GetPartialView(ItemCode itemCode)
-        {
-            string partialName = "";
-            if (string.IsNullOrWhiteSpace(itemCode.PartialPage))
-            {
-                if (!string.IsNullOrWhiteSpace(itemCode.ItemType.PartialPage))
-                {
-                    partialName = itemCode.ItemType.PartialPage;
-                }
-            }
-            else
-            {
-                partialName = itemCode.PartialPage;
-            }
-            return partialName;
-        }
+        //public static string GetPartialView(ItemCode itemCode)
+        //{
+        //    string partialName = "";
+        //    if (string.IsNullOrWhiteSpace(itemCode.PartialPage))
+        //    {
+        //        if (!string.IsNullOrWhiteSpace(itemCode.ItemType.PartialPage))
+        //        {
+        //            partialName = itemCode.ItemType.PartialPage;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        partialName = itemCode.PartialPage;
+        //    }
+        //    return partialName;
+        //}
 
         //public static string GetPartialField(string itemTypeCode, string itemCode)
         //{

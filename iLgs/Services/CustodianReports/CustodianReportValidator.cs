@@ -84,11 +84,12 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new RecordAlreadyExistsException();
             }
-
-        }
+        }        
 
         public void ValidateFieldsOnCreateUpdate(CustodianReport model)
         {
+            _imex = new InvalidModelException();
+
             if (!model.AsOf.HasValue)
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.AsOf)), "Field is required.");

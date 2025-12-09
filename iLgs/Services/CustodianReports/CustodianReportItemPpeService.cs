@@ -17,6 +17,7 @@ namespace iLgs.Services.CustodianReports
         IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
         IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand);
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -194,6 +195,26 @@ namespace iLgs.Services.CustodianReports
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
         }
 
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId)
+        {
+            IQueryable<CustodianReportItemPpeVM> data = null;
+            if (deptId != null)
+            {
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                if (data.Any() && isDemand == true)
+                {
+                    data = data.Where(w => w.Annex == "C");
+                }
+                if (data.Any())
+                {
+                    data = data.Where(w => w.ItemCodeId == itemCodeId);
+                }
+            }
+            return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
+        }
+
         public IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
@@ -215,7 +236,7 @@ namespace iLgs.Services.CustodianReports
 
             SetDefaultValues(model);
 
-            _validator.ValidateOnCreate(model);
+            await _validator.ValidateOnCreateAsync(model);
             await base.CreateAsync(model, user, date);
             return model;
         });
@@ -229,7 +250,7 @@ namespace iLgs.Services.CustodianReports
 
             SetDefaultValues(model);
 
-            _validator.ValidateOnUpdate(model);
+            await _validator.ValidateOnUpdateAsync(model);
             await base.UpdateAsync(model, user, date);
             return model;
         });

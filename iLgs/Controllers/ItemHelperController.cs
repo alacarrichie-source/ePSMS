@@ -2,7 +2,6 @@
 using iLgs.Services;
 using iLgs.Services.Items;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -124,6 +123,15 @@ namespace iLgs.Controllers
             }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
+        {
+            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.MainAccount).ToList();
+            // Insert "ALL" at the top
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCustodianItemPpe(string text)
         {
             var model = _itemCodeService.GetCustodianItemPpe(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
@@ -147,15 +155,6 @@ namespace iLgs.Controllers
                 MainDescCode = c.MainDescCode,
                 Category = c.Category
             }), JsonRequestBehavior.AllowGet);
-        }
-
-        public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
-        {
-            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.MainAccount).ToList();
-            // Insert "ALL" at the top
-            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
-
-            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianItemStocks(string text)
@@ -236,6 +235,131 @@ namespace iLgs.Controllers
         public JsonResult GetCustodianItemBldg(string text)
         {
             var model = _itemCodeService.GetCustodianItemBldg(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianItemPpeWithNonArticles(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemPpeWithNonArticles(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianItemStocksWithNonArticles(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemStocksWithNonArticles(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianItemVehicleWithNonArticles(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemVehicleWithNonArticles(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianItemLandWithNonArticles(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemLandWithNonArticles(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianItemBldgWithNonArticles(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemBldgWithNonArticles(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
             return Json(model.Select(c => new
             {
                 Id = c.Id,

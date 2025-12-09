@@ -298,8 +298,10 @@ namespace iLgs.Services.AIRs_
                         AllField af = null;
                         if (oAf != null)
                         {
-                            var itemCode = _itemCodeService.GetById(oig.ItemCodeId);
-                            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+                            //var itemCode = _itemCodeService.GetById(oig.ItemCodeId);
+                            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+                            string partialView = await _itemCodeService.GetPartialViewAsync(oig.ItemCodeId);
 
                             //_FieldAlcohol
                             //_FieldBrand

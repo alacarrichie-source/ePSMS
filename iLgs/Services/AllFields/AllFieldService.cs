@@ -28,17 +28,17 @@ namespace iLgs.Services.AllFields
         ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
 
-        string GetRisDescription(RisItemEntryVM model);
-        string GetCardStockNo(PsCardVM model);
-        string GetRisStockNo(RisItemEntryVM model);
-        string GetOrderStockNo(OrderItemVM model);
-        string GetCustodianStockNo(CustodianReportItem model);
-        string GetCustodianStockNo(CustodianReportLandItem model);
-        string GetCustodianStockNo(CustodianReportBldgItem model);
+        Task<string> GetRisDescriptionAsync(RisItemEntryVM model);
+        Task<string> GetCardStockNoAsync(PsCardVM model);
+        Task<string> GetRisStockNoAsync(RisItemEntryVM model);
+        Task<string> GetOrderStockNoAsync(OrderItemVM model);
+        Task<string> GetCustodianStockNoAsync(CustodianReportItem model);
+        Task<string> GetCustodianStockNoAsync(CustodianReportLandItem model);
+        Task<string> GetCustodianStockNoAsync(CustodianReportBldgItem model);
         string GetOrderPsNoDisplay(OrderItemVM model);
-        void ValidateStockCardAllField(StockCardVM model);
-        void ValidatePropertyCardAllField(PropertyCardVM model);
-        void ValidateRisAllField(RisItemEntryVM model);
+        Task ValidateStockCardAllFieldAsync(StockCardVM model);
+        Task ValidatePropertyCardAllFieldAsync(PropertyCardVM model);
+        Task ValidateRisAllFieldAsync(RisItemEntryVM model);
         string GetStockNo(AllField af, string itemTypeCode, string itemCode);
         bool IsBrandRequired(Category c);
         //bool IsNoIcs(Guid? itemCodeId);
@@ -95,53 +95,60 @@ namespace iLgs.Services.AllFields
             return data;
         });
 
-        public void ValidatePsCardAllField(PsCardVM model)
+        public async Task ValidatePsCardAllFieldAsync(PsCardVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
-            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);            
             ex.ThrowIfContainsErrors();
         }
 
-        public void ValidateStockCardAllField(StockCardVM model)
+        public async Task ValidateStockCardAllFieldAsync(StockCardVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
-            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);           
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);            
             ex.ThrowIfContainsErrors();
         }
 
-        public void ValidatePropertyCardAllField(PropertyCardVM model)
+        public async Task ValidatePropertyCardAllFieldAsync(PropertyCardVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
             _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
-            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            
             ex.ThrowIfContainsErrors();
         }
 
-        public void ValidateRisAllField(RisItemEntryVM model)
+        public async Task ValidateRisAllFieldAsync(RisItemEntryVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
             _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
-            //_validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
+            
             ex.ThrowIfContainsErrors();
         }
 
-        public void ValidateOrderAllField(OrderItemVM model)
+        public async Task ValidateOrderAllFieldAsync(OrderItemVM model)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
-            //_validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
+            
             ex.ThrowIfContainsErrors();
         }
 
@@ -152,8 +159,7 @@ namespace iLgs.Services.AllFields
                 throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
             }
 
-            ValidatePsCardAllField(model);
-
+            await ValidatePsCardAllFieldAsync(model);
             await CreateAsync(model.AllField, user, date);
 
             return model.AllField;
@@ -166,8 +172,7 @@ namespace iLgs.Services.AllFields
                 throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
             }
 
-            ValidateRisAllField(model);
-
+            await ValidateRisAllFieldAsync(model);
             await CreateAsync(model.AllField, user, date);
 
             return model.AllField;
@@ -230,21 +235,21 @@ namespace iLgs.Services.AllFields
 
         public ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            ValidatePsCardAllField(model);
+            await ValidatePsCardAllFieldAsync(model);
             await UpdateAsync(model.AllField, user, date);
             return model.AllField;
         });
 
         public ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            ValidateRisAllField(model);
+            await ValidateRisAllFieldAsync(model);
             await UpdateAsync(model.AllField, user, date);
             return model.AllField;
         });
 
         public ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            ValidateOrderAllField(model);
+            await ValidateOrderAllFieldAsync(model);
             await UpdateAsync(model.AllField, user, date);
             return model.AllField;
         });
@@ -386,12 +391,14 @@ namespace iLgs.Services.AllFields
         }
 
 
-        public string GetRisDescription(RisItemEntryVM model)
+        public async Task<string> GetRisDescriptionAsync(RisItemEntryVM model)
         {
             string description = "";
             var af = model.AllField;
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
             if (partialView == "_FieldLand")
             {
                 description += af.Area.ToString() + "sqm";
@@ -553,30 +560,28 @@ namespace iLgs.Services.AllFields
             //return _db.ItemCodes.Where(w => w.Id == itemCodeId && (w.IsConsumable == "Y" || w.IsIncorporated == "Y" || w.ForDistribution == "Y")).Any();
         }
 
-        public string GetRisStockNo(RisItemEntryVM model)
+        public async Task<string> GetRisStockNoAsync(RisItemEntryVM model)
         {
             model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
 
-            //if (!IsNoIcs(model.ItemCodeId))
-            //{
-            //    stockNo += GetStockNo(model.AllField, model.PsType, model.ItemCode);
-            //}
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
 
-        public string GetOrderStockNo(OrderItemVM model)
+        public async Task<string> GetOrderStockNoAsync(OrderItemVM model)
         {
             model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
 
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
@@ -638,7 +643,7 @@ namespace iLgs.Services.AllFields
             return allField;
         }
 
-        public string GetCardStockNo(PsCardVM model)
+        public async Task<string> GetCardStockNoAsync(PsCardVM model)
         {
             model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
@@ -646,19 +651,17 @@ namespace iLgs.Services.AllFields
             {
                 stockNo = "FD" + stockNo;
             }
-            //if (!IsNoIcs(model.ItemCodeId))
-            //{
-            //    stockNo += GetStockNo(model.AllField, model.ItemTypeCode, model.ItemCode);
-            //}
 
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
 
-        public string GetCustodianStockNo(CustodianReportItem model)
+        public async Task<string> GetCustodianStockNoAsync(CustodianReportItem model)
         {
             string stockNo = model.Item_Code.Trim();
             if (model.FromDonation == true)
@@ -666,15 +669,15 @@ namespace iLgs.Services.AllFields
                 stockNo = "FD" + stockNo;
             }
 
-            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
 
-        public string GetCustodianStockNo(CustodianReportLandItem model)
+        public async Task<string> GetCustodianStockNoAsync(CustodianReportLandItem model)
         {
             string stockNo = model.Item_Code.Trim();
             if (model.FromDonation == true)
@@ -682,15 +685,15 @@ namespace iLgs.Services.AllFields
                 stockNo = "FD" + stockNo;
             }
 
-            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
 
-        public string GetCustodianStockNo(CustodianReportBldgItem model)
+        public async Task<string> GetCustodianStockNoAsync(CustodianReportBldgItem model)
         {
             string stockNo = model.Item_Code.Trim();
             if (model.FromDonation == true)
@@ -698,9 +701,10 @@ namespace iLgs.Services.AllFields
                 stockNo = "FD" + stockNo;
             }
 
-            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";

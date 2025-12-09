@@ -51,8 +51,8 @@ namespace iLgs.Services.PropertyCard
         });
 
         public ValueTask<PropertyCardVM> GetByIdAsync(Guid id) => _propCardVMexceptionService.TryCatch(async () =>
-        {            
-            var data = _db.PsCards.Where(w => w.Id == id).AsNoTracking()
+        {
+            var list = await _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                .Where(w => w.ItemCode.ItemType.Category != "S")
                .Select(s => new PropertyCardVM
                {
@@ -76,8 +76,9 @@ namespace iLgs.Services.PropertyCard
                    Amount = s.Amount,
                    AllField = s.AllField,
                    InsertedDt = s.InsertedDt
-               }).ToList()
-               .Select(s => new PropertyCardVM
+               }).ToListAsync();
+
+            var data = list.Select(s => new PropertyCardVM
                {
                    Id = s.Id,
                    ItemCodeId = s.ItemCodeId,
@@ -101,12 +102,13 @@ namespace iLgs.Services.PropertyCard
                    AllField = s.AllField,
                    InsertedDt = s.InsertedDt
                }).FirstOrDefault();
+
             return data;
         });
 
         public ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnCreate(model);
+            await _validator.ValidateOnCreateAsync(model);
 
             model.Description = "Please see attachment.";
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
@@ -152,7 +154,7 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {            
-            _validator.ValidateOnUpdate(model);
+            await _validator.ValidateOnUpdateAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -194,7 +196,7 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnDelete(model);
+            await _validator.ValidateOnDeleteAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

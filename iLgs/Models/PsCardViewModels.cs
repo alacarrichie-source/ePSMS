@@ -120,6 +120,12 @@ namespace iLgs.Models
 
         [Display(Name = "Not Posted")]
         public int? NotPosted { get; set; }
+
+        [Display(Name = "Qty. Balance")]
+        public Nullable<decimal> QtyBal { get; set; }
+
+        [Display(Name = "Semi-Expendable")]
+        public string SemiExpendable { get; set; }
     }
 
     public class PsCardItemVM 

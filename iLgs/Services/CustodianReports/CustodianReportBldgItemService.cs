@@ -21,11 +21,13 @@ namespace iLgs.Services.CustodianReports
 {
     public interface ICustodianReportBldgItemService
     {
-        string GetStockNo(CustodianReportBldgItem model);
+        Task<string> GetStockNoAsync(CustodianReportBldgItem model);
         ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId);
         IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
         IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
+        ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
@@ -96,47 +98,47 @@ namespace iLgs.Services.CustodianReports
                 SubAccount = s.SubAccount,
                 Article = s.Article,
                 BldgItem = s.BldgItem,
-                PsNo = s.PsNo,
-                PoNo = s.PoNo,
+                PsNo = s.PsNo,                
                 PropNo = s.PropNo,
-                OldAmount = s.OldAmount,
-                PoDate = s.PoDate,
-                AcqCost = s.AcqCost,
+                //PoNo = s.PoNo,
+                //OldAmount = s.OldAmount,
+                //PoDate = s.PoDate,
+                //AcqCost = s.AcqCost,
                 DeptId = s.DeptId,
                 Department = s.Department,
                 LocationId = s.LocationId,
                 LocationCode = s.LocationCode,
                 Location = s.Location,
                 SubLocation = s.SubLocation,
-                AcqMonth = s.AcqMonth,
-                AcqYear = s.AcqYear,
-                AcqDay = s.AcqDay,
-                AcqDate = s.AcqDate,
-                Address = s.Address,
-                ProjectName = s.ProjectName,
-                BuildingType = s.BuildingType,
+                //AcqMonth = s.AcqMonth,
+                //AcqYear = s.AcqYear,
+                //AcqDay = s.AcqDay,
+                //AcqDate = s.AcqDate,
+                //Address = s.Address,
+                //ProjectName = s.ProjectName,
+                //BuildingType = s.BuildingType,
                 Area = s.Area,
                 AppraiseValue = s.AppraiseValue,
-                TotalAmount = s.TotalAmount,
-                PhaseNo = s.PhaseNo,
-                PhaseAmountMooe = s.PhaseAmountMooe,
-                PhaseAmountCo = s.PhaseAmountCo,
-                StartYear = s.StartYear,
-                StartMonth = s.StartMonth,
-                StartDay = s.StartDay,
-                StartDate = s.StartDate,
-                TargetYear = s.TargetYear,
-                TargetMonth = s.TargetMonth,
-                TargetDay = s.TargetDay,
-                TargetDate = s.TargetDate,
-                PercentComplete = s.PercentComplete,
-                CompletionYear = s.CompletionYear,
-                CompletionMonth = s.CompletionMonth,
-                CompletionDay = s.CompletionDay,
-                CompletionDate = s.CompletionDate,
-                Status = s.Status,
+                //TotalAmount = s.TotalAmount,
+                //PhaseNo = s.PhaseNo,
+                //PhaseAmountMooe = s.PhaseAmountMooe,
+                //PhaseAmountCo = s.PhaseAmountCo,
+                //StartYear = s.StartYear,
+                //StartMonth = s.StartMonth,
+                //StartDay = s.StartDay,
+                //StartDate = s.StartDate,
+                //TargetYear = s.TargetYear,
+                //TargetMonth = s.TargetMonth,
+                //TargetDay = s.TargetDay,
+                //TargetDate = s.TargetDate,
+                //PercentComplete = s.PercentComplete,
+                //CompletionYear = s.CompletionYear,
+                //CompletionMonth = s.CompletionMonth,
+                //CompletionDay = s.CompletionDay,
+                //CompletionDate = s.CompletionDate,
+                //Status = s.Status,
                 Condition = s.Condition,
-                Remarks = s.Remarks,
+                //Remarks = s.Remarks,
                 Annex = s.Annex,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
@@ -148,15 +150,19 @@ namespace iLgs.Services.CustodianReports
                 Latitude = s.Latitude,
                 ItemType_Code = s.ItemCode.ItemType.Code,
                 Item_Code = s.ItemCode.Code,
-                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit")
+                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit"),
                 //IsSubmitted = s.CustodianReport.CustodianReportSubmitForCounts.Any(a => a.Status == "Submit" && a.LocationId == s.LocationId)
+                // Transients
+                AcqCost = s.CustodianReportBldgItemPhases.Sum(x => x.AcqCost),
+                PhaseAmountCo = s.CustodianReportBldgItemPhases.Sum(x => x.CapitalOutlay),
+                PhaseAmountMooe = s.CustodianReportBldgItemPhases.Sum(x => x.MOOE)
             };
         }
 
-        public string GetStockNo(CustodianReportBldgItem model)
+        public async Task<string> GetStockNoAsync(CustodianReportBldgItem model)
         {
             model.AllField = SetAllField(model);
-            return _allFieldService.GetCustodianStockNo(model);
+            return await _allFieldService.GetCustodianStockNoAsync(model);
         }
 
         public ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id) =>
@@ -187,6 +193,28 @@ namespace iLgs.Services.CustodianReports
             if (data.Any() && isDemand == true)
             {
                 data = data.Where(w => w.Annex == "C");
+            }
+
+            return data;
+        }
+
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId)
+        {
+            var data = _db.CustodianReportBldgItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear 
+                && (deptId == Guid.Empty || w.CustodianReport.DeptId == deptId) 
+                && w.CustodianReport.AccountGroup == accountGroup && w.ItemCodeId == itemCodeId)
+                .Select(CustodianReportBldgItemProjection(_db));
+
+            if (data.Any() && isDemand == true)
+            {
+                data = data.Where(w => w.Annex == "C");
+            }
+
+            if (data.Any())
+            {
+                data = data.Where(w => w.ItemCodeId == itemCodeId);
             }
 
             return data;
@@ -237,6 +265,64 @@ namespace iLgs.Services.CustodianReports
             if (model is null)
             {
                 throw new NullException();
+            }
+        }
+
+        public void ValidateReportingYearEnd(int? year)
+        {
+            if (year == null || year == 0)
+            {
+                throw new InvalidValueException("For Year is Required.");
+            }
+
+            var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
+            if (data == null)
+            {
+                throw new NotFoundException("Invalid reporting year end.");
+            }
+            else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
+            {
+                throw new RecordLockedException($"Reporting year-end {year} is already locked.");
+            }
+        }
+
+        public async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date)
+        {
+            ValidateReportingYearEnd(reportingYearEnd);
+
+            if (newItemId == null)
+            {
+                throw new InvalidValueException("New Item Code is Required.");
+            }
+
+            var selectedIdList = selectedIds.Split(',').ToList();
+            if (selectedIdList.Count() == 0)
+            {
+                throw new RecordNotFoundException("No Items to process");
+            }
+
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                foreach (var selectedId in selectedIdList)
+                {
+                    var id = Guid.Parse(selectedId);
+                    var entity = await ctx.CustodianReportBldgItems.FirstOrDefaultAsync(f => f.Id == id);
+                    if (entity != null)
+                    {
+                        var newItemCode = await ctx.ItemCodes.FindAsync(newItemId);
+                        if (newItemCode != null)
+                        {
+                            entity.ItemCodeId = newItemId;
+                            entity.Item_Code = newItemCode.Code;
+                            var psNo = await GetStockNoAsync(entity);
+                            entity.PsNo = psNo;
+                            entity.UpdatedBy = user;
+                            entity.UpdatedDt = date;
+                        }                        
+                    }
+                }
+
+                await ctx.SaveChangesAsync();
             }
         }
 
@@ -427,50 +513,50 @@ namespace iLgs.Services.CustodianReports
             entity.SubAccount = model.SubAccount;
             entity.Article = model.Article;
             entity.BldgItem = model.BldgItem;
-            entity.PoNo = model.PoNo;
-            entity.PoDate = model.PoDate;
-            entity.AcqCost = model.AcqCost;
+            //entity.PoNo = model.PoNo;
+            //entity.PoDate = model.PoDate;
+            //entity.AcqCost = model.AcqCost;
             entity.DeptId = model.DeptId;
             entity.Department = model.Department;
             entity.LocationId = model.LocationId;
             entity.LocationCode = model.LocationCode;
             entity.SubLocation = model.SubLocation;
             entity.Location = model.Location;
-            entity.AcqMonth = model.AcqMonth;
-            entity.AcqYear = model.AcqYear;
-            entity.AcqDay = model.AcqDay;
-            entity.AcqDate = model.AcqDate;
+            //entity.AcqMonth = model.AcqMonth;
+            //entity.AcqYear = model.AcqYear;
+            //entity.AcqDay = model.AcqDay;
+            //entity.AcqDate = model.AcqDate;
             //entity.AcqDate = new DateTime((int)model.AcqYear, (int)((model.AcqMonth == null || model.AcqMonth == 0) ? 1 : model.AcqMonth), (int)((model.AcqDay == null || model.AcqDay == 0) ? 1 : model.AcqDay));
             entity.PsNo = model.PsNo;
             entity.PropNo = model.PropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.Address = model.Address;
-            entity.ProjectName = model.ProjectName;
-            entity.BuildingType = model.BuildingType;
+            //entity.OldAmount = model.OldAmount;
+            //entity.Address = model.Address;
+            //entity.ProjectName = model.ProjectName;
+            //entity.BuildingType = model.BuildingType;
             entity.Area = model.Area;
             entity.AppraiseValue = model.AppraiseValue;
-            entity.TotalAmount = model.TotalAmount;
-            entity.PhaseNo = model.PhaseNo;
-            entity.PhaseAmountMooe = model.PhaseAmountMooe;
-            entity.PhaseAmountCo = model.PhaseAmountCo;
-            entity.StartYear = model.StartYear;
-            entity.StartMonth = model.StartMonth;
-            entity.StartDay = model.StartDay;
-            entity.StartDate = model.StartDate;
+            //entity.TotalAmount = model.TotalAmount;
+            //entity.PhaseNo = model.PhaseNo;
+            //entity.PhaseAmountMooe = model.PhaseAmountMooe;
+            //entity.PhaseAmountCo = model.PhaseAmountCo;
+            //entity.StartYear = model.StartYear;
+            //entity.StartMonth = model.StartMonth;
+            //entity.StartDay = model.StartDay;
+            //entity.StartDate = model.StartDate;
             //entity.StartDate = new DateTime((int)model.StartYear, (int)((model.StartMonth == null || model.StartMonth == 0) ? 1 : model.StartMonth), (int)((model.StartDay == null || model.StartDay == 0) ? 1 : model.StartDay));
-            entity.TargetYear = model.TargetYear;
-            entity.TargetMonth = model.TargetMonth;
-            entity.TargetDay = model.TargetDay;
-            entity.TargetDate = model.TargetDate;
+            //entity.TargetYear = model.TargetYear;
+            //entity.TargetMonth = model.TargetMonth;
+            //entity.TargetDay = model.TargetDay;
+            //entity.TargetDate = model.TargetDate;
             //entity.TargetDate = new DateTime((int)model.TargetYear, (int)((model.TargetMonth == null || model.TargetMonth == 0) ? 1 : model.TargetMonth), (int)((model.TargetDay == null || model.TargetDay == 0) ? 1 : model.TargetDay));
-            entity.PercentComplete = model.PercentComplete;
-            entity.CompletionYear = model.CompletionYear;
-            entity.CompletionMonth = model.CompletionMonth;
-            entity.CompletionDay = model.CompletionDay;
-            entity.CompletionDate = model.CompletionDate;
-            entity.Status = model.Status;
+            //entity.PercentComplete = model.PercentComplete;
+            //entity.CompletionYear = model.CompletionYear;
+            //entity.CompletionMonth = model.CompletionMonth;
+            //entity.CompletionDay = model.CompletionDay;
+            //entity.CompletionDate = model.CompletionDate;
+            //entity.Status = model.Status;
             entity.Condition = model.Condition;
-            entity.Remarks = model.Remarks;
+            //entity.Remarks = model.Remarks;
             entity.Annex = model.Annex;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -920,6 +1006,6 @@ namespace iLgs.Services.CustodianReports
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
-        }
+        }        
     }
 }

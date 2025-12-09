@@ -6,15 +6,32 @@
     <div class="col-md-6">
         @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().NumericTextBox()
+            @*@(Html.Kendo().NumericTextBox()
                 .Name("forYear")
-                .Enable(false)
+                //.Enable(false)
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Decimals(0)
                 .Spinners(false)
                 .Events(e => e.Change("onChangeForYear"))
                 .Format("0")
                 .Value(@ViewBag.ForYear)
+            )*@
+            @(Html.Kendo().DropDownList()
+                .Name("forYear")
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GeReportingYearEnd", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Events(e => e.Change("onChangeForYear"))
             )
         </div>
     </div>
@@ -551,7 +568,46 @@
 
     function onChangeForYear(e) {
         reportId = null;
-        $("#grid").data("kendoGrid").dataSource.read();
+        var numeric = $("#forYear").data("kendoDropDownList");
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ValidateYear", "CustodianReport")',
+            data: { year: numeric.value() },
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+
+                if (result.Errors == "") {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                } else {
+                    alert(result.Errors);
+
+                    // ❗ Force the NumericTextBox to keep focus
+                    setTimeout(function () {
+                        numeric.focus();
+                    });
+
+                    // ❗ Optional: clear invalid value or revert
+                    // numeric.value(numeric._old);
+
+                    return;
+                }
+            },
+            error: function (req, status, errorObj) {
+                window.kendo.ui.progress($(document.body), false);
+
+                alert(req.responseText);
+
+                setTimeout(function () {
+                    numeric.focus();
+                });
+
+                return;
+            }
+        });
     }
 
     var deptCode = null;
@@ -1153,8 +1209,12 @@
             type: 'POST',
             url: url,
             data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
             success: function(data) {
                 fieldsContainer.html(data);
+                window.kendo.ui.progress($("#form"), false);
             }
         });
     }

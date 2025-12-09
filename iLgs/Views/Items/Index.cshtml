@@ -193,6 +193,22 @@
 
 
 <script type="text/javascript">
+    $("#btnArchiveToggle_@ViewData["itemTypeId"]").on("click", function (e) {
+     e.preventDefault(); // BLOCK any navigation
+        e.stopPropagation();
+
+        var $btn = $(this);
+
+        if ($btn.text().trim() === "Show Archive") {
+            $btn.text("Hide Archive");
+            // your logic here
+        } else {
+            $btn.text("Show Archive");
+            // your logic here
+        }
+    });
+
+
     function onShowNotification(e) {
         if (e.sender.getNotifications().length == 1) {
             e.element.parent().css({ zIndex: 22222 });
@@ -307,7 +323,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
-    
+
     function DataCategoryId() {
         var text = $("#CategoryId").data("kendoMultiColumnComboBox").text();
         if (text == null || text == "") {
@@ -359,7 +375,7 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: "Item Code Printing",
-            width: 400            
+            width: 400
         });
 
         mywindow.refresh({

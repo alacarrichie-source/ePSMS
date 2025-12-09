@@ -179,7 +179,7 @@ namespace iLgs.Models
             [Display(Name = "Department Display")]
             public string Department { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Location Code")]
             public Nullable<System.Guid> LocationId { get; set; }
 
@@ -221,7 +221,7 @@ namespace iLgs.Models
             [Display(Name = "Dosage Form")]
             public string DosageForm { get; set; }
 
-            [Display(Name = "Dosage Volumne")]
+            [Display(Name = "Dosage Volume")]
             public string DosageVolume { get; set; }
 
             [Display(Name = "Multiples (#'s)")]
@@ -336,7 +336,7 @@ namespace iLgs.Models
 
             public string Type { get; set; }
 
-            [Required]            
+            //[Required]            
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -761,7 +761,7 @@ namespace iLgs.Models
             [Display(Name = "Article")]
             public Nullable<System.Guid> ItemCodeId { get; set; }
 
-            [Display(Name = "Sub-Acount")]
+            [Display(Name = "Sub-Account")]
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
@@ -912,6 +912,21 @@ namespace iLgs.Models
             public Nullable<double> Latitude { get; set; }
             public Nullable<double> Longitude { get; set; }
         }
+    }
+
+    public class CustodianReportBldgItemTransferVM
+    {
+        public System.Guid ReportId { get; set; }
+
+        public System.Guid SourceId { get; set; }        
+
+        [Required]
+        [Display(Name = "From Custodian Item No.")]
+        public string SourceCustodianItemNo { get; set; }
+
+        [Required]
+        [Display(Name = "Transfer to Custodian Item No.")]
+        public string TargetCustodianItemNo { get; set; }
     }
 
     public class CustodianReportBldgItemVM : CustodianReportBldgItem

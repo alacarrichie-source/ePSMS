@@ -857,9 +857,12 @@ namespace iLgs.Controllers
                 model.AllField = new AllField();
                 model.AllField.Multipliers = 0;                
             }
-            
-            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+
             if (!string.IsNullOrEmpty(partialView))
             {
                 partialView = $"{partialView}";
@@ -1076,9 +1079,9 @@ namespace iLgs.Controllers
         }
         
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(RisItemEntryVM entry)
+        public async Task<JsonResult> GetDescription(RisItemEntryVM entry)
         {
-            var description = _risItemService.GetDescription(entry);
+            var description = await _risItemService.GetDescriptionAsync(entry);
 
             return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
         }

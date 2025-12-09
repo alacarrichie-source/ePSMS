@@ -16,6 +16,7 @@ namespace iLgs.Services.CustodianReports
     {
         IQueryable<CustodianReportBldgItemPhasVM> GetByBldgItemId(Guid? bldgItemId);
         ValueTask<CustodianReportBldgItemPhasVM> GetByIdAsync(Guid id);
+        ValueTask<CustodianReportBldgItemTransferVM> TransferItemAsync(CustodianReportBldgItemTransferVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemPhasVM> CreateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemPhasVM> UpdateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date);
@@ -27,6 +28,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportBldgItemPhasVM> _exceptionService;
+        private readonly IExceptionService<CustodianReportBldgItemTransferVM> _transferItemExceptionService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
@@ -34,12 +36,14 @@ namespace iLgs.Services.CustodianReports
             IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
+            IExceptionService<CustodianReportBldgItemTransferVM> transferItemExceptionService,
             IUserService userService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
+            _transferItemExceptionService = transferItemExceptionService;
             _userService = userService;
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhasVM>;
         }
@@ -85,6 +89,71 @@ namespace iLgs.Services.CustodianReports
                 .Select(Projection()).AsNoTracking();
             return data;
         });
+
+        public virtual async ValueTask<CustodianReportBldgItemTransferVM> TransferItemAsync(CustodianReportBldgItemTransferVM model, string user, DateTime date)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }            
+
+            ValidateIfPosted(model.SourceId);
+
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                // 1. Load source with phases
+                var sourceItem = await ctx.CustodianReportBldgItems
+                    .Include(i => i.CustodianReportBldgItemPhases).AsNoTracking()
+                    .FirstOrDefaultAsync(f => f.Id == model.SourceId);
+
+                if (sourceItem == null)
+                {
+                    throw new NotFoundException(model.SourceId);
+                }
+
+                // 2. Load target item
+                var targetItems = ctx.CustodianReportBldgItems
+                    .Include(i => i.CustodianReportBldgItemPhases)
+                    .Where(p =>
+                        p.ReportId == model.ReportId &&
+                        p.CustodianItemNo == model.TargetCustodianItemNo);
+
+                if (targetItems.Count() > 1)
+                {
+                    throw new RecordRelationshipException($"More than 1 {model.TargetCustodianItemNo} was found.");
+                }
+
+                var targetItem = targetItems.FirstOrDefault();    
+
+                if (targetItem == null)
+                {
+                    throw new NotFoundException($"Custodian Item No. {model.TargetCustodianItemNo} not found.");
+                }
+
+                // 3. Extract child phases
+                var sourcePhases = sourceItem.CustodianReportBldgItemPhases.ToList();
+
+                // 4. Transfer each phase
+                foreach (var phase in sourcePhases)
+                {
+                    //// remove from source navigation
+                    //sourceItem.CustodianReportBldgItemPhases.Remove(phase);
+
+                    //// change FK
+                    //phase.BldgItemId = targetItem.Id;
+
+                    //// add to target navigation
+                    //targetItem.CustodianReportBldgItemPhases.Add(phase);
+
+                    await ctx.Database.ExecuteSqlCommandAsync("Update CustodianReportBldgItemPhases Set BldgItemId = {0}, UpdatedBy = {1}, UpdatedDt = {2} Where Id = {3}", targetItem.Id, user, date, phase.Id);
+                }
+
+                //// Save
+                //await ctx.SaveChangesAsync();
+            }
+
+            return model;
+        }
 
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> CreateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {

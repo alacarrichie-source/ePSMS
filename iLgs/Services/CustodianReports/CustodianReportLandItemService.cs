@@ -18,7 +18,7 @@ namespace iLgs.Services.CustodianReports
 {
     public interface ICustodianReportLandItemService
     {
-        string GetStockNo(CustodianReportLandItem model);
+        Task<string> GetStockNoAsync(CustodianReportLandItem model);
         ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);
         IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
@@ -168,10 +168,10 @@ namespace iLgs.Services.CustodianReports
             };
         }
 
-        public string GetStockNo(CustodianReportLandItem model)
+        public async Task<string> GetStockNoAsync(CustodianReportLandItem model)
         {
             model.AllField = SetAllField(model);
-            return _allFieldService.GetCustodianStockNo(model);
+            return await _allFieldService.GetCustodianStockNoAsync(model);
         }
 
         public ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id) =>

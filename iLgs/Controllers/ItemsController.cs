@@ -720,5 +720,10 @@ namespace iLgs.Controllers
                 table.Location = table.Location;
             }
         }
+
+        public async Task<ActionResult> GetPartialView(Guid? id)
+        {            
+            return Content("Partial " + (await _itemCodeService.GetPartialViewAsync(id)));            
+        }
     }
 }

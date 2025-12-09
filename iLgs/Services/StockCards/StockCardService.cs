@@ -148,14 +148,7 @@ namespace iLgs.Services.StockCards
 
         public new IQueryable<StockCardVM> GetAll(string userName)
         {
-            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();
-            //var data = _db.PsCards.Where(w => w.ItemCode.ItemType.Category == "S")
-            //    .Select(Projection()).AsNoTracking();
-
-            //if (!string.IsNullOrWhiteSpace(userName))
-            //{
-            //    data = data.Where(w => w.InsertedBy == userName);
-            //}
+            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();            
 
             return data;
         }
@@ -216,9 +209,9 @@ namespace iLgs.Services.StockCards
 
         public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
-            var stockNo = GetStockNo(model);
+            var stockNo = await GetStockNoAsync(model);
             model.PsNo = stockNo;
-            _validator.ValidateOnCreate(model);
+            await _validator.ValidateOnCreateAsync(model);
 
             model.Description = "Please see attachment.";
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
@@ -264,9 +257,9 @@ namespace iLgs.Services.StockCards
         
         public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
-            var stockNo = GetStockNo(model);
+            var stockNo = await GetStockNoAsync(model);
             model.PsNo = stockNo;
-            _validator.ValidateOnUpdate(model);
+            await _validator.ValidateOnUpdateAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -304,7 +297,7 @@ namespace iLgs.Services.StockCards
 
         public ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnDelete(model);
+            await _validator.ValidateOnDeleteAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;            

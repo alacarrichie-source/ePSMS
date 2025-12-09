@@ -8,7 +8,9 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
@@ -16,8 +18,8 @@ namespace iLgs.Services.CustodianReports
 {
     public interface ICustodianReportItemStockValidator
     {
-        void ValidateOnCreate(CustodianReportItemStockVM model);
-        void ValidateOnUpdate(CustodianReportItemStockVM model);
+        Task ValidateOnCreateAsync(CustodianReportItemStockVM model);
+        Task ValidateOnUpdateAsync(CustodianReportItemStockVM model);
         void ValidateOnDelete(CustodianReportItemStockVM model);
     }
 
@@ -41,16 +43,16 @@ namespace iLgs.Services.CustodianReports
             _itemCodeService = itemCodeService;
         }
 
-        public void ValidateOnCreate(CustodianReportItemStockVM model)
+        public async Task ValidateOnCreateAsync(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
+            await ValidateFieldsOnCreateUpdateAsync(model, Mode.ADD);
         }
 
-        public void ValidateOnUpdate(CustodianReportItemStockVM model)
+        public async Task ValidateOnUpdateAsync(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
+            await ValidateFieldsOnCreateUpdateAsync(model, Mode.EDIT);
         }
 
         public void ValidateOnDelete(CustodianReportItemStockVM model)
@@ -58,10 +60,10 @@ namespace iLgs.Services.CustodianReports
             ValidateIfNull(model);            
         }
 
-        public void ValidateFieldsOnCreateUpdate(CustodianReportItemStockVM model, Mode mode)
+        public async Task ValidateFieldsOnCreateUpdateAsync(CustodianReportItemStockVM model, Mode mode)
         {
             var ex = new InvalidModelException();
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
 
             if (itemCode == null)
             {
@@ -69,7 +71,8 @@ namespace iLgs.Services.CustodianReports
             }
             else
             {
-                string partialView = AllFieldsUtil.GetPartialView(itemCode);
+                //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+                string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
                 _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
             }
 
@@ -82,7 +85,7 @@ namespace iLgs.Services.CustodianReports
             {
                 if (mode == Mode.ADD)
                 {
-                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo);
+                    var entity = await _db.CustodianReportItems.FirstOrDefaultAsync(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo);
                     if (entity != null)
                     {
                         ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
@@ -90,81 +93,14 @@ namespace iLgs.Services.CustodianReports
                 }
                 else if (mode == Mode.EDIT)
                 {
-                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
+                    var entity = await _db.CustodianReportItems.FirstOrDefaultAsync(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
                     if (entity != null)
                     {
                         ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
                     }
                 }
             }
-
-            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
-
-
-            //if (model.DeptId == null)
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
-            //    }
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.Unit))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
-            //    }
-            //}
-
-            //if (!model.UnitCost.HasValue)
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
-            //}
-
-            //if (model.DeptId != null)
-            //{
-            //    if (model.LocationId != null)
-            //    {
-            //        if (!model.TransferIn.HasValue)
-            //        {
-            //            ex.UpsertDataList(_getDisplayName(nameof(model.TransferIn)), "Field is required.");
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (!model.Qty.HasValue)
-            //        {
-            //            ex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
-            //        }
-            //    }
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.Description))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.InvDist))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
-            //    }
-            //}
-
+            
             ex.ThrowIfContainsErrors();
         }
         

@@ -672,6 +672,26 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetDepartmentAll(string text)
+        {
+
+            var model = _db.Codextns
+                .Where(w => w.CodeMast.Code == "LOCATIONS" && w.Code.Substring(w.Code.Length - 2) == "00")
+                .Select(s => new GetDepartmentCodeVM { Id = s.Id, Description = s.Description, Code = s.Code })
+                .OrderBy(o => o.Description).AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            var data = model.ToList();
+
+            data.Insert(0, new GetDepartmentCodeVM { Id = Guid.Empty, Description = "ALL", Code = "ALL" });
+
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
         public async Task<JsonResult> GetSections(Guid? deptId, string text)
         {
             if (deptId == null)
@@ -1106,7 +1126,20 @@ namespace iLgs.Controllers
             var userId = User.Identity.GetUserId();
             var notifications = await _notificationMessageService.GetNotificationCountAsync(userId);
             return Json(new { Notifications = notifications }, JsonRequestBehavior.AllowGet);
-        }        
+        }
+
+        public JsonResult GeReportingYearEnd(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REPORT-YEAR-END").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
+        }
     }
     
     public class GetPsNoVM
@@ -1137,6 +1170,13 @@ namespace iLgs.Controllers
     public class GetDepartmentVM
     {
         public string Department { get; set; }        
+    }
+
+    public class GetDepartmentCodeVM
+    {
+        public Guid? Id { get; set; }
+        public string Code { get; set; }
+        public string Description { get; set; }
     }
 
     public class GetUserNameVM

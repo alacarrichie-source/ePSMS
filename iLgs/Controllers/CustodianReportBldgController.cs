@@ -59,6 +59,20 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public ActionResult BldgUpdate()
+        {
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
+            ViewBag.Title = "Custodian Report - Structure - Update Item Code";
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
+            //string userName = ControllerContext.HttpContext.User.Identity.Name;
+            //var isAdmin = _userService.IsUserNameAdmin(userName);
+            //ViewBag.IsAdmin = isAdmin;
+
+            return View();
+        }
+
         public ActionResult BldgDemand()
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
@@ -395,6 +409,64 @@ namespace iLgs.Controllers
             var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, isDemand);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _UpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, accountGroup, user, isDemand, itemCodeId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public async Task<ActionResult> UpdateItemCode(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+                else
+                {
+                    ModelState.Clear();
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportBldgItemService.UpdateItemCodeAsync(reportingYearEnd, selectedIds, newItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult _ItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
@@ -1006,9 +1078,9 @@ namespace iLgs.Controllers
 
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetStockNo(CustodianReportBldgItem fields)
+        public async Task<JsonResult> GetStockNo(CustodianReportBldgItem fields)
         {
-            var stockNo = _custodianReportBldgItemService.GetStockNo(fields);
+            var stockNo = await _custodianReportBldgItemService.GetStockNoAsync(fields);
 
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
@@ -1096,43 +1168,51 @@ namespace iLgs.Controllers
             }
         }
 
+        public ActionResult _TransferPhaseItems(Guid id, Guid reportId, string custodianItemNo)
+        {            
+            CustodianReportBldgItemTransferVM model = new CustodianReportBldgItemTransferVM()
+            {
+                ReportId = reportId,
+                SourceId = id,
+                SourceCustodianItemNo = custodianItemNo
+            };            
+            
+            return PartialView(model);
+        }
 
-        //public ActionResult ExcelExportAnnexAll(int? forYear, int? accountGroup, string annex)
-        //{
-        //    try
-        //    {
-        //        string exportFileName = $"CustodianStructureAnnex";
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _TransferPhaseItemSave(CustodianReportBldgItemTransferVM model)
+        {
+            try
+            {
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-        //        var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, null, templateFilePath, accountGroup, annex);
+                    model = await _custodianReportBldgItemService.CustodianReportBldgItemPhase.TransferItemAsync(model, user, date);
+                   
+                    return Json(new { Errors = "", Model = model });
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
 
-        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ALL_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new HttpStatusCodeResult(500, ex.Message);
-        //    }
-        //}
-
-        //public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, int? accountGroup, string annex)
-        //{
-        //    try
-        //    {
-        //        string exportFileName = $"CustodianStructureAnnex";
-
-        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-        //        var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, templateFilePath, accountGroup, annex);
-        //        var locationCode = "ALL";
-        //        if (deptId != null)
-        //        {
-        //            locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
-        //        }
-        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_s{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new HttpStatusCodeResult(500, ex.Message);
-        //    }
-        //}
+            return Json(new { Errors = ModelState.Where(ms => ms.Value.Errors.Any()).ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()) });
+        }
     }
 }

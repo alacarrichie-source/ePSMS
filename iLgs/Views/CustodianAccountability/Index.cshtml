@@ -19,7 +19,7 @@
                     {
                         source.Read(read =>
                         {
-                            read.Action("GetDepartments", "Getters");
+                            read.Action("GetUserDepartmentsAsync", "Getters");
                         })
                         .ServerFiltering(true);
                     })
@@ -45,7 +45,7 @@
         col.Bound(p => p.Description).Title("")
                 .ClientTemplate(
                 @"<div class='upload-photo'
-                   style='background-image: url(" + @Url.Content("~/CustodianAccountability/PreviewUpload?id=#:Id#") + ");'></div></div>")
+                   style='background-image: url(" + @Url.Content("~/CustodianAccountability/PreviewUploadThumb?id=#:Id#") + ");'></div></div>")
                     .Width(30);
         col.Bound(p => p.Description).Width(100);
         col.Bound(p => p.FileName).Width(100);

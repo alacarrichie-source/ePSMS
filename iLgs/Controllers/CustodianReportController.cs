@@ -130,6 +130,22 @@ namespace iLgs.Controllers
             return View("Stock");
         }
 
+        public ActionResult StockUpdate()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
+            ViewBag.Title = "Custodian Report - Supplies - Update Item Code";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View();
+        }
+
         public ActionResult StockQuery()
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
@@ -188,6 +204,22 @@ namespace iLgs.Controllers
             ViewBag.IsAdmin = isAdmin;
 
             return View("Ppe");
+        }
+
+        public ActionResult PpeUpdate()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Equpment - Update Item Code";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View();
         }
 
         public ActionResult PpeQuery()
@@ -250,6 +282,22 @@ namespace iLgs.Controllers
             ViewBag.IsAdmin = isAdmin;
 
             return View("Transpo");
+        }
+
+        public ActionResult TranspoUpdate()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Vehicles - Update Item Code";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View();
         }
 
         public ActionResult TranspoQuery()
@@ -552,6 +600,14 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
+        public ActionResult _StockUpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
         public ActionResult _StockItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -682,6 +738,14 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
+        public ActionResult _PpeUpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
         public ActionResult _PpeItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -808,6 +872,14 @@ namespace iLgs.Controllers
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _VehicleUpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -3002,9 +3074,10 @@ namespace iLgs.Controllers
                 model.Multipliers = 0;
             }
 
-            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             if (!string.IsNullOrEmpty(partialView))
             {
                 partialView = $"_Stock{partialView}";
@@ -3023,9 +3096,10 @@ namespace iLgs.Controllers
                 model = await _custodianReportItemPpeService.GetByIdAsync(model.Id);
             }
 
-            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             if (!string.IsNullOrEmpty(partialView))
             {
                 partialView = $"_Ppe{partialView}";
@@ -3044,9 +3118,10 @@ namespace iLgs.Controllers
                 model = await _custodianReportItemVehicleService.GetByIdAsync(model.Id);
             }
 
-            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             if (!string.IsNullOrEmpty(partialView))
             {
                 partialView = $"_Vehicle{partialView}";
@@ -3056,9 +3131,9 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetStockNo(CustodianReportItem fields)
+        public async Task<JsonResult> GetStockNo(CustodianReportItem fields)
         {
-            var stockNo = _custodianReportItemStockService.GetStockNo(fields);
+            var stockNo = await _custodianReportItemStockService.GetStockNoAsync(fields);
 
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
@@ -3525,5 +3600,77 @@ namespace iLgs.Controllers
         }
 
         #endregion
+
+        public async Task<ActionResult> UpdateItemCode(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+                else
+                {
+                    ModelState.Clear();
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportItemService.UpdateItemCodeAsync(reportingYearEnd, selectedIds, newItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<JsonResult> ValidateYear(int? year)
+        {
+            if (year == null || year == 0 || year < 1900)
+            {
+                return Json(new { Errors = "Invalid year." }, JsonRequestBehavior.AllowGet);
+            }
+
+            var data = await _custodianReportService.GetReportingYearEndAsync((int)year);
+            if (data == null)
+            {
+                return Json(new { Errors = "Setup not found for this year." }, JsonRequestBehavior.AllowGet);
+            }
+            //else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
+            //{
+            //    return Json(new { Errors = "Entries for this year are already locked." }, JsonRequestBehavior.AllowGet);
+            //}
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

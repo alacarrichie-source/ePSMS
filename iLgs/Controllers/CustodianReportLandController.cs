@@ -522,9 +522,9 @@ namespace iLgs.Controllers
 
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetStockNo(CustodianReportLandItem fields)
+        public async Task<JsonResult> GetStockNo(CustodianReportLandItem fields)
         {
-            var stockNo = _custodianReportLandItemService.GetStockNo(fields);
+            var stockNo = await _custodianReportLandItemService.GetStockNoAsync(fields);
 
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }

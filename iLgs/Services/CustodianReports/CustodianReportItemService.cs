@@ -20,9 +20,10 @@ namespace iLgs.Services.CustodianReports
         IQueryable<CustodianReportItem> GetByReportId(Guid? reportId);
         IQueryable<CustodianReportItem> GetAvailableItemsForDisposal(int? forYear, Guid? deptId);
         ValueTask<CustodianReportItem> GetByIdAsync(Guid id);
-        string GetStockNo(CustodianReportItem model);
+        Task<string> GetStockNoAsync(CustodianReportItem model);
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);
+        ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date);
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
@@ -72,12 +73,12 @@ namespace iLgs.Services.CustodianReports
             return data;
         });
 
-        public string GetStockNo(CustodianReportItem model)
+        public async Task<string> GetStockNoAsync(CustodianReportItem model)
         {
             model.AllField = SetAllField(model);
-            return _allFieldService.GetCustodianStockNo(model);
+            return await _allFieldService.GetCustodianStockNoAsync(model);
         }
-        
+
         public IQueryable<CustodianReportItem> GetByReportId(Guid? reportId) =>
         _exceptionService.TryCatch(() =>
         {
@@ -98,11 +99,9 @@ namespace iLgs.Services.CustodianReports
         });
 
         public virtual async ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date)
-        {
-            if (model.ForYear == 0 || model.ForYear == null)
-            {
-                throw new InvalidValueException("For Year is Required.");
-            }
+        {            
+            ValidateReportingYearEnd(model.ForYear);
+
             var asOfDate = Utility.GetAsOfDate((int)model.ForYear);
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -153,6 +152,8 @@ namespace iLgs.Services.CustodianReports
 
         public virtual async ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date)
         {
+            ValidateReportingYearEnd(model.ForYear);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -192,9 +193,77 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
+        public virtual async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date)
+        {
+            ValidateReportingYearEnd(reportingYearEnd);
+
+            if (newItemId == null)
+            {
+                throw new InvalidValueException("New Item Code is Required.");
+            }
+
+            var selectedIdList = selectedIds.Split(',').ToList();
+            if (selectedIdList.Count() == 0)
+            {
+                throw new RecordNotFoundException("No Items to process");
+            }
+
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                foreach (var selectedId in selectedIdList)
+                {
+                    var id = Guid.Parse(selectedId);
+                    var entity = await ctx.CustodianReportItems.FirstOrDefaultAsync(f => f.Id == id);
+                    if (entity != null)
+                    {
+                        var newItemCode = await ctx.ItemCodes.FindAsync(newItemId);
+                        if (newItemCode != null)
+                        {
+                            entity.ItemCodeId = newItemId;
+                            entity.Item_Code = newItemCode.Code;
+                            var psNo = await GetStockNoAsync(entity);
+                            entity.PsNo = psNo;
+                            entity.UpdatedBy = user;
+                            entity.UpdatedDt = date;
+                        }
+
+                        //// Find the index of the first '/', sample : U07-20.1/1/N/A
+                        //int slashIndex = entity.PsNo.IndexOf('/');
+
+                        //if (slashIndex >= 0)
+                        //{                                                        
+                        //    // Characters before the first '/'
+                        //    //string before = input.Substring(0, slashIndex);
+
+                        //    // Characters after the first '/'
+                        //    string after = entity.PsNo.Substring(slashIndex + 1);
+
+                        //    //Console.WriteLine("Before: " + before); // Output: U07-20.1
+                        //    //Console.WriteLine("After: " + after);   // Output: 1/N/A
+
+                        //    var newItemCode =  await ctx.ItemCodes.FindAsync(newItemId);
+                        //    if (newItemCode != null)
+                        //    {
+                        //        var psNo = $"{newItemCode.Code}/{after}";
+
+                        //        entity.ItemCodeId = newItemId;
+                        //        entity.PsNo = psNo;
+                        //        entity.UpdatedBy = user;
+                        //        entity.UpdatedDt = date;
+                        //    }
+                        //}
+                    }
+                }
+
+                await ctx.SaveChangesAsync();
+            }
+        }
+
         public async Task UpdateAllSetLotRemarksAsync(int forYear)
         {
-            var asOfDate = Utility.GetAsOfDate(forYear);                        
+            ValidateReportingYearEnd(forYear);
+
+            var asOfDate = Utility.GetAsOfDate(forYear);
             var custudianReportItemGroups = await _db.CustodianReportItems
                .Where(w => w.CustodianReport.AsOf == asOfDate && (w.SetLotNo.StartsWith("S") || w.SetLotNo.StartsWith("L")))
                .GroupBy(g => new { g.CustodianReport.DeptId, g.LocationId, g.SetLotNo })
@@ -203,8 +272,8 @@ namespace iLgs.Services.CustodianReports
 
             foreach (var custodianReportItemGroup in custudianReportItemGroups)
             {
-                await UpdateSetLotRemarksRawAsync(asOfDate, 
-                    custodianReportItemGroup.DeptId, 
+                await UpdateSetLotRemarksRawAsync(asOfDate,
+                    custodianReportItemGroup.DeptId,
                     custodianReportItemGroup.LocationId,
                     custodianReportItemGroup.SetLotNo);
             }
@@ -213,6 +282,8 @@ namespace iLgs.Services.CustodianReports
 
         private async Task UpdateSetLotRemarksRawAsync(DateTime asOfDate, Guid? deptId, Guid? locationId, string setLotNo)
         {
+            ValidateReportingYearEnd(asOfDate.Year);
+
             if (string.IsNullOrWhiteSpace(setLotNo))
             {
                 return;
@@ -246,7 +317,25 @@ namespace iLgs.Services.CustodianReports
                 await _db.Database.ExecuteSqlCommandAsync(TransactionalBehavior.EnsureTransaction, sql);
             }
         }
-        
+
+        public void ValidateReportingYearEnd(int? year)
+        {
+            if (year == null || year == 0)
+            {
+                throw new InvalidValueException("For Year is Required.");
+            }
+
+            var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
+            if (data == null)
+            {
+                throw new NotFoundException("Invalid reporting year end.");
+            }
+            else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
+            {
+                throw new RecordLockedException($"Reporting year-end {year} is already locked.");
+            }
+        }
+
         private void ValidateSerials(CustodianReportItem model, Mode mode)
         {
             _imex = new InvalidModelException();
@@ -343,6 +432,11 @@ namespace iLgs.Services.CustodianReports
         {
             _imex = new InvalidModelException();
 
+            if (model.LocationId == null)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.LocationId)), "Field is required.");
+            }
+
             if (!string.IsNullOrWhiteSpace(model.SetLotNo) && model.SetLotNo.Contains(" "))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Space is not allowed in Set/Lot No.");
@@ -410,6 +504,11 @@ namespace iLgs.Services.CustodianReports
                 }
             }
 
+            if (string.IsNullOrWhiteSpace(model.Annex))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), "Field is required.");                
+            }
+
             if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "A")
             {
                 if ((model.SetLotAmount == 0 && model.TotalCost == 0))
@@ -441,6 +540,11 @@ namespace iLgs.Services.CustodianReports
                 ValidateIfPosted(entity);
                 ValidateIfSubmitted(model);
 
+                var reportId = entity.ReportId;
+                var custodianReport = await ctx.CustodianReports.Where(w => w.Id == reportId).FirstOrDefaultAsync();
+
+                ValidateReportingYearEnd(custodianReport.AsOf.Value.Year);
+
                 // manually remove, cascade is not working due to multiple relationship.
                 var custodianReportUpload = await ctx.CustodianReportUploads.FindAsync(entity.Id);
                 if (custodianReportUpload != null)
@@ -457,7 +561,7 @@ namespace iLgs.Services.CustodianReports
                 //ctx.Entry(entity).State = EntityState.Modified;
                 //await ctx.SaveChangesAsync();
 
-                var reportId = entity.ReportId;
+                
                 var locationId = entity.LocationId;
                 var setLotNo = entity.SetLotNo;
 
@@ -466,7 +570,7 @@ namespace iLgs.Services.CustodianReports
 
                 await ctx.SaveChangesAsync();
 
-                var custodianReport = await ctx.CustodianReports.Where(w => w.Id == reportId).FirstOrDefaultAsync();
+                
                 if (custodianReport != null)
                 {
                     var asOfDate = (DateTime)custodianReport.AsOf;

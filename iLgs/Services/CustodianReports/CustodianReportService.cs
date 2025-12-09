@@ -21,6 +21,7 @@ namespace iLgs.Services.CustodianReports
         string GetAccountGroupMenuId(CustodianAccountGroup accountGroup);
         string GetAccountGroupMenuId(int? accountGroup);
         int GetReportingYearEnd();
+        Task<Codextn> GetReportingYearEndAsync(int year);
 
         ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReport> UnPostAsync(Guid id, string user, DateTime date);
@@ -134,12 +135,17 @@ namespace iLgs.Services.CustodianReports
 
         public int GetReportingYearEnd()
         {
-            var data = _db.Codextns.OrderByDescending(o => o.Code).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END");
+            var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END");
             if (data != null)
             {
-                return int.Parse(data.Code);
+                return int.Parse(data.Description);
             }
             return DateTime.Now.Year;
+        }
+
+        public Task<Codextn> GetReportingYearEndAsync(int year)
+        {
+            return _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefaultAsync(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());            
         }
 
         public ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date) =>

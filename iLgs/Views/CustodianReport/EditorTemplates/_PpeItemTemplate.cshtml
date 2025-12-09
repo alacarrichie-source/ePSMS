@@ -164,7 +164,7 @@
                     @Html.DisplayFor(m => m.PropNo, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.PropNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PropNo)
                 </div>
             </div>

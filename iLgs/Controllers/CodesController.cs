@@ -98,31 +98,18 @@ namespace iLgs.Controllers
             ViewBag.IsValid = false;
             ViewBag.UseOtp = false;
 
-            //if (string.IsNullOrWhiteSpace(pin))
-            //{                
-            //    var random = new Random();
-            //    int number = random.Next(0, 10000);
-            //    pin = number.ToString("D4"); // formats with leading zeros
-
-            //    HttpContext.Session.Remove(key);  // removes just this key                
-            //    HttpContext.Session[key] = pin;  // sets it to null                
-
-            //    await UserManager.SendEmailAsync(userId, "ePSMS One-Time PIN", $"{pin} is your One-Time PIN. DO NOT SHARE YOUR OTP, If you did not request this, please inform the Admin.");
-            //}
-            //else
-            //{
-            //    var keyPin = HttpContext.Session[key] as string;
-
-            //    if (keyPin != pin)
-            //    {
-            //        ModelState.AddModelError("pin", "Invalid Value.");
-            //    }
-            //    else
-            //    {
-            //        ViewBag.IsValid = true;
-            //    }
-            //}
+            
                         
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> ReportingYearEnd()
+        {
+            var code = "REPORT-YEAR-END";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Reporting Year-End";
+            
             return View("Codextn", codeMast);
         }
 

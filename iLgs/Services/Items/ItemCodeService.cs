@@ -14,8 +14,9 @@ namespace iLgs.Services.Items
     {
         IQueryable<ItemCodeVM> GetAll();
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
-        ValueTask<ItemCode> GetByIdAsync(Guid? id);
         ItemCode GetById(Guid? id);
+        Task<ItemCode> GetByIdAsync(Guid? id);
+        Task<ItemCode> GetByCodeAsync(string code);
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
@@ -23,6 +24,7 @@ namespace iLgs.Services.Items
         string GetSubAccounts(Guid? id);
         string GetSubAccount(Guid? id, int pos);
         string GetSubAccountCode(Guid? id);
+        Task<string> GetPartialViewAsync(Guid? id);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
@@ -34,6 +36,12 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
         IQueryable<ItemCodeVM> GetCustodianItemLand(string item);
         IQueryable<ItemCodeVM> GetCustodianItemBldg(string item);
+        
+        IQueryable<ItemCodeVM> GetCustodianItemPpeWithNonArticles(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemStocksWithNonArticles(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemVehicleWithNonArticles(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemLandWithNonArticles(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemBldgWithNonArticles(string item);
 
         bool IsProperty(Guid? id);
         bool IsWithParIcs(Guid? id);
@@ -110,16 +118,19 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public ValueTask<ItemCode> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
+        public Task<ItemCode> GetByIdAsync(Guid? id) 
         {
-            var data = await _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Id == id);
-            return data;
-        });
+            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Id == id);            
+        }
 
         public ItemCode GetById(Guid? id) 
         {
             var data = _db.ItemCodes.Include(i => i.ItemType).FirstOrDefault(f => f.Id == id);
             return data;
+        }
+        public Task<ItemCode> GetByCodeAsync(string code)
+        {
+            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Code == code);            
         }
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _vmExceptionService.TryCatch(() =>
@@ -139,13 +150,7 @@ namespace iLgs.Services.Items
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.PPE, item).AsQueryable().AsNoTracking();
             return data;
         });
-
-        //public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) => _VmExceptionService.TryCatch(() =>
-        //{
-        //    var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
-        //    return data;
-        //});
-
+        
         public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) 
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
@@ -167,6 +172,36 @@ namespace iLgs.Services.Items
         public IQueryable<ItemCodeVM> GetCustodianItemBldg(string item) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.BUILDING, item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemPpeWithNonArticles(string item) => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}, ''", (int)CustodianAccountGroup.PPE, item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemStocksWithNonArticles(string item)
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}, ''", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
+            return data;
+        }
+
+        public IQueryable<ItemCodeVM> GetCustodianItemVehicleWithNonArticles(string item) => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}, ''", (int)CustodianAccountGroup.VEHICLE, item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemLandWithNonArticles(string item) => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}, ''", (int)CustodianAccountGroup.LAND, item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemBldgWithNonArticles(string item) => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}, ''", (int)CustodianAccountGroup.BUILDING, item).AsQueryable().AsNoTracking();
             return data;
         });
 
@@ -234,6 +269,44 @@ namespace iLgs.Services.Items
             var data = _db.Database.SqlQuery<string>($"Select dbo.fn_SubAccountAt('{code}', {pos})").FirstOrDefault();
 
             return data;
+        }
+
+        public async Task<string> GetPartialViewAsync(Guid? id)
+        {
+            var itemCode = await GetByIdAsync(id);
+            
+            if (itemCode == null)
+            {
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(itemCode.PartialPage))
+            {
+                var parts = itemCode.Code.Split('.');
+
+                if (parts.Length == 1) // no '.' found, only the main code
+                {
+                    if (!string.IsNullOrWhiteSpace(itemCode.ItemType.PartialPage))
+                    {
+                        return itemCode.ItemType.PartialPage;
+                    }
+                    
+                }
+                
+                for (int i = parts.Length - 1; i > 0; i--)
+                {
+                    string code = string.Join(".", parts.Take(i));
+                    itemCode = await GetByCodeAsync(code);
+                    if (itemCode != null && !string.IsNullOrWhiteSpace(itemCode.PartialPage))
+                    {
+                        return itemCode.PartialPage;                        
+                    }
+                }
+                return itemCode.ItemType.PartialPage ?? "";
+            }
+            
+            return itemCode.PartialPage ?? "";
+                       
         }
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _vmExceptionService.TryCatch(() =>

@@ -7,7 +7,7 @@
     <div class="col-md-6">
         @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().NumericTextBox()
+            @*@(Html.Kendo().NumericTextBox()
                 .Name("forYear")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Decimals(0)
@@ -15,6 +15,23 @@
                 .Events(e => e.Change("onChangeForYear"))
                 .Format("0")
                 .Value(@ViewBag.ForYear)
+            )*@
+            @(Html.Kendo().DropDownList()
+                .Name("forYear")
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GeReportingYearEnd", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Events(e => e.Change("onChangeForYear"))
             )
         </div>
     </div>

@@ -6,15 +6,32 @@
     <div class="col-md-6">
         @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().NumericTextBox()
+            @*@(Html.Kendo().NumericTextBox()
                 .Name("forYear")
-                .Enable(false)
+                //.Enable(false)
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Decimals(0)
                 .Spinners(false)
                 .Events(e => e.Change("onChangeForYear"))
                 .Format("0")
                 .Value(@ViewBag.ForYear)
+            )*@
+            @(Html.Kendo().DropDownList()
+                .Name("forYear")
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GeReportingYearEnd", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Events(e => e.Change("onChangeForYear"))
             )
         </div>
     </div>
@@ -95,10 +112,16 @@
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.LocationCode).Width(50);
             col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.AcqDate).Width(50);
+            col.Bound(c => c.PhaseAmountCo).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.PhaseAmountMooe).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             //col.Bound(c => c.ProjectName).Width(150);
             col.Bound(c => c.BldgItem).Width(100);
@@ -122,6 +145,7 @@
                 {
                     command.Edit();
                     command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
+                    command.Custom("Transfer").IconClass("k-icon k-i-logout").Click("onGridTransferClick").SendDataKeys(true).Visible("IsNotPosted");
                 }).Width(172);
             }
         })
@@ -159,6 +183,7 @@
             s.Field(o => o.Article, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.Annex, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_BldgItemTemplate").Window(w => w.Width(1000).Title("Structure Item")))
         .Pageable(pager => pager
@@ -190,10 +215,13 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.AcqCost).Sum();
+                a.Add(p => p.PhaseAmountCo).Sum();
+                a.Add(p => p.PhaseAmountMooe).Sum();
             })
             .Sort(s =>
             {
-                s.Add(a => a.InsertedDt).Descending();
+                //s.Add(a => a.InsertedDt).Descending();
+                s.Add(a => a.CustodianItemNo);
             })
             .Read(read => read.Action("_ItemRead", "CustodianReportBldg").Data("DataGrid"))
             .Create(create => create.Action("_ItemCreate", "CustodianReportBldg"))
@@ -456,7 +484,46 @@
 
     function onChangeForYear(e) {
         reportId = null;
-        $("#grid").data("kendoGrid").dataSource.read();
+        var numeric = $("#forYear").data("kendoDropDownList");
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ValidateYear", "CustodianReport")',
+            data: { year: numeric.value() },
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+
+                if (result.Errors == "") {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                } else {
+                    alert(result.Errors);
+
+                    // ❗ Force the NumericTextBox to keep focus
+                    setTimeout(function () {
+                        numeric.focus();
+                    });
+
+                    // ❗ Optional: clear invalid value or revert
+                    // numeric.value(numeric._old);
+
+                    return;
+                }
+            },
+            error: function (req, status, errorObj) {
+                window.kendo.ui.progress($(document.body), false);
+
+                alert(req.responseText);
+
+                setTimeout(function () {
+                    numeric.focus();
+                });
+
+                return;
+            }
+        });
     }
 
     var deptCode = null;
@@ -642,6 +709,55 @@
         const rowitem = this.dataSource.get(dataItem.Id);
         this.select($('[data-uid=' + rowitem.uid + ']'));
         this.removeRow(tr);
+    }
+
+    function onGridTransferClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+
+        var myTitle = "Transfer Custodian Items";
+        var width = 350;
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    var grid = $("#grid").data("kendoGrid");
+                    grid.dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_TransferPhaseItems", "CustodianReportBldg")',
+            data: {
+                id: dataItem.Id,
+                reportId: dataItem.ReportId,
+                custodianItemNo : dataItem.CustodianItemNo
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+
+
     }
 
     function onSaveGrid(e) {
@@ -944,8 +1060,8 @@
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#Account").val(dataItem.TypeDesc).trigger("change");
 
-       // RefreshDivs(dataItem);
-        UpdateDescription();
+        //RefreshDivs(dataItem);
+        setTimeout(UpdateDescription, 500);
     }
 
     function onDataBoundItemCodeId(e) {
@@ -977,8 +1093,12 @@
             type: 'POST',
             url: url,
             data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
             success: function(data) {
                 fieldsContainer.html(data);
+                window.kendo.ui.progress($("#form"), false);
             }
         });
     }
@@ -1247,7 +1367,7 @@
         e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
     }
 
-    function onClickPreview(e) {
+    function onClickPreviewXXX(e) {
         selectedGrid = this;
 
         var tr = $(e.currentTarget).closest("tr");
@@ -1280,6 +1400,22 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "CustodianReportBldg")?id=' + selectedGridImagesItem;
+
+        window.open(myUrl, "_blank");
+
     }
 
     function onClickDownload(e) {

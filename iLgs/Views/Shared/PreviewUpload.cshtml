@@ -1,0 +1,111 @@
+﻿@model string
+@*@{ 
+    Layout = "";
+}*@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+        }
+
+            .controls button {
+                padding: 8px 14px;
+                margin-right: 5px;
+                font-size: 14px;
+                background: #333;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+                .controls button:hover {
+                    background: #555;
+                }
+
+        /* Wrapper for centering */
+        .wrapper {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+        }
+
+        /* The image */
+        #previewImg {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Zoom Buttons -->
+    <div class="controls">
+        <button onclick="zoomIn()">Zoom +</button>
+        <button onclick="zoomOut()">Zoom −</button>
+        <button onclick="resetZoom()">Reset</button>
+    </div>
+
+    <!-- Centered Image -->
+    <div class="wrapper">
+        <img id="previewImg" src="@Model" />
+    </div>
+
+    <script>
+        let zoom = 1;
+        const img = document.getElementById("previewImg");
+
+        function applyZoom() {
+            img.style.transform = "scale(" + zoom + ")";
+        }
+
+        function zoomIn() {
+            zoom += 0.1;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoom = Math.max(0.1, zoom - 0.1); // don't go below 10%
+            applyZoom();
+        }
+
+        function resetZoom() {
+            zoom = 1;
+            applyZoom();
+        }
+
+        // Mouse wheel zoom
+        document.addEventListener("wheel", function (e) {
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+    </script>
+
+</body>
+</html>
