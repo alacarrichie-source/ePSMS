@@ -4323,6 +4323,9 @@
     <Content Include="Views\CustodianReport\PpeUpdate.cshtml" />
     <Content Include="Views\CustodianReport\TranspoUpdate.cshtml" />
     <Content Include="Views\CustodianReportBldg\BldgUpdate.cshtml" />
+    <Content Include="Views\CustodianReport\_StockParIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_StockMrIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_StockRpcPpeIssuance.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />

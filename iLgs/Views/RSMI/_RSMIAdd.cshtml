@@ -65,11 +65,14 @@
     </fieldset>
     
     <br />
-    <div class="form-group">
-        <span id="span_process">
-            @(Html.Kendo().Button().Content("Process").Icon("k-icon k-i-check").Name("btnSave")) &nbsp;
-            @(Html.Kendo().Button().Content("Cancel").Icon("k-icon k-i-close").Name("btnCancel"))
-        </span>
+    
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <span id="span_">
+                @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Process").Name("btnSave"))
+                @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+            </span>
+        </div>
     </div>
 }
 

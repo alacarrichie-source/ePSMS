@@ -303,10 +303,11 @@
         .Items(items =>
         {
             items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#" });
-            //items.Add().Text("PAR").LoadContentFrom("_StockParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("PAR").LoadContentFrom("_StockParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             items.Add().Text("ICS").LoadContentFrom("_StockIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             items.Add().Text("ARE").LoadContentFrom("_StockAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            //items.Add().Text("MR").LoadContentFrom("_StockMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("MR").LoadContentFrom("_StockMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("RPCPPE").LoadContentFrom("_StockRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
         })
         .ToClientTemplate())
 </script>

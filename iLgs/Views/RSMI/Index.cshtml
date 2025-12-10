@@ -242,12 +242,12 @@
     .k-prompt-container, .k-window-content {
         overflow-x: hidden;
     }
-
+    
     #span_ {
         display: flex;
         margin-left: auto;
         margin-right: 0;
-        width: 7em;
+        width: fit-content;
     }
 
 </style>
@@ -305,26 +305,26 @@
 
     // MAIN GRID
 
-    function onClickBtnAdd(e) {
+    $(".k-grid-btnAdd").click(function (e) {
         e.preventDefault()
         window.kendo.ui.progress($("#grid"), true);
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    activate: function () {
-                        window.kendo.ui.progress($("#grid"), false);
-                    },
-                    close: function () {
-                        $("#grid").data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
         mywindow.setOptions({
             title: "RSMI Add",
             width: 400,
@@ -335,7 +335,7 @@
             url: '@Url.Action("_RSMIAdd", "RSMI")',
         });
         mywindow.center().open();
-    }
+    });
 
 
     function onRequestEnd(e) {
