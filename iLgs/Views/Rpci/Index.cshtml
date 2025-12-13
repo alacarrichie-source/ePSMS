@@ -5,31 +5,129 @@
 
 @(Html.Kendo().Grid<iLgs.Models.RPCI_VM>()
     .Name("grid")
-    .HtmlAttributes(new { @class = "max-grid" })
+    .HtmlAttributes(new { style = "height: calc(90vh - 20px) !important;" })
     .Columns(col =>
     {
-        col.Bound(c => c.AsOf).Width(70);
-        col.Bound(c => c.Fund).Width(70);
-        col.Bound(c => c.AcqMode).Width(70);
+        col.Bound(c => c.Fund).Width(30);
+        col.Bound(c => c.AsOf).Width(50);
+        col.Bound(c => c.AcqMode).Width(50);
         col.Bound(c => c.InvDistDesc).Width(70);
-        col.Bound(c => c.Account).Width(70);
-        col.Bound(c => c.Department).Width(70);
-        col.Bound(c => c.CertifiedCorrectBy).Width(70);
-        col.Bound(c => c.PostedBy).Width(70);
-        col.Bound(c => c.PostedDt).Width(70);
-        col.Bound(f => f.QtyBalance).Width(50)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(f => f.AcqCost).Width(70)
-            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.Account).Width(50);
+        //col.Bound(c => c.Department).Width(70);
+        //col.Bound(c => c.CertifiedCorrectBy).Width(70);        
+        //col.Bound(f => f.QtyBalance).Width(50)
+        //        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //col.Bound(f => f.AcqCost).Width(70)
+        //    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        //    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Group(group => group.Title("Consumables")
+               .Columns(info =>
+               {
+                   info.Bound(f => f.QtyCons)
+                       .Width(50).Title("Qty")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                   info.Bound(f => f.AmountCons)
+                       .Width(50).Title("Amount")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+               }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+        col.Group(group =>
+        {
+            group.Title("Semi-Expendable Properties").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            .Columns(c =>
+            {
+                c.Group(g =>
+                {
+                    g.Title("High Value").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(info =>
+                    {
+                        info.Bound(f => f.QtySPHV)
+                            .Width(50).Title("Qty")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        info.Bound(f => f.AmountSPHV)
+                            .Width(50).Title("Amount")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                   .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                    });
+                });
+                c.Group(g =>
+                {
+                    g.Title("Low Value").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(info =>
+                    {
+                        info.Bound(f => f.QtySPLV)
+                            .Width(50).Title("Qty")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        info.Bound(f => f.AmountSPLV)
+                            .Width(50).Title("Amount")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                   .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                    });
+                });
+                c.Group(g =>
+                {
+                    g.Title("Total").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(info =>
+                    {
+                        info.Bound(f => f.QtySE)
+                            .Width(50).Title("Qty")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        info.Bound(f => f.AmountSE)
+                            .Width(50).Title("Amount")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                   .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                    });
+                });
+            });
+        });
+        col.Group(group => group.Title("Total Balance")
+           .Columns(info =>
+           {
+               info.Bound(f => f.QtyBalance)
+                   .Width(50).Title("Qty")
+                   .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                   .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                   .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                   .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+               info.Bound(f => f.AcqCost)
+                   .Width(50).Title("Amount")
+                   .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                   .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                   .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                   .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+           }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        col.Bound(c => c.PostedBy).Width(50);
+        //col.Bound(c => c.PostedDt).Width(70);
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        }).Width(150);
+        }).Width(100);
     })
     .ToolBar(t =>
     {
@@ -79,7 +177,15 @@
         .Aggregates(a =>
         {
             a.Add(p => p.QtyBalance).Sum();
+            a.Add(p => p.QtyCons).Sum();
+            a.Add(p => p.QtySE).Sum();
+            a.Add(p => p.QtySPHV).Sum();
+            a.Add(p => p.QtySPLV).Sum();
             a.Add(p => p.AcqCost).Sum();
+            a.Add(p => p.AmountCons).Sum();
+            a.Add(p => p.AmountSE).Sum();
+            a.Add(p => p.AmountSPHV).Sum();
+            a.Add(p => p.AmountSPLV).Sum();
         })
         .Sort(s => s.Add(a => a.AsOf).Descending())
         .Read(read => read.Action("RpciRead", "Rpci", new { isPosted = @ViewData["IsPosted"], type = @ViewData["Type"] }))
@@ -568,35 +674,6 @@
         }
     });
 
-    $(".k-grid-btnPrintPO").click(function (e) {
-        e.preventDefault();
-        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + selectedId + "&save=0";
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    });
-
     $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
@@ -620,6 +697,30 @@
         }
     });
 
+    $(".k-grid-btnPrintPO").click(function (e) {
+        e.preventDefault();
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Print",
+            width: 400
+            //height: 700
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_PrintList", "Rpci")?id=' + selectedId
+        });
+        mywindow.center().open();        
+    });
+
     $(".k-grid-btnPrintPOSum").click(function (e) {
         e.preventDefault();
         $("#windowcontainer").append("<div id='window'></div>");
@@ -634,13 +735,13 @@
                     }
                 }).data("kendoWindow");
         mywindow.setOptions({
-            title: "@ViewBag.Header Printing",
+            title: "Print",
             width: 400,
-            height: 280
+            height: 340
         });
 
         mywindow.refresh({
-            url: '@Url.Action("_PrintSum", "Rpci")?isPosted=' + '@ViewData["IsPosted"]' + '&type=@ViewData["Type"]'
+            url: '@Url.Action("_PrintSum", "Rpci")?isPosted=' + '@ViewData["IsPosted"]'
         });
         mywindow.center().open();
     });

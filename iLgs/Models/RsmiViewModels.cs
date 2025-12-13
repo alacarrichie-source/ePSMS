@@ -29,12 +29,37 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
 
-        [Display(Name = "Qty Issued")]
+        [Display(Name = "Consumables Qty Issued")]
+        public Nullable<int> QtyCons { get; set; }
+
+        [Display(Name = "Consumables Amount")]
+        public Nullable<decimal> AmountCons { get; set; }
+
+        [Display(Name = "SPHV Qty Issued")]
+        public Nullable<int> QtySPHV { get; set; }
+
+        [Display(Name = "SPHV Amount")]
+        public Nullable<decimal> AmountSPHV { get; set; }
+
+        [Display(Name = "SPLV Qty Issued")]
+        public Nullable<int> QtySPLV { get; set; }
+
+        [Display(Name = "SPLV Amount")]
+        public Nullable<decimal> AmountSPLV { get; set; }
+
+        [Display(Name = "Total Semi-Expendable Qty")]
+        public int? QtySE { get; set; }        
+
+        [Display(Name = "Total Semi-Expendable Amount")]
+        public decimal? AmountSE { get; set; }
+        
+        [Display(Name = "Total Qty Issued")]
         public Nullable<int> Qty { get; set; }
         
-        public Nullable<decimal> Amount { get; set; }
+        [Display(Name = "Total Amount")]
+        public Nullable<decimal> Amount { get; set; }        
     }
 
     public class RSMIProcessVM : IValidatableObject
@@ -82,6 +107,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string ItemType { get; set; }
 
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
@@ -157,6 +183,7 @@ namespace iLgs.Models
 
     public class RsmiPrintVM : IValidatableObject
     {
+        [Display(Name = "Item Type")]
         public string RpciType { get; set; }
         public System.Guid Id { get; set; }
         public bool IsPosted { get; set; }
@@ -178,7 +205,7 @@ namespace iLgs.Models
 
         public string Custodian { get; set; }
 
-        [Display(Name = "Type")]
+        [Display(Name = "Report Type")]
         public string Type { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

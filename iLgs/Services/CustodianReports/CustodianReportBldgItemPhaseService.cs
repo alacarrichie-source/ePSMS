@@ -53,7 +53,7 @@ namespace iLgs.Services.CustodianReports
             return s => new CustodianReportBldgItemPhasVM
             {
                 Id = s.Id,
-                BldgItemId = s.BldgItemId,
+                BldgItemId = s.BldgItemId,                
                 PhaseNo = s.PhaseNo,
                 CapitalOutlay = s.CapitalOutlay,
                 MOOE = s.MOOE,
@@ -71,7 +71,10 @@ namespace iLgs.Services.CustodianReports
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 UpdatedBy = s.UpdatedBy,
-                UpdatedDt = s.UpdatedDt
+                UpdatedDt = s.UpdatedDt,
+                Fund = s.Fund,
+                Annex = s.Annex,
+                BldgItem = s.BldgItem                
             };
         }
 
@@ -145,7 +148,14 @@ namespace iLgs.Services.CustodianReports
                     //// add to target navigation
                     //targetItem.CustodianReportBldgItemPhases.Add(phase);
 
-                    await ctx.Database.ExecuteSqlCommandAsync("Update CustodianReportBldgItemPhases Set BldgItemId = {0}, UpdatedBy = {1}, UpdatedDt = {2} Where Id = {3}", targetItem.Id, user, date, phase.Id);
+                    var fund = string.IsNullOrWhiteSpace(phase.Fund) ? phase.CustodianReportBldgItem.Fund : phase.Fund;
+                    var annex = string.IsNullOrWhiteSpace(phase.Annex) ? phase.CustodianReportBldgItem.Annex : phase.Annex;
+                    var bldgItem = string.IsNullOrWhiteSpace(phase.BldgItem) ? phase.CustodianReportBldgItem.BldgItem : phase.BldgItem;
+
+                    await ctx.Database.ExecuteSqlCommandAsync("Update CustodianReportBldgItemPhases " +
+                        "Set BldgItemId = {0}, BldgItem = {1}, " +
+                        "Fund = {2}, Annex = {3}, UpdatedBy = {4}, UpdatedDt = {5} " +
+                        "Where Id = {6}", targetItem.Id, bldgItem, fund, annex, user, date, phase.Id);
                 }
 
                 //// Save
@@ -160,6 +170,7 @@ namespace iLgs.Services.CustodianReports
             ValidateIfNull(model);
             ValidateIfPosted(model.BldgItemId);
             ValidateIfSubmitted(model);
+            ValidateEntry(model, Mode.EDIT);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -175,8 +186,24 @@ namespace iLgs.Services.CustodianReports
 
                 ctx.CustodianReportBldgItemPhases.Add(entity);
                 await ctx.SaveChangesAsync();
+                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
 
                 return model;
+            }
+        }
+
+        private async Task UpdateBldgAnnexAsync(AppManEntities ctx, Guid? bldgItemId)
+        {
+            var annex = await ctx.CustodianReportBldgItemPhases.Where(p => p.BldgItemId == bldgItemId && p.Annex != null && p.Annex != "")
+                .OrderBy(o => o.Annex)
+                .Select(s => s.Annex)
+                .FirstOrDefaultAsync();
+                        
+            var bldgItem = await ctx.CustodianReportBldgItems.FirstOrDefaultAsync(p => p.Id == bldgItemId && p.Annex != annex);
+            if (bldgItem != null) // update if with changes
+            {
+                bldgItem.Annex = annex;
+                await ctx.SaveChangesAsync();
             }
         }
 
@@ -193,13 +220,16 @@ namespace iLgs.Services.CustodianReports
                 ValidateRecord(entity);
                 ValidateIfPosted(entity.BldgItemId);
                 ValidateIfSubmitted(model);
-                ValidateUser(entity, model);
+                ValidateEntry(model, Mode.EDIT);
+
+                //ValidateUser(entity, model);
 
                 MapModelToEntityFields(entity, model, Mode.EDIT);
 
                 //_db.CustodianReportBldgItemPhases.Attach(entity);
                 //_db.Entry(entity).State = EntityState.Modified;
                 await ctx.SaveChangesAsync();
+                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
 
                 return model;
             }
@@ -227,6 +257,8 @@ namespace iLgs.Services.CustodianReports
                 ctx.CustodianReportBldgItemPhases.Remove(entity);
                 //_db.Entry(entity).State = EntityState.Deleted;
                 await ctx.SaveChangesAsync();
+                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
+
                 return model;
             }
         }
@@ -257,6 +289,9 @@ namespace iLgs.Services.CustodianReports
             entity.Remarks = model.Remarks;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+            entity.Fund = model.Fund;
+            entity.Annex = model.Annex;
+            entity.BldgItem = model.BldgItem;
         }
 
         private void ValidateIfNull(CustodianReportBldgItemPhasVM model)
@@ -310,6 +345,7 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateEntry(CustodianReportBldgItemPhasVM model, Mode mode)
         {
+            _imex = new InvalidModelException();
             if (string.IsNullOrWhiteSpace(model.PhaseNo))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
@@ -321,6 +357,20 @@ namespace iLgs.Services.CustodianReports
                     _imex.UpsertDataList("Capital Outlay or MOOE Amount", "Either of the two Must have value.");
                 }
             }
+
+            if (string.IsNullOrWhiteSpace(model.Annex))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), "Field is required.");
+            }
+            
+            if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
+            {
+                if (string.IsNullOrWhiteSpace(model.Remarks))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
+                }
+            }
+
 
             //if (string.IsNullOrWhiteSpace(model.PhaseNo))
             //{

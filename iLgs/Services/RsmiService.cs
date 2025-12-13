@@ -27,15 +27,18 @@ namespace iLgs.Services
         private readonly IExceptionService<RsmiVM> _vmExceptionService;
         private readonly IExceptionService<RSMIProcessVM> _processExceptionService;
         private readonly IPriceCapService _priceCapService;
+        private readonly ISemiExpendableService _semiExpendableService;
 
         private decimal? _priceCap;
+        private decimal? _SPHV;
 
         public RsmiService(AppManEntities db, 
             ICreateAndLogExceptions exceptions,
             IExceptionService<RSMI> exceptionService,
             IExceptionService<RsmiVM> vmExceptionService,
             IExceptionService<RSMIProcessVM> processExceptionService,
-            IPriceCapService priceCapService)
+            IPriceCapService priceCapService,
+            ISemiExpendableService semiExpendableService)
         {
             _db = db;
             _db.Database.CommandTimeout = 3000;
@@ -44,11 +47,17 @@ namespace iLgs.Services
             _vmExceptionService = vmExceptionService;
             _processExceptionService = processExceptionService;
             _priceCapService = priceCapService;
+            _semiExpendableService = semiExpendableService;
         }
 
         private decimal GetPriceCap()
         {
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+        }
+
+        private decimal GetSPHV()
+        {
+            return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV()).Value;
         }
 
         public IQueryable<RsmiVM> GetAll() =>
@@ -62,6 +71,14 @@ namespace iLgs.Services
                     SerialNo = s.SerialNo,
                     Fund = s.Fund,
                     Custodian = s.Custodian,
+                    QtyCons = s.RSMIItems.Where(w => w.ItemType == "C").Sum(x => x.Qty),
+                    AmountCons = s.RSMIItems.Where(w => w.ItemType == "C").Sum(x => x.Amount),
+                    QtySPHV = s.RSMIItems.Where(w => w.ItemType == "SPHV").Sum(x => x.Qty),
+                    AmountSPHV = s.RSMIItems.Where(w => w.ItemType == "SPHV").Sum(x => x.Amount),
+                    QtySPLV = s.RSMIItems.Where(w => w.ItemType == "SPLV").Sum(x => x.Qty),
+                    AmountSPLV = s.RSMIItems.Where(w => w.ItemType == "SPLV").Sum(x => x.Amount),
+                    QtySE = s.RSMIItems.Where(w => w.ItemType.Substring(0, 1) == "S").Sum(x => x.Qty),
+                    AmountSE = s.RSMIItems.Where(w => w.ItemType.Substring(0, 1) == "S").Sum(x => x.Amount),
                     Qty = s.RSMIItems.Sum(x => x.Qty),
                     Amount = s.RSMIItems.Sum(x => x.Amount),
                     PostedBy = s.PostedBy,
@@ -75,7 +92,13 @@ namespace iLgs.Services
         public ValueTask<RSMIProcessVM> GenerateAsync(RSMIProcessVM model, string user, DateTime date) =>
         _processExceptionService.TryCatch(async () =>
         {
-            var priceCap = GetPriceCap();
+            if (model.DateFrom.Value.Year != model.DateTo.Value.Year)
+            {
+                throw new InvalidValueException("Year or date range must be the same.");
+            }
+
+            var priceCap = _priceCapService.GetPriceCap(model.DateFrom);
+            var sphv = _semiExpendableService.GetSPHV(model.DateFrom);
             var rsmiItemList = await _db.PsCardItemTransferIssuances.AsNoTracking()
                         .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo
                             && 
@@ -107,7 +130,12 @@ namespace iLgs.Services
                             UnitCost = s.PsCardItemTransfer.PsCardItem.UnitCost,
                             Qty = (int?)s.Qty,
                             Amount = s.Amount,
-                            AccountCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.AccountCode
+                            AccountCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.AccountCode,
+                            ItemType = (s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.IsConsumable == "Y")
+                                ? "C" 
+                                : (s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.IsConsumable == "N")
+                                    ? (s.PsCardItemTransfer.PsCardItem.UnitCost >= sphv ? "SPHV" : "SPLV")
+                                    : ""
                         }).ToListAsync();
 
             if (!rsmiItemList.Any())
@@ -151,7 +179,7 @@ namespace iLgs.Services
                     {
                         Id = Guid.NewGuid(),
                         RsmiId = entity.Id,
-                        ItemCodeId = itemIssued.ItemCodeId,
+                        ItemCodeId = itemIssued.ItemCodeId,                       
                         RisNo = itemIssued.RisNo,
                         PoNo = itemIssued.PoNo,
                         Department = itemIssued.Department,
@@ -166,6 +194,7 @@ namespace iLgs.Services
                         Qty = itemIssued.Qty,
                         Amount = itemIssued.Amount,
                         AccountCode = itemIssued.AccountCode,
+                        ItemType = itemIssued.ItemType,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -174,9 +203,11 @@ namespace iLgs.Services
                     entity.RSMIItems.Add(rsmiItem);
                 }
 
-                var recapList = entity.RSMIItems.GroupBy(g => new { g.StockNo, g.AccountCode, g.UnitCost })
+                var recapList = entity.RSMIItems.GroupBy(g => new { g.ItemType, g.ItemCodeId, g.StockNo, g.AccountCode, g.UnitCost })
                     .Select(s => new
                     {
+                        ItemType = s.Key.ItemType,
+                        ItemCodeId = s.Key.ItemCodeId,
                         StockNo = s.Key.StockNo,
                         AccountCode = s.Key.AccountCode,
                         UnitCost = s.Key.UnitCost,
@@ -195,6 +226,8 @@ namespace iLgs.Services
                         UnitCost = recap.UnitCost,
                         TotalCost = recap.TotalCost,
                         AccountCode = recap.AccountCode,
+                        ItemCodeId = recap.ItemCodeId,
+                        ItemType = recap.ItemType,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

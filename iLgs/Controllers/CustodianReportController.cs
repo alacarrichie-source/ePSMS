@@ -3618,7 +3618,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _custodianReportItemService.UpdateItemCodeAsync(reportingYearEnd, selectedIds, newItemId, user, date);
+                    await _custodianReportItemService.UpdateItemCodeAsync(reportingYearEnd, selectedIds, newItemId, accountGroup, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

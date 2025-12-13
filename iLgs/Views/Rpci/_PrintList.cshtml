@@ -1,0 +1,111 @@
+﻿@model iLgs.Models.RsmiPrintVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formList", id = "formList" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="row k-mb-2">
+            <div class="text-right col-md-3">
+                @Html.Label("Item Type:")
+            </div>
+            <div class="col-md-9">
+               @(Html.Kendo().RadioGroupFor(m => m.RpciType)
+                    //.Layout("horizontal")
+                    .Items(i =>
+                    {                        
+                        i.Add().Label("Consumable").Value("C");
+                        i.Add().Label("Semi-Expendable").Value("SE");
+                        i.Add().Label("All").Value("A");
+                    })
+                    .Value("A")
+                )
+
+            </div>
+        </div>
+
+    <hr />
+    
+    <div class="row k-mb-2">
+        <div id="span_submit">
+            @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
+            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        </div>
+    </div>
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    #span_submit {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: 16em;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $("#btnPrintSubmit").click(function (e) {
+        e.preventDefault();
+        var validator = $("#formList").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Print();
+        }
+    })
+
+    $("#btnSaveSubmit").click(function (e) {
+        e.preventDefault();
+        var validator = $("#formList").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Export();
+        }
+    })
+
+    function Print() {
+        var id = $("#Id").val();
+        var type = $("#RpciType").data("kendoRadioGroup").value();
+        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + id + "&type=" + type + "&save=0";
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function Export() {
+        var id = $("#Id").val();
+        var type = $("#RpciType").data("kendoRadioGroup").value();
+        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + id + "&type=" + type + "&save=1";
+
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);
+    }
+
+</script>
+
+

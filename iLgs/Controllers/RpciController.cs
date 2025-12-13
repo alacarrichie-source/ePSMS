@@ -48,7 +48,7 @@ namespace iLgs.Controllers
 
         public ActionResult NotPosted()
         {
-            ViewBag.Type = "RPCI";
+            ViewBag.Type = "C";
             ViewData["IsPosted"] = false;
             ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Not Posted Records";
             ViewBag.Header = "RPCI";
@@ -60,7 +60,7 @@ namespace iLgs.Controllers
         // GET: Rpci
         public ActionResult Index()
         {
-            ViewData["Type"] = "RPCI";
+            ViewData["Type"] = "C";
             ViewData["IsPosted"] = true;
             ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Posted Records";
             ViewBag.Header = "RPCI";
@@ -441,7 +441,7 @@ namespace iLgs.Controllers
 
 
         #region PRINTOUTS        
-        public async Task<ActionResult> RpciRpt(Guid? id, int save)
+        public async Task<ActionResult> RpciRpt(Guid? id, string type, int save)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -470,14 +470,18 @@ namespace iLgs.Controllers
             }
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
-            var type = (await _rpciService.GetByIdAsync(id))?.Type;
-
+            
             rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("@dAsOf", null);
             rpt.SetParameterValue("@uRpciId", id.ToString());
-            if (type == "RPCI")
+            rpt.SetParameterValue("@cType", type == "A" ? "" : type);
+            if (type == "A") // ALL
             {
                 rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+            }
+            if (type == "C") // consumables
+            {
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES - CONSUMABLES");
             }
             else if (type == "SE")
             {
@@ -500,68 +504,30 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult _PrintSum(bool isPosted, string type)
+        public ActionResult _PrintList(Guid id)
+        {
+            var model = new RsmiPrintVM()
+            {
+                Id = id
+            };
+            return PartialView(model);
+        }
+
+        public ActionResult _PrintSum(bool isPosted)
         {
             var date = DateTime.Now;
             var model = new RsmiPrintVM()
             {
                 IsPosted = isPosted,
                 DateFrom = date,
-                DateTo = date,
-                RpciType = type
+                DateTo = date                
             };
 
             return PartialView(model);
         }
 
         public async Task<ActionResult> RpciSumRpt(RsmiPrintVM model)
-        {
-            //Sections crSections;
-            //ReportDocument crReportDocument, crSubreportDocument;
-            //SubreportObject crSubreportObject;
-            //ReportObjects crReportObjects;
-            //ConnectionInfo crConnectionInfo;
-            //CrystalDecisions.CrystalReports.Engine.Database crDatabase;
-            //Tables crTables;
-            //TableLogOnInfo crTableLogOnInfo;
-            //crReportDocument = new ReportDocument();
-
-            //if (model.Type == "1")
-            //{
-            //    crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciAcctSum.rpt"));
-            //}
-            //else
-            //{
-            //    crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RpciPoSum.rpt"));
-            //}
-
-            //var _db = new AppManEntities();
-
-            //string user = ControllerContext.HttpContext.User.Identity.Name;
-            //string conString = _db.Database.Connection.ConnectionString.ToString();            
-            //SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
-
-            //string un = decoder.UserID;
-            //string pw = decoder.Password;
-            //string svr = decoder.DataSource;
-            //string db_ = decoder.InitialCatalog;
-
-            //crDatabase = crReportDocument.Database;
-            //crTables = crDatabase.Tables;
-            //crConnectionInfo = new ConnectionInfo();
-            //crConnectionInfo.ServerName = svr;
-            //crConnectionInfo.DatabaseName = db_;
-            //crConnectionInfo.UserID = un;
-            //crConnectionInfo.Password = pw;
-
-            //foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
-            //{
-            //    crTableLogOnInfo = aTable.LogOnInfo;
-            //    crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
-            //    aTable.ApplyLogOnInfo(crTableLogOnInfo);
-            //}
-
-
+        {            
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
             string rptKey = ConfigurationManager.AppSettings["RptKey"];
@@ -592,46 +558,23 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.Password = pw;
                 logonInfo.ConnectionInfo.IntegratedSecurity = false;
                 table.ApplyLogOnInfo(logonInfo);
-            }
-
-            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
-            // set the sections object to the current report's section 
-            //crSections = crReportDocument.ReportDefinition.Sections;
-            //// loop through all the sections to find all the report objects 
-            //foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
-            //{
-            //    crReportObjects = crSection.ReportObjects;
-            //    //loop through all the report objects in there to find all subreports 
-            //    foreach (ReportObject crReportObject in crReportObjects)
-            //    {
-            //        if (crReportObject.Kind == ReportObjectKind.SubreportObject)
-            //        {
-            //            crSubreportObject = (SubreportObject)crReportObject;
-            //            //open the subreport object and logon as for the general report 
-            //            crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
-            //            crDatabase = crSubreportDocument.Database;
-            //            crTables = crDatabase.Tables;
-            //            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
-            //            {
-            //                crTableLogOnInfo = aTable.LogOnInfo;
-            //                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
-            //                aTable.ApplyLogOnInfo(crTableLogOnInfo);                            
-            //            }
-            //        }
-            //    }
-            //}
+            }            
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description;
             var type = model.RpciType;
 
             rpt.SetParameterValue("LGU", lgu);
-            rpt.SetParameterValue("@cType", model.RpciType);
+            rpt.SetParameterValue("@cType", type == "A" ? "" : type);
             rpt.SetParameterValue("@cFund", model.Fund);
             rpt.SetParameterValue("@dAsOfDate", model.DateFrom);
             rpt.SetParameterValue("@bIsPosted", model.IsPosted);
-            if (type == "RPCI")
+            if (type == "A")
             {
                 rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+            }
+            else if (type == "C")
+            {
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES - CONSUMABLES");
             }
             else if (type == "SE")
             {

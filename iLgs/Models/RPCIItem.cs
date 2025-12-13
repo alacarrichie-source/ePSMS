@@ -60,6 +60,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public Nullable<System.Guid> PsCardItemTransferId { get; set; }
+        public string ItemType { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual ItemCode ItemCode1 { get; set; }

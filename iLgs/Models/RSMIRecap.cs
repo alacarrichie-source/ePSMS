@@ -21,11 +21,14 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string AccountCode { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string ItemType { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual ItemCode ItemCode { get; set; }
         public virtual RSMI RSMI { get; set; }
     }
 }

@@ -426,8 +426,9 @@ namespace iLgs.Controllers
             crReportDocument.SetParameterValue("Custodian", model.Custodian ?? "");
             crReportDocument.SetParameterValue("@cFund", model.Fund);
             crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
-            crReportDocument.SetParameterValue("@dEdate", model.DateTo);            
-            
+            crReportDocument.SetParameterValue("@dEdate", model.DateTo);
+            crReportDocument.SetParameterValue("@cType", model.RpciType == "A" ? "" : model.RpciType);
+
             if (model.SavePrints)
             {
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
@@ -536,6 +537,7 @@ namespace iLgs.Controllers
             crReportDocument.SetParameterValue("@cFund", model.Fund);
             crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);
+            crReportDocument.SetParameterValue("@cType", model.RpciType == "A" ? "" : model.RpciType);
 
             if (model.SavePrints)
             {

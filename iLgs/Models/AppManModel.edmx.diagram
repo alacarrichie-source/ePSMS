@@ -58,11 +58,11 @@
         <AssociationConnector Association="AppManModel.FK_PARs_Orders" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >
-        <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="3" PointY="6.875" />
-        <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="4" />
-        <AssociationConnector Association="AppManModel.FK_RSMIRecap_RSMI" />
-        <EntityTypeShape EntityType="AppManModel.RSMIItem" Width="1.5" PointX="3" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="AppManModel.RSMIItem" Width="1.5" PointX="3" PointY="6" />
+        <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="3" PointY="1.375" />
         <AssociationConnector Association="AppManModel.FK_RSMIItems_RSMI" />
+        <AssociationConnector Association="AppManModel.FK_RSMIRecap_RSMI" />
         </Diagram>
       <Diagram DiagramId="07158064397e4a74aa2cd59e972b547d" Name="Unit Groups" ZoomLevel="103" >
         <EntityTypeShape EntityType="AppManModel.OrderItemUnitGroupDescriptionItem" Width="1.5" PointX="12" PointY="7.875" />

@@ -34,6 +34,9 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string Fund { get; set; }
+        public string Annex { get; set; }
+        public string BldgItem { get; set; }
     
         public virtual CustodianReportBldgItem CustodianReportBldgItem { get; set; }
     }

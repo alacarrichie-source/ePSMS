@@ -4676,6 +4676,7 @@
     <Content Include="Views\RIS\_RISItemUnitGroupAddEdit.cshtml" />
     <Content Include="Views\Requests\_RequestAddEdit.cshtml" />
     <Content Include="Views\Shared\PreviewUpload.cshtml" />
+    <Content Include="Views\Rpci\_PrintList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

@@ -89,7 +89,7 @@ namespace iLgs.Services.CustodianReports
                 MainDeptId = s.CustodianReport.DeptId,
                 AccountGroup = s.CustodianReport.AccountGroup,
                 ReportId = s.ReportId,
-                Fund = s.Fund,
+                //Fund = s.Fund, moved to phaseItems
                 CustodianItemNo = s.CustodianItemNo,
                 SeriesNo = s.SeriesNo,
                 FromDonation = s.FromDonation,
@@ -97,8 +97,8 @@ namespace iLgs.Services.CustodianReports
                 ItemCodeId = s.ItemCodeId,
                 SubAccount = s.SubAccount,
                 Article = s.Article,
-                BldgItem = s.BldgItem,
-                PsNo = s.PsNo,                
+                //BldgItem = s.BldgItem, moved to phaseItems
+                PsNo = s.PsNo,
                 PropNo = s.PropNo,
                 //PoNo = s.PoNo,
                 //OldAmount = s.OldAmount,
@@ -139,7 +139,7 @@ namespace iLgs.Services.CustodianReports
                 //Status = s.Status,
                 Condition = s.Condition,
                 //Remarks = s.Remarks,
-                Annex = s.Annex,
+                Annex = s.Annex, // not required, updated ItemPhase annex value
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 UpdatedBy = s.UpdatedBy,
@@ -155,7 +155,8 @@ namespace iLgs.Services.CustodianReports
                 // Transients
                 AcqCost = s.CustodianReportBldgItemPhases.Sum(x => x.AcqCost),
                 PhaseAmountCo = s.CustodianReportBldgItemPhases.Sum(x => x.CapitalOutlay),
-                PhaseAmountMooe = s.CustodianReportBldgItemPhases.Sum(x => x.MOOE)
+                PhaseAmountMooe = s.CustodianReportBldgItemPhases.Sum(x => x.MOOE),
+                PhaseCount = s.CustodianReportBldgItemPhases.Count()
             };
         }
 
@@ -504,7 +505,7 @@ namespace iLgs.Services.CustodianReports
             MapFormattedAllField(model);
             entity.Id = model.Id;
             entity.ReportId = model.ReportId;
-            entity.Fund = model.Fund;
+            //entity.Fund = model.Fund;
             entity.CustodianItemNo = model.CustodianItemNo;
             entity.SeriesNo = model.SeriesNo;
             entity.FromDonation = model.FromDonation;
@@ -512,7 +513,7 @@ namespace iLgs.Services.CustodianReports
             entity.ItemCodeId = model.ItemCodeId;
             entity.SubAccount = model.SubAccount;
             entity.Article = model.Article;
-            entity.BldgItem = model.BldgItem;
+            //entity.BldgItem = model.BldgItem;
             //entity.PoNo = model.PoNo;
             //entity.PoDate = model.PoDate;
             //entity.AcqCost = model.AcqCost;
@@ -592,7 +593,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        private void SetRowColValue(IXLWorksheet ws, CustodianReportBldgItem reportItem, int row, bool isAnnex)
+        private void SetRowColValue(IXLWorksheet ws, CustodianReportBldgItem reportItem, int row, string annex)
         {
             ws.Row(row).Cell(2).SetValue(reportItem.CustodianItemNo);
             ws.Row(row).Cell(3).SetValue(reportItem.SeriesNo);
@@ -602,8 +603,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(7).SetValue(reportItem.SubLocation);
             ws.Row(row).Cell(8).SetValue(reportItem.Latitude);
             ws.Row(row).Cell(9).SetValue(reportItem.Longitude);
-            ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);
-            //ws.Row(row).Cell(12).SetValue(reportItem.BuildingType);
+            //ws.Row(row).Cell(10).SetValue(reportItem.BldgItem);            
 
             if (reportItem.FromDonation == true)
             {
@@ -615,33 +615,42 @@ namespace iLgs.Services.CustodianReports
             }
             ws.Row(row).Cell(16).SetValue(reportItem.Area);
             ws.Row(row).Cell(17).SetValue(reportItem.AppraiseValue);
-            if (reportItem.CustodianReportBldgItemPhases.Any())
-            {
-                var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
-                ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
-                ws.Row(row).Cell(12).SetValue(engAmt.BuildingType);
-                ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
-                //ws.Row(row).Cell(15).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");                
-                ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
-                ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
-                ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
-                ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
-                ws.Row(row).Cell(22).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
-                ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
-                ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
-                ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
-                ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                ws.Row(row).Cell(28).SetValue(engAmt.Status);
-                ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
-            }
-
-            ws.Row(row).Cell(29).SetValue(reportItem.Fund);
+            ws.Row(row).Cell(22).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
             ws.Row(row).Cell(30).SetValue(reportItem.Condition);
-            if (!isAnnex)
-            {
-                ws.Row(row).Cell(32).SetValue(reportItem.Annex);
-            }
+
+            // display outside
+            //if (reportItem.CustodianReportBldgItemPhases.Any())
+            //{
+            //    var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
+            //    ws.Row(row).Cell(10).SetValue(engAmt.BldgItem);
+            //    ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
+            //    ws.Row(row).Cell(12).SetValue(engAmt.BuildingType);
+            //    ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
+            //    ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
+            //    ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
+            //    ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
+            //    ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
+            //ws.Row(row).Cell(22).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));                
+            //    ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
+            //    ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            //    ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
+            //    ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
+            //    ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            //    ws.Row(row).Cell(28).SetValue(engAmt.Status);
+            //    ws.Row(row).Cell(29).SetValue(engAmt.Fund);
+            //    ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
+            //    if (!string.IsNullOrWhiteSpace(annex))
+            //    {
+            //        ws.Row(row).Cell(32).SetValue(engAmt.Annex);
+            //    }
+            //}
+
+            //ws.Row(row).Cell(29).SetValue(reportItem.Fund);
+            //ws.Row(row).Cell(30).SetValue(reportItem.Condition);
+            //if (!isAnnex)
+            //{
+            //    ws.Row(row).Cell(32).SetValue(reportItem.Annex);
+            //}
         }
 
         //private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
@@ -686,7 +695,8 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    reportItems = reportItems.Where(w => w.Annex == annex);
+                    //reportItems = reportItems.Where(w => w.Annex == annex);
+                    reportItems = reportItems.Where(w => w.CustodianReportBldgItemPhases.Any(a => a.Annex == annex));
                 }
 
                 if (deptId != null)
@@ -750,27 +760,10 @@ namespace iLgs.Services.CustodianReports
                         itemTypeIndex = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
                         itemCode = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        //if (!string.IsNullOrWhiteSpace(annex))
-                        //{
-                        //    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                        //    ws.Row(4).Cell(2).SetValue(hdg);
-                        //}
-                        //ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        //ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        //if (id == null)
-                        //{
-                        //    ws.Row(8).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        //}
-                        //else
-                        //{
-                        //    ws.Row(8).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        //}
+                        department = reportItem.CustodianReport.Department;                        
                         sw = 0;
                     }
 
-                    //if (reportItem.ItemCode != null && (itemCode != reportItem.ItemCode.ItemNoIndex || department != reportItem.CustodianReport.Department))
                     if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
                     {
                         itemTypeIndex = reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
@@ -778,7 +771,6 @@ namespace iLgs.Services.CustodianReports
                         account = reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         row += 3;
-                        //ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
                         var accountCell = ws.Row(row).Cell(2);
                         accountCell.SetValue(account);
                         accountCell.Style.Font.Bold = true;
@@ -850,31 +842,33 @@ namespace iLgs.Services.CustodianReports
                     }
 
                     row++;
-                    if (string.IsNullOrWhiteSpace(annex))
-                    {
-                        SetRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    else
-                    {
-                        SetRowColValue(ws, reportItem, row, true);
-                        ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
+
+                    //if (string.IsNullOrWhiteSpace(annex))
+                    //{
+                    //    SetRowColValue(ws, reportItem, row, false);
+                    //    ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    //}
+                    //else
+                    //{
+                    //    SetRowColValue(ws, reportItem, row, true);
+                    //    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    //}
+
+                    SetRowColValue(ws, reportItem, row, annex);
+                    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
 
                     if (reportItem.CustodianReportBldgItemPhases.Any())
                     {
                         var otherEngAmounts = reportItem.CustodianReportBldgItemPhases
                         .OrderBy(o => o.InsertedDt)
-                        .Skip(1)
+                        //.Skip(1)
                         .ToList();
                         if (otherEngAmounts.Any())
                         {
                             foreach (var engAmt in otherEngAmounts)
                             {
                                 row++;
-                                //ws.Row(row).Cell(20).SetValue(otherEngAmount.PhaseNo);
-                                //ws.Row(row).Cell(21).SetValue(otherEngAmount.CapitalOutlay);
-                                //ws.Row(row).Cell(23).SetValue(otherEngAmount.MOOE);
+                                ws.Row(row).Cell(10).SetValue(engAmt.BldgItem); // new
                                 ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
                                 ws.Row(row).Cell(14).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
                                 ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
@@ -882,20 +876,22 @@ namespace iLgs.Services.CustodianReports
                                 ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
                                 ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
                                 ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
-                                //ws.Row(row).Cell(23).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
                                 ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
                                 ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
                                 ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
                                 ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
                                 ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
                                 ws.Row(row).Cell(28).SetValue(engAmt.Status);
+                                ws.Row(row).Cell(29).SetValue(engAmt.Fund); // new
                                 ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
+                                
                                 if (string.IsNullOrWhiteSpace(annex))
                                 {
                                     ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                                 }
                                 else
                                 {
+                                    ws.Row(row).Cell(32).SetValue(engAmt.Annex); // new
                                     ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                                 }
                             }

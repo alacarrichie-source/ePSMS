@@ -32,15 +32,18 @@ namespace iLgs.Services.RPC
         private readonly IExceptionService<RPCI> _exceptionService;
         private readonly IOrderService _orderService;
         private readonly IPriceCapService _priceCapService;
+        private readonly ISemiExpendableService _semiExpendableService;
 
         private decimal? _priceCap;
+        private decimal? _SPHV;
 
         public RpciService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<RPCI_VM> vmExceptionService,
             IExceptionService<RPCI> exceptionService,
             IOrderService orderService,
-            IPriceCapService priceCapService)
+            IPriceCapService priceCapService,
+            ISemiExpendableService semiExpendableService)
         {
             _db = db;
             _db.Database.CommandTimeout = 3000;
@@ -49,11 +52,17 @@ namespace iLgs.Services.RPC
             _exceptionService = exceptionService;
             _orderService = orderService;
             _priceCapService = priceCapService;
+            _semiExpendableService = semiExpendableService;
         }
 
         private decimal GetPriceCap()
         {
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+        }
+
+        private decimal GetSPHV()
+        {
+            return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV()).Value;
         }
 
         public ValueTask<RPCI> GetByIdAsync(Guid? id) =>
@@ -122,6 +131,14 @@ namespace iLgs.Services.RPC
                     InsertedDt = s.InsertedDt,
                     InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
                     AcqMode = s.FromDonation == true ? "From Donation" : "Purchase",
+                    QtyCons = s.RPCIItems.Where(w => w.ItemType == "C").Sum(x => x.TotalBalance),
+                    AmountCons = s.RPCIItems.Where(w => w.ItemType == "C").Sum(x => x.AcqCost),
+                    QtySPHV = s.RPCIItems.Where(w => w.ItemType == "SPHV").Sum(x => x.TotalBalance),
+                    AmountSPHV = s.RPCIItems.Where(w => w.ItemType == "SPHV").Sum(x => x.AcqCost),
+                    QtySPLV = s.RPCIItems.Where(w => w.ItemType == "SPLV").Sum(x => x.TotalBalance),
+                    AmountSPLV = s.RPCIItems.Where(w => w.ItemType == "SPLV").Sum(x => x.AcqCost),
+                    QtySE = s.RPCIItems.Where(w => w.ItemType.Substring(0, 1) == "S").Sum(x => x.TotalBalance),
+                    AmountSE = s.RPCIItems.Where(w => w.ItemType.Substring(0, 1) == "S").Sum(x => x.AcqCost),
                     QtyBalance = s.RPCIItems.Sum(x => x.TotalBalance),
                     AcqCost = s.RPCIItems.Sum(x => x.AcqCost),
                     IsPosted = s.IsPosted
@@ -133,7 +150,8 @@ namespace iLgs.Services.RPC
         _vmExceptionService.TryCatch(() =>
         {
             var data = GetAll();
-            return data.Where(w => w.IsPosted == isPosted && w.Type == type);
+            //return data.Where(w => w.IsPosted == isPosted && w.Type == type);
+            return data.Where(w => w.IsPosted == isPosted);
         });
 
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
@@ -146,7 +164,7 @@ namespace iLgs.Services.RPC
 
             //if (model.DeptId != null) {                 
             //&& a.Account == model.Account 
-            if (await _db.RPCIs.AnyAsync(a => a.Type == model.Type && a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
+            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
                  && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId                 
                  && a.DeptId == model.DeptId && a.IsPosted == model.IsPosted))
             {
@@ -158,9 +176,11 @@ namespace iLgs.Services.RPC
             {
                 model.Account = "ALL";
             }
-            var priceCap = GetPriceCap();
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
-                model.Type, model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted, priceCap);
+
+            var priceCap = _priceCapService.GetPriceCap(model.AsOf);
+            var sphv = _semiExpendableService.GetSPHV(model.AsOf);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}",
+                model.Type, model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted, priceCap, sphv);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
         });

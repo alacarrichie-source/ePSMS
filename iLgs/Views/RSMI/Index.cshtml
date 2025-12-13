@@ -5,39 +5,120 @@
 
 @(Html.Kendo().Grid<iLgs.Models.RsmiVM>()
         .Name("grid")
-        .HtmlAttributes(new { @class = "max-grid" })
+        .HtmlAttributes(new { style = "height: calc(90vh - 20px) !important;" })
         .Columns(col =>
         {
             col.Bound(c => c.Fund).Width(50);
             col.Bound(c => c.Date).Width(50);
-            col.Bound(c => c.SerialNo).Width(50);            
-            col.Bound(f => f.Qty).Width(50)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(f => f.Amount).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.Custodian).Width(50);
+            col.Bound(c => c.SerialNo).Width(50);
+            col.Group(group => group.Title("Consumables")
+               .Columns(info =>
+               {
+                   info.Bound(f => f.QtyCons)
+                       .Width(50).Title("Qty")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                   info.Bound(f => f.AmountCons)
+                       .Width(50).Title("Amount")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+               }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+            col.Group(group =>
+            {
+                group.Title("Semi-Expendable Properties").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                .Columns(c =>
+                {
+                    c.Group(g =>
+                    {
+                        g.Title("High Value").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        .Columns(info =>
+                        {
+                            info.Bound(f => f.QtySPHV)
+                                .Width(50).Title("Qty")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                            info.Bound(f => f.AmountSPHV)
+                                .Width(50).Title("Amount")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        });
+                    });
+                    c.Group(g =>
+                    {
+                        g.Title("Low Value").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        .Columns(info =>
+                        {
+                            info.Bound(f => f.QtySPLV)
+                                .Width(50).Title("Qty")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                            info.Bound(f => f.AmountSPLV)
+                                .Width(50).Title("Amount")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        });
+                    });
+                    c.Group(g =>
+                    {
+                        g.Title("Total").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        .Columns(info =>
+                        {
+                            info.Bound(f => f.QtySE)
+                                .Width(50).Title("Qty")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                            info.Bound(f => f.AmountSE)
+                                .Width(50).Title("Amount")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                        });
+                    });
+                });
+            });
+            col.Group(group => group.Title("Total")
+               .Columns(info =>
+               {
+                   info.Bound(f => f.Qty)
+                       .Width(50).Title("Qty")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+                   info.Bound(f => f.Amount)
+                       .Width(50).Title("Amount")
+                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                       .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                       .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                       .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+               }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
             col.Bound(c => c.PostedBy).Width(50);
             col.Bound(c => c.PostedDt).Width(50);
             col.Command(command =>
             {
-                command.Edit();
-                //command.Destroy();
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            }).Width(100);
+                command.Destroy();
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            }).Width(50);
         })
         .ToolBar(t =>
         {
-            @*t.Template(@<text>
-                    @(Html.Kendo().IconClass("k-icon k-i-add").Button().Name("btnAdd").Content("Add New Record").Enable(false)
-                        .Events(e => e.Click("onClickBtnAdd"))
-                    )
-                    @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print RSMI").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
-                    @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print Summary").Name("btnPrintSum").Events(e => e.Click("onClickBtnPrintSum")).Enable(true))                            
-            </text>);*@
             t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAdd").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Print RSMI").IconClass("k-icon k-i-print").Name("btnPrint").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Print Summary").IconClass("k-icon k-i-print").Name("btnPrintSum").HtmlAttributes(new { @class = "k-button", href = "" });
@@ -50,9 +131,7 @@
             s.Field(o => o.Fund, "contains");
             s.Field(o => o.SerialNo, "contains");
             s.Field(o => o.PostedBy, "contains");
-            //s.Field(o => o.InvoiceNo, "contains");
         })
-        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -84,6 +163,14 @@
                 model.Field(p => p.Fund).Editable(false);
                 model.Field(p => p.Date).Editable(false);
                 model.Field(p => p.SerialNo).Editable(false);
+                model.Field(p => p.QtyCons).Editable(false);
+                model.Field(p => p.AmountCons).Editable(false);
+                model.Field(p => p.QtySPHV).Editable(false);
+                model.Field(p => p.AmountSPHV).Editable(false);
+                model.Field(p => p.QtySPLV).Editable(false);
+                model.Field(p => p.AmountSPLV).Editable(false);
+                model.Field(p => p.QtySE).Editable(false);
+                model.Field(p => p.AmountSE).Editable(false);
                 model.Field(p => p.Qty).Editable(false);
                 model.Field(p => p.Amount).Editable(false);
                 model.Field(p => p.PostedBy).Editable(false);
@@ -92,12 +179,20 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.Qty).Sum();
+                a.Add(p => p.QtyCons).Sum();
+                a.Add(p => p.QtySE).Sum();
+                a.Add(p => p.QtySPHV).Sum();
+                a.Add(p => p.QtySPLV).Sum();
                 a.Add(p => p.Amount).Sum();
+                a.Add(p => p.AmountCons).Sum();
+                a.Add(p => p.AmountSE).Sum();
+                a.Add(p => p.AmountSPHV).Sum();
+                a.Add(p => p.AmountSPLV).Sum();
             })
             .Sort(s => { s.Add(a => a.Fund); s.Add(a => a.Date); })
             .Read(read => read.Action("RSMIRead", "RSMI"))
             //.Create(create => create.Action("StockCreate", "RSMI"))
-            .Update(update => update.Action("RSMIUpdate", "RSMI"))
+            //.Update(update => update.Action("RSMIUpdate", "RSMI"))
             .Destroy(destroy => destroy.Action("RSMIDestroy", "RSMI"))
         )
         .Events(events => events
@@ -342,7 +437,7 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();
+                $("#grid").data("kendoGrid").dataSource.read();
             }
             if (e.type == "create") {
                 var responseData = e.response;
@@ -471,7 +566,7 @@
         mywindow.setOptions({
             title: "RSMI Printing",
             width: 400,
-            height: 290
+            height: 390
         });
 
         mywindow.refresh({
@@ -496,7 +591,7 @@
         mywindow.setOptions({
             title: "RSMI Printing",
             width: 400,
-            height: 300
+            height: 390
         });
 
         mywindow.refresh({

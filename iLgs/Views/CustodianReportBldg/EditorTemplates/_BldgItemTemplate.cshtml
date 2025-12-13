@@ -87,7 +87,7 @@
                 @(Html.Kendo().CheckBoxFor(m => m.FromDonation).Events(e => e.Change("UpdateDescription")))
                 @Html.ValidationMessageFor(m => m.FromDonation)
             </div>
-            <div class="col-md-2">
+            @*<div class="col-md-2">
                 @Html.DisplayFor(m => m.Fund, "Label")
             </div>
             <div class="col-md-4">
@@ -113,7 +113,7 @@
                 //.Suggest(true)
                 )
                 @Html.ValidationMessageFor(model => model.Fund)
-            </div>
+            </div>*@
         </div>
 
         <br />
@@ -152,7 +152,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.Annex, "Label")
             </div>
@@ -160,7 +160,7 @@
                 @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).PromptChar(" ").Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.Annex)
             </div>
-        </div>
+        </div>*@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
@@ -255,7 +255,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.BldgItem, "Label")
             </div>
@@ -263,7 +263,7 @@
                 @(Html.Kendo().TextBoxFor(m => m.BldgItem).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.BldgItem)
             </div>
-        </div>
+        </div>*@
 
         @*<div class="row k-mb-2">
             <div class="col-md-2">

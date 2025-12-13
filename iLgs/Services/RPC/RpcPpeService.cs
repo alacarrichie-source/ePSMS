@@ -180,7 +180,7 @@ namespace iLgs.Services.RPC
             {
                 model.Department = null;
             }
-            var priceCap = GetPriceCap();
+            var priceCap = _priceCapService.GetPriceCap(model.AsOf);
             await _db.Database.ExecuteSqlCommandAsync("Exec RpcPpe_Generate {0}, {1}, {2}, {3}, {4}, {5}", model.AccountGroup, model.AsOf, model.DeptId, user, date, priceCap);            
 
             return model;

@@ -23,7 +23,7 @@ namespace iLgs.Services.CustodianReports
         Task<string> GetStockNoAsync(CustodianReportItem model);
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);
-        ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date);
+        ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date);
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
@@ -193,7 +193,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public virtual async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date)
+        public virtual async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date)
         {
             ValidateReportingYearEnd(reportingYearEnd);
 
@@ -216,11 +216,17 @@ namespace iLgs.Services.CustodianReports
                     var entity = await ctx.CustodianReportItems.FirstOrDefaultAsync(f => f.Id == id);
                     if (entity != null)
                     {
-                        var newItemCode = await ctx.ItemCodes.FindAsync(newItemId);
+                        var newItemCodeAccount = await ctx.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", accountGroup, newItemId.ToString()).FirstOrDefaultAsync();
+                        var newItemCode = await ctx.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(p => p.Id == newItemId);
                         if (newItemCode != null)
                         {
                             entity.ItemCodeId = newItemId;
                             entity.Item_Code = newItemCode.Code;
+                            entity.Article = newItemCode.Description;
+
+                            entity.Account = newItemCodeAccount.Account;                            
+                            entity.SubAccount = newItemCodeAccount.MainDesc;
+
                             var psNo = await GetStockNoAsync(entity);
                             entity.PsNo = psNo;
                             entity.UpdatedBy = user;

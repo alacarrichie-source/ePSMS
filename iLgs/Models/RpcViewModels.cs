@@ -75,6 +75,30 @@ namespace iLgs.Models
 
         [Display(Name = "Acquisition Cost")]
         public Nullable<decimal> AcqCost { get; set; }
+
+        [Display(Name = "Consumables Qty Issued")]
+        public Nullable<int> QtyCons { get; set; }
+
+        [Display(Name = "Consumables Amount")]
+        public Nullable<decimal> AmountCons { get; set; }
+
+        [Display(Name = "SPHV Qty Issued")]
+        public Nullable<int> QtySPHV { get; set; }
+
+        [Display(Name = "SPHV Amount")]
+        public Nullable<decimal> AmountSPHV { get; set; }
+
+        [Display(Name = "SPLV Qty Issued")]
+        public Nullable<int> QtySPLV { get; set; }
+
+        [Display(Name = "SPLV Amount")]
+        public Nullable<decimal> AmountSPLV { get; set; }
+
+        [Display(Name = "Total Semi-Expendable Qty")]
+        public int? QtySE { get; set; }
+
+        [Display(Name = "Total Semi-Expendable Amount")]
+        public decimal? AmountSE { get; set; }        
     }
 
     public class RPCIItemVM

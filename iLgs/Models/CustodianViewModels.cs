@@ -728,6 +728,9 @@ namespace iLgs.Models
 
         [Display(Name = "Custodian Item No.")]
         public decimal? CustodianItemIndex { get; set; }
+
+        [Display(Name = "Phases")]
+        public int? PhaseCount { get; set; }
         //public decimal? CustodianItemIndex
         //{
         //    get
@@ -765,8 +768,8 @@ namespace iLgs.Models
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
-            [Display(Name = "Building Item")]
-            public string BldgItem { get; set; }
+            //[Display(Name = "Building Item")]
+            //public string BldgItem { get; set; }
 
             [Display(Name = "Originating PO No.")]
             public string PoNo { get; set; }
@@ -886,7 +889,7 @@ namespace iLgs.Models
             public string Condition { get; set; }
             public string Remarks { get; set; }
 
-            [Required]
+            //[Required]
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -947,6 +950,9 @@ namespace iLgs.Models
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> BldgItemId { get; set; }
 
+            [Display(Name = "Building Item")]
+            public string BldgItem { get; set; }
+
             [Display(Name = "Phase No.")]
             [Required]
             public string PhaseNo { get; set; }
@@ -1003,6 +1009,11 @@ namespace iLgs.Models
             [Display(Name = "Updated By")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
+            
+            public string Fund { get; set; }
+
+            [Required]
+            public string Annex { get; set; }
         }
         
     }

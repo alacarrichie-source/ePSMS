@@ -2,11 +2,15 @@
 
 <div class="row k-mb-2">
     <div class="col-md-6">
-        <div class="col-md-3">
+        <div class="col-md-3">            
             @Html.DisplayFor(m => m.Multipliers, "LabelInt")
         </div>
-        <div class="col-md-9">
+        <div class="col-md-9">            
             @(Html.Kendo().TextBoxFor(m => m.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            <span class="text-danger small">
+                <i class="k-icon k-i-warning"></i>
+                Do not change default zero, unless you are into drugs and medicine encoding..
+            </span>
             @Html.ValidationMessageFor(m => m.Multipliers)
         </div>
     </div>    

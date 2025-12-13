@@ -28,13 +28,53 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
+                @Html.DisplayFor(m => m.Fund, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Fund")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                //.Suggest(true)
+                )
+                @Html.ValidationMessageFor(model => model.Fund)
+            </div>
+        </div>        
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.BldgItem, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.BldgItem).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.BldgItem)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
                 @Html.DisplayFor(m => m.ProjectName, "Label")
             </div>
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.ProjectName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.ProjectName)
             </div>
-        </div>        
+        </div>               
 
         <div class="row k-mb-2">
             <div class="col-md-2">
@@ -118,6 +158,16 @@
         </div>        
 
         <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Annex, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).PromptChar(" ").Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Annex)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.DisplayFor(m => m.Remarks, "Label")
             </div>
@@ -143,6 +193,6 @@
                 @(Html.Kendo().NumericTextBoxFor(m => m.CapitalOutlay).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.CapitalOutlay)
             </div>
-        </div>        
+        </div>                
     </fieldset>
 }

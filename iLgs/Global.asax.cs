@@ -57,7 +57,8 @@ namespace iLgs
 
             // Register your DbContext (EF6)
             services.AddScoped<AppManEntities>();
-            services.AddSingleton<IAppManEntitiesFactory, AppManEntitiesFactory>();
+            //services.AddSingleton<IAppManEntitiesFactory, AppManEntitiesFactory>();
+            services.AddScoped<IAppManEntitiesFactory, AppManEntitiesFactory>();
             services.AddScoped<AppManEntities>(sp => new AppManEntities());
 
             //// Identity stores
