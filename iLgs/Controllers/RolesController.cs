@@ -17,11 +17,11 @@ namespace iLgs.Controllers
     [AppAuthorize("roles")]
     public class RolesController : BaseController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public RolesController(AppManEntities db)
+        public RolesController()
         {
-            _db = db;
+            
         }
 
         //HttpClient client;

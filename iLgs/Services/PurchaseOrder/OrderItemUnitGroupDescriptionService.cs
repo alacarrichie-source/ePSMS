@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -19,16 +20,19 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupDescriptionService : IOrderItemUnitGroupDescriptionService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupDescriptionVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroupDescription> _exceptionService;
 
         public OrderItemUnitGroupDescriptionService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderItemUnitGroupDescriptionVM> vmExceptionService,
             IExceptionService<OrderItemUnitGroupDescription> exceptionService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
@@ -79,8 +83,11 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            _db.OrderItemUnitGroupDescriptions.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.OrderItemUnitGroupDescriptions.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -91,18 +98,21 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.OrderItemUnitGroupDescriptions.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.OrderItemUnitGroupDescriptions.FindAsync(model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.OrderItemUnitGroupDescriptions.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.OrderItemUnitGroupDescriptions.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.OrderItemUnitGroupDescriptions.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.OrderItemUnitGroupDescriptions.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -113,18 +123,22 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.OrderItemUnitGroupDescriptions.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.OrderItemUnitGroupDescriptions.FindAsync(model.Id);
 
-            entity.OrderItemUnitGroupId = model.OrderItemUnitGroupId;
-            entity.RequestItemUnitGroupDescriptionId = model.RequestItemUnitGroupDescriptionId;
-            entity.Description = model.Description;
-            entity.OtherParticulars = model.OtherParticulars;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.OrderItemUnitGroupId = model.OrderItemUnitGroupId;
+                entity.RequestItemUnitGroupDescriptionId = model.RequestItemUnitGroupDescriptionId;
+                entity.Description = model.Description;
+                entity.OtherParticulars = model.OtherParticulars;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.OrderItemUnitGroupDescriptions.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.OrderItemUnitGroupDescriptions.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
+
             return model;
         });
     }

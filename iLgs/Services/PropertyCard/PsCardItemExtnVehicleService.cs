@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -27,6 +28,7 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnValidator;
@@ -34,6 +36,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;        
 
         public PsCardItemExtnVehicleService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
             IPsCardItemTransactionService psCardItemTransactionService,
             IPsCardItemExtnVehicleValidator psCardItemExtnValidator,
@@ -41,6 +44,7 @@ namespace iLgs.Services.PropertyCard
             IPsCardItemExtnVehicleRepairService psCardItemExtnVehicleRepairService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptionService = exceptionService;
             _psCardItemTransactionService = psCardItemTransactionService;
             _psCardItemExtnValidator = psCardItemExtnValidator;
@@ -146,8 +150,6 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemExtnVehicleVM> CreateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            //ValidatorService.ValidateModel<PsCardItemExtn>(model);
-
             _psCardItemExtnValidator.ValidateOnCreate(model);
 
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
@@ -168,8 +170,11 @@ namespace iLgs.Services.PropertyCard
             var entity = new PsCardItemExtnVehicle();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.PsCardItemExtns.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.PsCardItemExtns.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
@@ -183,12 +188,15 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
@@ -199,40 +207,43 @@ namespace iLgs.Services.PropertyCard
         {            
             _psCardItemExtnValidator.ValidateOnDelete(model);
 
-            //using (var transaction = _db.Database.BeginTransaction())
-            //{
-            //    try
-            //    {
-                    // Delete References
-                    var itemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
-                    _db.PsCardItemTransactions.RemoveRange(itemTransactions);
-                    await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                //using (var transaction = _db.Database.BeginTransaction())
+                //{
+                //    try
+                //    {
+                // Delete References
+                var itemTransactions = ctx.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
+                ctx.PsCardItemTransactions.RemoveRange(itemTransactions);
+                await ctx.SaveChangesAsync();
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
 
-                    var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-                    _db.PsCardItemExtns.Attach(entity);
-                    _db.Entry(entity).State = EntityState.Modified;
-                    await _db.SaveChangesAsync();
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-                    _db.PsCardItemExtns.Remove(entity);
-                    _db.Entry(entity).State = EntityState.Deleted;
-                    await _db.SaveChangesAsync();
+                ctx.PsCardItemExtns.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
 
-            //        transaction.Commit();
-            //    }
-            //    catch (Exception)
-            //    {
-            //        // Rollback the transaction if any operation fails
-            //        transaction.Rollback();
-            //        throw;
-            //    }
-            //}
+                //        transaction.Commit();
+                //    }
+                //    catch (Exception)
+                //    {
+                //        // Rollback the transaction if any operation fails
+                //        transaction.Rollback();
+                //        throw;
+                //    }
+                //}
+            }
 
             return model;
         });

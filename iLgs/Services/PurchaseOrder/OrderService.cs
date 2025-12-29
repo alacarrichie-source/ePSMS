@@ -47,6 +47,7 @@ namespace iLgs.Services.PurchaseOrder
     {
         private readonly decimal? _priceCap;
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IOrderSharedService _orderSharedService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderVM> _orderVmExceptionService;
@@ -60,6 +61,7 @@ namespace iLgs.Services.PurchaseOrder
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public OrderService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IOrderSharedService orderSharedService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderVM> orderVmExceptionService,
@@ -71,6 +73,7 @@ namespace iLgs.Services.PurchaseOrder
             IPriceCapService priceCapService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _orderSharedService = orderSharedService;
             _exceptions = exceptions;
             _orderVmExceptionService = orderVmExceptionService;
@@ -292,109 +295,112 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            // include items during add, PR Items not yet in Order Items
-            var requestItems = _db.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
-                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).OrderBy(o => o.InsertedDt).ToList();
-            foreach (var requestItem in requestItems)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                var insertedDt = DateTime.Now;
-                OrderItem orderItem = new OrderItem()
+                // include items during add, PR Items not yet in Order Items
+                var requestItems = await ctx.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
+                    .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).OrderBy(o => o.InsertedDt).ToListAsync();
+                foreach (var requestItem in requestItems)
                 {
-                    Id = Guid.NewGuid(),
-                    OrderId = entity.Id,
-                    ItemCodeId = requestItem.RisItem.ItemCodeId,
-                    PsNo = requestItem.RisItem.PsNo,
-                    PsNoDisplay = requestItem.RisItem.PsNoDisplay,
-                    RequestItemId = requestItem.Id,
-                    ItemName = requestItem.RisItem.ItemName,
-                    Description = requestItem.RisItem.Description,
-                    OtherDesc = requestItem.RisItem.OtherDesc,
-                    Unit = requestItem.RisItem.Unit,
-                    Qty = requestItem.Qty,
-                    UnitCost = requestItem.UnitCost,
-                    Amount = requestItem.TotalCost,
-                    PriceRate = requestItem.PriceRate,
-                    PpmpCode = requestItem.RisItem.PpmpCode,
-                    InsertedBy = user,
-                    InsertedDt = insertedDt,
-                    UpdatedBy = user,
-                    UpdatedDt = insertedDt
-                };
-
-                //Map Fields
-                var reqAllField = _db.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefault();
-                reqAllField.Id = orderItem.Id;
-                reqAllField.UpdatedBy = user;
-                reqAllField.UpdatedDt = date;
-                orderItem.AllField = reqAllField;
-
-                entity.OrderItems.Add(orderItem);
-            }
-
-            // Unit Groups
-            var unitGroups = _db.RequestItemUnitGroups
-                .Include(i => i.RisItemUnitGroup.RisItemUnitGroupDescriptions)
-                .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId && !w.OrderItemUnitGroups.Any())
-                .OrderBy(o => o.InsertedDt).ToList();
-            foreach (var unitGroup in unitGroups)
-            {
-                var unitGroupDt = DateTime.Now;
-                var orderItemUnitGroup = new OrderItemUnitGroup()
-                {
-                    Id = Guid.NewGuid(),
-                    OrderId = model.Id,
-                    RequestItemUnitGroupId = unitGroup.Id,
-                    SetLotNo = unitGroup.RisItemUnitGroup.SetLotNo,
-                    Qty = unitGroup.RisItemUnitGroup.Qty,
-                    Unit = unitGroup.RisItemUnitGroup.Unit,
-                    UnitCost = unitGroup.UnitCost,
-                    TotalCost = unitGroup.TotalCost,
-                    InsertedBy = user,
-                    InsertedDt = unitGroupDt,
-                    UpdatedBy = user,
-                    UpdatedDt = unitGroupDt
-                };
-
-                foreach (var unitGroupDescription in unitGroup.RequestItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
-                {
-                    var groupDescriptionDt = DateTime.Now;
-                    var orderItemUnitGroupDescription = new OrderItemUnitGroupDescription()
+                    var insertedDt = DateTime.Now;
+                    OrderItem orderItem = new OrderItem()
                     {
                         Id = Guid.NewGuid(),
-                        OrderItemUnitGroupId = orderItemUnitGroup.Id,
-                        RequestItemUnitGroupDescriptionId = unitGroupDescription.Id,
-                        Description = unitGroupDescription.RisItemUnitGroupDescription.Description,
+                        OrderId = entity.Id,
+                        ItemCodeId = requestItem.RisItem.ItemCodeId,
+                        PsNo = requestItem.RisItem.PsNo,
+                        PsNoDisplay = requestItem.RisItem.PsNoDisplay,
+                        RequestItemId = requestItem.Id,
+                        ItemName = requestItem.RisItem.ItemName,
+                        Description = requestItem.RisItem.Description,
+                        OtherDesc = requestItem.RisItem.OtherDesc,
+                        Unit = requestItem.RisItem.Unit,
+                        Qty = requestItem.Qty,
+                        UnitCost = requestItem.UnitCost,
+                        Amount = requestItem.TotalCost,
+                        PriceRate = requestItem.PriceRate,
+                        PpmpCode = requestItem.RisItem.PpmpCode,
                         InsertedBy = user,
-                        InsertedDt = groupDescriptionDt,
+                        InsertedDt = insertedDt,
                         UpdatedBy = user,
-                        UpdatedDt = groupDescriptionDt
+                        UpdatedDt = insertedDt
                     };
 
-                    var requestItemUnitGroupDescriptionItems = _db.RequestItemUnitGroupDescriptionItems
-                        .Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToList();
-                    foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
+                    //Map Fields
+                    var reqAllField = await ctx.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefaultAsync();
+                    reqAllField.Id = orderItem.Id;
+                    reqAllField.UpdatedBy = user;
+                    reqAllField.UpdatedDt = date;
+                    orderItem.AllField = reqAllField;
+
+                    entity.OrderItems.Add(orderItem);
+                }
+
+                // Unit Groups
+                var unitGroups = await ctx.RequestItemUnitGroups
+                    .Include(i => i.RisItemUnitGroup.RisItemUnitGroupDescriptions)
+                    .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId && !w.OrderItemUnitGroups.Any())
+                    .OrderBy(o => o.InsertedDt).ToListAsync();
+                foreach (var unitGroup in unitGroups)
+                {
+                    var unitGroupDt = DateTime.Now;
+                    var orderItemUnitGroup = new OrderItemUnitGroup()
                     {
-                        var groupDescriptionItemDt = DateTime.Now;
-                        var orderItemUnitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                        Id = Guid.NewGuid(),
+                        OrderId = model.Id,
+                        RequestItemUnitGroupId = unitGroup.Id,
+                        SetLotNo = unitGroup.RisItemUnitGroup.SetLotNo,
+                        Qty = unitGroup.RisItemUnitGroup.Qty,
+                        Unit = unitGroup.RisItemUnitGroup.Unit,
+                        UnitCost = unitGroup.UnitCost,
+                        TotalCost = unitGroup.TotalCost,
+                        InsertedBy = user,
+                        InsertedDt = unitGroupDt,
+                        UpdatedBy = user,
+                        UpdatedDt = unitGroupDt
+                    };
+
+                    foreach (var unitGroupDescription in unitGroup.RequestItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
+                    {
+                        var groupDescriptionDt = DateTime.Now;
+                        var orderItemUnitGroupDescription = new OrderItemUnitGroupDescription()
                         {
                             Id = Guid.NewGuid(),
-                            RequestItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
-                            OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
-                            OrderItemId = entity.OrderItems.FirstOrDefault(f => f.RequestItemId == unitGroupDescriptionItem.RequestItemId).Id,
+                            OrderItemUnitGroupId = orderItemUnitGroup.Id,
+                            RequestItemUnitGroupDescriptionId = unitGroupDescription.Id,
+                            Description = unitGroupDescription.RisItemUnitGroupDescription.Description,
                             InsertedBy = user,
-                            InsertedDt = groupDescriptionItemDt,
+                            InsertedDt = groupDescriptionDt,
                             UpdatedBy = user,
-                            UpdatedDt = groupDescriptionItemDt
+                            UpdatedDt = groupDescriptionDt
                         };
-                        orderItemUnitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(orderItemUnitGroupDescriptionItem);
-                    }
-                    orderItemUnitGroup.OrderItemUnitGroupDescriptions.Add(orderItemUnitGroupDescription);
-                }
-                entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
-            }
 
-            _db.Orders.Add(entity);
-            await _db.SaveChangesAsync();
+                        var requestItemUnitGroupDescriptionItems = await ctx.RequestItemUnitGroupDescriptionItems
+                            .Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+                        foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
+                        {
+                            var groupDescriptionItemDt = DateTime.Now;
+                            var orderItemUnitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                            {
+                                Id = Guid.NewGuid(),
+                                RequestItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
+                                OrderItemId = entity.OrderItems.FirstOrDefault(f => f.RequestItemId == unitGroupDescriptionItem.RequestItemId).Id,
+                                InsertedBy = user,
+                                InsertedDt = groupDescriptionItemDt,
+                                UpdatedBy = user,
+                                UpdatedDt = groupDescriptionItemDt
+                            };
+                            orderItemUnitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(orderItemUnitGroupDescriptionItem);
+                        }
+                        orderItemUnitGroup.OrderItemUnitGroupDescriptions.Add(orderItemUnitGroupDescription);
+                    }
+                    entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
+                }
+
+                ctx.Orders.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -407,86 +413,89 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.Orders.FindAsync(model.Id);
-
-            // if there's a change of request item
-            if (entity.PrId != model.PrId)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.Id);
-                await orderItems.ForEachAsync(f =>
-                {
-                    f.UpdatedBy = model.UpdatedBy;
-                    f.UpdatedDt = model.UpdatedDt;
-                });
-                await _db.SaveChangesAsync();
+                var entity = await ctx.Orders.FindAsync(model.Id);
 
-                _db.OrderItems.RemoveRange(orderItems);
-                await _db.SaveChangesAsync();
-
-                // include items during add, PR Items not yet in Order Items
-                var prItemList = _db.RequestItems.Include(i => i.RisItem.AllField)
-                    .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
-                foreach (var prItem in prItemList)
+                // if there's a change of request item
+                if (entity.PrId != model.PrId)
                 {
-                    OrderItem orderItem = new OrderItem()
+                    var orderItems = ctx.OrderItems.Where(w => w.OrderId == model.Id);
+                    await orderItems.ForEachAsync(f =>
                     {
-                        Id = Guid.NewGuid(),
-                        OrderId = entity.Id,
-                        ItemCodeId = prItem.RisItem.ItemCodeId,
-                        PsNo = prItem.RisItem.PsNo,
-                        PsNoDisplay = prItem.RisItem.PsNoDisplay,
-                        RequestItemId = prItem.Id,
-                        ItemName = prItem.RisItem.ItemName,
-                        Description = prItem.RisItem.Description,
-                        OtherDesc = prItem.RisItem.OtherDesc,
-                        Unit = prItem.RisItem.Unit,
-                        Qty = prItem.Qty,
-                        UnitCost = prItem.UnitCost,
-                        Amount = prItem.TotalCost,
-                        PriceRate = prItem.PriceRate,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
+                        f.UpdatedBy = model.UpdatedBy;
+                        f.UpdatedDt = model.UpdatedDt;
+                    });
+                    await ctx.SaveChangesAsync();
 
-                    AllField allfield = prItem.RisItem.AllField;
-                    allfield.Id = orderItem.Id;
-                    orderItem.AllField = allfield;
+                    ctx.OrderItems.RemoveRange(orderItems);
+                    await ctx.SaveChangesAsync();
 
-                    entity.OrderItems.Add(orderItem);
+                    // include items during add, PR Items not yet in Order Items
+                    var prItemList = await ctx.RequestItems.Include(i => i.RisItem.AllField)
+                        .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToListAsync();
+                    foreach (var prItem in prItemList)
+                    {
+                        OrderItem orderItem = new OrderItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            OrderId = entity.Id,
+                            ItemCodeId = prItem.RisItem.ItemCodeId,
+                            PsNo = prItem.RisItem.PsNo,
+                            PsNoDisplay = prItem.RisItem.PsNoDisplay,
+                            RequestItemId = prItem.Id,
+                            ItemName = prItem.RisItem.ItemName,
+                            Description = prItem.RisItem.Description,
+                            OtherDesc = prItem.RisItem.OtherDesc,
+                            Unit = prItem.RisItem.Unit,
+                            Qty = prItem.Qty,
+                            UnitCost = prItem.UnitCost,
+                            Amount = prItem.TotalCost,
+                            PriceRate = prItem.PriceRate,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        AllField allfield = prItem.RisItem.AllField;
+                        allfield.Id = orderItem.Id;
+                        orderItem.AllField = allfield;
+
+                        entity.OrderItems.Add(orderItem);
+                    }
                 }
+
+                entity.SupplierId = model.SupplierId;
+                entity.SupName = model.SupName;
+                entity.SupBusiness = model.SupBusiness;
+                entity.SupAddress = model.SupAddress;
+                entity.SupContactNo = model.SupContactNo;
+                entity.SupZipCode = model.SupZipCode;
+                entity.SupEmail = model.SupEmail;
+                entity.SupTIN = model.SupTIN;
+                entity.PoNo = model.PoNo;
+                entity.PoDate = model.PoDate;
+                entity.PoMode = model.PoMode;
+                entity.PrId = model.PrId;
+                entity.DeliveryPlace = model.DeliveryPlace;
+                entity.DeliveryDate = model.DeliveryDate;
+                entity.TermDelivery = model.TermDelivery;
+                entity.TermPayment = model.TermPayment;
+                entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
+                entity.SignedByAuthName = model.SignedByAuthName;
+                entity.SignedBySuppDate = model.SignedBySuppDate;
+                entity.SignedBySuppName = model.SignedBySuppName;
+                entity.ResoNo = model.ResoNo;
+                entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+                entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                //_db.Orders.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            entity.SupplierId = model.SupplierId;
-            entity.SupName = model.SupName;
-            entity.SupBusiness = model.SupBusiness;
-            entity.SupAddress = model.SupAddress;
-            entity.SupContactNo = model.SupContactNo;
-            entity.SupZipCode = model.SupZipCode;
-            entity.SupEmail = model.SupEmail;
-            entity.SupTIN = model.SupTIN;
-            entity.PoNo = model.PoNo;
-            entity.PoDate = model.PoDate;
-            entity.PoMode = model.PoMode;
-            entity.PrId = model.PrId;
-            entity.DeliveryPlace = model.DeliveryPlace;
-            entity.DeliveryDate = model.DeliveryDate;
-            entity.TermDelivery = model.TermDelivery;
-            entity.TermPayment = model.TermPayment;
-            entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
-            entity.SignedByAuthName = model.SignedByAuthName;
-            entity.SignedBySuppDate = model.SignedBySuppDate;
-            entity.SignedBySuppName = model.SignedBySuppName;
-            entity.ResoNo = model.ResoNo;
-            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
-            entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.Orders.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -496,122 +505,83 @@ namespace iLgs.Services.PurchaseOrder
         {
             await ValidateOnDestroy(model);
 
-            var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
-            if (unitGroups.Any())
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                _db.OrderItemUnitGroups.RemoveRange(unitGroups);
-                await _db.SaveChangesAsync();
+                var unitGroups = ctx.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+                if (unitGroups.Any())
+                {
+                    ctx.OrderItemUnitGroups.RemoveRange(unitGroups);
+                    await ctx.SaveChangesAsync();
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                var entity = await ctx.Orders.FindAsync(model.Id);
+
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //_db.Orders.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                ctx.Orders.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
             }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = await _db.Orders.FindAsync(model.Id);
-
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.Orders.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            _db.Orders.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
 
             return model;
         });
 
         public ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            //var entity = await db.Orders.FindAsync(orderId);
-            var entity = await _db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(orderId);
+                var entity = await ctx.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(orderId);
+                }
+
+                await ValidateOnPost(entity);
+                await ValidateUploadAsync(orderId, entity.PoNo);
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+
+                //_db.Orders.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
             }
-
-            await ValidateOnPost(entity);
-            await ValidateUploadAsync(orderId, entity.PoNo);            
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-
-            _db.Orders.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
         });
 
         public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.Orders.FindAsync(orderId);
-
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(orderId);
+                var entity = await ctx.Orders.FindAsync(orderId);
+
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(orderId);
+                }
+
+                await ValidateOnUnpost(entity);
+
+                entity.PostedBy = null;
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //_db.Orders.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
             }
-
-            await ValidateOnUnpost(entity);
-
-            entity.PostedBy = null;
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.Orders.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
-            ///*
-            //    * Delete the following records onUnpost:
-            //    //* PsCardItems, Fields...
-            //    //* PsCards --> if no PsItem                
-            //*/
-            //var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == orderId).ToList();
-
-            //foreach (var orderItem in orderItems)
-            //{
-
-            //    if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category category))
-            //    {
-            //        if (category == Category.D)
-            //        {
-            //            var psCardItems = db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
-            //            if (psCardItems.Any())
-            //            {
-            //                var psCardId = psCardItems.FirstOrDefault().PsCardId;
-            //                // log updates
-            //                await psCardItems.ForEachAsync(f =>
-            //                {
-            //                    f.UpdatedBy = user;
-            //                    f.UpdatedDt = date;
-            //                });
-            //                await db.SaveChangesAsync();
-
-            //                // delete all stockitems
-            //                db.PsCardItems.RemoveRange(psCardItems);
-            //                await db.SaveChangesAsync();
-
-            //                if (!db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
-            //                {
-            //                    var psCard = await db.PsCards.Where(w => w.Id == psCardId).FirstOrDefaultAsync();
-            //                    psCard.UpdatedBy = user;
-            //                    psCard.UpdatedDt = date;
-
-            //                    db.PsCards.Attach(psCard);
-            //                    db.Entry(psCard).State = EntityState.Modified;
-            //                    await db.SaveChangesAsync();
-
-            //                    // delete stock during unpost if not used by other order item
-            //                    db.PsCards.Remove(psCard);
-            //                    db.Entry(psCard).State = EntityState.Deleted;
-            //                    await db.SaveChangesAsync();
-            //                }
-            //            }
-            //        }
-            //    }                
-            //}
         });
 
         private string NextPoNo(DateTime poDate)

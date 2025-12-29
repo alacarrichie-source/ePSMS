@@ -250,7 +250,7 @@
   .For("#btnCount")
   .Position(TooltipPosition.Top)
   .Animation(true)
-  .Content("Certifying that the count has been COMPLETED (annexes A, B, and C) by the custodian and is now ready for verification by the Official Physical Count Team.")
+  .Content("Certifying that the count for annexes A, B, and C (with uploads) has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -342,6 +342,32 @@
         <ul>
             # for (var i = 0; i < messages.length; ++i) { #
             <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+<script type="text/x-kendo-template" id="validationMessageItemTemplate">
+    # if (messages && messages.length) { #
+    <li>
+        #= field #
+        <ul>
+            # for (var i = 0; i < messages.length; i++) { #
+            # var m = messages[i]; #
+
+            # if (typeof m === "string") { #
+            <li>#= m #</li>
+            # } else if (m.field && m.messages) { #
+            <li>
+                <strong>#= m.field #</strong>
+                <ul>
+                    # for (var j = 0; j < m.messages.length; j++) { #
+                    <li>#= m.messages[j] #</li>
+                    # } #
+                </ul>
+            </li>
+            # } #
             # } #
         </ul>
     </li>
@@ -464,6 +490,34 @@
             var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError" || propertyName == "GridError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function GridItemError(args) {
+        if (args.errors) {
+            var selectedGrid = $("#gridAmounts_" + selectedId).data("kendoGrid");
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
                     alert(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
@@ -935,7 +989,7 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
             var url = "";

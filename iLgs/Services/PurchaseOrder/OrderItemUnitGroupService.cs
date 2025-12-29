@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupService : IOrderItemUnitGroupService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroup> _exceptionService;
@@ -26,6 +28,7 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
 
         public OrderItemUnitGroupService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderItemUnitGroupVM> vmExceptionService,
             IExceptionService<OrderItemUnitGroup> exceptionService,
@@ -33,6 +36,7 @@ namespace iLgs.Services.PurchaseOrder
             IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
@@ -100,8 +104,11 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            _db.OrderItemUnitGroups.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.OrderItemUnitGroups.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -109,31 +116,34 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupVM> DeleteAsync(OrderItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.OrderItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(model.Id);
+                var entity = await ctx.OrderItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(model.Id);
+                }
+
+                if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
+                {
+                    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                //_db.OrderItemUnitGroups.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                ctx.OrderItemUnitGroups.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
             }
-
-            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.OrderItemUnitGroups.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            _db.OrderItemUnitGroups.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -141,44 +151,47 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupVM> UpdateAsync(OrderItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(model.Id);
-            }
-
-            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            entity.OrderId = model.OrderId;
-            entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
-            entity.SetLotNo = model.SetLotNo;
-            entity.Qty = model.Qty;
-            entity.UnitCost = model.UnitCost;
-            entity.TotalCost = model.Qty * model.UnitCost;            
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.OrderItemUnitGroups.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            var unitGroupDescriptions = entity.OrderItemUnitGroupDescriptions.ToList();
-            foreach (var unitGroupDescription in unitGroupDescriptions)
-            {
-                var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
-                    .Include(i => i.OrderItem)
-                    .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
-                foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                var entity = await ctx.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                if (entity == null)
                 {
-                    var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
-                    var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
-                    await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
+                    throw new RecordNotFoundException(model.Id);
+                }
+
+                if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
+                {
+                    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                entity.OrderId = model.OrderId;
+                entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
+                entity.SetLotNo = model.SetLotNo;
+                entity.Qty = model.Qty;
+                entity.UnitCost = model.UnitCost;
+                entity.TotalCost = model.Qty * model.UnitCost;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                //_db.OrderItemUnitGroups.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                var unitGroupDescriptions = entity.OrderItemUnitGroupDescriptions.ToList();
+                foreach (var unitGroupDescription in unitGroupDescriptions)
+                {
+                    var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
+                        .Include(i => i.OrderItem)
+                        .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
+                    foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                    {
+                        var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
+                        var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
+                        await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(ctx, unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
+                    }
                 }
             }
 

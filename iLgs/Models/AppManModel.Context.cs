@@ -118,7 +118,6 @@ namespace iLgs.Models
         public virtual DbSet<NotificationMessage> NotificationMessages { get; set; }
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<RPCIItemExtn> RPCIItemExtns { get; set; }
-        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<Chat> Chats { get; set; }
         public virtual DbSet<RpcPpeItemBuilding> RpcPpeItemBuildings { get; set; }
         public virtual DbSet<RpcPpeItemLand> RpcPpeItemLands { get; set; }
@@ -129,5 +128,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
+        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
     }
 }

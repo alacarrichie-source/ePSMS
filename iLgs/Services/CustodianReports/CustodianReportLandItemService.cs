@@ -164,7 +164,8 @@ namespace iLgs.Services.CustodianReports
                 PostedDt = s.PostedDt,
                 ItemType_Code = s.ItemCode.ItemType.Code,
                 Item_Code = s.ItemCode.Code,
-                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit")
+                IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit"),
+                AcqMode = s.FromDonation == true ? "Donation" : "Purchase"
             };
         }
 
@@ -234,7 +235,7 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedDt = date;
 
             using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            {                
                 var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
                 if (custodianReport == null)
                 {
@@ -254,6 +255,14 @@ namespace iLgs.Services.CustodianReports
 
                 model.ReportId = custodianReport.Id;
                 await ValidateIfSubmittedAsync(model);
+
+                if (!string.IsNullOrWhiteSpace(model.DRPNo))
+                {
+                    if (await ctx.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo))
+                    {
+                        throw new RecordAlreadyExistsException("DRP No. Already Exists!");
+                    }
+                }
 
                 var entity = new CustodianReportLandItem();
                 MapModelToEntityFields(entity, model, Mode.ADD);
@@ -279,7 +288,15 @@ namespace iLgs.Services.CustodianReports
                 ValidateRecord(entity);
                 ValidateIfPosted(entity);
                 await ValidateIfSubmittedAsync(model);
-                
+
+                if (!string.IsNullOrWhiteSpace(model.DRPNo))
+                {
+                    if (await ctx.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo && p.Id != model.Id))
+                    {
+                        throw new RecordAlreadyExistsException("DRP No. Already Exists!");
+                    }
+                }
+
                 MapModelToEntityFields(entity, model, Mode.EDIT);
 
                 //ctx.CustodianReportLandItems.Attach(entity);

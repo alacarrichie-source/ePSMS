@@ -1,4 +1,5 @@
 ﻿using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -22,18 +23,21 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnBldgService : IPsCardItemExtnBldgService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnBldgValidator _psCardItemExtnBlgValidator;
         private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
         public PsCardItemExtnBldgService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<PsCardItemExtnBldgVM> exceptionService,
             IPsCardItemTransactionService psCardItemTransactionService,
             IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
             IPsCardItemExtnSharedService psCardItemExtnSharedService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptionService = exceptionService;
             _psCardItemTransactionService = psCardItemTransactionService;
             _psCardItemExtnBlgValidator = psCardItemExtnBldgValidator;
@@ -120,16 +124,6 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnBldgVM> CreateAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBlgValidator.ValidateOnCreate(model);
-
-            //var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
-            //var itemQty = (int)(psCardItem.Qty ?? 0); // + (int)(psCardItem.TransferIn ?? 0);
-            //var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().Where(w => w.PsCardItemId == model.PsCardItemId);
-            //var itemExtnCount = itemExtns.Count();
-
-            //if (itemExtnCount >= itemQty)
-            //{
-            //    throw new InvalidValueException($"Cannot create more than {itemQty} record(s).");
-            //}
             
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -137,11 +131,14 @@ namespace iLgs.Services.PropertyCard
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            var entity = new PsCardItemExtnBuilding();
-            MapModelToEntityFields(entity, model, Mode.ADD);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = new PsCardItemExtnBuilding();
+                MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.PsCardItemExtns.Add(entity);
-            await _db.SaveChangesAsync();
+                ctx.PsCardItemExtns.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);            
             return model;
@@ -154,12 +151,15 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.Id);
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.Id);
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
@@ -195,18 +195,21 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefault(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefault(f => f.Id == model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.PsCardItemExtns.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.PsCardItemExtns.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });        

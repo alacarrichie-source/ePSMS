@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -36,7 +37,7 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
         IQueryable<ItemCodeVM> GetCustodianItemLand(string item);
         IQueryable<ItemCodeVM> GetCustodianItemBldg(string item);
-        
+
         IQueryable<ItemCodeVM> GetCustodianItemPpeWithNonArticles(string item);
         IQueryable<ItemCodeVM> GetCustodianItemStocksWithNonArticles(string item);
         IQueryable<ItemCodeVM> GetCustodianItemVehicleWithNonArticles(string item);
@@ -51,25 +52,28 @@ namespace iLgs.Services.Items
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date);
 
-        void ValidateRelationship(Guid itemcodeId);
+        void ValidateRelationship(AppManEntities ctx, Guid itemcodeId);
     }
 
     public class ItemCodeService : IItemCodeService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<ItemCodeVM> _vmExceptionService;
-        private readonly IExceptionService<ItemCode> _exceptionService;        
+        private readonly IExceptionService<ItemCode> _exceptionService;
 
         public ItemCodeService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<ItemCodeVM> vmExceptionService,
             IExceptionService<ItemCode> exceptionService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
         }
 
-        public IQueryable<ItemCodeVM> GetAll()
+        public IQueryable<ItemCodeVM> GetAllOld()
         {
             var data = _db.ItemCodes.AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
@@ -93,8 +97,14 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
+        public IQueryable<ItemCodeVM> GetAll()
         {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get").AsQueryable();
+            return data;
+        }
+
+        public IQueryable<ItemCodeVM> GetAllByItemTypeIdOld(Guid? itemTypeId)
+        {                            
             var data = _db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
@@ -110,7 +120,6 @@ namespace iLgs.Services.Items
                     ForDistribution = s.ForDistribution,
                     PartialPage = s.PartialPage,
                     RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault()?.Description,
-                    //ItemSwUI = s.ItemSw == "Y" ? true : false,
                     Padding = s.ItemNo.Count(c => c == '.') * 30,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
@@ -118,19 +127,25 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public Task<ItemCode> GetByIdAsync(Guid? id) 
+        public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {
-            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Id == id);            
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();
+            return data;
         }
 
-        public ItemCode GetById(Guid? id) 
+        public Task<ItemCode> GetByIdAsync(Guid? id)
+        {
+            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Id == id);
+        }
+
+        public ItemCode GetById(Guid? id)
         {
             var data = _db.ItemCodes.Include(i => i.ItemType).FirstOrDefault(f => f.Id == id);
             return data;
         }
         public Task<ItemCode> GetByCodeAsync(string code)
         {
-            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Code == code);            
+            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Code == code);
         }
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _vmExceptionService.TryCatch(() =>
@@ -150,8 +165,8 @@ namespace iLgs.Services.Items
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.PPE, item).AsQueryable().AsNoTracking();
             return data;
         });
-        
-        public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) 
+
+        public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item)
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
             return data;
@@ -209,7 +224,7 @@ namespace iLgs.Services.Items
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable().AsNoTracking();
             return data;
-        });        
+        });
 
         public IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item) => _vmExceptionService.TryCatch(() =>
         {
@@ -230,11 +245,11 @@ namespace iLgs.Services.Items
             {
                 return string.Empty;
             }
-            var raCode = itemCode.Code.Split('.');            
-            return raCode[raCode.Length -1];
+            var raCode = itemCode.Code.Split('.');
+            return raCode[raCode.Length - 1];
         }
 
-        public string GetSubAccounts(Guid? id) 
+        public string GetSubAccounts(Guid? id)
         {
             // Retrieve the Code for the given id
             var code = _db.ItemCodes
@@ -274,7 +289,7 @@ namespace iLgs.Services.Items
         public async Task<string> GetPartialViewAsync(Guid? id)
         {
             var itemCode = await GetByIdAsync(id);
-            
+
             if (itemCode == null)
             {
                 return string.Empty;
@@ -290,23 +305,23 @@ namespace iLgs.Services.Items
                     {
                         return itemCode.ItemType.PartialPage;
                     }
-                    
+
                 }
-                
+
                 for (int i = parts.Length - 1; i > 0; i--)
                 {
                     string code = string.Join(".", parts.Take(i));
                     itemCode = await GetByCodeAsync(code);
                     if (itemCode != null && !string.IsNullOrWhiteSpace(itemCode.PartialPage))
                     {
-                        return itemCode.PartialPage;                        
+                        return itemCode.PartialPage;
                     }
                 }
                 return itemCode.ItemType.PartialPage ?? "";
             }
-            
+
             return itemCode.PartialPage ?? "";
-                       
+
         }
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _vmExceptionService.TryCatch(() =>
@@ -383,7 +398,7 @@ namespace iLgs.Services.Items
             }
 
             return "";
-        }        
+        }
 
         private void ValidateFields(ItemCodeVM model)
         {
@@ -405,7 +420,7 @@ namespace iLgs.Services.Items
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(model.IsIncorporated)) 
+            if (!string.IsNullOrWhiteSpace(model.IsIncorporated))
             {
                 var f = model.IsIncorporated.ToUpper().Trim();
                 if (f != "Y" && f != "N" && f != "")
@@ -435,33 +450,35 @@ namespace iLgs.Services.Items
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            model.Id = Guid.NewGuid();
-            model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
-            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
-            //model.ItemSw = model.ItemSwUI == true? "Y" : "";
-
-            ItemCode entity = new ItemCode()
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                Id = model.Id,
-                ItemTypeId = model.ItemTypeId,
-                ItemNo = model.ItemNo.Trim(),
-                ItemNoIndex = model.ItemNoIndex,
-                Code = model.Code,
-                Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
-                ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.Trim().ToUpper(),
-                IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper(),
-                IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
-                ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
-                AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
-                PartialPage = model.PartialPage,
-                InsertedBy = user,
-                InsertedDt = date,
-                UpdatedBy = user,
-                UpdatedDt = date
-            };
+                model.Id = Guid.NewGuid();
+                model.Code = GetItemCode(ctx, model.ItemTypeId, model.ItemNo, model.Description);
+                model.ItemNoIndex = ItemNoIndex(model.ItemNo);
+                
+                ItemCode entity = new ItemCode()
+                {
+                    Id = model.Id,
+                    ItemTypeId = model.ItemTypeId,
+                    ItemNo = model.ItemNo.Trim(),
+                    ItemNoIndex = model.ItemNoIndex,
+                    Code = model.Code,
+                    Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
+                    ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.Trim().ToUpper(),
+                    IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper(),
+                    IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
+                    ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
+                    AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
+                    PartialPage = model.PartialPage,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
 
-            _db.ItemCodes.Add(entity);
-            await _db.SaveChangesAsync();
+                ctx.ItemCodes.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
 
@@ -475,31 +492,32 @@ namespace iLgs.Services.Items
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
-            ValidateRecord(entity, model.Id);
-            //ValidateRelationship(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ItemCode entity = await ctx.ItemCodes.FindAsync(model.Id);
+                ValidateRecord(entity, model.Id);
 
-            model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
-            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
-            //model.ItemSw = model.ItemSwUI == true ? "Y" : "";
+                model.Code = GetItemCode(ctx, model.ItemTypeId, model.ItemNo, model.Description);
+                model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
-            entity.ItemTypeId = model.ItemTypeId;
-            entity.ItemNo = model.ItemNo.Trim();
-            entity.ItemNoIndex = model.ItemNoIndex;
-            entity.Code = model.Code;
-            entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
-            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim().Trim();
-            entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper();
-            entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
-            entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
-            entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
-            entity.PartialPage = model.PartialPage;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.ItemTypeId = model.ItemTypeId;
+                entity.ItemNo = model.ItemNo.Trim();
+                entity.ItemNoIndex = model.ItemNoIndex;
+                entity.Code = model.Code;
+                entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
+                entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim().Trim();
+                entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper();
+                entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
+                entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
+                entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
+                entity.PartialPage = model.PartialPage;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.ItemCodes.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.ItemCodes.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -510,28 +528,31 @@ namespace iLgs.Services.Items
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
-            ValidateRecord(entity, model.Id);
-            ValidateRelationship(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ItemCode entity = await ctx.ItemCodes.FindAsync(model.Id);
+                ValidateRecord(entity, model.Id);
+                ValidateRelationship(ctx, model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.ItemCodes.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.ItemCodes.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.ItemCodes.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.ItemCodes.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
 
 
-        private string GetItemCode(Guid? itemTypeId, string itemNo, string description)
+        private string GetItemCode(AppManEntities ctx, Guid? itemTypeId, string itemNo, string description)
         {
-            var itemType = _db.ItemTypes.Find(itemTypeId);
+            var itemType = ctx.ItemTypes.Find(itemTypeId);
             //string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
             //string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
             //if (string.IsNullOrWhiteSpace(description))
@@ -553,46 +574,46 @@ namespace iLgs.Services.Items
             return itemNoIndex;
         }
 
-        public void ValidateRelationship(Guid itemcodeId)
+        public void ValidateRelationship(AppManEntities ctx, Guid itemcodeId)
         {
-            var psCards = _db.PsCards.Where(w => w.ItemCodeId == itemcodeId);
+            var psCards = ctx.PsCards.Where(w => w.ItemCodeId == itemcodeId);
             if (psCards.Any())
             {
                 //var cardNos = string.Join("/", psCards.Select(s => s.PsNo));
                 throw new RecordRelationshipException($"Item Code is in use in Stock/Property Card, cannot proceed!");
             }
 
-            var cust1 = _db.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust1 = ctx.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust1.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian report, cannot proceed!");
             }
 
-            var cust2 = _db.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust2 = ctx.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust2.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian structures, cannot proceed!");
             }
 
-            var cust3 = _db.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust3 = ctx.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust3.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian land, cannot proceed!");
             }
 
-            var rpciItems = _db.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
+            var rpciItems = ctx.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
             if (rpciItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in RPCI, cannot proceed!");
             }
 
-            var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
+            var risItems = ctx.RisItems.Where(w => w.ItemCodeId == itemcodeId);
             if (risItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in RIS, cannot proceed!");
             }
 
-            var orderItems = _db.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
+            var orderItems = ctx.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
             if (orderItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in PURHASE ORDERS, cannot proceed!");
@@ -604,7 +625,7 @@ namespace iLgs.Services.Items
             if (entity is null)
             {
                 throw new NotFoundException(id);
-            }            
+            }
         }
 
         private static void ValidateIfNull(ItemCodeVM model)

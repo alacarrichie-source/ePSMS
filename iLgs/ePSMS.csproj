@@ -321,6 +321,7 @@
     <Compile Include="Controllers\CardController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\ChatController.cs" />
+    <Compile Include="Controllers\CustodianAccountability2Controller.cs" />
     <Compile Include="Controllers\CustodianAccountabilityController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
     <Compile Include="Controllers\CustodianIirupController.cs" />
@@ -4326,6 +4327,9 @@
     <Content Include="Views\CustodianReport\_StockParIssuance.cshtml" />
     <Content Include="Views\CustodianReport\_StockMrIssuance.cshtml" />
     <Content Include="Views\CustodianReport\_StockRpcPpeIssuance.cshtml" />
+    <Content Include="Views\CustodianAccountability2\Index.cshtml" />
+    <Content Include="Views\CustodianAccountability2\_ImagesAdd.cshtml" />
+    <Content Include="Views\CustodianAccountability2\EditorTemplates\_ImagesTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4842,7 +4846,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

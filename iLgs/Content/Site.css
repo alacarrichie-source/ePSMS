@@ -688,9 +688,8 @@ form.x-form-custom
 }
 
 .div-card {
-    /*width: 420px;*/
-    background: #fff;
-    padding: 1rem 1rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    background-color: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
 }

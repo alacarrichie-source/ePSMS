@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Items;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -24,16 +25,19 @@ namespace iLgs.Services
 
     public class ItemTypeService : IItemTypeService
     {
-        private readonly AppManEntities _db ;
+        private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IItemCodeService _itemCodeService;
 
         public ItemTypeService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IItemCodeService itemCodeService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _itemCodeService = itemCodeService;
         }
-        
+
         private Expression<Func<ItemType, ItemTypeVM>> Projection(AppManEntities _db)
         {
             return s => new ItemTypeVM
@@ -52,20 +56,20 @@ namespace iLgs.Services
 
         public IQueryable<ItemTypeVM> GetAll()
         {
-            var data = _db.ItemTypes.Select(Projection(_db));
+            var data = _db.ItemTypes.AsNoTracking().Select(Projection(_db));
             return data;
         }
-        
+
         public async Task<ItemType> GetByIdAsync(Guid id)
         {
             var data = await _db.ItemTypes.FindAsync(id);
             return data;
         }
 
-        public IQueryable<ItemType> GetRpciAccounts(string text) 
+        public IQueryable<ItemType> GetRpciAccounts(string text)
         {
             var exclude = new[] { "B", "L", "S" }; // Building // Land // Land Improvements
-            var data = _db.ItemTypes.Where(w => !exclude.Contains(w.Code)).AsQueryable();
+            var data = _db.ItemTypes.Where(w => !exclude.Contains(w.Code)).AsNoTracking().AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 data = data.Where(w => w.Description.Contains(text));
@@ -89,22 +93,25 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            ItemType entity = new ItemType()
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                Id = (Guid)model.Id,
-                Code = model.Code,
-                Description = model.Description,
-                PartialPage = model.PartialPage,
-                Category = model.Category,
-                GroupCode = model.GroupCode,
-                InsertedBy = user,
-                InsertedDt = date,
-                UpdatedBy = user,
-                UpdatedDt = date
-            };
+                ItemType entity = new ItemType()
+                {
+                    Id = (Guid)model.Id,
+                    Code = model.Code,
+                    Description = model.Description,
+                    PartialPage = model.PartialPage,
+                    Category = model.Category,
+                    GroupCode = model.GroupCode,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
 
-            _db.ItemTypes.Add(entity);
-            await _db.SaveChangesAsync();
+                ctx.ItemTypes.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         }
@@ -139,22 +146,25 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemType entity = await _db.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ItemType entity = await ctx.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            ValidateRecord(entity, (Guid)model.Id);
-            ValidateRelationship(entity);
+                ValidateRecord(entity, (Guid)model.Id);
+                ValidateRelationship(ctx, entity);
 
-            entity.Code = model.Code;
-            entity.Description = model.Description;
-            entity.PartialPage = model.PartialPage;
-            entity.Category = model.Category;
-            entity.GroupCode = model.GroupCode;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.Code = model.Code;
+                entity.Description = model.Description;
+                entity.PartialPage = model.PartialPage;
+                entity.Category = model.Category;
+                entity.GroupCode = model.GroupCode;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.ItemTypes.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.ItemTypes.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         }
@@ -164,21 +174,24 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ItemType entity = await ctx.ItemTypes.FindAsync(model.Id);
 
-            ValidateRecord(entity, (Guid)model.Id);
-            ValidateRelationship(entity);
+                ValidateRecord(entity, (Guid)model.Id);
+                ValidateRelationship(ctx, entity);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.ItemTypes.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.ItemTypes.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.ItemTypes.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.ItemTypes.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         }
@@ -191,11 +204,11 @@ namespace iLgs.Services
             }
         }
 
-        private void ValidateRelationship(ItemType entity)
+        private void ValidateRelationship(AppManEntities ctx, ItemType entity)
         {
-            foreach(var itemCode in entity.ItemCodes)
+            foreach (var itemCode in entity.ItemCodes)
             {
-                _itemCodeService.ValidateRelationship(itemCode.Id);
+                _itemCodeService.ValidateRelationship(ctx, itemCode.Id);
             }
         }
     }

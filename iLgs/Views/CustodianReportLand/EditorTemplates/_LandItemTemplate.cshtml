@@ -146,7 +146,7 @@
                 @Html.DisplayFor(m => m.PropNo, "Label")
             </div>
             <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.PropNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().TextBoxFor(m => m.PropNo).Enable(ViewBag.IsAdmin).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.PropNo)
             </div>
         </div>
@@ -163,7 +163,7 @@
                 @Html.DisplayFor(m => m.SeriesNo, "Label")
             </div>
             <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().TextBoxFor(m => m.SeriesNo).Enable(ViewBag.IsAdmin).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.SeriesNo)
             </div>
         </div>

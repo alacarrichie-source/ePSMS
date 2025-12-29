@@ -14,11 +14,11 @@ namespace iLgs.Controllers
 {
     public class Menubases_Controller : ApiController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public Menubases_Controller(AppManEntities db)
+        public Menubases_Controller()
         {
-            _db = db;
+            
         }
 
         // GET: api/Menubases

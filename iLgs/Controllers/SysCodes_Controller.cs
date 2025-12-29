@@ -9,11 +9,11 @@ namespace iLgs.Controllers
     public class SysCodes_Controller : ApiController
     {
         private string _mastCode = "APPS";
-        private AppManEntities _db;
+        private AppManEntities _db = new AppManEntities();
 
-        public SysCodes_Controller(AppManEntities db)
+        public SysCodes_Controller()
         {
-            _db = db;
+            
         }
 
         // GET: api/syscodes_/82814eba-0738-4edd-a11f-66c8112e20de

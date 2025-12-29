@@ -13,7 +13,6 @@ namespace iLgs.Services.AIRs_
         IQueryable<T> GetAirItemExtnByOrderItemId<T>(Guid? orderItemId) where T : AIRItemExtn;
         IAirItemExtnVehicleService AirItemExtnVehicle { get; }
         IAirItemExtnOtherService AirItemExtnOther { get; }
-
     }
 
     public class AirItemExtnService : IAirItemExtnService

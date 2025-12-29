@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
@@ -18,6 +19,7 @@ namespace iLgs.Services
         ValueTask<bool> IsAdminAsync(string userId);
 
         bool IsUserNameAdmin(string userName);
+        Task<bool> IsUserNameAdminAsync(string userName);
         //bool IsAnnexDUser(string userName);
 
         AspNetUser GetByUserName(string userName);
@@ -73,6 +75,15 @@ namespace iLgs.Services
         {
             var user = _db.AspNetUsers.Where(w => w.UserName == userName).SingleOrDefault();
             var userId = user.Id;            
+            var isAdmin = UserInRole(userId, "ADMIN").Result;
+            var isSysAdmin = UserInRole(userId, _sysAdmin).Result;
+            return isAdmin || isSysAdmin;
+        }
+
+        public async Task<bool> IsUserNameAdminAsync(string userName)
+        {
+            var user = await _db.AspNetUsers.Where(w => w.UserName == userName).FirstOrDefaultAsync();
+            var userId = user.Id;
             var isAdmin = UserInRole(userId, "ADMIN").Result;
             var isSysAdmin = UserInRole(userId, _sysAdmin).Result;
             return isAdmin || isSysAdmin;

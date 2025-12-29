@@ -13,11 +13,11 @@ namespace iLgs.Controllers
 {
     public class ReportController : BaseController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public ReportController(AppManEntities db)
+        public ReportController()
         {
-            _db = db;
+            
         }
 
         public async Task<ActionResult> UserAccess()

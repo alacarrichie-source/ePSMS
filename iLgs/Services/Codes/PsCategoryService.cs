@@ -1,4 +1,5 @@
 ﻿using iLgs.Models;
+using iLgs.Utilities;
 
 namespace iLgs.Services.Codes
 {
@@ -12,10 +13,11 @@ namespace iLgs.Services.Codes
         //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
         
         public PsCategoryService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
             IUserService userService)
-        : base(db, exceptionService, vmExceptionService, userService)
+        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
         {            
         }
 

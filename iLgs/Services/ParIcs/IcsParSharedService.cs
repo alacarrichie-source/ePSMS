@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -26,54 +27,62 @@ namespace iLgs.Services.ParIcs
     {
 
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
 
-        public IcsParSharedService(AppManEntities db)
+        public IcsParSharedService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
         }
 
         public async ValueTask<IcsPar> PostAsync(string refNo, string refType, string user, DateTime date)
         {
-            var entity = _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefault();
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException(refNo);
+                var entity = await ctx.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
+                if (entity == null)
+                {
+                    throw new NotFoundException(refNo);
+                }
+
+                ValidateIfPosted(entity); ;
+                await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+
+                //_db.IcsPars.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
             }
-
-            ValidateIfPosted(entity); ;
-            await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-
-            _db.IcsPars.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return entity;
         }
 
         public async ValueTask<IcsPar> UnPostAsync(string refNo, string refType, string user, DateTime date)
         {
-            var entity = _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefault();
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException($"Ref No. {refNo} does not exists.");
+                var entity = await ctx.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
+                if (entity == null)
+                {
+                    throw new NotFoundException($"Ref No. {refNo} does not exists.");
+                }
+
+                ValidateIfNotPosted(entity);
+                ValidateUpdates(refNo, refType);
+
+                entity.PostedBy = null;
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //_db.IcsPars.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
             }
-
-            ValidateIfNotPosted(entity);
-            ValidateUpdates(refNo, refType);
-
-            entity.PostedBy = null;
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.IcsPars.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return entity;
         }
 
         public void ValidateUpdates(string refNo, string refType)

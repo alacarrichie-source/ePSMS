@@ -345,6 +345,18 @@
             </div>            
         </div>
         <hr />
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IsConsumable, "LabelBool")
+                </div>
+                <div class="col-md-4">
+                    @(Html.Kendo().SwitchFor(m => m.IsConsumable).Messages(c => c.Checked("YES").Unchecked("NO")))
+                    @Html.ValidationMessageFor(m => m.IsConsumable)
+                </div>
+            </div>
+        </div>
         
         <div class="row k-mb-2">
             <div class="col-md-12">

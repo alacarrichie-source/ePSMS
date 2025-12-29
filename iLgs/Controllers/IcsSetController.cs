@@ -449,7 +449,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
         {
             var date = DateTime.Now;
-            var psCardItem = await _icsParService.IcsService.GetByIdAsync(psCardItemId);
+            var psCardItem = await _icsParService.IcsService.GetByIdAsync(_db, psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,

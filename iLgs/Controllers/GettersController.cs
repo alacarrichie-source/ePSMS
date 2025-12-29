@@ -959,6 +959,18 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetUploadListLand(string text)
+        {
+            var model = _codextnService.GetUploadListLand();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetItemCodeRequestUploadList(string text)
         {
             var model = _codextnService.GetItemCodeRequestUploadList();

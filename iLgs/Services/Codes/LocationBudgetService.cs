@@ -27,15 +27,18 @@ namespace iLgs.Services.Codes
     public class LocationBudgetService : BaseValidator, ILocationBudgetService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<LocationBudgetVM> _exceptionService;
         
         public LocationBudgetService(AppManEntities db, 
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions createAndLogExceptions, 
             IExceptionService<LocationBudgetVM> exceptionService)
         {
-            _db = db;            
+            _db = db;
+            _contextFactory = appManEntitiesFactory;
             _getDisplayName = Utility.GetDisplayName<LocationBudgetVM>;
             _exceptions = createAndLogExceptions;
             _exceptionService = exceptionService;
@@ -102,8 +105,11 @@ namespace iLgs.Services.Codes
             var entity = new LocationBudget();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.LocationBudgets.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.LocationBudgets.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -111,20 +117,24 @@ namespace iLgs.Services.Codes
         public ValueTask<LocationBudgetVM> UpdateAsync(LocationBudgetVM model, string user, DateTime date) =>
        _exceptionService.TryCatch(async () =>
        {
-           ValidateIfNull(model);           
+           ValidateIfNull(model);
 
-           var entity = await _db.LocationBudgets.FindAsync(model.Id);
-           ValidateRecord(entity, model.Id);
-           ValidateFields(model, Mode.ADD);
+           using (var ctx = await _contextFactory.CreateContextAsync())
+           {
+               var entity = await ctx.LocationBudgets.FindAsync(model.Id);
+               ValidateRecord(entity, model.Id);
+               ValidateFields(model, Mode.ADD);
 
-           model.UpdatedBy = user;
-           model.UpdatedDt = date;
+               model.UpdatedBy = user;
+               model.UpdatedDt = date;
 
-           MapModelToEntityFields(entity, model, Mode.EDIT);
+               MapModelToEntityFields(entity, model, Mode.EDIT);
 
-           _db.LocationBudgets.Attach(entity);
-           _db.Entry(entity).State = EntityState.Modified;
-           await _db.SaveChangesAsync();
+               //ctx.LocationBudgets.Attach(entity);
+               //ctx.Entry(entity).State = EntityState.Modified;
+               await ctx.SaveChangesAsync();
+           }
+
            return model;
        });
 
@@ -132,22 +142,26 @@ namespace iLgs.Services.Codes
         _exceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            var entity = await _db.LocationBudgets.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            ValidateRecord(entity, model.Id);
 
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.LocationBudgets.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                ValidateRecord(entity, model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
 
-            _db.LocationBudgets.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.LocationBudgets.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                //ctx.LocationBudgets.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                ctx.LocationBudgets.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });

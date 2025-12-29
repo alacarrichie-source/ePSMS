@@ -477,6 +477,9 @@ namespace iLgs.Models
         public int? AccountGroup { get; set; }
         public int? ForYear { get; set; }
 
+        [Display(Name = "Mode of Acquisition")]
+        public string AcqMode { get; set; }
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -557,6 +560,7 @@ namespace iLgs.Models
             public Nullable<decimal> OldAmount { get; set; }
 
             [Display(Name = "Year of Sale/Donation")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             [Display(Name = "Vendor/Donor: Name of Owner")]
@@ -954,7 +958,7 @@ namespace iLgs.Models
             public string BldgItem { get; set; }
 
             [Display(Name = "Phase No.")]
-            [Required]
+//            [Required]
             public string PhaseNo { get; set; }
 
             [Display(Name = "Phase Amount Capital Outlay")]

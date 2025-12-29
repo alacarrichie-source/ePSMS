@@ -107,17 +107,24 @@
         .Columns(col =>
         {
             col.Bound(c => c.CustodianItemNo).Width(50);
+            col.Bound(c => c.DRPNo).Width(70);
+            col.Bound(c => c.PIN).Width(70);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
             //col.Bound(c => c.LocationCode).Width(50);
             //col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.AcqMode).Width(50);
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
+            col.Bound(c => c.MarketValue).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(50);
             col.Bound(c => c.UpdatedBy).Width(50);
@@ -137,7 +144,7 @@
                 {
                     command.Edit();
                     command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
-                }).Width(172);
+                }).Width(120);
             }
         })
         .ToolBar(t =>
@@ -174,6 +181,8 @@
             s.Field(o => o.Article, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.DRPNo, "contains");
+            s.Field(o => o.PIN, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_LandItemTemplate").Window(w => w.Width(1000).Title("Land Item")))
         .Pageable(pager => pager
@@ -205,6 +214,7 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.AcqCost).Sum();
+                a.Add(p => p.MarketValue).Sum();
             })
             .Sort(s =>
             {
@@ -228,7 +238,7 @@
   .For("#btnCount")
   .Position(TooltipPosition.Top)
   .Animation(true)
-  .Content("Certifying that the count has been COMPLETED (annexes A, B, and C) by the custodian and is now ready for verification by the Official Physical Count Team.")
+  .Content("Certifying that the count for annexes A, B, and C (with uploads) has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -887,7 +897,7 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
         }
         if (confirm(msg)) {
             var url = "";
@@ -1316,7 +1326,7 @@
         e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
     }
 
-    function onClickPreview(e) {
+    function onClickPreviewXx(e) {
         selectedGrid = this;
 
         var tr = $(e.currentTarget).closest("tr");
@@ -1349,6 +1359,22 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "CustodianReportLand")?id=' + selectedGridImagesItem;
+
+        window.open(myUrl, "_blank");
+
     }
 
     function onClickDownload(e) {

@@ -2,6 +2,7 @@
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Services.StockCards;
@@ -30,20 +31,24 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IStockCardValidator _stockCardValidator;
+        private readonly IUserService _userService; 
 
         public StockCardController(AppManEntities db, IStockCardService stockCardService, ICodextnService codextnService,
-            IItemCodeService itemCodeService, IStockCardValidator stockCardValidator)
+            IItemCodeService itemCodeService, IStockCardValidator stockCardValidator, IUserService userService)
         {
             _db = db;
             _codextnService = codextnService;
             _stockCardService = stockCardService;
             _itemCodeService = itemCodeService;
             _stockCardValidator = stockCardValidator;
+            _userService = userService;
         }
 
         // GET: Index
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            ViewBag.IsAdmin = await _userService.IsUserNameAdminAsync(userName);
             return View();
         }
         

@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -38,6 +39,7 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransferItemService : IPsCardItemTransferItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
         private readonly IPsCardItemTransferItemOtherService _psCardItemTransferItemOtherService;
         private readonly IPsCardItemTransferItemVehicleService _psCardItemTransferItemVehicleService;
@@ -46,6 +48,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardSharedService _psCardSharedService;
 
         public PsCardItemTransferItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService,
             IPsCardItemTransferItemOtherService psCardItemTransferItemOtherService,
             IPsCardItemTransferItemVehicleService psCardItemTransferItemVehicleService,
@@ -54,6 +57,7 @@ namespace iLgs.Services.PropertyCard
             IPsCardSharedService psCardSharedService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
             _psCardItemTransferItemOtherService = psCardItemTransferItemOtherService;
             _psCardItemTransferItemVehicleService = psCardItemTransferItemVehicleService;
@@ -164,19 +168,22 @@ namespace iLgs.Services.PropertyCard
 
         public async ValueTask DeleteAsync(Guid? id, string user, DateTime? date)
         {
-            var transferItemEntity = await _db.PsCardItemTransferItems.FindAsync(id);
-            var psCardItemExtnId = transferItemEntity.PsCardItemExtnId;
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var transferItemEntity = await ctx.PsCardItemTransferItems.FindAsync(id);
+                var psCardItemExtnId = transferItemEntity.PsCardItemExtnId;
 
-            transferItemEntity.UpdatedBy = user;
-            transferItemEntity.UpdatedDt = date;
+                transferItemEntity.UpdatedBy = user;
+                transferItemEntity.UpdatedDt = date;
 
-            _db.PsCardItemTransferItems.Attach(transferItemEntity);
-            _db.Entry(transferItemEntity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemTransferItems.Attach(transferItemEntity);
+                //_db.Entry(transferItemEntity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.PsCardItemTransferItems.Remove(transferItemEntity);
-            _db.Entry(transferItemEntity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.PsCardItemTransferItems.Remove(transferItemEntity);
+                //_db.Entry(transferItemEntity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
         }
 
         public void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode)

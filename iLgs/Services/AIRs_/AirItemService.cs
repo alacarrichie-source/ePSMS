@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -25,20 +26,22 @@ namespace iLgs.Services.AIRs_
     public class AirItemService : IAirItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory; 
         private readonly IExceptionService<AIRItemVM> _vmExceptionService;
-        //private readonly IValidationService<AIRItemVM> _validationService;
         private readonly IAirItemAbstractService _airItemAbstractService;
         private readonly IAirItemExtnService _airItemExtnService;
 
         public IAirItemExtnService AirItemExtn => _airItemExtnService;
 
-        public AirItemService(AppManEntities db, IExceptionService<AIRItemVM> vmExceptionService, IAirItemAbstractService airItemAbstractService, IAirItemExtnService airItemExtnService)
+        public AirItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
+            IExceptionService<AIRItemVM> vmExceptionService, IAirItemAbstractService airItemAbstractService, IAirItemExtnService airItemExtnService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _airItemAbstractService = airItemAbstractService;
-            _airItemExtnService = airItemExtnService;
-            //_validationService = new ValidationService<AIRItemVM>(new AirItemValidator(this));
+            _airItemExtnService = airItemExtnService;            
         }
 
 
@@ -59,9 +62,6 @@ namespace iLgs.Services.AIRs_
                 Id = s.Id,
                 AirId = s.AirId,
                 OrderItemId = s.OrderItemId,
-                //PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
-                //PsNo = s.OrderItem.StockNo,
-                //PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
                 PsType = s.OrderItem.ItemCode.ItemType.Code,
                 PsNo = s.OrderItem.PsNo,
                 PsItem = s.OrderItem.ItemCode.Description,
@@ -123,8 +123,11 @@ namespace iLgs.Services.AIRs_
                 UpdatedDt = date
             };
 
-            _db.AIRItems.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.AIRItems.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -139,18 +142,21 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            AIRItem entity = await _db.AIRItems.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                AIRItem entity = await ctx.AIRItems.FindAsync(model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.AIRItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.AIRItems.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.AIRItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.AIRItems.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -217,29 +223,32 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            AIRItem entity = await _db.AIRItems.FindAsync(model.Id);
-
-            if (entity.InvDist != model.InvDist)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                if (_db.AIRItemExtns.Any(w => w.AIRItemId == model.Id))
+                AIRItem entity = await ctx.AIRItems.FindAsync(model.Id);
+
+                if (entity.InvDist != model.InvDist)
                 {
-                    throw new RecordRelationshipException("Serial Numbers for this item already exist, cannot change Inventory/For Distribution.");
+                    if (ctx.AIRItemExtns.Any(w => w.AIRItemId == model.Id))
+                    {
+                        throw new RecordRelationshipException("Serial Numbers for this item already exist, cannot change Inventory/For Distribution.");
+                    }
                 }
+
+                entity.AirId = model.AirId;
+                entity.OrderItemId = model.OrderItemId;
+                entity.Qty = model.Qty;
+                entity.Remarks = model.Remarks;
+                entity.AreaSoldDonated = model.AreaSoldDonated;
+                entity.ConstructionYear = model.ConstructionYear;
+                entity.InvDist = model.InvDist;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //_db.AIRItems.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            entity.AirId = model.AirId;
-            entity.OrderItemId = model.OrderItemId;
-            entity.Qty = model.Qty;
-            entity.Remarks = model.Remarks;
-            entity.AreaSoldDonated = model.AreaSoldDonated;
-            entity.ConstructionYear = model.ConstructionYear;
-            entity.InvDist = model.InvDist;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.AIRItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
 
             return model;
         });

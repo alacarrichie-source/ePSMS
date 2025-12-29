@@ -31,13 +31,17 @@ namespace iLgs.Services.AIRs_
     public class AirItemExtnVehicleService : BaseValidator, IAirItemExtnVehicleService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<AIRItemExtnVehicle> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IAirAbstractService _airService;
 
-        public AirItemExtnVehicleService(AppManEntities db, IExceptionService<AIRItemExtnVehicle> exceptionService, IAirAbstractService airService)
+        public AirItemExtnVehicleService(AppManEntities db, 
+            IAppManEntitiesFactory appManEntitiesFactory,
+            IExceptionService<AIRItemExtnVehicle> exceptionService, IAirAbstractService airService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptionService = exceptionService;
             _airService = airService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIIRUP>(propertyName);
@@ -45,7 +49,7 @@ namespace iLgs.Services.AIRs_
 
         public IQueryable<AIRItemExtnVehicle> GetByAirItemId(Guid? airItemId)
         {
-            var data = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItemId == airItemId);
+            var data = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItemId == airItemId).AsNoTracking();
             return data;
         }
 
@@ -104,8 +108,11 @@ namespace iLgs.Services.AIRs_
                 SetLotQtyNo = model.SetLotQtyNo
             };
 
-            _db.AIRItemExtns.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.AIRItemExtns.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -115,18 +122,21 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.AIRItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.AIRItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.AIRItemExtns.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.AIRItemExtns.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -136,35 +146,38 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
-            entity.IsAutoGen = model.IsAutoGen;
-            entity.SeriesNo = model.SeriesNo;
-            entity.YearModel = model.YearModel;
-            entity.PlateNo = model.PlateNo;
-            entity.BodyNo = model.BodyNo;
-            entity.EngineNo = model.EngineNo;
-            entity.ChasisNo = model.ChasisNo;
-            entity.Color = model.Color;
-            entity.CRN = model.CRN;
-            entity.CRDate = model.CRDate;
-            entity.MVFileNo = model.MVFileNo;
-            entity.OrNo = model.OrNo;
-            entity.OrDate = model.OrDate;
-            entity.NetWeight = model.NetWeight;
-            entity.InsPolicyNo = model.InsPolicyNo;
-            entity.SubLocation = model.SubLocation;
-            entity.ConductionNo = model.ConductionNo;
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.ContentNo = model.ContentNo;
+                entity.CustItemNo = model.CustItemNo;
+                entity.IsAutoGen = model.IsAutoGen;
+                entity.SeriesNo = model.SeriesNo;
+                entity.YearModel = model.YearModel;
+                entity.PlateNo = model.PlateNo;
+                entity.BodyNo = model.BodyNo;
+                entity.EngineNo = model.EngineNo;
+                entity.ChasisNo = model.ChasisNo;
+                entity.Color = model.Color;
+                entity.CRN = model.CRN;
+                entity.CRDate = model.CRDate;
+                entity.MVFileNo = model.MVFileNo;
+                entity.OrNo = model.OrNo;
+                entity.OrDate = model.OrDate;
+                entity.NetWeight = model.NetWeight;
+                entity.InsPolicyNo = model.InsPolicyNo;
+                entity.SubLocation = model.SubLocation;
+                entity.ConductionNo = model.ConductionNo;
+                entity.SetLotNo = model.SetLotNo;
+                entity.SetLotQtyNo = model.SetLotQtyNo;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.AIRItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.AIRItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });

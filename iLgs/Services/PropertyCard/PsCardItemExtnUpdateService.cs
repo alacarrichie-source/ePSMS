@@ -38,6 +38,7 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private decimal? _SPHV;
 
         private readonly GetDisplayNameDelegate _getPpeDisplayName;
@@ -49,6 +50,7 @@ namespace iLgs.Services.PropertyCard
         private readonly ISemiExpendableService _semiExpendableService;
 
         public PsCardItemExtnUpdateService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IPsCardSharedService psCardSharedService,
             IExceptionService<PsCardItemExtnPpeEntryVM> ppeExceptionService,
             IExceptionService<PsCardItemExtnVehicleEntryVM> vehicleExceptionService,
@@ -56,6 +58,7 @@ namespace iLgs.Services.PropertyCard
             ISemiExpendableService semiExpendableService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _psCardSharedService = psCardSharedService;
             _ppeExceptionService = ppeExceptionService;
             _vehicleExceptionService = vehicleExceptionService;
@@ -269,30 +272,33 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException(model.Id);
+                var entity = await ctx.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+                if (entity == null)
+                {
+                    throw new NotFoundException(model.Id);
+                }
+
+                entity.CustItemNo = model.CustItemNo;
+                entity.Annex = model.Annex;
+                entity.SeriesNo = model.SeriesNo;
+                entity.SubLocation = model.SubLocation;
+                entity.Condition = model.Condition;
+                entity.AddCost = model.AddCost;
+                entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+                entity.Remarks = model.Remarks;
+                entity.OldPropNo = model.OldPropNo;
+                entity.OldAmount = model.OldAmount;
+                entity.UpcomingOfficer = model.UpcomingOfficer;
+
+                entity.SerialNo = model.SerialNo;
+
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            entity.CustItemNo = model.CustItemNo;
-            entity.Annex = model.Annex;
-            entity.SeriesNo = model.SeriesNo;            
-            entity.SubLocation = model.SubLocation;
-            entity.Condition = model.Condition;
-            entity.AddCost = model.AddCost;
-            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
-            entity.Remarks = model.Remarks;
-            entity.OldPropNo = model.OldPropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
-
-            entity.SerialNo = model.SerialNo;
-
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -304,47 +310,49 @@ namespace iLgs.Services.PropertyCard
                 throw new NullException();
             }
 
-
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException(model.Id);
+                var entity = await ctx.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+                if (entity == null)
+                {
+                    throw new NotFoundException(model.Id);
+                }
+
+                entity.CustItemNo = model.CustItemNo;
+                entity.Annex = model.Annex;
+                entity.SeriesNo = model.SeriesNo;
+                entity.SubLocation = model.SubLocation;
+                entity.Condition = model.Condition;
+                entity.AddCost = model.AddCost;
+                entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+                entity.Remarks = model.Remarks;
+                entity.OldPropNo = model.OldPropNo;
+                entity.OldAmount = model.OldAmount;
+                entity.UpcomingOfficer = model.UpcomingOfficer;
+
+                entity.YearModel = model.YearModel;
+                entity.PlateNo = model.PlateNo;
+                entity.BodyNo = model.BodyNo;
+                entity.EngineNo = model.EngineNo;
+                entity.ChasisNo = model.ChasisNo;
+                entity.Color = model.Color;
+                entity.CRN = model.CRN;
+                entity.CRDate = model.CRDate;
+                entity.MVFileNo = model.MVFileNo;
+                entity.OrNo = model.OrNo;
+                entity.OrDate = model.OrDate;
+                entity.NetWeight = model.NetWeight;
+                entity.InsPolicyNo = model.InsPolicyNo;
+                entity.ConductionNo = model.ConductionNo;
+
+                //_db.PsCardItemExtns.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            entity.CustItemNo = model.CustItemNo;
-            entity.Annex = model.Annex;
-            entity.SeriesNo = model.SeriesNo;
-            entity.SubLocation = model.SubLocation;
-            entity.Condition = model.Condition;
-            entity.AddCost = model.AddCost;
-            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
-            entity.Remarks = model.Remarks;
-            entity.OldPropNo = model.OldPropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
-
-            entity.YearModel = model.YearModel;
-            entity.PlateNo = model.PlateNo;
-            entity.BodyNo = model.BodyNo;
-            entity.EngineNo = model.EngineNo;
-            entity.ChasisNo = model.ChasisNo;
-            entity.Color = model.Color;
-            entity.CRN = model.CRN;
-            entity.CRDate = model.CRDate;
-            entity.MVFileNo = model.MVFileNo;
-            entity.OrNo = model.OrNo;
-            entity.OrDate = model.OrDate;
-            entity.NetWeight = model.NetWeight;
-            entity.InsPolicyNo = model.InsPolicyNo;
-            entity.ConductionNo = model.ConductionNo;
-
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
 
             return model;
         });        

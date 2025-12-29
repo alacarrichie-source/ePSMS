@@ -19,7 +19,7 @@ namespace iLgs.Controllers
         private static string sysCode = "PSMS";
         private static string sysAdmin = "PSMS_ADMIN";
 
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
 
         HttpClient client;
@@ -32,9 +32,8 @@ namespace iLgs.Controllers
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE
         //Set the base address and the Header Formatter
-        public MenuActionController(AppManEntities db)
+        public MenuActionController()
         {
-            _db = db;
             client = new HttpClient();
             client.BaseAddress = new Uri(iLgsApiUrl);
             client.DefaultRequestHeaders.Accept.Clear();

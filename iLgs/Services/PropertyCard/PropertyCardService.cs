@@ -2,6 +2,7 @@
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Items;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -26,17 +27,17 @@ namespace iLgs.Services.PropertyCard
         private readonly IUserService _userService;
                 
         public PropertyCardService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<PsCardVM> vmExceptionService,
             IExceptionService<PsCard> exceptionService,
             IAllFieldService allFieldService,
             IPsCardItemService psCardItemService,
             IPsCardSharedService psCardSharedService,
-            //IPsCardItemIssuanceService psCardItemIssuanceService,
             IExceptionService<PropertyCardVM> propCardVMexceptionService,
             IPropertyCardValidator validator,
             IItemCodeService itemCodeService,
-            IUserService userService) : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+            IUserService userService) : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
         {
             _propCardVMexceptionService = propCardVMexceptionService;
             _validator = validator;
@@ -146,8 +147,11 @@ namespace iLgs.Services.PropertyCard
             model.AllField.UpdatedDt = date;
             entity.AllField = model.AllField;
 
-            _db.PsCards.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.PsCards.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -159,37 +163,34 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            ValidateUser(entity, model);
-            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            
+                ValidateUser(entity, model);
+                model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
-            entity.ItemCodeId = model.ItemCodeId;
-            entity.SubAccountCode = model.SubAccountCode;
-            entity.Fund = model.Fund;
-            entity.Description = model.Description;
-            entity.Unit = model.Unit;
-            entity.CardCategory = model.CardCategory;
-            entity.PsNo = model.PsNo;
-            entity.PsName = model.PsName;
-            entity.PrevPsNo = model.PrevPsNo;
-            entity.FromDonation = model.FromDonation;
-            entity.Amount = model.Amount;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.ItemCodeId = model.ItemCodeId;
+                entity.SubAccountCode = model.SubAccountCode;
+                entity.Fund = model.Fund;
+                entity.Description = model.Description;
+                entity.Unit = model.Unit;
+                entity.CardCategory = model.CardCategory;
+                entity.PsNo = model.PsNo;
+                entity.PsName = model.PsName;
+                entity.PrevPsNo = model.PrevPsNo;
+                entity.FromDonation = model.FromDonation;
+                entity.Amount = model.Amount;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            //model.AllField.Id = model.Id;
-            //model.AllField.UpdatedBy = user;
-            //model.AllField.UpdatedDt = date;
-            entity.AllField = model.AllField;
+                entity.AllField = model.AllField;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-
-            //_db.AllFields.Attach(model.AllField);
-            //_db.Entry(model.AllField).State = EntityState.Modified;
-
-            await _db.SaveChangesAsync();
+                //_db.PsCards.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -201,20 +202,23 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.FindAsync(model.Id);
 
-            ValidateUser(entity, model);
+                ValidateUser(entity, model);
 
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCards.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.PsCards.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.PsCards.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });

@@ -54,16 +54,17 @@ namespace iLgs.Services
             _directory += _subDir + (string.IsNullOrWhiteSpace(_subDir) ? "" : "/");
         }
 
-        public CustodianDeptUploadService(AppManEntities db, string subDir)
+        public CustodianDeptUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string subDir)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _subDir = subDir;
             _directory += subDir + "/";
         }
 
         public ICustodianDeptUploadService Create(string subDir)
         {
-            return new CustodianDeptUploadService(_db, subDir);
+            return new CustodianDeptUploadService(_db, _contextFactory, subDir);
         }
 
         public string GetDirectoryPath()
@@ -237,8 +238,11 @@ namespace iLgs.Services
                     UpdatedDt = model.UpdatedDt
                 };
 
-                _db.Uploads.Add(entity);
-                await _db.SaveChangesAsync();
+                using (var ctx = await _contextFactory.CreateContextAsync())
+                {
+                    ctx.Uploads.Add(entity);
+                    await ctx.SaveChangesAsync();
+                }
             }
             return model;
         }
@@ -342,19 +346,22 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.Uploads.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.Uploads.FindAsync(model.Id);
 
-            //entity.ImageId = model.ImageId;
-            //entity.FileName = model.FileName;
-            entity.Description = model.Description;
-            entity.ServerIpAddress = model.ServerIpAddress;
-            entity.VirtualDirectory = model.VirtualDirectory;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                //entity.ImageId = model.ImageId;
+                //entity.FileName = model.FileName;
+                entity.Description = model.Description;
+                entity.ServerIpAddress = model.ServerIpAddress;
+                entity.VirtualDirectory = model.VirtualDirectory;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.Uploads.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.Uploads.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         }
@@ -364,18 +371,21 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.Uploads.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.Uploads.FindAsync(model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.Uploads.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.Uploads.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.Uploads.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.Uploads.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             var directory = model.VirtualDirectory;
             var fileName = model.FileName;
@@ -400,38 +410,41 @@ namespace iLgs.Services
 
         public async ValueTask CopyAsync(Guid? imageId, string directoryPath, string user, DateTime date)
         {
-            var uploads = await _db.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
-            if (uploads.Any())
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                foreach (var upload in uploads)
+                var uploads = await ctx.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
+                if (uploads.Any())
                 {
-                    // Pattern: match a GUID
-                    var fileName = Regex.Replace(upload.FileName, @"^[0-9a-fA-F\-]{36}", "");
-                    var resultPath = upload.VirtualDirectory.Substring(upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase));
-                    var destinationPath = directoryPath + upload.Id.ToString() + fileName;
-                    if (!File.Exists(directoryPath))
+                    foreach (var upload in uploads)
                     {
-                        var uploadId = Guid.NewGuid();
-                        var entity = new Upload()
+                        // Pattern: match a GUID
+                        var fileName = Regex.Replace(upload.FileName, @"^[0-9a-fA-F\-]{36}", "");
+                        var resultPath = upload.VirtualDirectory.Substring(upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase));
+                        var destinationPath = directoryPath + upload.Id.ToString() + fileName;
+                        if (!File.Exists(directoryPath))
                         {
-                            Id = uploadId,
-                            ImageId = imageId,
-                            FileName = uploadId + fileName,
-                            Description = upload.Description,
-                            VirtualDirectory = directoryPath,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
+                            var uploadId = Guid.NewGuid();
+                            var entity = new Upload()
+                            {
+                                Id = uploadId,
+                                ImageId = imageId,
+                                FileName = uploadId + fileName,
+                                Description = upload.Description,
+                                VirtualDirectory = directoryPath,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
 
-                        _db.Uploads.Add(entity);
-                        await _db.SaveChangesAsync();
+                            ctx.Uploads.Add(entity);
+                            await ctx.SaveChangesAsync();
 
-                        int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
-                        var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
+                            int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
+                            var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
 
-                        File.Copy(sourcePath, destinationPath);
+                            File.Copy(sourcePath, destinationPath);
+                        }
                     }
                 }
             }

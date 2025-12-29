@@ -3,6 +3,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.PropertyCard;
+using iLgs.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace iLgs.Services.PoIssuance
     {
         private decimal? _priceCap;
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IUserService _userService;
         private readonly IExceptionService<RisIssuedVM> _vmExceptionService;
         private readonly IExceptionService<PsCardItemVM> _psCardItemVMExceptionService;
@@ -37,6 +39,7 @@ namespace iLgs.Services.PoIssuance
         private readonly IPriceCapService _priceCapService;
 
         public PoIssuanceService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IUserService userService,
             IExceptionService<RisIssuedVM> vmExceptionService,
             IExceptionService<PsCardItemVM> psCardItemVMExceptionService,
@@ -46,6 +49,7 @@ namespace iLgs.Services.PoIssuance
             IPriceCapService priceCapService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _userService = userService;
             _vmExceptionService = vmExceptionService;
             _psCardItemVMExceptionService = psCardItemVMExceptionService;
@@ -116,17 +120,7 @@ namespace iLgs.Services.PoIssuance
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetByPsCardItemId {0}", id).AsQueryable();
             return data;
         }
-
-        //public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
-        //{
-        //    var data = await _db.PsCardItems
-        //        .Include(i => i.Codextn)
-        //        .Include(i => i.Codextn1)
-        //        .Where(w => w.Id == id)
-        //        .Select(GetPsCardItemProjection(_db)).FirstOrDefaultAsync();
-        //    return data;
-        //}
-
+        
         public IQueryable<PsCardItemVM> GetSummary()
         {
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_Summary").AsQueryable();
@@ -135,58 +129,64 @@ namespace iLgs.Services.PoIssuance
 
         public async ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
         {
-            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(psCardItemIssuanceId);
+                var entity = await ctx.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(psCardItemIssuanceId);
+                }
+
+                if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+                {
+                    throw new RecordAlreadyPostedException(string.Format("Record is currently posted.."));
+                }
+
+                if (entity.IssuedDate == null)
+                {
+                    throw new InvalidValueException("Issued Date is Required!");
+                }
+
+                if (entity.Qty == null || entity.Qty <= 0)
+                {
+                    throw new InvalidValueException("Quantity is Required!");
+                }
+
+
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+
+                //_db.PsCardItemIssuances.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                throw new RecordAlreadyPostedException(string.Format("Record is currently posted.."));
-            }
-
-            if (entity.IssuedDate == null)
-            {
-                throw new InvalidValueException("Issued Date is Required!");
-            }
-
-            if (entity.Qty == null || entity.Qty <= 0)
-            {
-                throw new InvalidValueException("Quantity is Required!");
-            }
-
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-
-            _db.PsCardItemIssuances.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
         }
 
         public async ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
         {
-            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
-
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(psCardItemIssuanceId);
+                var entity = await ctx.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(psCardItemIssuanceId);
+                }
+
+                if (string.IsNullOrWhiteSpace(entity.PostedBy))
+                {
+                    throw new RecordNotYetPostedException(string.Format("Record is not yet posted.."));
+                }
+
+                entity.PostedBy = null;
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //ctx.PsCardItemIssuances.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            if (string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                throw new RecordNotYetPostedException(string.Format("Record is not yet posted.."));
-            }
-
-            entity.PostedBy = null;
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.PsCardItemIssuances.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
         }
 
         private string RefTypeDesc(string refType)
@@ -222,182 +222,73 @@ namespace iLgs.Services.PoIssuance
         public ValueTask<PsCardItemTransferVM> TransferAsync(PsCardItemTransferVM model, string user, DateTime date) =>
         _psCardItemTransferVMExceptionService.TryCatch(async () =>
         {
-            List<PsCardItemExtnTransitVM> selectedItems = null;
-            var psCardItemTransferSource = await _psCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(model.Id);
-
-            if (!model.TransDate.HasValue)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new InvalidValueException("Transit date is required!");
-            }
+                List<PsCardItemExtnTransitVM> selectedItems = null;
+                var psCardItemTransferSource = await _psCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(model.Id);
 
-            if (model.IsWithItemExtn == true)
-            {
-                if (model.SelectedIds == null)
+                if (!model.TransDate.HasValue)
                 {
-                    throw new InvalidValueException(string.Format("No selected items, cannot continue."));
+                    throw new InvalidValueException("Transit date is required!");
                 }
 
-                selectedItems = JsonConvert.DeserializeObject<List<PsCardItemExtnTransitVM>>(model.SelectedIds).OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo).ToList();
-                model.TransferOut = selectedItems.Count();
-
-                if(model.TransferOut == 0)
+                if (model.IsWithItemExtn == true)
                 {
-                    throw new InvalidValueException("No items to transit, cannot continue.");
-                }
-
-                // Transit to single Location (According to entered Location)
-                var psCardItemTransfer = await CreatePsCardItemTransfer(psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
-                
-                foreach (var transitItem in selectedItems)
-                {
-                    var psCardItemTransferItem = new PsCardItemTransferItem()
+                    if (model.SelectedIds == null)
                     {
-                        Id = Guid.NewGuid(),
-                        PsCardItemTransferId = psCardItemTransfer.Id,
-                        PsCardItemExtnId = transitItem.Id,
-                        IcsParItemId = transitItem.IcsParItemId,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
+                        throw new InvalidValueException(string.Format("No selected items, cannot continue."));
+                    }
 
-                    _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                    _db.Entry(psCardItemTransferItem).State = EntityState.Added;
-                    await _db.SaveChangesAsync();
+                    selectedItems = JsonConvert.DeserializeObject<List<PsCardItemExtnTransitVM>>(model.SelectedIds).OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo).ToList();
+                    model.TransferOut = selectedItems.Count();
+
+                    if (model.TransferOut == 0)
+                    {
+                        throw new InvalidValueException("No items to transit, cannot continue.");
+                    }
+
+                    // Transit to single Location (According to entered Location)
+                    var psCardItemTransfer = await CreatePsCardItemTransfer(ctx, psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
+
+                    foreach (var transitItem in selectedItems)
+                    {
+                        var psCardItemTransferItem = new PsCardItemTransferItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            PsCardItemTransferId = psCardItemTransfer.Id,
+                            PsCardItemExtnId = transitItem.Id,
+                            IcsParItemId = transitItem.IcsParItemId,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        ctx.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                        //ctx.Entry(psCardItemTransferItem).State = EntityState.Added;
+                        await ctx.SaveChangesAsync();
+                    }
                 }
+                else
+                {
+                    if (!model.TransferOut.HasValue)
+                    {
+                        throw new InvalidValueException("Transit out is required!");
+                    }
 
-                //// Transit Items
-                //// Group by IcsParId = same location
-                //var itemExtnName = _psCardService.GetItemExtnName(psCardItemTransferSource.PsCardItemId);
+                    if (model.LocationId == null)
+                    {
+                        throw new InvalidValueException("Location is required!");
+                    }
 
-                //if (string.IsNullOrEmpty(itemExtnName))
-                //{
-                //    throw new InvalidValueException("Item ExtnName is emmpty.");
-                //}
+                    if (model.TransferOut > psCardItemTransferSource.QtyBal)
+                    {
+                        throw new InvalidValueException("Transit out must not be greater than the balance!");
+                    }
 
-                //var selectedItemLocations = selectedItems.GroupBy(g => new { g.LocationId })
-                //.Select(s => new
-                //{
-                //    LocationId = s.Key.LocationId,
-                //    Count = s.Count()
-                //}).ToList();
-
-                //if (psCardItemTransferSource.LocationId != null)
-                //{
-                //    if (selectedItemLocations.Any(a => a.LocationId == psCardItemTransferSource.LocationId))
-                //    {
-                //        throw new InvalidValueException("Cannot transit items within the same PO Location");
-                //    }
-                //}
-                //else
-                //{
-                //    if (selectedItemLocations.Any(a => a.LocationId == psCardItemTransferSource.DeptId))
-                //    {
-                //        throw new InvalidValueException("Cannot transit items within the same PO Location");
-                //    }
-                //}
-
-                //foreach(var s in selectedItemLocations)
-                //{                    
-                //    var psCardItemTransfer = await CreatePsCardItemTransfer(psCardItemTransferSource, model.TransDate, s.Count, s.LocationId, user, date);
-                    
-                //    // Save Transit Items
-                //    var transitItems = selectedItems.Where(w => w.LocationId == s.LocationId);
-                //    foreach(var transitItem in transitItems)
-                //    {
-                //        var psCardItemTransferItem = new PsCardItemTransferItem()
-                //        {
-                //            Id = Guid.NewGuid(),
-                //            PsCardItemTransferId = psCardItemTransfer.Id,
-                //            PsCardItemExtnId = transitItem.Id,
-                //            IcsParItemId = transitItem.IcsParItemId,
-                //            InsertedBy = user,
-                //            InsertedDt = date,
-                //            UpdatedBy = user,
-                //            UpdatedDt = date
-                //        };
-
-                //        _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                //        _db.Entry(psCardItemTransferItem).State = EntityState.Added;
-                //        await _db.SaveChangesAsync();                        
-                //    }
-                //}
-
-
-                /*
-                 * TO DO: TRANSIT BY SET
-                 */
-
-                // non set items
-                //var nonSetItems = selectedItems.Where(w => w.SetLotNo == "" || w.SetLotNo == null);
-                //if (nonSetItems.Any())
-                //{
-                //    CreateTransitRecord(model.Id, model.TransDate, nonSetItems.Count(), nonSetItems.First().LocationId, user, date);
-                //}
-                //else
-                //{
-                //    // set items, may come from different par, but most likely from only same set
-                //    var selectedItemIcsParIds = selectedItems.Where(w => w.SetLotNo == "" || w.SetLotNo == null).GroupBy(g => new { g.IcsParId, g.IcsParItemId })
-                //    .Select(s => new
-                //    {
-                //        IcsParId = s.Key.IcsParId,
-                //        IcsParItemId = s.Key.IcsParItemId
-                //    }).ToList();
-
-                //    // if ics/par is a set/lot, get all items included in the set.
-                //    foreach (var selectedItemIcsParId in selectedItemIcsParIds)
-                //    {
-                //        var icsParUnitGroup = _db.IcsParUnitGroups
-                //            .AsNoTracking()
-                //            .Include(i => i.IcsPartUnitGroupDescriptions)
-                //            .Where(w => w.IcsParId == selectedItemIcsParId.IcsParId 
-                //                && w.IcsPartUnitGroupDescriptions.Any(a => a.IcsParUnitGroupDescriptionItems
-                //                    .Any(b => b.IcsParItemId == selectedItemIcsParId.IcsParItemId))).FirstOrDefault();                        
-
-                //        // transit the PsCardItem of the items in the set
-                //        foreach(var unitGroupDescription in icsParUnitGroup.IcsPartUnitGroupDescriptions)
-                //        {
-                //            foreach(var unitGroupDescriptionItem in unitGroupDescription.IcsParUnitGroupDescriptionItems)
-                //            {
-                //                var psCardItemId = GetPsCardItemId(unitGroupDescriptionItem.IcsParItem.PsCardItemExtn.PsCardItemId, unitGroupDescriptionItem.IcsParItemId);
-                //                CreateTransitRecord(psCardItemId, model.TransDate, model.TransferOut, model.LocationId, user, date);
-                //            }
-                //        }
-
-                //        var icsParItems = _db.IcsParItems
-                //            .AsNoTracking()
-                //            .Include(i => i.IcsPar)
-                //            .Where(w => w.Id == selectedItemIcsParId.IcsParItemId).ToList();
-                //        foreach (var icsParItem in icsParItems)
-                //        {
-
-                //        }
-                //    }
-                //}                
+                    var psCardItemTransfer = await CreatePsCardItemTransfer(ctx, psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
+                }
             }
-            else
-            {
-                if (!model.TransferOut.HasValue)
-                {
-                    throw new InvalidValueException("Transit out is required!");
-                }
-
-                if (model.LocationId == null)
-                {
-                    throw new InvalidValueException("Location is required!");
-                }
-
-                if (model.TransferOut > psCardItemTransferSource.QtyBal)
-                {
-                    throw new InvalidValueException("Transit out must not be greater than the balance!");
-                }
-
-                var psCardItemTransfer = await CreatePsCardItemTransfer(psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
-                //CreatePsCardItem(psCardItem, psCardItemTransfer.Id, model.LocationId, model.TransferOut, user, date);
-                
-            }                                              
-
             return model;
         });
 
@@ -412,158 +303,106 @@ namespace iLgs.Services.PoIssuance
                 throw new InvalidValueException("Transit date is required!");
             }
 
-            if (model.IsWithItemExtn == true)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                if (model.SelectedIds == null)
+                if (model.IsWithItemExtn == true)
                 {
-                    throw new InvalidValueException(string.Format("No selected items, cannot continue."));
-                }
-
-                selectedItems = JsonConvert.DeserializeObject<List<PsCardItemExtnTransitVM>>(model.SelectedIds).OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo).ToList();
-                model.TransferOut = selectedItems.Count();
-
-                if (model.TransferOut == 0)
-                {
-                    throw new InvalidValueException("No items to transit, cannot continue.");
-                }
-
-                // Transit Items
-                // Group by IcsParId = same location
-                var itemExtnName = _psCardService.GetItemExtnName(psCardItemTransferSource.PsCardItemId);
-
-                if (string.IsNullOrEmpty(itemExtnName))
-                {
-                    throw new InvalidValueException("Item ExtnName is emmpty.");
-                }
-
-                var selectedItemIcsParIds = selectedItems.GroupBy(g => new { g.IcsParId, g.LocationId })
-                .Select(s => new
-                {
-                    IcsParId = s.Key.IcsParId,
-                    LocationId = s.Key.LocationId,
-                    Count = s.Count()
-                }).ToList();
-
-                if (psCardItemTransferSource.LocationId != null)
-                {
-                    if (selectedItemIcsParIds.Any(a => a.LocationId == psCardItemTransferSource.LocationId))
+                    if (model.SelectedIds == null)
                     {
-                        throw new InvalidValueException("Cannot transit items within the same PO Location");
+                        throw new InvalidValueException(string.Format("No selected items, cannot continue."));
+                    }
+
+                    selectedItems = JsonConvert.DeserializeObject<List<PsCardItemExtnTransitVM>>(model.SelectedIds).OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo).ToList();
+                    model.TransferOut = selectedItems.Count();
+
+                    if (model.TransferOut == 0)
+                    {
+                        throw new InvalidValueException("No items to transit, cannot continue.");
+                    }
+
+                    // Transit Items
+                    // Group by IcsParId = same location
+                    var itemExtnName = _psCardService.GetItemExtnName(psCardItemTransferSource.PsCardItemId);
+
+                    if (string.IsNullOrEmpty(itemExtnName))
+                    {
+                        throw new InvalidValueException("Item ExtnName is emmpty.");
+                    }
+
+                    var selectedItemIcsParIds = selectedItems.GroupBy(g => new { g.IcsParId, g.LocationId })
+                    .Select(s => new
+                    {
+                        IcsParId = s.Key.IcsParId,
+                        LocationId = s.Key.LocationId,
+                        Count = s.Count()
+                    }).ToList();
+
+                    if (psCardItemTransferSource.LocationId != null)
+                    {
+                        if (selectedItemIcsParIds.Any(a => a.LocationId == psCardItemTransferSource.LocationId))
+                        {
+                            throw new InvalidValueException("Cannot transit items within the same PO Location");
+                        }
+                    }
+                    else
+                    {
+                        if (selectedItemIcsParIds.Any(a => a.LocationId == psCardItemTransferSource.DeptId))
+                        {
+                            throw new InvalidValueException("Cannot transit items within the same PO Location");
+                        }
+                    }
+
+                    foreach (var s in selectedItemIcsParIds)
+                    {
+                        var psCardItemTransfer = await CreatePsCardItemTransfer(ctx, psCardItemTransferSource, model.TransDate, s.Count, s.LocationId, user, date);
+
+                        // Save Transit Items
+                        var transitItems = selectedItems.Where(w => w.IcsParId == s.IcsParId && w.LocationId == s.LocationId);
+                        foreach (var transitItem in transitItems)
+                        {
+                            var psCardItemTransferItem = new PsCardItemTransferItem()
+                            {
+                                Id = Guid.NewGuid(),
+                                PsCardItemTransferId = psCardItemTransfer.Id,
+                                PsCardItemExtnId = transitItem.Id,
+                                IcsParItemId = transitItem.IcsParItemId,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+
+                            ctx.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                            //_db.Entry(psCardItemTransferItem).State = EntityState.Added;
+                            await ctx.SaveChangesAsync();
+                        }
                     }
                 }
                 else
                 {
-                    if (selectedItemIcsParIds.Any(a => a.LocationId == psCardItemTransferSource.DeptId))
+                    if (!model.TransferOut.HasValue)
                     {
-                        throw new InvalidValueException("Cannot transit items within the same PO Location");
+                        throw new InvalidValueException("Transit out is required!");
                     }
-                }
 
-                foreach (var s in selectedItemIcsParIds)
-                {
-                    var psCardItemTransfer = await CreatePsCardItemTransfer(psCardItemTransferSource, model.TransDate, s.Count, s.LocationId, user, date);
-                    //var newPsCardItem = CreatePsCardItem(psCardItem, psCardItemTransfer.Id, s.LocationId, s.Count, user, date);
-
-                    // Save Transit Items
-                    var transitItems = selectedItems.Where(w => w.IcsParId == s.IcsParId && w.LocationId == s.LocationId);
-                    foreach (var transitItem in transitItems)
+                    if (model.LocationId == null)
                     {
-                        var psCardItemTransferItem = new PsCardItemTransferItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            PsCardItemTransferId = psCardItemTransfer.Id,
-                            PsCardItemExtnId = transitItem.Id,
-                            IcsParItemId = transitItem.IcsParItemId,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                        _db.Entry(psCardItemTransferItem).State = EntityState.Added;
-                        await _db.SaveChangesAsync();
+                        throw new InvalidValueException("Location is required!");
                     }
+
+                    if (model.TransferOut > psCardItemTransferSource.QtyBal)
+                    {
+                        throw new InvalidValueException("Transit out must not be greater than the balance!");
+                    }
+
+                    var psCardItemTransfer = await CreatePsCardItemTransfer(ctx, psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
                 }
-
-
-                /*
-                 * TO DO: TRANSIT BY SET
-                 */
-
-                // non set items
-                //var nonSetItems = selectedItems.Where(w => w.SetLotNo == "" || w.SetLotNo == null);
-                //if (nonSetItems.Any())
-                //{
-                //    CreateTransitRecord(model.Id, model.TransDate, nonSetItems.Count(), nonSetItems.First().LocationId, user, date);
-                //}
-                //else
-                //{
-                //    // set items, may come from different par, but most likely from only same set
-                //    var selectedItemIcsParIds = selectedItems.Where(w => w.SetLotNo == "" || w.SetLotNo == null).GroupBy(g => new { g.IcsParId, g.IcsParItemId })
-                //    .Select(s => new
-                //    {
-                //        IcsParId = s.Key.IcsParId,
-                //        IcsParItemId = s.Key.IcsParItemId
-                //    }).ToList();
-
-                //    // if ics/par is a set/lot, get all items included in the set.
-                //    foreach (var selectedItemIcsParId in selectedItemIcsParIds)
-                //    {
-                //        var icsParUnitGroup = _db.IcsParUnitGroups
-                //            .AsNoTracking()
-                //            .Include(i => i.IcsPartUnitGroupDescriptions)
-                //            .Where(w => w.IcsParId == selectedItemIcsParId.IcsParId 
-                //                && w.IcsPartUnitGroupDescriptions.Any(a => a.IcsParUnitGroupDescriptionItems
-                //                    .Any(b => b.IcsParItemId == selectedItemIcsParId.IcsParItemId))).FirstOrDefault();                        
-
-                //        // transit the PsCardItem of the items in the set
-                //        foreach(var unitGroupDescription in icsParUnitGroup.IcsPartUnitGroupDescriptions)
-                //        {
-                //            foreach(var unitGroupDescriptionItem in unitGroupDescription.IcsParUnitGroupDescriptionItems)
-                //            {
-                //                var psCardItemId = GetPsCardItemId(unitGroupDescriptionItem.IcsParItem.PsCardItemExtn.PsCardItemId, unitGroupDescriptionItem.IcsParItemId);
-                //                CreateTransitRecord(psCardItemId, model.TransDate, model.TransferOut, model.LocationId, user, date);
-                //            }
-                //        }
-
-                //        var icsParItems = _db.IcsParItems
-                //            .AsNoTracking()
-                //            .Include(i => i.IcsPar)
-                //            .Where(w => w.Id == selectedItemIcsParId.IcsParItemId).ToList();
-                //        foreach (var icsParItem in icsParItems)
-                //        {
-
-                //        }
-                //    }
-                //}                
-            }
-            else
-            {
-                if (!model.TransferOut.HasValue)
-                {
-                    throw new InvalidValueException("Transit out is required!");
-                }
-
-                if (model.LocationId == null)
-                {
-                    throw new InvalidValueException("Location is required!");
-                }
-
-                if (model.TransferOut > psCardItemTransferSource.QtyBal)
-                {
-                    throw new InvalidValueException("Transit out must not be greater than the balance!");
-                }
-
-                var psCardItemTransfer = await CreatePsCardItemTransfer(psCardItemTransferSource, model.TransDate, model.TransferOut, model.LocationId, user, date);
-                //CreatePsCardItem(psCardItem, psCardItemTransfer.Id, model.LocationId, model.TransferOut, user, date);
-
             }
 
             return model;
         });
 
-        private async ValueTask<PsCardItemTransfer> CreatePsCardItemTransfer(PsCardItemTransferVM psCardItemTransferSource, DateTime? transDate, decimal? transOut, Guid? locationId, string user, DateTime date)
+        private async ValueTask<PsCardItemTransfer> CreatePsCardItemTransfer(AppManEntities ctx, PsCardItemTransferVM psCardItemTransferSource, DateTime? transDate, decimal? transOut, Guid? locationId, string user, DateTime date)
         {
             var psCardItemTransfer = new PsCardItemTransfer()
             {
@@ -581,11 +420,11 @@ namespace iLgs.Services.PoIssuance
                 UpdatedDt = date
             };
 
-            _db.PsCardItemTransfers.Add(psCardItemTransfer);
-            await _db.SaveChangesAsync();
+            ctx.PsCardItemTransfers.Add(psCardItemTransfer);
+            await ctx.SaveChangesAsync();
 
             // update parent record
-            await _psCardService.PsCardItem.PsCardItemTransfer.UpdatePsCardItemTransfer(psCardItemTransferSource.Id, user, date);
+            await _psCardService.PsCardItem.PsCardItemTransfer.UpdatePsCardItemTransfer(ctx, psCardItemTransferSource.Id, user, date);
 
             return psCardItemTransfer;
         }
@@ -595,7 +434,7 @@ namespace iLgs.Services.PoIssuance
             
         }
        
-        private async Task<PsCardItem> CreatePsCardItemAsync(PsCardItem sourcePsCardItem, Guid? transferRefId, Guid? locationId, int? transOut, string user, DateTime date)
+        private async Task<PsCardItem> CreatePsCardItemAsync(AppManEntities ctx, PsCardItem sourcePsCardItem, Guid? transferRefId, Guid? locationId, int? transOut, string user, DateTime date)
         {
             var targetPsCardItem = await _db.PsCardItems.AsNoTracking().FirstOrDefaultAsync(f => f.Id == sourcePsCardItem.Id); // load source value, then use this as target            
 
@@ -615,8 +454,8 @@ namespace iLgs.Services.PoIssuance
             targetPsCardItem.UpdatedBy = user;
             targetPsCardItem.UpdatedDt = date;
 
-            _db.PsCardItems.Add(targetPsCardItem);
-            await _db.SaveChangesAsync();
+            ctx.PsCardItems.Add(targetPsCardItem);
+            await ctx.SaveChangesAsync();
 
             var totalTransferOut = _db.PsCardItemTransfers.Where(w => w.PsCardItemId == sourcePsCardItem.Id).Sum(s => s.Qty) ?? 0;
             var qtyBal = ((sourcePsCardItem.Qty ?? 0) + (sourcePsCardItem.TransferIn ?? 0)) - ((sourcePsCardItem.QtyIss ?? 0) + totalTransferOut);
@@ -628,9 +467,9 @@ namespace iLgs.Services.PoIssuance
             sourcePsCardItem.UpdatedBy = user;
             sourcePsCardItem.UpdatedDt = date;
 
-            _db.PsCardItems.Attach(sourcePsCardItem);
-            _db.Entry(sourcePsCardItem).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+            //_db.PsCardItems.Attach(sourcePsCardItem);
+            //_db.Entry(sourcePsCardItem).State = EntityState.Modified;
+            await ctx.SaveChangesAsync();
 
             return targetPsCardItem;
         }

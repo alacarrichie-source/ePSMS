@@ -11,11 +11,11 @@ namespace iLgs.Controllers
 {
     public class Users_Controller : ApiController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public Users_Controller(AppManEntities db)
+        public Users_Controller()
         {
-            _db = db;
+            
         }
 
         // GET: api/Users_

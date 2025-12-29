@@ -16,9 +16,6 @@ namespace iLgs.Services.AllFields
     {
         IQueryable<AllField> GetAllByPsCardId(Guid? psCardId);
         IQueryable<AllField> GetAllByRisItemId(Guid? risItemId);
-        //CategoryGroup GetCategoryGroup(string itemTypeCode, string itemCode);
-        //string GetPartialField(string itemTypeCode, string itemCode);
-        //string GetPartialItemField(string itemTypeCode, string itemCode);
         ValueTask<AllField> GetByIdAsync(Guid id);
         ValueTask<AllField> GetByItemExtnIdAsync(Guid id);
         ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
@@ -52,18 +49,21 @@ namespace iLgs.Services.AllFields
     public class AllFieldService : IAllFieldService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<AllField> _exceptionService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IAllFieldsValidator _validator;
 
         public AllFieldService(AppManEntities db, 
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions createAndLogExceptions,
             IExceptionService<AllField> exceptionService,
             IItemCodeService itemCodeService,
             IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = createAndLogExceptions;
             _exceptionService = exceptionService;
             _itemCodeService = itemCodeService;
@@ -229,8 +229,11 @@ namespace iLgs.Services.AllFields
                 UpdatedDt = model.UpdatedDt
             };
 
-            _db.AllFields.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.AllFields.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
         }
 
         public ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
@@ -256,57 +259,60 @@ namespace iLgs.Services.AllFields
 
         private async ValueTask UpdateAsync(AllField model, string user, DateTime date)
         {
-            var entity = await GetByIdAsync(model.Id);
-            if (entity == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordNotFoundException(model.Id);
+                var entity = await ctx.AllFields.FindAsync(model.Id);
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(model.Id);
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                model = ChangeAllFieldCase(model);
+
+                entity.AcqMode = model.AcqMode;
+                entity.AcqCost = model.AcqCost;
+                entity.InvDist = model.InvDist;
+                entity.GenericName = model.GenericName;
+                entity.DosageStrength = model.DosageStrength;
+                entity.DosageForm = model.DosageForm;
+                entity.DosageVolume = model.DosageVolume;
+                entity.Others = model.Others;
+                entity.Brand = model.Brand;
+                entity.Multipliers = model.Multipliers;
+                entity.Model_ = model.Model_;
+                entity.Dimension = model.Dimension;
+                entity.Size = model.Size;
+                entity.Weight = model.Weight;
+                entity.Capacity = model.Capacity;
+                entity.Materials = model.Materials;
+                entity.Color = model.Color;
+                entity.Area = model.Area;
+
+                //entity.AreaSoldDonated = model.AreaSoldDonated;
+                //entity.PricePerSqm = model.PricePerSqm;
+                //entity.Type = model.Type;            
+                //entity.Barangay = model.Barangay;
+                //entity.DateSale = model.DateSale;
+                //entity.DateDonation = model.DateDonation;
+                //entity.DateAcquisition = model.DateAcquisition;
+                //entity.DateConstruction = model.DateConstruction;                       
+                //entity.VendorDonor = model.VendorDonor;
+
+                entity.SerialNo = model.SerialNo;
+                entity.PropNo = model.PropNo;
+                entity.PlateNo = model.PlateNo;
+                entity.BodyNo = model.BodyNo;
+                entity.MVFileNo = model.MVFileNo;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                //_db.AllFields.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            model = ChangeAllFieldCase(model);
-
-            entity.AcqMode = model.AcqMode;
-            entity.AcqCost = model.AcqCost;
-            entity.InvDist = model.InvDist;
-            entity.GenericName = model.GenericName;
-            entity.DosageStrength = model.DosageStrength;
-            entity.DosageForm = model.DosageForm;
-            entity.DosageVolume = model.DosageVolume;
-            entity.Others = model.Others;
-            entity.Brand = model.Brand;
-            entity.Multipliers = model.Multipliers;
-            entity.Model_ = model.Model_;
-            entity.Dimension = model.Dimension;
-            entity.Size = model.Size;
-            entity.Weight = model.Weight;
-            entity.Capacity = model.Capacity;
-            entity.Materials = model.Materials;
-            entity.Color = model.Color;
-            entity.Area = model.Area;
-
-            //entity.AreaSoldDonated = model.AreaSoldDonated;
-            //entity.PricePerSqm = model.PricePerSqm;
-            //entity.Type = model.Type;            
-            //entity.Barangay = model.Barangay;
-            //entity.DateSale = model.DateSale;
-            //entity.DateDonation = model.DateDonation;
-            //entity.DateAcquisition = model.DateAcquisition;
-            //entity.DateConstruction = model.DateConstruction;                       
-            //entity.VendorDonor = model.VendorDonor;
-
-            entity.SerialNo = model.SerialNo;
-            entity.PropNo = model.PropNo;
-            entity.PlateNo = model.PlateNo;
-            entity.BodyNo = model.BodyNo;
-            entity.MVFileNo = model.MVFileNo;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.AllFields.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
         }
 
 
@@ -347,8 +353,6 @@ namespace iLgs.Services.AllFields
             entity.MVFileNo = model.MVFileNo;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-
-
         }
 
         public ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
@@ -356,18 +360,21 @@ namespace iLgs.Services.AllFields
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await GetByIdAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.AllFields.FindAsync(model.Id);
 
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.AllFields.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.AllFields.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.AllFields.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.AllFields.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -377,7 +384,7 @@ namespace iLgs.Services.AllFields
         {
             string keyName = psNo;
 
-            var data = _db.PsCards.Where(w => w.PsNo == psNo)
+            var data = _db.PsCards.Where(w => w.PsNo == psNo).AsNoTracking()
                 .OrderByDescending(o => o.PsNo).FirstOrDefault();
             if (data == null)
             {

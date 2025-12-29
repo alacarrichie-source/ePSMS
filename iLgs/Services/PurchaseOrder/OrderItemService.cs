@@ -17,18 +17,15 @@ namespace iLgs.Services.PurchaseOrder
     public interface IOrderItemService : IOrderItemSharedService
     {
         IQueryable<OrderItemVM> GetByPoId(Guid? poId);
-        ValueTask<OrderItemVM> GetByIdAsync(Guid? id);
-        //ValueTask<bool> GetAnyParItemsAsync(Guid id);
-        //ValueTask<bool> GetAnyAirItemsAsync(Guid id);
-
+        ValueTask<OrderItemVM> GetByIdAsync(Guid? id);        
         ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
-        ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);
-        //ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);    
+        ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);        
     }
 
     public class OrderItemService : BaseValidator, IOrderItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<OrderItemVM> _vmExceptionService;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldService _allFieldService;
@@ -38,7 +35,8 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public OrderItemService(AppManEntities db,            
+        public OrderItemService(AppManEntities db,       
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<OrderItemVM> vmExceptionService,
             ICodextnService codextnService,
             IAllFieldService allFieldService,
@@ -47,7 +45,8 @@ namespace iLgs.Services.PurchaseOrder
             IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
             IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
-            _db = db;            
+            _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _codextnService = codextnService;
             _allFieldService = allFieldService;
@@ -144,101 +143,104 @@ namespace iLgs.Services.PurchaseOrder
         {
             ValidateFields(model);
 
-            var requestItem = await _db.RequestItems.Include(i => i.RisItem.AllField)
-                .Include(i => i.RisItem.ItemCode)
-                .Where(w => w.Id == model.RequestItemId).FirstOrDefaultAsync();
-            if (requestItem == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordRelationshipException("Could not find request item this record!");
-            }
-
-            model.Id = Guid.NewGuid();
-            model.InsertedBy = user;
-            model.UpdatedBy = user;
-            model.InsertedDt = date;
-            model.UpdatedDt = date;
-            model.AllField = requestItem.RisItem.AllField;
-            
-            OrderItem entity = new OrderItem();
-            
-            SetItemEntity(entity, model, Mode.ADD);            
-
-            _db.OrderItems.Add(entity);
-            await _db.SaveChangesAsync();
-
-            // include unit group if any
-            // check if requestItemId in RequestItemUnitGroup            
-            var requestItemUnitGroupDescriptionItem = await _db.RequestItemUnitGroupDescriptionItems
-                .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.RequestItemId == model.RequestItemId)
-                .FirstOrDefaultAsync();
-            if (requestItemUnitGroupDescriptionItem != null)
-            {
-                var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                    .Where(w => w.RequestItemUnitGroupDescriptionItemId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
-                    .FirstOrDefaultAsync();
-                if (orderItemUnitGroupDescriptionItem == null)
+                var requestItem = await ctx.RequestItems.Include(i => i.RisItem.AllField)
+                    .Include(i => i.RisItem.ItemCode)
+                    .Where(w => w.Id == model.RequestItemId).FirstOrDefaultAsync();
+                if (requestItem == null)
                 {
-                    var orderItemUnitGroupDescription = await _db.OrderItemUnitGroupDescriptions
-                        .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
+                    throw new RecordRelationshipException("Could not find request item this record!");
+                }
+
+                model.Id = Guid.NewGuid();
+                model.InsertedBy = user;
+                model.UpdatedBy = user;
+                model.InsertedDt = date;
+                model.UpdatedDt = date;
+                model.AllField = requestItem.RisItem.AllField;
+
+                OrderItem entity = new OrderItem();
+
+                SetItemEntity(entity, model, Mode.ADD);
+
+                ctx.OrderItems.Add(entity);
+                await ctx.SaveChangesAsync();
+
+                // include unit group if any
+                // check if requestItemId in RequestItemUnitGroup            
+                var requestItemUnitGroupDescriptionItem = await ctx.RequestItemUnitGroupDescriptionItems
+                    .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.RequestItemId == model.RequestItemId)
+                    .FirstOrDefaultAsync();
+                if (requestItemUnitGroupDescriptionItem != null)
+                {
+                    var orderItemUnitGroupDescriptionItem = await ctx.OrderItemUnitGroupDescriptionItems
+                        .Where(w => w.RequestItemUnitGroupDescriptionItemId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
                         .FirstOrDefaultAsync();
-                    if (orderItemUnitGroupDescription == null)
+                    if (orderItemUnitGroupDescriptionItem == null)
                     {
-                        var orderItemUnitGroup = await _db.OrderItemUnitGroups
-                            .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId)
+                        var orderItemUnitGroupDescription = await ctx.OrderItemUnitGroupDescriptions
+                            .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
                             .FirstOrDefaultAsync();
-                        if (orderItemUnitGroup == null)
+                        if (orderItemUnitGroupDescription == null)
                         {
-                            var orderItemUnitGroupVM = new OrderItemUnitGroupVM()
+                            var orderItemUnitGroup = await ctx.OrderItemUnitGroups
+                                .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId)
+                                .FirstOrDefaultAsync();
+                            if (orderItemUnitGroup == null)
                             {
-                                OrderId = model.OrderId,
-                                RequestItemUnitGroupId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId,
-                                UnitCost = model.UnitCost,
-                                TotalCost = model.Amount
-                            };
-                            orderItemUnitGroupVM = await _orderItemUnitGroupService.CreateAsync(orderItemUnitGroupVM, user, date);
+                                var orderItemUnitGroupVM = new OrderItemUnitGroupVM()
+                                {
+                                    OrderId = model.OrderId,
+                                    RequestItemUnitGroupId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId,
+                                    UnitCost = model.UnitCost,
+                                    TotalCost = model.Amount
+                                };
+                                orderItemUnitGroupVM = await _orderItemUnitGroupService.CreateAsync(orderItemUnitGroupVM, user, date);
 
-                            var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
-                            {
-                                OrderItemUnitGroupId = orderItemUnitGroupVM.Id,
-                                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
-                            };
-                            orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+                                var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
+                                {
+                                    OrderItemUnitGroupId = orderItemUnitGroupVM.Id,
+                                    RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
+                                };
+                                orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
 
-                            var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                                var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                                {
+                                    OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
+                                    RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
+                                    OrderItemId = model.Id
+                                };
+                                orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                            }
+                            else
                             {
-                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
-                                RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
-                                OrderItemId = model.Id
-                            };
-                            orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                                var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
+                                {
+                                    OrderItemUnitGroupId = orderItemUnitGroup.Id,
+                                    RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
+                                };
+                                orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+
+                                var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                                {
+                                    OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
+                                    RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
+                                    OrderItemId = model.Id
+                                };
+                                orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                            }
                         }
                         else
                         {
-                            var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
-                            {
-                                OrderItemUnitGroupId = orderItemUnitGroup.Id,
-                                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
-                            };
-                            orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
-
                             var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
                             {
-                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
+                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
                                 RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
                                 OrderItemId = model.Id
                             };
                             orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
                         }
-                    }
-                    else
-                    {
-                        var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
-                        {
-                            OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
-                            RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
-                            OrderItemId = model.Id
-                        };
-                        orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
                     }
                 }
             }
@@ -308,34 +310,35 @@ namespace iLgs.Services.PurchaseOrder
         {
             ValidateFields(model);
 
-            var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
-            if (requestItemId == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordRelationshipException("Could not find request item this record!");
+                var requestItemId = ctx.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+                if (requestItemId == null)
+                {
+                    throw new RecordRelationshipException("Could not find request item this record!");
+                }
+
+                var risItemId = ctx.RisItems.FindAsync(requestItemId).Result?.Id;
+                if (risItemId == null)
+                {
+                    throw new RecordRelationshipException("Cound not find RIS item for this record!");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                OrderItem entity = await ctx.OrderItems
+                    .Include(i => i.AllField)
+                    .Include(i => i.ItemCode)
+                    .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+
+
+                SetItemEntity(entity, model, Mode.EDIT);
+                
+                //_db.OrderItems.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
             }
-
-            var risItemId = _db.RisItems.FindAsync(requestItemId).Result?.Id;
-            if (risItemId == null)
-            {
-                throw new RecordRelationshipException("Cound not find RIS item for this record!");
-            }
-            
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            OrderItem entity = await _db.OrderItems
-                .Include(i => i.AllField)
-                .Include(i => i.ItemCode)
-                .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-
-            
-            SetItemEntity(entity, model, Mode.EDIT);
-            //model.PsNo = entity.RequestItem.RisItem.ItemCode.Code + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType, model.ItemCode);
-            //entity.StockNo = model.PsNo;
-            
-            _db.OrderItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
 
             return model;
         });

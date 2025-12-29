@@ -95,12 +95,11 @@ namespace iLgs.Services.CustodianReports
             return data;
         });
 
-        public IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(int? forYear, Guid? deptId, int? accountGroup) =>
-        _exceptionService.TryCatch(() =>
+        public IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(int? forYear, Guid? deptId, int? accountGroup) 
         {
             var data = _db.CustodianReports.AsNoTracking().Where(w => w.AsOf.Value.Year == forYear && w.DeptId == deptId && w.AccountGroup == accountGroup).AsQueryable();
             return data;
-        });
+        }
 
         public string GetAccountGroupMenuId(CustodianAccountGroup accountGroup)
         {

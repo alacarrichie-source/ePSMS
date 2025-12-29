@@ -250,13 +250,13 @@ namespace iLgs.Services.CustodianReports
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseAmountCo)), "Field is required.");
             //}
 
-            //if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
-            //{
-            //    if (string.IsNullOrWhiteSpace(model.Remarks))
-            //    {
-            //        _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
-            //    }
-            //}
+            if (model.FromDonation == true)
+            {
+                if (string.IsNullOrWhiteSpace(model.Remarks))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Donations.");
+                }
+            }
 
             _imex.ThrowIfContainsErrors();
         }

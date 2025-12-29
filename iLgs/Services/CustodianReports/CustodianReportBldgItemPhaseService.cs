@@ -346,12 +346,20 @@ namespace iLgs.Services.CustodianReports
         private void ValidateEntry(CustodianReportBldgItemPhasVM model, Mode mode)
         {
             _imex = new InvalidModelException();
+            //if (string.IsNullOrWhiteSpace(model.PhaseNo))
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!(model.CapitalOutlay > 0 || model.MOOE > 0))
+            //    {
+            //        _imex.UpsertDataList("Capital Outlay or MOOE Amount", "Either of the two Must have value.");
+            //    }
+            //}
+
             if (string.IsNullOrWhiteSpace(model.PhaseNo))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
-            }
-            else
-            {
+            {                
                 if (!(model.CapitalOutlay > 0 || model.MOOE > 0))
                 {
                     _imex.UpsertDataList("Capital Outlay or MOOE Amount", "Either of the two Must have value.");

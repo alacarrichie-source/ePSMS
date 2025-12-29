@@ -944,7 +944,7 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RequestNo" Type="varchar" MaxLength="12" />
           <Property Name="DepartmentId" Type="uniqueidentifier" />
-          <Property Name="Description" Type="varchar" MaxLength="200" />
+          <Property Name="Description" Type="varchar(max)" />
           <Property Name="Remarks" Type="varchar" MaxLength="500" />
           <Property Name="EstCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="IsConsumable" Type="bit" />
@@ -5923,11 +5923,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             <End Role="RPCIItem" EntitySet="RPCIItems" />
             <End Role="RPCIItemExtn" EntitySet="RPCIItemExtns" />
           </AssociationSet>
-          <EntitySet Name="ItemCodeRequests" EntityType="AppManModel.ItemCodeRequest" />
-          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
-          </AssociationSet>
           <EntitySet Name="Chats" EntityType="AppManModel.Chat" />
           <AssociationSet Name="FK_Chats_AspNetUsers" Association="AppManModel.FK_Chats_AspNetUsers">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -6017,6 +6012,11 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <AssociationSet Name="FK_RSMIRecap_RSMI" Association="AppManModel.FK_RSMIRecap_RSMI">
             <End Role="RSMI" EntitySet="RSMIs" />
             <End Role="RSMIRecap" EntitySet="RSMIRecaps" />
+          </AssociationSet>
+          <EntitySet Name="ItemCodeRequests" EntityType="AppManModel.ItemCodeRequest" />
+          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -6823,9 +6823,9 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <NavigationProperty Name="CustodianReports" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="Codextn" ToRole="CustodianReport" />
           <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="Codextn" ToRole="CustodianReportSubmitForCount" />
           <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
-          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
           <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
           </EntityType>
         <Association Name="FK_Codextn_Codextn">
           <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
@@ -10066,39 +10066,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="ItemCodeRequest">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RequestNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
-          <Property Name="DepartmentId" Type="Guid" />
-          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="EstCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="IsConsumable" Type="Boolean" />
-          <Property Name="IsForDistribution" Type="Boolean" />
-          <Property Name="IsIncorporated" Type="Boolean" />
-          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="StatusRemarks" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="ItemCodeRequest" ToRole="Codextn" />
-        </EntityType>
-        <Association Name="FK_ItemCodeRequests_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ItemCodeRequest">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Chat">
           <Key>
             <PropertyRef Name="Id" />
@@ -10709,6 +10676,39 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             </Principal>
             <Dependent Role="RSMIRecap">
               <PropertyRef Name="RsmiId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ItemCodeRequest">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RequestNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="DepartmentId" Type="Guid" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="EstCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IsConsumable" Type="Boolean" />
+          <Property Name="IsForDistribution" Type="Boolean" />
+          <Property Name="IsIncorporated" Type="Boolean" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="StatusRemarks" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="ItemCodeRequest" ToRole="Codextn" />
+        </EntityType>
+        <Association Name="FK_ItemCodeRequests_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemCodeRequest">
+              <PropertyRef Name="DepartmentId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -12909,27 +12909,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="ItemCodeRequests">
-            <EntityTypeMapping TypeName="AppManModel.ItemCodeRequest">
-              <MappingFragment StoreEntitySet="ItemCodeRequests">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="StatusRemarks" ColumnName="StatusRemarks" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="IsIncorporated" ColumnName="IsIncorporated" />
-                <ScalarProperty Name="IsForDistribution" ColumnName="IsForDistribution" />
-                <ScalarProperty Name="IsConsumable" ColumnName="IsConsumable" />
-                <ScalarProperty Name="EstCost" ColumnName="EstCost" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
-                <ScalarProperty Name="RequestNo" ColumnName="RequestNo" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Chats">
             <EntityTypeMapping TypeName="AppManModel.Chat">
               <MappingFragment StoreEntitySet="Chats">
@@ -13269,6 +13248,27 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
                 <ScalarProperty Name="Qty" ColumnName="Qty" />
                 <ScalarProperty Name="StockNo" ColumnName="StockNo" />
                 <ScalarProperty Name="RsmiId" ColumnName="RsmiId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ItemCodeRequests">
+            <EntityTypeMapping TypeName="AppManModel.ItemCodeRequest">
+              <MappingFragment StoreEntitySet="ItemCodeRequests">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="StatusRemarks" ColumnName="StatusRemarks" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="IsIncorporated" ColumnName="IsIncorporated" />
+                <ScalarProperty Name="IsForDistribution" ColumnName="IsForDistribution" />
+                <ScalarProperty Name="IsConsumable" ColumnName="IsConsumable" />
+                <ScalarProperty Name="EstCost" ColumnName="EstCost" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+                <ScalarProperty Name="RequestNo" ColumnName="RequestNo" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

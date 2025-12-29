@@ -18,20 +18,20 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("CUSTODIANACCOUNTABILITY")]
-    public class CustodianAccountabilityController : BaseController
+    [AppAuthorize("CUSTODIANACCOUNTABILITY2")]
+    public class CustodianAccountability2Controller : BaseController
     {
         private readonly AppManEntities _db;
         private readonly ICustodianDeptUploadService _uploadService;
         private readonly IUserService _userService;
-        
-        public CustodianAccountabilityController(AppManEntities db,
+
+        public CustodianAccountability2Controller(AppManEntities db,
             ICustodianDeptUploadService uploadService,
             IUserService userService)
         {
             _db = db;
-            _uploadService = uploadService.Create("ACCOUNTABILITY");
-            _userService = userService;            
+            _uploadService = uploadService.Create("PROCUREMENT");
+            _userService = userService;
         }
 
         public ActionResult Index()
@@ -45,7 +45,7 @@ namespace iLgs.Controllers
             {
                 ViewBag.IsAdmin = false;
             }
-            ViewBag.Title = "Custodian Accountability";
+            ViewBag.Title = "Custodian Accountability 2";
             return View();
         }
 
@@ -80,7 +80,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability_2");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -112,7 +112,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability_2");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -153,7 +153,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_accountability_2");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -288,7 +288,7 @@ namespace iLgs.Controllers
                 return HttpNotFound("File not found");
 
             // Pass the file URL to the view
-            string fileUrl = Url.Action("PreviewUploadThumb", "CustodianAccountability", new { id });
+            string fileUrl = Url.Action("PreviewUploadThumb", "CustodianAccountability2", new { id });
 
             return View("PreviewUpload", model: fileUrl);
         }

@@ -48,7 +48,7 @@
     .DataSource(dataSource => dataSource
         .Ajax()
         //.PageSize(10000)
-        .Events(events => events.Error("InlineGridError")
+        .Events(events => events.Error("GridItemError")
             //.RequestEnd("onRequestEndGridAmount")
             )
         .Model(model =>

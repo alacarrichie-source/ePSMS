@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -24,11 +25,12 @@ namespace iLgs.Services.Codes
         private readonly IExceptionService<BudgetCodeVM> _xtraExceptionService;
         
         public BudgetService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
             IExceptionService<BudgetCodeVM> xtraExceptionService,
             IUserService userService)
-        : base(db, exceptionService, vmExceptionService, userService)
+        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }
@@ -52,14 +54,14 @@ namespace iLgs.Services.Codes
 
         public IQueryable<BudgetCodeVM> GetAll()
         {
-            var data = _db.Codextns.Where(w => w.CodeMast.Code == "BUDGET-CODE")
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "BUDGET-CODE").AsNoTracking()
                 .Select(CodextnProjection).OrderBy(o => o.Desc4);                
             return data;
         }
 
         public new async ValueTask<BudgetCodeVM> GetByIdAsync(Guid id)
         {
-            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "BUDGET-CODE" && w.Id == id)
+            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "BUDGET-CODE" && w.Id == id).AsNoTracking()
                 .Select(CodextnProjection).FirstOrDefaultAsync();
             return data;
         }

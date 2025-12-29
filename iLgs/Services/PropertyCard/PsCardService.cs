@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -44,6 +45,7 @@ namespace iLgs.Services.PropertyCard
     public class PsCardService : IPsCardService
     {
         protected readonly AppManEntities _db;
+        protected readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<PsCardVM> _vmExceptionService;
         private readonly IExceptionService<PsCard> _exceptionService;
@@ -51,7 +53,8 @@ namespace iLgs.Services.PropertyCard
         protected readonly IPsCardSharedService _psCardSharedService;
         protected readonly IPsCardItemService _psCardItemService;        
 
-        public PsCardService(AppManEntities db,            
+        public PsCardService(AppManEntities db,     
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<PsCardVM> vmExceptionService,
             IExceptionService<PsCard> exceptionService,
@@ -61,6 +64,7 @@ namespace iLgs.Services.PropertyCard
             )
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
@@ -306,64 +310,74 @@ namespace iLgs.Services.PropertyCard
         public virtual ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.PsCards.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfPosted(entity);
 
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = user;
+                entity.PostedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //ctx.PsCards.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
+            }
         });
 
         public virtual ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.PsCards.FindAsync(id);
-            ValidateRecord(entity);
-            ValidateIfNotPosted(entity);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.FindAsync(id);
+                ValidateRecord(entity);
+                ValidateIfNotPosted(entity);
 
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.PostedBy = "";
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return entity;
+                //_db.PsCards.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return entity;
+            }
         });
 
 
         public virtual ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date) =>        
         _exceptionService.TryCatch(async () =>
         {
-            var targetEntity = await _db.PsCards.FindAsync(transferToPsCardId);
-            ValidateRecord(targetEntity);
-            //ValidateIfPosted(entity);
-
-            // load source
-            var psCardItemSource = await _db.PsCardItems.FindAsync(psCardItemId);
-            if (psCardItemSource == null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new NotFoundException((Guid)psCardItemId);
+                var targetEntity = await ctx.PsCards.FindAsync(transferToPsCardId);
+                ValidateRecord(targetEntity);
+
+                // load source
+                var psCardItemSource = await ctx.PsCardItems.FindAsync(psCardItemId);
+                if (psCardItemSource == null)
+                {
+                    throw new NotFoundException((Guid)psCardItemId);
+                }
+
+                // transfer source to target card
+                psCardItemSource.PsCardId = targetEntity.Id;
+                psCardItemSource.UpdatedBy = user;
+                psCardItemSource.UpdatedDt = date;
+
+                //_db.PsCardItems.Attach(psCardItemSource);
+                //_db.Entry(psCardItemSource).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                return targetEntity;
             }
-
-            // transfer source to target card
-
-            psCardItemSource.PsCardId = targetEntity.Id;
-            psCardItemSource.UpdatedBy = user;
-            psCardItemSource.UpdatedDt = date;
-                        
-            _db.PsCardItems.Attach(psCardItemSource);
-            _db.Entry(psCardItemSource).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return targetEntity;
         });
         public bool IsPosted(Guid psCardId)
         {

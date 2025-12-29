@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace iLgs.Services.PurchaseOrder
     {
         IQueryable<OrderItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
-        Task UpdateOrderItemAsync(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
+        Task UpdateOrderItemAsync(AppManEntities ctx, Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> CreateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> DeleteAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
@@ -21,6 +22,7 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupDescriptionItemService : IOrderItemUnitGroupDescriptionItemService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItemVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItem> _exceptionService;
@@ -28,6 +30,7 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IOrderItemSharedService _orderItemSharedService;
 
         public OrderItemUnitGroupDescriptionItemService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderItemUnitGroupDescriptionItemVM> vmExceptionService,
             IExceptionService<OrderItemUnitGroupDescriptionItem> exceptionService,
@@ -35,6 +38,7 @@ namespace iLgs.Services.PurchaseOrder
             IOrderItemSharedService orderItemSharedService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
@@ -99,8 +103,11 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            _db.OrderItemUnitGroupDescriptionItems.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.OrderItemUnitGroupDescriptionItems.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -134,50 +141,29 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.OrderItemUnitGroupDescriptionItems.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.OrderItemUnitGroupDescriptionItems.FindAsync(model.Id);
 
-            entity.OrderItemUnitGroupDescriptionId = model.OrderItemUnitGroupDescriptionId;
-            entity.OrderItemId = model.OrderItemId;
-            entity.RequestItemUnitGroupDescriptionItemId = model.RequestItemUnitGroupDescriptionItemId;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.OrderItemUnitGroupDescriptionId = model.OrderItemUnitGroupDescriptionId;
+                entity.OrderItemId = model.OrderItemId;
+                entity.RequestItemUnitGroupDescriptionItemId = model.RequestItemUnitGroupDescriptionItemId;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.OrderItemUnitGroupDescriptionItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            //var item = _db.OrderItems.Find(model.OrderItemId);
-            //var groupUnitCost = model.GroupUnitCost / model.GroupQty;
-            //item.PriceRate = model.PriceRate;
-            ////item.Amount = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
-            ////item.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(item.Amount / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
-            //if (model.PriceRate == 0)
-            //{
-            //    item.UnitCost = model.UnitCost;
-            //}
-            //else
-            //{
-            //    item.UnitCost = decimal.Round((decimal)(groupUnitCost * (model.PriceRate / 100) * model.QtyRequest), 2, MidpointRounding.AwayFromZero);
-            //}
-            //item.Amount = model.QtyRequest * item.UnitCost;
-            //item.UpdatedBy = model.UpdatedBy;
-            //item.UpdatedDt = model.UpdatedDt;
-            //_db.OrderItems.Attach(item);
-            //_db.Entry(item).State = EntityState.Modified;
-            //await _db.SaveChangesAsync();
-
-            await UpdateOrderItemAsync(model.OrderItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
+                //_db.OrderItemUnitGroupDescriptionItems.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+                await UpdateOrderItemAsync(ctx, model.OrderItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
+            }
 
             return model;
         });
 
-        public async Task UpdateOrderItemAsync(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
+        public async Task UpdateOrderItemAsync(AppManEntities ctx, Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
-            var orderItem = await _db.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
-            var unitGroup = await _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefaultAsync();
-            //var totalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
-            //var setUnitCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
-            //var setTotalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
+            var orderItem = await ctx.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
+            var unitGroup = await ctx.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefaultAsync();
             var setUnitCost = unitGroup.UnitCost;
             var setTotalCost = unitGroup.TotalCost;
             var setQty = unitGroup.Qty;
@@ -196,9 +182,9 @@ namespace iLgs.Services.PurchaseOrder
             orderItem.Amount = (orderItem.Qty * orderItem.UnitCost) * setQty;
             orderItem.UpdatedBy = user;
             orderItem.UpdatedDt = date;
-            _db.OrderItems.Attach(orderItem);
-            _db.Entry(orderItem).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+            //_db.OrderItems.Attach(orderItem);
+            //_db.Entry(orderItem).State = EntityState.Modified;
+            await ctx.SaveChangesAsync();
         }
     }
 }

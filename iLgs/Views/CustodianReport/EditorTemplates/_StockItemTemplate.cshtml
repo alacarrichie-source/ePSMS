@@ -146,6 +146,8 @@
         <br />
         <div id="DIV_ALLFIELDS" style="border: 1px solid black;padding:1rem 1rem;" class="hidden">
         @*<div id="DIV_ALLFIELDS" style="border:1px solid #ccc; background:#f9f9f9; padding:1rem; border-radius:6px;" class="hidden">*@
+        @*<div id="DIV_ALLFIELDS" class="d-none border rounded p-3 bg-light shadow-sm hidden">*@
+        @*<div id="DIV_ALLFIELDS" class="hidden div-card">*@
 
         </div>
 
@@ -170,7 +172,7 @@
                     </label>
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.PropNo).Enable(ViewBag.IsAdmin).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PropNo)
                 </div>
             </div>
@@ -194,7 +196,7 @@
                     @Html.DisplayFor(m => m.SeriesNo, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.SeriesNo).Enable(ViewBag.IsAdmin).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SeriesNo)
                 </div>
             </div>
@@ -796,8 +798,8 @@
                     @Html.ValidationMessageFor(m => m.UnitCost)
                 </div>
             </div>
-        </div>
-
+        </div>        
+        
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">

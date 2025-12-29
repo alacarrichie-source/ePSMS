@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -29,11 +30,12 @@ namespace iLgs.Services.Codes
         private readonly IExceptionService<AnnexDVM> _xtraExceptionService;
 
         public AnnexDService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
             IExceptionService<AnnexDVM> xtraExceptionService,
             IUserService userService)
-        : base(db, exceptionService, vmExceptionService, userService)
+        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }
@@ -57,7 +59,7 @@ namespace iLgs.Services.Codes
 
         public IQueryable<AnnexDVM> GetAll()
         {
-            var data = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode)
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode).AsNoTracking()
                 .Select(CodextnProjection).OrderBy(o => o.Description);
             return data;
         }

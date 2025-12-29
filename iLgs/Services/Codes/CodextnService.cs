@@ -20,6 +20,7 @@ namespace iLgs.Services.Codes
         ValueTask<IQueryable<Codextn>> GetUserSectionsAsync(Guid? deptId, string userId);
         IQueryable<Codextn> GetRequiredFields(string part);
         IQueryable<Codextn> GetUploadList();
+        IQueryable<Codextn> GetUploadListLand();
         IQueryable<Codextn> GetItemCodeRequestUploadList();
         IQueryable<Codextn> GetIssuanceYears();
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
@@ -36,17 +37,21 @@ namespace iLgs.Services.Codes
 
     public class CodextnService : BaseValidator, ICodextnService
     {
-        protected readonly AppManEntities _db;        
+        protected readonly AppManEntities _db;
+        protected readonly IAppManEntitiesFactory _contextFactory;
         protected readonly GetDisplayNameDelegate _getDisplayName;
         protected readonly IExceptionService<Codextn> _exceptionService;
         protected readonly IExceptionService<CodextnVM> _vmExceptionService;
         private readonly IUserService _userService;
         
-        public CodextnService(AppManEntities db, IExceptionService<Codextn> exceptionService, 
+        public CodextnService(AppManEntities db, 
+            IAppManEntitiesFactory appManEntitiesFactory,
+            IExceptionService<Codextn> exceptionService, 
             IExceptionService<CodextnVM> vmExceptionService,
             IUserService userService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptionService = exceptionService;
             _vmExceptionService = vmExceptionService;
             _getDisplayName = Utility.GetDisplayName<Codextn>;
@@ -120,6 +125,13 @@ namespace iLgs.Services.Codes
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "UPLOAD-LIST").AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
+
+        public IQueryable<Codextn> GetUploadListLand()
+        {
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "UPLOAD-LIST-LAND").AsNoTracking().OrderBy(o => o.Description);
+            return data;
+        }
+
         public IQueryable<Codextn> GetItemCodeRequestUploadList()
         {
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "ITEM-UPLOAD-LIST").AsNoTracking().OrderBy(o => o.Description);
@@ -276,35 +288,41 @@ namespace iLgs.Services.Codes
                 UpdatedDt = model.UpdatedDt
             };
 
-            _db.Codextns.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.Codextns.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
 
         public virtual ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            var entity = _db.Codextns.Find(model.Id);
-
-            if (entity != null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
+                var entity = ctx.Codextns.Find(model.Id);
 
-                model.Code = string.IsNullOrWhiteSpace(model.Code) ? NextCode(model.MastId) : model.Code;
+                if (entity != null)
+                {
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
 
-                entity.Code = model.Code;
-                entity.Description = model.Description;
-                entity.Desc2 = model.Desc2;
-                entity.Desc3 = model.Desc3;
-                entity.Desc4 = model.Desc4;
-                entity.Desc5 = model.Desc5;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+                    model.Code = string.IsNullOrWhiteSpace(model.Code) ? NextCode(model.MastId) : model.Code;
 
-                _db.Codextns.Attach(entity);
-                _db.Entry(entity).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
+                    entity.Code = model.Code;
+                    entity.Description = model.Description;
+                    entity.Desc2 = model.Desc2;
+                    entity.Desc3 = model.Desc3;
+                    entity.Desc4 = model.Desc4;
+                    entity.Desc5 = model.Desc5;
+                    entity.UpdatedBy = model.UpdatedBy;
+                    entity.UpdatedDt = model.UpdatedDt;
+
+                    //ctx.Codextns.Attach(entity);
+                    //ctx.Entry(entity).State = EntityState.Modified;
+                    await ctx.SaveChangesAsync();
+                }
             }
             return model;
         });
@@ -314,18 +332,21 @@ namespace iLgs.Services.Codes
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            Codextn entity = await _db.Codextns.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                Codextn entity = await ctx.Codextns.FindAsync(model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.Codextns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //ctx.Codextns.Attach(entity);
+                //ctx.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.Codextns.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.Codextns.Remove(entity);
+                //ctx.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });

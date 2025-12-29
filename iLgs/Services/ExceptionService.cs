@@ -37,12 +37,10 @@ namespace iLgs.Services
             }
             catch (InvalidModelException invalidException)
             {
-                throw CreateAndLogValidationException(invalidException);
-                //throw new ValidationException(invalidException);
+                throw CreateAndLogValidationException(invalidException);                
             }
             catch (InvalidValueException invalidValueException)
             {
-                //throw CreateAndLogValidationException(invalidValueException);
                 throw new ValidationException(invalidValueException);
             }
             catch (NotFoundException nullException)

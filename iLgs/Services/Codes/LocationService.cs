@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -22,10 +23,11 @@ namespace iLgs.Services.Codes
     public class LocationService : CodextnService, ILocationService
     {
         public LocationService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
             IUserService userService)
-        : base(db, exceptionService, vmExceptionService, userService)
+        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
         {
         }
 

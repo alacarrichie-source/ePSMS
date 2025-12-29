@@ -7,11 +7,11 @@ namespace iLgs.Controllers
 {
     public class UserMenu_Controller : ApiController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public UserMenu_Controller(AppManEntities db)
+        public UserMenu_Controller()
         {
-            _db = db;
+            
         }
 
         // GET: api/UserMenu_/5/RPTONLINE

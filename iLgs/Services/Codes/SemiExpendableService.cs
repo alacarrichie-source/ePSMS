@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -26,11 +27,12 @@ namespace iLgs.Services.Codes
         private readonly IExceptionService<SemiExpendableVM> _xtraExceptionService;
 
         public SemiExpendableService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
             IExceptionService<SemiExpendableVM> xtraExceptionService,
             IUserService userService)
-        : base(db, exceptionService, vmExceptionService, userService)
+        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }
@@ -65,11 +67,17 @@ namespace iLgs.Services.Codes
             return GetSPHV(DateTime.Now);
         }
 
-        public decimal? GetSPHV(DateTime? asOfDate)
+        public decimal? GetSPHVOld(DateTime? asOfDate)
         {
             var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
                 "Where MastId in (Select Id From CodeMast Where Code = 'SPHV') " +
                 "and convert(varchar(10), Code, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
+            return data ?? 5000;
+        }
+
+        public decimal? GetSPHV(DateTime? asOfDate)
+        {
+            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_SPHV({0})", asOfDate).FirstOrDefault();
             return data ?? 5000;
         }
 

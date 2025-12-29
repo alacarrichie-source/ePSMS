@@ -6,11 +6,11 @@ namespace iLgs.Controllers
 {
     public class Roles_Controller : ApiController
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
 
-        public Roles_Controller(AppManEntities db)
+        public Roles_Controller()
         {
-            _db = db;
+            
         }
 
         // GET: api/Roles_/5/RPTONLINE/admin

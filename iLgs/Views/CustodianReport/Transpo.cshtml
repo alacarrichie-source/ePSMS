@@ -278,7 +278,7 @@
   .For("#btnCount")
   .Position(TooltipPosition.Top)
   .Animation(true)
-  .Content("Certifying that the count has been COMPLETED (annexes A, B, and C) by the custodian and is now ready for verification by the Official Physical Count Team.")
+  .Content("Certifying that the count for annexes A, B, and C (with uploads) has been COMPLETED by the custodian and is now ready for verification by the Official Physical Count Team.")
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
@@ -1047,7 +1047,10 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count has been COMPLETED (annexes A, B, and C) and is now ready for verification by the Official Physical Count Team?";
+            //msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?\n\n" +
+                "NOTE:\n" +
+                "Location or sublocation is required. The department must submit the main location and each of its sublocations, with each custodian submitting as assigned. Click 'Submit.' If successful, you will see 'Unsubmit.'";
         }
         if (confirm(msg)) {
             var url = "";

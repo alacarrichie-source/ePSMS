@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -19,14 +20,17 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemSharedService : IOrderItemSharedService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<OrderItemVM> _vmExceptionService;
         private readonly IOrderItemUnitGroupDescriptionItemSharedService _orderItemUnitGroupDescriptionItemSharedService;
 
         public OrderItemSharedService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<OrderItemVM> vmExceptionService,
             IOrderItemUnitGroupDescriptionItemSharedService orderItemUnitGroupDescriptionItemSharedService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _vmExceptionService = vmExceptionService;
             _orderItemUnitGroupDescriptionItemSharedService = orderItemUnitGroupDescriptionItemSharedService;
         }
@@ -38,20 +42,23 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var orderItemGroupDescriptionItem = await _orderItemUnitGroupDescriptionItemSharedService.DeleteEmptyGroupsAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var orderItemGroupDescriptionItem = await _orderItemUnitGroupDescriptionItemSharedService.DeleteEmptyGroupsAsync(model.Id);
 
-            OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
+                OrderItem entity = await ctx.OrderItems.FindAsync(model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.OrderItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.OrderItems.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.OrderItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.OrderItems.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });

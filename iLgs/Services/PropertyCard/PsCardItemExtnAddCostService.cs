@@ -26,15 +26,18 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnAddCostService : BaseValidator, IPsCardItemExtnAddCostService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnAddCost> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public PsCardItemExtnAddCostService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<PsCardItemExtnAddCost> exceptionService,
             IPsCardItemTransactionService psCardItemTransactionService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _exceptionService = exceptionService;
             _psCardItemTransactionService = psCardItemTransactionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnAddCost>(propertyName);
@@ -142,8 +145,11 @@ namespace iLgs.Services.PropertyCard
             var entity = new PsCardItemExtnAddCost();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.PsCardItemExtnAddCosts.Add(entity);
-            await _db.SaveChangesAsync();
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                ctx.PsCardItemExtnAddCosts.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -156,13 +162,16 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.PsCardItemExtnAddCosts.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemExtnAddCosts.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+            }
             
             return model;
         });
@@ -172,18 +181,21 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.PsCardItemExtnAddCosts.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCardItemExtnAddCosts.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.PsCardItemExtnAddCosts.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.PsCardItemExtnAddCosts.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
             
             return model;
         });

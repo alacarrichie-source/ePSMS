@@ -3,6 +3,7 @@ using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Data.Entity.SqlServer;
@@ -28,18 +29,18 @@ namespace iLgs.Services.StockCards
         private readonly IUserService _userService;
 
         public StockCardService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<PsCardVM> vmExceptionService,
             IExceptionService<PsCard> exceptionService,
             IAllFieldService allFieldService,
             IPsCardSharedService psCardSharedService,
             IPsCardItemService psCardItemService,
-            //IPsCardItemIssuanceService psCardItemIssuanceService,
             IExceptionService<StockCardVM> stockExceptionService,
             IStockCardValidator validator,
             IItemCodeService itemCodeService,
             IUserService userService) 
-            : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+            : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
         {
             _stockExceptionService = stockExceptionService;
             _validator = validator;
@@ -222,35 +223,38 @@ namespace iLgs.Services.StockCards
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = new PsCard
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                Id = model.Id,
-                ItemCodeId = model.ItemCodeId,
-                SubAccountCode = model.SubAccountCode,
-                Fund = model.Fund,
-                Description = model.Description,
-                Unit = model.Unit,
-                CardCategory = model.CardCategory,
-                PsNo = model.PsNo,
-                PsName = model.PsName,
-                PrevPsNo = model.PrevPsNo,
-                FromDonation = model.FromDonation,
-                Amount = model.Amount,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+                var entity = new PsCard
+                {
+                    Id = model.Id,
+                    ItemCodeId = model.ItemCodeId,
+                    SubAccountCode = model.SubAccountCode,
+                    Fund = model.Fund,
+                    Description = model.Description,
+                    Unit = model.Unit,
+                    CardCategory = model.CardCategory,
+                    PsNo = model.PsNo,
+                    PsName = model.PsName,
+                    PrevPsNo = model.PrevPsNo,
+                    FromDonation = model.FromDonation,
+                    Amount = model.Amount,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
 
-            model.AllField.Id = model.Id;
-            model.AllField.InsertedBy = user;
-            model.AllField.InsertedDt = date;
-            model.AllField.UpdatedBy = user;
-            model.AllField.UpdatedDt = date;
-            entity.AllField = model.AllField;
+                model.AllField.Id = model.Id;
+                model.AllField.InsertedBy = user;
+                model.AllField.InsertedDt = date;
+                model.AllField.UpdatedBy = user;
+                model.AllField.UpdatedDt = date;
+                entity.AllField = model.AllField;
 
-            _db.PsCards.Add(entity);
-            await _db.SaveChangesAsync();
+                ctx.PsCards.Add(entity);
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -264,33 +268,33 @@ namespace iLgs.Services.StockCards
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.FindAsync(model.Id);
 
-            ValidateUser(entity, model); 
+                ValidateUser(entity, model);
 
-            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            
-            entity.ItemCodeId = model.ItemCodeId;
-            entity.SubAccountCode = model.SubAccountCode;
-            entity.Fund = model.Fund;
-            entity.Description = model.Description;
-            entity.Unit = model.Unit;
-            entity.CardCategory = model.CardCategory;
-            entity.PsNo = model.PsNo;
-            entity.PsName = model.PsName;
-            entity.PrevPsNo = model.PrevPsNo;
-            entity.FromDonation = model.FromDonation;
-            entity.Amount = model.Amount;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-            entity.AllField = model.AllField;
+                model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
+                entity.ItemCodeId = model.ItemCodeId;
+                entity.SubAccountCode = model.SubAccountCode;
+                entity.Fund = model.Fund;
+                entity.Description = model.Description;
+                entity.Unit = model.Unit;
+                entity.CardCategory = model.CardCategory;
+                entity.PsNo = model.PsNo;
+                entity.PsName = model.PsName;
+                entity.PrevPsNo = model.PrevPsNo;
+                entity.FromDonation = model.FromDonation;
+                entity.Amount = model.Amount;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+                entity.AllField = model.AllField;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-
-            //_db.AllFields.Attach(model.AllField);
-            //_db.Entry(model.AllField).State = EntityState.Modified;
-
-            await _db.SaveChangesAsync();
+                //_db.PsCards.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                
+                await ctx.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -300,22 +304,25 @@ namespace iLgs.Services.StockCards
             await _validator.ValidateOnDeleteAsync(model);
 
             model.UpdatedBy = user;
-            model.UpdatedDt = date;            
+            model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var entity = await ctx.PsCards.FindAsync(model.Id);
 
-            ValidateUser(entity, model);
+                ValidateUser(entity, model);
 
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            _db.PsCards.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                //_db.PsCards.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
 
-            _db.PsCards.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
+                ctx.PsCards.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+            }
             
             return model;
         });

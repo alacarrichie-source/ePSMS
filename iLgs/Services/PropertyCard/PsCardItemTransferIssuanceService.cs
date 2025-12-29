@@ -36,6 +36,7 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransferIssuanceService : BaseValidator, IPsCardItemTransferIssuanceService
     {
         private readonly AppManEntities _db;
+        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IExceptionService<PsCardItemTransferIssuanceVM> _vmExceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
@@ -44,6 +45,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardSharedService _psCardSharedService;
 
         public PsCardItemTransferIssuanceService(AppManEntities db,
+            IAppManEntitiesFactory appManEntitiesFactory,
             IExceptionService<PsCardItemTransferIssuanceVM> vmExceptionService,
             IPsCardItemTransactionService psCardItemTransactionService,
             IPsCardItemExtnService psCardItemExtnService,
@@ -51,6 +53,7 @@ namespace iLgs.Services.PropertyCard
             IPsCardSharedService psCardSharedService)
         {
             _db = db;
+            _contextFactory = appManEntitiesFactory;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemTransferIssuanceVM>(propertyName);
             _vmExceptionService = vmExceptionService;
             _psCardItemTransactionService = psCardItemTransactionService;
@@ -101,55 +104,58 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            if (model.SelectedIds != null)
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                string[] selectedIds = model.SelectedIds.Split(',');
-
-                if (selectedIds.Count() == 0)
+                if (model.SelectedIds != null)
                 {
-                    throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
-                }
+                    string[] selectedIds = model.SelectedIds.Split(',');
 
-                model.Qty = selectedIds.Count();
-                var psCardItemTransferIssuance = await CreatePsCardItemTransferIssuanceAsync(model);
-
-                foreach (var selectedId in selectedIds)
-                {
-                    var psCardItemExtnId = Guid.Parse(selectedId);
-                    var psCardItemTransferItem = _db.PsCardItemTransferItems
-                        .FirstOrDefault(f => f.PsCardItemExtnId == psCardItemExtnId 
-                            && f.PsCardItemTransferId == model.PsCardItemTransferId);
-                    var psCardItemTransferIssuanceItem = new PsCardItemTransferIssuanceItem()
+                    if (selectedIds.Count() == 0)
                     {
-                        Id = Guid.NewGuid(),
-                        PsCardItemTransferIssuanceId = psCardItemTransferIssuance.Id,
-                        PsCardItemTransferItemId = psCardItemTransferItem.Id,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-                    _db.PsCardItemTransferIssuanceItems.Add(psCardItemTransferIssuanceItem);
-                }
-                await _db.SaveChangesAsync();
-            }
-            else
-            {
-                var psCardItemIssuance = await CreatePsCardItemTransferIssuanceAsync(model);
-            }
+                        throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
+                    }
 
-            await UpdatePsItems(model.PsCardItemTransferId, user, date);
+                    model.Qty = selectedIds.Count();
+                    var psCardItemTransferIssuance = await CreatePsCardItemTransferIssuanceAsync(ctx, model);
+
+                    foreach (var selectedId in selectedIds)
+                    {
+                        var psCardItemExtnId = Guid.Parse(selectedId);
+                        var psCardItemTransferItem = await ctx.PsCardItemTransferItems
+                            .FirstOrDefaultAsync(f => f.PsCardItemExtnId == psCardItemExtnId
+                                && f.PsCardItemTransferId == model.PsCardItemTransferId);
+                        var psCardItemTransferIssuanceItem = new PsCardItemTransferIssuanceItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            PsCardItemTransferIssuanceId = psCardItemTransferIssuance.Id,
+                            PsCardItemTransferItemId = psCardItemTransferItem.Id,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        ctx.PsCardItemTransferIssuanceItems.Add(psCardItemTransferIssuanceItem);
+                    }
+                    await ctx.SaveChangesAsync();
+                }
+                else
+                {
+                    var psCardItemIssuance = await CreatePsCardItemTransferIssuanceAsync(ctx, model);
+                }
+
+                await UpdatePsItems(ctx, model.PsCardItemTransferId, user, date);
+            }
 
             return model;
         });
 
-        public async Task<PsCardItemTransferIssuance> CreatePsCardItemTransferIssuanceAsync(PsCardItemTransferIssuanceVM model)
+        public async Task<PsCardItemTransferIssuance> CreatePsCardItemTransferIssuanceAsync(AppManEntities ctx, PsCardItemTransferIssuanceVM model)
         {
             var entity = new PsCardItemTransferIssuance();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.PsCardItemTransferIssuances.Add(entity);
-            await _db.SaveChangesAsync();
+            ctx.PsCardItemTransferIssuances.Add(entity);
+            await ctx.SaveChangesAsync();
 
             return entity;
         }
@@ -157,33 +163,36 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemTransferIssuanceVM> UpdateAsync(PsCardItemTransferIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            var entity = await _db.PsCardItemTransferIssuances.Include(i => i.PsCardItemTransfer).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            ValidateRecord(entity, model.Id);
 
-            
-            if (_db.RSMIs.Any(a => a.Date == entity.IssuedDate))
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {entity.IssuedDate.Value.ToShortDateString()}, cannot update!");
+                var entity = await ctx.PsCardItemTransferIssuances.Include(i => i.PsCardItemTransfer).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                ValidateRecord(entity, model.Id);
+
+                if (await ctx.RSMIs.AnyAsync(a => a.Date == entity.IssuedDate))
+                {
+                    throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {entity.IssuedDate.Value.ToShortDateString()}, cannot update!");
+                }
+
+                await ValidateFieldsAsync(model, Mode.EDIT);
+
+                var qtyBalance = (ctx.PsCardItemTransfers.Find(model.PsCardItemTransferId)?.QtyBal ?? 0) + entity.Qty;
+                if (model.Qty > qtyBalance)
+                {
+                    throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                MapModelToEntityFields(entity, model, Mode.EDIT);
+
+                //_db.PsCardItemTransferIssuances.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                await UpdatePsItems(ctx, model.PsCardItemTransferId, user, date);
             }
-
-            await ValidateFieldsAsync(model, Mode.EDIT);
-
-            var qtyBalance = (_db.PsCardItemTransfers.Find(model.PsCardItemTransferId)?.QtyBal ?? 0) + entity.Qty;
-            if (model.Qty > qtyBalance)
-            {
-                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
-            }            
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            MapModelToEntityFields(entity, model, Mode.EDIT);
-
-            _db.PsCardItemTransferIssuances.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            await UpdatePsItems(model.PsCardItemTransferId, user, date);
 
             return model;
         });
@@ -210,40 +219,38 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemTransferIssuanceVM> DeleteAsync(PsCardItemTransferIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.PsCardItemTransferIssuances.FindAsync(model.Id);
-
-            //if (entity.PostedDt != null)
-            //{
-            //    throw new RecordAlreadyPostedException("Record Already Posted, cannot delete!");
-            //}
-
-            if (_db.RSMIs.Any(a => a.Date == model.IssuedDate))
+            using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                throw new RecordAlreadyExistsException("RSMI already exists for this date, cannot delete!");
+                var entity = await ctx.PsCardItemTransferIssuances.FindAsync(model.Id);
+
+                if (await ctx.RSMIs.AnyAsync(a => a.Date == model.IssuedDate))
+                {
+                    throw new RecordAlreadyExistsException("RSMI already exists for this date, cannot delete!");
+                }
+
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                //_db.PsCardItemTransferIssuances.Attach(entity);
+                //_db.Entry(entity).State = EntityState.Modified;
+                await ctx.SaveChangesAsync();
+
+                ctx.PsCardItemTransferIssuances.Remove(entity);
+                //_db.Entry(entity).State = EntityState.Deleted;
+                await ctx.SaveChangesAsync();
+
+                await UpdatePsItems(ctx, model.PsCardItemTransferId, user, date);
             }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.PsCardItemTransferIssuances.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            _db.PsCardItemTransferIssuances.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-
-            await UpdatePsItems(model.PsCardItemTransferId, user, date);
 
             return model;
         });        
 
-        private async Task UpdatePsItems(Guid? transferId, string user, DateTime date)
+        private async Task UpdatePsItems(AppManEntities ctx, Guid? transferId, string user, DateTime date)
         {
-            var psCardItemTransfer = await _db.PsCardItemTransfers
+            var psCardItemTransfer = await ctx.PsCardItemTransfers
                 .Include(i => i.PsCardItem)
                 .Include(i => i.PsCardItemTransferIssuances).Where(w => w.Id == transferId).FirstOrDefaultAsync();
             var qtyIss = psCardItemTransfer.PsCardItemTransferIssuances.Sum(s => s.Qty) ?? 0;
@@ -257,9 +264,9 @@ namespace iLgs.Services.PropertyCard
             psCardItemTransfer.UpdatedBy = user;
             psCardItemTransfer.UpdatedDt = date;
 
-            _db.PsCardItemTransfers.Attach(psCardItemTransfer);
-            _db.Entry(psCardItemTransfer).State = EntityState.Modified;
-            await _db.SaveChangesAsync();            
+            //_db.PsCardItemTransfers.Attach(psCardItemTransfer);
+            //_db.Entry(psCardItemTransfer).State = EntityState.Modified;
+            await ctx.SaveChangesAsync();            
         }        
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? transferId)
