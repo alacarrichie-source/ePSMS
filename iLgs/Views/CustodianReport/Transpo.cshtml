@@ -41,7 +41,7 @@
     <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @if (ViewBag.IsDemand)
+            @if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 @(Html.Kendo().MultiColumnComboBox()
                         .Name("deptId")
@@ -165,7 +165,7 @@
             col.Bound(c => c.UpdatedBy).Width(50);
             col.Bound(c => c.UpdatedDt).Width(50);
             col.Bound(c => c.IsPosted).Width(30);
-            if (ViewBag.IsDemand)
+            if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 col.Bound(c => c.Remarks).Width(70);
                 col.Command(command =>
@@ -188,6 +188,14 @@
             {
                 t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
+            }
+            else if (ViewBag.IsView)
+            {
+                t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
             }
             else
             {
@@ -282,6 +290,9 @@
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
+    @{
+        var isView = ViewBag.IsView == true || ViewBag.IsDemand == true;
+    }
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
         //.HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -290,12 +301,12 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#" });
-            items.Add().Text("PAR").LoadContentFrom("_VehicleParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ICS").LoadContentFrom("_VehicleIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ARE").LoadContentFrom("_VehicleAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("MR").LoadContentFrom("_VehicleMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("RPCPPE").LoadContentFrom("_VehicleRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#", isView = isView });
+            items.Add().Text("PAR").LoadContentFrom("_VehicleParIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("ICS").LoadContentFrom("_VehicleIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("ARE").LoadContentFrom("_VehicleAreIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("MR").LoadContentFrom("_VehicleMrIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("RPCPPE").LoadContentFrom("_VehicleRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
         })
         .ToClientTemplate())
 </script>
@@ -567,7 +578,7 @@
     }
 
     function onChangeForYear(e) {
-        reportId = null;
+        //reportId = null;
         var numeric = $("#forYear").data("kendoDropDownList");
 
         $.ajax({
@@ -582,6 +593,7 @@
 
                 if (result.Errors == "") {
                     $("#grid").data("kendoGrid").dataSource.read();
+                    //setSubmitButton();
                 } else {
                     alert(result.Errors);
 
@@ -615,12 +627,13 @@
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         deptCode = dataItem.Code;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
 
         $("#grid").data("kendoGrid").dataSource.read(); //.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
+        //setSubmitButton();
     }
 
     function onChangeDeptId(e) {
@@ -628,9 +641,10 @@
         if (!comboBox.value()) {
             selectedId = null;
             trackingId = selectedId;
-            reportId = null;
+            //reportId = null;
             deptCode = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
+            setSubmitButton();
         }
     }
 
@@ -640,21 +654,25 @@
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         selectedSection = dataItem.Section;
         selectedSectionCode = dataItem.Code;
         $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
         //$("#grid").data("kendoGrid").dataSource.read();
+        //setSubmitButton();
     }
 
     function onChangeSectionId(e) {
         var comboBox = this;
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         //if (!comboBox.value()) {
-        //    $("#grid").data("kendoGrid").dataSource.data([]);
+        //    // hide submit
+        //}
+        //else {
+        //    setSubmitButton();
         //}
         $("#grid").data("kendoGrid").dataSource.read();
     }
@@ -691,7 +709,8 @@
             deptId: $("#deptId").val(),
             sectionId: $("#sectionId").val(),
             accountGroup: '@ViewBag.AccountGroup',
-            isDemand: '@ViewBag.IsDemand'
+            isDemand: '@ViewBag.IsDemand',
+            isView: '@ViewBag.IsView'
         };
     }
 
@@ -765,8 +784,8 @@
             $(".k-grid-btnPost").hide();
             $(".k-grid-btnUnpost").hide();
             $(".k-grid-btnUpload").hide();
-            $(".k-grid-btnCount", grid).hide();
-            reportId = null;
+            //$(".k-grid-btnCount", grid).hide();
+            //reportId = null;
         }
         else {
             //$(".k-grid-btnExport").show();
@@ -774,11 +793,12 @@
             //$(".k-grid-btnExportB").show();
             //$(".k-grid-btnExportC").show();
             $(".k-grid-btnUpload").show();
-            $(".k-grid-btnCount", grid).show();
-            var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
-            reportId = firstDataItem.ReportId;
-            setSubmitButton(reportId, $("#sectionId").val());
+            //$(".k-grid-btnCount", grid).show();
+            //var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
+            //reportId = firstDataItem.ReportId;
+            //setSubmitButton();
         }
+        setSubmitButton();
     }
 
     function onEditGrid(e) {
@@ -815,7 +835,7 @@
             var dataItem = e.model;
             e.model.set("ForYear", $("#forYear").val());
             e.model.set("MainDeptId", $("#deptId").val());
-            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True') {
+            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True' || '@ViewBag.IsView' == 'True') {
                 //// Disable all input/select/textarea inside the popup
                 //var popup = e.container;
 
@@ -1042,7 +1062,10 @@
         }
     });
 
-    $(".k-grid-btnCount").click(function (e) {
+    /*
+    Old
+    */
+    @*$(".k-grid-btnCount").click(function (e) {
         e.preventDefault();
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
@@ -1080,6 +1103,67 @@
                     if (result.Errors == "") {
                         $("#grid").data("kendoGrid").dataSource.read();
                     } else {
+                        displayErrors(result.Errors);
+                        return false;
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    disabled.attr('disabled', 'disabled');
+                    alert(req.responseText);
+                    return false;
+                }
+            });
+        }
+    });*@
+
+    $(".k-grid-btnCount").click(function (e) {
+        e.preventDefault();
+        var btnText = $(".k-grid-btnCount").text();
+        var msg = "Are you sure you want to " + btnText + "?";
+        if (btnText == "Submit for Count" || btnText == "Submit None for Count") {
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?\n\n" +
+                "NOTE:\n" +
+                "Location or sublocation is required. The department must submit the main location and each of its sublocations, with each custodian submitting as assigned. Click 'Submit.' If successful, you will see 'Unsubmit.'";
+        }
+        if (confirm(msg)) {
+            var url = "";
+            var requestData = "";
+            if (btnText == "Submit for Count" || btnText == "Submit None for Count")
+            {
+                url = '@Url.Action("SubmitForCountNew", "CustodianReport")';
+                requestData = {
+                    forYear: $("#forYear").val(),
+                    deptId: $("#deptId").val(),
+                    locationId: $("#sectionId").val(),
+                    accountGroup: '@ViewBag.AccountGroup',
+                    url: window.location.href
+                };
+            }
+            else
+            {
+                url = '@Url.Action("UnsubmitForCount", "CustodianReport")';
+                requestData = {
+                    reportId: reportId,
+                    locationId: $("#sectionId").val(),
+                    accountGroup: '@ViewBag.AccountGroup',
+                    url: window.location.href
+                };
+            }
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: requestData,
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        reportId = result.ReportId;
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        reportId = null;
                         displayErrors(result.Errors);
                         return false;
                     }
@@ -1714,26 +1798,61 @@
     }
 
     // SUBMIT FOR COUNT
-    function setSubmitButton(reportId, locationId)
+    function setSubmitButton()
     {
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("IsSubmitForCount", "CustodianReport")',
-            data: { reportId: reportId, locationId: locationId },
-            beforeSend: function () {
-                window.kendo.ui.progress($("body, .k-window"), true);
-            },
-            success: function (result) {
-                window.kendo.ui.progress($("body, .k-window"), false);
-                var btn = $(".k-grid-btnCount")
-                var newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
-                btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);
-            },
-            error: function (req, status, errorObj) {
-                alert(req.responseText);
-                window.kendo.ui.progress($("body, .k-window"), false);
-            }
-        });
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var locationId = $("#sectionId").val();
+        if (!forYear || !deptId) {
+            $(".k-grid-btnCount").hide();
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("IsSubmitForCountNew", "CustodianReport")',
+                data: {
+                    forYear: forYear,
+                    deptId: deptId,
+                    locationId: locationId,
+                    accountGroup: '@ViewBag.AccountGroup'
+                },
+                beforeSend: function () {
+                    $(".k-grid-btnCount").show();
+                    window.kendo.ui.progress($("body, .k-window"), true);
+                },
+                success: function (result) {
+                    if (result.IsSubmitForCount == true) {
+                        reportId = result.ReportId;
+                    } else
+                    {
+                        reportId = null;
+                    }
+                    window.kendo.ui.progress($("body, .k-window"), false);
+
+                    var newText = "";
+                    var btn = $(".k-grid-btnCount")
+                    //var newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
+                    if ($("#grid").data("kendoGrid").dataSource.data().length == 0) {
+                        //if (deptId != locationId) {
+                        //    btn.hide();                        
+                        //}
+                        //else {                            
+                        //    btn.show();
+                        //}
+                        newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
+                    }
+                    else {
+                        newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
+                        
+                    }
+                    btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);                        
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                    window.kendo.ui.progress($("body, .k-window"), false);
+                }
+            });
+        }
     }
 
     function onChangeSetLotNo()

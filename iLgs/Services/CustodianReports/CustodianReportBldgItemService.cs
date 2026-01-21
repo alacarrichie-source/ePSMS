@@ -24,8 +24,10 @@ namespace iLgs.Services.CustodianReports
         Task<string> GetStockNoAsync(CustodianReportBldgItem model);
         ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
-        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupOld(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeIdOld(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId, bool? isView);
         IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
@@ -100,45 +102,15 @@ namespace iLgs.Services.CustodianReports
                 //BldgItem = s.BldgItem, moved to phaseItems
                 PsNo = s.PsNo,
                 PropNo = s.PropNo,
-                //PoNo = s.PoNo,
-                //OldAmount = s.OldAmount,
-                //PoDate = s.PoDate,
-                //AcqCost = s.AcqCost,
                 DeptId = s.DeptId,
                 Department = s.Department,
                 LocationId = s.LocationId,
                 LocationCode = s.LocationCode,
                 Location = s.Location,
                 SubLocation = s.SubLocation,
-                //AcqMonth = s.AcqMonth,
-                //AcqYear = s.AcqYear,
-                //AcqDay = s.AcqDay,
-                //AcqDate = s.AcqDate,
-                //Address = s.Address,
-                //ProjectName = s.ProjectName,
-                //BuildingType = s.BuildingType,
                 Area = s.Area,
                 AppraiseValue = s.AppraiseValue,
-                //TotalAmount = s.TotalAmount,
-                //PhaseNo = s.PhaseNo,
-                //PhaseAmountMooe = s.PhaseAmountMooe,
-                //PhaseAmountCo = s.PhaseAmountCo,
-                //StartYear = s.StartYear,
-                //StartMonth = s.StartMonth,
-                //StartDay = s.StartDay,
-                //StartDate = s.StartDate,
-                //TargetYear = s.TargetYear,
-                //TargetMonth = s.TargetMonth,
-                //TargetDay = s.TargetDay,
-                //TargetDate = s.TargetDate,
-                //PercentComplete = s.PercentComplete,
-                //CompletionYear = s.CompletionYear,
-                //CompletionMonth = s.CompletionMonth,
-                //CompletionDay = s.CompletionDay,
-                //CompletionDate = s.CompletionDate,
-                //Status = s.Status,
                 Condition = s.Condition,
-                //Remarks = s.Remarks,
                 Annex = s.Annex, // not required, updated ItemPhase annex value
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
@@ -151,8 +123,8 @@ namespace iLgs.Services.CustodianReports
                 ItemType_Code = s.ItemCode.ItemType.Code,
                 Item_Code = s.ItemCode.Code,
                 IsSubmitted = db.CustodianReportSubmitForCounts.Any(a => a.ReportId == s.ReportId && a.LocationId == s.LocationId && a.Status == "Submit"),
-                //IsSubmitted = s.CustodianReport.CustodianReportSubmitForCounts.Any(a => a.Status == "Submit" && a.LocationId == s.LocationId)
                 // Transients
+                OldAmount = s.CustodianReportBldgItemPhases.Sum(x => x.OldAmount),
                 AcqCost = s.CustodianReportBldgItemPhases.Sum(x => x.AcqCost),
                 PhaseAmountCo = s.CustodianReportBldgItemPhases.Sum(x => x.CapitalOutlay),
                 PhaseAmountMooe = s.CustodianReportBldgItemPhases.Sum(x => x.MOOE),
@@ -184,7 +156,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupOld(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
         {
             var data = _db.CustodianReportBldgItems
             .AsNoTracking()
@@ -199,12 +171,33 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId)
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView)
+        {
+            IQueryable<CustodianReportBldgItemVM> data = null;
+            if (deptId != null)
+            {
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                if (isDemand == true || isView == true)
+                {
+                    userIsAdmin = true;
+                }
+                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                if (data.Any() && isDemand == true)
+                {
+                    data = data.Where(w => w.Annex == "C");
+                }
+            }
+
+            return data ?? Enumerable.Empty<CustodianReportBldgItemVM>().AsQueryable();
+        }
+
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeIdOld(int? forYear, Guid? deptId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId)
         {
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
-                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear 
-                && (deptId == Guid.Empty || w.CustodianReport.DeptId == deptId) 
+                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear
+                && (deptId == Guid.Empty || w.CustodianReport.DeptId == deptId)
                 && w.CustodianReport.AccountGroup == accountGroup && w.ItemCodeId == itemCodeId)
                 .Select(CustodianReportBldgItemProjection(_db));
 
@@ -219,6 +212,30 @@ namespace iLgs.Services.CustodianReports
             }
 
             return data;
+        }
+
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId, bool? isView)
+        {
+            IQueryable<CustodianReportBldgItemVM> data = null;
+            if (deptId != null)
+            {
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                if (isDemand == true || isView == true)
+                {
+                    userIsAdmin = true;
+                }
+                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                if (data.Any() && isDemand == true)
+                {
+                    data = data.Where(w => w.Annex == "C");
+                }
+                if (data.Any())
+                {
+                    data = data.Where(w => w.ItemCodeId == itemCodeId);
+                }
+            }
+            return data ?? Enumerable.Empty<CustodianReportBldgItemVM>().AsQueryable();
         }
 
         public IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
@@ -319,7 +336,7 @@ namespace iLgs.Services.CustodianReports
                             entity.PsNo = psNo;
                             entity.UpdatedBy = user;
                             entity.UpdatedDt = date;
-                        }                        
+                        }
                     }
                 }
 
@@ -557,7 +574,7 @@ namespace iLgs.Services.CustodianReports
             //entity.CompletionDate = model.CompletionDate;
             //entity.Status = model.Status;
             entity.Condition = model.Condition;
-            //entity.Remarks = model.Remarks;
+            entity.Remarks = model.Remarks;
             entity.Annex = model.Annex;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -593,7 +610,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        private void SetRowColValue(IXLWorksheet ws, CustodianReportBldgItem reportItem, int row, string annex)
+        private void SetRowColValue(IXLWorksheet ws, CustodianReportBldgItem reportItem, int row, bool isAnnex)
         {
             ws.Row(row).Cell(2).SetValue(reportItem.CustodianItemNo);
             ws.Row(row).Cell(3).SetValue(reportItem.SeriesNo);
@@ -647,10 +664,10 @@ namespace iLgs.Services.CustodianReports
 
             //ws.Row(row).Cell(29).SetValue(reportItem.Fund);
             //ws.Row(row).Cell(30).SetValue(reportItem.Condition);
-            //if (!isAnnex)
-            //{
-            //    ws.Row(row).Cell(32).SetValue(reportItem.Annex);
-            //}
+            if (!isAnnex)
+            {
+                ws.Row(row).Cell(32).SetValue(reportItem.Annex);
+            }
         }
 
         //private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath)
@@ -662,9 +679,8 @@ namespace iLgs.Services.CustodianReports
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
-        }
+        }        
 
-        //private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex)
         private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
             , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
@@ -675,64 +691,38 @@ namespace iLgs.Services.CustodianReports
                 int sw = 1;
                 int row = 12;
                 string itemTypeIndex = "";
-                string itemCode = "";
+                string itemCodeIndex = "";
                 string account = "";
                 string department = "";
                 decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
-                var reportItems = _db.CustodianReportBldgItems
-                    .Include(i => i.ItemCode.ItemType)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.CustodianReportBldgItemPhases)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear);
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                var reportItems = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
 
-                if (!string.IsNullOrWhiteSpace(subAccount))
+                if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
-                    reportItems = reportItems.Where(w => w.Item_Code.StartsWith(subAccount));
+                    reportItems = reportItems.Where(w => w.Annex != "D");
                 }
-
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    //reportItems = reportItems.Where(w => w.Annex == annex);
-                    reportItems = reportItems.Where(w => w.CustodianReportBldgItemPhases.Any(a => a.Annex == annex));
-                }
-
-                if (deptId != null)
-                {
-                    reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
-
-                }
-
-                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Code)
-                            .ThenBy(t => t.ItemCode.ItemType.GroupCode)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex)
-                            .ThenBy(o => o.CustodianReport.Department)
-                            .ThenBy(o => o.LocationCode)
-                            .ThenBy(o => o.CustodianItemNo).AsNoTracking();
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
                     ws.Row(2).Cell(2).SetValue($"Annex {annex}");
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
-                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
-                //if (deptId == null)
-                //{                    
-                //    if (reportItems.Any())
-                //    {                        
-                //        var report = ctx.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
-                //        ws.Row(8).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
-                //    }
-                //}
-                //else
-                //{
-                //    var codextn = ctx.Codextns.Find(deptId);
-                //    ws.Row(8).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
-                //}
+                if (asOf.HasValue)
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                }
+                else
+                {
+                    ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                }
+
+                ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
 
                 if (deptId == null || deptId == Guid.Empty)
                 {
@@ -753,23 +743,39 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(8).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
                 }
 
+                if (!reportItems.Any())
+                {
+                    var accountCell = ws.Row(6).Cell(2);
+                    accountCell.SetValue(mainAccount);
+                    accountCell.Style.Font.Bold = true;
+                    accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    accountCell.Style.Alignment.WrapText = false;
+                }
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
-                        itemTypeIndex = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
-                        itemCode = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemNoIndex;
-                        account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;                        
+                        itemTypeIndex = reportItem.ItemTypeIndex;
+                        itemCodeIndex = reportItem.ItemCodeIndex;
+                        account = reportItem.Account;
+                        department = reportItem.Department;
                         sw = 0;
+
+                        var accountCell = ws.Row(6).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
                     }
 
-                    if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
+                    //if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
+                    if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.Department)
                     {
-                        itemTypeIndex = reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
-                        itemCode = reportItem.ItemCode.ItemNoIndex;
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
+                        itemTypeIndex = reportItem.ItemTypeIndex;
+                        itemCodeIndex = reportItem.ItemCodeIndex;
+                        account = reportItem.Account;
+                        department = reportItem.Department;
                         row += 3;
                         var accountCell = ws.Row(row).Cell(2);
                         accountCell.SetValue(account);
@@ -797,11 +803,11 @@ namespace iLgs.Services.CustodianReports
                         custCellVal.Style.Alignment.WrapText = false;
                         if (deptId == null)
                         {
-                            custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
+                            custCellVal.SetValue($"ALL : {reportItem.DeptCode} {reportItem.Department}");
                         }
                         else
                         {
-                            custCellVal.SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
+                            custCellVal.SetValue($"{reportItem.DeptCode} {reportItem.Department}");
                         }
                         if (custCellVal.IsMerged())
                         {
@@ -841,64 +847,57 @@ namespace iLgs.Services.CustodianReports
                         ws.Range($"AF{row - 2}:AF{row}").Merge();
                     }
 
-                    row++;
+                    row++;                    
 
-                    //if (string.IsNullOrWhiteSpace(annex))
-                    //{
-                    //    SetRowColValue(ws, reportItem, row, false);
-                    //    ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    //}
-                    //else
-                    //{
-                    //    SetRowColValue(ws, reportItem, row, true);
-                    //    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    //}
-
-                    SetRowColValue(ws, reportItem, row, annex);
-                    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-
-                    if (reportItem.CustodianReportBldgItemPhases.Any())
+                    if (string.IsNullOrWhiteSpace(annex))
                     {
-                        var otherEngAmounts = reportItem.CustodianReportBldgItemPhases
-                        .OrderBy(o => o.InsertedDt)
-                        //.Skip(1)
-                        .ToList();
-                        if (otherEngAmounts.Any())
+                        SetRowColValue(ws, reportItem, row, false);
+                        ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
+                    else
+                    {
+                        SetRowColValue(ws, reportItem, row, true);
+                        ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
+
+                    var otherEngAmounts = _db.CustodianReportBldgItemPhases.Where(w => w.BldgItemId == reportItem.Id).OrderBy(o => o.PhaseNo).AsNoTracking();
+                    if (!string.IsNullOrWhiteSpace(annex))
+                    {
+                        otherEngAmounts = otherEngAmounts.Where(w => w.Annex == annex);
+                    }
+
+                    foreach (var engAmt in otherEngAmounts)
+                    {
+                        row++;
+                        ws.Row(row).Cell(10).SetValue(engAmt.BldgItem); // new
+                        ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
+                        ws.Row(row).Cell(14).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
+                        ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
+                        ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
+                        ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
+                        ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
+                        ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
+                        ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
+                        ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                        ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
+                        ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
+                        ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
+                        ws.Row(row).Cell(28).SetValue(engAmt.Status);
+                        ws.Row(row).Cell(29).SetValue(engAmt.Fund); // new
+                        ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
+
+                        if (!string.IsNullOrWhiteSpace(annex))
                         {
-                            foreach (var engAmt in otherEngAmounts)
-                            {
-                                row++;
-                                ws.Row(row).Cell(10).SetValue(engAmt.BldgItem); // new
-                                ws.Row(row).Cell(11).SetValue(engAmt.ProjectName);
-                                ws.Row(row).Cell(14).SetValue(engAmt.StartDate.HasValue ? engAmt.StartDate.Value.Year.ToString() : "");
-                                ws.Row(row).Cell(15).SetValue(engAmt.AcqDate.HasValue ? engAmt.AcqDate.Value.Year.ToString() : "");
-                                ws.Row(row).Cell(18).SetValue(engAmt.OldAmount);
-                                ws.Row(row).Cell(19).SetValue(engAmt.AcqCost);
-                                ws.Row(row).Cell(20).SetValue(engAmt.PhaseNo);
-                                ws.Row(row).Cell(21).SetValue(engAmt.CapitalOutlay);
-                                ws.Row(row).Cell(23).SetValue(engAmt.MOOE);
-                                ws.Row(row).Cell(24).SetValue(engAmt.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                                ws.Row(row).Cell(25).SetValue(engAmt.TargetDate.HasValue ? $"{engAmt.TargetDate.Value.Month}/{engAmt.TargetDate.Value.Year}" : "");
-                                ws.Row(row).Cell(26).SetValue(engAmt.PercentComplete);
-                                ws.Row(row).Cell(27).SetValue(engAmt.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
-                                ws.Row(row).Cell(28).SetValue(engAmt.Status);
-                                ws.Row(row).Cell(29).SetValue(engAmt.Fund); // new
-                                ws.Row(row).Cell(31).SetValue(engAmt.Remarks);
-                                
-                                if (string.IsNullOrWhiteSpace(annex))
-                                {
-                                    ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                                }
-                                else
-                                {
-                                    ws.Row(row).Cell(32).SetValue(engAmt.Annex); // new
-                                    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                                }
-                            }
+                            ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                        }
+                        else
+                        {
+                            ws.Row(row).Cell(32).SetValue(engAmt.Annex); // new
+                            ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                         }
                     }
 
-                    tAcqCost += (reportItem.TotalAmount ?? 0);
+                    tAcqCost += (reportItem.AcqCost ?? 0);
                 }
                 //ws.Row(++row).Cell(14).SetValue("TOTAL");
                 //ws.Row(row).Cell(15).SetValue(tAcqCost);
@@ -1002,6 +1001,6 @@ namespace iLgs.Services.CustodianReports
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
-        }        
+        }
     }
 }

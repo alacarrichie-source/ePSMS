@@ -232,6 +232,7 @@ namespace iLgs.Services
                     Description = model.Description,
                     ServerIpAddress = model.ServerIpAddress,
                     VirtualDirectory = model.VirtualDirectory,
+                    Remarks = model.Remarks,
                     InsertedBy = model.InsertedBy,
                     InsertedDt = model.InsertedDt,
                     UpdatedBy = model.UpdatedBy,
@@ -304,6 +305,7 @@ namespace iLgs.Services
                         Description = model.Description,
                         ServerIpAddress = model.ServerIpAddress,
                         VirtualDirectory = model.VirtualDirectory,
+                        Remarks = model.Remarks,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -355,6 +357,7 @@ namespace iLgs.Services
                 entity.Description = model.Description;
                 entity.ServerIpAddress = model.ServerIpAddress;
                 entity.VirtualDirectory = model.VirtualDirectory;
+                entity.Remarks = model.Remarks;
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
@@ -431,6 +434,7 @@ namespace iLgs.Services
                                 FileName = uploadId + fileName,
                                 Description = upload.Description,
                                 VirtualDirectory = directoryPath,
+                                Remarks = upload.Remarks,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,

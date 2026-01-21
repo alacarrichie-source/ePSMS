@@ -12,14 +12,20 @@
         col.Bound(p => p.AccountableOfficer).Width(100);
         col.Command(command =>
         {
-            command.Edit();
-            command.Destroy();
+            if (ViewBag.IsView != true)
+            {
+                command.Edit();
+                command.Destroy();
+            }
         }).Width(100);
 
     })
     .ToolBar(toolbar =>
     {
-        toolbar.Create();
+        if (ViewBag.IsView != true)
+        {
+            toolbar.Create();
+        }
     })
     .Pageable(pager => pager
             .Input(false)

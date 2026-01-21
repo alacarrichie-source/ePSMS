@@ -178,10 +178,10 @@
             col.Command(command =>
             {
                 command.Edit();
-            }).Width(50);            
+            }).Width(50);
         })
         .ToolBar(t =>
-        {            
+        {
             t.Search();
         })
         .Search(s =>
@@ -210,7 +210,7 @@
         .Selectable(s => s.Mode(GridSelectionMode.Multiple))
         .Scrollable()
         .Sortable()
-        .ClientDetailTemplateId("UploadedFiles")
+        .ClientDetailTemplateId("UploadedFiles")        
         .DataSource(dataSource => dataSource
             .Ajax()
             .PageSize(20)
@@ -231,7 +231,7 @@
             .Read(read => read.Action("_VehicleUpdateItemRead", "CustodianReport").Data("DataGrid"))
             //.Create(create => create.Action("_VehicleItemCreate", "CustodianReport"))
             .Update(update => update.Action("_VehicleItemUpdate", "CustodianReport"))
-            //.Destroy(destroy => destroy.Action("_VehicleItemDestroy", "CustodianReport"))
+        //.Destroy(destroy => destroy.Action("_VehicleItemDestroy", "CustodianReport"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -243,6 +243,9 @@
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
+    @{ 
+        var isView = ViewBag.IsView == true || ViewBag.IsDemand == true;
+    }
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
         //.HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -251,14 +254,15 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#" });
-            items.Add().Text("PAR").LoadContentFrom("_VehicleParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ICS").LoadContentFrom("_VehicleIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ARE").LoadContentFrom("_VehicleAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("MR").LoadContentFrom("_VehicleMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("RPCPPE").LoadContentFrom("_VehicleRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#", isView = isView });
+            items.Add().Text("PAR").LoadContentFrom("_VehicleParIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("ICS").LoadContentFrom("_VehicleIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("ARE").LoadContentFrom("_VehicleAreIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("MR").LoadContentFrom("_VehicleMrIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
+            items.Add().Text("RPCPPE").LoadContentFrom("_VehicleRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#", isView = isView });
         })
         .ToClientTemplate())
+    
 </script>
 
 @(Html.Kendo().Notification()
@@ -623,7 +627,8 @@
             sectionId: null,
             accountGroup: '@ViewBag.AccountGroup',
             isDemand: '@ViewBag.IsDemand',
-            itemCodeId: $("#oldItemId").val()
+            itemCodeId: $("#oldItemId").val(),
+            isView: '@ViewBag.IsView',
         };
     }
 

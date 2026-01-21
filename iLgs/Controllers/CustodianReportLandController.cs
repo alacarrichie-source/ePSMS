@@ -47,6 +47,7 @@ namespace iLgs.Controllers
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.LAND;
             ViewBag.Title = "Custodian Report - Land - Query";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsView = false;
             return View();
         }
 
@@ -56,6 +57,7 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Land";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
             return View();
         }
 
@@ -65,6 +67,7 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Land";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = true;
+            ViewBag.IsView = false;
             return View("Index");
         }
 
@@ -392,9 +395,12 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        //public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView)
         {
-            var data = _custodianReportLandItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, isDemand);
+            //var data = _custodianReportLandItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, isDemand);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportLandItemService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -606,9 +612,11 @@ namespace iLgs.Controllers
         }        
 
         #region UPLOADS
-        public ActionResult _Images(Guid? imageId)
+        public ActionResult _Images(Guid? imageId, bool? isView)
         {
             ViewData["imageId"] = imageId;
+            ViewBag.IsView = isView;
+
             return PartialView();
         }
 

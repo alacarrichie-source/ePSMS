@@ -167,6 +167,7 @@
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
@@ -194,6 +195,7 @@
             s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.SetLotNo, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width("80%").Title("Equipment Item")))
         .Pageable(pager => pager

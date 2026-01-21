@@ -46,7 +46,8 @@ namespace iLgs.Controllers
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure - Query";
-            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();            
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsView = false;
             return View();
         }
 
@@ -56,6 +57,7 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Structure";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
             return View();
         }
 
@@ -65,6 +67,7 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Structure - Update Item Code";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
 
             //string userName = ControllerContext.HttpContext.User.Identity.Name;
             //var isAdmin = _userService.IsUserNameAdmin(userName);
@@ -79,6 +82,7 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Structure";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = true;
+            ViewBag.IsView = false;
             return View("Index");
         }
 
@@ -309,19 +313,24 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
-                Access access = await accessTask;
-                if (!access.AllowPost)
-                {
-                    ModelState.AddModelError("GridError", "Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                //Access access = await accessTask;
+                //if (!access.AllowPost)
+                //{
+                //    ModelState.AddModelError("GridError", "Access Denied!");
+                //}
+                //else
+                //{
+                //    string user = ControllerContext.HttpContext.User.Identity.Name;
+                //    DateTime date = System.DateTime.Now;
                     
-                    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, false);
-                }
+                //    await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, false);
+                //}
+
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                DateTime date = System.DateTime.Now;
+
+                await _custodianReportSubmitForCountService.SubmitAsync(reportId, locationId, url, user, date, false);
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -359,19 +368,24 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
-                Access access = await accessTask;
-                if (!access.AllowUnpost)
-                {
-                    ModelState.AddModelError("GridError", "Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                //Access access = await accessTask;
+                //if (!access.AllowUnpost)
+                //{
+                //    ModelState.AddModelError("GridError", "Access Denied!");
+                //}
+                //else
+                //{
+                //    string user = ControllerContext.HttpContext.User.Identity.Name;
+                //    DateTime date = System.DateTime.Now;
                     
-                    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
-                }
+                //    await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
+                //}
+
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                DateTime date = System.DateTime.Now;
+
+                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -404,17 +418,33 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        //public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        //{
+        //    var data = _custodianReportBldgItemService.GetAllByDeptAcctGroupOld(forYear, deptId, accountGroup, isDemand);
+
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
+
+        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView)
         {
-            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, isDemand);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _UpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        //public ActionResult _UpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        //{
+        //    string user = ControllerContext.HttpContext.User.Identity.Name;
+        //    var data = _custodianReportBldgItemService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, accountGroup, user, isDemand, itemCodeId);
+
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
+
+        public ActionResult _UpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId, bool? isView)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, accountGroup, user, isDemand, itemCodeId);
+            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId, isView);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -652,9 +682,11 @@ namespace iLgs.Controllers
         }
 
         #region Phase Items
-        public ActionResult _ItemPhase(Guid? reportItemId)
+        public ActionResult _ItemPhase(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
+
             return PartialView();
         }
 
@@ -779,14 +811,14 @@ namespace iLgs.Controllers
         }
         #endregion
 
-
         #region UPLOADS
-        public ActionResult _Images(Guid? imageId)
+        public ActionResult _Images(Guid? imageId, bool? isView)
         {
             ViewData["imageId"] = imageId;
+            ViewBag.IsView = isView;
+
             return PartialView();
         }
-
 
         public ActionResult _ImagesAdd(Guid? imageId)
         {

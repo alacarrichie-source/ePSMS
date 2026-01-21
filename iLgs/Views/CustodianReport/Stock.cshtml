@@ -160,6 +160,7 @@
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.AcqDate).Width(50);
             //col.Bound(c => c.TransferIn).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
             //    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
@@ -234,6 +235,7 @@
             s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.SetLotNo, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockItemTemplate").Window(w => w.Width("80%").Title("Supplies Item")))
         .Pageable(pager => pager
@@ -584,7 +586,7 @@
     }
 
     function onChangeForYear(e) {
-        reportId = null;
+        //reportId = null;
         var numeric = $("#forYear").data("kendoDropDownList");
 
         $.ajax({
@@ -633,7 +635,7 @@
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         deptCode = dataItem.Code;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
@@ -646,9 +648,10 @@
         if (!comboBox.value()) {
             selectedId = null;
             trackingId = selectedId;
-            reportId = null;
+            //reportId = null;
             deptCode = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
+            setSubmitButton();
         }
     }
 
@@ -658,7 +661,7 @@
         var dataItem = this.dataItem(e.item.index());
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         selectedSection = dataItem.Section;
         selectedSectionCode = dataItem.Code;
         $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
@@ -670,7 +673,7 @@
         var comboBox = this;
         selectedId = null;
         trackingId = selectedId;
-        reportId = null;
+        //reportId = null;
         //if (!comboBox.value()) {
         //    $("#grid").data("kendoGrid").dataSource.data([]);
         //}
@@ -782,8 +785,8 @@
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
             $(".k-grid-btnUpload", grid).hide();
-            $(".k-grid-btnCount", grid).hide();
-            reportId = null;
+            //$(".k-grid-btnCount", grid).hide();
+            //reportId = null;
         }
         else {
             //$(".k-grid-btnExport", grid).show();
@@ -791,11 +794,12 @@
             //$(".k-grid-btnExportB", grid).show();
             //$(".k-grid-btnExportC", grid).show();
             $(".k-grid-btnUpload", grid).show();
-            $(".k-grid-btnCount", grid).show();
-            var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
-            reportId = firstDataItem.ReportId;
-            setSubmitButton(reportId, $("#sectionId").val());
+            //$(".k-grid-btnCount", grid).show();
+            //var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
+            //reportId = firstDataItem.ReportId;
+            //setSubmitButton(reportId, $("#sectionId").val());
         }
+        setSubmitButton();
     }
 
     function onEditGrid(e) {
@@ -1051,31 +1055,39 @@
         e.preventDefault();
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
-        if (btnText == "Submit for Count") {
-            //msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+        if (btnText == "Submit for Count" || btnText == "Submit None for Count") {
             msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?\n\n" +
                 "NOTE:\n" +
                 "Location or sublocation is required. The department must submit the main location and each of its sublocations, with each custodian submitting as assigned. Click 'Submit.' If successful, you will see 'Unsubmit.'";
         }
         if (confirm(msg)) {
             var url = "";
-            if (btnText == "Submit for Count")
+            var requestData = "";
+            if (btnText == "Submit for Count" || btnText == "Submit None for Count")
             {
-                url = '@Url.Action("SubmitForCount", "CustodianReport")';
+                url = '@Url.Action("SubmitForCountNew", "CustodianReport")';
+                requestData = {
+                    forYear: $("#forYear").val(),
+                    deptId: $("#deptId").val(),
+                    locationId: $("#sectionId").val(),
+                    accountGroup: '@ViewBag.AccountGroup',
+                    url: window.location.href
+                };
             }
             else
             {
                 url = '@Url.Action("UnsubmitForCount", "CustodianReport")';
-            }
-            $.ajax({
-                type: "POST",
-                url: url,
-                data: {
+                requestData = {
                     reportId: reportId,
                     locationId: $("#sectionId").val(),
                     accountGroup: '@ViewBag.AccountGroup',
                     url: window.location.href
-                },
+                };
+            }
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: requestData,
                 async: true,
                 beforeSend: function () {
                     window.kendo.ui.progress($(document.body), true);
@@ -1083,8 +1095,10 @@
                 success: function (result) {
                     window.kendo.ui.progress($(document.body), false);
                     if (result.Errors == "") {
+                        reportId = result.ReportId;
                         $("#grid").data("kendoGrid").dataSource.read();
                     } else {
+                        reportId = null;
                         displayErrors(result.Errors);
                         return false;
                     }
@@ -1749,26 +1763,61 @@
     }
 
     // SUBMIT FOR COUNT
-    function setSubmitButton(reportId, locationId)
+    function setSubmitButton()
     {
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("IsSubmitForCount", "CustodianReport")',
-            data: { reportId: reportId, locationId: locationId },
-            beforeSend: function () {
-                window.kendo.ui.progress($("body, .k-window"), true);
-            },
-            success: function (result) {
-                window.kendo.ui.progress($("body, .k-window"), false);
-                var btn = $(".k-grid-btnCount")
-                var newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
-                btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);
-            },
-            error: function (req, status, errorObj) {
-                alert(req.responseText);
-                window.kendo.ui.progress($("body, .k-window"), false);
-            }
-        });
+        var forYear = $("#forYear").val();
+        var deptId = $("#deptId").val();
+        var locationId = $("#sectionId").val();
+        if (!forYear || !deptId) {
+            $(".k-grid-btnCount").hide();
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("IsSubmitForCountNew", "CustodianReport")',
+                data: {
+                    forYear: forYear,
+                    deptId: deptId,
+                    locationId: locationId,
+                    accountGroup: '@ViewBag.AccountGroup'
+                },
+                beforeSend: function () {
+                    $(".k-grid-btnCount").show();
+                    window.kendo.ui.progress($("body, .k-window"), true);
+                },
+                success: function (result) {
+                    if (result.IsSubmitForCount == true) {
+                        reportId = result.ReportId;
+                    } else
+                    {
+                        reportId = null;
+                    }
+                    window.kendo.ui.progress($("body, .k-window"), false);
+
+                    var newText = "";
+                    var btn = $(".k-grid-btnCount")
+                    //var newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
+                    if ($("#grid").data("kendoGrid").dataSource.data().length == 0) {
+                        //if (deptId != locationId) {
+                        //    btn.hide();                        
+                        //}
+                        //else {                            
+                        //    btn.show();
+                        //}
+                        newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
+                    }
+                    else {
+                        newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
+
+                    }
+                    btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                    window.kendo.ui.progress($("body, .k-window"), false);
+                }
+            });
+        }
     }
 
     function onChangeSetLotNo()

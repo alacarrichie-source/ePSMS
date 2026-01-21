@@ -468,6 +468,8 @@ namespace iLgs.Models
         public bool? IsSubmitted { get; set; }
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
+        public string ItemTypeIndex { get; set; }
+        public string ItemCodeIndex { get; set; }
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
@@ -479,6 +481,12 @@ namespace iLgs.Models
 
         [Display(Name = "Mode of Acquisition")]
         public string AcqMode { get; set; }
+
+        [Display(Name = "Department Code")]
+        public string DeptCode { get; set; }
+
+        [Display(Name = "Custodian Item No.")]
+        public decimal? CustodianItemIndex { get; set; }
 
         internal sealed class Metadata
         {
@@ -722,6 +730,8 @@ namespace iLgs.Models
         public bool? IsSubmitted { get; set; }
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
+        public string ItemTypeIndex { get; set; }
+        public string ItemCodeIndex { get; set; }
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
@@ -729,6 +739,9 @@ namespace iLgs.Models
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
+
+        [Display(Name = "Department Code")]
+        public string DeptCode { get; set; }
 
         [Display(Name = "Custodian Item No.")]
         public decimal? CustodianItemIndex { get; set; }
@@ -1144,6 +1157,9 @@ namespace iLgs.Models
         public string LocationCode { get; set; }
         public int? AccountGroup { get; set; }
 
+        [Display(Name = "Account Group")]
+        public string AccountGroupName { get; set; }
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -1166,5 +1182,21 @@ namespace iLgs.Models
         public Guid? Id { get; set; }
         public string MainAccount { get; set; }
         public string MainDesc { get; set; }
+    }
+
+    public partial class CustodianReportSubmitForCountDepartmentVM
+    {
+        public System.Guid Id { get; set; }
+
+        public string Code { get; set; }
+        public string CodeIndex { get; set; }
+        public System.Guid? MainId { get; set; }
+        public string Department { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+        public string Equipment { get; set; }
+        public string Supplies { get; set; }
+        public string Vehicle { get; set; }        
     }
 }

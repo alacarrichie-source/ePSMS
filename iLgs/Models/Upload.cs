@@ -20,6 +20,7 @@ namespace iLgs.Models
         public string Description { get; set; }
         public string ServerIpAddress { get; set; }
         public string VirtualDirectory { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

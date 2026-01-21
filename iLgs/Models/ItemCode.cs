@@ -27,6 +27,7 @@ namespace iLgs.Models
             this.RisItems = new HashSet<RisItem>();
             this.RSMIItems = new HashSet<RSMIItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
+            this.ProcurementItems = new HashSet<ProcurementItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -67,5 +68,7 @@ namespace iLgs.Models
         public virtual ICollection<RSMIItem> RSMIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ProcurementItem> ProcurementItems { get; set; }
     }
 }

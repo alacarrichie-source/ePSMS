@@ -41,7 +41,7 @@
     <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @if (ViewBag.IsDemand)
+            @if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 @(Html.Kendo().MultiColumnComboBox()
                         .Name("deptId")
@@ -99,6 +99,41 @@
     </div>
 </div>
 
+@*<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("Location", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().MultiColumnComboBox()
+                .Name("sectionId")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Location")
+                .DataTextField("Description")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetUserSectionsAsync", "Getters").Data("DataSectionId");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .CascadeFrom("deptId")
+                .Events(e => e.Select("onSelectSectionId")
+                    .Change("onChangeSectionId")
+                )
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>*@
+
 <br />
 
 @(Html.Kendo().Grid<iLgs.Models.CustodianReportBldgItemVM>()
@@ -113,6 +148,9 @@
             col.Bound(c => c.LocationCode).Width(50);
             col.Bound(c => c.Location).Width(70);
             col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.OldAmount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PhaseAmountCo).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
@@ -134,7 +172,7 @@
             col.Bound(c => c.UpdatedBy).Width(50);
             col.Bound(c => c.UpdatedDt).Width(50);
             //col.Bound(c => c.IsPosted).Width(30);
-            if (ViewBag.IsDemand)
+            if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 col.Bound(c => c.Remarks).Width(70);
                 col.Command(command =>
@@ -159,6 +197,14 @@
                 t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
             }
+            else if (ViewBag.IsView)
+            {
+                t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+            }
             else
             {
                 t.Create().Text("Add New Record");
@@ -181,6 +227,7 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.CustodianItemNo, "contains");
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
@@ -218,6 +265,7 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.AcqCost).Sum();
+                a.Add(p => p.OldAmount).Sum();
                 a.Add(p => p.PhaseAmountCo).Sum();
                 a.Add(p => p.PhaseAmountMooe).Sum();
                 a.Add(p => p.PhaseCount).Sum();
@@ -225,7 +273,8 @@
             .Sort(s =>
             {
                 //s.Add(a => a.InsertedDt).Descending();
-                s.Add(a => a.CustodianItemNo);
+                //s.Add(a => a.CustodianItemNo);
+                s.Add(a => a.CustodianItemIndex);
             })
             .Read(read => read.Action("_ItemRead", "CustodianReportBldg").Data("DataGrid"))
             .Create(create => create.Action("_ItemCreate", "CustodianReportBldg"))
@@ -254,6 +303,9 @@
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
+    @{
+        var isView = ViewBag.IsView == true || ViewBag.IsDemand == true;
+    }
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
         //.HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -262,8 +314,8 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#" });
-            items.Add().Text("Engineering Amounts").LoadContentFrom("_ItemPhase", "CustodianReportBldg", new { reportItemId = "#=Id#" });
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#", isView = isView });
+            items.Add().Text("Engineering Amounts").LoadContentFrom("_ItemPhase", "CustodianReportBldg", new { reportItemId = "#=Id#", isView = isView });
         })
         .ToClientTemplate())
 </script>
@@ -330,6 +382,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
+        /*height: calc(100vh - 330px) !important;*/
         height: calc(80vh - 150px) !important;
     }
 </style>
@@ -587,6 +640,8 @@
     var deptCode = null;
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
+        trackingId = selectedId;
         reportId = null;
         deptCode = dataItem.Code;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
@@ -597,10 +652,48 @@
     function onChangeDeptId(e) {
         var comboBox = this;
         if (!comboBox.value()) {
+            selectedId = null;
+            trackingId = selectedId;
             reportId = null;
             deptCode = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
         }
+    }
+
+    var selectedSectionCode = null;
+    var selectedSection = null;
+    function onSelectSectionId(e) {
+        var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
+        trackingId = selectedId;
+        reportId = null;
+        selectedSection = dataItem.Section;
+        selectedSectionCode = dataItem.Code;
+        $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
+        $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
+        //$("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function onChangeSectionId(e) {
+        var comboBox = this;
+        selectedId = null;
+        trackingId = selectedId;
+        reportId = null;
+        //if (!comboBox.value()) {
+        //    $("#grid").data("kendoGrid").dataSource.data([]);
+        //}
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function DataSectionId() {
+        var text = $("#sectionId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#sectionId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#deptId").val(),
+            text: text
+        };
     }
 
     function columnTemplate(data) {
@@ -611,8 +704,11 @@
         return {
             forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
+            //sectionId: $("#sectionId").val(),
+            sectionId: null,
             accountGroup: '@ViewBag.AccountGroup',
-            isDemand: '@ViewBag.IsDemand'
+            isDemand: '@ViewBag.IsDemand',
+            isView: '@ViewBag.IsView'
         };
     }
 
@@ -705,14 +801,27 @@
         selectedGrid = e.sender;
 
         if (e.model.isNew()) {
-            var accountGroup = '@ViewBag.AccountGroup';
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedId = null;
-            e.model.set("ForYear", $("#forYear").val());
-            e.model.set("MainDeptId", $("#deptId").val());
-            e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
-            e.model.set("AccountGroup", accountGroup);
+            //if (!$("#sectionId").val()) {
+            //    alert("Please select a location before proceeding.");
+            //    var wnd = e.container && e.container.data("kendoWindow");
+            //    if (wnd) {
+            //        wnd.close();
+            //        selectedGrid.dataSource.remove(e.model);
+            //    }
+            //}
+            //else {
+                var accountGroup = '@ViewBag.AccountGroup';
+                var row = e.sender.tbody.find("tr:first");
+                this.select(row);
+                selectedId = null;
+                e.model.set("ForYear", $("#forYear").val());
+                e.model.set("MainDeptId", $("#deptId").val());
+                //e.model.set("LocationId", $("#sectionId").val());
+                //e.model.set("LocationCode", selectedSectionCode);
+                //e.model.set("Location", selectedSection);
+                e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
+                e.model.set("AccountGroup", accountGroup);
+            //}
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
@@ -721,7 +830,7 @@
             var dataItem = e.model;
             e.model.set("ForYear", $("#forYear").val());
             e.model.set("MainDeptId", $("#deptId").val());
-            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True') {
+            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True'  || '@ViewBag.IsView' == 'True') {
                 setTimeout(function () {
                     var popup = e.container;
 
@@ -989,7 +1098,10 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            //msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?\n\n" +
+                "NOTE:\n" +
+                "Location or sublocation is required. The department must submit the main location and each of its sublocations, with each custodian submitting as assigned. Click 'Submit.' If successful, you will see 'Unsubmit.'";
         }
         if (confirm(msg)) {
             var url = "";
@@ -1006,6 +1118,7 @@
                 url: url,
                 data: {
                     reportId: reportId,
+                    //locationId: $("#sectionId").val(),
                     locationId: null,
                     accountGroup: '@ViewBag.AccountGroup',
                     url: window.location.href

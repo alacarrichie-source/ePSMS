@@ -45,6 +45,7 @@ namespace iLgs.Controllers
             ViewData["title"] = "Locations";
             return View(codeMast);
         }
+
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid mastId)
         {
             var data = _locationService.GetByMastId(mastId).OrderBy(o => o.Desc4);

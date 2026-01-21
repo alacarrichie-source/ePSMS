@@ -358,13 +358,13 @@ namespace iLgs.Services.CustodianReports
             //    }
             //}
 
-            if (string.IsNullOrWhiteSpace(model.PhaseNo))
-            {                
-                if (!(model.CapitalOutlay > 0 || model.MOOE > 0))
-                {
-                    _imex.UpsertDataList("Capital Outlay or MOOE Amount", "Either of the two Must have value.");
-                }
-            }
+            //if (string.IsNullOrWhiteSpace(model.PhaseNo))
+            //{                
+            //    if (!(model.CapitalOutlay > 0 || model.MOOE > 0))
+            //    {
+            //        _imex.UpsertDataList("Capital Outlay or MOOE Amount", "Either of the two Must have value.");
+            //    }
+            //}
 
             if (string.IsNullOrWhiteSpace(model.Annex))
             {

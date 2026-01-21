@@ -301,6 +301,7 @@ namespace iLgs.Services
                         Description = model.Description,
                         ServerIpAddress = model.ServerIpAddress,
                         VirtualDirectory = model.VirtualDirectory,
+                        Remarks = model.Remarks,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -377,6 +378,7 @@ namespace iLgs.Services
                         Description = model.Description,
                         ServerIpAddress = model.ServerIpAddress,
                         VirtualDirectory = model.VirtualDirectory,
+                        Remarks = model.Remarks,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -472,6 +474,7 @@ namespace iLgs.Services
                 entity.Description = model.Description;
                 entity.ServerIpAddress = model.ServerIpAddress;
                 entity.VirtualDirectory = model.VirtualDirectory;
+                entity.Remarks = model.Remarks;
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
@@ -491,18 +494,18 @@ namespace iLgs.Services
 
             using (var ctx = await _contextFactory.CreateContextAsync())
             {
-                var entity = await _db.Uploads.FindAsync(model.Id);
+                var entity = await ctx.Uploads.FindAsync(model.Id);
 
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
                 //_db.Uploads.Attach(entity);
                 //_db.Entry(entity).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
 
-                _db.Uploads.Remove(entity);
+                ctx.Uploads.Remove(entity);
                 //_db.Entry(entity).State = EntityState.Deleted;
-                await _db.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
 
                 var directory = model.VirtualDirectory;
                 var fileName = model.FileName;
@@ -549,6 +552,7 @@ namespace iLgs.Services
                                 FileName = uploadId + fileName,
                                 Description = upload.Description,
                                 VirtualDirectory = directoryPath,
+                                Remarks = upload.Remarks,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,

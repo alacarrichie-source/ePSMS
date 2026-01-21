@@ -41,7 +41,7 @@
     <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @if (ViewBag.IsDemand)
+            @if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 @(Html.Kendo().MultiColumnComboBox()
                         .Name("deptId")
@@ -130,7 +130,7 @@
             col.Bound(c => c.UpdatedBy).Width(50);
             col.Bound(c => c.UpdatedDt).Width(50);
             //col.Bound(c => c.IsPosted).Width(30);
-            if (ViewBag.IsDemand)
+            if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 col.Bound(c => c.Remarks).Width(70);
                 col.Command(command =>
@@ -154,6 +154,14 @@
                 t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
             }
+            else if (ViewBag.IsView)
+            {
+                t.Custom().Text("Scanned Documents").IconClass("k-icon k-i-file").Name("btnFiles").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+            }
             else
             {
                 t.Create().Text("Add New Record");
@@ -176,6 +184,7 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.CustodianItemNo, "contains");
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
@@ -218,7 +227,8 @@
             })
             .Sort(s =>
             {
-                s.Add(a => a.InsertedDt).Descending();
+                //s.Add(a => a.InsertedDt).Descending();
+                s.Add(a => a.CustodianItemIndex);
             })
             .Read(read => read.Action("_ItemRead", "CustodianReportLand").Data("DataGrid"))
             .Create(create => create.Action("_ItemCreate", "CustodianReportLand"))
@@ -242,6 +252,9 @@
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
+    @{
+        var isView = ViewBag.IsView == true || ViewBag.IsDemand == true;
+    }
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
         .HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -250,7 +263,7 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportLand", new { imageId = "#=Id#" });
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportLand", new { imageId = "#=Id#", isView = isView });
         })
         .ToClientTemplate())
 </script>
@@ -568,8 +581,10 @@
         return {
             forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
+            sectionId: null,
             accountGroup: '@ViewBag.AccountGroup',
-            isDemand: '@ViewBag.IsDemand'
+            isDemand: '@ViewBag.IsDemand',
+            isView: '@ViewBag.IsView'
         };
     }
 
@@ -678,7 +693,7 @@
             var dataItem = e.model;
             e.model.set("ForYear", $("#forYear").val());
             e.model.set("MainDeptId", $("#deptId").val());
-            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True') {
+            if (IsPosted(dataItem) || '@ViewBag.IsDemand' == 'True'  || '@ViewBag.IsView' == 'True') {
                 setTimeout(function () {
                     var popup = e.container;
 
@@ -897,7 +912,10 @@
         var btnText = $(".k-grid-btnCount").text();
         var msg = "Are you sure you want to " + btnText + "?";
         if (btnText == "Submit for Count") {
-            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            //msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?";
+            msg = "As the Custodian, do you certify that the count for annexes A, B, and C (with uploads) has been COMPLETED and is now ready for verification by the Official Physical Count Team?\n\n" +
+                "NOTE:\n" +
+                "Location or sublocation is required. The department must submit the main location and each of its sublocations, with each custodian submitting as assigned. Click 'Submit.' If successful, you will see 'Unsubmit.'";
         }
         if (confirm(msg)) {
             var url = "";

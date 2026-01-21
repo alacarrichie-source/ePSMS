@@ -16,14 +16,18 @@ namespace iLgs.Services.CustodianReports
     {
         IQueryable<CustodianReportSubmitForCountVM> GetAll();
         IQueryable<CustodianReportSubmitForCountVM> GetByReportYear(int? reportYear);
+        IQueryable<CustodianReportSubmitForCountDepartmentVM> GetDepartmentsByReportYear(int? reportYear);
         IQueryable<CustodianReportSubmitForCountVM> GetByReportYearAccountGroup(int? reportYear, int? accountGroup);
         IQueryable<CustodianReportSubmitForCountVM> GetByReportId(Guid? reportId);
         ValueTask<CustodianReportSubmitForCountVM> GetByLocationAsync(Guid? reportId, Guid? locationId);
+        ValueTask<CustodianReportSubmitForCountVM> GetByCustodianAccountAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup);
         ValueTask<bool> IsSubmitForCountAsync(Guid? reportId, Guid? locationId);
 
         ValueTask<CustodianReportSubmitForCountVM> DeleteAsync(CustodianReportSubmitForCountVM model, string user, DateTime date);
 
         ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date, bool isLocationRequired);
+
+        ValueTask<CustodianReportSubmitForCountVM> SubmitNewAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup, string url, string user, DateTime date, bool isLocationRequired);
         ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date);
     }
 
@@ -72,7 +76,12 @@ namespace iLgs.Services.CustodianReports
                 Department = s.CustodianReport.Codextn.Description,
                 Location = s.Codextn.Description,
                 LocationCode = s.Codextn.Code,
-                AccountGroup = s.CustodianReport.AccountGroup
+                AccountGroup = s.CustodianReport.AccountGroup,
+                AccountGroupName = s.CustodianReport.AccountGroup == 1 ? "Supplies" 
+                    : s.CustodianReport.AccountGroup == 2 ? "Equipemnt"
+                    : s.CustodianReport.AccountGroup == 3 ? "Vehicles"
+                    : s.CustodianReport.AccountGroup == 4 ? "Structures"
+                    : s.CustodianReport.AccountGroup == 5 ? "Land" : "Invalid"
             };
         }
 
@@ -92,6 +101,12 @@ namespace iLgs.Services.CustodianReports
                 .Include(i => i.Codextn)
                 .Where(w => w.CustodianReport.AsOf.Value.Year == reportYear)
                 .Select(Projection()).AsNoTracking();
+            return data;
+        }
+
+        public IQueryable<CustodianReportSubmitForCountDepartmentVM> GetDepartmentsByReportYear(int? reportYear)
+        {
+            var data = _db.Database.SqlQuery<CustodianReportSubmitForCountDepartmentVM>("Exec CustodianReportSubmitForCount_GetDepartments {0}", reportYear).AsQueryable();
             return data;
         }
 
@@ -119,6 +134,14 @@ namespace iLgs.Services.CustodianReports
         {
             var data = await _db.CustodianReportSubmitForCounts
                 .Where(w => w.CustodianReport.Id == reportId && w.LocationId == locationId)
+                .Select(Projection()).AsNoTracking().FirstOrDefaultAsync();
+            return data;
+        }
+        
+        public async ValueTask<CustodianReportSubmitForCountVM> GetByCustodianAccountAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup)
+        {
+            var data = await _db.CustodianReportSubmitForCounts
+                .Where(w => w.CustodianReport.AsOf.Value.Year == reportYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.LocationId == locationId)
                 .Select(Projection()).AsNoTracking().FirstOrDefaultAsync();
             return data;
         }
@@ -223,6 +246,52 @@ namespace iLgs.Services.CustodianReports
                 await _notificationMessageService.NotifyUsers("Custodian Count", "Submit", description, user, date);
 
                 return model;
+            }
+        });
+
+        public ValueTask<CustodianReportSubmitForCountVM> SubmitNewAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup, string url, string user, DateTime date, bool isLocationRequired) =>
+        _vmExceptionService.TryCatch(async () =>
+        {
+            if (deptId == null)
+            {
+                throw new NullException("Department is Required");
+            }
+
+            if (isLocationRequired && locationId == null)
+            {
+                throw new NullException("Location is Required.");
+            }
+
+            using (var ctx = await _contextFactory.CreateContextAsync())
+            {
+                var custodianReport = await ctx.CustodianReports.FirstOrDefaultAsync(p => p.AsOf.Value.Year == reportYear
+                    && p.DeptId == deptId && p.AccountGroup == accountGroup);
+                if (custodianReport == null)
+                {
+                    var department = ctx.Codextns.Find(deptId).Description;
+                    if (string.IsNullOrEmpty(department))
+                    {
+                        throw new NotFoundException("Department Id not found!");
+                    }
+
+                    custodianReport = new CustodianReport()
+                    {
+                        Id = Guid.NewGuid(),
+                        AsOf = new DateTime((int)reportYear, 12, 31),
+                        DeptId = deptId,
+                        Department = department,
+                        AccountGroup = accountGroup,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    ctx.CustodianReports.Add(custodianReport);
+                    await ctx.SaveChangesAsync();
+                }
+
+                return await SubmitAsync(custodianReport.Id, locationId, url, user, date, isLocationRequired);
             }
         });
 

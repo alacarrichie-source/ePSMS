@@ -186,6 +186,7 @@ namespace iLgs.Controllers
             ViewBag.IsAdmin = isAdmin;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
 
             return View();
         }
@@ -198,6 +199,24 @@ namespace iLgs.Controllers
             ViewBag.AnnexDUser = false;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = true;
+            ViewBag.IsView = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View("Ppe");
+        }
+
+        public ActionResult PpeView()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Equipment";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsView = true;
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
@@ -214,6 +233,7 @@ namespace iLgs.Controllers
             ViewBag.AnnexDUser = false;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
@@ -238,6 +258,7 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+            ViewBag.IsView = false;
 
             ViewBag.IsAdmin = isAdmin;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
@@ -264,6 +285,7 @@ namespace iLgs.Controllers
             ViewBag.IsAdmin = isAdmin;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
 
             return View();
         }
@@ -276,6 +298,24 @@ namespace iLgs.Controllers
             ViewBag.AnnexDUser = false;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = true;
+            ViewBag.IsView = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+
+            return View("Transpo");
+        }
+
+        public ActionResult TranspoView()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Vehicles";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsView = true;
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
@@ -296,6 +336,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsView = false;
 
             return View();
         }
@@ -319,6 +360,8 @@ namespace iLgs.Controllers
 
             ViewBag.IsAdmin = isAdmin;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsView = false;
+
             return View();
         }
 
@@ -514,6 +557,48 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> SubmitForCountNew(int? forYear, Guid? deptId, Guid? locationId, int? accountGroup, string url)
+        {
+            try
+            {                
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                DateTime date = System.DateTime.Now;
+
+                var data = await _custodianReportSubmitForCountService.SubmitNewAsync(forYear, deptId, locationId, accountGroup, url, user, date, true);
+                return Json(new { Errors = "", ReportId = data.Id }, JsonRequestBehavior.AllowGet);
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> UnsubmitForCount(Guid reportId, Guid? locationId, int? accountGroup, string url)
         {
             try
@@ -536,7 +621,7 @@ namespace iLgs.Controllers
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 DateTime date = System.DateTime.Now;
 
-                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
+                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);               
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -565,7 +650,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", ReportId = reportId }, JsonRequestBehavior.AllowGet);
         }
         #endregion
 
@@ -868,18 +953,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _VehicleUpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId)
+        public ActionResult _VehicleUpdateItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, Guid? itemCodeId, bool? isView)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroupItemCodeId(forYear, deptId, sectionId, accountGroup, user, isDemand, itemCodeId, isView);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -2306,9 +2391,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE PAR ISSUANCE
-        public ActionResult _VehicleParIssuance(Guid? reportItemId)
+        public ActionResult _VehicleParIssuance(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
             return PartialView();
         }
 
@@ -2436,9 +2522,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ICS ISSUANCE
-        public ActionResult _VehicleIcsIssuance(Guid? reportItemId)
+        public ActionResult _VehicleIcsIssuance(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
             return PartialView();
         }
 
@@ -2566,9 +2653,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ARE ISSUANCE
-        public ActionResult _VehicleAreIssuance(Guid? reportItemId)
+        public ActionResult _VehicleAreIssuance(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
             return PartialView();
         }
 
@@ -2696,9 +2784,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE MR ISSUANCE
-        public ActionResult _VehicleMrIssuance(Guid? reportItemId)
+        public ActionResult _VehicleMrIssuance(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
             return PartialView();
         }
 
@@ -2826,9 +2915,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE RPCPPE ISSUANCE
-        public ActionResult _VehicleRpcPpeIssuance(Guid? reportItemId)
+        public ActionResult _VehicleRpcPpeIssuance(Guid? reportItemId, bool? isView)
         {
             ViewData["reportItemId"] = reportItemId;
+            ViewBag.IsView = isView;
             return PartialView();
         }
 
@@ -3149,6 +3239,18 @@ namespace iLgs.Controllers
 
             return Json(new { IsSubmitForCount = true, UpdateDate = data.UpdatedDt.Value.ToShortDateString() }, JsonRequestBehavior.AllowGet);
         }
+        
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<JsonResult> IsSubmitForCountNew(int? forYear, Guid? deptId, Guid? locationId, int? accountGroup)
+        {
+            var data = await _custodianReportSubmitForCountService.GetByCustodianAccountAsync(forYear, deptId, locationId, accountGroup);
+            if (data == null || data.Status != "Submit")
+            {
+                return Json(new { IsSubmitForCount = false }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { IsSubmitForCount = true, UpdateDate = data.UpdatedDt.Value.ToShortDateString(), ReportId = data.ReportId }, JsonRequestBehavior.AllowGet);
+        }
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<JsonResult> GetSetLotCount(int? forYear, Guid? deptId, Guid? locationId, Guid? custodianReportItemId, string setLotNo)
@@ -3291,9 +3393,11 @@ namespace iLgs.Controllers
         //}
 
         #region IMAGE UPLOADS
-        public ActionResult _Images(Guid? imageId)
+        public ActionResult _Images(Guid? imageId, bool? isView)
         {
             ViewData["imageId"] = imageId;
+            ViewBag.IsView = isView;
+
             return PartialView();
         }
 

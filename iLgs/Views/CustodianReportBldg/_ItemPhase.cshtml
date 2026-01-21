@@ -5,7 +5,7 @@
         col.Bound(c => c.Id).Hidden();
         col.Bound(c => c.PhaseNo).Width(50);
         col.Bound(c => c.BldgItem).Width(100);
-        col.Bound(c => c.ProjectName).Width(100);        
+        col.Bound(c => c.ProjectName).Width(100);
         col.Bound(c => c.BuildingType).Width(100);
         col.Bound(c => c.AcqDate).Width(50);
         col.Bound(c => c.PercentComplete).Width(50);
@@ -25,11 +25,19 @@
         col.Bound(c => c.UpdatedDt).Width(50);
         col.Command(command =>
         {
-            command.Edit();
-            command.Destroy();
+            if (ViewBag.IsView != true)
+            {
+                command.Edit();
+                command.Destroy();
+            }
         }).Width(50);
     })
-    .ToolBar(toolbar => toolbar.Create().Text("Add Items"))
+    .ToolBar(t => {
+        if (ViewBag.IsView != true)
+        {
+            t.Create().Text("Add Items");
+        }
+    })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemPhaseTemplate").Window(w => w.Width(1000).Title("Project Name")))
     .Resizable(r => r.Columns(true))
     .Sortable()

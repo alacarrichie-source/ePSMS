@@ -59,7 +59,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
-        public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<CustodianDisposal> CustodianDisposals { get; set; }
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual DbSet<DollarRate> DollarRates { get; set; }
@@ -129,5 +128,11 @@ namespace iLgs.Models
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
+        public virtual DbSet<Procurement> Procurements { get; set; }
+        public virtual DbSet<ProcurementItem> ProcurementItems { get; set; }
+        public virtual DbSet<ProcurementUnitGroupDescriptinItem> ProcurementUnitGroupDescriptinItems { get; set; }
+        public virtual DbSet<ProcurementUnitGroupDescription> ProcurementUnitGroupDescriptions { get; set; }
+        public virtual DbSet<ProcurementUnitGroup> ProcurementUnitGroups { get; set; }
+        public virtual DbSet<Upload> Uploads { get; set; }
     }
 }

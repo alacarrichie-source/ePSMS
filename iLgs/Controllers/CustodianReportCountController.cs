@@ -32,13 +32,27 @@ namespace iLgs.Controllers
             ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
-                
+
+        public ActionResult Department()
+        {
+            ViewBag.ForYear = DateTime.Now.Year;
+            return View();
+        }
+
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? forYear)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportSubmitForCountService.GetByReportYear(forYear);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }        
+        }
+
+        public ActionResult DepartmentRead([DataSourceRequest] DataSourceRequest request, int? forYear)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportSubmitForCountService.GetDepartmentsByReportYear(forYear);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
     }
 }

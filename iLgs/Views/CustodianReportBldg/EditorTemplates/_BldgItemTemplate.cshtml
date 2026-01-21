@@ -15,6 +15,7 @@
     @Html.HiddenFor(model => model.MainDeptName)
     @Html.HiddenFor(model => model.AccountGroup)
     @Html.HiddenFor(model => model.ForYear)
+    @Html.HiddenFor(model => model.Annex)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -45,12 +46,13 @@
                         })
                         .Columns(c =>
                         {
+                            c.Add().Field("Category").Title("Category").Width("10%").Template("#= columnTemplate(data.Category) #");
                             c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
                             c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
                             c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
                             c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
-                            c.Add().Field("SubAccount3").Title("Sub-Account3").Width("15%").Template("#= columnTemplate(data.SubAccount3) #");
-                            c.Add().Field("SubAccount4").Title("Sub-Account4").Width("15%").Template("#= columnTemplate(data.SubAccount4) #");
+                            c.Add().Field("SubAccount3").Title("Sub-Account3").Width("10%").Template("#= columnTemplate(data.SubAccount3) #");
+                            c.Add().Field("SubAccount4").Title("Sub-Account4").Width("10%").Template("#= columnTemplate(data.SubAccount4) #");
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Height(300)

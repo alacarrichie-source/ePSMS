@@ -48,6 +48,7 @@
                    style='background-image: url(" + @Url.Content("~/CustodianAccountability2/PreviewUploadThumb?id=#:Id#") + ");'></div></div>")
                     .Width(30);
         col.Bound(p => p.Description).Width(100);
+        col.Bound(p => p.Remarks).Width(100);
         col.Bound(p => p.FileName).Width(100);
         col.Bound(p => p.InsertedBy).Width(50);
         col.Bound(p => p.InsertedDt).Width(50);
@@ -76,6 +77,7 @@
     .Search(s =>
     {
         s.Field(o => o.Description, "contains");
+        s.Field(o => o.Remarks, "contains");
         s.Field(o => o.FileName, "contains");
         s.Field(o => o.InsertedBy, "contains");
     })
@@ -469,7 +471,7 @@
     }
 
     function UploadPara(e) {
-        e.data = { deptCode: $("#deptCode").val(), Description: $("#Description").val() }
+        e.data = { deptCode: $("#deptCode").val(), Description: $("#Description").val(), Remarks: $("#Remarks").val() }
     }
 
     function onClickPreview(e) {

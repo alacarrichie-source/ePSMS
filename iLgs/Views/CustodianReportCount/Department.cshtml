@@ -23,69 +23,50 @@
 
 <br />
 
-@(Html.Kendo().Grid<iLgs.Models.CustodianReportSubmitForCountVM>()
-        .HtmlAttributes(new { @class = "custom-max-grid" })
-        .Name("grid")
-        .Columns(col =>
+@(Html.Kendo().Grid<iLgs.Models.CustodianReportSubmitForCountDepartmentVM>()
+    .Name("grid")
+    .HtmlAttributes(new { @class = "custom-max-grid" })
+    .Columns(col =>
+    {
+        col.Bound(c => c.Code).Width(50);
+        col.Bound(c => c.Department).Width(100);
+        col.Bound(c => c.Location).Width(100);
+        col.Bound(c => c.Vehicle).Width(50);
+        col.Bound(c => c.Equipment).Width(50);
+        col.Bound(c => c.Supplies).Width(50);
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.Code, "contains");
+        s.Field(o => o.Location, "contains");
+        s.Field(o => o.Department, "contains");
+    })
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable(s => s.Height(430))
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    //.Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
         {
-            col.Bound(c => c.AccountGroupName).Width(50);
-            col.Bound(c => c.Department).Width(70);
-            col.Bound(c => c.LocationCode).Width(50);
-            col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.Status).Width(50);
-            col.Bound(c => c.InsertedBy).Width(50);
-            col.Bound(c => c.InsertedDt).Width(50);
-            col.Bound(c => c.UpdatedBy).Width(50);
-            col.Bound(c => c.UpdatedDt).Width(50);                        
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .ToolBar(t =>
-        {            
-            t.Search();
-        })
-        .Search(s =>
-        {
-            s.Field(o => o.AccountGroupName, "contains");
-            s.Field(o => o.Department, "contains");
-            s.Field(o => o.LocationCode, "contains");
-            s.Field(o => o.Location, "contains");
-            s.Field(o => o.Status, "contains");
-            s.Field(o => o.InsertedBy, "contains");
-            s.Field(o => o.UpdatedDt, "contains");            
-        })
-        .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
-            .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
-        )
-        .Filterable()
-        .NoRecords()
-        .Resizable(r => r.Columns(true))
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Scrollable()
-        .Sortable()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .PageSize(20)
-            .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-            })            
-            .Read(read => read.Action("Read", "CustodianReportCount").Data("DataGrid"))            
-        )
-        .Events(events => events
-            .Change("onChangeGrid")
-            //.Edit("onEditGrid")
-            .DataBound("onDataBoundGrid")
-            //.Save("onSaveGrid")
-        )
-        .AutoBind(true)
+        .Read(read => read.Action("DepartmentRead", "CustodianReportCount").Data("DataGrid"))
+    )
+.Events(events => events
+    .DataBound("onDataBoundGrid")
+    ).AutoBind(true)
 )
+
+
 
 
 @(Html.Kendo().Notification()
@@ -181,7 +162,7 @@
         if (e.sender.getNotifications().length == 1) {
             e.element.parent().css({ zIndex: 22222 });
         }
-    }    
+    }
 
     function GridError(args) {
         if (args.errors) {
@@ -214,7 +195,7 @@
         reportId = null;
         selectedId = null;
         $("#grid").data("kendoGrid").dataSource.read();
-    }        
+    }
 
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
@@ -222,19 +203,19 @@
 
     function DataGrid() {
         return {
-            forYear: $("#forYear").val()            
+            forYear: $("#forYear").val()
         };
     }
 
     var selectedGrid = null;
     var selectedId = null;
-    
+
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         var grid = $("#grid");
 
         trackingId = selectedData.Id;
-        selectedId = selectedData.Id;        
+        selectedId = selectedData.Id;
     }
 
     var reportId = null;
@@ -246,19 +227,59 @@
             }
         } else {
             var row = e.sender.tbody.find("tr:first");
-            this.select(row);            
-        }        
+            this.select(row);
+        }
 
-        var grid = $("#grid");
+
         if (this.dataSource.data().length == 0) {
             reportId = null;
         }
         else {
             var firstDataItem = this.dataSource.view()[0]; // the first item in the current view
-            reportId = firstDataItem.ReportId;            
+            reportId = firstDataItem.ReportId;
         }
+
+        var grid = this;
+        var rows = grid.tbody.find("tr");
+
+        // Make sure the grid has rows before proceeding
+        if (rows.length === 0) return;
+
+        // Get the index of the target column ("SomeField")
+        var columnAccountIndex = grid.element.find("th[data-field='Department']").index();
+        var columnSubAccount1Index = grid.element.find("th[data-field='Location']").index();
+
+        rows.each(function (index, row) {
+            // Get current and previous rows
+            var currentRow = $(row);
+            var previousRow = rows.eq(index - 1);
+
+            // Check if the previous row exists
+            if (previousRow.length) {
+                // Get data from current and previous rows
+                var currentDataItem = grid.dataItem(currentRow);
+                var previousDataItem = grid.dataItem(previousRow);
+
+                // Compare the values of the specific column (e.g., "SomeField")
+                if (currentDataItem.Department === previousDataItem.Department) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnAccountIndex);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                if (currentDataItem.Department === previousDataItem.Department && currentDataItem.Location === previousDataItem.Location) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnSubAccount1Index);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+            }
+        });
     }
-    
+
     function onGridRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
@@ -272,8 +293,8 @@
                 trackingId = selectedId;
             }
         }
-    }    
-    
+    }
+
     function resizeWindow() {
         var mywindow = $("#window").data("kendoWindow");
         if (mywindow) {
@@ -283,7 +304,7 @@
             });
             mywindow.center(); // Optional: Center the window after resizing
         }
-    }       
+    }
 </script>
 
 

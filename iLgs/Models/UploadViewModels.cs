@@ -29,6 +29,7 @@ namespace iLgs.Models
             public string Description { get; set; }
             public string ServerIpAddress { get; set; }
             public string VirtualDirectory { get; set; }
+            public string Remarks { get; set; }
 
             [Display(Name = "Uploaded By")]
             public string InsertedBy { get; set; }

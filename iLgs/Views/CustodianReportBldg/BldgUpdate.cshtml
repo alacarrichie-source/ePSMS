@@ -260,6 +260,9 @@
 )
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
+    @{
+        var isView = ViewBag.IsView == true || ViewBag.IsDemand == true;
+    }
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
         //.HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -268,8 +271,8 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#" });
-            items.Add().Text("Engineering Amounts").LoadContentFrom("_ItemPhase", "CustodianReportBldg", new { reportItemId = "#=Id#" });
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#", isView = isView });
+            items.Add().Text("Engineering Amounts").LoadContentFrom("_ItemPhase", "CustodianReportBldg", new { reportItemId = "#=Id#", isView = isView });
         })
         .ToClientTemplate())
 </script>
@@ -559,9 +562,11 @@
         return {
             forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
+            sectionId: null,
             accountGroup: '@ViewBag.AccountGroup',
             isDemand: '@ViewBag.IsDemand',
-            itemCodeId: $("#oldItemId").val()
+            itemCodeId: $("#oldItemId").val(),
+            isView: '@ViewBag.IsView',
         };
     }
 

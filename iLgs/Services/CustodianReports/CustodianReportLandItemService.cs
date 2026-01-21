@@ -20,8 +20,8 @@ namespace iLgs.Services.CustodianReports
     {
         Task<string> GetStockNoAsync(CustodianReportLandItem model);
         ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id);
-        IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand);
+        IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);        
+        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView);
         IQueryable<CustodianReportLandItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date);
@@ -110,7 +110,7 @@ namespace iLgs.Services.CustodianReports
                 CGT = s.CGT,
                 CGTCompromise = s.CGTCompromise,
                 CGTInterest = s.CGTInterest,
-                CGTSurcharge = s.CGTInterest,
+                CGTSurcharge = s.CGTSurcharge,
                 CGTTransferTax = s.CGTTransferTax,
                 CGTCompromiseCap = s.CGTCompromiseCap,
                 CGTInterestCap = s.CGTInterestCap,
@@ -193,7 +193,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
+        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroupOld(int? forYear, Guid? deptId, int? accountGroup, bool? isDemand)
         {
             var data = _db.CustodianReportLandItems
                 .AsNoTracking()
@@ -204,6 +204,27 @@ namespace iLgs.Services.CustodianReports
                 data = data.Where(w => w.Annex == "C");
             }
             return data;
+        }
+
+        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView)
+        {
+            IQueryable<CustodianReportLandItemVM> data = null;
+            if (deptId != null)
+            {
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                if (isDemand == true || isView == true)
+                {
+                    userIsAdmin = true;
+                }
+                data = _db.Database.SqlQuery<CustodianReportLandItemVM>("Exec CustodianReport_GetLandItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                if (data.Any() && isDemand == true)
+                {
+                    data = data.Where(w => w.Annex == "C");
+                }
+            }
+
+            return data ?? Enumerable.Empty<CustodianReportLandItemVM>().AsQueryable();
         }
 
         public IQueryable<CustodianReportLandItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)

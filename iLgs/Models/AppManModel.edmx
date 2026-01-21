@@ -1268,6 +1268,149 @@
           <Property Name="PostedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="PostedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="ProcurementItems">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ProcId" Type="uniqueidentifier" />
+          <Property Name="ItemCodeId" Type="uniqueidentifier" />
+          <Property Name="PsNo" Type="varchar" MaxLength="100" />
+          <Property Name="PsNoDisplay" Type="varchar" MaxLength="50" />
+          <Property Name="ItemName" Type="varchar" MaxLength="100" />
+          <Property Name="Description" Type="varchar" MaxLength="2000" />
+          <Property Name="Brand" Type="varchar" MaxLength="50" />
+          <Property Name="OtherDesc" Type="varchar" MaxLength="200" />
+          <Property Name="Unit" Type="varchar" MaxLength="10" />
+          <Property Name="Qty" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="QtyIssue" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="UnitCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Amount" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="PriceRate" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Remarks" Type="varchar" MaxLength="2000" />
+          <Property Name="PpmpCode" Type="varchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProcurementOrders">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="SupplierId" Type="uniqueidentifier" />
+          <Property Name="SupName" Type="varchar" MaxLength="200" />
+          <Property Name="SupBusiness" Type="varchar" MaxLength="200" />
+          <Property Name="SupAddress" Type="varchar" MaxLength="200" />
+          <Property Name="SupTIN" Type="varchar" MaxLength="50" />
+          <Property Name="SupEmail" Type="varchar" MaxLength="50" />
+          <Property Name="SupZipCode" Type="varchar" MaxLength="10" />
+          <Property Name="SupContactNo" Type="varchar" MaxLength="50" />
+          <Property Name="DeliveryPlace" Type="varchar" MaxLength="50" />
+          <Property Name="DeliveryDate" Type="varchar" MaxLength="50" />
+          <Property Name="TermDelivery" Type="varchar" MaxLength="50" />
+          <Property Name="TermPayment" Type="varchar" MaxLength="50" />
+          <Property Name="SignedBySuppName" Type="varchar" MaxLength="50" />
+          <Property Name="SignedBySuppDate" Type="datetime" />
+          <Property Name="SignedByAuthName" Type="varchar" MaxLength="50" />
+          <Property Name="SignedByAuthDesignation" Type="varchar" MaxLength="50" />
+          <Property Name="ResoNo" Type="varchar" MaxLength="50" />
+          <Property Name="CertifiedCorrectBy" Type="varchar" MaxLength="50" />
+          <Property Name="CertifiedCorredtDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProcurementRequests">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Purpose" Type="varchar" MaxLength="100" />
+          <Property Name="RequestedBy" Type="varchar" MaxLength="50" />
+          <Property Name="RequestedDesig" Type="varchar" MaxLength="50" />
+          <Property Name="Availability" Type="varchar" MaxLength="50" />
+          <Property Name="AvaliabilityDesig" Type="varchar" MaxLength="50" />
+          <Property Name="ApprovedBy" Type="varchar" MaxLength="50" />
+          <Property Name="ApprovedDesig" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="ProcurementRISs">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Purpose" Type="varchar" MaxLength="50" />
+          <Property Name="RequestedBy" Type="varchar" MaxLength="50" />
+          <Property Name="RequestedByDesig" Type="varchar" MaxLength="50" />
+          <Property Name="RequestedDate" Type="datetime" />
+          <Property Name="ApprovedBy" Type="varchar" MaxLength="50" />
+          <Property Name="ApprovedByDesig" Type="varchar" MaxLength="50" />
+          <Property Name="ApprovedDate" Type="datetime" />
+          <Property Name="IssuedBy" Type="varchar" MaxLength="50" />
+          <Property Name="IssuedByDesig" Type="varchar" MaxLength="50" />
+          <Property Name="IssuedDate" Type="datetime" />
+          <Property Name="ReceivedBy" Type="varchar" MaxLength="50" />
+          <Property Name="ReceivedByDesig" Type="varchar" MaxLength="50" />
+          <Property Name="ReceivedDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Procurements">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RefType" Type="char" MaxLength="10" />
+          <Property Name="RefValue" Type="varchar" MaxLength="12" />
+          <Property Name="RefDate" Type="datetime" />
+          <Property Name="Fund" Type="nchar" MaxLength="10" />
+          <Property Name="DepartmentId" Type="uniqueidentifier" />
+          <Property Name="Department" Type="varchar" MaxLength="100" />
+          <Property Name="Division" Type="varchar" MaxLength="100" />
+          <Property Name="FPP" Type="varchar" MaxLength="10" />
+          <Property Name="PostedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="PostedDt" Type="datetime" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroupDescriptinItems">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UnitGroupDescriptionId" Type="uniqueidentifier" />
+          <Property Name="ProcItemId" Type="uniqueidentifier" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroupDescriptions">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UnitGroupId" Type="uniqueidentifier" />
+          <Property Name="Description" Type="varchar" MaxLength="2000" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroups">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ProcId" Type="uniqueidentifier" />
+          <Property Name="SetLotNo" Type="varchar" MaxLength="50" />
+          <Property Name="Qty" Type="int" />
+          <Property Name="Unit" Type="varchar" MaxLength="10" />
+          <Property Name="UnitCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="TotalCost" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="PsCardItemExtnAddCosts">
           <Key>
             <PropertyRef Name="Id" />
@@ -2336,6 +2479,7 @@
           <Property Name="Description" Type="nvarchar" MaxLength="200" />
           <Property Name="ServerIpAddress" Type="varchar" MaxLength="50" />
           <Property Name="VirtualDirectory" Type="nvarchar" MaxLength="150" />
+          <Property Name="Remarks" Type="varchar" MaxLength="200" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -2407,7 +2551,7 @@
           <Property Name="UserCode" Type="varchar" MaxLength="4" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ePSMS_Live.dbo.AspNetUserRoles_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'ePSMS.dbo.AspNetUserRoles_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="AspNetUserRoles_View">
           <Key>
             
@@ -2422,7 +2566,7 @@ warning 6002: The table/view 'ePSMS_Live.dbo.AspNetUserRoles_View' does not have
           <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ePSMS_Live.dbo.AspNetUsers_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'ePSMS.dbo.AspNetUsers_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="AspNetUsers_View">
           <Key>
             <PropertyRef Name="Id" />
@@ -2459,7 +2603,7 @@ warning 6002: The table/view 'ePSMS_Live.dbo.AspNetUsers_View' does not have a p
           <Property Name="Active" Type="bit" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="UserCodes_View">
           <Key>
             <PropertyRef Name="UserCode" />
@@ -3543,6 +3687,140 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ProcurementItems_ItemCodes">
+          <End Role="ItemCodes" Type="Self.ItemCodes" Multiplicity="0..1" />
+          <End Role="ProcurementItems" Type="Self.ProcurementItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCodes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementItems">
+              <PropertyRef Name="ItemCodeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementItems_Procurements">
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementItems" Type="Self.ProcurementItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Procurements">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementItems">
+              <PropertyRef Name="ProcId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementOrders_Procurements">
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementOrders" Type="Self.ProcurementOrders" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Procurements">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementOrders">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementRequests_Procurements">
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementRequests" Type="Self.ProcurementRequests" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Procurements">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementRequests">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementRISs_Procurements">
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementRISs" Type="Self.ProcurementRISs" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Procurements">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementRISs">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Procurements_Codextn">
+          <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Procurements">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+          <End Role="ProcurementItems" Type="Self.ProcurementItems" Multiplicity="0..1" />
+          <End Role="ProcurementUnitGroupDescriptinItems" Type="Self.ProcurementUnitGroupDescriptinItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptinItems">
+              <PropertyRef Name="ProcItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+          <End Role="ProcurementUnitGroupDescriptions" Type="Self.ProcurementUnitGroupDescriptions" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementUnitGroupDescriptinItems" Type="Self.ProcurementUnitGroupDescriptinItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementUnitGroupDescriptions">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptinItems">
+              <PropertyRef Name="UnitGroupDescriptionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
+          <End Role="ProcurementUnitGroups" Type="Self.ProcurementUnitGroups" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementUnitGroupDescriptions" Type="Self.ProcurementUnitGroupDescriptions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementUnitGroups">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptions">
+              <PropertyRef Name="UnitGroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroups_Procurements">
+          <End Role="Procurements" Type="Self.Procurements" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProcurementUnitGroups" Type="Self.ProcurementUnitGroups" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Procurements">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroups">
+              <PropertyRef Name="ProcId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PsCardItemExtnAddCosts_PsCardItemExtns">
           <End Role="PsCardItemExtns" Type="Self.PsCardItemExtns" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -4563,6 +4841,14 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <EntitySet Name="Orders" EntityType="Self.Orders" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PARItems" EntityType="Self.PARItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PARs" EntityType="Self.PARs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementItems" EntityType="Self.ProcurementItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementOrders" EntityType="Self.ProcurementOrders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementRequests" EntityType="Self.ProcurementRequests" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementRISs" EntityType="Self.ProcurementRISs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Procurements" EntityType="Self.Procurements" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementUnitGroupDescriptinItems" EntityType="Self.ProcurementUnitGroupDescriptinItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementUnitGroupDescriptions" EntityType="Self.ProcurementUnitGroupDescriptions" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementUnitGroups" EntityType="Self.ProcurementUnitGroups" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemExtnAddCosts" EntityType="Self.PsCardItemExtnAddCosts" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemExtnBuildings" EntityType="Self.PsCardItemExtnBuildings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemExtnLands" EntityType="Self.PsCardItemExtnLands" Schema="dbo" store:Type="Tables" />
@@ -5001,6 +5287,46 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             <End Role="Orders" EntitySet="Orders" />
             <End Role="PARs" EntitySet="PARs" />
           </AssociationSet>
+          <AssociationSet Name="FK_ProcurementItems_ItemCodes" Association="Self.FK_ProcurementItems_ItemCodes">
+            <End Role="ItemCodes" EntitySet="ItemCodes" />
+            <End Role="ProcurementItems" EntitySet="ProcurementItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementItems_Procurements" Association="Self.FK_ProcurementItems_Procurements">
+            <End Role="Procurements" EntitySet="Procurements" />
+            <End Role="ProcurementItems" EntitySet="ProcurementItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementOrders_Procurements" Association="Self.FK_ProcurementOrders_Procurements">
+            <End Role="Procurements" EntitySet="Procurements" />
+            <End Role="ProcurementOrders" EntitySet="ProcurementOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementRequests_Procurements" Association="Self.FK_ProcurementRequests_Procurements">
+            <End Role="Procurements" EntitySet="Procurements" />
+            <End Role="ProcurementRequests" EntitySet="ProcurementRequests" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementRISs_Procurements" Association="Self.FK_ProcurementRISs_Procurements">
+            <End Role="Procurements" EntitySet="Procurements" />
+            <End Role="ProcurementRISs" EntitySet="ProcurementRISs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Procurements_Codextn" Association="Self.FK_Procurements_Codextn">
+            <End Role="Codextn" EntitySet="Codextn" />
+            <End Role="Procurements" EntitySet="Procurements" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" Association="Self.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+            <End Role="ProcurementItems" EntitySet="ProcurementItems" />
+            <End Role="ProcurementUnitGroupDescriptinItems" EntitySet="ProcurementUnitGroupDescriptinItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" Association="Self.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+            <End Role="ProcurementUnitGroupDescriptions" EntitySet="ProcurementUnitGroupDescriptions" />
+            <End Role="ProcurementUnitGroupDescriptinItems" EntitySet="ProcurementUnitGroupDescriptinItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" Association="Self.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
+            <End Role="ProcurementUnitGroups" EntitySet="ProcurementUnitGroups" />
+            <End Role="ProcurementUnitGroupDescriptions" EntitySet="ProcurementUnitGroupDescriptions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroups_Procurements" Association="Self.FK_ProcurementUnitGroups_Procurements">
+            <End Role="Procurements" EntitySet="Procurements" />
+            <End Role="ProcurementUnitGroups" EntitySet="ProcurementUnitGroups" />
+          </AssociationSet>
           <AssociationSet Name="FK_PsCardItemExtnAddCosts_PsCardItemExtns" Association="Self.FK_PsCardItemExtnAddCosts_PsCardItemExtns">
             <End Role="PsCardItemExtns" EntitySet="PsCardItemExtns" />
             <End Role="PsCardItemExtnAddCosts" EntitySet="PsCardItemExtnAddCosts" />
@@ -5428,7 +5754,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             <End Role="PsCardItemIssuance" EntitySet="PsCardItemIssuances" />
           </AssociationSet>
           <EntitySet Name="RPCIDepLocs" EntityType="AppManModel.RPCIDepLoc" />
-          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           <EntitySet Name="CustodianDisposals" EntityType="AppManModel.CustodianDisposal" />
           <AssociationSet Name="FK_CustodianDisposals_Codextn" Association="AppManModel.FK_CustodianDisposals_Codextn">
             <End Role="Codextn" EntitySet="Codextns" />
@@ -6018,6 +6343,40 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             <End Role="Codextn" EntitySet="Codextns" />
             <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
           </AssociationSet>
+          <EntitySet Name="Procurements" EntityType="AppManModel.Procurement" />
+          <AssociationSet Name="FK_Procurements_Codextn" Association="AppManModel.FK_Procurements_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="Procurement" EntitySet="Procurements" />
+          </AssociationSet>
+          <EntitySet Name="ProcurementItems" EntityType="AppManModel.ProcurementItem" />
+          <EntitySet Name="ProcurementUnitGroupDescriptinItems" EntityType="AppManModel.ProcurementUnitGroupDescriptinItem" />
+          <EntitySet Name="ProcurementUnitGroupDescriptions" EntityType="AppManModel.ProcurementUnitGroupDescription" />
+          <EntitySet Name="ProcurementUnitGroups" EntityType="AppManModel.ProcurementUnitGroup" />
+          <AssociationSet Name="FK_ProcurementItems_ItemCodes" Association="AppManModel.FK_ProcurementItems_ItemCodes">
+            <End Role="ItemCode" EntitySet="ItemCodes" />
+            <End Role="ProcurementItem" EntitySet="ProcurementItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementItems_Procurements" Association="AppManModel.FK_ProcurementItems_Procurements">
+            <End Role="Procurement" EntitySet="Procurements" />
+            <End Role="ProcurementItem" EntitySet="ProcurementItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+            <End Role="ProcurementItem" EntitySet="ProcurementItems" />
+            <End Role="ProcurementUnitGroupDescriptinItem" EntitySet="ProcurementUnitGroupDescriptinItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroups_Procurements" Association="AppManModel.FK_ProcurementUnitGroups_Procurements">
+            <End Role="Procurement" EntitySet="Procurements" />
+            <End Role="ProcurementUnitGroup" EntitySet="ProcurementUnitGroups" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+            <End Role="ProcurementUnitGroupDescription" EntitySet="ProcurementUnitGroupDescriptions" />
+            <End Role="ProcurementUnitGroupDescriptinItem" EntitySet="ProcurementUnitGroupDescriptinItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" Association="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
+            <End Role="ProcurementUnitGroup" EntitySet="ProcurementUnitGroups" />
+            <End Role="ProcurementUnitGroupDescription" EntitySet="ProcurementUnitGroupDescriptions" />
+          </AssociationSet>
+          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -6826,6 +7185,7 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
           <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
           <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
+          <NavigationProperty Name="Procurements" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Codextn" ToRole="Procurement" />
           </EntityType>
         <Association Name="FK_Codextn_Codextn">
           <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
@@ -6989,21 +7349,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCIDepLoc" ToRole="RPCI" />
-        </EntityType>
-        <EntityType Name="Upload">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ImageId" Type="Guid" />
-          <Property Name="FileName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="CustodianDisposal">
           <Key>
@@ -7222,6 +7567,7 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
           <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="ItemCode" ToRole="RisItem" />
           <NavigationProperty Name="RSMIItems" Relationship="AppManModel.FK_RSMIItems_ItemCodes" FromRole="ItemCode" ToRole="RSMIItem" />
           <NavigationProperty Name="RSMIRecaps" Relationship="AppManModel.FK_RSMIRecap_ItemCodes" FromRole="ItemCode" ToRole="RSMIRecap" />
+          <NavigationProperty Name="ProcurementItems" Relationship="AppManModel.FK_ProcurementItems_ItemCodes" FromRole="ItemCode" ToRole="ProcurementItem" />
         </EntityType>
         <Association Name="FK_ItemCodes_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
@@ -10712,6 +11058,257 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Procurement">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RefType" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="RefValue" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="RefDate" Type="DateTime" Precision="3" />
+          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="DepartmentId" Type="Guid" />
+          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Division" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="FPP" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Procurement" ToRole="Codextn" />
+          <NavigationProperty Name="ProcurementItems" Relationship="AppManModel.FK_ProcurementItems_Procurements" FromRole="Procurement" ToRole="ProcurementItem" />
+          <NavigationProperty Name="ProcurementUnitGroups" Relationship="AppManModel.FK_ProcurementUnitGroups_Procurements" FromRole="Procurement" ToRole="ProcurementUnitGroup" />
+        </EntityType>
+        <Association Name="FK_Procurements_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Procurement">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ProcurementItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ProcId" Type="Guid" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <Property Name="PsNo" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="PsNoDisplay" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ItemName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="Brand" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="OtherDesc" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="QtyIssue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceRate" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="PpmpCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_ProcurementItems_ItemCodes" FromRole="ProcurementItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Procurement" Relationship="AppManModel.FK_ProcurementItems_Procurements" FromRole="ProcurementItem" ToRole="Procurement" />
+          <NavigationProperty Name="ProcurementUnitGroupDescriptinItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementItem" ToRole="ProcurementUnitGroupDescriptinItem" />
+        </EntityType>
+        <EntityType Name="ProcurementOrder" BaseType="AppManModel.Procurement">
+          <Property Name="SupplierId" Type="Guid" />
+          <Property Name="SupName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SupBusiness" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SupAddress" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SupTIN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SupEmail" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SupZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="SupContactNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DeliveryPlace" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DeliveryDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TermDelivery" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TermPayment" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SignedBySuppName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SignedBySuppDate" Type="DateTime" Precision="3" />
+          <Property Name="SignedByAuthName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SignedByAuthDesignation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ResoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CertifiedCorredtDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="ProcurementRequest" BaseType="AppManModel.Procurement">
+          <Property Name="Purpose" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="RequestedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RequestedDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Availability" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AvaliabilityDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroupDescriptinItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UnitGroupDescriptionId" Type="Guid" />
+          <Property Name="ProcItemId" Type="Guid" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ProcurementItem" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementUnitGroupDescriptinItem" ToRole="ProcurementItem" />
+          <NavigationProperty Name="ProcurementUnitGroupDescription" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescriptinItem" ToRole="ProcurementUnitGroupDescription" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroupDescription">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UnitGroupId" Type="Guid" />
+          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ProcurementUnitGroupDescriptinItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescription" ToRole="ProcurementUnitGroupDescriptinItem" />
+          <NavigationProperty Name="ProcurementUnitGroup" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" FromRole="ProcurementUnitGroupDescription" ToRole="ProcurementUnitGroup" />
+        </EntityType>
+        <EntityType Name="ProcurementUnitGroup">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ProcId" Type="Guid" />
+          <Property Name="SetLotNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TotalCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Procurement" Relationship="AppManModel.FK_ProcurementUnitGroups_Procurements" FromRole="ProcurementUnitGroup" ToRole="Procurement" />
+          <NavigationProperty Name="ProcurementUnitGroupDescriptions" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" FromRole="ProcurementUnitGroup" ToRole="ProcurementUnitGroupDescription" />
+        </EntityType>
+        <Association Name="FK_ProcurementItems_ItemCodes">
+          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
+          <End Type="AppManModel.ProcurementItem" Role="ProcurementItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCode">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementItem">
+              <PropertyRef Name="ItemCodeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementItems_Procurements">
+          <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ProcurementItem" Role="ProcurementItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Procurement">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementItem">
+              <PropertyRef Name="ProcId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+          <End Type="AppManModel.ProcurementItem" Role="ProcurementItem" Multiplicity="0..1" />
+          <End Type="AppManModel.ProcurementUnitGroupDescriptinItem" Role="ProcurementUnitGroupDescriptinItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptinItem">
+              <PropertyRef Name="ProcItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroups_Procurements">
+          <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ProcurementUnitGroup" Role="ProcurementUnitGroup" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Procurement">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroup">
+              <PropertyRef Name="ProcId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+          <End Type="AppManModel.ProcurementUnitGroupDescription" Role="ProcurementUnitGroupDescription" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ProcurementUnitGroupDescriptinItem" Role="ProcurementUnitGroupDescriptinItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementUnitGroupDescription">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptinItem">
+              <PropertyRef Name="UnitGroupDescriptionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
+          <End Type="AppManModel.ProcurementUnitGroup" Role="ProcurementUnitGroup" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ProcurementUnitGroupDescription" Role="ProcurementUnitGroupDescription" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementUnitGroup">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescription">
+              <PropertyRef Name="UnitGroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ProcurementRISs" BaseType="AppManModel.Procurement">
+          <Property Name="Purpose" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RequestedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RequestedByDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RequestedDate" Type="DateTime" Precision="3" />
+          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedByDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedDate" Type="DateTime" Precision="3" />
+          <Property Name="IssuedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IssuedByDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IssuedDate" Type="DateTime" Precision="3" />
+          <Property Name="ReceivedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ReceivedByDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ReceivedDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="Upload">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ImageId" Type="Guid" />
+          <Property Name="FileName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -11255,22 +11852,6 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
                 <ScalarProperty Name="LocationId" ColumnName="LocationId" />
                 <ScalarProperty Name="DeptId" ColumnName="DeptId" />
                 <ScalarProperty Name="RpciId" ColumnName="RpciId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Uploads">
-            <EntityTypeMapping TypeName="AppManModel.Upload">
-              <MappingFragment StoreEntitySet="Uploads">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
-                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="FileName" ColumnName="FileName" />
-                <ScalarProperty Name="ImageId" ColumnName="ImageId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -13269,6 +13850,168 @@ warning 6002: The table/view 'ePSMS_Live.dbo.UserCodes_View' does not have a pri
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
                 <ScalarProperty Name="RequestNo" ColumnName="RequestNo" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Procurements">
+            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.Procurement)">
+              <MappingFragment StoreEntitySet="Procurements">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="RefType" ColumnName="RefType" />
+                <ScalarProperty Name="RefValue" ColumnName="RefValue" />
+                <ScalarProperty Name="RefDate" ColumnName="RefDate" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="FPP" ColumnName="FPP" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.ProcurementRISs)">
+              <MappingFragment StoreEntitySet="ProcurementRISs">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Purpose" ColumnName="Purpose" />
+                <ScalarProperty Name="RequestedBy" ColumnName="RequestedBy" />
+                <ScalarProperty Name="RequestedByDesig" ColumnName="RequestedByDesig" />
+                <ScalarProperty Name="RequestedDate" ColumnName="RequestedDate" />
+                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
+                <ScalarProperty Name="ApprovedByDesig" ColumnName="ApprovedByDesig" />
+                <ScalarProperty Name="ApprovedDate" ColumnName="ApprovedDate" />
+                <ScalarProperty Name="IssuedBy" ColumnName="IssuedBy" />
+                <ScalarProperty Name="IssuedByDesig" ColumnName="IssuedByDesig" />
+                <ScalarProperty Name="IssuedDate" ColumnName="IssuedDate" />
+                <ScalarProperty Name="ReceivedBy" ColumnName="ReceivedBy" />
+                <ScalarProperty Name="ReceivedByDesig" ColumnName="ReceivedByDesig" />
+                <ScalarProperty Name="ReceivedDate" ColumnName="ReceivedDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.ProcurementRequest)">
+              <MappingFragment StoreEntitySet="ProcurementRequests">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Purpose" ColumnName="Purpose" />
+                <ScalarProperty Name="RequestedBy" ColumnName="RequestedBy" />
+                <ScalarProperty Name="RequestedDesig" ColumnName="RequestedDesig" />
+                <ScalarProperty Name="Availability" ColumnName="Availability" />
+                <ScalarProperty Name="AvaliabilityDesig" ColumnName="AvaliabilityDesig" />
+                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
+                <ScalarProperty Name="ApprovedDesig" ColumnName="ApprovedDesig" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.ProcurementOrder)">
+              <MappingFragment StoreEntitySet="ProcurementOrders">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="SupplierId" ColumnName="SupplierId" />
+                <ScalarProperty Name="SupName" ColumnName="SupName" />
+                <ScalarProperty Name="SupBusiness" ColumnName="SupBusiness" />
+                <ScalarProperty Name="SupAddress" ColumnName="SupAddress" />
+                <ScalarProperty Name="SupTIN" ColumnName="SupTIN" />
+                <ScalarProperty Name="SupEmail" ColumnName="SupEmail" />
+                <ScalarProperty Name="SupZipCode" ColumnName="SupZipCode" />
+                <ScalarProperty Name="SupContactNo" ColumnName="SupContactNo" />
+                <ScalarProperty Name="DeliveryPlace" ColumnName="DeliveryPlace" />
+                <ScalarProperty Name="DeliveryDate" ColumnName="DeliveryDate" />
+                <ScalarProperty Name="TermDelivery" ColumnName="TermDelivery" />
+                <ScalarProperty Name="TermPayment" ColumnName="TermPayment" />
+                <ScalarProperty Name="SignedBySuppName" ColumnName="SignedBySuppName" />
+                <ScalarProperty Name="SignedBySuppDate" ColumnName="SignedBySuppDate" />
+                <ScalarProperty Name="SignedByAuthName" ColumnName="SignedByAuthName" />
+                <ScalarProperty Name="SignedByAuthDesignation" ColumnName="SignedByAuthDesignation" />
+                <ScalarProperty Name="ResoNo" ColumnName="ResoNo" />
+                <ScalarProperty Name="CertifiedCorrectBy" ColumnName="CertifiedCorrectBy" />
+                <ScalarProperty Name="CertifiedCorredtDate" ColumnName="CertifiedCorredtDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProcurementItems">
+            <EntityTypeMapping TypeName="AppManModel.ProcurementItem">
+              <MappingFragment StoreEntitySet="ProcurementItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PpmpCode" ColumnName="PpmpCode" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="PriceRate" ColumnName="PriceRate" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="QtyIssue" ColumnName="QtyIssue" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
+                <ScalarProperty Name="Brand" ColumnName="Brand" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="PsNoDisplay" ColumnName="PsNoDisplay" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="ProcId" ColumnName="ProcId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProcurementUnitGroupDescriptinItems">
+            <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroupDescriptinItem">
+              <MappingFragment StoreEntitySet="ProcurementUnitGroupDescriptinItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="ProcItemId" ColumnName="ProcItemId" />
+                <ScalarProperty Name="UnitGroupDescriptionId" ColumnName="UnitGroupDescriptionId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProcurementUnitGroupDescriptions">
+            <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroupDescription">
+              <MappingFragment StoreEntitySet="ProcurementUnitGroupDescriptions">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="UnitGroupId" ColumnName="UnitGroupId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProcurementUnitGroups">
+            <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroup">
+              <MappingFragment StoreEntitySet="ProcurementUnitGroups">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="TotalCost" ColumnName="TotalCost" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="SetLotNo" ColumnName="SetLotNo" />
+                <ScalarProperty Name="ProcId" ColumnName="ProcId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Uploads">
+            <EntityTypeMapping TypeName="AppManModel.Upload">
+              <MappingFragment StoreEntitySet="Uploads">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
+                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="ImageId" ColumnName="ImageId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
