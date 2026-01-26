@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Codes;
 using iLgs.Services.CustodianUploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -45,6 +46,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IAllFieldService _allFieldService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly ICodextnService _codextnService;
 
         public CustodianReportLandItemService(AppManEntities db,
             IAppManEntitiesFactory appManEntitiesFactory,
@@ -52,7 +54,8 @@ namespace iLgs.Services.CustodianReports
             IExceptionService<CustodianReportLandItem> exceptionService,
             ICustodianLandUploadService custodianLandUploadService,
             IAllFieldService allFieldService,
-            IUserService userService)
+            IUserService userService, 
+            ICodextnService codextnService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
@@ -61,6 +64,7 @@ namespace iLgs.Services.CustodianReports
             _custodianLandUploadService = custodianLandUploadService;
             _allFieldService = allFieldService;
             _userService = userService;
+            _codextnService = codextnService;
             _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
         }
 
@@ -246,6 +250,8 @@ namespace iLgs.Services.CustodianReports
                 throw new InvalidValueException("For Year is Required.");
             }
 
+            _codextnService.ValidateReportingYearEnd(model.ForYear);
+
             ValidateRequired(model);
 
             model.AllField = SetAllField(model);
@@ -298,6 +304,7 @@ namespace iLgs.Services.CustodianReports
         public ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            _codextnService.ValidateReportingYearEnd(model.ForYear);
             ValidateRequired(model);
 
             model.UpdatedBy = user;
@@ -339,6 +346,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportLandItems.FindAsync(model.Id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(model.ReportId);
                 ValidateIfPosted(entity);
                 await ValidateIfSubmittedAsync(model);
 
@@ -364,6 +372,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportLandItems.FindAsync(id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfPosted(entity);
 
                 if (!_custodianLandUploadService.GetAllByImageId(id).Any())
@@ -390,6 +399,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportLandItems.FindAsync(id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfNotPosted(entity);
 
                 entity.PostedBy = "";
@@ -1005,6 +1015,12 @@ namespace iLgs.Services.CustodianReports
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
+        }
+
+        private void ValidateReportingYearEnd(Guid? reportId)
+        {
+            var forYear = _db.CustodianReports.Find(reportId).AsOf.Value.Year;
+            _codextnService.ValidateReportingYearEnd(forYear);
         }
     }
 }

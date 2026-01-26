@@ -22,14 +22,14 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
-        private readonly IPoIssuanceService _poIssuanceService;
+        private readonly IProcurementOrderService _poIssuanceService;
         private readonly IPsCardService _psCardService;
         private readonly IPsCardItemService _psCardItemService;
         private readonly IIcsParItemService _icsParItemService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
         
-        public PoIssuanceController(IPoIssuanceService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
+        public PoIssuanceController(IProcurementOrderService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
             IIcsParItemService icsParItemService, IPsCardItemTransactionService psCardItemTransactionService, IPoIssuanceUploadService poIssuanceUploadService)
         {
             _poIssuanceService = poIssuanceService;

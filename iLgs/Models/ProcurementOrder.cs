@@ -33,5 +33,7 @@ namespace iLgs.Models
         public string ResoNo { get; set; }
         public string CertifiedCorrectBy { get; set; }
         public Nullable<System.DateTime> CertifiedCorredtDate { get; set; }
+        public string PrNo { get; set; }
+        public Nullable<System.DateTime> PrDate { get; set; }
     }
 }

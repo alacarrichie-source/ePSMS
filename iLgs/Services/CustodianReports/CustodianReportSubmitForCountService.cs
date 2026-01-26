@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -40,6 +41,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IUserService _userService;
         private readonly IItemCodeService _itemCodeService;
         private readonly INotificationMessageService _notificationMessageService;
+        private readonly ICodextnService _codextnService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportSubmitForCountService(AppManEntities db,
@@ -48,7 +50,8 @@ namespace iLgs.Services.CustodianReports
             IExceptionService<CustodianReportSubmitForCountVM> vmExceptionService,
             IUserService userService,
             IItemCodeService itemCodeService,
-            INotificationMessageService notificationMessageService)
+            INotificationMessageService notificationMessageService,
+            ICodextnService codextnService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
@@ -57,6 +60,7 @@ namespace iLgs.Services.CustodianReports
             _userService = userService;
             _itemCodeService = itemCodeService;
             _notificationMessageService = notificationMessageService;
+            _codextnService = codextnService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);
         }
 
@@ -160,6 +164,7 @@ namespace iLgs.Services.CustodianReports
         _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            ValidateReportingYearEnd(model.Id);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -182,6 +187,8 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NullException();
             }
+
+            ValidateReportingYearEnd(reportId);
 
             if (isLocationRequired && locationId == null)
             {
@@ -252,6 +259,8 @@ namespace iLgs.Services.CustodianReports
         public ValueTask<CustodianReportSubmitForCountVM> SubmitNewAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup, string url, string user, DateTime date, bool isLocationRequired) =>
         _vmExceptionService.TryCatch(async () =>
         {
+            _codextnService.ValidateReportingYearEnd(reportYear);
+
             if (deptId == null)
             {
                 throw new NullException("Department is Required");
@@ -302,6 +311,9 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NullException();
             }
+
+            ValidateReportingYearEnd(reportId);
+
             using (var ctx = await _contextFactory.CreateContextAsync())
             {
                 var model = await GetByLocationAsync(reportId, locationId);
@@ -349,6 +361,12 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NotFoundException(id);
             }
-        }        
+        }
+
+        private void ValidateReportingYearEnd(Guid? reportId)
+        {
+            var asOf = _db.CustodianReports.Where(w => w.Id == reportId).Select(s => s.AsOf).FirstOrDefault();
+            _codextnService.ValidateReportingYearEnd(asOf.Value.Year);
+        }
     }
 }

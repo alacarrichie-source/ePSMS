@@ -34,7 +34,7 @@
                     .Columns(c =>
                     {
                         c.Add().Field("Description").Title("Document Type").Width("1000%").Template("#= columnTemplate(data.Description) #");
-                    })
+                    }).Enable(ViewBag.IsAdmin)
             //.Suggest(true)
             )
             @Html.ValidationMessageFor(m => m.Description)
@@ -44,7 +44,7 @@
     <div class="row k-mb-2">
         @Html.LabelFor(m => m.Remarks, new { @class = "text-right col-md-2" })
         <div class="col-md-10">
-            @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(m => m.Remarks)
         </div>
     </div>

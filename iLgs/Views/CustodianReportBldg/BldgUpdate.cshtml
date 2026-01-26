@@ -159,7 +159,7 @@
         {
             //col.Bound(c => c.CustodianItemIndex).Hidden();
             col.Select().Width(30);
-            col.Bound(c => c.CustodianItemNo).Width(50);            
+            col.Bound(c => c.CustodianItemNo).Width(50);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
@@ -190,7 +190,7 @@
             }).Width(50);
         })
         .ToolBar(t =>
-        {            
+        {
             t.Search();
         })
         .Search(s =>
@@ -204,13 +204,13 @@
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_BldgItemTemplate").Window(w => w.Width(1000).Title("Structure Item")))
         .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
+            //.Input(false)
+            //.Numeric(true)
+            //.Info(true)
+            //.PreviousNext(true)
             .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
+        //.PageSizes(true)
+        //.ButtonCount(5)
         )
         .Filterable()
         .NoRecords()
@@ -222,7 +222,7 @@
         .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .PageSize(20)
+            .PageSize(100000000)
             .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
             .Model(model =>
             {
@@ -243,7 +243,7 @@
             .Read(read => read.Action("_UpdateItemRead", "CustodianReportBldg").Data("DataGrid"))
             //.Create(create => create.Action("_ItemCreate", "CustodianReportBldg"))
             .Update(update => update.Action("_ItemUpdate", "CustodianReportBldg"))
-            //.Destroy(destroy => destroy.Action("_ItemDestroy", "CustodianReportBldg"))
+        //.Destroy(destroy => destroy.Action("_ItemDestroy", "CustodianReportBldg"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -339,7 +339,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(80vh - 150px) !important;
+        height: calc(100vh - 400px) !important;
     }
 </style>
 

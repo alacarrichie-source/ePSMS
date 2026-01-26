@@ -1,4 +1,6 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -25,6 +27,9 @@ namespace iLgs.Services.Codes
         IQueryable<Codextn> GetIssuanceYears();
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
         ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
+
+        void ValidateReportingYearEnd(Guid? reportId);
+        void ValidateReportingYearEnd(int? year);
 
         ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
         ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date);
@@ -142,6 +147,30 @@ namespace iLgs.Services.Codes
         {
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUANCE-YEAR").AsNoTracking().OrderBy(o => o.Description);
             return data;
+        }
+
+        public void ValidateReportingYearEnd(Guid? reportId)
+        {
+            var asOf = _db.CustodianReports.Find(reportId).AsOf;
+            ValidateReportingYearEnd(asOf.Value.Year);
+        }
+
+        public void ValidateReportingYearEnd(int? year)
+        {
+            if (year == null || year == 0)
+            {
+                throw new InvalidValueException("For Year is Required.");
+            }
+
+            var data = _db.Codextns.AsNoTracking().OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
+            if (data == null)
+            {
+                throw new NotFoundException("Invalid reporting year end.");
+            }
+            else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
+            {
+                throw new RecordLockedException($"Reporting year-end {year} is already locked.");
+            }
         }
 
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)

@@ -3440,6 +3440,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
@@ -3472,6 +3474,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
+
+                    ValidateReportingYearEnd(model.ImageId);
 
                     model = await _uploadService.UpdateAsync(model, user, date);
                 }
@@ -3514,6 +3518,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.UploadAsync(files, model, user, date);
                 }
             }
@@ -3545,6 +3551,12 @@ namespace iLgs.Controllers
             }
 
             return Content("");
+        }
+
+        public void ValidateReportingYearEnd(Guid? itemId)
+        {
+            var asOf = _db.CustodianReportItems.Where(w => w.Id == itemId).Select(s => s.CustodianReport.AsOf).FirstOrDefault();
+            _codextnService.ValidateReportingYearEnd(asOf.Value.Year);
         }
 
         public ActionResult DownloadFile(string fileName)
@@ -3722,7 +3734,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _custodianReportItemService.UpdateItemCodeAsync(reportingYearEnd, selectedIds, newItemId, accountGroup, user, date);
+                    _custodianReportItemService.UpdateItemCode(reportingYearEnd, selectedIds, newItemId, accountGroup, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

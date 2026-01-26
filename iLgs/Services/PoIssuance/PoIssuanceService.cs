@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace iLgs.Services.PoIssuance
 {
-    public interface IPoIssuanceService
+    public interface IProcurementOrderService
     {
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
         IQueryable<PsCardItemVM> GetById(Guid? id);
@@ -25,7 +25,7 @@ namespace iLgs.Services.PoIssuance
         ValueTask<PsCardItemTransferVM> TransferAsync(PsCardItemTransferVM model, string user, DateTime date);
     }
 
-    public class PoIssuanceService : IPoIssuanceService
+    public class PoIssuanceService : IProcurementOrderService
     {
         private decimal? _priceCap;
         private readonly AppManEntities _db;

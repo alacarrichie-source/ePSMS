@@ -32,12 +32,13 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportItemPpeService(AppManEntities db,
             IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
+            ICodextnService codextnService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,
             IExceptionService<CustodianReportItemPpeVM> xtraExceptionService,
             ICustodianReportItemPpeValidator validator,
             IAnnexDService annexDService,
-            IUserService userService) : base(db, appManEntitiesFactory, allFieldService, exceptions, exceptionService, userService)
+            IUserService userService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
             _validator = validator;
@@ -190,6 +191,11 @@ namespace iLgs.Services.CustodianReports
                     {
                         data = data.Where(w => w.Annex == "C");
                     }
+
+                    if (data.Any())
+                    {
+                        data = data.AsNoTracking();
+                    }
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
@@ -209,7 +215,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 if (data.Any())
                 {
-                    data = data.Where(w => w.ItemCodeId == itemCodeId);
+                    data = data.Where(w => w.ItemCodeId == itemCodeId).AsNoTracking();
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
@@ -224,7 +230,7 @@ namespace iLgs.Services.CustodianReports
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
             }
-            return data;
+            return data.AsNoTracking();
         }
 
         public ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>

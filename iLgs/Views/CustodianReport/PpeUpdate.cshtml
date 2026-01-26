@@ -180,10 +180,10 @@
             col.Command(command =>
             {
                 command.Edit();
-            }).Width(50);            
+            }).Width(50);
         })
         .ToolBar(t =>
-        {            
+        {
             t.Search();
         })
         .Search(s =>
@@ -199,13 +199,13 @@
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width("80%").Title("Equipment Item")))
         .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
+            //.Input(false)
+            //.Numeric(true)
+            //.Info(true)
+            //.PreviousNext(true)
             .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
+        //.PageSizes(true)
+        //.ButtonCount(5)
         )
         .Filterable()
         .NoRecords()
@@ -217,7 +217,7 @@
         .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .PageSize(20)
+            .PageSize(100000000)
             .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
             .Model(model =>
             {
@@ -236,7 +236,7 @@
             .Read(read => read.Action("_PpeUpdateItemRead", "CustodianReport").Data("DataGrid"))
             //.Create(create => create.Action("_PpeItemCreate", "CustodianReport"))
             .Update(update => update.Action("_PpeItemUpdate", "CustodianReport"))
-            //.Destroy(destroy => destroy.Action("_PpeItemDestroy", "CustodianReport"))
+        //.Destroy(destroy => destroy.Action("_PpeItemDestroy", "CustodianReport"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -336,7 +336,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(100vh - 330px) !important;
+        height: calc(100vh - 400px) !important;
     }
 </style>
 

@@ -15,7 +15,28 @@
     <div class="form-group">
         @Html.LabelFor(m => m.Description, new { @class = "text-right col-md-1" })
         <div class="col-md-10">
-            @(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @*@(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.Description)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Document Type")
+                    .DataTextField("Description")
+                    .DataValueField("Description")
+                    .ValuePrimitive(true)
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetUploadList", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Description").Title("Document Type").Width("1000%").Template("#= columnTemplate(data.Description) #");
+                    })
+            //.Suggest(true)
+            )
             @Html.ValidationMessageFor(m => m.Description)
         </div>
     </div>

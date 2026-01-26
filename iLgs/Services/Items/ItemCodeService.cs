@@ -17,6 +17,8 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
         ItemCode GetById(Guid? id);
         Task<ItemCode> GetByIdAsync(Guid? id);
+
+        ItemCode GetByCode(string code);
         Task<ItemCode> GetByCodeAsync(string code);
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
@@ -25,6 +27,7 @@ namespace iLgs.Services.Items
         string GetSubAccounts(Guid? id);
         string GetSubAccount(Guid? id, int pos);
         string GetSubAccountCode(Guid? id);
+        string GetPartialView(Guid? id);
         Task<string> GetPartialViewAsync(Guid? id);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
@@ -143,9 +146,15 @@ namespace iLgs.Services.Items
             var data = _db.ItemCodes.Include(i => i.ItemType).FirstOrDefault(f => f.Id == id);
             return data;
         }
+
         public Task<ItemCode> GetByCodeAsync(string code)
         {
             return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Code == code);
+        }
+
+        public ItemCode GetByCode(string code)
+        {
+            return _db.ItemCodes.Include(i => i.ItemType).FirstOrDefault(f => f.Code == code);
         }
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _vmExceptionService.TryCatch(() =>
@@ -284,6 +293,44 @@ namespace iLgs.Services.Items
             var data = _db.Database.SqlQuery<string>($"Select dbo.fn_SubAccountAt('{code}', {pos})").FirstOrDefault();
 
             return data;
+        }
+
+        public string GetPartialView(Guid? id)
+        {
+            var itemCode = GetById(id);
+
+            if (itemCode == null)
+            {
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(itemCode.PartialPage))
+            {
+                var parts = itemCode.Code.Split('.');
+
+                if (parts.Length == 1) // no '.' found, only the main code
+                {
+                    if (!string.IsNullOrWhiteSpace(itemCode.ItemType.PartialPage))
+                    {
+                        return itemCode.ItemType.PartialPage;
+                    }
+
+                }
+
+                for (int i = parts.Length - 1; i > 0; i--)
+                {
+                    string code = string.Join(".", parts.Take(i));
+                    itemCode = GetByCode(code);
+                    if (itemCode != null && !string.IsNullOrWhiteSpace(itemCode.PartialPage))
+                    {
+                        return itemCode.PartialPage;
+                    }
+                }
+                return itemCode.ItemType.PartialPage ?? "";
+            }
+
+            return itemCode.PartialPage ?? "";
+
         }
 
         public async Task<string> GetPartialViewAsync(Guid? id)

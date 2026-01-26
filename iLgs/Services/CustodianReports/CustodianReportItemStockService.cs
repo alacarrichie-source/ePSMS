@@ -32,12 +32,13 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportItemStockService(AppManEntities db,
             IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
+            ICodextnService codextnService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,            
             IUserService userService,
             IExceptionService<CustodianReportItemStockVM> xtraExceptionService,
             ICustodianReportItemStockValidator validator,
-            IAnnexDService annexDService) : base(db, appManEntitiesFactory, allFieldService, exceptions, exceptionService, userService)
+            IAnnexDService annexDService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
             _validator = validator;
@@ -188,6 +189,10 @@ namespace iLgs.Services.CustodianReports
                 {
                     data = data.Where(w => w.Annex == "C");
                 }
+                if (data.Any())
+                {
+                    data = data.AsNoTracking();
+                }
             }
             return data ?? Enumerable.Empty<CustodianReportItemStockVM>().AsQueryable();
         }
@@ -206,7 +211,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 if (data.Any())
                 {
-                    data = data.Where(w => w.ItemCodeId == itemCodeId);
+                    data = data.AsNoTracking().Where(w => w.ItemCodeId == itemCodeId);
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemStockVM>().AsQueryable();
@@ -219,7 +224,7 @@ namespace iLgs.Services.CustodianReports
             var userIsAdmin = _userService.IsUserNameAdmin(userName);
             data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
             
-            return data;
+            return data.AsNoTracking();
         }
 
         public ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>

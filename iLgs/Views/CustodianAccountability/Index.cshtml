@@ -54,9 +54,9 @@
         col.Bound(p => p.InsertedDt).Width(50);
         col.Command(command =>
         {
+            command.Edit();
             if (ViewBag.IsAdmin)
-            {
-                command.Edit();
+            {                
                 command.Destroy();
             }
             command.Custom("Preview").IconClass("k-icon k-i-eye").Click("onClickPreview");

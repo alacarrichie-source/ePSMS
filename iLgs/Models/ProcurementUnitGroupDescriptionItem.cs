@@ -12,7 +12,7 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class ProcurementUnitGroupDescriptinItem
+    public partial class ProcurementUnitGroupDescriptionItem
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }

@@ -1299,6 +1299,8 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="PrNo" Type="varchar" MaxLength="12" />
+          <Property Name="PrDate" Type="datetime" />
           <Property Name="SupplierId" Type="uniqueidentifier" />
           <Property Name="SupName" Type="varchar" MaxLength="200" />
           <Property Name="SupBusiness" Type="varchar" MaxLength="200" />
@@ -1371,7 +1373,7 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
-        <EntityType Name="ProcurementUnitGroupDescriptinItems">
+        <EntityType Name="ProcurementUnitGroupDescriptionItems">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -3769,12 +3771,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
         </Association>
         <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
           <End Role="ProcurementItems" Type="Self.ProcurementItems" Multiplicity="0..1" />
-          <End Role="ProcurementUnitGroupDescriptinItems" Type="Self.ProcurementUnitGroupDescriptinItems" Multiplicity="*" />
+          <End Role="ProcurementUnitGroupDescriptionItems" Type="Self.ProcurementUnitGroupDescriptionItems" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ProcurementItems">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="ProcurementUnitGroupDescriptinItems">
+            <Dependent Role="ProcurementUnitGroupDescriptionItems">
               <PropertyRef Name="ProcItemId" />
             </Dependent>
           </ReferentialConstraint>
@@ -3783,12 +3785,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <End Role="ProcurementUnitGroupDescriptions" Type="Self.ProcurementUnitGroupDescriptions" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
           </End>
-          <End Role="ProcurementUnitGroupDescriptinItems" Type="Self.ProcurementUnitGroupDescriptinItems" Multiplicity="*" />
+          <End Role="ProcurementUnitGroupDescriptionItems" Type="Self.ProcurementUnitGroupDescriptionItems" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ProcurementUnitGroupDescriptions">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="ProcurementUnitGroupDescriptinItems">
+            <Dependent Role="ProcurementUnitGroupDescriptionItems">
               <PropertyRef Name="UnitGroupDescriptionId" />
             </Dependent>
           </ReferentialConstraint>
@@ -4846,7 +4848,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="ProcurementRequests" EntityType="Self.ProcurementRequests" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ProcurementRISs" EntityType="Self.ProcurementRISs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Procurements" EntityType="Self.Procurements" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="ProcurementUnitGroupDescriptinItems" EntityType="Self.ProcurementUnitGroupDescriptinItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProcurementUnitGroupDescriptionItems" EntityType="Self.ProcurementUnitGroupDescriptionItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ProcurementUnitGroupDescriptions" EntityType="Self.ProcurementUnitGroupDescriptions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ProcurementUnitGroups" EntityType="Self.ProcurementUnitGroups" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemExtnAddCosts" EntityType="Self.PsCardItemExtnAddCosts" Schema="dbo" store:Type="Tables" />
@@ -5313,11 +5315,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" Association="Self.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
             <End Role="ProcurementItems" EntitySet="ProcurementItems" />
-            <End Role="ProcurementUnitGroupDescriptinItems" EntitySet="ProcurementUnitGroupDescriptinItems" />
+            <End Role="ProcurementUnitGroupDescriptionItems" EntitySet="ProcurementUnitGroupDescriptionItems" />
           </AssociationSet>
           <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" Association="Self.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
             <End Role="ProcurementUnitGroupDescriptions" EntitySet="ProcurementUnitGroupDescriptions" />
-            <End Role="ProcurementUnitGroupDescriptinItems" EntitySet="ProcurementUnitGroupDescriptinItems" />
+            <End Role="ProcurementUnitGroupDescriptionItems" EntitySet="ProcurementUnitGroupDescriptionItems" />
           </AssociationSet>
           <AssociationSet Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" Association="Self.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
             <End Role="ProcurementUnitGroups" EntitySet="ProcurementUnitGroups" />
@@ -6349,7 +6351,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Procurement" EntitySet="Procurements" />
           </AssociationSet>
           <EntitySet Name="ProcurementItems" EntityType="AppManModel.ProcurementItem" />
-          <EntitySet Name="ProcurementUnitGroupDescriptinItems" EntityType="AppManModel.ProcurementUnitGroupDescriptinItem" />
           <EntitySet Name="ProcurementUnitGroupDescriptions" EntityType="AppManModel.ProcurementUnitGroupDescription" />
           <EntitySet Name="ProcurementUnitGroups" EntityType="AppManModel.ProcurementUnitGroup" />
           <AssociationSet Name="FK_ProcurementItems_ItemCodes" Association="AppManModel.FK_ProcurementItems_ItemCodes">
@@ -6360,23 +6361,24 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Procurement" EntitySet="Procurements" />
             <End Role="ProcurementItem" EntitySet="ProcurementItems" />
           </AssociationSet>
-          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
-            <End Role="ProcurementItem" EntitySet="ProcurementItems" />
-            <End Role="ProcurementUnitGroupDescriptinItem" EntitySet="ProcurementUnitGroupDescriptinItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_ProcurementUnitGroups_Procurements" Association="AppManModel.FK_ProcurementUnitGroups_Procurements">
             <End Role="Procurement" EntitySet="Procurements" />
             <End Role="ProcurementUnitGroup" EntitySet="ProcurementUnitGroups" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
-            <End Role="ProcurementUnitGroupDescription" EntitySet="ProcurementUnitGroupDescriptions" />
-            <End Role="ProcurementUnitGroupDescriptinItem" EntitySet="ProcurementUnitGroupDescriptinItems" />
           </AssociationSet>
           <AssociationSet Name="FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" Association="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups">
             <End Role="ProcurementUnitGroup" EntitySet="ProcurementUnitGroups" />
             <End Role="ProcurementUnitGroupDescription" EntitySet="ProcurementUnitGroupDescriptions" />
           </AssociationSet>
           <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
+          <EntitySet Name="ProcurementUnitGroupDescriptionItems" EntityType="AppManModel.ProcurementUnitGroupDescriptionItem" />
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+            <End Role="ProcurementItem" EntitySet="ProcurementItems" />
+            <End Role="ProcurementUnitGroupDescriptionItem" EntitySet="ProcurementUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+            <End Role="ProcurementUnitGroupDescription" EntitySet="ProcurementUnitGroupDescriptions" />
+            <End Role="ProcurementUnitGroupDescriptionItem" EntitySet="ProcurementUnitGroupDescriptionItems" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -11120,7 +11122,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_ProcurementItems_ItemCodes" FromRole="ProcurementItem" ToRole="ItemCode" />
           <NavigationProperty Name="Procurement" Relationship="AppManModel.FK_ProcurementItems_Procurements" FromRole="ProcurementItem" ToRole="Procurement" />
-          <NavigationProperty Name="ProcurementUnitGroupDescriptinItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementItem" ToRole="ProcurementUnitGroupDescriptinItem" />
+          <NavigationProperty Name="ProcurementUnitGroupDescriptionItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementItem" ToRole="ProcurementUnitGroupDescriptionItem" />
         </EntityType>
         <EntityType Name="ProcurementOrder" BaseType="AppManModel.Procurement">
           <Property Name="SupplierId" Type="Guid" />
@@ -11142,6 +11144,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="ResoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="CertifiedCorredtDate" Type="DateTime" Precision="3" />
+          <Property Name="PrNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="PrDate" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="ProcurementRequest" BaseType="AppManModel.Procurement">
           <Property Name="Purpose" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
@@ -11151,20 +11155,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="AvaliabilityDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="ApprovedDesig" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-        </EntityType>
-        <EntityType Name="ProcurementUnitGroupDescriptinItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="UnitGroupDescriptionId" Type="Guid" />
-          <Property Name="ProcItemId" Type="Guid" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="ProcurementItem" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementUnitGroupDescriptinItem" ToRole="ProcurementItem" />
-          <NavigationProperty Name="ProcurementUnitGroupDescription" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescriptinItem" ToRole="ProcurementUnitGroupDescription" />
         </EntityType>
         <EntityType Name="ProcurementUnitGroupDescription">
           <Key>
@@ -11177,8 +11167,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="ProcurementUnitGroupDescriptinItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescription" ToRole="ProcurementUnitGroupDescriptinItem" />
           <NavigationProperty Name="ProcurementUnitGroup" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" FromRole="ProcurementUnitGroupDescription" ToRole="ProcurementUnitGroup" />
+          <NavigationProperty Name="ProcurementUnitGroupDescriptionItems" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescription" ToRole="ProcurementUnitGroupDescriptionItem" />
         </EntityType>
         <EntityType Name="ProcurementUnitGroup">
           <Key>
@@ -11224,18 +11214,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
-          <End Type="AppManModel.ProcurementItem" Role="ProcurementItem" Multiplicity="0..1" />
-          <End Type="AppManModel.ProcurementUnitGroupDescriptinItem" Role="ProcurementUnitGroupDescriptinItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ProcurementItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ProcurementUnitGroupDescriptinItem">
-              <PropertyRef Name="ProcItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ProcurementUnitGroups_Procurements">
           <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -11247,20 +11225,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="ProcurementUnitGroup">
               <PropertyRef Name="ProcId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
-          <End Type="AppManModel.ProcurementUnitGroupDescription" Role="ProcurementUnitGroupDescription" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.ProcurementUnitGroupDescriptinItem" Role="ProcurementUnitGroupDescriptinItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ProcurementUnitGroupDescription">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ProcurementUnitGroupDescriptinItem">
-              <PropertyRef Name="UnitGroupDescriptionId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11309,6 +11273,46 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
         </EntityType>
+        <EntityType Name="ProcurementUnitGroupDescriptionItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UnitGroupDescriptionId" Type="Guid" />
+          <Property Name="ProcItemId" Type="Guid" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ProcurementItem" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" FromRole="ProcurementUnitGroupDescriptionItem" ToRole="ProcurementItem" />
+          <NavigationProperty Name="ProcurementUnitGroupDescription" Relationship="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" FromRole="ProcurementUnitGroupDescriptionItem" ToRole="ProcurementUnitGroupDescription" />
+        </EntityType>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementItems">
+          <End Type="AppManModel.ProcurementItem" Role="ProcurementItem" Multiplicity="0..1" />
+          <End Type="AppManModel.ProcurementUnitGroupDescriptionItem" Role="ProcurementUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptionItem">
+              <PropertyRef Name="ProcItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions">
+          <End Type="AppManModel.ProcurementUnitGroupDescription" Role="ProcurementUnitGroupDescription" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ProcurementUnitGroupDescriptionItem" Role="ProcurementUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProcurementUnitGroupDescription">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ProcurementUnitGroupDescriptionItem">
+              <PropertyRef Name="UnitGroupDescriptionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -13906,6 +13910,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </EntityTypeMapping>
             <EntityTypeMapping TypeName="IsTypeOf(AppManModel.ProcurementOrder)">
               <MappingFragment StoreEntitySet="ProcurementOrders">
+                <ScalarProperty Name="PrDate" ColumnName="PrDate" />
+                <ScalarProperty Name="PrNo" ColumnName="PrNo" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="SupplierId" ColumnName="SupplierId" />
                 <ScalarProperty Name="SupName" ColumnName="SupName" />
@@ -13956,19 +13962,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="ProcurementUnitGroupDescriptinItems">
-            <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroupDescriptinItem">
-              <MappingFragment StoreEntitySet="ProcurementUnitGroupDescriptinItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="ProcItemId" ColumnName="ProcItemId" />
-                <ScalarProperty Name="UnitGroupDescriptionId" ColumnName="UnitGroupDescriptionId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="ProcurementUnitGroupDescriptions">
             <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroupDescription">
               <MappingFragment StoreEntitySet="ProcurementUnitGroupDescriptions">
@@ -14012,6 +14005,19 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="FileName" ColumnName="FileName" />
                 <ScalarProperty Name="ImageId" ColumnName="ImageId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProcurementUnitGroupDescriptionItems">
+            <EntityTypeMapping TypeName="AppManModel.ProcurementUnitGroupDescriptionItem">
+              <MappingFragment StoreEntitySet="ProcurementUnitGroupDescriptionItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="ProcItemId" ColumnName="ProcItemId" />
+                <ScalarProperty Name="UnitGroupDescriptionId" ColumnName="UnitGroupDescriptionId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

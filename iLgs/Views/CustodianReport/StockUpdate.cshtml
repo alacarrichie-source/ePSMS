@@ -178,13 +178,14 @@
             col.Bound(c => c.UpdatedBy).Width(50);
             col.Bound(c => c.UpdatedDt).Width(50);
             col.Bound(c => c.IsPosted).Width(30);
+            //.ClientFooterTemplate("Total records: #=kendo.format('{0:n0}', count)#").FooterHtmlAttributes(new { Style = "text-align:right;" });
             col.Command(command =>
             {
                 command.Edit();
-            }).Width(50);            
+            }).Width(50);
         })
         .ToolBar(t =>
-        {            
+        {
             t.Search();
         })
         .Search(s =>
@@ -200,13 +201,13 @@
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockItemTemplate").Window(w => w.Width("80%").Title("Supply Item")))
         .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
+            //.Input(false)
+            //.Numeric(true)
+            //.Info(true)
+            //.PreviousNext(true)
             .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
+            //.PageSizes(true)
+            //.ButtonCount(5)
         )
         .Filterable()
         .NoRecords()
@@ -218,7 +219,7 @@
         .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .PageSize(20)
+            .PageSize(100000000)
             .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
             .Model(model =>
             {
@@ -228,6 +229,7 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.TotalCost).Sum();
+                //a.Add(p => p.IsPosted).Count();
             })
             .Sort(s =>
             {
@@ -335,7 +337,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(100vh - 330px) !important;
+        height: calc(100vh - 400px) !important;
     }
 </style>
 
@@ -353,7 +355,7 @@
     # } #
 </script>
 
-<script type="text/javascript">
+<script type="text/javascript">    
     function onClickUpdateSubmit(e) {
         // Get reference to Grid object
             var grid = $("#grid").data("kendoGrid");

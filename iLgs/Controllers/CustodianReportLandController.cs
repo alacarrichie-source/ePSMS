@@ -23,18 +23,21 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTLAND")]
     public class CustodianReportLandController : BaseController
     {
+        private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportLandItemService _custodianReportLandItemService;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianLandUploadService _uploadService;
 
-        public CustodianReportLandController(ICustodianReportService custodianReportService,
+        public CustodianReportLandController(AppManEntities db, 
+            ICustodianReportService custodianReportService,
             ICustodianReportLandItemService custodianReportLandItemService,
             ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
             ICodextnService codextnService,
             ICustodianLandUploadService custodianLandUploadService)
         {
+            _db = db;
             _custodianReportService = custodianReportService;
             _custodianReportLandItemService = custodianReportLandItemService;
             _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
@@ -302,7 +305,7 @@ namespace iLgs.Controllers
             {                
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("GridError", "Access Denied!");
                 }
@@ -352,7 +355,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
                 Access access = await accessTask;
-                if (!access.AllowUnpost)
+                if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("GridError", "Access Denied!");
                 }
@@ -659,6 +662,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
@@ -692,6 +697,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
+
+                    ValidateReportingYearEnd(model.ImageId);
 
                     model = await _uploadService.UpdateAsync(model, user, date);
                 }
@@ -735,6 +742,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.UploadAsync(files, model, user, date);
                 }
             }
@@ -766,6 +775,12 @@ namespace iLgs.Controllers
             }
 
             return Content("");
+        }
+
+        public void ValidateReportingYearEnd(Guid? itemId)
+        {
+            var asOf = _db.CustodianReportLandItems.Where(w => w.Id == itemId).Select(s => s.CustodianReport.AsOf).FirstOrDefault();
+            _codextnService.ValidateReportingYearEnd(asOf.Value.Year);
         }
 
         public ActionResult DownloadFile(string fileName)
@@ -871,7 +886,7 @@ namespace iLgs.Controllers
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+                    DateTime date = System.DateTime.Now;                    
 
                     await _custodianReportService.UploadLand(forYear, deptId, accountGroup, user, date);
                 }

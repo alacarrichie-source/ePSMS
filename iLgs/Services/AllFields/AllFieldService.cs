@@ -29,6 +29,7 @@ namespace iLgs.Services.AllFields
         Task<string> GetCardStockNoAsync(PsCardVM model);
         Task<string> GetRisStockNoAsync(RisItemEntryVM model);
         Task<string> GetOrderStockNoAsync(OrderItemVM model);
+        string GetCustodianStockNo(CustodianReportItem model);
         Task<string> GetCustodianStockNoAsync(CustodianReportItem model);
         Task<string> GetCustodianStockNoAsync(CustodianReportLandItem model);
         Task<string> GetCustodianStockNoAsync(CustodianReportBldgItem model);
@@ -663,6 +664,20 @@ namespace iLgs.Services.AllFields
             //string partialView = AllFieldsUtil.GetPartialView(itemCode);
 
             string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
+
+            return stockNo ?? "";
+        }
+
+        public string GetCustodianStockNo(CustodianReportItem model)
+        {
+            string stockNo = model.Item_Code.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
+
+            string partialView = _itemCodeService.GetPartialView(model.ItemCodeId);
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";

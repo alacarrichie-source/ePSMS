@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Codes;
 using iLgs.Services.CustodianUploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -38,9 +39,11 @@ namespace iLgs.Services.CustodianReports
         //MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup);
         //MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accontGroup, string annex);
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
-        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
 
         ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase { get; }
@@ -58,6 +61,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IUserService _userService;
         private readonly ICustodianReportBldgItemPhaseService _custodianReportBldgItemPhase;
         private readonly ICustodianBldgUploadService _custodianBldgUploadService;
+        private readonly ICodextnService _codextnService;
 
         public CustodianReportBldgItemService(AppManEntities db,
             IAppManEntitiesFactory appManEntitiesFactory,
@@ -67,7 +71,8 @@ namespace iLgs.Services.CustodianReports
             IUserService userService,
             ICustodianReportBldgItemPhaseService custodianReportBldgItemPhase,
             ICustodianReportItemPpeValidator validator,
-            ICustodianBldgUploadService custodianBldgUploadService)
+            ICustodianBldgUploadService custodianBldgUploadService, 
+            ICodextnService codextnService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
@@ -79,6 +84,7 @@ namespace iLgs.Services.CustodianReports
             _custodianReportBldgItemPhase = custodianReportBldgItemPhase;
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
             _custodianBldgUploadService = custodianBldgUploadService;
+            _codextnService = codextnService;
         }
 
         public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase => _custodianReportBldgItemPhase;
@@ -182,7 +188,7 @@ namespace iLgs.Services.CustodianReports
                 {
                     userIsAdmin = true;
                 }
-                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
                 if (data.Any() && isDemand == true)
                 {
                     data = data.Where(w => w.Annex == "C");
@@ -225,7 +231,7 @@ namespace iLgs.Services.CustodianReports
                 {
                     userIsAdmin = true;
                 }
-                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
                 if (data.Any() && isDemand == true)
                 {
                     data = data.Where(w => w.Annex == "C");
@@ -284,29 +290,11 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NullException();
             }
-        }
-
-        public void ValidateReportingYearEnd(int? year)
-        {
-            if (year == null || year == 0)
-            {
-                throw new InvalidValueException("For Year is Required.");
-            }
-
-            var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
-            if (data == null)
-            {
-                throw new NotFoundException("Invalid reporting year end.");
-            }
-            else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
-            {
-                throw new RecordLockedException($"Reporting year-end {year} is already locked.");
-            }
-        }
+        }        
 
         public async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date)
         {
-            ValidateReportingYearEnd(reportingYearEnd);
+            _codextnService.ValidateReportingYearEnd(reportingYearEnd);
 
             if (newItemId == null)
             {
@@ -336,11 +324,13 @@ namespace iLgs.Services.CustodianReports
                             entity.PsNo = psNo;
                             entity.UpdatedBy = user;
                             entity.UpdatedDt = date;
+
+                            await ctx.SaveChangesAsync();
                         }
                     }
                 }
 
-                await ctx.SaveChangesAsync();
+                //await ctx.SaveChangesAsync();
             }
         }
 
@@ -352,6 +342,8 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new InvalidValueException("For Year is Required.");
             }
+
+            _codextnService.ValidateReportingYearEnd(model.ForYear);
 
             ValidateRequired(model);
 
@@ -396,6 +388,7 @@ namespace iLgs.Services.CustodianReports
         public ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            _codextnService.ValidateReportingYearEnd(model.ForYear);
             ValidateRequired(model);
 
             model.UpdatedBy = user;
@@ -420,7 +413,7 @@ namespace iLgs.Services.CustodianReports
 
         public ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            ValidateIfNull(model);
+            ValidateIfNull(model);            
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -429,6 +422,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportBldgItems.FindAsync(model.Id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(model.ReportId);                
                 ValidateIfPosted(entity);
                 ValidateIfSubmitted(model, ctx);
 
@@ -454,6 +448,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfPosted(entity);
 
                 if (!_custodianBldgUploadService.GetAllByImageId(id).Any())
@@ -480,6 +475,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfNotPosted(entity);
 
                 entity.PostedBy = "";
@@ -586,11 +582,11 @@ namespace iLgs.Services.CustodianReports
 
         public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName)
         {
-            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, "", "", "", "", userName);
+            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, null, "", "", "", "", userName);
         }
 
-        //public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
-        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -600,7 +596,7 @@ namespace iLgs.Services.CustodianReports
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
             //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
@@ -666,7 +662,7 @@ namespace iLgs.Services.CustodianReports
             //ws.Row(row).Cell(30).SetValue(reportItem.Condition);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(32).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(32).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -675,14 +671,16 @@ namespace iLgs.Services.CustodianReports
         //    return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
         //}
 
-        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }        
 
         private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string templateFilePath, string hdg, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
 
@@ -699,8 +697,8 @@ namespace iLgs.Services.CustodianReports
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                var reportItems = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
+                var reportItems = _db.Database.SqlQuery<CustodianReportBldgItemVM>("Exec CustodianReport_GetBldgItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -892,7 +890,8 @@ namespace iLgs.Services.CustodianReports
                         }
                         else
                         {
-                            ws.Row(row).Cell(32).SetValue(engAmt.Annex); // new
+                            //ws.Row(row).Cell(32).SetValue(engAmt.Annex); // new
+                            ws.Row(row).Cell(32).SetValue(string.IsNullOrWhiteSpace(engAmt.Annex) ? "" : engAmt.Annex.ToUpper()); // new                            
                             ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                         }
                     }
@@ -927,7 +926,8 @@ namespace iLgs.Services.CustodianReports
         }
 
         //public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
-        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -952,7 +952,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
@@ -1001,6 +1001,12 @@ namespace iLgs.Services.CustodianReports
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
+        }
+
+        private void ValidateReportingYearEnd(Guid? reportId)
+        {
+            var forYear = _db.CustodianReports.Find(reportId).AsOf.Value.Year;
+            _codextnService.ValidateReportingYearEnd(forYear);
         }
     }
 }

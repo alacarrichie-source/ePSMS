@@ -323,18 +323,18 @@
         <EntityTypeShape EntityType="AppManModel.ProcurementItem" Width="1.5" PointX="6.125" PointY="10.375" />
         <EntityTypeShape EntityType="AppManModel.ProcurementOrder" Width="1.5" PointX="1.125" PointY="6.125" />
         <EntityTypeShape EntityType="AppManModel.ProcurementRequest" Width="1.5" PointX="3.875" PointY="6.125" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroupDescriptinItem" Width="1.5" PointX="10.625" PointY="9.875" />
         <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroupDescription" Width="1.5" PointX="8.375" PointY="6.5" />
         <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroup" Width="1.5" PointX="6.125" PointY="6.125" />
         <AssociationConnector Association="AppManModel.FK_ProcurementItems_Procurements" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" />
         <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroups_Procurements" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" />
         <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" />
         <EntityTypeShape EntityType="AppManModel.ProcurementRISs" Width="1.5" PointX="13.375" PointY="6.125" />
         <InheritanceConnector EntityType="AppManModel.ProcurementRISs" />
         <InheritanceConnector EntityType="AppManModel.ProcurementRequest" />
         <InheritanceConnector EntityType="AppManModel.ProcurementOrder" />
+        <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroupDescriptionItem" Width="1.5" PointX="10.625" PointY="9.875" />
+        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" />
+        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

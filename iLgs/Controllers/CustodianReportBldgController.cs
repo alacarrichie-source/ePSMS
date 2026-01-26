@@ -4,6 +4,7 @@ using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -23,23 +24,28 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTBLDG")]
     public class CustodianReportBldgController : BaseController
     {
+        private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
         private readonly ICustodianBldgUploadService _uploadService;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
+        private readonly IItemCodeService _itemCodeService;
 
-        public CustodianReportBldgController(ICustodianReportService custodianReportService,
+        public CustodianReportBldgController(AppManEntities db, ICustodianReportService custodianReportService,
             ICustodianReportBldgItemService custodianReportBldgItemService,
             ICustodianBldgUploadService custodianBldgUploadService, 
             ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
-            ICodextnService codextnService)
+            ICodextnService codextnService,
+            IItemCodeService itemCodeService)
         {
+            _db = db;
             _custodianReportService = custodianReportService;
             _custodianReportBldgItemService = custodianReportBldgItemService;
             _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
             _uploadService = custodianBldgUploadService;
             _codextnService = codextnService;
+            _itemCodeService = itemCodeService;
         }
 
         public ActionResult BldgQuery()
@@ -859,6 +865,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
@@ -892,6 +900,8 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
+
+                    ValidateReportingYearEnd(model.ImageId);
 
                     model = await _uploadService.UpdateAsync(model, user, date);
                 }
@@ -935,6 +945,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    ValidateReportingYearEnd(model.ImageId);
+
                     model = await _uploadService.UploadAsync(files, model, user, date);
                 }
             }
@@ -966,6 +978,12 @@ namespace iLgs.Controllers
             }
 
             return Content("");
+        }
+
+        public void ValidateReportingYearEnd(Guid? itemId)
+        {
+            var asOf = _db.CustodianReportBldgItems.Where(w => w.Id == itemId).Select(s => s.CustodianReport.AsOf).FirstOrDefault();
+            _codextnService.ValidateReportingYearEnd(asOf.Value.Year);
         }
 
         public ActionResult DownloadFile(string fileName)
@@ -1132,17 +1150,17 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, "", "", "", "");
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, null, "", "", "", "");
         }
 
-        public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
         //public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, int? accountGroup)
-        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -1151,14 +1169,43 @@ namespace iLgs.Controllers
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 //var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, templateFilePath, accountGroup);
-                var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
+                var stream = _custodianReportBldgItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 string locationCode = "ALL";
                 if (deptId != null)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
+
+                var sa1 = string.Empty;
+                var sa2 = string.Empty;
+                var sa3 = string.Empty;
+                var sa4 = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(subAccount1))
+                {
+                    sa1 = (await _itemCodeService.GetByCodeAsync(subAccount1)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount2))
+                {
+                    sa2 = (await _itemCodeService.GetByCodeAsync(subAccount2)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount3))
+                {
+                    sa3 = (await _itemCodeService.GetByCodeAsync(subAccount3)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount4))
+                {
+                    sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
+                }
+
+                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_{DateTime.Now.ToShortDateString()}.xlsx";
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
             {
@@ -1166,18 +1213,20 @@ namespace iLgs.Controllers
             }
         }
 
-        public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
-          , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+        public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
         public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, null, "", "", "", "");
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -1185,14 +1234,44 @@ namespace iLgs.Controllers
                 string exportFileName = $"CustodianStructureAnnex";                
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
                 if (deptId != null)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+
+                var sa1 = string.Empty;
+                var sa2 = string.Empty;
+                var sa3 = string.Empty;
+                var sa4 = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(subAccount1))
+                {
+                    sa1 = (await _itemCodeService.GetByCodeAsync(subAccount1)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount2))
+                {
+                    sa2 = (await _itemCodeService.GetByCodeAsync(subAccount2)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount3))
+                {
+                    sa3 = (await _itemCodeService.GetByCodeAsync(subAccount3)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount4))
+                {
+                    sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
+                }
+
+                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_-{annex}_{DateTime.Now.ToShortDateString()}.xlsx";
+
+                //return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
             {

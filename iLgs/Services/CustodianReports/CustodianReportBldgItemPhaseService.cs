@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -31,13 +32,15 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportBldgItemTransferVM> _transferItemExceptionService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly ICodextnService _codextnService;
 
         public CustodianReportBldgItemPhaseService(AppManEntities db, 
             IAppManEntitiesFactory appManEntitiesFactory,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
             IExceptionService<CustodianReportBldgItemTransferVM> transferItemExceptionService,
-            IUserService userService)
+            IUserService userService,
+            ICodextnService codextnService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
@@ -46,6 +49,7 @@ namespace iLgs.Services.CustodianReports
             _transferItemExceptionService = transferItemExceptionService;
             _userService = userService;
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhasVM>;
+            _codextnService = codextnService;
         }
 
         private Expression<Func<CustodianReportBldgItemPhas, CustodianReportBldgItemPhasVM>> Projection()
@@ -98,8 +102,8 @@ namespace iLgs.Services.CustodianReports
             if (model is null)
             {
                 throw new NullException();
-            }            
-
+            }
+            ValidateReportingYearEnd(model.SourceId);
             ValidateIfPosted(model.SourceId);
 
             using (var ctx = await _contextFactory.CreateContextAsync())
@@ -168,6 +172,7 @@ namespace iLgs.Services.CustodianReports
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> CreateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
             ValidateIfNull(model);
+            ValidateReportingYearEnd(model.BldgItemId);
             ValidateIfPosted(model.BldgItemId);
             ValidateIfSubmitted(model);
             ValidateEntry(model, Mode.EDIT);
@@ -210,6 +215,7 @@ namespace iLgs.Services.CustodianReports
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> UpdateAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
             ValidateIfNull(model);
+            ValidateReportingYearEnd(model.BldgItemId);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -237,6 +243,8 @@ namespace iLgs.Services.CustodianReports
 
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
         {
+            ValidateReportingYearEnd(model.BldgItemId);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -292,6 +300,12 @@ namespace iLgs.Services.CustodianReports
             entity.Fund = model.Fund;
             entity.Annex = model.Annex;
             entity.BldgItem = model.BldgItem;
+        }
+
+        public void ValidateReportingYearEnd(Guid? bldgId)
+        {
+            var asOf = _db.CustodianReportBldgItems.Where(w => w.Id == bldgId).Select(s => s.CustodianReport.AsOf).FirstOrDefault();
+            _codextnService.ValidateReportingYearEnd(asOf.Value.Year);
         }
 
         private void ValidateIfNull(CustodianReportBldgItemPhasVM model)

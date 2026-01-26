@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
 using System.Data.Entity;
@@ -23,18 +24,21 @@ namespace iLgs.Services.CustodianReports
     {        
         protected readonly AppManEntities _db;
         private readonly IAppManEntitiesFactory _contextFactory;
+        private readonly ICodextnService _codextnService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportItemIssuance> _exceptionService;
         private readonly IUserService _userService;
 
         public CustodianReportItemIssuanceService(AppManEntities db, 
             IAppManEntitiesFactory appManEntitiesFactory,
+            ICodextnService codextnService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItemIssuance> exceptionService,
             IUserService userService)
         {
             _db = db;
             _contextFactory = appManEntitiesFactory;
+            _codextnService = codextnService;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
             _userService = userService;
@@ -57,6 +61,7 @@ namespace iLgs.Services.CustodianReports
         public virtual async ValueTask<CustodianReportItemIssuance> CreateAsync(CustodianReportItemIssuance model, string user, DateTime date)
         {
             ValidateIfNull(model);
+            ValidateReportingYearEnd(model.ReportItemId);
             ValidateIfPosted(model.ReportItemId);
             ValidateIfSubmitted(model);
 
@@ -89,6 +94,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportItemIssuances.FindAsync(model.Id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportItemId);
                 ValidateIfPosted(entity.ReportItemId);
                 ValidateIfSubmitted(model);
                 ValidateUser(entity, model);
@@ -112,6 +118,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportItemIssuances.FindAsync(model.Id);
                 ValidateRecord(entity);
+                ValidateReportingYearEnd(entity.ReportItemId);
                 ValidateIfPosted(entity.ReportItemId);
                 ValidateIfSubmitted(model);
 
@@ -161,6 +168,17 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NotFoundException(entity.Id);
             }
+        }
+
+        private void ValidateReportingYearEnd(Guid? reportItemId)
+        {
+            var asOf = _db.CustodianReportItems.Where(w => w.Id == reportItemId).Select(s => s.CustodianReport.AsOf).FirstOrDefault();
+            ValidateReportingYearEnd(asOf.Value.Year);
+        }
+
+        private void ValidateReportingYearEnd(int? year)
+        {
+            _codextnService.ValidateReportingYearEnd(year);            
         }
 
         private void ValidateIfPosted(Guid? reportItemId)

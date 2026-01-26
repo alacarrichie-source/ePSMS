@@ -196,7 +196,7 @@ namespace iLgs
             services.AddScoped<IParService, ParService>();
 
             // PO-ISSUANCE
-            services.AddScoped<IPoIssuanceService, PoIssuanceService>();
+            services.AddScoped<IProcurementOrderService, PoIssuanceService>();
             services.AddScoped<IPoIssuanceUploadService, PoIssuanceUploadService>();
 
             // PROPERTY CARD

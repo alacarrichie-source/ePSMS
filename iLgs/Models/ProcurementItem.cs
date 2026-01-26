@@ -17,7 +17,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ProcurementItem()
         {
-            this.ProcurementUnitGroupDescriptinItems = new HashSet<ProcurementUnitGroupDescriptinItem>();
+            this.ProcurementUnitGroupDescriptionItems = new HashSet<ProcurementUnitGroupDescriptionItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -45,6 +45,6 @@ namespace iLgs.Models
         public virtual ItemCode ItemCode { get; set; }
         public virtual Procurement Procurement { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ProcurementUnitGroupDescriptinItem> ProcurementUnitGroupDescriptinItems { get; set; }
+        public virtual ICollection<ProcurementUnitGroupDescriptionItem> ProcurementUnitGroupDescriptionItems { get; set; }
     }
 }

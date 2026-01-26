@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -20,10 +21,11 @@ namespace iLgs.Services.CustodianReports
         IQueryable<CustodianReportItem> GetByReportId(Guid? reportId);
         IQueryable<CustodianReportItem> GetAvailableItemsForDisposal(int? forYear, Guid? deptId);
         ValueTask<CustodianReportItem> GetByIdAsync(Guid id);
+        string GetStockNo(CustodianReportItem model);
         Task<string> GetStockNoAsync(CustodianReportItem model);
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
-        ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);
-        ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date);
+        ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);        
+        void UpdateItemCode(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date);
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
@@ -45,14 +47,17 @@ namespace iLgs.Services.CustodianReports
         protected readonly AppManEntities _db;
         protected readonly IAppManEntitiesFactory _contextFactory;
         protected readonly IAllFieldService _allFieldService;
+        protected readonly ICodextnService _codextnService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportItem> _exceptionService;
         protected readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        
 
         public CustodianReportItemService(AppManEntities db,
             IAppManEntitiesFactory appManEntitiesFactory,
             IAllFieldService allFieldService,
+            ICodextnService codextnService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<CustodianReportItem> exceptionService,
             IUserService userService)
@@ -60,9 +65,10 @@ namespace iLgs.Services.CustodianReports
             _db = db;
             _contextFactory = appManEntitiesFactory;
             _allFieldService = allFieldService;
+            _codextnService = codextnService;
             _exceptions = exceptions;
             _exceptionService = exceptionService;
-            _userService = userService;
+            _userService = userService;            
             _getDisplayName = Utility.GetDisplayName<CustodianReportItemPpeVM>;
         }
 
@@ -72,6 +78,12 @@ namespace iLgs.Services.CustodianReports
             var data = await _db.CustodianReportItems.Where(w => w.Id == id).FirstOrDefaultAsync();
             return data;
         });
+
+        public string GetStockNo(CustodianReportItem model)
+        {
+            model.AllField = SetAllField(model);
+            return _allFieldService.GetCustodianStockNo(model);
+        }
 
         public async Task<string> GetStockNoAsync(CustodianReportItem model)
         {
@@ -193,7 +205,61 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public virtual async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date)
+        public virtual void UpdateItemCode(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date)
+        {
+            ValidateReportingYearEnd(reportingYearEnd);
+
+            if (newItemId == null)
+            {
+                throw new InvalidValueException("New Item Code is Required.");
+            }
+
+            var selectedIdList = selectedIds.Split(',').ToList();
+            if (selectedIdList.Count() == 0)
+            {
+                throw new RecordNotFoundException("No Items to process");
+            }
+
+            using (var ctx = _contextFactory.CreateContext())
+            {
+                //var ids = selectedIdList.Select(Guid.Parse).ToList();
+
+                //var entities = await ctx.CustodianReportItems
+                //    .Where(x => ids.Contains(x.Id))
+                //    .ToListAsync();
+
+                foreach (var selectedId in selectedIdList)
+                {
+                    var id = Guid.Parse(selectedId);
+                    var entity = ctx.CustodianReportItems.FirstOrDefault(f => f.Id == id);
+                    if (entity != null)
+                    {
+                        var newItemCodeAccount = ctx.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", accountGroup, newItemId.ToString()).ToList().FirstOrDefault();
+                        var newItemCode = ctx.ItemCodes.FirstOrDefault(p => p.Id == newItemId);
+                        if (newItemCode != null)
+                        {
+                            entity.ItemCodeId = newItemId;
+                            entity.Item_Code = newItemCode.Code;
+                            entity.Article = newItemCode.Description;
+
+                            entity.Account = newItemCodeAccount.Account;
+                            entity.SubAccount = newItemCodeAccount.MainDesc;
+
+                            var psNo = GetStockNo(entity);
+                            entity.PsNo = psNo;
+                            entity.UpdatedBy = user;
+                            entity.UpdatedDt = date;
+
+                            ctx.SaveChanges();
+                        }
+                    }
+                }
+
+                //await ctx.SaveChangesAsync();
+            }
+        }
+
+        public virtual async ValueTask UpdateItemCodeAsyncOld(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup, string user, DateTime date)
         {
             ValidateReportingYearEnd(reportingYearEnd);
 
@@ -224,7 +290,7 @@ namespace iLgs.Services.CustodianReports
                             entity.Item_Code = newItemCode.Code;
                             entity.Article = newItemCode.Description;
 
-                            entity.Account = newItemCodeAccount.Account;                            
+                            entity.Account = newItemCodeAccount.Account;
                             entity.SubAccount = newItemCodeAccount.MainDesc;
 
                             var psNo = await GetStockNoAsync(entity);
@@ -232,32 +298,6 @@ namespace iLgs.Services.CustodianReports
                             entity.UpdatedBy = user;
                             entity.UpdatedDt = date;
                         }
-
-                        //// Find the index of the first '/', sample : U07-20.1/1/N/A
-                        //int slashIndex = entity.PsNo.IndexOf('/');
-
-                        //if (slashIndex >= 0)
-                        //{                                                        
-                        //    // Characters before the first '/'
-                        //    //string before = input.Substring(0, slashIndex);
-
-                        //    // Characters after the first '/'
-                        //    string after = entity.PsNo.Substring(slashIndex + 1);
-
-                        //    //Console.WriteLine("Before: " + before); // Output: U07-20.1
-                        //    //Console.WriteLine("After: " + after);   // Output: 1/N/A
-
-                        //    var newItemCode =  await ctx.ItemCodes.FindAsync(newItemId);
-                        //    if (newItemCode != null)
-                        //    {
-                        //        var psNo = $"{newItemCode.Code}/{after}";
-
-                        //        entity.ItemCodeId = newItemId;
-                        //        entity.PsNo = psNo;
-                        //        entity.UpdatedBy = user;
-                        //        entity.UpdatedDt = date;
-                        //    }
-                        //}
                     }
                 }
 
@@ -324,22 +364,31 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public void ValidateReportingYearEnd(int? year)
+        private void ValidateReportingYearEnd(Guid? reportId)
         {
-            if (year == null || year == 0)
-            {
-                throw new InvalidValueException("For Year is Required.");
-            }
+            //var asOf = _db.CustodianReports.Find(reportId).AsOf;
+            //ValidateReportingYearEnd(asOf.Value.Year);
+            _codextnService.ValidateReportingYearEnd(reportId);
+        }
 
-            var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
-            if (data == null)
-            {
-                throw new NotFoundException("Invalid reporting year end.");
-            }
-            else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
-            {
-                throw new RecordLockedException($"Reporting year-end {year} is already locked.");
-            }
+        private void ValidateReportingYearEnd(int? year)
+        {
+            _codextnService.ValidateReportingYearEnd(year);
+
+            //if (year == null || year == 0)
+            //{
+            //    throw new InvalidValueException("For Year is Required.");
+            //}
+
+            //var data = _db.Codextns.OrderByDescending(o => o.Description).FirstOrDefault(f => f.CodeMast.Code == "REPORT-YEAR-END" && f.Description == year.ToString());
+            //if (data == null)
+            //{
+            //    throw new NotFoundException("Invalid reporting year end.");
+            //}
+            //else if (!string.IsNullOrWhiteSpace(data.Desc2) && data.Desc2.ToUpper() == "Y")
+            //{
+            //    throw new RecordLockedException($"Reporting year-end {year} is already locked.");
+            //}
         }
 
         private void ValidateSerials(CustodianReportItem model, Mode mode)
@@ -595,6 +644,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportItems.FindAsync(id);
                 ValidateRecord(entity, id);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfPosted(entity);
 
                 entity.PostedBy = user;
@@ -616,6 +666,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var entity = await ctx.CustodianReportItems.FindAsync(id);
                 ValidateRecord(entity, id);
+                ValidateReportingYearEnd(entity.ReportId);
                 ValidateIfNotPosted(entity);
 
                 entity.PostedBy = "";
@@ -971,7 +1022,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -1064,7 +1115,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -1183,7 +1234,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -1272,7 +1323,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -1360,7 +1411,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 
@@ -1457,7 +1508,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
             if (!isAnnex)
             {
-                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                ws.Row(row).Cell(++col).SetValue(string.IsNullOrWhiteSpace(reportItem.Annex) ? "" : reportItem.Annex.ToUpper());
             }
         }
 

@@ -196,13 +196,13 @@
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_VehicleItemTemplate").Window(w => w.Width("80%").Title("Vehicle Item")))
         .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
+            //.Input(false)
+            //.Numeric(true)
+            //.Info(true)
+            //.PreviousNext(true)
             .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
+        //.PageSizes(true)
+        //.ButtonCount(5)
         )
         .Filterable()
         .NoRecords()
@@ -210,10 +210,10 @@
         .Selectable(s => s.Mode(GridSelectionMode.Multiple))
         .Scrollable()
         .Sortable()
-        .ClientDetailTemplateId("UploadedFiles")        
+        .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .PageSize(20)
+            .PageSize(100000000)
             .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
             .Model(model =>
             {
@@ -333,7 +333,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(100vh - 330px) !important;
+        height: calc(100vh - 400px) !important;
     }
 </style>
 
