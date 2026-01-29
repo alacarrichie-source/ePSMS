@@ -20,11 +20,16 @@ namespace iLgs.Services.CustodianUploads
 
     public class CustodianIirupUploadService : UploadService, ICustodianIirupUploadService
     {
-        public CustodianIirupUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "CUSTODIAN")
+        public CustodianIirupUploadService(AppManEntities db)
+            : base(db, "CUSTODIAN")
         {
         }
-        
+
+        //public CustodianIirupUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "CUSTODIAN")
+        //{
+        //}
+
         private async Task<bool> IsPostedAsync(Guid? imageId)
         {
             var result = await _db.CustodianIirupItems.Where(w => w.Id == imageId).AnyAsync(a => a.CustodianIIRUP.PostedBy != "" && a.CustodianIIRUP.PostedBy != null);

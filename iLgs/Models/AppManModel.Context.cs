@@ -90,7 +90,6 @@ namespace iLgs.Models
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
@@ -134,5 +133,6 @@ namespace iLgs.Models
         public virtual DbSet<ProcurementUnitGroup> ProcurementUnitGroups { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<ProcurementUnitGroupDescriptionItem> ProcurementUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
     }
 }

@@ -43,19 +43,25 @@ namespace iLgs.Services
         protected string _directory = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["UPLOAD_URL"].ToString()).DataSource;
         protected string[] _supportedTypes = new[] { "xlsx", "xls", "docx", "doc", "pdf", "jpg", "jpeg", "png" };
         protected AppManEntities _db;
-        protected IAppManEntitiesFactory _contextFactory;
+        //protected IAppManEntitiesFactory _contextFactory;
 
-        public UploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        public UploadService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
             _directory += _subDir + (string.IsNullOrWhiteSpace(_subDir) ? "" : "/");
         }
 
-        public UploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string subDir)
+        //public UploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _directory += _subDir + (string.IsNullOrWhiteSpace(_subDir) ? "" : "/");
+        //}
+
+        public UploadService(AppManEntities db, string subDir)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
+            //_contextFactory = appManEntitiesFactory;
             _subDir = subDir;
             _directory += subDir + "/";
         }
@@ -236,7 +242,6 @@ namespace iLgs.Services
             }
         }
 
-
         public virtual async ValueTask<Upload> UploadAsyncOld(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {            
             if (files == null || !files.Any())
@@ -260,14 +265,14 @@ namespace iLgs.Services
             //    }
             //}
 
-            using (var ctx = new AppManEntities())
-            {
+            //using (var ctx = new AppManEntities())
+            //{
                 foreach (var file in files)
                 {
                     model.Id = Guid.NewGuid();
                     var fileName = model.Id + "-" + file.FileName;
 
-                    if (await ctx.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
+                    if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
                     {
                         throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
                     }
@@ -308,11 +313,11 @@ namespace iLgs.Services
                         UpdatedDt = model.UpdatedDt
                     };
 
-                    ctx.Uploads.Add(entity);
-                    await ctx.SaveChangesAsync();
+                    _db.Uploads.Add(entity);
+                    await _db.SaveChangesAsync();
                 }
                 return model;
-            }
+            //}
         }
 
         public virtual async ValueTask<Upload> UploadAsync(
@@ -347,14 +352,14 @@ namespace iLgs.Services
 
             // Process files
             Upload lastEntity = null;
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 foreach (var file in files)
                 {
                     model.Id = Guid.NewGuid();
                     var fileName = model.Id + "-" + file.FileName;
 
-                    if (await ctx.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
+                    if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
                     {
                         throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
                     }
@@ -385,12 +390,12 @@ namespace iLgs.Services
                         UpdatedDt = model.UpdatedDt
                     };
 
-                    ctx.Uploads.Add(entity);
+                    _db.Uploads.Add(entity);
                     lastEntity = entity; // Keep reference to return
                 }
 
-                await ctx.SaveChangesAsync();
-            }
+                await _db.SaveChangesAsync();
+            //}
 
             return lastEntity; // Return the last successfully saved file
         }
@@ -465,9 +470,9 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.Uploads.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.Uploads.FindAsync(model.Id);
 
                 entity.ImageId = model.ImageId;
                 entity.FileName = model.FileName;
@@ -480,10 +485,10 @@ namespace iLgs.Services
 
                 //_db.Uploads.Attach(entity);
                 //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 return model;
-            }
+            //}
         }
 
         public virtual async ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date)
@@ -492,20 +497,17 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.Uploads.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.Uploads.FindAsync(model.Id);
 
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.Uploads.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.Uploads.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                _db.Uploads.Remove(entity);
+                await _db.SaveChangesAsync();
 
                 var directory = model.VirtualDirectory;
                 var fileName = model.FileName;
@@ -521,7 +523,7 @@ namespace iLgs.Services
                 }
 
                 return model;
-            }
+            //}
         }
 
         public async Task<bool> IsFileNameExistAsync(string fileName)
@@ -531,9 +533,9 @@ namespace iLgs.Services
 
         public async ValueTask CopyAsync(Guid? imageId, string directoryPath, string user, DateTime date)
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var uploads = await ctx.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var uploads = await _db.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
                 if (uploads.Any())
                 {
                     foreach (var upload in uploads)
@@ -559,8 +561,8 @@ namespace iLgs.Services
                                 UpdatedDt = date
                             };
 
-                            ctx.Uploads.Add(entity);
-                            await ctx.SaveChangesAsync();
+                            _db.Uploads.Add(entity);
+                            await _db.SaveChangesAsync();
 
                             int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
                             var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
@@ -569,7 +571,7 @@ namespace iLgs.Services
                         }
                     }
                 }
-            }
+            //}
         }
     }
 }

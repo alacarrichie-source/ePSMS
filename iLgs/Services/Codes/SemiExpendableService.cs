@@ -26,16 +26,22 @@ namespace iLgs.Services.Codes
     {
         private readonly IExceptionService<SemiExpendableVM> _xtraExceptionService;
 
-        public SemiExpendableService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IExceptionService<SemiExpendableVM> xtraExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        public SemiExpendableService(AppManEntities db)
+        : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<SemiExpendableVM>();
         }
+
+        //public SemiExpendableService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IExceptionService<SemiExpendableVM> xtraExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<Codextn, SemiExpendableVM>> CodextnProjection
         = s => new SemiExpendableVM

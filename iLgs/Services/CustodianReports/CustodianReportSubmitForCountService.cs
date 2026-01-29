@@ -35,7 +35,7 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportSubmitForCountService : BaseValidator, ICustodianReportSubmitForCountService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportSubmitForCountVM> _vmExceptionService;
         private readonly IUserService _userService;
@@ -44,25 +44,37 @@ namespace iLgs.Services.CustodianReports
         private readonly ICodextnService _codextnService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianReportSubmitForCountService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportSubmitForCountVM> vmExceptionService,
-            IUserService userService,
-            IItemCodeService itemCodeService,
-            INotificationMessageService notificationMessageService,
-            ICodextnService codextnService)
+        public CustodianReportSubmitForCountService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _userService = userService;
-            _itemCodeService = itemCodeService;
-            _notificationMessageService = notificationMessageService;
-            _codextnService = codextnService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<CustodianReportSubmitForCountVM>();
+            _userService = new UserService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _notificationMessageService = new NotificationMessageService(_db);
+            _codextnService = new CodextnService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);
         }
+
+        //public CustodianReportSubmitForCountService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportSubmitForCountVM> vmExceptionService,
+        //    IUserService userService,
+        //    IItemCodeService itemCodeService,
+        //    INotificationMessageService notificationMessageService,
+        //    ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _userService = userService;
+        //    _itemCodeService = itemCodeService;
+        //    _notificationMessageService = notificationMessageService;
+        //    _codextnService = codextnService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);
+        //}
 
         private Expression<Func<CustodianReportSubmitForCount, CustodianReportSubmitForCountVM>> Projection()
         {
@@ -168,16 +180,15 @@ namespace iLgs.Services.CustodianReports
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.Id == model.Id);
                 ValidateRecord(entity, model.Id);
 
-                ctx.CustodianReportSubmitForCounts.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                _db.CustodianReportSubmitForCounts.Remove(entity);
+                await _db.SaveChangesAsync();
                 return model;
-            }
+            //}
         });        
 
         public ValueTask<CustodianReportSubmitForCountVM> SubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date, bool isLocationRequired) =>
@@ -196,8 +207,8 @@ namespace iLgs.Services.CustodianReports
             }
 
             var isNew = false;
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 var model = await GetByLocationAsync(reportId, locationId);
                 if (model == null)
                 {
@@ -233,19 +244,19 @@ namespace iLgs.Services.CustodianReports
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    ctx.CustodianReportSubmitForCounts.Add(entity);
+                    _db.CustodianReportSubmitForCounts.Add(entity);
                 }
                 else
                 {
-                    var entity = await ctx.CustodianReportSubmitForCounts.FindAsync(model.Id);
+                    var entity = await _db.CustodianReportSubmitForCounts.FindAsync(model.Id);
                     entity.Status = model.Status;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    ctx.CustodianReportSubmitForCounts.Attach(entity);
-                    ctx.Entry(entity).State = EntityState.Modified;
+                    _db.CustodianReportSubmitForCounts.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
                 }
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 model = await GetByLocationAsync(reportId, locationId);
 
@@ -253,7 +264,7 @@ namespace iLgs.Services.CustodianReports
                 await _notificationMessageService.NotifyUsers("Custodian Count", "Submit", description, user, date);
 
                 return model;
-            }
+            //}
         });
 
         public ValueTask<CustodianReportSubmitForCountVM> SubmitNewAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup, string url, string user, DateTime date, bool isLocationRequired) =>
@@ -271,13 +282,13 @@ namespace iLgs.Services.CustodianReports
                 throw new NullException("Location is Required.");
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var custodianReport = await ctx.CustodianReports.FirstOrDefaultAsync(p => p.AsOf.Value.Year == reportYear
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var custodianReport = await _db.CustodianReports.FirstOrDefaultAsync(p => p.AsOf.Value.Year == reportYear
                     && p.DeptId == deptId && p.AccountGroup == accountGroup);
                 if (custodianReport == null)
                 {
-                    var department = ctx.Codextns.Find(deptId).Description;
+                    var department = _db.Codextns.Find(deptId).Description;
                     if (string.IsNullOrEmpty(department))
                     {
                         throw new NotFoundException("Department Id not found!");
@@ -296,12 +307,12 @@ namespace iLgs.Services.CustodianReports
                         UpdatedDt = date
                     };
 
-                    ctx.CustodianReports.Add(custodianReport);
-                    await ctx.SaveChangesAsync();
+                    _db.CustodianReports.Add(custodianReport);
+                    await _db.SaveChangesAsync();
                 }
 
                 return await SubmitAsync(custodianReport.Id, locationId, url, user, date, isLocationRequired);
-            }
+            //}
         });
 
         public ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date) =>
@@ -314,8 +325,8 @@ namespace iLgs.Services.CustodianReports
 
             ValidateReportingYearEnd(reportId);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 var model = await GetByLocationAsync(reportId, locationId);
                 if (model == null)
                 {
@@ -331,20 +342,20 @@ namespace iLgs.Services.CustodianReports
                 model.UpdatedDt = date;
                 model.Status = "Unsubmit";
 
-                var entity = await ctx.CustodianReportSubmitForCounts.FindAsync(model.Id);
+                var entity = await _db.CustodianReportSubmitForCounts.FindAsync(model.Id);
                 entity.Status = model.Status;
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                ctx.CustodianReportSubmitForCounts.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                _db.CustodianReportSubmitForCounts.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
 
                 var description = $"Source: {url}, Reporting Year-end: {model.ReportYear}, Department: {model.Department}, Location: {model.Location}";
                 await _notificationMessageService.NotifyUsers("Custodian Count", "Unsubmit", description, user, date);
 
                 return model;
-            }
+            //}
         });
 
         private void ValidateIfNull(CustodianReportSubmitForCountVM model)

@@ -33,21 +33,32 @@ namespace iLgs.Services.CustodianReports
         private readonly INotificationMessageStatusService _notificationMessageStatusService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public NotificationMessageService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<NotificationMessageVM> vmExceptionService,
-            IExceptionService<NotificationMessageStatuVM> nmsExceptionService,
-            IUserService userService,
-            INotificationMessageStatusService notificationMessageStatusService)
+        public NotificationMessageService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _nmsExceptionService = nmsExceptionService;
-            _userService = userService;
-            _notificationMessageStatusService = notificationMessageStatusService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<NotificationMessageVM>();
+            _nmsExceptionService = new ExceptionService<NotificationMessageStatuVM>();
+            _userService = new UserService(_db);
+            _notificationMessageStatusService = new NotificationMessageStatusService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<NotificationMessageVM>(propertyName);
         }
+
+        //public NotificationMessageService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<NotificationMessageVM> vmExceptionService,
+        //    IExceptionService<NotificationMessageStatuVM> nmsExceptionService,
+        //    IUserService userService,
+        //    INotificationMessageStatusService notificationMessageStatusService)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _nmsExceptionService = nmsExceptionService;
+        //    _userService = userService;
+        //    _notificationMessageStatusService = notificationMessageStatusService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<NotificationMessageVM>(propertyName);
+        //}
 
         private Expression<Func<NotificationMessage, NotificationMessageVM>> Projection()
         {

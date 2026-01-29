@@ -15,12 +15,18 @@ namespace iLgs.Services.Items
 
     public class ItemUploadService : UploadService, IItemUploadService
     {
-        public ItemUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory,  "ITEM")
+        public ItemUploadService(AppManEntities db)
+            : base(db, "ITEM")
         {
 
         }
-        
+
+        //public ItemUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory,  "ITEM")
+        //{
+
+        //}
+
         public override async ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {        
             if (files == null || !files.Any())

@@ -16,11 +16,16 @@ namespace iLgs.Services.ParIcs
 
     public class ParIcsUploadService : UploadService, IParIcsUploadService
     {
-        public ParIcsUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory) 
-            : base(db, appManEntitiesFactory, "PAR")
-        {            
+        public ParIcsUploadService(AppManEntities db)
+            : base(db, "PAR")
+        {
         }
-        
+
+        //public ParIcsUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory) 
+        //    : base(db, appManEntitiesFactory, "PAR")
+        //{            
+        //}
+
         private async Task<bool> IsPostedAsync(Guid? imageId)
         {
             var result = await _db.PsCardItems.Where(w => w.GroupId == imageId).AnyAsync(a => a.ParPostedBy != "" && a.ParPostedBy != null);

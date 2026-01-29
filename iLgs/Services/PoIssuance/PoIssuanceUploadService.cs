@@ -15,10 +15,15 @@ namespace iLgs.Services.PoIssuance
 
     public class PoIssuanceUploadService : UploadService, IPoIssuanceUploadService
     {
-        public PoIssuanceUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "ISSUANCE")
+        public PoIssuanceUploadService(AppManEntities db)
+            : base(db, "ISSUANCE")
         {
         }
+
+        //public PoIssuanceUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "ISSUANCE")
+        //{
+        //}
 
         private async Task<bool> IsPostedAsync(Guid? imageId)
         {

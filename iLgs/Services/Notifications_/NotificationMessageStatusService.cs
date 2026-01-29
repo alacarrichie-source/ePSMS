@@ -33,17 +33,26 @@ namespace iLgs.Services.CustodianReports
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public NotificationMessageStatusService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<NotificationMessageStatuVM> vmExceptionService,
-            IUserService userService)
+        public NotificationMessageStatusService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _userService = userService;
+            _userService = new UserService(_db);
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<NotificationMessageStatuVM>();            
             _getDisplayName = propertyName => Utility.GetDisplayName<NotificationMessageStatuVM>(propertyName);
         }
+
+        //public NotificationMessageStatusService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<NotificationMessageStatuVM> vmExceptionService,
+        //    IUserService userService)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _userService = userService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<NotificationMessageStatuVM>(propertyName);
+        //}
 
         private Expression<Func<NotificationMessageStatu, NotificationMessageStatuVM>> Projection()
         {

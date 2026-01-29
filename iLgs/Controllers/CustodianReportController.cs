@@ -48,47 +48,73 @@ namespace iLgs.Controllers
         private readonly IAnnexDService _annexDService;
         private readonly string _stockId, _ppeId, _transpoId;
 
-        public CustodianReportController(AppManEntities db,
-            ICustodianReportService custodianReportService,
-            ICustodianReportItemService custodianReportItemService,
-            ICustodianReportItemStockService custodianReportItemStockService,
-            ICustodianReportItemPpeService custodianReportItemPpeService,
-            ICustodianReportItemVehicleService custodianReportItemVehicleService,
-            ICustodianReportItemIssuanceParService custodianReportItemIssuanceParService,
-            ICustodianReportItemIssuanceIcsService custodianReportItemIssuanceIcsService,
-            ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
-            ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
-            ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
-            ICodextnService codextnService,
-            ICustodianReportUploadService custodianReportUploadService,
-            ICustodianDeptUploadService custodianScanUploadService,
-            IItemCodeService itemCodeService,
-            IUserService userService, IAnnexDService annexDService)
+        public CustodianReportController(AppManEntities db)
         {
             _db = db;
-            _custodianReportService = custodianReportService;
-            _custodianReportItemService = custodianReportItemService;
-            _custodianReportItemStockService = custodianReportItemStockService;
-            _custodianReportItemPpeService = custodianReportItemPpeService;
-            _custodianReportItemVehicleService = custodianReportItemVehicleService;
-            _parIssuanceService = custodianReportItemIssuanceParService;
-            _icsIssuanceService = custodianReportItemIssuanceIcsService;
-            _areIssuanceService = custodianReportItemIssuanceAreService;
-            _mrIssuanceService = custodianReportItemIssuanceMrService;
-            _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
-            _codextnService = codextnService;
-            _uploadService = custodianReportUploadService;
-            _scanUploadService = custodianScanUploadService.Create("SCAN");
-            _itemCodeService = itemCodeService;
-            _userService = userService;
-            _annexDService = annexDService;
+            _custodianReportService = new CustodianReportService(_db);
+            _custodianReportItemService = new CustodianReportItemService(_db);
+            _custodianReportItemStockService = new CustodianReportItemStockService(_db);
+            _custodianReportItemPpeService = new CustodianReportItemPpeService(_db);
+            _custodianReportItemVehicleService = new CustodianReportItemVehicleService(_db);
+            _parIssuanceService = new CustodianReportItemIssuanceParService(_db);
+            _icsIssuanceService = new CustodianReportItemIssuanceIcsService(_db);
+            _areIssuanceService = new CustodianReportItemIssuanceAreService(_db);
+            _mrIssuanceService = new CustodianReportItemIssuanceMrService(_db);
+            _rpcPpeIssuanceService = new CustodianReportItemIssuanceRpcPpeService(_db);
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
+            _codextnService = new CodextnService(_db);
+            _uploadService = new CustodianReportUploadService(_db);
+            _scanUploadService = new CustodianDeptUploadService(_db).Create("SCAN");
+            _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
+            _annexDService = new AnnexDService(_db);
 
             _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
             _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
         }
+
+        //public CustodianReportController(AppManEntities db,
+        //    ICustodianReportService custodianReportService,
+        //    ICustodianReportItemService custodianReportItemService,
+        //    ICustodianReportItemStockService custodianReportItemStockService,
+        //    ICustodianReportItemPpeService custodianReportItemPpeService,
+        //    ICustodianReportItemVehicleService custodianReportItemVehicleService,
+        //    ICustodianReportItemIssuanceParService custodianReportItemIssuanceParService,
+        //    ICustodianReportItemIssuanceIcsService custodianReportItemIssuanceIcsService,
+        //    ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
+        //    ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
+        //    ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
+        //    ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
+        //    ICodextnService codextnService,
+        //    ICustodianReportUploadService custodianReportUploadService,
+        //    ICustodianDeptUploadService custodianScanUploadService,
+        //    IItemCodeService itemCodeService,
+        //    IUserService userService, IAnnexDService annexDService)
+        //{
+        //    _db = db;
+        //    _custodianReportService = custodianReportService;
+        //    _custodianReportItemService = custodianReportItemService;
+        //    _custodianReportItemStockService = custodianReportItemStockService;
+        //    _custodianReportItemPpeService = custodianReportItemPpeService;
+        //    _custodianReportItemVehicleService = custodianReportItemVehicleService;
+        //    _parIssuanceService = custodianReportItemIssuanceParService;
+        //    _icsIssuanceService = custodianReportItemIssuanceIcsService;
+        //    _areIssuanceService = custodianReportItemIssuanceAreService;
+        //    _mrIssuanceService = custodianReportItemIssuanceMrService;
+        //    _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
+        //    _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
+        //    _codextnService = codextnService;
+        //    _uploadService = custodianReportUploadService;
+        //    _scanUploadService = custodianScanUploadService.Create("SCAN");
+        //    _itemCodeService = itemCodeService;
+        //    _userService = userService;
+        //    _annexDService = annexDService;
+
+        //    _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
+        //    _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
+        //    _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
+        //}
 
         public ActionResult Stock()
         {
@@ -3303,7 +3329,7 @@ namespace iLgs.Controllers
                 var stream = _custodianReportItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
@@ -3350,7 +3376,7 @@ namespace iLgs.Controllers
                 var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
@@ -3716,6 +3742,9 @@ namespace iLgs.Controllers
         }
 
         #endregion
+
+
+        [HttpPost]
 
         public async Task<ActionResult> UpdateItemCode(int? reportingYearEnd, string selectedIds, Guid? newItemId, int? accountGroup)
         {

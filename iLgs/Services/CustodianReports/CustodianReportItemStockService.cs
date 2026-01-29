@@ -29,21 +29,28 @@ namespace iLgs.Services.CustodianReports
         private readonly ICustodianReportItemStockValidator _validator;
         private readonly IAnnexDService _annexDService;
 
-        public CustodianReportItemStockService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IAllFieldService allFieldService,
-            ICodextnService codextnService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportItem> exceptionService,            
-            IUserService userService,
-            IExceptionService<CustodianReportItemStockVM> xtraExceptionService,
-            ICustodianReportItemStockValidator validator,
-            IAnnexDService annexDService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
+        public CustodianReportItemStockService(AppManEntities db) : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
-            _validator = validator;
-            _annexDService = annexDService;
+            _xtraExceptionService = new ExceptionService<CustodianReportItemStockVM>();
+            _validator = new CustodianReportItemStockValidator(_db);
+            _annexDService = new AnnexDService(_db);
         }
+
+        //public CustodianReportItemStockService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IAllFieldService allFieldService,
+        //    ICodextnService codextnService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportItem> exceptionService,            
+        //    IUserService userService,
+        //    IExceptionService<CustodianReportItemStockVM> xtraExceptionService,
+        //    ICustodianReportItemStockValidator validator,
+        //    IAnnexDService annexDService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //    _validator = validator;
+        //    _annexDService = annexDService;
+        //}
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemStockVM>> CustodianReporStockItemProjection
         = s => new CustodianReportItemStockVM

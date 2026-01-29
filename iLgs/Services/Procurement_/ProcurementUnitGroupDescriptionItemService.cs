@@ -23,7 +23,6 @@ namespace iLgs.Services.Procurement_
     {
         private readonly AppManEntities _db;
         private readonly IProcurementCommonService _procurementCommonService;
-        private readonly ILoggingService _loggingservice;
         private readonly IExceptionService<ProcurementUnitGroupDescriptionItem> _exceptionService;
         private readonly IExceptionService<ProcurementUnitGroupDescriptionItemVM> _vmExceptionService;
 
@@ -31,9 +30,8 @@ namespace iLgs.Services.Procurement_
         {
             _db = db;
             _procurementCommonService = new ProcurementCommonService(_db);
-            _loggingservice = new LoggingService();
-            _exceptionService = new ExceptionService<ProcurementUnitGroupDescriptionItem>(_loggingservice);
-            _vmExceptionService = new ExceptionService<ProcurementUnitGroupDescriptionItemVM>(_loggingservice);
+            _exceptionService = new ExceptionService<ProcurementUnitGroupDescriptionItem>();
+            _vmExceptionService = new ExceptionService<ProcurementUnitGroupDescriptionItemVM>();
         }
 
         private Expression<Func<ProcurementUnitGroupDescriptionItem, ProcurementUnitGroupDescriptionItemVM>> GetProjection()

@@ -40,7 +40,7 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportService : ICustodianReportService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReport> _exceptionService;
         private readonly ICustodianReportValidator _validator;
@@ -48,24 +48,35 @@ namespace iLgs.Services.CustodianReports
         private readonly IItemCodeService _itemCodeService;
         private readonly IUploadService _uploadService;
 
-        public CustodianReportService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReport> exceptionService,
-            IUserService userService,
-            IItemCodeService itemCodeService,
-            IUploadService uploadService,
-            ICustodianReportValidator validator)
+        public CustodianReportService(AppManEntities db)            
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _validator = validator;
-            _userService = userService;
-            _itemCodeService = itemCodeService;
-            _uploadService = uploadService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<CustodianReport>();
+            _validator = new CustodianReportValidator(_db);
+            _userService = new UserService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _uploadService = new UploadService(_db);
         }
+
+        //public CustodianReportService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReport> exceptionService,
+        //    IUserService userService,
+        //    IItemCodeService itemCodeService,
+        //    IUploadService uploadService,
+        //    ICustodianReportValidator validator)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _exceptionService = exceptionService;
+        //    _validator = validator;
+        //    _userService = userService;
+        //    _itemCodeService = itemCodeService;
+        //    _uploadService = uploadService;
+        //}
 
         public ValueTask<CustodianReport> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
@@ -152,20 +163,18 @@ namespace iLgs.Services.CustodianReports
         {
             _validator.ValidateOnPost(id);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReports.FindAsync(id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReports.FindAsync(id);
 
                 entity.PostedBy = user;
                 entity.PostedDt = date;
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //ctx.CustodianReports.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
                 return entity;
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> UnPostAsync(Guid id, string user, DateTime date) =>
@@ -173,12 +182,12 @@ namespace iLgs.Services.CustodianReports
         {
             _validator.ValidateOnUnpost(id);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReports.FindAsync(id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReports.FindAsync(id);
 
                 //// check if in disposal
-                //if(ctx.CustodianReportItems.Where(w => w.Report`Id == id && w.CustodianDisposalItems.Any()).Any())
+                //if(_db.CustodianReportItems.Where(w => w.Report`Id == id && w.CustodianDisposalItems.Any()).Any())
                 //{
                 //    throw new RecordAlreadyExistsException("Record already in disposal entry, cannot unpost!");
                 //}
@@ -188,11 +197,9 @@ namespace iLgs.Services.CustodianReports
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //ctx.CustodianReports.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
                 return entity;
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> CreateAsync(CustodianReport model, string user, DateTime date) =>
@@ -207,16 +214,16 @@ namespace iLgs.Services.CustodianReports
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 var entity = new CustodianReport();
                 MapModelToEntityFields(entity, model, Mode.ADD);
 
-                ctx.CustodianReports.Add(entity);
-                await ctx.SaveChangesAsync();
+                _db.CustodianReports.Add(entity);
+                await _db.SaveChangesAsync();
 
                 return model;
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> UpdateAsync(CustodianReport model, string user, DateTime date) =>
@@ -224,20 +231,18 @@ namespace iLgs.Services.CustodianReports
        {
            _validator.ValidateOnUpdate(model);
 
-           using (var ctx = await _contextFactory.CreateContextAsync())
-           {
-               var entity = await ctx.CustodianReports.FindAsync(model.Id);
+           //using (var ctx = await _contextFactory.CreateContextAsync())
+           //{
+               var entity = await _db.CustodianReports.FindAsync(model.Id);
 
                model.UpdatedBy = user;
                model.UpdatedDt = date;
 
                MapModelToEntityFields(entity, model, Mode.EDIT);
 
-               //ctx.CustodianReports.Attach(entity);
-               //ctx.Entry(entity).State = EntityState.Modified;
-               await ctx.SaveChangesAsync();
+               await _db.SaveChangesAsync();
                return model;
-           }
+           //}
        });
 
         public ValueTask<CustodianReport> DeleteAsync(CustodianReport model, string user, DateTime date) =>
@@ -245,9 +250,9 @@ namespace iLgs.Services.CustodianReports
         {
             _validator.ValidateOnDelete(model);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReports.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReports.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
                 model.UpdatedBy = user;
                 model.UpdatedDt = date;
@@ -255,16 +260,13 @@ namespace iLgs.Services.CustodianReports
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                //ctx.CustodianReports.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.CustodianReports.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                _db.CustodianReports.Remove(entity);
+                await _db.SaveChangesAsync();
 
                 return model;
-            }
+            //}
         });
 
         public void MapModelToEntityFields(CustodianReport entity, CustodianReport model, Mode mode)
@@ -312,9 +314,9 @@ namespace iLgs.Services.CustodianReports
                 return;
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var icsPar = await ctx.IcsPars.FirstOrDefaultAsync(f => f.RefType == refType && f.RefNo == refNo);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var icsPar = await _db.IcsPars.FirstOrDefaultAsync(f => f.RefType == refType && f.RefNo == refNo);
                 if (icsPar == null)
                 {
                     icsPar = new IcsPar()
@@ -350,17 +352,15 @@ namespace iLgs.Services.CustodianReports
 
                     icsPar.IcsParItems.Add(icsParItem);
 
-                    //ctx.IcsPars.Add(icsPar);
-                    //ctx.Entry(icsPar).State = EntityState.Added;
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                 }
-            }
+            //}
         }
 
         private async ValueTask<CustodianReportUpload> CreateCustodianReportAsync(Guid reportItemId, Guid? psCardId, string user, DateTime date)
         {            
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 // create CustodianReportUpload record based on uploaded records
                 var custodianReportUpload = new CustodianReportUpload()
                 {
@@ -370,27 +370,26 @@ namespace iLgs.Services.CustodianReports
                     UploadedDt = date
                 };
 
-                ctx.CustodianReportUploads.Add(custodianReportUpload);
-                //ctx.Entry(custodianReportUpload).State = EntityState.Added;
-                await ctx.SaveChangesAsync();
+                _db.CustodianReportUploads.Add(custodianReportUpload);
+                await _db.SaveChangesAsync();
 
                 return custodianReportUpload;
-            }
+            //}
         }
 
         public ValueTask<CustodianReport> Upload(int? forYear, Guid? deptId, int? accountGroup, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport == null)
                 {
                     throw new InvalidValueException("No selected records to upload.");
                 }
 
                 var reportId = custodianReport.Id;
-                var custodianReportItems = await ctx.CustodianReportItems.AsNoTracking()
+                var custodianReportItems = await _db.CustodianReportItems.AsNoTracking()
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReportUpload)
                     .Include(i => i.CustodianReportItemIssuances)
@@ -409,19 +408,19 @@ namespace iLgs.Services.CustodianReports
                     Guid psCardItemId = Guid.NewGuid();
                     if (custodianReportUpload == null)
                     {
-                        psCard = await ctx.PsCards
+                        psCard = await _db.PsCards
                             .Include(i => i.AllField).FirstOrDefaultAsync(f => f.PsNo == cri.PsNo && f.Fund == cri.Fund);
                     }
                     else
                     {
-                        psCard = await ctx.PsCards
+                        psCard = await _db.PsCards
                             .Include(i => i.AllField)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardId);
                     }
 
                     if (psCard == null)
                     {
-                        var subAccountCode = await ctx.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
+                        var subAccountCode = await _db.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
                         psCard = new PsCard()
                         {
                             Id = psCardId,
@@ -467,9 +466,8 @@ namespace iLgs.Services.CustodianReports
 
                         psCard.AllField = allField;
 
-                        ctx.PsCards.Add(psCard);
-                        //ctx.Entry(psCard).State = EntityState.Added;
-                        await ctx.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
+                        _db.PsCards.Add(psCard);
+                        await _db.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
                     }
                     else
                     {
@@ -481,14 +479,14 @@ namespace iLgs.Services.CustodianReports
                         // create CustodianReportUpload record based on uploaded records
                         custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PoNo == cri.PoNo && f.PoDate == cri.PoDate && f.Description == cri.Description);
                     }
                     else
                     {
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
@@ -528,8 +526,8 @@ namespace iLgs.Services.CustodianReports
                             PostedDt = cri.PostedDt
                         };
 
-                        ctx.PsCardItems.Add(psCardItem);
-                        //ctx.Entry(psCardItem).State = EntityState.Added;
+                        _db.PsCardItems.Add(psCardItem);
+                        //_db.Entry(psCardItem).State = EntityState.Added;
                     }
                     else
                     {
@@ -538,18 +536,18 @@ namespace iLgs.Services.CustodianReports
                         psCardItem.UpdatedBy = cri.UpdatedBy;
                         psCardItem.UpdatedDt = cri.UpdatedDt;
 
-                        ctx.PsCardItems.Attach(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Modified;
+                        _db.PsCardItems.Attach(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardItemId == null)
                     {
                         custodianReportUpload.PsCardItemId = psCardItemId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCardItemExnts
                     Guid psCardItemExtnId = Guid.NewGuid();
@@ -558,14 +556,14 @@ namespace iLgs.Services.CustodianReports
                         PsCardItemExtnOther psCardItemExtn = null;
                         if (cri.CustodianReportUpload == null)
                         {
-                            psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnOther>()
+                            psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
                                 .FirstOrDefaultAsync(f => f.PsCardItem.PsCard.PsNo == cri.PsNo
                                     && f.PsCardItem.PoNo == cri.PoNo
                                     && f.SerialNo == cri.SerialNo);
                         }
                         else
                         {
-                            psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnOther>()
+                            psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
                                 .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemExtnId);
                         }
 
@@ -600,8 +598,8 @@ namespace iLgs.Services.CustodianReports
                                 SerialNo = cri.SerialNo
                             };
 
-                            ctx.PsCardItemExtns.Add(psCardItemExtn);
-                            ctx.Entry(psCardItemExtn).State = EntityState.Added;
+                            _db.PsCardItemExtns.Add(psCardItemExtn);
+                            _db.Entry(psCardItemExtn).State = EntityState.Added;
                         }
                         else
                         {
@@ -615,8 +613,8 @@ namespace iLgs.Services.CustodianReports
                             psCardItemExtn.UpdatedBy = cri.UpdatedBy;
                             psCardItemExtn.UpdatedDt = cri.UpdatedDt;
 
-                            ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                            ctx.Entry(psCardItemExtn).State = EntityState.Modified;
+                            _db.PsCardItemExtns.Attach(psCardItemExtn);
+                            _db.Entry(psCardItemExtn).State = EntityState.Modified;
                         }
                     }
                     else
@@ -624,7 +622,7 @@ namespace iLgs.Services.CustodianReports
                         PsCardItemExtnVehicle psCardItemExtn = null;
                         if (custodianReportUpload.PsCardItemExtnId == null)
                         {
-                            psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                            psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
                                 .FirstOrDefaultAsync(f => f.PsCardItem.PsCard.PsNo == cri.PsNo
                                     && f.PsCardItem.PoNo == cri.PoNo
                                     && f.PlateNo == cri.PlateNo && f.ConductionNo == cri.CustodianItemNo
@@ -632,7 +630,7 @@ namespace iLgs.Services.CustodianReports
                         }
                         else
                         {
-                            psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                            psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
                                 .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemExtnId);
                         }
 
@@ -681,8 +679,8 @@ namespace iLgs.Services.CustodianReports
                                 ConductionNo = cri.ConductionNo
                             };
 
-                            ctx.PsCardItemExtns.Add(psCardItemExtn);
-                            ctx.Entry(psCardItemExtn).State = EntityState.Added;
+                            _db.PsCardItemExtns.Add(psCardItemExtn);
+                            _db.Entry(psCardItemExtn).State = EntityState.Added;
                         }
                         else
                         {
@@ -708,30 +706,30 @@ namespace iLgs.Services.CustodianReports
                             psCardItemExtn.UpdatedBy = cri.UpdatedBy;
                             psCardItemExtn.UpdatedDt = cri.UpdatedDt;
 
-                            ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                            ctx.Entry(psCardItemExtn).State = EntityState.Modified;
+                            _db.PsCardItemExtns.Attach(psCardItemExtn);
+                            _db.Entry(psCardItemExtn).State = EntityState.Modified;
                         }
                     }
 
                     if (custodianReportUpload.PsCardItemExtnId == null)
                     {
                         custodianReportUpload.PsCardItemExtnId = psCardItemExtnId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCarditemTransfers
                     Guid psCardItemTransferId = Guid.NewGuid();
                     if (custodianReportUpload.PsCardTransferItemId == null)
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers
+                        psCardItemTransfer = await _db.PsCardItemTransfers
                             .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItem.Id && f.LocationId == cri.LocationId);
                     }
                     else
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
+                        psCardItemTransfer = await _db.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
                     }
 
                     if (psCardItemTransfer == null)
@@ -750,28 +748,28 @@ namespace iLgs.Services.CustodianReports
                             UpdatedDt = cri.UpdatedDt
                         };
 
-                        ctx.PsCardItemTransfers.Add(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Added;
+                        _db.PsCardItemTransfers.Add(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Added;
                     }
                     else
                     {
                         psCardItemTransferId = psCardItemTransfer.Id;
-                        ctx.PsCardItemTransfers.Attach(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Modified;
+                        _db.PsCardItemTransfers.Attach(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardTransferId == null)
                     {
                         custodianReportUpload.PsCardTransferId = psCardItemTransferId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     if (custodianReportUpload.PsCardTransferItemId == null)
                     {
-                        var psCardItemTransferItem = await ctx.PsCardItemTransferItems
+                        var psCardItemTransferItem = await _db.PsCardItemTransferItems
                             .FirstOrDefaultAsync(f => f.PsCardItemTransferId == psCardItemTransfer.Id && f.PsCardItemExtnId == psCardItemExtnId);
                         if (psCardItemTransferItem == null)
                         {
@@ -785,25 +783,25 @@ namespace iLgs.Services.CustodianReports
                                 UpdatedBy = cri.UpdatedBy,
                                 UpdatedDt = cri.UpdatedDt
                             };
-                            ctx.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                            ctx.Entry(psCardItemTransferItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
+                            _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                            _db.Entry(psCardItemTransferItem).State = EntityState.Added;
+                            await _db.SaveChangesAsync();
                         }
 
                         // update newly created records only
-                        var psCardItemExtns = ctx.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
+                        var psCardItemExtns = _db.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
                         var qty = psCardItemExtns.Count();
                         psCardItem.Qty = qty;
                         psCardItem.QtyBal = qty;
                         psCardItem.Amount = psCardItem.UnitCost * qty;
-                        ctx.PsCardItems.Attach(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Modified;
+                        _db.PsCardItems.Attach(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Modified;
 
                         custodianReportUpload.PsCardTransferItemId = psCardItemTransferItem.Id;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
 
-                        await ctx.SaveChangesAsync();
+                        await _db.SaveChangesAsync();
                     }
 
                     /*
@@ -861,22 +859,22 @@ namespace iLgs.Services.CustodianReports
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> UploadBldg(int? forYear, Guid? deptId, int? accountGroup, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = _contextFactory.CreateContext())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = _contextFactory.CreateContext())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport == null)
                 {
                     throw new InvalidValueException("No selected records to upload.");
                 }
 
                 var reportId = custodianReport.Id;
-                var custodianReportItems = await ctx.CustodianReportBldgItems.AsNoTracking()
+                var custodianReportItems = await _db.CustodianReportBldgItems.AsNoTracking()
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReportUpload)
                     .Where(w => w.ReportId == reportId
@@ -894,19 +892,19 @@ namespace iLgs.Services.CustodianReports
                     Guid psCardItemId = Guid.NewGuid();
                     if (custodianReportUpload == null)
                     {
-                        psCard = await ctx.PsCards.AsNoTracking()
+                        psCard = await _db.PsCards.AsNoTracking()
                             .Include(i => i.AllField).FirstOrDefaultAsync(f => f.PsNo == cri.PsNo && f.Fund == cri.Fund);
                     }
                     else
                     {
-                        psCard = await ctx.PsCards.AsNoTracking()
+                        psCard = await _db.PsCards.AsNoTracking()
                             .Include(i => i.AllField)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardId);
                     }
 
                     if (psCard == null)
                     {
-                        var subAccountCode = await ctx.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
+                        var subAccountCode = await _db.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
                         psCard = new PsCard()
                         {
                             Id = psCardId,
@@ -933,9 +931,9 @@ namespace iLgs.Services.CustodianReports
                         };
 
                         psCard.AllField = allField;
-                        ctx.PsCards.Add(psCard);
-                        ctx.Entry(psCard).State = EntityState.Added;
-                        await ctx.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
+                        _db.PsCards.Add(psCard);
+                        _db.Entry(psCard).State = EntityState.Added;
+                        await _db.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
                     }
                     else
                     {
@@ -947,7 +945,7 @@ namespace iLgs.Services.CustodianReports
                         // create CustodianReportUpload record based on uploaded records
                         custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PoNo == cri.PoNo && f.PoDate == cri.PoDate
@@ -955,7 +953,7 @@ namespace iLgs.Services.CustodianReports
                     }
                     else
                     {
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
@@ -993,8 +991,8 @@ namespace iLgs.Services.CustodianReports
                             PostedDt = cri.PostedDt
                         };
 
-                        ctx.PsCardItems.Add(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Added;
+                        _db.PsCardItems.Add(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Added;
                     }
                     else
                     {
@@ -1003,25 +1001,25 @@ namespace iLgs.Services.CustodianReports
                         psCardItem.UpdatedBy = cri.UpdatedBy;
                         psCardItem.UpdatedDt = cri.UpdatedDt;
 
-                        ctx.PsCardItems.Attach(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Modified;
+                        _db.PsCardItems.Attach(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardItemId == null)
                     {
                         custodianReportUpload.PsCardItemId = psCardItemId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCardItemExnts
                     Guid psCardItemExtnId = Guid.NewGuid();
                     PsCardItemExtnBuilding psCardItemExtn = null;
                     if (cri.CustodianReportUpload == null)
                     {
-                        psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>()
+                        psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>()
                             .FirstOrDefaultAsync(f => f.PsCardItem.PsCard.PsNo == cri.PsNo
                                 && f.PsCardItem.PoNo == cri.PoNo
                                 && f.PhaseNo == cri.PhaseNo && f.ProjectName == cri.ProjectName
@@ -1029,7 +1027,7 @@ namespace iLgs.Services.CustodianReports
                     }
                     else
                     {
-                        psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>()
+                        psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>()
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemExtnId);
                     }
 
@@ -1073,8 +1071,8 @@ namespace iLgs.Services.CustodianReports
                             Latitude = cri.Latitude
                         };
 
-                        ctx.PsCardItemExtns.Add(psCardItemExtn);
-                        ctx.Entry(psCardItemExtn).State = EntityState.Added;
+                        _db.PsCardItemExtns.Add(psCardItemExtn);
+                        _db.Entry(psCardItemExtn).State = EntityState.Added;
                     }
                     else
                     {
@@ -1087,30 +1085,30 @@ namespace iLgs.Services.CustodianReports
                         psCardItemExtn.UpdatedBy = cri.UpdatedBy;
                         psCardItemExtn.UpdatedDt = cri.UpdatedDt;
 
-                        ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                        ctx.Entry(psCardItemExtn).State = EntityState.Modified;
+                        _db.PsCardItemExtns.Attach(psCardItemExtn);
+                        _db.Entry(psCardItemExtn).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardItemExtnId == null)
                     {
                         custodianReportUpload.PsCardItemExtnId = psCardItemExtnId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCarditemTransfers
                     Guid psCardItemTransferId = Guid.NewGuid();
                     if (cri.CustodianReportUpload == null)
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers
+                        psCardItemTransfer = await _db.PsCardItemTransfers
                             .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItem.Id && f.LocationId == cri.LocationId);
                     }
                     else
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
+                        psCardItemTransfer = await _db.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
                     }
 
                     if (psCardItemTransfer == null)
@@ -1130,28 +1128,28 @@ namespace iLgs.Services.CustodianReports
                             UpdatedDt = cri.UpdatedDt
                         };
 
-                        ctx.PsCardItemTransfers.Add(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Added;
+                        _db.PsCardItemTransfers.Add(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Added;
                     }
                     else
                     {
                         psCardItemTransferId = psCardItemTransfer.Id;
-                        ctx.PsCardItemTransfers.Attach(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Modified;
+                        _db.PsCardItemTransfers.Attach(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardTransferId == null)
                     {
                         custodianReportUpload.PsCardTransferId = psCardItemTransferId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     if (custodianReportUpload.PsCardTransferItemId == null)
                     {
-                        var psCardItemTransferItem = await ctx.PsCardItemTransferItems
+                        var psCardItemTransferItem = await _db.PsCardItemTransferItems
                             .FirstOrDefaultAsync(f => f.PsCardItemTransferId == psCardItemTransfer.Id && f.PsCardItemExtnId == psCardItemExtnId);
                         if (psCardItemTransferItem == null)
                         {
@@ -1165,45 +1163,45 @@ namespace iLgs.Services.CustodianReports
                                 UpdatedBy = cri.UpdatedBy,
                                 UpdatedDt = cri.UpdatedDt
                             };
-                            ctx.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                            ctx.Entry(psCardItemTransferItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
+                            _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                            _db.Entry(psCardItemTransferItem).State = EntityState.Added;
+                            await _db.SaveChangesAsync();
                         }
                     }
 
                     // do this if applicable for bldg
                     //if (cri.CustodianReportUpload == null) // update newly created records only
                     //{
-                    //    var psCardItemExtns = ctx.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
+                    //    var psCardItemExtns = _db.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
                     //    var qty = psCardItemExtns.Count();
                     //    psCardItem.Qty = qty;
                     //    psCardItem.QtyBal = qty;
                     //    psCardItem.Amount = psCardItem.UnitCost * qty;
-                    //    ctx.PsCardItems.Attach(psCardItem);
-                    //    ctx.Entry(psCardItem).State = EntityState.Modified;
-                    //    await ctx.SaveChangesAsync();
+                    //    _db.PsCardItems.Attach(psCardItem);
+                    //    _db.Entry(psCardItem).State = EntityState.Modified;
+                    //    await _db.SaveChangesAsync();
                     //}
 
                     await UploadPhotosAsync(custodianReport, user, date);
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> UploadLand(int? forYear, Guid? deptId, int? accountGroup, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = _contextFactory.CreateContext())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = _contextFactory.CreateContext())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport == null)
                 {
                     throw new InvalidValueException("No selected records to upload.");
                 }
 
                 var reportId = custodianReport.Id;
-                var custodianReportItems = await ctx.CustodianReportLandItems.AsNoTracking()
+                var custodianReportItems = await _db.CustodianReportLandItems.AsNoTracking()
                     .Include(i => i.CustodianReport)
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReportUpload)
@@ -1222,19 +1220,19 @@ namespace iLgs.Services.CustodianReports
                     Guid psCardItemId = Guid.NewGuid();
                     if (custodianReportUpload == null)
                     {
-                        psCard = await ctx.PsCards
+                        psCard = await _db.PsCards
                             .Include(i => i.AllField).FirstOrDefaultAsync(f => f.PsNo == cri.PsNo && f.Fund == cri.Fund);
                     }
                     else
                     {
-                        psCard = await ctx.PsCards
+                        psCard = await _db.PsCards
                             .Include(i => i.AllField)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardId);
                     }
 
                     if (psCard == null)
                     {
-                        var subAccountCode = await ctx.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
+                        var subAccountCode = await _db.Database.SqlQuery<string>("Select Code From dbo.fn_SubAccountTab({0})", cri.ItemCode.Code).FirstOrDefaultAsync();
                         psCard = new PsCard()
                         {
                             Id = psCardId,
@@ -1261,9 +1259,9 @@ namespace iLgs.Services.CustodianReports
                         };
 
                         psCard.AllField = allField;
-                        ctx.PsCards.Add(psCard);
-                        ctx.Entry(psCard).State = EntityState.Added;
-                        await ctx.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
+                        _db.PsCards.Add(psCard);
+                        _db.Entry(psCard).State = EntityState.Added;
+                        await _db.SaveChangesAsync(); // need to save here so that this record will be included in the next findAsync
                     }
                     else
                     {
@@ -1275,7 +1273,7 @@ namespace iLgs.Services.CustodianReports
                         // create CustodianReportUpload record based on uploaded records
                         custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PsCardItemExtns.Any(a => a.PropNo == cri.PropNo)
@@ -1283,7 +1281,7 @@ namespace iLgs.Services.CustodianReports
                     }
                     else
                     {
-                        psCardItem = await ctx.PsCardItems
+                        psCardItem = await _db.PsCardItems
                             .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
                             .Include(i => i.PsCardItemExtns)
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
@@ -1321,8 +1319,8 @@ namespace iLgs.Services.CustodianReports
                             PostedDt = cri.PostedDt
                         };
 
-                        ctx.PsCardItems.Add(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Added;
+                        _db.PsCardItems.Add(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Added;
                     }
                     else
                     {
@@ -1331,31 +1329,31 @@ namespace iLgs.Services.CustodianReports
                         psCardItem.UpdatedBy = cri.UpdatedBy;
                         psCardItem.UpdatedDt = cri.UpdatedDt;
 
-                        ctx.PsCardItems.Attach(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Modified;
+                        _db.PsCardItems.Attach(psCardItem);
+                        _db.Entry(psCardItem).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardItemId == null)
                     {
                         custodianReportUpload.PsCardItemId = psCardItemId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCardItemExnts
                     Guid psCardItemExtnId = Guid.NewGuid();
                     PsCardItemExtnLand psCardItemExtn = null;
                     if (cri.CustodianReportUpload == null)
                     {
-                        psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnLand>()
+                        psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>()
                             .FirstOrDefaultAsync(f => f.PsCardItem.PsCard.PsNo == cri.PsNo
                                 && f.PIN == cri.PIN);
                     }
                     else
                     {
-                        psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnLand>()
+                        psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>()
                             .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemExtnId);
                     }
 
@@ -1448,34 +1446,34 @@ namespace iLgs.Services.CustodianReports
 
                     if (psCardItemExtnMode == Mode.ADD)
                     {
-                        ctx.PsCardItemExtns.Add(psCardItemExtn);
-                        ctx.Entry(psCardItemExtn).State = EntityState.Added;
+                        _db.PsCardItemExtns.Add(psCardItemExtn);
+                        _db.Entry(psCardItemExtn).State = EntityState.Added;
                     }
                     else
                     {
-                        ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                        ctx.Entry(psCardItemExtn).State = EntityState.Modified;
+                        _db.PsCardItemExtns.Attach(psCardItemExtn);
+                        _db.Entry(psCardItemExtn).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardItemExtnId == null)
                     {
                         custodianReportUpload.PsCardItemExtnId = psCardItemExtnId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     // Update PsCarditemTransfers
                     Guid psCardItemTransferId = Guid.NewGuid();
                     if (custodianReportUpload.PsCardTransferItemId == null)
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers
+                        psCardItemTransfer = await _db.PsCardItemTransfers
                             .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItem.Id && f.LocationId == cri.LocationId);
                     }
                     else
                     {
-                        psCardItemTransfer = await ctx.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
+                        psCardItemTransfer = await _db.PsCardItemTransfers.FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardTransferId);
                     }
 
                     if (psCardItemTransfer == null)
@@ -1495,27 +1493,27 @@ namespace iLgs.Services.CustodianReports
                             UpdatedDt = cri.UpdatedDt
                         };
 
-                        ctx.PsCardItemTransfers.Add(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Added;
+                        _db.PsCardItemTransfers.Add(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Added;
                     }
                     else
                     {
-                        ctx.PsCardItemTransfers.Attach(psCardItemTransfer);
-                        ctx.Entry(psCardItemTransfer).State = EntityState.Modified;
+                        _db.PsCardItemTransfers.Attach(psCardItemTransfer);
+                        _db.Entry(psCardItemTransfer).State = EntityState.Modified;
                     }
 
                     if (custodianReportUpload.PsCardTransferId == null)
                     {
                         custodianReportUpload.PsCardTransferId = psCardItemTransferId;
-                        ctx.CustodianReportUploads.Attach(custodianReportUpload);
-                        ctx.Entry(custodianReportUpload).State = EntityState.Modified;
+                        _db.CustodianReportUploads.Attach(custodianReportUpload);
+                        _db.Entry(custodianReportUpload).State = EntityState.Modified;
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
                     if (custodianReportUpload.PsCardTransferItemId == null)
                     {
-                        var psCardItemTransferItem = await ctx.PsCardItemTransferItems
+                        var psCardItemTransferItem = await _db.PsCardItemTransferItems
                             .FirstOrDefaultAsync(f => f.PsCardItemTransferId == psCardItemTransfer.Id && f.PsCardItemExtnId == psCardItemExtnId);
                         if (psCardItemTransferItem == null)
                         {
@@ -1529,30 +1527,30 @@ namespace iLgs.Services.CustodianReports
                                 UpdatedBy = cri.UpdatedBy,
                                 UpdatedDt = cri.UpdatedDt
                             };
-                            ctx.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                            ctx.Entry(psCardItemTransferItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
+                            _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                            _db.Entry(psCardItemTransferItem).State = EntityState.Added;
+                            await _db.SaveChangesAsync();
                         }
                     }
 
                     // do this if applicable for bldg
                     //if (cri.CustodianReportUpload == null) // update newly created records only
                     //{
-                    //    var psCardItemExtns = ctx.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
+                    //    var psCardItemExtns = _db.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItem.Id);
                     //    var qty = psCardItemExtns.Count();
                     //    psCardItem.Qty = qty;
                     //    psCardItem.QtyBal = qty;
                     //    psCardItem.Amount = psCardItem.UnitCost * qty;
-                    //    ctx.PsCardItems.Attach(psCardItem);
-                    //    ctx.Entry(psCardItem).State = EntityState.Modified;
-                    //    await ctx.SaveChangesAsync();
+                    //    _db.PsCardItems.Attach(psCardItem);
+                    //    _db.Entry(psCardItem).State = EntityState.Modified;
+                    //    await _db.SaveChangesAsync();
                     //}
 
                     await UploadPhotosAsync(custodianReport, user, date);
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
 
         /*
@@ -1565,9 +1563,9 @@ namespace iLgs.Services.CustodianReports
         _exceptionService.TryCatch(async () =>
         {
             Mode mode = Mode.ADD;
-            using (var ctx = _contextFactory.CreateContext())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = _contextFactory.CreateContext())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport != null)
                 {
                     if (custodianReport.PostedBy != "" && custodianReport.PostedBy != null)
@@ -1577,7 +1575,7 @@ namespace iLgs.Services.CustodianReports
                     mode = Mode.EDIT;
                 }
 
-                var psCardItemTransfers = await ctx.PsCardItemTransfers.AsNoTracking()
+                var psCardItemTransfers = await _db.PsCardItemTransfers.AsNoTracking()
                     .Include(i => i.PsCardItem.PsCard)
                     .Include(i => i.PsCardItemTransferItems)
                     .Where(w => w.TransDate.Value.Year <= forYear
@@ -1613,7 +1611,7 @@ namespace iLgs.Services.CustodianReports
                 List<CustodianReportItem> custodianReportItems = null;
                 if (custodianReport == null)
                 {
-                    var departmemnt = (await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
+                    var departmemnt = (await _db.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
                     custodianReport = new CustodianReport()
                     {
                         Id = Guid.NewGuid(),
@@ -1629,7 +1627,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 else
                 {
-                    custodianReportItems = await ctx.CustodianReportItems.AsNoTracking()
+                    custodianReportItems = await _db.CustodianReportItems.AsNoTracking()
                         .Include(i => i.CustodianReportUpload)
                         .Where(w => w.ReportId == custodianReport.Id).ToListAsync();
                 }
@@ -1649,12 +1647,12 @@ namespace iLgs.Services.CustodianReports
                     CustodianReportItem custodianReportItem = null;
                     // get items not yet transfered
                     var transferItems = psCardItemTransfer.PsCardItemTransferItems.Where(w =>
-                        !ctx.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
+                        !_db.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
                         && a.PsCardItemExtnId == w.PsCardItemExtnId));
 
                     foreach (var transferItem in transferItems)
                     {
-                        var psCardItemExtn = await ctx.PsCardItemExtns.AsNoTracking()
+                        var psCardItemExtn = await _db.PsCardItemExtns.AsNoTracking()
                                 .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
                                 .FirstOrDefaultAsync(f => f.Id == transferItem.PsCardItemExtnId);
                         var psNo = psCardItemExtn.PsCardItem.PsCard.PsNo;
@@ -1662,7 +1660,7 @@ namespace iLgs.Services.CustodianReports
 
                         if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
                         {
-                            var psCardItemExtnOther = await ctx.PsCardItemExtns.OfType<PsCardItemExtnOther>().AsNoTracking()
+                            var psCardItemExtnOther = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().AsNoTracking()
                                 .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
                                 .FirstOrDefaultAsync(f => f.Id == transferItem.PsCardItemExtnId);
                             if (psCardItemExtnOther != null)
@@ -1677,7 +1675,7 @@ namespace iLgs.Services.CustodianReports
                         }
                         else if (accountGroup == (int?)AccountGroup.VEHICLE)
                         {
-                            var psCardItemExtnVehicle = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+                            var psCardItemExtnVehicle = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
                                 .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
                                 .FirstOrDefaultAsync(f => f.Id == transferItem.PsCardItemExtnId);
                             if (psCardItemExtnVehicle != null)
@@ -1710,11 +1708,11 @@ namespace iLgs.Services.CustodianReports
                         Codextn location = null;
                         if (psCardItemExtn.PsCardItem.LocationId != null)
                         {
-                            location = await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
+                            location = await _db.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
                         }
                         var account = itemCodes.FirstOrDefault(f => f.Id == psCardItemExtn.PsCardItem.PsCard.ItemCodeId);
-                        var allField = await ctx.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
-                        var icsParItems = await ctx.IcsParItems.AsNoTracking()
+                        var allField = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
+                        var icsParItems = await _db.IcsParItems.AsNoTracking()
                             .Include(i => i.IcsPar.IcsParUnitGroups)
                             .Where(w => w.PsCardItemExtnId == transferItem.PsCardItemExtnId && w.IcsPar.RefDate.Value.Year <= forYear)
                             .OrderByDescending(o => o.IcsPar.RefDate).ToListAsync();
@@ -1836,11 +1834,11 @@ namespace iLgs.Services.CustodianReports
                         IcsParUnitGroupDescriptionItem icsParItmUnitGroupDescriptionItem = null;
                         if (icsParItem != null)
                         {
-                            icsParItmUnitGroupDescriptionItem = await ctx.IcsParUnitGroupDescriptionItems.AsNoTracking()
+                            icsParItmUnitGroupDescriptionItem = await _db.IcsParUnitGroupDescriptionItems.AsNoTracking()
                                 .Include(i => i.IcsPartUnitGroupDescription.IcsParUnitGroup)
                                 .FirstOrDefaultAsync(f => f.IcsParItemId == icsParItem.Id);
                         }
-                        var psCardItemUnitGroupDescriptionItem = await ctx.PsCardItemUnitGroupDescriptionItems.AsNoTracking()
+                        var psCardItemUnitGroupDescriptionItem = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking()
                             .Include(i => i.PsCardItemUnitGroupDescription.PsCardItemUnitGroup)
                             .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItemExtn.PsCardItemId);
 
@@ -1890,19 +1888,19 @@ namespace iLgs.Services.CustodianReports
 
                     if (mode == Mode.ADD)
                     {
-                        ctx.CustodianReports.Add(custodianReport);
+                        _db.CustodianReports.Add(custodianReport);
                     }
                     else
                     {
-                        ctx.CustodianReports.Attach(custodianReport);
+                        _db.CustodianReports.Attach(custodianReport);
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     await DownloadPhotosAsync(custodianReport, user, date);
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
 
         private async ValueTask DownloadPhotosAsync(CustodianReport custodianReport, string user, DateTime date)
@@ -1923,9 +1921,9 @@ namespace iLgs.Services.CustodianReports
         _exceptionService.TryCatch(async () =>
         {
             Mode mode = Mode.ADD;
-            using (var ctx = _contextFactory.CreateContext())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = _contextFactory.CreateContext())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport != null)
                 {
                     if (custodianReport.PostedBy != "" && custodianReport.PostedBy != null)
@@ -1935,7 +1933,7 @@ namespace iLgs.Services.CustodianReports
                     mode = Mode.EDIT;
                 }
 
-                var psCardItemTransfers = await ctx.PsCardItemTransfers.AsNoTracking()
+                var psCardItemTransfers = await _db.PsCardItemTransfers.AsNoTracking()
                     .Include(i => i.PsCardItem.PsCard)
                     .Include(i => i.PsCardItemTransferItems).AsNoTracking()
                     .Where(w => w.TransDate.Value.Year <= forYear
@@ -1958,7 +1956,7 @@ namespace iLgs.Services.CustodianReports
                 List<CustodianReportBldgItem> custodianReportItems = null;
                 if (custodianReport == null)
                 {
-                    var departmemnt = (await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
+                    var departmemnt = (await _db.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
                     custodianReport = new CustodianReport()
                     {
                         Id = Guid.NewGuid(),
@@ -1974,7 +1972,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 else
                 {
-                    custodianReportItems = await ctx.CustodianReportBldgItems.AsNoTracking()
+                    custodianReportItems = await _db.CustodianReportBldgItems.AsNoTracking()
                         .Include(i => i.CustodianReportUpload)
                         .Where(w => w.ReportId == custodianReport.Id).ToListAsync();
                 }
@@ -1994,12 +1992,12 @@ namespace iLgs.Services.CustodianReports
                     CustodianReportBldgItem custodianReportItem = null;
                     // get items not yet transfered
                     var transferItems = psCardItemTransfer.PsCardItemTransferItems.Where(w =>
-                        !ctx.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
+                        !_db.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
                         && a.PsCardItemExtnId == w.PsCardItemExtnId));
 
                     foreach (var transferItem in transferItems)
                     {
-                        var psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().AsNoTracking()
+                        var psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().AsNoTracking()
                             .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
                             .FirstOrDefaultAsync(f => f.Id == transferItem.PsCardItemExtnId);
                         if (psCardItemExtn == null)
@@ -2017,10 +2015,10 @@ namespace iLgs.Services.CustodianReports
                         Codextn location = null;
                         if (psCardItemExtn.PsCardItem.LocationId != null)
                         {
-                            location = await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
+                            location = await _db.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
                         }
                         var account = itemCodes.FirstOrDefault(f => f.Id == psCardItemExtn.PsCardItem.PsCard.ItemCodeId);
-                        var allField = await ctx.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
+                        var allField = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
                         var reportItemId = Guid.NewGuid();
 
                         custodianReportItem = new CustodianReportBldgItem();
@@ -2120,28 +2118,28 @@ namespace iLgs.Services.CustodianReports
 
                     if (mode == Mode.ADD)
                     {
-                        ctx.CustodianReports.Add(custodianReport);
+                        _db.CustodianReports.Add(custodianReport);
                     }
                     else
                     {
-                        ctx.CustodianReports.Attach(custodianReport);
+                        _db.CustodianReports.Attach(custodianReport);
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     await DownloadPhotosAsync(custodianReport, user, date);
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
 
         public ValueTask<CustodianReport> DownloadLand(int? forYear, Guid? deptId, int? accountGroup, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             Mode mode = Mode.ADD;
-            using (var ctx = _contextFactory.CreateContext())
-            {
-                var custodianReport = await ctx.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
+            //using (var ctx = _contextFactory.CreateContext())
+            //{
+                var custodianReport = await _db.CustodianReports.Include(i => i.CustodianReportItems).FirstOrDefaultAsync(f => f.AsOf.Value.Year == forYear && f.DeptId == deptId && f.AccountGroup == accountGroup);
                 if (custodianReport != null)
                 {
                     if (custodianReport.PostedBy != "" && custodianReport.PostedBy != null)
@@ -2151,7 +2149,7 @@ namespace iLgs.Services.CustodianReports
                     mode = Mode.EDIT;
                 }
 
-                var psCardItemTransfers = await ctx.PsCardItemTransfers.AsNoTracking()
+                var psCardItemTransfers = await _db.PsCardItemTransfers.AsNoTracking()
                     .Include(i => i.PsCardItem.PsCard)
                     .Include(i => i.PsCardItemTransferItems).AsNoTracking()
                     .Where(w => w.TransDate.Value.Year <= forYear
@@ -2174,7 +2172,7 @@ namespace iLgs.Services.CustodianReports
                 List<CustodianReportLandItem> custodianReportItems = null;
                 if (custodianReport == null)
                 {
-                    var departmemnt = (await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
+                    var departmemnt = (await _db.Codextns.FirstOrDefaultAsync(f => f.Id == deptId)).Description;
                     custodianReport = new CustodianReport()
                     {
                         Id = Guid.NewGuid(),
@@ -2190,7 +2188,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 else
                 {
-                    custodianReportItems = await ctx.CustodianReportLandItems.AsNoTracking()
+                    custodianReportItems = await _db.CustodianReportLandItems.AsNoTracking()
                         .Include(i => i.CustodianReportUpload)
                         .Where(w => w.ReportId == custodianReport.Id).ToListAsync();
                 }
@@ -2210,12 +2208,12 @@ namespace iLgs.Services.CustodianReports
                     CustodianReportLandItem custodianReportItem = null;
                     // get items not yet transfered
                     var transferItems = psCardItemTransfer.PsCardItemTransferItems.Where(w =>
-                        !ctx.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
+                        !_db.PsCardItemTransferItems.Any(a => a.PsCardItemTransfer.ParentId == w.PsCardItemTransferId
                         && a.PsCardItemExtnId == w.PsCardItemExtnId));
 
                     foreach (var transferItem in transferItems)
                     {
-                        var psCardItemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnLand>().AsNoTracking()
+                        var psCardItemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().AsNoTracking()
                             .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
                             .FirstOrDefaultAsync(f => f.Id == transferItem.PsCardItemExtnId);
                         var psNo = psCardItemExtn.PsCardItem.PsCard.PsNo;
@@ -2234,10 +2232,10 @@ namespace iLgs.Services.CustodianReports
                         Codextn location = null;
                         if (psCardItemExtn.PsCardItem.LocationId != null)
                         {
-                            location = await ctx.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
+                            location = await _db.Codextns.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.LocationId);
                         }
                         var account = itemCodes.FirstOrDefault(f => f.Id == psCardItemExtn.PsCardItem.PsCard.ItemCodeId);
-                        var allField = await ctx.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
+                        var allField = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
                         var reportItemId = Guid.NewGuid();
 
                         custodianReportItem.Id = reportItemId;
@@ -2355,19 +2353,19 @@ namespace iLgs.Services.CustodianReports
 
                     if (mode == Mode.ADD)
                     {
-                        ctx.CustodianReports.Add(custodianReport);
+                        _db.CustodianReports.Add(custodianReport);
                     }
                     else
                     {
-                        ctx.CustodianReports.Attach(custodianReport);
+                        _db.CustodianReports.Attach(custodianReport);
                     }
 
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     await DownloadPhotosAsync(custodianReport, user, date);
                 }
 
                 return new CustodianReport();
-            }
+            //}
         });
     }
 }

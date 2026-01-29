@@ -16,10 +16,15 @@ namespace iLgs.Services.Uploads
 
     public class ItemCodeRequestUploadService : UploadService, IItemCodeRequestUploadService
     {
-        public ItemCodeRequestUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "ITEMCODE")
+        public ItemCodeRequestUploadService(AppManEntities db)
+            : base(db, "ITEMCODE")
         {
         }
+
+        //public ItemCodeRequestUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "ITEMCODE")
+        //{
+        //}
 
         //private async ValueTask<bool> IsPostedAsync(Guid? psCardItemId)
         //{

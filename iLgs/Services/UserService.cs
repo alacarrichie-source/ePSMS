@@ -37,11 +37,10 @@ namespace iLgs.Services
         private string _iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
         //private IAnnexDService _annexDService;
 
-        public UserService(AppManEntities db,
-            ICreateAndLogExceptions exceptions)
+        public UserService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
+            _exceptions = new CreateAndLogExceptions();
             _client = new HttpClient();
             _client.BaseAddress = new Uri(_iLgsApiUrl);
             _client.DefaultRequestHeaders.Accept.Clear();

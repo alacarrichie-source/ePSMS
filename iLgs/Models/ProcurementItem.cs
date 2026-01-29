@@ -46,5 +46,6 @@ namespace iLgs.Models
         public virtual Procurement Procurement { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProcurementUnitGroupDescriptionItem> ProcurementUnitGroupDescriptionItems { get; set; }
+        public virtual AllField AllField { get; set; }
     }
 }

@@ -341,6 +341,7 @@
     <Compile Include="Controllers\LoggingController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
+    <Compile Include="Controllers\ProcurementOrderController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PsCategoryController.cs" />
@@ -4726,6 +4727,7 @@
     <Folder Include="Views\ItemHelper\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
+    <Folder Include="Views\ProcurementOrder\" />
     <Folder Include="Views\PsCard\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
@@ -4877,7 +4879,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

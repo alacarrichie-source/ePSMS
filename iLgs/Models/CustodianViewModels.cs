@@ -58,11 +58,13 @@ namespace iLgs.Models
         public AllField AllField { get; set; }
         public Guid? MainDeptId { get; set; }
 
+        public string MainDeptCode { get; set; }
+
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
-        [Display(Name = "Department Code")]
+        [Display(Name = "Department Code")] // originating po
         public string DeptCode { get; set; }
 
         [Display(Name = "Custodian Item Index")]
@@ -473,6 +475,7 @@ namespace iLgs.Models
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
+        public string MainDeptCode { get; set; }
 
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
@@ -735,6 +738,8 @@ namespace iLgs.Models
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
+
+        public string MainDeptCode { get; set; }
 
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }

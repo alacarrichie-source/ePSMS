@@ -568,7 +568,7 @@ namespace iLgs.Controllers
                 var stream = _custodianReportLandItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 string locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
@@ -602,7 +602,7 @@ namespace iLgs.Controllers
                 var stream = _custodianReportLandItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }

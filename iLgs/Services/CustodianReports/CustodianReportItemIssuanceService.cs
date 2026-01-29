@@ -23,26 +23,35 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportItemIssuanceService : ICustodianReportItemIssuanceService
     {        
         protected readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICodextnService _codextnService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportItemIssuance> _exceptionService;
         private readonly IUserService _userService;
 
-        public CustodianReportItemIssuanceService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICodextnService codextnService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportItemIssuance> exceptionService,
-            IUserService userService)
+        public CustodianReportItemIssuanceService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _codextnService = codextnService;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _userService = userService;
+            _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<CustodianReportItemIssuance>();            
         }
+
+        //public CustodianReportItemIssuanceService(AppManEntities db, 
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICodextnService codextnService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportItemIssuance> exceptionService,
+        //    IUserService userService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _codextnService = codextnService;
+        //    _exceptions = exceptions;
+        //    _exceptionService = exceptionService;
+        //    _userService = userService;
+        //}
 
         public ValueTask<CustodianReportItemIssuance> GetByIdAsync(Guid id) =>
         _exceptionService.TryCatch(async () =>
@@ -71,16 +80,16 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 var entity = new CustodianReportItemIssuance();
                 MapModelToEntityFields(entity, model, Mode.ADD);
 
-                ctx.CustodianReportItemIssuances.Add(entity);
-                await ctx.SaveChangesAsync();
+                _db.CustodianReportItemIssuances.Add(entity);
+                await _db.SaveChangesAsync();
 
                 return model;
-            }
+            //}
         }
 
         public virtual async ValueTask<CustodianReportItemIssuance> UpdateAsync(CustodianReportItemIssuance model, string user, DateTime date)
@@ -90,9 +99,9 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportItemIssuances.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReportItemIssuances.FindAsync(model.Id);
                 ValidateRecord(entity);
                 ValidateReportingYearEnd(entity.ReportItemId);
                 ValidateIfPosted(entity.ReportItemId);
@@ -101,12 +110,10 @@ namespace iLgs.Services.CustodianReports
 
                 MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //ctx.CustodianReportItemIssuances.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 return model;
-            }
+            //}
         }
 
         public virtual async ValueTask<CustodianReportItemIssuance> DeleteAsync(CustodianReportItemIssuance model, string user, DateTime date)
@@ -114,9 +121,9 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportItemIssuances.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.CustodianReportItemIssuances.FindAsync(model.Id);
                 ValidateRecord(entity);
                 ValidateReportingYearEnd(entity.ReportItemId);
                 ValidateIfPosted(entity.ReportItemId);
@@ -125,15 +132,12 @@ namespace iLgs.Services.CustodianReports
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                //ctx.CustodianReportItemIssuances.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.CustodianReportItemIssuances.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                _db.CustodianReportItemIssuances.Remove(entity);
+                await _db.SaveChangesAsync();
                 return model;
-            }
+            //}
         }        
 
         protected void MapModelToEntityFields(CustodianReportItemIssuance entity, CustodianReportItemIssuance model, Mode mode)

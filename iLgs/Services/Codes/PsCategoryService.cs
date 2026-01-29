@@ -10,16 +10,19 @@ namespace iLgs.Services.Codes
 
     public class PsCategoryService : CodextnService, IPsCategoryService
     {
-        //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
-        
-        public PsCategoryService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
-        {            
+        public PsCategoryService(AppManEntities db)
+        : base(db)
+        {
         }
+
+        //public PsCategoryService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{            
+        //}
 
         //public ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         //{

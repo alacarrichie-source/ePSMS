@@ -23,18 +23,23 @@ namespace iLgs.Services.Codes
     public class BudgetService : CodextnService, IBudgetService
     {
         private readonly IExceptionService<BudgetCodeVM> _xtraExceptionService;
-        
-        public BudgetService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IExceptionService<BudgetCodeVM> xtraExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+
+        public BudgetService(AppManEntities db)
+        : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<BudgetCodeVM>();
         }
 
+        //public BudgetService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IExceptionService<BudgetCodeVM> xtraExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<Codextn, BudgetCodeVM>> CodextnProjection
         = s => new BudgetCodeVM

@@ -50,25 +50,32 @@ namespace iLgs.Services.AllFields
     public class AllFieldService : IAllFieldService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<AllField> _exceptionService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IAllFieldsValidator _validator;
 
-        public AllFieldService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions createAndLogExceptions,
-            IExceptionService<AllField> exceptionService,
-            IItemCodeService itemCodeService,
-            IAllFieldsValidator allFieldsValidator)
+        public AllFieldService(AppManEntities db)
+            //AppManEntities db, 
+            //IAppManEntitiesFactory appManEntitiesFactory,
+            //ICreateAndLogExceptions createAndLogExceptions,
+            //IExceptionService<AllField> exceptionService,
+            //IItemCodeService itemCodeService,
+            //IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = createAndLogExceptions;
-            _exceptionService = exceptionService;
-            _itemCodeService = itemCodeService;
-            _validator = allFieldsValidator;
+            //_contextFactory = appManEntitiesFactory;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<AllField>();
+            _itemCodeService = new ItemCodeService(_db);
+            _validator = new AllFieldsValidator(_db);
+            //_db = db;
+            //_contextFactory = appManEntitiesFactory;
+            //_exceptions = createAndLogExceptions;
+            //_exceptionService = exceptionService;
+            //_itemCodeService = itemCodeService;
+            //_validator = allFieldsValidator;
         }
 
         public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
@@ -230,11 +237,11 @@ namespace iLgs.Services.AllFields
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.AllFields.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                _db.AllFields.Add(entity);
+                await _db.SaveChangesAsync();
+            //}
         }
 
         public ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
@@ -260,9 +267,9 @@ namespace iLgs.Services.AllFields
 
         private async ValueTask UpdateAsync(AllField model, string user, DateTime date)
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AllFields.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.AllFields.FindAsync(model.Id);
                 if (entity == null)
                 {
                     throw new RecordNotFoundException(model.Id);
@@ -310,10 +317,8 @@ namespace iLgs.Services.AllFields
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //_db.AllFields.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+                await _db.SaveChangesAsync();
+            //}
         }
 
 
@@ -361,21 +366,18 @@ namespace iLgs.Services.AllFields
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AllFields.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.AllFields.FindAsync(model.Id);
 
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //_db.AllFields.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.AllFields.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+                _db.AllFields.Remove(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });

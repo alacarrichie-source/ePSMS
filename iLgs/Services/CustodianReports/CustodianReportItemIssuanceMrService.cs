@@ -25,17 +25,22 @@ namespace iLgs.Services.CustodianReports
     {
         private readonly string _refType = "MR";
         private readonly IExceptionService<CustodianReportItemIssuanceMrVM> _xtraExceptionService;
-        
-        public CustodianReportItemIssuanceMrService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICodextnService codextnService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportItemIssuance> exceptionService,
-            IExceptionService<CustodianReportItemIssuanceMrVM> xtraExceptionService,
-            IUserService userService) : base(db, appManEntitiesFactory, codextnService, exceptions, exceptionService, userService)
+
+        public CustodianReportItemIssuanceMrService(AppManEntities db) : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<CustodianReportItemIssuanceMrVM>();
         }
+
+        //public CustodianReportItemIssuanceMrService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICodextnService codextnService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportItemIssuance> exceptionService,
+        //    IExceptionService<CustodianReportItemIssuanceMrVM> xtraExceptionService,
+        //    IUserService userService) : base(db, appManEntitiesFactory, codextnService, exceptions, exceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<CustodianReportItemIssuance, CustodianReportItemIssuanceMrVM>> CustodianReportItemIssuanceProjection
         = s => new CustodianReportItemIssuanceMrVM

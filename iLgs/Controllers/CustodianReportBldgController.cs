@@ -1173,7 +1173,7 @@ namespace iLgs.Controllers
                     , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 string locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
@@ -1238,7 +1238,7 @@ namespace iLgs.Controllers
                     , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
                 var locationCode = "ALL";
-                if (deptId != null)
+                if (deptId != null && deptId != Guid.Empty)
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }

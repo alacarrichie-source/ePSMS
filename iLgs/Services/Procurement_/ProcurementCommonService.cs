@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.Logs;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -15,16 +16,17 @@ namespace iLgs.Services.Procurement_
         Task ValidateStatusAsync(Guid? procId);
         Task ValidateIfPostedAsync(Guid? procId);
         Task ValidateAirAsync(Guid? procId);
-        Task UpdateProcurementItemAsync(Guid? procItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
+        Task UpdateProcurementItemAsync(Guid? procItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);        
     }
 
     internal class ProcurementCommonService : IProcurementCommonService
     {
         private readonly AppManEntities _db;
-
+        private readonly IExceptionService<Procurement> _exceptionService;
         public ProcurementCommonService(AppManEntities db)
         {
             _db = db;
+            _exceptionService = new ExceptionService<Procurement>();
         }
 
         public void MapModelToEntityFields(Procurement entity, ProcurementVM model, Mode mode)
@@ -63,7 +65,7 @@ namespace iLgs.Services.Procurement_
             if (await _db.AIRs.AnyAsync(a => a.OrderId == procId))
             {
                 throw new RecordRelationshipException("Record already with AIR.");
-            }            
+            }
         }
 
         public async Task ValidateIfPostedAsync(Guid? procId)
@@ -99,6 +101,6 @@ namespace iLgs.Services.Procurement_
             procItem.UpdatedDt = date;
 
             await _db.SaveChangesAsync();
-        }
+        }        
     }
 }

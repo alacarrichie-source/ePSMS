@@ -16,10 +16,15 @@ namespace iLgs.Services.CustodianUploads
 
     public class CustodianReportUploadService : UploadService, ICustodianReportUploadService
     {
-        public CustodianReportUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "CUSTODIAN")
+        public CustodianReportUploadService(AppManEntities db)
+            : base(db, "CUSTODIAN")
         {
         }
+
+        //public CustodianReportUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "CUSTODIAN")
+        //{
+        //}
 
         private async Task<bool> IsPostedAsync(Guid? imageId)
         {

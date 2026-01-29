@@ -51,11 +51,11 @@
         <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="5.25" PointY="5.5" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
-        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="5.375" />
+        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="5.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="3.625" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_PARs_Orders" />
-        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="5.375" PointY="0.75" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="4.75" />

@@ -31,17 +31,26 @@ namespace iLgs.Services.CustodianReports
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
 
-        public CustodianReportItemStockValidator(AppManEntities db,
-            ICodextnService codextnService,
-            IItemCodeService itemCodeService,
-            IAllFieldsValidator allFieldsValidator)
+        public CustodianReportItemStockValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<CustodianReportItemStockVM>;
-            _codextnService = codextnService;
-            _allFieldsValidator = allFieldsValidator;
-            _itemCodeService = itemCodeService;
+            _codextnService = new CodextnService(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public CustodianReportItemStockValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    IItemCodeService itemCodeService,
+        //    IAllFieldsValidator allFieldsValidator)
+        //{
+        //    _db = db;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReportItemStockVM>;
+        //    _codextnService = codextnService;
+        //    _allFieldsValidator = allFieldsValidator;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public async Task ValidateOnCreateAsync(CustodianReportItemStockVM model)
         {

@@ -43,24 +43,24 @@ namespace iLgs.Services.Codes
     public class CodextnService : BaseValidator, ICodextnService
     {
         protected readonly AppManEntities _db;
-        protected readonly IAppManEntitiesFactory _contextFactory;
+        //protected readonly IAppManEntitiesFactory _contextFactory;
         protected readonly GetDisplayNameDelegate _getDisplayName;
         protected readonly IExceptionService<Codextn> _exceptionService;
         protected readonly IExceptionService<CodextnVM> _vmExceptionService;
         private readonly IUserService _userService;
         
-        public CodextnService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService, 
-            IExceptionService<CodextnVM> vmExceptionService,
-            IUserService userService)
+        public CodextnService(AppManEntities db)
+            //IAppManEntitiesFactory appManEntitiesFactory,
+            //IExceptionService<Codextn> exceptionService, 
+            //IExceptionService<CodextnVM> vmExceptionService,
+            //IUserService userService)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _vmExceptionService = vmExceptionService;
-            _getDisplayName = Utility.GetDisplayName<Codextn>;
-            _userService = userService;            
+            //_contextFactory = appManEntitiesFactory;
+            _userService = new UserService(_db);
+            _exceptionService = new ExceptionService<Codextn>();
+            _vmExceptionService = new ExceptionService<CodextnVM>();
+            _getDisplayName = Utility.GetDisplayName<Codextn>;            
         }
 
         public async ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId)
@@ -317,20 +317,20 @@ namespace iLgs.Services.Codes
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.Codextns.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                _db.Codextns.Add(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });
 
         public virtual ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = ctx.Codextns.Find(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = _db.Codextns.Find(model.Id);
 
                 if (entity != null)
                 {
@@ -348,10 +348,8 @@ namespace iLgs.Services.Codes
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    //ctx.Codextns.Attach(entity);
-                    //ctx.Entry(entity).State = EntityState.Modified;
-                    await ctx.SaveChangesAsync();
-                }
+                    await _db.SaveChangesAsync();
+                //}
             }
             return model;
         });
@@ -361,21 +359,18 @@ namespace iLgs.Services.Codes
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                Codextn entity = await ctx.Codextns.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                Codextn entity = await _db.Codextns.FindAsync(model.Id);
 
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                //ctx.Codextns.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.Codextns.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+                _db.Codextns.Remove(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });

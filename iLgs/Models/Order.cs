@@ -24,6 +24,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public string CtrlNo { get; set; }
         public Nullable<System.Guid> SupplierId { get; set; }
         public string SupName { get; set; }
         public string SupBusiness { get; set; }
@@ -36,6 +37,13 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
+        public string PrNo { get; set; }
+        public Nullable<System.DateTime> PrDate { get; set; }
+        public string Fund { get; set; }
+        public string FPP { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Department { get; set; }
+        public string Section { get; set; }
         public string DeliveryPlace { get; set; }
         public string DeliveryDate { get; set; }
         public string TermDelivery { get; set; }
@@ -63,5 +71,6 @@ namespace iLgs.Models
         public virtual Request Request { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PAR> PARs { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

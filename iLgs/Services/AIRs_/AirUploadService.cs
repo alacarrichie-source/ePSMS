@@ -16,16 +16,26 @@ namespace iLgs.Services.AIRs_
 
     public class AirUploadService : UploadService, IAirUploadService
     {
-        public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "AIR")
+        public AirUploadService(AppManEntities db)
+            : base(db, "AIR")
         {
         }
 
+        //public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "AIR")
+        //{
+        //}
+
         // Constructor for other uploads like "REQUEST"
-        public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string type)
-            : base(db, appManEntitiesFactory, type)
+        public AirUploadService(AppManEntities db, string type)
+            : base(db, type)
         {
         }
+
+        //public AirUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory, string type)
+        //    : base(db, appManEntitiesFactory, type)
+        //{
+        //}
 
         private async Task<bool> IsPostedAsync(Guid? imageId)
         {

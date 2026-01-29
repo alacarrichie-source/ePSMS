@@ -196,7 +196,7 @@ namespace iLgs
             services.AddScoped<IParService, ParService>();
 
             // PO-ISSUANCE
-            services.AddScoped<IProcurementOrderService, PoIssuanceService>();
+            services.AddScoped<IPoIssuanceService, PoIssuanceService>();
             services.AddScoped<IPoIssuanceUploadService, PoIssuanceUploadService>();
 
             // PROPERTY CARD
@@ -290,7 +290,7 @@ namespace iLgs
             services.AddScoped<IItemCodeService, ItemCodeService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRsmiService, RsmiService>();
-            services.AddScoped<Func<string, UploadService>>(sp => subDir => new UploadService(sp.GetRequiredService<AppManEntities>(), sp.GetRequiredService<AppManEntitiesFactory>(), subDir));
+            services.AddScoped<Func<string, UploadService>>(sp => subDir => new UploadService(sp.GetRequiredService<AppManEntities>(), subDir));
 
             // Register controllers
             var controllerTypes = typeof(MvcApplication).Assembly.GetTypes()

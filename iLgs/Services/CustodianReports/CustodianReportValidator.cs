@@ -22,14 +22,21 @@ namespace iLgs.Services.CustodianReports
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICodextnService _codextnService;        
+        private readonly ICodextnService _codextnService;
 
-        public CustodianReportValidator(AppManEntities db, ICodextnService codextnService)
+        public CustodianReportValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<CustodianReport>;
-            _codextnService = codextnService;
+            _codextnService = new CodextnService(_db);
         }
+
+        //public CustodianReportValidator(AppManEntities db, ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReport>;
+        //    _codextnService = codextnService;
+        //}
 
         public void ValidateOnCreate(CustodianReport model)
         {

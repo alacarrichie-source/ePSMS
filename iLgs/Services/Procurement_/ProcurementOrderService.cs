@@ -2,6 +2,8 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
+using iLgs.Services.PurchaseOrder;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -23,7 +25,10 @@ namespace iLgs.Services.Procurement_
         ValueTask<ProcurementOrderVM> CreateAsync(ProcurementOrderVM model, string user, DateTime date);
         ValueTask<ProcurementOrderVM> UpdateAsync(ProcurementOrderVM model, string user, DateTime date);
         ValueTask<ProcurementOrderVM> DeleteAsync(ProcurementOrderVM model, string user, DateTime date);
+        ValueTask<ProcurementOrderVM> PostAsync(Guid orderId, string user, DateTime date);
+        ValueTask<ProcurementOrderVM> UnpostAsync(Guid orderId, string user, DateTime date);
 
+        IProcurementCommonService CommonService { get; }
         IProcurementUnitGroupService UnitGroupService { get; }
     }
 
@@ -35,24 +40,40 @@ namespace iLgs.Services.Procurement_
         private readonly ILocationBudgetService _locationBudgetService;
         private readonly IExceptionService<ProcurementOrderVM> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IPriceCapService _priceCapService;
+        private readonly IItemCodeService _itemCodeService;
+        private readonly IOrderUploadService _uploadPoService;
+        private readonly IOrderUploadService _uploadCafoaService;
 
+        private IProcurementCommonService _commonService;
         private IProcurementUnitGroupService _unitGroupService;
+
         private readonly string _refType = "PO";
+        private readonly decimal? _priceCap;
 
         public ProcurementOrderService(AppManEntities db,
             ICodextnService codextnService,
             ILocationBudgetService locationBudgetService,
-            IExceptionService<ProcurementOrderVM> exceptionService
+            IExceptionService<ProcurementOrderVM> exceptionService,
+            IPriceCapService priceCapService,
+            IItemCodeService itemCodeService,
+            IOrderUploadService uploadService
             )
         {
             _db = db;
             _codextnService = codextnService;
             _locationBudgetService = locationBudgetService;
             _exceptionService = exceptionService;
-            _procurementCommonService = new ProcurementCommonService(_db);
-            _getDisplayName = Utility.GetDisplayName<ProcurementOrderVM>;            
+            _priceCapService = priceCapService;
+            _itemCodeService = itemCodeService;
+            _uploadPoService = uploadService;
+            _uploadCafoaService = uploadService.Create("CAFOA");
+
+            _getDisplayName = Utility.GetDisplayName<ProcurementOrderVM>;
+            _priceCap = _priceCapService.GetPriceCap();
         }
 
+        public IProcurementCommonService CommonService { get { return _commonService = _commonService ?? new ProcurementCommonService(_db); } }
         public IProcurementUnitGroupService UnitGroupService { get { return _unitGroupService = _unitGroupService ?? new ProcurementUnitGroupService(_db); } }
 
         private Expression<Func<ProcurementOrder, ProcurementOrderVM>> GetProjection()
@@ -191,8 +212,8 @@ namespace iLgs.Services.Procurement_
         {
             var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
 
-            ValidateRecord(entity, id);
-            ValidateIfPosted(entity);
+            await ValidateOnPost(entity);
+            await ValidateUploadAsync(id, entity.RefValue);
 
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -203,7 +224,7 @@ namespace iLgs.Services.Procurement_
             return await GetByIdAsync(id);
         });
 
-        public virtual ValueTask<ProcurementOrderVM> UnPostAsync(Guid id, string user, DateTime date) =>
+        public virtual ValueTask<ProcurementOrderVM> UnpostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
@@ -363,5 +384,144 @@ namespace iLgs.Services.Procurement_
 
             _imex.ThrowIfContainsErrors();
         }
+
+        private async ValueTask ValidateOnPost(ProcurementOrder entity)
+        {
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+            
+            var unitGroupItems = await _db.ProcurementUnitGroupDescriptionItems.Include(i => i.ProcurementItem)
+                .Where(w => w.ProcurementUnitGroupDescription.ProcurementUnitGroup.ProcId == entity.Id).ToListAsync();
+            if (unitGroupItems.Any())
+            {
+                var rate = unitGroupItems.Sum(s => s.ProcurementItem.PriceRate) ?? 0;
+                if (rate != 100)
+                {
+                    throw new InvalidValueException("Price rate must be 100%");
+                }
+            }
+
+            string brandMsg = "";
+            var orderItems = await _db.ProcurementItems
+                .Include(i => i.ItemCode.ItemType)
+                .Include(i => i.AllField)
+                .Where(w => w.ProcId == entity.Id).ToListAsync();
+            foreach (var orderItem in orderItems)
+            {                
+                if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
+                {
+                    var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+                    if (allfield == null)
+                    {
+                        throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+                    }
+                    {
+                        if (string.IsNullOrWhiteSpace(allfield.Brand))
+                        {
+                            brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+                        }
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(orderItem.PsNo))
+                {
+                    throw new InvalidValueException("All items must have a valid Property/Stock No.");
+                }
+
+                // validate unit cost
+                if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)
+                {
+                    throw new InvalidValueException("All items must unit cost.");
+                }
+
+                decimal? unitCost = 0;
+                var unitGroup = await _db.ProcurementUnitGroups.Where(w => w.ProcurementUnitGroupDescriptions.Any(a => a.ProcurementUnitGroupDescriptionItems.Any(b => b.ProcItemId == orderItem.Id))).FirstOrDefaultAsync();
+                if (unitGroup != null)
+                {
+                    unitCost = unitGroup.UnitCost;
+                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+                    {
+                        if (unitCost < _priceCap)
+                        {
+                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
+                        }
+                    }
+                    else
+                    {
+                        if (unitCost >= _priceCap)
+                        {
+                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
+                        }
+                    }
+                }
+                else
+                {
+                    unitCost = orderItem.UnitCost;
+                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+                    {
+                        if (unitCost < _priceCap)
+                        {
+                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
+                        }
+                    }
+                    else
+                    {
+                        if (unitCost >= _priceCap)
+                        {
+                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(brandMsg))
+            {
+                throw new InvalidValueException($"Brand is required for {brandMsg}.");
+            }
+        }
+
+        private async ValueTask ValidateOnUnpost(ProcurementOrder entity)
+        {
+            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.RefValue));
+            }
+
+            var airs = await _db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+
+            foreach (var air in airs)
+            {
+                throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
+            }
+        }
+        
+        private async Task<bool> IsWithPoUploadAsync(Guid? id)
+        {
+            var result = await _uploadPoService.GetAllByImageId(id).AnyAsync();
+            return result;
+        }
+
+        private async Task<bool> IsWithCafoaUploadAsync(Guid? id)
+        {
+            var result = await _uploadCafoaService.GetAllByImageId(id).AnyAsync();
+            return result;
+        }
+
+        private async Task ValidateUploadAsync(Guid? id, string poNo)
+        {
+            if (!await IsWithPoUploadAsync(id))
+            {
+                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}, cannot post!");
+            }
+
+            if (!await IsWithCafoaUploadAsync(id))
+            {
+                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}, cannot post!");
+            }
+        }
+
     }
 }

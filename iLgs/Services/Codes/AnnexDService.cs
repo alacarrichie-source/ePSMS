@@ -29,16 +29,22 @@ namespace iLgs.Services.Codes
         private readonly string _mastCode = "ANNEX-D";
         private readonly IExceptionService<AnnexDVM> _xtraExceptionService;
 
-        public AnnexDService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IExceptionService<AnnexDVM> xtraExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        public AnnexDService(AppManEntities db)
+        : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<AnnexDVM>();
         }
+
+        //public AnnexDService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IExceptionService<AnnexDVM> xtraExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<Codextn, AnnexDVM>> CodextnProjection
         = s => new AnnexDVM

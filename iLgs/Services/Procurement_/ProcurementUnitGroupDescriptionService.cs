@@ -27,8 +27,7 @@ namespace iLgs.Services.Procurement_
     internal class ProcurementUnitGroupDescriptionService : BaseValidator, IProcurementUnitGroupDescriptionService
     {
         private readonly AppManEntities _db;
-        private readonly IProcurementCommonService _procurementCommonService;
-        private readonly ILoggingService _loggingservice;
+        private readonly IProcurementCommonService _procurementCommonService;        
         private readonly IExceptionService<ProcurementUnitGroupDescriptionVM> _exceptionService;
 
         private IProcurementUnitGroupDescriptionItemService _unitGroupDescriptionService;
@@ -36,9 +35,8 @@ namespace iLgs.Services.Procurement_
         public ProcurementUnitGroupDescriptionService(AppManEntities db)
         {
             _db = db;
-            _procurementCommonService = new ProcurementCommonService(_db);
-            _loggingservice = new LoggingService();
-            _exceptionService = new ExceptionService<ProcurementUnitGroupDescriptionVM>(_loggingservice);
+            _procurementCommonService = new ProcurementCommonService(_db);            
+            _exceptionService = new ExceptionService<ProcurementUnitGroupDescriptionVM>();
         }
 
         public IProcurementUnitGroupDescriptionItemService UnitGroupDescriptionItemService

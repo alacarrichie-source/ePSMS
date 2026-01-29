@@ -48,6 +48,7 @@ namespace iLgs.Models
             this.RpcPpeItems1 = new HashSet<RpcPpeItem>();
             this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
             this.Procurements = new HashSet<Procurement>();
+            this.Orders = new HashSet<Order>();
         }
     
         public System.Guid Id { get; set; }
@@ -126,5 +127,7 @@ namespace iLgs.Models
         public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Procurement> Procurements { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }

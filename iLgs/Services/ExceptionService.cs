@@ -20,9 +20,9 @@ namespace iLgs.Services
     {
         private readonly ILoggingService _loggingService;
 
-        public ExceptionService(ILoggingService loggingService)
+        public ExceptionService()
         {
-            _loggingService = loggingService;
+            _loggingService = new LoggingService();
         }
         
         public async ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)

@@ -16,10 +16,15 @@ namespace iLgs.Services
 
     public class CardUploadService : UploadService, ICardUploadService
     {
-        public CardUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
-            : base(db, appManEntitiesFactory, "CARD")
+        public CardUploadService(AppManEntities db)
+            : base(db, "CARD")
         {
         }
+
+        //public CardUploadService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //    : base(db, appManEntitiesFactory, "CARD")
+        //{
+        //}
 
         private void ValidateIfPosted(Guid? psCardItemId)
         {

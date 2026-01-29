@@ -47,7 +47,7 @@ namespace iLgs.Services.PurchaseOrder
     {
         private readonly decimal? _priceCap;
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IOrderSharedService _orderSharedService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderVM> _orderVmExceptionService;
@@ -60,49 +60,72 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public OrderService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IOrderSharedService orderSharedService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<OrderVM> orderVmExceptionService,
-            IExceptionService<Order> orderExceptionService,
-            IAllFieldService allFieldService,
-            IItemCodeService itemCodeService,
-            IUserService userService,
-            IOrderUploadService uploadService,
-            IPriceCapService priceCapService)
+        public OrderService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _orderSharedService = orderSharedService;
-            _exceptions = exceptions;
-            _orderVmExceptionService = orderVmExceptionService;
-            _orderExceptionService = orderExceptionService;
-            _allFieldService = allFieldService;
-            _itemCodeService = itemCodeService;            
-            _userService = userService;
-            _uploadPoService = uploadService;
-            _uploadCafoaService = uploadService.Create("CAFOA");
-            _priceCapService = priceCapService;
+            _orderSharedService = new OrderSharedService(_db);
+            _exceptions = new CreateAndLogExceptions();            
+            _allFieldService = new AllFieldService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
+            _uploadPoService = new OrderUploadService(_db);
+            _uploadCafoaService = _uploadPoService.Create("CAFOA");
+            _priceCapService = new PriceCapService(_db);
+
+            _orderVmExceptionService = new ExceptionService<OrderVM>();
+            _orderExceptionService = new ExceptionService<Order>();
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
 
             _priceCap = _priceCapService.GetPriceCap();
         }
+
+        //public OrderService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IOrderSharedService orderSharedService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<OrderVM> orderVmExceptionService,
+        //    IExceptionService<Order> orderExceptionService,
+        //    IAllFieldService allFieldService,
+        //    IItemCodeService itemCodeService,
+        //    IUserService userService,
+        //    IOrderUploadService uploadService,
+        //    IPriceCapService priceCapService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _orderSharedService = orderSharedService;
+        //    _exceptions = exceptions;
+        //    _orderVmExceptionService = orderVmExceptionService;
+        //    _orderExceptionService = orderExceptionService;
+        //    _allFieldService = allFieldService;
+        //    _itemCodeService = itemCodeService;            
+        //    _userService = userService;
+        //    _uploadPoService = uploadService;
+        //    _uploadCafoaService = uploadService.Create("CAFOA");
+        //    _priceCapService = priceCapService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
+
+        //    _priceCap = _priceCapService.GetPriceCap();
+        //}
 
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
         {
             return s => new OrderVM
             {
                 Id = s.Id,
-                Fund = s.Request.RISs.Fund,
-                PoNo = s.PoNo,
+                CtrlNo = s.CtrlNo,
+                Fund = s.Fund,      
+                FPP = s.FPP,
                 PrId = s.PrId,
-                PrDate = s.Request.PrDate,
+                PrNo = s.PrNo,
+                PrDate = s.PrDate,
+                DeptId = s.DeptId,
+                Department = s.Department,
+                Section = s.Section,
+                PoNo = s.PoNo,
                 PoDate = s.PoDate,
                 PoMode = s.PoMode,
-                PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
-                PrNo = s.Request.PrNo,
-                Department = s.Request.RISs.Office,
+                PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,                                
                 SupplierId = s.SupplierId,
                 SupName = s.SupName,
                 SupBusiness = s.SupBusiness,
@@ -148,7 +171,7 @@ namespace iLgs.Services.PurchaseOrder
             else
             {
                 data = _db.Orders.AsNoTracking()
-                    .Where(w => w.Request.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
                     .Select(Projection(_db)).OrderByDescending(o => o.PoNo);
             }
             return data;
@@ -295,10 +318,11 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+
                 // include items during add, PR Items not yet in Order Items
-                var requestItems = await ctx.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
+                var requestItems = await _db.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
                     .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).OrderBy(o => o.InsertedDt).ToListAsync();
                 foreach (var requestItem in requestItems)
                 {
@@ -327,7 +351,7 @@ namespace iLgs.Services.PurchaseOrder
                     };
 
                     //Map Fields
-                    var reqAllField = await ctx.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefaultAsync();
+                    var reqAllField = await _db.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefaultAsync();
                     reqAllField.Id = orderItem.Id;
                     reqAllField.UpdatedBy = user;
                     reqAllField.UpdatedDt = date;
@@ -337,7 +361,7 @@ namespace iLgs.Services.PurchaseOrder
                 }
 
                 // Unit Groups
-                var unitGroups = await ctx.RequestItemUnitGroups
+                var unitGroups = await _db.RequestItemUnitGroups
                     .Include(i => i.RisItemUnitGroup.RisItemUnitGroupDescriptions)
                     .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId && !w.OrderItemUnitGroups.Any())
                     .OrderBy(o => o.InsertedDt).ToListAsync();
@@ -375,7 +399,7 @@ namespace iLgs.Services.PurchaseOrder
                             UpdatedDt = groupDescriptionDt
                         };
 
-                        var requestItemUnitGroupDescriptionItems = await ctx.RequestItemUnitGroupDescriptionItems
+                        var requestItemUnitGroupDescriptionItems = await _db.RequestItemUnitGroupDescriptionItems
                             .Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
                         foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
                         {
@@ -398,9 +422,9 @@ namespace iLgs.Services.PurchaseOrder
                     entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
                 }
 
-                ctx.Orders.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+                _db.Orders.Add(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });
@@ -413,26 +437,26 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.Orders.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.Orders.FindAsync(model.Id);
 
                 // if there's a change of request item
                 if (entity.PrId != model.PrId)
                 {
-                    var orderItems = ctx.OrderItems.Where(w => w.OrderId == model.Id);
+                    var orderItems = _db.OrderItems.Where(w => w.OrderId == model.Id);
                     await orderItems.ForEachAsync(f =>
                     {
                         f.UpdatedBy = model.UpdatedBy;
                         f.UpdatedDt = model.UpdatedDt;
                     });
-                    await ctx.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
 
-                    ctx.OrderItems.RemoveRange(orderItems);
-                    await ctx.SaveChangesAsync();
+                    _db.OrderItems.RemoveRange(orderItems);
+                    await _db.SaveChangesAsync();
 
                     // include items during add, PR Items not yet in Order Items
-                    var prItemList = await ctx.RequestItems.Include(i => i.RisItem.AllField)
+                    var prItemList = await _db.RequestItems.Include(i => i.RisItem.AllField)
                         .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToListAsync();
                     foreach (var prItem in prItemList)
                     {
@@ -492,10 +516,8 @@ namespace iLgs.Services.PurchaseOrder
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.Orders.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });
@@ -505,40 +527,37 @@ namespace iLgs.Services.PurchaseOrder
         {
             await ValidateOnDestroy(model);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var unitGroups = ctx.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
                 if (unitGroups.Any())
                 {
-                    ctx.OrderItemUnitGroups.RemoveRange(unitGroups);
-                    await ctx.SaveChangesAsync();
+                    _db.OrderItemUnitGroups.RemoveRange(unitGroups);
+                    await _db.SaveChangesAsync();
                 }
 
                 model.UpdatedBy = user;
                 model.UpdatedDt = date;
 
-                var entity = await ctx.Orders.FindAsync(model.Id);
+                var entity = await _db.Orders.FindAsync(model.Id);
 
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //_db.Orders.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                ctx.Orders.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+                _db.Orders.Remove(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });
 
         public ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
                 if (entity == null)
                 {
                     throw new RecordNotFoundException(orderId);
@@ -550,19 +569,17 @@ namespace iLgs.Services.PurchaseOrder
                 entity.PostedBy = user;
                 entity.PostedDt = date;
 
-                //_db.Orders.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 return entity;
-            }
+            //}
         });
 
         public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.Orders.FindAsync(orderId);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                var entity = await _db.Orders.FindAsync(orderId);
 
                 if (entity == null)
                 {
@@ -576,12 +593,10 @@ namespace iLgs.Services.PurchaseOrder
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //_db.Orders.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 return entity;
-            }
+            //}
         });
 
         private string NextPoNo(DateTime poDate)

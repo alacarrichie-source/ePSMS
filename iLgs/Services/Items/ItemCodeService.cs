@@ -61,19 +61,20 @@ namespace iLgs.Services.Items
     public class ItemCodeService : IItemCodeService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        //private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<ItemCodeVM> _vmExceptionService;
         private readonly IExceptionService<ItemCode> _exceptionService;
 
-        public ItemCodeService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<ItemCodeVM> vmExceptionService,
-            IExceptionService<ItemCode> exceptionService)
+        public ItemCodeService(AppManEntities db)
+            //,
+            //IAppManEntitiesFactory appManEntitiesFactory,
+            //IExceptionService<ItemCodeVM> vmExceptionService,
+            //IExceptionService<ItemCode> exceptionService)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
+            //_contextFactory = appManEntitiesFactory;
+            _vmExceptionService = new ExceptionService<ItemCodeVM>();
+            _exceptionService = new ExceptionService<ItemCode>();
         }
 
         public IQueryable<ItemCodeVM> GetAllOld()
@@ -497,10 +498,10 @@ namespace iLgs.Services.Items
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
                 model.Id = Guid.NewGuid();
-                model.Code = GetItemCode(ctx, model.ItemTypeId, model.ItemNo, model.Description);
+                model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
                 model.ItemNoIndex = ItemNoIndex(model.ItemNo);
                 
                 ItemCode entity = new ItemCode()
@@ -523,9 +524,9 @@ namespace iLgs.Services.Items
                     UpdatedDt = date
                 };
 
-                ctx.ItemCodes.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+                _db.ItemCodes.Add(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
 
@@ -539,12 +540,12 @@ namespace iLgs.Services.Items
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ItemCode entity = await ctx.ItemCodes.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
                 ValidateRecord(entity, model.Id);
 
-                model.Code = GetItemCode(ctx, model.ItemTypeId, model.ItemNo, model.Description);
+                model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
                 model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
                 entity.ItemTypeId = model.ItemTypeId;
@@ -561,10 +562,9 @@ namespace iLgs.Services.Items
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                //_db.ItemCodes.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+                
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });
@@ -575,23 +575,20 @@ namespace iLgs.Services.Items
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ItemCode entity = await ctx.ItemCodes.FindAsync(model.Id);
+            //using (var ctx = await _contextFactory.CreateContextAsync())
+            //{
+                ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
                 ValidateRecord(entity, model.Id);
-                ValidateRelationship(ctx, model.Id);
+                ValidateRelationship(_db, model.Id);
 
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
+                
+                await _db.SaveChangesAsync();
 
-                //_db.ItemCodes.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.ItemCodes.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+                _db.ItemCodes.Remove(entity);
+                await _db.SaveChangesAsync();
+            //}
 
             return model;
         });

@@ -25,17 +25,23 @@ namespace iLgs.Services.Codes
     public class PriceCapService : CodextnService, IPriceCapService
     {
         private readonly IExceptionService<PriceCapVM> _xtraExceptionService;
-        
-        public PriceCapService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IExceptionService<PriceCapVM> xtraExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+
+        public PriceCapService(AppManEntities db)
+        : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<PriceCapVM>();
         }
+
+        //public PriceCapService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IExceptionService<PriceCapVM> xtraExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<Codextn, PriceCapVM>> CodextnProjection
         = s => new PriceCapVM

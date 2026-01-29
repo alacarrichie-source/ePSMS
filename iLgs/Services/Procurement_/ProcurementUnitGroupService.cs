@@ -30,7 +30,6 @@ namespace iLgs.Services.Procurement_
         private readonly AppManEntities _db;
         private readonly IProcurementCommonService _procurementCommonService;
         private readonly IExceptionService<ProcurementUnitGroupVM> _exceptionService;
-        private readonly ILoggingService _loggingservice;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         private IProcurementUnitGroupDescriptionService _unitGroupDescriptionService;
@@ -39,8 +38,7 @@ namespace iLgs.Services.Procurement_
         {
             _db = db;
             _procurementCommonService = new ProcurementCommonService(_db);
-            _loggingservice = new LoggingService();
-            _exceptionService = new ExceptionService<ProcurementUnitGroupVM>(_loggingservice);
+            _exceptionService = new ExceptionService<ProcurementUnitGroupVM>();
             _getDisplayName = propertyName => Utility.GetDisplayName<ProcurementUnitGroupVM>(propertyName);
         }
 
@@ -88,7 +86,7 @@ namespace iLgs.Services.Procurement_
             model.UpdatedDt = date;
             model.TotalCost = model.Qty * model.UnitCost;
 
-            var entity = new ProcurementUnitGroupVM()
+            var entity = new ProcurementUnitGroup()
             {
                 Id = model.Id,
                 ProcId = model.ProcId,

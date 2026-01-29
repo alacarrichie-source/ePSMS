@@ -28,22 +28,36 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportItemPpeVM> _xtraExceptionService;
         private readonly ICustodianReportItemPpeValidator _validator;
         private readonly IAnnexDService _annexDService;
-        
-        public CustodianReportItemPpeService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IAllFieldService allFieldService,
-            ICodextnService codextnService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportItem> exceptionService,
-            IExceptionService<CustodianReportItemPpeVM> xtraExceptionService,
-            ICustodianReportItemPpeValidator validator,
-            IAnnexDService annexDService,
-            IUserService userService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
+
+        public CustodianReportItemPpeService(AppManEntities db) : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
-            _validator = validator;
-            _annexDService = annexDService;
+            _xtraExceptionService = new ExceptionService<CustodianReportItemPpeVM>();
+            _validator = new CustodianReportItemPpeValidator(_db);
+            _annexDService = new AnnexDService(_db);
         }
+
+        //public CustodianReportItemPpeService(AppManEntities db) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //    _validator = validator;
+        //    _annexDService = annexDService;
+        //}
+
+        //public CustodianReportItemPpeService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IAllFieldService allFieldService,
+        //    ICodextnService codextnService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportItem> exceptionService,
+        //    IExceptionService<CustodianReportItemPpeVM> xtraExceptionService,
+        //    ICustodianReportItemPpeValidator validator,
+        //    IAnnexDService annexDService,
+        //    IUserService userService) : base(db, appManEntitiesFactory, allFieldService, codextnService, exceptions, exceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //    _validator = validator;
+        //    _annexDService = annexDService;
+        //}
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemPpeVM>> CustodianReporPpeItemProjection
         = s => new CustodianReportItemPpeVM

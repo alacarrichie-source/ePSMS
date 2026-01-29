@@ -9,7 +9,32 @@ namespace iLgs.Models
 {
     public class OrderVM
     {
+        // 
+        [Display(Name = "Ctrl. No.")]
+        public string CtrlNo { get; set; }
+
         public string Fund { get; set; }
+
+        //[Required]
+        [Display(Name = "PR No.")]
+        public string PrNo { get; set; }
+
+        //[Required]
+        [Display(Name = "PR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public DateTime? PrDate { get; set; }
+
+        [Required]
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string Department { get; set; }
+
+        public string Section { get; set; }
+
+        public string FPP { get; set; }
+        //        
 
         [Display(Name = "Mode of Procurement")]
         public string PoModeDesc { get; set; }
@@ -47,7 +72,6 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
-        [Required]
         [Display(Name = "PR No.")]
         public Nullable<System.Guid> PrId { get; set; }
 
@@ -62,7 +86,7 @@ namespace iLgs.Models
 
 
         [Display(Name = "Place of Delivery")]
-        [Required]
+        //[Required]
         public string DeliveryPlace { get; set; }
 
         [Display(Name = "Date of Delivery")]
@@ -112,22 +136,14 @@ namespace iLgs.Models
         [Display(Name = "Posted Date")]
         public Nullable<System.DateTime> PostedDt { get; set; }
 
-        // TRANSIENTS
 
-
-        [Display(Name = "PR No.")]
-        public string PrNo { get; set; }
-
-        [Display(Name = "PR Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime? PrDate { get; set; }
+        // TRANSIENTS        
 
         public Nullable<decimal> QtyTotal { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
-        public bool IsLocked { get; set; }        
-        public string Department { get; set; }
+        public bool IsLocked { get; set; }                
     }
 
     public class OrderItemVM : RisItemCommonVM

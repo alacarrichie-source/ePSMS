@@ -29,17 +29,26 @@ namespace iLgs.Services.CustodianReports
         private readonly IItemCodeService _itemCodeService;
         private readonly IAllFieldsValidator _allFieldsValidator;
 
-        public CustodianReportItemPpeValidator(AppManEntities db,
-            ICodextnService codextnService,
-            IItemCodeService itemCodeService,
-            IAllFieldsValidator allFieldsValidator)
+        public CustodianReportItemPpeValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<CustodianReportItemPpeVM>;
-            _codextnService = codextnService;
-            _allFieldsValidator = allFieldsValidator;
-            _itemCodeService = itemCodeService;
+            _codextnService = new CodextnService(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public CustodianReportItemPpeValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    IItemCodeService itemCodeService,
+        //    IAllFieldsValidator allFieldsValidator)
+        //{
+        //    _db = db;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReportItemPpeVM>;
+        //    _codextnService = codextnService;
+        //    _allFieldsValidator = allFieldsValidator;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public async Task ValidateOnCreateAsync(CustodianReportItemPpeVM model)
         {

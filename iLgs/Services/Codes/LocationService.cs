@@ -22,14 +22,19 @@ namespace iLgs.Services.Codes
 
     public class LocationService : CodextnService, ILocationService
     {
-        public LocationService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<Codextn> exceptionService,
-            IExceptionService<CodextnVM> vmExceptionService,
-            IUserService userService)
-        : base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        public LocationService(AppManEntities db)
+        : base(db)
         {
         }
+
+        //public LocationService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<Codextn> exceptionService,
+        //    IExceptionService<CodextnVM> vmExceptionService,
+        //    IUserService userService)
+        //: base(db, appManEntitiesFactory, exceptionService, vmExceptionService, userService)
+        //{
+        //}
 
         public IQueryable<LocationCodeVM> GetLocations(string search) 
         {

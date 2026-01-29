@@ -24,16 +24,21 @@ namespace iLgs.Services.CustodianReports
         private readonly string _refType = "RPCPPE";
         private readonly IExceptionService<CustodianReportItemIssuanceRpcPpeVM> _xtraExceptionService;
 
-        public CustodianReportItemIssuanceRpcPpeService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICodextnService codextnService,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportItemIssuance> exceptionService,
-            IExceptionService<CustodianReportItemIssuanceRpcPpeVM> xtraExceptionService,
-            IUserService userService) : base(db, appManEntitiesFactory, codextnService, exceptions, exceptionService, userService)
+        public CustodianReportItemIssuanceRpcPpeService(AppManEntities db) : base(db)
         {
-            _xtraExceptionService = xtraExceptionService;
+            _xtraExceptionService = new ExceptionService<CustodianReportItemIssuanceRpcPpeVM>();
         }
+
+        //public CustodianReportItemIssuanceRpcPpeService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICodextnService codextnService,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportItemIssuance> exceptionService,
+        //    IExceptionService<CustodianReportItemIssuanceRpcPpeVM> xtraExceptionService,
+        //    IUserService userService) : base(db, appManEntitiesFactory, codextnService, exceptions, exceptionService, userService)
+        //{
+        //    _xtraExceptionService = xtraExceptionService;
+        //}
 
         private static Expression<Func<CustodianReportItemIssuance, CustodianReportItemIssuanceRpcPpeVM>> CustodianReportItemIssuanceProjection
         = s => new CustodianReportItemIssuanceRpcPpeVM

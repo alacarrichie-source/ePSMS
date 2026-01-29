@@ -468,7 +468,8 @@
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
         var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportBldg")?forYear=" + forYear +
-            "&deptId=" + deptId + '&annex=A' +
+            "&deptId=" + deptId +
+            '&annex=A' +
             '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
@@ -488,7 +489,8 @@
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
         var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportBldg")?forYear=" + forYear +
-            "&deptId=" + deptId + '&annex=B' +
+            "&deptId=" + deptId +
+            '&annex=B' +
             '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
@@ -508,7 +510,8 @@
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
         var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReportBldg")?forYear=" + forYear +
-            "&deptId=" + deptId + '&annex=C' +
+            "&deptId=" + deptId +
+            '&annex=C' +
             '&accountGroup=@ViewBag.AccountGroup';
 
         // Redirect to the export URL to trigger download
