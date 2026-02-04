@@ -239,8 +239,6 @@ namespace iLgs.Services
             _loggingService.LogError(serviceException);
 
             return serviceException;
-        }
-
-
+        }      
     }
 }

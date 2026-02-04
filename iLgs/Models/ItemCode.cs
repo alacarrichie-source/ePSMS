@@ -17,7 +17,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ItemCode()
         {
-            this.OrderItems = new HashSet<OrderItem>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.PsCards = new HashSet<PsCard>();
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
@@ -28,6 +27,7 @@ namespace iLgs.Models
             this.RSMIItems = new HashSet<RSMIItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
             this.ProcurementItems = new HashSet<ProcurementItem>();
+            this.OrderItems = new HashSet<OrderItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -49,8 +49,6 @@ namespace iLgs.Models
     
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCard> PsCards { get; set; }
@@ -70,5 +68,7 @@ namespace iLgs.Models
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProcurementItem> ProcurementItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

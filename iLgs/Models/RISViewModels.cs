@@ -242,7 +242,7 @@ namespace iLgs.Models
         [Display(Name = "Item")]
         public string ItemType { get; set; } // Description of ItemCodeId
 
-        public string ItemNo { get; set; }
+        //public string ItemNo { get; set; }
 
         [Required]
         [Display(Name = "Unit of Measurement")]

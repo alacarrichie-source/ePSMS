@@ -4362,7 +4362,6 @@
     <Content Include="Views\CustodianAccountability2\_ImagesAdd.cshtml" />
     <Content Include="Views\CustodianAccountability2\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\CustodianReportCount\Department.cshtml" />
-    <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
@@ -4713,6 +4712,10 @@
     <Content Include="Views\Requests\_RequestAddEdit.cshtml" />
     <Content Include="Views\Shared\PreviewUpload.cshtml" />
     <Content Include="Views\Rpci\_PrintList.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_OrderItemTemplate.cshtml" />
+    <Content Include="Views\Orders\_UnitGroupDescriptionAddEdit.cshtml" />
+    <Content Include="Views\Orders\_UnitGroupDescriptionItemSelection.cshtml" />
+    <Content Include="Views\Orders\_UnitGroupDescriptionItems.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

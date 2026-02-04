@@ -26,6 +26,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
+        public Nullable<int> ItemNo { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public string PsNo { get; set; }
         public string PsNoDisplay { get; set; }
@@ -42,16 +43,17 @@ namespace iLgs.Models
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> TUnitCost { get; set; }
         public Nullable<decimal> GTotalCost { get; set; }
+        public string PpmpCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string PpmpCode { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual AllField AllField { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        public virtual Order Order { get; set; }
         public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
@@ -59,6 +61,5 @@ namespace iLgs.Models
         public virtual ICollection<PARItem> PARItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
-        public virtual Order Order { get; set; }
     }
 }

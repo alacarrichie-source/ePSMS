@@ -25,6 +25,7 @@ namespace iLgs.Services.AllFields
         ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
 
+        Task<string> GetDescriptionAsync(AllField model, Guid? itemCodeId);
         Task<string> GetRisDescriptionAsync(RisItemEntryVM model);
         Task<string> GetCardStockNoAsync(PsCardVM model);
         Task<string> GetRisStockNoAsync(RisItemEntryVM model);
@@ -326,7 +327,6 @@ namespace iLgs.Services.AllFields
         {
             if (mode == Mode.ADD)
             {
-                model.Id = Guid.NewGuid();
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
                 entity.Id = model.Id; // cannot put outside, referential constraint integrity error
@@ -400,6 +400,121 @@ namespace iLgs.Services.AllFields
             }
         }
 
+
+        public async Task<string> GetDescriptionAsync(AllField model, Guid? itemCodeId)
+        {
+            string description = "";
+            var af = model;
+            string partialView = await _itemCodeService.GetPartialViewAsync(itemCodeId);
+
+            if (partialView == "_FieldLand")
+            {
+                description += af.Area.ToString() + "sqm";
+            }
+            else if (partialView.Contains("FieldBrand"))
+            {
+                if (partialView == "_FieldBrand")
+                {
+                    description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "") +
+                        (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
+                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");
+                }
+                else if (partialView == "_FieldBrand_A")
+                {
+                    description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
+                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");
+                }
+                else if (partialView == "_FieldBrand_B")
+                {
+                    description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
+                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");
+                }
+            }
+            else if (partialView == "_FieldDrugs")
+            {
+                description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
+                                (!af.DosageStrength.IsNullOrWhiteSpaceX() ? $" {af.DosageStrength}" : "") +
+                                (!af.DosageForm.IsNullOrWhiteSpaceX() ? $" {af.DosageForm}" : "") +
+                                (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
+                                (!af.Others.IsNullOrWhiteSpaceX() ? $" {af.Others}" : "") +
+                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldAlcohol")
+            {
+                description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
+                                (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
+                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldMultiple")
+            {
+                description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldMultiple_A")
+            {
+                description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldSerial")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "") +
+                                (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
+                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "") +
+                        (!af.Type.IsNullOrWhiteSpaceX() ? $" {af.Type}" : "");
+            }
+            else if (partialView == "_FieldSerial_A")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "");
+            }
+            else if (partialView == "_FieldSerial_B")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldSerial_C")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
+                               (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
+                                (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "") +
+                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");
+            }
+            else if (partialView == "_FieldSerial_D")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+                               (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "");
+            }
+            else if (partialView == "_FieldSerial_E")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
+                               (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
+                                (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "");
+            }
+            else if (partialView == "_FieldSerial_F")
+            {
+                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "");
+            }
+
+            return string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
+        }
 
         public async Task<string> GetRisDescriptionAsync(RisItemEntryVM model)
         {

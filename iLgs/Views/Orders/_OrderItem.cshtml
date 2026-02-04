@@ -1,5 +1,5 @@
 ﻿@(Html.Kendo().Grid<iLgs.Models.OrderItemVM>()
-        .Name("gridItems_" + @ViewData["orderId"])
+        .Name("gridItems")
         .Columns(col =>
         {
             col.Bound(c => c.Category).Width(50);
@@ -60,7 +60,7 @@
             {
                 s.Add(a => a.InsertedDt);
             })
-            .Read(read => read.Action("_OrderItemRead", "Orders", new { orderId = @ViewData["orderId"] }))
+            .Read(read => read.Action("_OrderItemRead", "Orders").Data("DataGridItem"))
             .Destroy(destroy => destroy.Action("_OrderItemDestroy", "Orders"))
         )
         .Events(events => events

@@ -1,0 +1,226 @@
+﻿@model iLgs.Models.OrderItemUnitGroupDescriptionVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.OrderItemUnitGroupId)
+    @Html.HiddenFor(model => model.OrderId)    
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-6`">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.SetLotNo, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.SetLotNo)
+                            .PromptChar(" ")
+                            .Events(e => e.Change("onChangeSetLotNo"))
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.SetLotNo)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.Description, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Description)
+                </div>
+            </div>
+        </div>        
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.Unit, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select unit")
+                        .DataTextField("Code")
+                        .DataValueField("Code")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCodes", "Getters", new { mastCode = "UNIT-GROUP", text = "" });
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("20%");
+                            c.Add().Field("Description").Title("Description").Width("40%").Template("#= columnTemplate(data.Description) #");
+                            c.Add().Field("Desc2").Title("Category").Width("40%").Template("#= columnTemplate(data.Desc2) #");
+
+                        })
+                    //.Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.Unit)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.Qty, "LabelInt")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("changeGroupAmount"))
+                    )
+                    @Html.ValidationMessageFor(m => m.Qty)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.UnitCost, "LabelDecimal")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost)                        
+                        .Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("changeGroupAmount"))
+                    )
+                    @Html.ValidationMessageFor(m => m.UnitCost)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.TotalCost, "LabelDecimal")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TotalCost).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.TotalCost)
+                </div>
+            </div>
+        </div>
+
+        <br />
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <span id="span_">
+                        @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                        @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                    </span>
+                </div>
+            </div>
+
+    </fieldset>
+}
+
+<script type="text/javascript">
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            //var grid = $("#gridItemExtn").data("kendoGrid");
+
+            //// Get all data items (rows) in the Grid
+            //var dataItems = grid.dataItems();
+
+            //// Create an array to store the row values
+            //var rowValues = [];
+
+            //// Iterate over each data item (row) and extract the values
+            //for (var i = 0; i < dataItems.length; i++) {
+            //    var row = dataItems[i];
+            //    rowValues.push(row);
+            //}
+
+            //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+
+
+            var validator = $("#form").kendoValidator().data("kendoValidator");
+            if (validator.validate()) {
+                var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+                var data = $("#form").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_UnitGroupDescriptionSave", "Orders")',
+                    data: data,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($("#form"), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($("#form"), false);
+                        if (result.Errors == "") {
+                            selectedUnitGroupDescriptionId = result.Id;
+                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        }
+                        else {
+                            //// Clear previous error messages
+                            $('#ErrorContent .errors').empty();
+
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message; // Use Message from the JSON
+
+                                // Check if messages exists and is an array
+                                if (Array.isArray(messages)) {
+                                    // Create the field name list item
+                                    var errorListItem = $('<li></li>').text(key);
+
+                                    // Create a nested unordered list for the messages
+                                    var messageList = $('<ul></ul>');
+
+                                    // Loop through each message and append it to the messageList
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
+
+                                    // Append the message list to the error list item
+                                    errorListItem.append(messageList);
+
+                                    // Append the error list item to the .errors container
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                } else {
+                                    console.error(`Expected messages to be an array for field ${key}`);
+                                }
+                            });
+                            // Show the error content
+                            $('#ErrorContent').removeClass('hidden');
+
+                        }
+                        //selectedId = result.Id;
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                    }
+                });
+                disabled.attr('disabled', 'disabled');
+            }
+        });
+
+        $("#btnCancel").click(function (e) {
+            e.preventDefault();
+            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+        });
+    </script>
+
+
+
+

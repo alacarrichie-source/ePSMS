@@ -146,7 +146,7 @@ namespace iLgs.Models
         public bool IsLocked { get; set; }                
     }
 
-    public class OrderItemVM : RisItemCommonVM
+    public class OrderItemVM
     {                       
         public OrderItemVM()
         {
@@ -154,21 +154,40 @@ namespace iLgs.Models
             this.AllField = new AllField() { Id = this.Id };
         }
 
-        public AllField AllField { get; set; }
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
+
+        [Display(Name = "Item No.")]
+        public Nullable<int> ItemNo { get; set; }
+
+        [Display(Name = "Article")]
+        [Required]
+        public Nullable<System.Guid> ItemCodeId { get; set; }
+
+        [Display(Name = "Stock/Property No.")] // Generic (Without Brand)        
+        public string PsNo { get; set; }
+
+        [Display(Name = "Stock/Property No.")] // for printing
+        public string PsNoDisplay { get; set; }
+
+        [Display(Name = "Item Name")]
+        public string ItemName { get; set; }
+
+        [Required]
+        public string Description { get; set; }
+
+        public string Brand { get; set; }
 
         [Display(Name = "Estimated Life")]
         public Nullable<decimal> EstimatedLife { get; set; }
 
-        public System.Guid Id { get; set; }
-        public Nullable<System.Guid> OrderId { get; set; }
-
-        [Display(Name = "Stock/Property No.")]
-        //[Required]
-        public Nullable<System.Guid> RequestItemId { get; set; }
-
-        [Display(Name = "Stock/Property No.")]
         [Required]
-        public Nullable<System.Guid> ItemCodeId { get; set; }
+        [Display(Name = "Unit of Measurement")]
+        public string Unit { get; set; }
+
+        [Display(Name = "Other Description")]
+        public string OtherDesc { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }
@@ -179,23 +198,46 @@ namespace iLgs.Models
 
         [Required]
         public Nullable<decimal> Amount { get; set; }
+
+        [Display(Name = "Price Rate")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> TUnitCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
+
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+
+        public AllField AllField { get; set; }
+
+
+        // Transients                
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
-
-        //public string Brand { get; set; }
         
         [Display(Name = "Sub-Accounts")]
         public string SubAccount { get; set; }
 
-        //public string AccountCode { get; set; }
-        //public string Account { get; set; }
+        public string Category { get; set; }
+
+        [Display(Name = "Group")]
+        public string SetLotNo { get; set; }
+
+        public string ItemCode { get; set; }
+        public string ItemType { get; set; }
+        public string PsType { get; set; }
+
+        [Display(Name = "Account")]
+        public string PsTypeDesc { get; set; }
 
         public Nullable<System.Guid> RisItemId { get; set; }
     }
@@ -350,6 +392,48 @@ namespace iLgs.Models
 
         [Display(Name = "Other Particulars")]
         public string OtherParticulars { get; set; }
+
+        // transients
+        public Nullable<System.Guid> OrderId { get; set; }
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
+        public Nullable<int> Qty { get; set; }
+        public string Unit { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Amount")]
+        public Nullable<decimal> TotalCost { get; set; }        
+    }
+
+    [MetadataType(typeof(OrderItemUnitGroup.Metadata))]
+    public partial class OrderItemUnitGroup
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> OrderId { get; set; }
+            public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
+
+            [Display(Name = "Set/Lot No.")]
+            public string SetLotNo { get; set; }
+            public Nullable<int> Qty { get; set; }
+            public string Unit { get; set; }
+
+            [Display(Name = "Unit Cost")]
+            public Nullable<decimal> UnitCost { get; set; }
+
+            [Display(Name = "Amount")]
+            public Nullable<decimal> TotalCost { get; set; }
+            public Nullable<decimal> AddCost { get; set; }
+            public Nullable<decimal> TUnitCost { get; set; }
+            public Nullable<decimal> GTotalCost { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }        
     }
 
     public class OrderItemUnitGroupDescriptionItemVM
@@ -393,5 +477,25 @@ namespace iLgs.Models
 
         [Display(Name = "Qty of Sets/Lots")]
         public Nullable<int> GroupQty { get; set; }
+
+        public string GridItems { get; set; }
+    }
+
+    public class UnitGroupAvailableItemVM
+    {
+        public System.Guid Id { get; set; }
+
+        public string Category { get; set; }
+
+        [Display(Name = "Stock/Prop No.")]
+        public string PsNo { get; set; }
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
+        public string Unit { get; set; }
+        public Nullable<int> QtyRequest { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
     }
 }

@@ -48,17 +48,26 @@ namespace iLgs.Services.PurchaseRequest
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public RequestService(AppManEntities db,
-            IUserService userService,
-            IExceptionService<RequestVM> vmExceptionService,
-            IPriceCapService priceCapService)
+        public RequestService(AppManEntities db)
         {
             _db = db;
-            _userService = userService;
-            _vmExceptionService = vmExceptionService;
+            _userService = new UserService(_db);
+            _vmExceptionService = new ExceptionService<RequestVM>();
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
-            _priceCapService = priceCapService;            
+            _priceCapService = new PriceCapService(_db);
         }
+
+        //public RequestService(AppManEntities db,
+        //    IUserService userService,
+        //    IExceptionService<RequestVM> vmExceptionService,
+        //    IPriceCapService priceCapService)
+        //{
+        //    _db = db;
+        //    _userService = userService;
+        //    _vmExceptionService = vmExceptionService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
+        //    _priceCapService = priceCapService;            
+        //}
 
         private decimal GetPriceCap()
         {

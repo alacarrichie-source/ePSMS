@@ -79,7 +79,6 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         public virtual DbSet<IcsParUnitGroup> IcsParUnitGroups { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
@@ -131,8 +130,9 @@ namespace iLgs.Models
         public virtual DbSet<ProcurementItem> ProcurementItems { get; set; }
         public virtual DbSet<ProcurementUnitGroupDescription> ProcurementUnitGroupDescriptions { get; set; }
         public virtual DbSet<ProcurementUnitGroup> ProcurementUnitGroups { get; set; }
-        public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<ProcurementUnitGroupDescriptionItem> ProcurementUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<Upload> Uploads { get; set; }
     }
 }

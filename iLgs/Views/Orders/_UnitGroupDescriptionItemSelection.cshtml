@@ -1,0 +1,162 @@
+﻿@model iLgs.Models.OrderItemUnitGroupDescriptionItemVM
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formSelection", id = "formSelection" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.OrderItemUnitGroupDescriptionId)                                   
+    @Html.HiddenFor(model => model.GridItems)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<iLgs.Models.UnitGroupAvailableItemVM>()
+                    .Name("gridItemAvailable")
+                    .Columns(col =>
+                    {
+                        col.Select().Width(30);
+                        col.Bound(c => c.Category).Width(50);
+                        col.Bound(c => c.PsNo).Width(50);
+                        col.Bound(c => c.ItemName).Width(70);
+                        col.Bound(c => c.Description).Width(120);
+                        col.Bound(c => c.Unit).Width(50);
+                        col.Bound(c => c.QtyRequest).Width(50);
+                    })
+                    //.Editable(editable => editable.Mode(GridEditMode.InCell))
+                    //.Sortable()
+                    .PersistSelection(true)
+                    .NoRecords()
+                    .Navigatable()
+                    .Scrollable(s => s.Height(200))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        //.Batch(true)
+                        //.Sort(s => s.Add(a => a.ItemNo))
+                        .ServerOperation(true)
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                        })
+                        .Read(read => read.Action("_AvailableUnitGroupItemRead", "Orders").Data("DataItemAvailableGrid"))
+                    )
+                    .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+                    .Events(e => e.Change("onChangeGridItemAvailable"))
+                //.AutoBind(false)
+                )
+            </div>
+        </div>
+
+        <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+
+<script type="text/javascript">
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            //var grid = $("#gridItemExtn").data("kendoGrid");
+
+            //// Get all data items (rows) in the Grid
+            //var dataItems = grid.dataItems();
+
+            //// Create an array to store the row values
+            //var rowValues = [];
+
+            //// Iterate over each data item (row) and extract the values
+            //for (var i = 0; i < dataItems.length; i++) {
+            //    var row = dataItems[i];
+            //    rowValues.push(row);
+            //}
+
+            //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+
+
+            var validator = $("#formSelection").kendoValidator().data("kendoValidator");
+            if (validator.validate()) {
+                var disabled = $("#formSelection").find(':input:disabled').removeAttr('disabled');
+                var data = $("#formSelection").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_UnitGroupDescriptionItemSave", "Orders")',
+                    data: data,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($("#form"), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($("#form"), false);
+                        if (result.Errors == "") {
+                            selectedUnitGroupDescriptionId = result.Id;
+                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        }
+                        else {
+                            //// Clear previous error messages
+                            $('#ErrorContent .errors').empty();
+
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message; // Use Message from the JSON
+
+                                // Check if messages exists and is an array
+                                if (Array.isArray(messages)) {
+                                    // Create the field name list item
+                                    var errorListItem = $('<li></li>').text(key);
+
+                                    // Create a nested unordered list for the messages
+                                    var messageList = $('<ul></ul>');
+
+                                    // Loop through each message and append it to the messageList
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
+
+                                    // Append the message list to the error list item
+                                    errorListItem.append(messageList);
+
+                                    // Append the error list item to the .errors container
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                } else {
+                                    console.error(`Expected messages to be an array for field ${key}`);
+                                }
+                            });
+                            // Show the error content
+                            $('#ErrorContent').removeClass('hidden');
+
+                        }
+                        //selectedId = result.Id;
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                    }
+                });
+                disabled.attr('disabled', 'disabled');
+            }
+        });
+
+        $("#btnCancel").click(function (e) {
+            e.preventDefault();
+            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+        });
+</script>
+
+
+
+
+
+

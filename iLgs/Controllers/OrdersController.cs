@@ -29,36 +29,44 @@ namespace iLgs.Controllers
     {
         private readonly AppManEntities _db;
         private readonly IOrderService _orderService;
-        private readonly IOrderItemService _orderItemService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
-        private readonly IOrderItemUnitGroupService _unitGroupService;
-        private readonly IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
-        private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IAllFieldService _allFieldService;
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
 
-        public OrdersController(AppManEntities db, IOrderService orderService, IOrderItemService orderItemService, IRequestService requestService,
-            ICodextnService codextnService, 
-            IOrderItemUnitGroupService orderItemUnitGroupService, IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
-            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService, IItemCodeService itemCodeService,
-            IAllFieldService allFieldService, IOrderUploadService orderUploadService)
+        public OrdersController(AppManEntities db)
         {
             _db = db;
-            _orderService = orderService;
-            _orderItemService = orderItemService;
-            _requestService = requestService;
-            _codextnService = codextnService;
-            _unitGroupService = orderItemUnitGroupService;
-            _unitGroupDescriptionService = orderItemUnitGroupDescriptionService;
-            _unitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
-            _itemCodeService = itemCodeService;
-            _allFieldService = allFieldService;
-            _uploadPoService = orderUploadService.Create("ORDERS");
-            _uploadCafoaService = orderUploadService.Create("CAFOA");
+            _orderService = new OrderService(_db);
+            _requestService = new RequestService(_db);
+            _codextnService = new CodextnService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _allFieldService = new AllFieldService(_db);
+            _uploadPoService = new OrderUploadService(_db).Create("ORDERS");
+            _uploadCafoaService = new OrderUploadService(_db).Create("CAFOA");
         }
+
+        //public OrdersController(AppManEntities db, IOrderService orderService, IOrderItemService orderItemService, IRequestService requestService,
+        //    ICodextnService codextnService, 
+        //    IOrderItemUnitGroupService orderItemUnitGroupService, IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
+        //    IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService, IItemCodeService itemCodeService,
+        //    IAllFieldService allFieldService, IOrderUploadService orderUploadService)
+        //{
+        //    _db = db;
+        //    _orderService = orderService;
+        //    _orderService.OrderItem = orderItemService;
+        //    _requestService = requestService;
+        //    _codextnService = codextnService;
+        //    _orderService.UnitGroup = orderItemUnitGroupService;
+        //    _orderService.UnitGroup.UnitGroupDescription = orderItemUnitGroupDescriptionService;
+        //    _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem = orderItemUnitGroupDescriptionItemService;
+        //    _itemCodeService = itemCodeService;
+        //    _allFieldService = allFieldService;
+        //    _uploadPoService = orderUploadService.Create("ORDERS");
+        //    _uploadCafoaService = orderUploadService.Create("CAFOA");
+        //}
 
         // GET: Codes
         public ActionResult Index()
@@ -199,7 +207,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId, string setLotNo)
         {
-            var data = await _orderItemService.GetByIdAsync(orderItemId);
+            var data = await _orderService.OrderItem.GetByIdAsync(orderItemId);
             if (data == null)
             {
                 data = new OrderItemVM()
@@ -226,7 +234,7 @@ namespace iLgs.Controllers
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
 
-                var entity = await _orderItemService.GetByIdAsync(model.Id);
+                var entity = await _orderService.OrderItem.GetByIdAsync(model.Id);
                 if (entity == null)
                 {
                     if (!access.AllowAdd)
@@ -241,13 +249,7 @@ namespace iLgs.Controllers
                         ModelState.AddModelError("Access", "Access Denied!");
                     }
                 }
-
-                
-                if (await _orderService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
-                }
-
+                                
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -255,11 +257,11 @@ namespace iLgs.Controllers
 
                     if (entity == null)
                     {
-                        model = await _orderItemService.CreateAsync(model, user, date);
+                        model = await _orderService.OrderItem.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _orderItemService.UpdateAsync(model, user, date);
+                        model = await _orderService.OrderItem.UpdateAsync(model, user, date);
                     }                    
                 }
             }
@@ -279,7 +281,7 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", e.Message);
             }
-            
+
             var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
                        .Select(ms => new
                        {
@@ -303,7 +305,7 @@ namespace iLgs.Controllers
                                return errorMessage;
                            }).ToList() // List of messages for the current field
                        })
-                       .ToList();
+                       .ToList();            
 
             if (errorList.Any())
             {
@@ -315,7 +317,7 @@ namespace iLgs.Controllers
 
         public ActionResult _OrderItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
-            var data = _orderItemService.GetByPoId(orderId);
+            var data = _orderService.OrderItem.GetByPoId(orderId).OrderBy(o => o.ItemNo);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -331,17 +333,13 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await _orderService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
-                }
-
+                
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _orderItemService.CreateAsync(model, user, date);                    
+                    model = await _orderService.OrderItem.CreateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -374,17 +372,13 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await _orderService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
-                }
-
+                
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _orderItemService.UpdateAsync(model, user, date);
+                    model = await _orderService.OrderItem.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -426,7 +420,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _orderItemService.DeleteAsync(model, user, date);
+                    model = await _orderService.OrderItem.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -451,7 +445,7 @@ namespace iLgs.Controllers
 
         public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
-            var data = _unitGroupService.GetByOrderId(orderId);
+            var data = _orderService.UnitGroup.GetByOrderId(orderId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -472,7 +466,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _unitGroupService.UpdateAsync(model, user, date);
+                    model = await _orderService.UnitGroup.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -511,7 +505,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _unitGroupService.DeleteAsync(model, user, date);
+                    model = await _orderService.UnitGroup.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -535,11 +529,162 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _UnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        public async Task<ActionResult> _UnitGroupDescriptionAddEdit(Guid orderId, Guid? unitGroupDescriptionId)
         {
-            var data = _unitGroupDescriptionService.GetByUnitGroupId(unitGroupId);
+            var data = await _orderService.UnitGroup.UnitGroupDescription.GetByIdAsync(unitGroupDescriptionId);
+            if (data == null)
+            {
+                var unitGroupId = Guid.NewGuid();
+                data = new OrderItemUnitGroupDescriptionVM()
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    OrderItemUnitGroupId = unitGroupId                    
+                };
+                ViewBag.Mode = "A";                
+            }
+            else
+            {
+                ViewBag.Mode = "E";
+            }
+                        
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionSave(OrderItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+
+                var entity = await _orderService.UnitGroup.UnitGroupDescription.GetByIdAsync(model.Id);
+                if (entity == null)
+                {
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    if (entity == null)
+                    {
+                        model = await _orderService.UnitGroup.UnitGroupDescription.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _orderService.UnitGroup.UnitGroupDescription.UpdateAsync(model, user, date);
+                    }
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _UnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
+        {
+            var data = _orderService.UnitGroup.UnitGroupDescription.GetByOrderId(orderId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionCreate([DataSourceRequest] DataSourceRequest request, OrderItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _orderService.UnitGroup.UnitGroupDescription.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("Access", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("Access", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("Access", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -559,7 +704,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _unitGroupDescriptionService.UpdateAsync(model, user, date);
+                    model = await _orderService.UnitGroup.UnitGroupDescription.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -581,14 +726,132 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionDestroy([DataSourceRequest]DataSourceRequest request, OrderItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _orderService.UnitGroup.UnitGroupDescription.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
         #endregion
 
         #region UNIT GROUP DESCRIPTION ITEMS        
+        public ActionResult _UnitGroupDescriptionItems(Guid? unitGroupDescriptionId)
+        {
+            ViewData["unitGroupDescriptionId"] = unitGroupDescriptionId;
+            return PartialView();
+        }
+
+        public ActionResult _UnitGroupDescriptionItemSelection(Guid? unitGroupDescriptionId)
+        {            
+            var data = new OrderItemUnitGroupDescriptionItemVM()
+            {
+                OrderItemUnitGroupDescriptionId = unitGroupDescriptionId
+            };
+
+            ViewData["unitGroupDescriptionId"] = unitGroupDescriptionId;
+            return PartialView(data);                
+        }
+
         public ActionResult _UnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
         {
-            var data = _unitGroupDescriptionItemService.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
+            var data = _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionItemSave(OrderItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -608,7 +871,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _unitGroupDescriptionItemService.UpdateAsync(model, user, date);
+                    model = await _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -647,7 +910,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _unitGroupDescriptionItemService.DeleteAsync(model, user, date);
+                    model = await _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -661,6 +924,13 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        public ActionResult _AvailableUnitGroupItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
+        {
+            var data = _orderService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetAvailableUnitGroupItem(orderId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
         #endregion
 
         #region EXTRAS
@@ -668,8 +938,9 @@ namespace iLgs.Controllers
         public async Task<JsonResult> GetDescription(OrderItemVM fields)
         {
             var stockNo = await _allFieldService.GetOrderStockNoAsync(fields);
+            var description = await _allFieldService.GetDescriptionAsync(fields.AllField, fields.ItemCodeId);
 
-            return Json(new { Description = "", StockNo = stockNo }, JsonRequestBehavior.AllowGet);
+            return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -683,10 +954,7 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-
-            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
-
+            
             string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
             if (!string.IsNullOrEmpty(partialView))
             {
@@ -1239,5 +1507,11 @@ namespace iLgs.Controllers
             }
         }
         #endregion
+
+        public async Task<JsonResult> GetSetLotInfo(Guid? orderId, string setLotNo)
+        {
+            var unitGroup = await _orderService.UnitGroup.GetSetLotInfoAsync(orderId, setLotNo);
+            return Json(new { UnitGroup = unitGroup }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

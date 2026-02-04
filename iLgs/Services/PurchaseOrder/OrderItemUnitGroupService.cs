@@ -11,38 +11,54 @@ namespace iLgs.Services.PurchaseOrder
     public interface IOrderItemUnitGroupService
     {
         IQueryable<OrderItemUnitGroupVM> GetByOrderId(Guid? orderId);
+        ValueTask<OrderItemUnitGroup> GetSetLotInfoAsync(Guid? orderId, string setLotNo);
         ValueTask<OrderItemUnitGroup> GetByIdAsync(Guid? id);
         ValueTask<OrderItemUnitGroupVM> CreateAsync(OrderItemUnitGroupVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupVM> UpdateAsync(OrderItemUnitGroupVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupVM> DeleteAsync(OrderItemUnitGroupVM model, string user, DateTime date);
+
+        IOrderItemUnitGroupDescriptionService UnitGroupDescription { get; }
     }
 
-    public class OrderItemUnitGroupService : IOrderItemUnitGroupService
+    internal class OrderItemUnitGroupService : IOrderItemUnitGroupService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroup> _exceptionService;
         private readonly IOrderSharedService _orderSharedService;
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
 
-        public OrderItemUnitGroupService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<OrderItemUnitGroupVM> vmExceptionService,
-            IExceptionService<OrderItemUnitGroup> exceptionService,
-            IOrderSharedService orderSharedService,
-            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
+        private IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
+
+        public OrderItemUnitGroupService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _orderSharedService = orderSharedService;
-            _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<OrderItemUnitGroupVM>();
+            _exceptionService = new ExceptionService<OrderItemUnitGroup>();
+            _orderSharedService = new OrderSharedService(_db);
+            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
         }
+
+        //public OrderItemUnitGroupService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<OrderItemUnitGroupVM> vmExceptionService,
+        //    IExceptionService<OrderItemUnitGroup> exceptionService,
+        //    IOrderSharedService orderSharedService,
+        //    IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _orderSharedService = orderSharedService;
+        //    _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
+        //}
+
+        public IOrderItemUnitGroupDescriptionService UnitGroupDescription { get { return _unitGroupDescriptionService = _unitGroupDescriptionService ?? new OrderItemUnitGroupDescriptionService(_db); } }
 
         public ValueTask<OrderItemUnitGroup> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
@@ -51,10 +67,18 @@ namespace iLgs.Services.PurchaseOrder
             return data;
         });
 
+        public  ValueTask<OrderItemUnitGroup> GetSetLotInfoAsync(Guid? orderId, string setLotNo) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var data = await _db.OrderItemUnitGroups.FirstOrDefaultAsync(f => f.OrderId == orderId && f.SetLotNo == setLotNo);
+            return data;
+        });
+
+
         public IQueryable<OrderItemUnitGroupVM> GetByOrderId(Guid? orderId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.OrderItemUnitGroups.AsNoTracking()                
+            var data = _db.OrderItemUnitGroups.AsNoTracking()
                 .Where(w => w.OrderId == orderId)
                 .Select(s => new OrderItemUnitGroupVM
                 {
@@ -104,11 +128,8 @@ namespace iLgs.Services.PurchaseOrder
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.OrderItemUnitGroups.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.OrderItemUnitGroups.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -116,34 +137,28 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupVM> DeleteAsync(OrderItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.OrderItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+
+            if (entity == null)
             {
-                var entity = await ctx.OrderItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.OrderItemUnitGroups.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.OrderItemUnitGroups.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                throw new RecordNotFoundException(model.Id);
             }
+
+            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            _db.OrderItemUnitGroups.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -151,47 +166,42 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupVM> UpdateAsync(OrderItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            if (entity == null)
             {
-                var entity = await ctx.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-                if (entity == null)
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.OrderId = model.OrderId;
+            entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
+            entity.SetLotNo = model.SetLotNo;
+            entity.Qty = model.Qty;
+            entity.UnitCost = model.UnitCost;
+            entity.TotalCost = model.Qty * model.UnitCost;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            var unitGroupDescriptions = entity.OrderItemUnitGroupDescriptions.ToList();
+            foreach (var unitGroupDescription in unitGroupDescriptions)
+            {
+                var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
+                    .Include(i => i.OrderItem)
+                    .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
+                foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
                 {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.OrderId = model.OrderId;
-                entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
-                entity.SetLotNo = model.SetLotNo;
-                entity.Qty = model.Qty;
-                entity.UnitCost = model.UnitCost;
-                entity.TotalCost = model.Qty * model.UnitCost;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.OrderItemUnitGroups.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                var unitGroupDescriptions = entity.OrderItemUnitGroupDescriptions.ToList();
-                foreach (var unitGroupDescription in unitGroupDescriptions)
-                {
-                    var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
-                        .Include(i => i.OrderItem)
-                        .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
-                    foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
-                    {
-                        var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
-                        var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
-                        await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(ctx, unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
-                    }
+                    var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
+                    var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
+                    await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
                 }
             }
 

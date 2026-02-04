@@ -353,7 +353,6 @@ namespace iLgs.Services.Items
                     {
                         return itemCode.ItemType.PartialPage;
                     }
-
                 }
 
                 for (int i = parts.Length - 1; i > 0; i--)

@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -17,7 +18,10 @@ namespace iLgs.Services.PurchaseOrder
         bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
         bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
         bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
-        ValueTask<bool> IsPostedAsync(Guid orderId);
+        Task<bool> IsPostedAsync(Guid orderId);
+        Task<bool> GetAnyAirsAsync(Guid id);
+        Task<bool> GetAnyParsAsync(Guid id);
+        Task ValidateStatusAsync(Guid orderId);
     }
 
     public class OrderSharedService : IOrderSharedService
@@ -72,10 +76,38 @@ namespace iLgs.Services.PurchaseOrder
             return IsPosted(orderId);
         }
 
-        public async ValueTask<bool> IsPostedAsync(Guid orderId)
+        public async Task<bool> IsPostedAsync(Guid orderId)
         {
             var entity = await _db.Orders.FindAsync(orderId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public async Task ValidateStatusAsync(Guid orderId)
+        {
+            if (await IsPostedAsync(orderId))
+            {
+                throw new RecordAlreadyPostedException("PO Number is already Posted. Cannot update.");
+            }
+
+            if (await GetAnyAirsAsync(orderId))
+            {
+                throw new RecordRelationshipException("PO Number already has an AIR. Cannot update.");
+            }
+
+            if (await GetAnyParsAsync(orderId))
+            {
+                throw new RecordRelationshipException("PO Number already has PAR. Cannot update.");
+            }
+        }
+
+        public async Task<bool> GetAnyAirsAsync(Guid id)
+        {
+            return await _db.AIRs.AnyAsync(a => a.OrderId == id);
+        }
+
+        public async Task<bool> GetAnyParsAsync(Guid id)
+        {
+            return await _db.PARs.AnyAsync(a => a.OrderId == id);
         }
     }
 }

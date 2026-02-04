@@ -15,7 +15,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PurchaseOrder
 {
-    public interface IOrderService : IOrderSharedService
+    public interface IOrderService 
     {
         IQueryable<OrderVM> GetAll();
         ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId);
@@ -23,17 +23,7 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<Models.Order> GetByIdAsync(Guid orderId);
         ValueTask<Models.Order> GetByPoNoAsync(string poNo);
         bool GetAnyPoNo(Guid id, string poNo);
-        ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo);
-        //bool IsPosted(Guid orderId);
-        //bool IsPosted(Order order);
-        //bool IsPosted(OrderItem orderItem);
-        //bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
-        //bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
-        //bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
-        //ValueTask<bool> IsPostedAsync(Guid orderId);
-        ValueTask<bool> GetAnyParsAsync(Guid id);
-        ValueTask<bool> GetAnyAirsAsync(Guid id);
-
+        ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo);               
         ValueTask<int> GetNotPostedAsync(DateTime asOf);
 
         ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
@@ -41,6 +31,9 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
         ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date);
         ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date);
+
+        IOrderItemService OrderItem { get; }
+        IOrderItemUnitGroupService UnitGroup { get; }
     }
 
     public class OrderService : BaseValidator, IOrderService
@@ -53,18 +46,21 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IExceptionService<OrderVM> _orderVmExceptionService;
         private readonly IExceptionService<Order> _orderExceptionService;
         private readonly IAllFieldService _allFieldService;
-        private readonly IItemCodeService _itemCodeService;                
+        private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
+        private IOrderItemService _orderItemService;
+        private IOrderItemUnitGroupService _unitGroupService;
+
         public OrderService(AppManEntities db)
         {
             _db = db;
             _orderSharedService = new OrderSharedService(_db);
-            _exceptions = new CreateAndLogExceptions();            
+            _exceptions = new CreateAndLogExceptions();
             _allFieldService = new AllFieldService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _userService = new UserService(_db);
@@ -108,13 +104,16 @@ namespace iLgs.Services.PurchaseOrder
         //    _priceCap = _priceCapService.GetPriceCap();
         //}
 
+        public IOrderItemService OrderItem { get { return _orderItemService = _orderItemService ?? new OrderItemService(_db); } }
+        public IOrderItemUnitGroupService UnitGroup { get { return _unitGroupService = _unitGroupService ?? new OrderItemUnitGroupService(_db); } }
+
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
         {
             return s => new OrderVM
             {
                 Id = s.Id,
                 CtrlNo = s.CtrlNo,
-                Fund = s.Fund,      
+                Fund = s.Fund,
                 FPP = s.FPP,
                 PrId = s.PrId,
                 PrNo = s.PrNo,
@@ -125,7 +124,7 @@ namespace iLgs.Services.PurchaseOrder
                 PoNo = s.PoNo,
                 PoDate = s.PoDate,
                 PoMode = s.PoMode,
-                PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,                                
+                PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
                 SupplierId = s.SupplierId,
                 SupName = s.SupName,
                 SupBusiness = s.SupBusiness,
@@ -219,21 +218,11 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<Order> GetByPoNoAsync(string poNo) => _orderExceptionService.TryCatch(async () =>
         {
             return await _db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
-        });
-
-        public async ValueTask<bool> GetAnyParsAsync(Guid id)
-        {
-            return await _db.PARs.AnyAsync(a => a.OrderId == id);
-        }
-
-        public async ValueTask<bool> GetAnyAirsAsync(Guid id)
-        {
-            return await _db.AIRs.AnyAsync(a => a.OrderId == id);
-        }
+        });        
 
         public bool IsPosted(Guid orderId)
         {
-            return _orderSharedService.IsPosted(orderId);            
+            return _orderSharedService.IsPosted(orderId);
         }
 
         public bool IsPosted(Order order)
@@ -242,28 +231,28 @@ namespace iLgs.Services.PurchaseOrder
         }
 
         public bool IsPosted(OrderItem orderItem)
-        {            
+        {
             return _orderSharedService.IsPosted(orderItem);
         }
 
         public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
         {
-            return _orderSharedService.IsPosted(orderItemUnitGroup);            
+            return _orderSharedService.IsPosted(orderItemUnitGroup);
         }
 
         public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
         {
-            return _orderSharedService.IsPosted(orderItemUnitGroupDescription);            
+            return _orderSharedService.IsPosted(orderItemUnitGroupDescription);
         }
 
         public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
         {
-            return _orderSharedService.IsPosted(orderItemUnitGroupDescriptionItem);            
+            return _orderSharedService.IsPosted(orderItemUnitGroupDescriptionItem);
         }
 
-        public async ValueTask<bool> IsPostedAsync(Guid orderId)
+        private async Task<bool> IsPostedAsync(Guid orderId)
         {
-            return await _orderSharedService.IsPostedAsync(orderId);            
+            return await _orderSharedService.IsPostedAsync(orderId);
         }
 
         public async ValueTask<int> GetNotPostedAsync(DateTime asOf)
@@ -273,330 +262,157 @@ namespace iLgs.Services.PurchaseOrder
 
         public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
-            ValidateOnCreate(model);
-            ValidateOnCreateUpdate(model, Mode.ADD);
+            ValidateIfNull(model);
+            await ValidateOnCreateUpdateAsync(model, Mode.ADD);
 
             model.Id = Guid.NewGuid();
+
             if (string.IsNullOrWhiteSpace(model.PoNo))
             {
                 model.PoNo = NextPoNo((DateTime)model.PoDate);
             }
+
+            model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = new iLgs.Models.Order()
-            {
-                Id = model.Id,
-                SupplierId = model.SupplierId,
-                SupName = model.SupName,
-                SupBusiness = model.SupBusiness,
-                SupAddress = model.SupAddress,
-                SupContactNo = model.SupContactNo,
-                SupZipCode = model.SupZipCode,
-                SupEmail = model.SupEmail,
-                SupTIN = model.SupTIN,
-                PoNo = model.PoNo,
-                PoDate = model.PoDate,
-                PoMode = model.PoMode,
-                PrId = model.PrId,
-                DeliveryPlace = model.DeliveryPlace,
-                DeliveryDate = model.DeliveryDate,
-                TermDelivery = model.TermDelivery,
-                TermPayment = model.TermPayment,
-                SignedByAuthDesignation = model.SignedByAuthDesignation,
-                SignedByAuthName = model.SignedByAuthName,
-                SignedBySuppDate = model.SignedBySuppDate,
-                SignedBySuppName = model.SignedBySuppName,
-                ResoNo = model.ResoNo,
-                CertifiedCorrectBy = model.CertifiedCorrectBy,
-                CertifiedCorrectDate = model.CertifiedCorrectDate,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+            var entity = new Order();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-            //using (var ctx = await _contextFactory.CreateContextAsync())
-            //{
-
-                // include items during add, PR Items not yet in Order Items
-                var requestItems = await _db.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
-                    .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).OrderBy(o => o.InsertedDt).ToListAsync();
-                foreach (var requestItem in requestItems)
-                {
-                    var insertedDt = DateTime.Now;
-                    OrderItem orderItem = new OrderItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderId = entity.Id,
-                        ItemCodeId = requestItem.RisItem.ItemCodeId,
-                        PsNo = requestItem.RisItem.PsNo,
-                        PsNoDisplay = requestItem.RisItem.PsNoDisplay,
-                        RequestItemId = requestItem.Id,
-                        ItemName = requestItem.RisItem.ItemName,
-                        Description = requestItem.RisItem.Description,
-                        OtherDesc = requestItem.RisItem.OtherDesc,
-                        Unit = requestItem.RisItem.Unit,
-                        Qty = requestItem.Qty,
-                        UnitCost = requestItem.UnitCost,
-                        Amount = requestItem.TotalCost,
-                        PriceRate = requestItem.PriceRate,
-                        PpmpCode = requestItem.RisItem.PpmpCode,
-                        InsertedBy = user,
-                        InsertedDt = insertedDt,
-                        UpdatedBy = user,
-                        UpdatedDt = insertedDt
-                    };
-
-                    //Map Fields
-                    var reqAllField = await _db.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefaultAsync();
-                    reqAllField.Id = orderItem.Id;
-                    reqAllField.UpdatedBy = user;
-                    reqAllField.UpdatedDt = date;
-                    orderItem.AllField = reqAllField;
-
-                    entity.OrderItems.Add(orderItem);
-                }
-
-                // Unit Groups
-                var unitGroups = await _db.RequestItemUnitGroups
-                    .Include(i => i.RisItemUnitGroup.RisItemUnitGroupDescriptions)
-                    .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId && !w.OrderItemUnitGroups.Any())
-                    .OrderBy(o => o.InsertedDt).ToListAsync();
-                foreach (var unitGroup in unitGroups)
-                {
-                    var unitGroupDt = DateTime.Now;
-                    var orderItemUnitGroup = new OrderItemUnitGroup()
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderId = model.Id,
-                        RequestItemUnitGroupId = unitGroup.Id,
-                        SetLotNo = unitGroup.RisItemUnitGroup.SetLotNo,
-                        Qty = unitGroup.RisItemUnitGroup.Qty,
-                        Unit = unitGroup.RisItemUnitGroup.Unit,
-                        UnitCost = unitGroup.UnitCost,
-                        TotalCost = unitGroup.TotalCost,
-                        InsertedBy = user,
-                        InsertedDt = unitGroupDt,
-                        UpdatedBy = user,
-                        UpdatedDt = unitGroupDt
-                    };
-
-                    foreach (var unitGroupDescription in unitGroup.RequestItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
-                    {
-                        var groupDescriptionDt = DateTime.Now;
-                        var orderItemUnitGroupDescription = new OrderItemUnitGroupDescription()
-                        {
-                            Id = Guid.NewGuid(),
-                            OrderItemUnitGroupId = orderItemUnitGroup.Id,
-                            RequestItemUnitGroupDescriptionId = unitGroupDescription.Id,
-                            Description = unitGroupDescription.RisItemUnitGroupDescription.Description,
-                            InsertedBy = user,
-                            InsertedDt = groupDescriptionDt,
-                            UpdatedBy = user,
-                            UpdatedDt = groupDescriptionDt
-                        };
-
-                        var requestItemUnitGroupDescriptionItems = await _db.RequestItemUnitGroupDescriptionItems
-                            .Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
-                        foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
-                        {
-                            var groupDescriptionItemDt = DateTime.Now;
-                            var orderItemUnitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                RequestItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
-                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
-                                OrderItemId = entity.OrderItems.FirstOrDefault(f => f.RequestItemId == unitGroupDescriptionItem.RequestItemId).Id,
-                                InsertedBy = user,
-                                InsertedDt = groupDescriptionItemDt,
-                                UpdatedBy = user,
-                                UpdatedDt = groupDescriptionItemDt
-                            };
-                            orderItemUnitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(orderItemUnitGroupDescriptionItem);
-                        }
-                        orderItemUnitGroup.OrderItemUnitGroupDescriptions.Add(orderItemUnitGroupDescription);
-                    }
-                    entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
-                }
-
-                _db.Orders.Add(entity);
-                await _db.SaveChangesAsync();
-            //}
+            _db.Orders.Add(entity);
+            await _db.SaveChangesAsync();            
 
             return model;
         });
 
         public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
-            ValidateOnUpdate(model);
-            ValidateOnCreateUpdate(model, Mode.EDIT);
+            ValidateIfNull(model);                        
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+            
+            var entity = await _db.Orders.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+            await ValidateStatusAsync(model.Id);
+            await ValidateOnCreateUpdateAsync(model, Mode.EDIT);
 
-            //using (var ctx = await _contextFactory.CreateContextAsync())
-            //{
-                var entity = await _db.Orders.FindAsync(model.Id);
-
-                // if there's a change of request item
-                if (entity.PrId != model.PrId)
-                {
-                    var orderItems = _db.OrderItems.Where(w => w.OrderId == model.Id);
-                    await orderItems.ForEachAsync(f =>
-                    {
-                        f.UpdatedBy = model.UpdatedBy;
-                        f.UpdatedDt = model.UpdatedDt;
-                    });
-                    await _db.SaveChangesAsync();
-
-                    _db.OrderItems.RemoveRange(orderItems);
-                    await _db.SaveChangesAsync();
-
-                    // include items during add, PR Items not yet in Order Items
-                    var prItemList = await _db.RequestItems.Include(i => i.RisItem.AllField)
-                        .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToListAsync();
-                    foreach (var prItem in prItemList)
-                    {
-                        OrderItem orderItem = new OrderItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            OrderId = entity.Id,
-                            ItemCodeId = prItem.RisItem.ItemCodeId,
-                            PsNo = prItem.RisItem.PsNo,
-                            PsNoDisplay = prItem.RisItem.PsNoDisplay,
-                            RequestItemId = prItem.Id,
-                            ItemName = prItem.RisItem.ItemName,
-                            Description = prItem.RisItem.Description,
-                            OtherDesc = prItem.RisItem.OtherDesc,
-                            Unit = prItem.RisItem.Unit,
-                            Qty = prItem.Qty,
-                            UnitCost = prItem.UnitCost,
-                            Amount = prItem.TotalCost,
-                            PriceRate = prItem.PriceRate,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        AllField allfield = prItem.RisItem.AllField;
-                        allfield.Id = orderItem.Id;
-                        orderItem.AllField = allfield;
-
-                        entity.OrderItems.Add(orderItem);
-                    }
-                }
-
-                entity.SupplierId = model.SupplierId;
-                entity.SupName = model.SupName;
-                entity.SupBusiness = model.SupBusiness;
-                entity.SupAddress = model.SupAddress;
-                entity.SupContactNo = model.SupContactNo;
-                entity.SupZipCode = model.SupZipCode;
-                entity.SupEmail = model.SupEmail;
-                entity.SupTIN = model.SupTIN;
-                entity.PoNo = model.PoNo;
-                entity.PoDate = model.PoDate;
-                entity.PoMode = model.PoMode;
-                entity.PrId = model.PrId;
-                entity.DeliveryPlace = model.DeliveryPlace;
-                entity.DeliveryDate = model.DeliveryDate;
-                entity.TermDelivery = model.TermDelivery;
-                entity.TermPayment = model.TermPayment;
-                entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
-                entity.SignedByAuthName = model.SignedByAuthName;
-                entity.SignedBySuppDate = model.SignedBySuppDate;
-                entity.SignedBySuppName = model.SignedBySuppName;
-                entity.ResoNo = model.ResoNo;
-                entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
-                entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                await _db.SaveChangesAsync();
-            //}
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+            
+            await _db.SaveChangesAsync();           
 
             return model;
         });
 
+        private void MapModelToEntityFields(Order entity, OrderVM model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.CtrlNo = model.CtrlNo;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+
+            entity.DeptId = model.DeptId;
+            entity.Department = model.Department;
+            entity.Section = model.Section;
+            entity.FPP = model.FPP;
+            entity.Fund = model.Fund;
+            entity.PrNo = model.PrNo;
+            entity.PrDate = model.PrDate;
+            entity.SupplierId = model.SupplierId;
+            entity.SupName = model.SupName;
+            entity.SupBusiness = model.SupBusiness;
+            entity.SupAddress = model.SupAddress;
+            entity.SupContactNo = model.SupContactNo;
+            entity.SupZipCode = model.SupZipCode;
+            entity.SupEmail = model.SupEmail;
+            entity.SupTIN = model.SupTIN;
+            entity.PoNo = model.PoNo;
+            entity.PoDate = model.PoDate;
+            entity.PoMode = model.PoMode;
+            entity.PrId = model.PrId;
+            entity.DeliveryPlace = model.DeliveryPlace;
+            entity.DeliveryDate = model.DeliveryDate;
+            entity.TermDelivery = model.TermDelivery;
+            entity.TermPayment = model.TermPayment;
+            entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
+            entity.SignedByAuthName = model.SignedByAuthName;
+            entity.SignedBySuppDate = model.SignedBySuppDate;
+            entity.SignedBySuppName = model.SignedBySuppName;
+            entity.ResoNo = model.ResoNo;
+            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+            entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+        }
+
         public ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date) =>
         _orderVmExceptionService.TryCatch(async () =>
         {
-            await ValidateOnDestroy(model);
+            ValidateIfNull(model);
+            await ValidateStatusAsync(model.Id);
 
-            //using (var ctx = await _contextFactory.CreateContextAsync())
-            //{
-                var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
-                if (unitGroups.Any())
-                {
-                    _db.OrderItemUnitGroups.RemoveRange(unitGroups);
-                    await _db.SaveChangesAsync();
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                var entity = await _db.Orders.FindAsync(model.Id);
-
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
+            var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+            if (unitGroups.Any())
+            {
+                _db.OrderItemUnitGroups.RemoveRange(unitGroups);
                 await _db.SaveChangesAsync();
+            }
 
-                _db.Orders.Remove(entity);
-                await _db.SaveChangesAsync();
-            //}
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.Orders.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            await _db.SaveChangesAsync();
+
+            _db.Orders.Remove(entity);
+            await _db.SaveChangesAsync();           
 
             return model;
         });
 
         public ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            //using (var ctx = await _contextFactory.CreateContextAsync())
-            //{
-                var entity = await _db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(orderId);
-                }
+            var entity = await _db.Orders.Where(w => w.Id == orderId).FirstOrDefaultAsync();
 
-                await ValidateOnPost(entity);
-                await ValidateUploadAsync(orderId, entity.PoNo);
+            ValidateRecord(entity, orderId);            
+            await ValidateOnPostAsync(entity);
+            await ValidateUploadAsync(orderId, entity.PoNo);
 
-                entity.PostedBy = user;
-                entity.PostedDt = date;
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                return entity;
-            //}
+            return entity;            
         });
 
         public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            //using (var ctx = await _contextFactory.CreateContextAsync())
-            //{
-                var entity = await _db.Orders.FindAsync(orderId);
+            var entity = await _db.Orders.FindAsync(orderId);
 
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(orderId);
-                }
+            ValidateRecord(entity, orderId);            
+            await ValidateOnUnpostAsync(entity);
 
-                await ValidateOnUnpost(entity);
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            await _db.SaveChangesAsync();
 
-                await _db.SaveChangesAsync();
-
-                return entity;
-            //}
+            return entity;            
         });
 
         private string NextPoNo(DateTime poDate)
@@ -622,33 +438,60 @@ namespace iLgs.Services.PurchaseOrder
             }
         }
 
-        #region VALIDATION
 
-        private void ValidateOnCreate(OrderVM model)
+        private string NextCtrlNo(DateTime date)
         {
-            if (!string.IsNullOrWhiteSpace(model.PoNo) && _db.Orders.Any(a => a.PoNo == model.PoNo))
+            string yyyy = date.Year.ToString().Trim();
+            string mm = date.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var order = _db.Orders.Where(w => w.CtrlNo.Substring(0, 4) == yyyy).OrderByDescending(o => o.CtrlNo).FirstOrDefault();
+            if (order == null)
             {
-                throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists", model.PoNo));
+                return keyName + "-" + "0001";
             }
             else
             {
-                var pr = _db.Requests.Find(model.PrId);
-                if (pr == null)
-                {
-                    throw new RecordNotFoundException(model.PrId);
-                }
-                else
-                {
-                    if (pr.PrDate > model.PoDate)
-                    {
-                        throw new InvalidValueException("PO Date must be greater than or equal to PR date!");
-                    }
-                }
+                var sequence = (int.Parse(order.PoNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
 
-        private void ValidateOnCreateUpdate(OrderVM model, Mode mode)
+        #region VALIDATION
+
+        private void ValidateIfNull(OrderVM model)
         {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateRecord(Order entity, Guid id)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private void ValidateIfPosted(Order entity)
+        {
+            if (entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+                
+        private async Task ValidateOnCreateUpdateAsync(OrderVM model, Mode mode)
+        {
+            _imex = new InvalidModelException();
             if (!string.IsNullOrWhiteSpace(model.PoNo))
             {
                 if (model.PoNo.Trim().Length != 12)
@@ -657,116 +500,102 @@ namespace iLgs.Services.PurchaseOrder
                 }
                 else
                 {
-                    var refNoParts = model.PoNo.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                    //var refNoParts = model.PoNo.Split('-');
+                    //var refNoYear = int.Parse(refNoParts[0]);
+                    //var refNoMonth = int.Parse(refNoParts[1]);
+                    //if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                    //{
+                    //    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                    //}
+                    //else
+                    //{
+                    //    var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
+                    //    if (!string.IsNullOrWhiteSpace(maxNo))
+                    //    {
+                    //        var refNoSeq = int.Parse(refNoParts[2]);
+                    //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                    //        if (refNoSeq <= maxSeq)
+                    //        {
+                    //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
+                    //        }
+                    //    }
+                    //}
+
+                    if (mode == Mode.ADD)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                        if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already Exits.");
+                        }
                     }
                     else
                     {
-                        var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
-                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo && a.Id != model.Id))
                         {
-                            var refNoSeq = int.Parse(refNoParts[2]);
-                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            if (refNoSeq <= maxSeq)
-                            {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
-                            }
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already Exits.");
                         }
-                    }
+                    }                    
                 }
             }
+
+            if (model.PoDate.HasValue && model.PrDate.HasValue && model.PrDate > model.PoDate)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"PO Date must be greater than or equal to PR date!");                
+            }
+
             _imex.ThrowIfContainsErrors();
-        }
+        }        
 
-        private void ValidateOnUpdate(OrderVM model)
+        private async Task ValidateStatusAsync(Guid orderId)
         {
-            var order = _db.Orders.Find(model.Id);
-            if (order == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
-
-            if (order.PostedDt != null)
-            {
-                throw new RecordAlreadyPostedException(string.Format("PO Number {0} already posted, cannot update!", model.PoNo));
-            }
-
-            if (GetAnyPoNo(model.Id, model.PoNo))
-            {
-                throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists!", model.PoNo));
-            }
-
-            var pr = _db.Requests.Find(model.PrId);
-            if (pr == null)
-            {
-                throw new RecordRelationshipException(string.Format("PR Number {0} does exists!", model.PrNo));
-            }
-            else 
-            {
-                if (pr.PrDate > model.PoDate)
-                {
-                    throw new InvalidValueException("PO date must be greather than or equal to PR date!");
-                }
-            }
+            await _orderSharedService.ValidateStatusAsync(orderId);            
         }
 
-        private async ValueTask ValidateOnDestroy(OrderVM model)
-        {
-            var order = await _db.Orders.FindAsync(model.Id);
-            if (order == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
-
-            if (await IsPostedAsync(model.Id))
-            {
-                throw new RecordAlreadyPostedException(string.Format("PO Number {0} already Posted, cannot delete!", model.PoNo));
-            }
-
-            if (await GetAnyAirsAsync(model.Id))
-            {
-                throw new RecordRelationshipException("PO Number already with AIR, cannot delete!");
-            }
-
-            if (await GetAnyParsAsync(model.Id))
-            {
-                throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
-            }
-        }
-
-        private async ValueTask ValidateOnPost(Order entity)
+        private async Task ValidateOnPostAsync(Order entity)
         {
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}. Please Verify.";
                 throw new RecordAlreadyPostedException(msg);
             }
 
-            var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
-                .Select(s => s.Key).ToListAsync();
-
-            foreach (var id in idList)
+            if (string.IsNullOrWhiteSpace(entity.PrNo))
             {
-                var request = await _db.Requests.FindAsync(id);
-                if (request == null)
-                {
-                    throw new NotFoundException(id);
-                }
-                else
-                {
-                    if (string.IsNullOrWhiteSpace(request.SubmittedBy))
-                    {
-                        throw new RecordNotYetPostedException("Record is not yet posted.");
-                    }
-                }
+                throw new InvalidValueException("PR Number is required.");
             }
 
-            var unitGroupItems = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItem)
-                .Where(w => w.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId == entity.Id).ToList();
+            if (!entity.PrDate.HasValue)
+            {
+                throw new InvalidValueException("PR Date is required.");
+            }
+            
+            if (!(await _db.OrderItems.AnyAsync(a => a.OrderId == entity.Id)))
+            {
+                throw new RecordRelationshipException("No items were found. Cannot proceed.");
+            }
+
+
+            //var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
+            //    .Select(s => s.Key).ToListAsync();
+
+            //foreach (var id in idList)
+            //{
+            //    var request = await _db.Requests.FindAsync(id);
+            //    if (request == null)
+            //    {
+            //        throw new NotFoundException(id);
+            //    }
+            //    else
+            //    {
+            //        if (string.IsNullOrWhiteSpace(request.SubmittedBy))
+            //        {
+            //            throw new RecordNotYetPostedException("Record is not yet posted.");
+            //        }
+            //    }
+            //}
+
+            var unitGroupItems = await _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItem)
+                .Where(w => w.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId == entity.Id).ToListAsync();
             if (unitGroupItems.Any())
             {
                 var rate = unitGroupItems.Sum(s => s.OrderItem.PriceRate) ?? 0;
@@ -782,31 +611,13 @@ namespace iLgs.Services.PurchaseOrder
                 .Include(i => i.AllField)
                 .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
-            {
-                //if (Enum.TryParse(orderItem.ItemCode.ItemType.Code, out Category c))
-                //{
-                //    if (_allFieldService.IsBrandRequired(c))
-                //    {
-                //        var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
-                //        if (allfield == null)
-                //        {
-                //            throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
-                //        }
-                //        {
-                //            if (string.IsNullOrWhiteSpace(allfield.Brand))
-                //            {
-                //                brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
-                //            }
-                //        }
-                //    }
-                //}
-
+            {                
                 if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
                 {
                     var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
                     if (allfield == null)
                     {
-                        throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+                        throw new RecordRelationshipException("Required fields are missing. Please recreate this Order.");
                     }
                     {
                         if (string.IsNullOrWhiteSpace(allfield.Brand))
@@ -873,7 +684,7 @@ namespace iLgs.Services.PurchaseOrder
             }
         }
 
-        private async ValueTask ValidateOnUnpost(Order entity)
+        private async Task ValidateOnUnpostAsync(Order entity)
         {
             if (string.IsNullOrWhiteSpace(entity.PostedBy))
             {
@@ -904,56 +715,14 @@ namespace iLgs.Services.PurchaseOrder
         {
             if (!await IsWwithPoUploadAsync(id))
             {
-                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}, cannot post!");
+                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}. Cannot post.");
             }
 
             if (!await IsWwithCafoaUploadAsync(id))
             {
-                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}, cannot post!");
+                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}. Cannot post.");
             }
         }
-        #endregion
-
-        #region EXCEPTIONS
-        //private delegate ValueTask<OrderVM> ReturningFunction();
-        //private delegate IQueryable<OrderVM> ReturningQueryableFunction();
-        //private async ValueTask<OrderVM> TryCatch(ReturningFunction returningFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-
-        #endregion
+        #endregion        
     }
 }

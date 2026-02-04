@@ -115,7 +115,7 @@ namespace iLgs.Services.Requisition
             model.UpdatedDt = date;
 
             /*
-             * All items must of same category
+             * All items must be of same category
              */
 
             bool? isProperty = null;

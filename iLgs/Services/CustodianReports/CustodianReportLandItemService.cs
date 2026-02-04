@@ -678,6 +678,7 @@ namespace iLgs.Services.CustodianReports
                 string itemTypeIndex = "";
                 string department = "";
                 decimal? tAcqCost = 0;
+                decimal? tMarketValue = 0;
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var ws = wb.Worksheet(1);
                 var userId = _userService.GetByUserName(userName).Id;
@@ -815,10 +816,12 @@ namespace iLgs.Services.CustodianReports
                         ws.Range($"B{row}:AC{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
                     ws.Range($"AF{row}:BA{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    tMarketValue += (reportItem.MarketValue ?? 0);
                     tAcqCost += (reportItem.AcqCost ?? 0);
                 }
-                //ws.Row(++row).Cell(13).SetValue("TOTAL");
-                //ws.Row(row).Cell(14).SetValue(tAcqCost);
+                ws.Row(++row).Cell(16).SetValue("TOTAL");
+                ws.Row(row).Cell(17).SetValue(tMarketValue);
+                ws.Row(row).Cell(19).SetValue(tAcqCost);
 
                 row += 4;
                 ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);

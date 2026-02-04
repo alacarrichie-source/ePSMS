@@ -3333,7 +3333,36 @@ namespace iLgs.Controllers
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
+
+                var sa1 = string.Empty;
+                var sa2 = string.Empty;
+                var sa3 = string.Empty;
+                var sa4 = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(subAccount1))
+                {
+                    sa1 = (await _itemCodeService.GetByCodeAsync(subAccount1)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount2))
+                {
+                    sa2 = (await _itemCodeService.GetByCodeAsync(subAccount2)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount3))
+                {
+                    sa3 = (await _itemCodeService.GetByCodeAsync(subAccount3)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount4))
+                {
+                    sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
+                }
+
+                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_{DateTime.Now.ToShortDateString()}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+                //return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
@@ -3380,7 +3409,36 @@ namespace iLgs.Controllers
                 {
                     locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
                 }
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
+
+                var sa1 = string.Empty;
+                var sa2 = string.Empty;
+                var sa3 = string.Empty;
+                var sa4 = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(subAccount1))
+                {
+                    sa1 = (await _itemCodeService.GetByCodeAsync(subAccount1)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount2))
+                {
+                    sa2 = (await _itemCodeService.GetByCodeAsync(subAccount2)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount3))
+                {
+                    sa3 = (await _itemCodeService.GetByCodeAsync(subAccount3)).Description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(subAccount4))
+                {
+                    sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
+                }
+
+                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_-{annex}_{DateTime.Now.ToShortDateString()}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+                //return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
             }
             catch (Exception ex)
             {
