@@ -27,16 +27,24 @@ namespace iLgs.Services.StockCards
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
-        
-        public StockCardValidator(AppManEntities db,
-            IAllFieldsValidator allFieldsValidator,
-            IItemCodeService itemCodeService)
+
+        public StockCardValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
-            _allFieldsValidator = allFieldsValidator;
-            _itemCodeService = itemCodeService;            
+            _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public StockCardValidator(AppManEntities db,
+        //    IAllFieldsValidator allFieldsValidator,
+        //    IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
+        //    _allFieldsValidator = allFieldsValidator;
+        //    _itemCodeService = itemCodeService;            
+        //}
 
         public async Task ValidateOnCreateAsync(StockCardVM model)
         {                       

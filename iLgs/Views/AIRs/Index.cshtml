@@ -1069,6 +1069,12 @@
         }
         else {
             SaveRecords(e, false);
+
+            if (e.model.isNew()) {
+                var row = e.sender.tbody.find("tr:first");
+                this.select(row);
+                e.model.set("AirId", $("#Id").val());
+            }
         }
     }
     // END GRID INVOICE
@@ -1087,23 +1093,33 @@
                 if (result.Errors == "") {
                     $("#formAir input[name=Id]").val(result.Model.Id).trigger("change");
                     $("#formAir input[name=AIRNo]").val(result.Model.AIRNo).trigger("change");
+
+                    selectedId = result.Model.Id;
+                    var grid = $("#grid").data("kendoGrid");                    
+                    var dataItem = grid.dataSource.get(selectedId);
+                    if (dataItem) {
+                        var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                        grid.select(row);
+                    }
+
                     if (closeWindow) {
                         $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
-                    } else {
-                        if (e.model.isNew()) {
-                            selectedId = result.Model.Id;
 
-                            e.model.set("AirId", selectedId);
 
-                            var row = e.sender.tbody.find("tr:first");
-                            if (row) {
-                                selectedGrid.select(row);
-                            }
-                        } else {
-                            selectedId = e.model.get("Id");
-                            var rowitem = selectedGrid.dataSource.get(selectedId);
-                            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-                        }
+                        //if (e.model.isNew()) {
+                        //    selectedId = result.Model.Id;
+
+                        //    e.model.set("AirId", selectedId);
+
+                        //    var row = e.sender.tbody.find("tr:first");
+                        //    if (row) {
+                        //        selectedGrid.select(row);
+                        //    }
+                        //} else {
+                        //    selectedId = e.model.get("Id");
+                        //    var rowitem = selectedGrid.dataSource.get(selectedId);
+                        //    selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+                        //}
                     }
                     disabled.attr('disabled', 'disabled')
                 } else {

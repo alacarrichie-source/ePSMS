@@ -20,28 +20,35 @@ namespace iLgs.Services.PropertyCard
 
         ValueTask<PsCardItemExtnAddCost> CreateAsync(PsCardItemExtnAddCost model, string user, DateTime date);
         ValueTask<PsCardItemExtnAddCost> UpdateAsync(PsCardItemExtnAddCost model, string user, DateTime date);
-        ValueTask<PsCardItemExtnAddCost> DeleteAsync(PsCardItemExtnAddCost model, string user, DateTime date);    
+        ValueTask<PsCardItemExtnAddCost> DeleteAsync(PsCardItemExtnAddCost model, string user, DateTime date);
     }
 
-    public class PsCardItemExtnAddCostService : BaseValidator, IPsCardItemExtnAddCostService
+    internal class PsCardItemExtnAddCostService : BaseValidator, IPsCardItemExtnAddCostService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnAddCost> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public PsCardItemExtnAddCostService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<PsCardItemExtnAddCost> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService)
+        public PsCardItemExtnAddCostService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
+            _exceptionService = new ExceptionService<PsCardItemExtnAddCost>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnAddCost>(propertyName);
         }
+
+        //public PsCardItemExtnAddCostService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<PsCardItemExtnAddCost> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnAddCost>(propertyName);
+        //}
 
         public IQueryable<PsCardItemExtnAddCost> GetAll(Guid? psCardItemExtnId)
         {
@@ -49,7 +56,7 @@ namespace iLgs.Services.PropertyCard
                 .Where(w => w.PsCardItemExtnId == psCardItemExtnId);
             return data;
         }
-        
+
         public ValueTask<PsCardItemExtnAddCost> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.PsCardItemExtnAddCosts.AsNoTracking()
@@ -62,14 +69,14 @@ namespace iLgs.Services.PropertyCard
         {
             decimal? addCost = 0;
             var addCostExtns = _db.PsCardItemExtnAddCosts.AsNoTracking().Where(w => w.PsCardItemExtnId == psCardItemExtnId).ToList();
-            foreach(var addCostExtn in addCostExtns)
+            foreach (var addCostExtn in addCostExtns)
             {
                 if (_db.Uploads.Any(a => a.ImageId == addCostExtn.Id))
                 {
                     addCost += addCostExtn.Amount;
                 }
             }
-                            
+
             return addCost;
         }
 
@@ -77,7 +84,7 @@ namespace iLgs.Services.PropertyCard
         private void ValidateFields(PsCardItemExtnAddCost model, Mode mode)
         {
             if (string.IsNullOrWhiteSpace(model.PoNo))
-            {                
+            {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
             }
             else
@@ -102,7 +109,7 @@ namespace iLgs.Services.PropertyCard
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "PO Record does not exists.");
                 }
-            }            
+            }
 
             if (!model.Effectivity.HasValue)
             {
@@ -145,11 +152,8 @@ namespace iLgs.Services.PropertyCard
             var entity = new PsCardItemExtnAddCost();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.PsCardItemExtnAddCosts.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemExtnAddCosts.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -162,17 +166,12 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //_db.PsCardItemExtnAddCosts.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
-            
+            await _db.SaveChangesAsync();
+
             return model;
         });
 
@@ -181,22 +180,16 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PsCardItemExtnAddCosts.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemExtnAddCosts.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
-            
+            _db.PsCardItemExtnAddCosts.Remove(entity);
+            await _db.SaveChangesAsync();
+
             return model;
         });
 
@@ -215,7 +208,7 @@ namespace iLgs.Services.PropertyCard
             entity.Amount = model.Amount;
             entity.Remarks = model.Remarks;
             entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;            
+            entity.UpdatedDt = model.UpdatedDt;
         }
     }
 }

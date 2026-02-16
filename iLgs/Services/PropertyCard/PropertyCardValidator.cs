@@ -28,15 +28,24 @@ namespace iLgs.Services.PropertyCard
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
 
-        public PropertyCardValidator(AppManEntities db,
-            IItemCodeService itemCodeService,
-            IAllFieldsValidator allFieldsValidator)
+        public PropertyCardValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PropertyCardVM>(propertyName);
-            _allFieldsValidator = allFieldsValidator;
-            _itemCodeService = itemCodeService;
+            _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public PropertyCardValidator(AppManEntities db,
+        //    IItemCodeService itemCodeService,
+        //    IAllFieldsValidator allFieldsValidator)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PropertyCardVM>(propertyName);
+        //    _allFieldsValidator = allFieldsValidator;
+        //    _itemCodeService = itemCodeService;
+        //}
+
         public async Task ValidateOnCreateAsync(PropertyCardVM model)
         {
             ValidateCard(model);

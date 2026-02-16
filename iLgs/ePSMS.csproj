@@ -1044,9 +1044,11 @@
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestSharedService.cs" />
     <Compile Include="Services\Requisition\RisItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\Requisition\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\Requisition\RisItemUnitGroupService.cs" />
+    <Compile Include="Services\Requisition\RisSharedService.cs" />
     <Compile Include="Services\RpceffoppeItemService.cs" />
     <Compile Include="Services\RPC\RpciItemService.cs" />
     <Compile Include="Services\RPC\RpciService.cs" />
@@ -4882,7 +4884,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

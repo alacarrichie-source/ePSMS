@@ -22,25 +22,33 @@ namespace iLgs.Services.AIRs_
     public class AirInvoiceService : BaseValidator, IAirInvoiceService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<AIRInvoiceVM> _vmExceptionService;
         private readonly IExceptionService<AIRInvoice> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public AirInvoiceService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<AIRInvoiceVM> vmExceptionService,
-            IExceptionService<AIRInvoice> exceptionService)
+        public AirInvoiceService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<AIRInvoiceVM>();
+            _exceptionService = new ExceptionService<AIRInvoice>();
             _getDisplayName = propertyName => Utility.GetDisplayName<AIRInvoiceVM>(propertyName);
         }
+
+        //public AirInvoiceService(AppManEntities db, 
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<AIRInvoiceVM> vmExceptionService,
+        //    IExceptionService<AIRInvoice> exceptionService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<AIRInvoiceVM>(propertyName);
+        //}
 
         public IQueryable<AIRInvoiceVM> GetVmByAirId(Guid? airId) =>
        _vmExceptionService.TryCatch(() =>
@@ -74,7 +82,7 @@ namespace iLgs.Services.AIRs_
             return data;
         });
 
-        
+
         public ValueTask<AIRInvoiceVM> CreateAsync(AIRInvoiceVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
@@ -85,37 +93,34 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-            
+
             await ValidateOnCreate(model);
 
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            AIRInvoice entity = new AIRInvoice()
             {
-                AIRInvoice entity = new AIRInvoice()
-                {
-                    Id = model.Id,
-                    AirId = model.AirId,
-                    InvoiceNo = model.InvoiceNo,
-                    InvoiceDate = model.InvoiceDate,
-                    Amount = model.Amount,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
+                Id = model.Id,
+                AirId = model.AirId,
+                InvoiceNo = model.InvoiceNo,
+                InvoiceDate = model.InvoiceDate,
+                Amount = model.Amount,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-                ctx.AIRInvoices.Add(entity);
-                await ctx.SaveChangesAsync();
+            _db.AIRInvoices.Add(entity);
+            await _db.SaveChangesAsync();
 
-                await UpdateAIR(ctx, model.AirId, user, date);
-            }
+            await UpdateAIR(model.AirId, user, date);
 
             return model;
-        });        
+        });
 
-        private async ValueTask UpdateAIR(AppManEntities ctx, Guid? airId, string user, DateTime date)
+        private async ValueTask UpdateAIR(Guid? airId, string user, DateTime date)
         {
-            var invoices = await ctx.AIRInvoices.Where(w => w.AirId == airId).OrderBy(o => o.InvoiceNo).ToListAsync();
+            var invoices = await _db.AIRInvoices.Where(w => w.AirId == airId).OrderBy(o => o.InvoiceNo).ToListAsync();
             string invoiceNo = "";
             DateTime? invoiceDate = null;
             if (invoices.Any())
@@ -127,17 +132,15 @@ namespace iLgs.Services.AIRs_
                 }
 
                 invoiceDate = invoices.GroupBy(g => g.InvoiceDate).Min(m => m.Key);
-            }            
+            }
 
-            var air = await ctx.AIRs.FindAsync(airId);
+            var air = await _db.AIRs.FindAsync(airId);
             air.UpdatedBy = user;
             air.UpdatedDt = date;
             air.InvoiceNo = invoiceNo;
-            air.InvoiceDate = invoiceDate;            
+            air.InvoiceDate = invoiceDate;
 
-            //_db.AIRs.Attach(air);
-            //_db.Entry(air).State = EntityState.Modified;
-            await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
 
         public ValueTask<AIRInvoiceVM> UpdateAsync(AIRInvoiceVM model, string user, DateTime date) =>
@@ -150,27 +153,22 @@ namespace iLgs.Services.AIRs_
 
             await ValidateOnUpdate(model);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            AIRInvoice entity = await _db.AIRInvoices.FindAsync(model.Id);
+
+            if (entity == null)
             {
-                AIRInvoice entity = await ctx.AIRInvoices.FindAsync(model.Id);
-
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                entity.InvoiceNo = model.InvoiceNo;
-                entity.InvoiceDate = model.InvoiceDate;
-                entity.Amount = model.Amount;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.AIRInvoices.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                await UpdateAIR(ctx, model.AirId, user, date);
+                throw new RecordNotFoundException(model.Id);
             }
+
+            entity.InvoiceNo = model.InvoiceNo;
+            entity.InvoiceDate = model.InvoiceDate;
+            entity.Amount = model.Amount;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            await UpdateAIR(model.AirId, user, date);
 
             return model;
         });
@@ -186,37 +184,34 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            AIRInvoice entity = await _db.AIRInvoices.FindAsync(model.Id);
+
+            if (entity == null)
             {
-                AIRInvoice entity = await ctx.AIRInvoices.FindAsync(model.Id);
-
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.AIRInvoices.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.AIRInvoices.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-
-                await UpdateAIR(ctx, model.AirId, user, date);
+                throw new RecordNotFoundException(model.Id);
             }
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            //_db.AIRInvoices.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            _db.AIRInvoices.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
+
+            await UpdateAIR(model.AirId, user, date);
 
             return model;
         });
 
         private void ValidateRequired(AIRInvoiceVM model)
-        {            
+        {
             if (string.IsNullOrWhiteSpace(model.InvoiceNo))
             {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.InvoiceNo)), "Field is required.");                
+                _imex.UpsertDataList(_getDisplayName(nameof(model.InvoiceNo)), "Field is required.");
             }
 
             if (model.InvoiceDate == null)
@@ -236,7 +231,7 @@ namespace iLgs.Services.AIRs_
             if (await _db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.AirId == model.AirId))
             {
                 throw new RecordAlreadyExistsException(string.Format("Invoice Number {0} already exists", model.InvoiceNo));
-            }                                    
+            }
         }
 
         private async Task ValidateOnUpdate(AIRInvoiceVM model)

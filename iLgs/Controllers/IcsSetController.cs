@@ -24,24 +24,33 @@ namespace iLgs.Controllers
         private readonly IPsCardService _psCardService;
         private readonly IIcsParService _icsParService;
         private readonly ICodextnService _codextnService;
-        
-        public IcsSetController(AppManEntities db, IPsCardService psCardService, IIcsParService icsParService, ICodextnService codextnService)
+
+        public IcsSetController()
         {
-            _db = db;
-            _psCardService = psCardService;
-            _icsParService = icsParService;
-            _codextnService = codextnService;
+            _db = new AppManEntities();
+            _psCardService = new PsCardService(_db);
+            _icsParService = new IcsParService(_db);
+            _codextnService = new CodextnService(_db);
         }
+
+        //public IcsSetController(AppManEntities db, IPsCardService psCardService, IIcsParService icsParService, ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _psCardService = psCardService;
+        //    _icsParService = icsParService;
+        //    _codextnService = codextnService;
+        //}
 
         // GET: Ics
         public ActionResult Index()
         {
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? forYear)
         {
-            var data = _icsParService.IcsService.GetAllPo();
+            var data = _icsParService.IcsService.GetAllPo(forYear);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -59,9 +68,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<ActionResult> _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsParService.IcsService.GetItemsByPoNo(poNo, poDate, deptId);
+            var data = await _icsParService.IcsService.GetItemsByPoNoAsync(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -112,9 +121,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<ActionResult> _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsParService.IcsService.GetItemSetsByPoNo(poNo, poDate, deptId);
+            var data = await _icsParService.IcsService.GetItemSetsByPoNoAsync(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -449,7 +458,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
         {
             var date = DateTime.Now;
-            var psCardItem = await _icsParService.IcsService.GetByIdAsync(_db, psCardItemId);
+            var psCardItem = await _icsParService.IcsService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,

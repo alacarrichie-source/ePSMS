@@ -28,12 +28,19 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IRsmiService _rsmiService;
 
-        public RSMIController(AppManEntities db, ICodextnService codextnService, IRsmiService rsmiService)
+        public RSMIController()
         {
-            _db = db;
-            _codextnService = codextnService;
-            _rsmiService = rsmiService;
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+            _rsmiService = new RsmiService(_db);
         }
+
+        //public RSMIController(AppManEntities db, ICodextnService codextnService, IRsmiService rsmiService)
+        //{
+        //    _db = db;
+        //    _codextnService = codextnService;
+        //    _rsmiService = rsmiService;
+        //}
 
         // GET: RSMI
         public ActionResult Index()

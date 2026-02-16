@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -16,27 +17,18 @@ namespace iLgs.Services.Requisition
         ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId);
         Task<RIS_VM> GetByIdAsync(Guid id);
         Task<RIS_VM> GetByRisNoAsync(string risNo);
-        Task<RIS_VM> GetByOrderIdAsync(Guid orderId);
-        Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);
-        bool IsPosted(Guid risId);
-        bool IsPosted(RISs ris);
-        bool IsPosted(RisItem risItem);
-        bool IsPosted(RisItemUnitGroup risItemUnitGroup);
-        bool IsPosted(RisItemUnitGroupDescription risItemunitGroupDescription);
-        bool IsPosted(RisItemUnitGroupDescriptionItem risItemunitGroupDescriptionItem);
-
-        Task<bool> IsPostedAsync(Guid risId);
-        Task<bool> IsPrPostedAsync(Guid risId);
-        Task<bool> IsWithPrAsync(Guid risId);
-
-        void ValidateIfPosted(Guid risId);
+        //Task<RIS_VM> GetByOrderIdAsync(Guid orderId);
+        Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);        
 
         ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date);
         ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date);
         ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date);
 
         ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date);
-        ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);        
+        ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);
+
+        IRisItemService RisItem { get; }
+        IRisItemUnitGroupService UnitGroup { get; }
     }
 
     public class RisService : IRisService
@@ -44,24 +36,45 @@ namespace iLgs.Services.Requisition
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<RIS_VM> _risVmExceptionService;
-        private readonly IExceptionService<RISs> _risExceptionService;        
+        private readonly IExceptionService<RISs> _risExceptionService;
         private readonly IUserService _userService;
         private readonly IRisValidator _validator;
+        private readonly IRisSharedService _risSharedService;
 
-        public RisService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RIS_VM> risVmExceptionService,
-            IExceptionService<RISs> risExceptionService,
-            IUserService userService,
-            IRisValidator validator)
+        private IRisItemService _risItemService;
+        private IRisItemUnitGroupService _risItemUnitGroupService;
+
+        public RisService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _risVmExceptionService = risVmExceptionService;
-            _risExceptionService = risExceptionService;            
-            _userService = userService;
-            _validator = validator;
-        }        
+            _exceptions = new CreateAndLogExceptions();
+            _risVmExceptionService = new ExceptionService<RIS_VM>();
+            _risExceptionService = new ExceptionService<RISs>();
+            _userService = new UserService(_db);
+            _validator = new RisValidator(_db);
+            _risSharedService = new RisSharedService(_db);
+
+            _risItemService = new RisItemService(_db);
+            _risItemUnitGroupService = new RisItemUnitGroupService(_db);
+        }
+
+        //public RisService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RIS_VM> risVmExceptionService,
+        //    IExceptionService<RISs> risExceptionService,
+        //    IUserService userService,
+        //    IRisValidator validator)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _risVmExceptionService = risVmExceptionService;
+        //    _risExceptionService = risExceptionService;            
+        //    _userService = userService;
+        //    _validator = validator;
+        //}        
+
+        public IRisItemService RisItem => _risItemService;
+        public IRisItemUnitGroupService UnitGroup => _risItemUnitGroupService;
 
         private static Expression<Func<RISs, RIS_VM>> Projection
         = s => new RIS_VM
@@ -70,7 +83,9 @@ namespace iLgs.Services.Requisition
             Fund = s.Fund,
             Division = s.Division,
             OfficeId = s.OfficeId,
+            OfficeDesc = s.Codextn.Description,
             Office = s.Office,
+            OrderId = s.OrderId,
             FPP = s.FPP,
             RisNo = s.RisNo,
             RisDate = s.RisDate,
@@ -93,9 +108,12 @@ namespace iLgs.Services.Requisition
             UpdatedDt = s.UpdatedDt,
             PostedBy = s.PostedBy,
             PostedDt = s.PostedDt,
+            // Transients
             IsPosted = s.PostedDt != null,
-            IssuanceSw = false
-        };        
+            IssuanceSw = false,
+            PoNo = s.Order.PoNo,
+            PoDate = s.Order.PoDate
+        };
 
         public async ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId)
         {
@@ -108,13 +126,13 @@ namespace iLgs.Services.Requisition
             else
             {
                 data = _db.RISses.AsNoTracking()
-                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))                    
+                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
                     .Select(Projection).OrderByDescending(o => o.RisNo);
             }
             return data;
         }
 
-        public IQueryable<RIS_VM> GetAll() 
+        public IQueryable<RIS_VM> GetAll()
         {
             var data = _db.RISses
                 .Select(Projection);
@@ -126,81 +144,19 @@ namespace iLgs.Services.Requisition
             return _db.RISses.AnyAsync(a => a.Id != risId && a.RisNo == risNo);
         }
 
-        public Task<RIS_VM> GetByIdAsync(Guid id) 
+        public Task<RIS_VM> GetByIdAsync(Guid id)
         {
             return _db.RISses.Where(w => w.Id == id).Select(Projection).FirstOrDefaultAsync();
         }
 
-        public Task<RIS_VM> GetByRisNoAsync(string risNo) 
+        public Task<RIS_VM> GetByRisNoAsync(string risNo)
         {
             return _db.RISses.Where(w => w.RisNo == risNo).Select(Projection).FirstOrDefaultAsync();
         }
-
-        public Task<RIS_VM> GetByOrderIdAsync(Guid orderId) 
-        {
-            return _db.RISses.Where(w => w.Requests.Any(a => a.Orders.Any(b => b.Id == orderId))).Select(Projection).FirstOrDefaultAsync();
-        }
-
-        public async Task<bool> IsPostedAsync(Guid risId)
-        {
-            var entity = await _db.RISses.FindAsync(risId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
-
-        public bool IsPosted(Guid risId)
-        {
-            var entity = _db.RISses.Find(risId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
-
-        public bool IsPosted(RISs ris)
-        {
-            return IsPosted(ris.Id);
-        }
-
-        public bool IsPosted(RisItem risItem)
-        {
-            var risId = (Guid)risItem.RisId;
-            return IsPosted(risId);
-        }
-
-        public bool IsPosted(RisItemUnitGroup risItemUnitGroup)
-        {
-            var risId = (Guid)risItemUnitGroup.RisId;
-            return IsPosted(risId);
-        }
-
-        public bool IsPosted(RisItemUnitGroupDescription risItemUnitGroupDescription)
-        {            
-            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.Id == risItemUnitGroupDescription.UnitGroupId).AsNoTracking().FirstOrDefault()?.RisId;
-            return IsPosted(risId);
-        }
-
-        public bool IsPosted(RisItemUnitGroupDescriptionItem risItemUnitGroupDescriptionItem)
-        {
-            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.RisItemUnitGroupDescriptions.Any(a => a.Id == risItemUnitGroupDescriptionItem.UnitGroupDescriptionId)).AsNoTracking().FirstOrDefault()?.RisId;
-            return IsPosted(risId);
-        }
-
-        public async Task<bool> IsPrPostedAsync(Guid risId)
-        {
-            var pr = await _db.Requests.Where(a => a.RisId == risId).AsNoTracking().FirstOrDefaultAsync();
-            if (pr != null)
-            {
-                return !string.IsNullOrWhiteSpace(pr.SubmittedBy);
-            }
-            return false;
-        }
-
-        public Task<bool> IsWithPrAsync(Guid risId)
-        {
-            return _db.Requests.AnyAsync(a => a.RisId == risId);
-        }
-
+        
         public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
-            //await ValidateOnPost(risId);
             _validator.ValidateOnPost(risId);
 
             var entity = await _db.RISses.FindAsync(risId);
@@ -239,12 +195,12 @@ namespace iLgs.Services.Requisition
             //    }
             //}
         });
-        
+
         public ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnUnpost(risId);
-            
+
             var entity = await _db.RISses.FindAsync(risId);
 
             entity.PostedBy = null;
@@ -273,28 +229,116 @@ namespace iLgs.Services.Requisition
 
         public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
+        {
+            _validator.ValidateOnCreate(model);
+
+            model.Id = Guid.NewGuid(); 
+            if (string.IsNullOrWhiteSpace(model.RisNo))
             {
-                _validator.ValidateOnCreate(model);
-                
-                //model.Id = Guid.NewGuid(); assigned in the partial view call
-                if (string.IsNullOrWhiteSpace(model.RisNo))
+                model.RisNo = NextRisNo((DateTime)model.RisDate);
+            }
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = new RISs();
+
+            MapModelToEntityFields(entity, model, Mode.ADD);
+
+            var order = await _db.Orders
+                .Include("OrderItems.AllField")
+                .Include("OrderItemUnitGroups.OrderItemUnitGroupDescriptions.OrderItemUnitGroupDescriptionItems")
+                .AsNoTracking().FirstOrDefaultAsync(p => p.Id == model.OrderId);
+            foreach (var orderItem in order.OrderItems)
+            {
+                var risItem = new RisItem()
                 {
-                    model.RisNo = NextRisNo((DateTime)model.RisDate);
+                    Id = Guid.NewGuid(),
+                    RisId = model.Id,
+                    OrderItemId = orderItem.Id,
+                    ItemCodeId = orderItem.ItemCodeId,
+                    //SubAccountCode = model.SubAccountCode,
+                    PsNo = orderItem.PsNo,
+                    PsNoDisplay = orderItem.PsNoDisplay,
+                    ItemName = orderItem.ItemName,
+                    Description = orderItem.Description,
+                    OtherDesc = orderItem.OtherDesc,
+                    Unit = orderItem.Unit,
+                    QtyRequest = orderItem.Qty,
+                    QtyIssue = orderItem.Qty,
+                    //Remarks = model.Remarks ?? "",
+                    PpmpCode = orderItem.PpmpCode,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date,
+                };
+
+                var allfield = AllFieldsUtil.NewAllField(orderItem.AllField);
+                allfield.Id = risItem.Id;
+                risItem.AllField = allfield;
+
+                entity.RisItems.Add(risItem);                
+            }
+            
+
+            foreach (var unitGroup in order.OrderItemUnitGroups)
+            {
+                var risItemUnitGroup = new RisItemUnitGroup()
+                {
+                    Id = Guid.NewGuid(),
+                    RisId = model.Id,
+                    OrderItemUnitGroupId = unitGroup.Id,
+                    SetLotNo = unitGroup.SetLotNo,
+                    Qty = unitGroup.Qty,
+                    Unit = unitGroup.Unit,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                foreach (var unitGroupDescription in unitGroup.OrderItemUnitGroupDescriptions)
+                {
+                    var risItemUnitGroupDescription = new RisItemUnitGroupDescription()
+                    {
+                        Id = Guid.NewGuid(),
+                        UnitGroupId = risItemUnitGroup.Id,
+                        OrderItemUnitGroupDescriptionId = unitGroupDescription.Id,
+                        Description = unitGroupDescription.Description,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    
+                    foreach (var unitGroupDescriptionItem in unitGroupDescription.OrderItemUnitGroupDescriptionItems)
+                    {
+                        var risItemId = entity.RisItems.FirstOrDefault(p => p.OrderItemId == unitGroupDescriptionItem.OrderItemId).Id;
+                        var risItemUnitGroupDescriptionItem = new RisItemUnitGroupDescriptionItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            UnitGroupDescriptionId = risItemUnitGroupDescription.Id,
+                            OrderItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+                            RisItemId = risItemId,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        risItemUnitGroupDescription.RisItemUnitGroupDescriptionItems.Add(risItemUnitGroupDescriptionItem);
+                    }
+                    risItemUnitGroup.RisItemUnitGroupDescriptions.Add(risItemUnitGroupDescription);
                 }
-                model.InsertedBy = user;
-                model.InsertedDt = date;
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
+                entity.RisItemUnitGroups.Add(risItemUnitGroup);
+            }
 
-                var entity = new iLgs.Models.RISs();                
+            _db.RISses.Add(entity);
+            await _db.SaveChangesAsync();
 
-                MapModelToEntityFields(entity, model, Mode.ADD);
-
-                _db.RISses.Add(entity);
-                await _db.SaveChangesAsync();
-
-                return model;
-            });
+            return model;
+        });
 
         public ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
@@ -340,7 +384,7 @@ namespace iLgs.Services.Requisition
             var entity = await _db.RISses.FindAsync(model.Id);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
-            
+
             _db.RISses.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
@@ -357,6 +401,7 @@ namespace iLgs.Services.Requisition
                 entity.InsertedDt = model.InsertedDt;
             }
 
+            entity.OrderId = model.OrderId;
             entity.Fund = model.Fund;
             entity.Division = model.Division ?? "";
             entity.OfficeId = model.OfficeId;
@@ -405,7 +450,7 @@ namespace iLgs.Services.Requisition
         }
 
         #region VALIDATION
-        
+
         //private async ValueTask ValidateOnUpdate(RIS_VM model)
         //{
         //    var rec = await _db.RISses.FindAsync(model.Id);
@@ -435,7 +480,7 @@ namespace iLgs.Services.Requisition
 
         public void ValidateIfPosted(Guid risId)
         {
-            if (IsPosted(risId))
+            if (_risSharedService.IsPosted(risId))
             {
                 throw new RecordAlreadyPostedException(string.Format("RIS No. is already posted, cannot update!"));
             }
@@ -444,26 +489,26 @@ namespace iLgs.Services.Requisition
 
         private async Task ValidateOnDelete(RIS_VM model)
         {
-            if (await IsPostedAsync(model.Id))
+            if (await _risSharedService.IsPostedAsync(model.Id))
             {
                 throw new RecordAlreadyPostedException(string.Format("RIS No. {0} already Posted, cannot delete!", model.RisNo));
             }
 
-            if (await IsPrPostedAsync(model.Id))
-            {
-                throw new RecordRelationshipException("This RIS Number has a posted PR, cannot delete!");
-            }
+            //if (await IsPrPostedAsync(model.Id))
+            //{
+            //    throw new RecordRelationshipException("This RIS Number has a posted PR, cannot delete!");
+            //}
         }
 
         private void ValidateRelationship(Guid risId)
         {
-            var pr = _db.Requests.Where(a => a.RisId == risId).AsNoTracking().FirstOrDefault();
-            if (pr != null)
-            {
-                throw new RecordRelationshipException($"This RIS Number is in use by PR Number {pr.PrNo}, cannot delete!");
-            }
+            //var pr = _db.Requests.Where(a => a.RisId == risId).AsNoTracking().FirstOrDefault();
+            //if (pr != null)
+            //{
+            //    throw new RecordRelationshipException($"This RIS Number is in use by PR Number {pr.PrNo}, cannot delete!");
+            //}
         }
-        
+
         #endregion
 
         #region EXCEPTION

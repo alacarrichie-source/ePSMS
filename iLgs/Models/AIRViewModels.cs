@@ -100,6 +100,9 @@ namespace iLgs.Models
         [Display(Name = "Stock/Property No.")]
         public Nullable<System.Guid> OrderItemId { get; set; }
 
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
+
         public Nullable<decimal> Qty { get; set; }
 
         //[Required]

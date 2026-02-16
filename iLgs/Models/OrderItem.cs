@@ -21,12 +21,13 @@ namespace iLgs.Models
             this.OrderItemUnitGroupDescriptionItems = new HashSet<OrderItemUnitGroupDescriptionItem>();
             this.PARItems = new HashSet<PARItem>();
             this.PsCardItems = new HashSet<PsCardItem>();
+            this.RisItems = new HashSet<RisItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
-        public Nullable<int> ItemNo { get; set; }
+        public string ItemNo { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public string PsNo { get; set; }
         public string PsNoDisplay { get; set; }
@@ -52,7 +53,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual AllField AllField { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
         public virtual Order Order { get; set; }
         public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -61,5 +61,8 @@ namespace iLgs.Models
         public virtual ICollection<PARItem> PARItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RisItem> RisItems { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
     }
 }

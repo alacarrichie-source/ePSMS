@@ -73,6 +73,9 @@ namespace iLgs.Services.PurchaseOrder
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
 
             _priceCap = _priceCapService.GetPriceCap();
+
+            _orderItemService = new OrderItemService(_db);
+            _unitGroupService = new OrderItemUnitGroupService(_db);
         }
 
         //public OrderService(AppManEntities db,
@@ -104,8 +107,8 @@ namespace iLgs.Services.PurchaseOrder
         //    _priceCap = _priceCapService.GetPriceCap();
         //}
 
-        public IOrderItemService OrderItem { get { return _orderItemService = _orderItemService ?? new OrderItemService(_db); } }
-        public IOrderItemUnitGroupService UnitGroup { get { return _unitGroupService = _unitGroupService ?? new OrderItemUnitGroupService(_db); } }
+        public IOrderItemService OrderItem => _orderItemService;
+        public IOrderItemUnitGroupService UnitGroup => _unitGroupService;
 
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
         {
@@ -194,7 +197,7 @@ namespace iLgs.Services.PurchaseOrder
                     SupContactNo = s.SupContactNo,
                     SupEmail = s.SupEmail,
                     SupZipCode = s.SupZipCode,
-                    Department = s.Request.RISs.Office
+                    Department = s.Department
                 })
                 .AsQueryable();
             return data;
@@ -260,7 +263,7 @@ namespace iLgs.Services.PurchaseOrder
             return await _db.Orders.Where(w => w.PoDate <= asOf && w.PostedDt == null).CountAsync();
         }
 
-        public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
+        public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch((Func<ValueTask<OrderVM>>)(async () =>
         {
             ValidateIfNull(model);
             await ValidateOnCreateUpdateAsync(model, Mode.ADD);
@@ -285,7 +288,7 @@ namespace iLgs.Services.PurchaseOrder
             await _db.SaveChangesAsync();            
 
             return model;
-        });
+        }));
 
         public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
@@ -500,13 +503,13 @@ namespace iLgs.Services.PurchaseOrder
                 }
                 else
                 {
-                    //var refNoParts = model.PoNo.Split('-');
-                    //var refNoYear = int.Parse(refNoParts[0]);
-                    //var refNoMonth = int.Parse(refNoParts[1]);
-                    //if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
-                    //{
-                    //    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
-                    //}
+                    var refNoParts = model.PoNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                    }
                     //else
                     //{
                     //    var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
@@ -575,19 +578,19 @@ namespace iLgs.Services.PurchaseOrder
             }
 
 
-            //var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
+            //var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.OrderItem.Order.Id)
             //    .Select(s => s.Key).ToListAsync();
 
             //foreach (var id in idList)
             //{
-            //    var request = await _db.Requests.FindAsync(id);
-            //    if (request == null)
+            //    var Order = await _db.Orders.FindAsync(id);
+            //    if (Order == null)
             //    {
             //        throw new NotFoundException(id);
             //    }
             //    else
             //    {
-            //        if (string.IsNullOrWhiteSpace(request.SubmittedBy))
+            //        if (string.IsNullOrWhiteSpace(Order.SubmittedBy))
             //        {
             //            throw new RecordNotYetPostedException("Record is not yet posted.");
             //        }

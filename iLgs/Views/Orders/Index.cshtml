@@ -659,10 +659,12 @@
 
         $("#DeptId").val(dataItem.Id).trigger("change");
         $("#Department").val(dataItem.Description).trigger("change");
+        $("#DeliveryPlace").val(dataItem.Description).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('DeptId', $('#DeptId').val());
         model.set('Department', $('#Department').val());
+        model.set('DeliveryPlace', $('#Department').val());
 
         setTimeout(function () {
             var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
@@ -671,6 +673,17 @@
             }
         }, 500);
     }
+
+    function onChangeDeptDisplay(e) {
+
+        var deliveryWidget = $("#DeliveryPlace").data("kendoTextBox");
+        var deptValue = $("#Department").data("kendoMaskedTextBox").value();
+
+        deliveryWidget.value(deptValue);
+        deliveryWidget.trigger("change");
+    }
+
+
 
     function onChangeOffice(e) {
         var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
@@ -919,7 +932,20 @@
     }
 
     function onSelectItemCode(e) {
-        var dataItem = this.dataItem(e.item.index());
+        //var dataItem = this.dataItem(e.item.index());
+        var dataItem;
+
+        if (e.item) {
+            // select event
+            dataItem = this.dataItem(e.item);
+        } else {
+            // change event
+            dataItem = this.dataItem();
+        }
+
+        if (!dataItem) {
+            return; // user typed invalid value
+        }
 
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
@@ -986,10 +1012,12 @@
 
         if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
             var dataItem = comboBox.dataItem();
-            $("#SubAccount").val(dataItem.MainDesc).trigger("change");
-            $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
-            $("#Category").val(dataItem.Category).trigger("change");
-            RefreshDivs(dataItem);
+            if (dataItem) {
+                $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+                $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+                $("#Category").val(dataItem.Category).trigger("change");
+                RefreshDivs(dataItem);
+            }
             //var psNo = $("#PsNo").val();
             //if (!psNo) {
             //    setTimeout(UpdateDescription, 500);
@@ -1514,7 +1542,7 @@
 
     function onClickBtnAddGroupItem(e) {
         e.preventDefault();
-        
+
         var myTitle = "Group Item Selection";
         var width = "70%";
         var height = 650;

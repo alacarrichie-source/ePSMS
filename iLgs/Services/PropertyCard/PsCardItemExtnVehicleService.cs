@@ -25,32 +25,41 @@ namespace iLgs.Services.PropertyCard
         IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair { get; }
     }
 
-    public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
+    internal class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnValidator;
         private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
-        private readonly IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;        
+        private readonly IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;
 
-        public PsCardItemExtnVehicleService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardItemExtnVehicleValidator psCardItemExtnValidator,
-            IPsCardItemExtnSharedService psCardItemExtnSharedService,
-            IPsCardItemExtnVehicleRepairService psCardItemExtnVehicleRepairService)
+        public PsCardItemExtnVehicleService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _psCardItemExtnValidator = psCardItemExtnValidator;
-            _psCardItemExtnSharedService = psCardItemExtnSharedService;
-            _psCardItemExtnVehicleRepairService = psCardItemExtnVehicleRepairService;
+            _exceptionService = new ExceptionService<PsCardItemExtnVehicleVM>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnValidator = new PsCardItemExtnVehicleValidator(_db);
+            _psCardItemExtnSharedService = new PsCardItemExtnSharedService(_db);
+            _psCardItemExtnVehicleRepairService = new PsCardItemExtnVehicleRepairService(_db);
         }
+
+        //public PsCardItemExtnVehicleService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IPsCardItemExtnVehicleValidator psCardItemExtnValidator,
+        //    IPsCardItemExtnSharedService psCardItemExtnSharedService,
+        //    IPsCardItemExtnVehicleRepairService psCardItemExtnVehicleRepairService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _psCardItemExtnValidator = psCardItemExtnValidator;
+        //    _psCardItemExtnSharedService = psCardItemExtnSharedService;
+        //    _psCardItemExtnVehicleRepairService = psCardItemExtnVehicleRepairService;
+        //}
 
         public IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair => _psCardItemExtnVehicleRepairService;
 
@@ -170,16 +179,13 @@ namespace iLgs.Services.PropertyCard
             var entity = new PsCardItemExtnVehicle();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.PsCardItemExtns.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
-        });        
+        });
 
         public ValueTask<PsCardItemExtnVehicleVM> UpdateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
@@ -188,15 +194,10 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
@@ -204,46 +205,43 @@ namespace iLgs.Services.PropertyCard
         });
 
         public ValueTask<PsCardItemExtnVehicleVM> DeleteAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {            
+        {
             _psCardItemExtnValidator.ValidateOnDelete(model);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                //using (var transaction = _db.Database.BeginTransaction())
-                //{
-                //    try
-                //    {
-                // Delete References
-                var itemTransactions = ctx.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
-                ctx.PsCardItemTransactions.RemoveRange(itemTransactions);
-                await ctx.SaveChangesAsync();
+            //using (var transaction = _db.Database.BeginTransaction())
+            //{
+            //    try
+            //    {
+            // Delete References
+            var itemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
+            _db.PsCardItemTransactions.RemoveRange(itemTransactions);
+            await _db.SaveChangesAsync();
 
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            //_db.PsCardItemExtns.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemExtns.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+            _db.PsCardItemExtns.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
-                //        transaction.Commit();
-                //    }
-                //    catch (Exception)
-                //    {
-                //        // Rollback the transaction if any operation fails
-                //        transaction.Rollback();
-                //        throw;
-                //    }
-                //}
-            }
+            //        transaction.Commit();
+            //    }
+            //    catch (Exception)
+            //    {
+            //        // Rollback the transaction if any operation fails
+            //        transaction.Rollback();
+            //        throw;
+            //    }
+            //}            
 
             return model;
         });
@@ -265,7 +263,7 @@ namespace iLgs.Services.PropertyCard
             entity.OrDate = model.OrDate;
             entity.NetWeight = model.NetWeight;
             entity.InsPolicyNo = model.InsPolicyNo;
-            entity.ConductionNo = model.ConductionNo;            
-        }        
+            entity.ConductionNo = model.ConductionNo;
+        }
     }
 }

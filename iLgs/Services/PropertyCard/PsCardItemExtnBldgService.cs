@@ -20,29 +20,37 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemExtnBldgVM> DeleteAsync(PsCardItemExtnBldgVM model, string user, DateTime date);
     }
 
-    public class PsCardItemExtnBldgService : IPsCardItemExtnBldgService
+    internal class PsCardItemExtnBldgService : IPsCardItemExtnBldgService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnBldgValidator _psCardItemExtnBlgValidator;
         private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
-        public PsCardItemExtnBldgService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<PsCardItemExtnBldgVM> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
-            IPsCardItemExtnSharedService psCardItemExtnSharedService)
+        public PsCardItemExtnBldgService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _psCardItemExtnBlgValidator = psCardItemExtnBldgValidator;
-            _psCardItemExtnSharedService = psCardItemExtnSharedService;
+            _exceptionService = new ExceptionService<PsCardItemExtnBldgVM>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnBlgValidator = new PsCardItemExtnBldgValidator(_db);
+            _psCardItemExtnSharedService = new PsCardItemExtnSharedService(_db);
         }
+
+        //public PsCardItemExtnBldgService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<PsCardItemExtnBldgVM> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
+        //    IPsCardItemExtnSharedService psCardItemExtnSharedService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _psCardItemExtnBlgValidator = psCardItemExtnBldgValidator;
+        //    _psCardItemExtnSharedService = psCardItemExtnSharedService;
+        //}
 
         private Expression<Func<PsCardItemExtnBuilding, PsCardItemExtnBldgVM>> GetProjection()
         {
@@ -90,7 +98,7 @@ namespace iLgs.Services.PropertyCard
                 TargetDate = s.TargetDate,
                 PercentComplete = s.PercentComplete,
                 CompletionDate = s.CompletionDate,
-                Status = s.Status,                
+                Status = s.Status,
                 Latitude = s.Latitude,
                 Longitude = s.Longitude
             };
@@ -119,47 +127,39 @@ namespace iLgs.Services.PropertyCard
                 .Select(GetProjection())
                 .FirstOrDefaultAsync();
             return data;
-        });        
+        });
 
         public ValueTask<PsCardItemExtnBldgVM> CreateAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBlgValidator.ValidateOnCreate(model);
-            
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = new PsCardItemExtnBuilding();
-                MapModelToEntityFields(entity, model, Mode.ADD);
+            var entity = new PsCardItemExtnBuilding();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-                ctx.PsCardItemExtns.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);            
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
         });
 
         public ValueTask<PsCardItemExtnBldgVM> UpdateAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBlgValidator.ValidateOnUpdate(model);
-            
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.Id);
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
@@ -168,7 +168,7 @@ namespace iLgs.Services.PropertyCard
         public void MapModelToEntityFields(PsCardItemExtnBuilding entity, PsCardItemExtnBldgVM model, Mode mode)
         {
             _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);
-            
+
             entity.Address = model.Address;
             entity.BuildingItem = model.BuildingItem;
             entity.ProjectName = model.ProjectName;
@@ -195,23 +195,17 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = ctx.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefault(f => f.Id == model.Id);
+            var entity = _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefault(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemExtns.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemExtns.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
-        });        
+        });
     }
 }

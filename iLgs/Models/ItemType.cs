@@ -18,8 +18,8 @@ namespace iLgs.Models
         public ItemType()
         {
             this.ItemTypeExclusions = new HashSet<ItemTypeExclusion>();
-            this.ItemCodes = new HashSet<ItemCode>();
             this.RPCIs = new HashSet<RPCI>();
+            this.ItemCodes = new HashSet<ItemCode>();
         }
     
         public System.Guid Id { get; set; }
@@ -37,8 +37,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemTypeExclusion> ItemTypeExclusions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemCode> ItemCodes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCI> RPCIs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ItemCode> ItemCodes { get; set; }
     }
 }

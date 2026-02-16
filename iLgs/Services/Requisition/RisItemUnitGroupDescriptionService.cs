@@ -14,33 +14,51 @@ namespace iLgs.Services.Requisition
     {
         IQueryable<RisItemUnitGroupDescriptionVM> GetByUnitGroupId(Guid? unitGroupId);
         ValueTask<RisItemUnitGroupDescription> GetByIdAsync(Guid? id);
-        ValueTask<RisItemUnitGroupDescriptionVM> CreateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupDescriptionVM> UpdateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupDescriptionVM> DeleteAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);        
+        //ValueTask<RisItemUnitGroupDescriptionVM> CreateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupDescriptionVM> UpdateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupDescriptionVM> DeleteAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date);
+
+        IRisItemUnitGroupDescriptionItemService UnitGroupDescriptionItem { get; }
     }
 
-    public class RisItemUnitGroupDescriptionService : BaseValidator, IRisItemUnitGroupDescriptionService
+    internal class RisItemUnitGroupDescriptionService : BaseValidator, IRisItemUnitGroupDescriptionService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<RisItemUnitGroupDescriptionVM> _vmExceptionService;
         private readonly IExceptionService<RisItemUnitGroupDescription> _exceptionService;
-        private readonly IRisService _risService;
+        private readonly IRisSharedService _risSharedService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public RisItemUnitGroupDescriptionService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RisItemUnitGroupDescriptionVM> vmExceptionService,
-            IExceptionService<RisItemUnitGroupDescription> exceptionService,
-            IRisService risService)
+        private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
+
+        public RisItemUnitGroupDescriptionService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _risService = risService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RisItemUnitGroupDescriptionVM>();
+            _exceptionService = new ExceptionService<RisItemUnitGroupDescription>();
+            _risSharedService = new RisSharedService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionVM>(propertyName);
-        }        
+
+            _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
+        }
+
+        //public RisItemUnitGroupDescriptionService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RisItemUnitGroupDescriptionVM> vmExceptionService,
+        //    IExceptionService<RisItemUnitGroupDescription> exceptionService,
+        //    IRisService risService)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _risService = risService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionVM>(propertyName);
+        //}
+
+        public IRisItemUnitGroupDescriptionItemService UnitGroupDescriptionItem => _risItemUnitGroupDescriptionItemService;
 
         public ValueTask<RisItemUnitGroupDescription> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
@@ -159,7 +177,7 @@ namespace iLgs.Services.Requisition
 
         public void ValidateIfPosted(RisItemUnitGroupDescriptionVM model)
         {
-            var isPosted = _risService.IsPosted(model);
+            var isPosted = _risSharedService.IsPosted(model);
             if (isPosted)
             {
                 throw new RecordAlreadyPostedException();

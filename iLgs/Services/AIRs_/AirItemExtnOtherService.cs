@@ -26,23 +26,30 @@ namespace iLgs.Services.AIRs_
     public class AirItemExtnOtherService : IAirItemExtnOtherService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
-        private readonly IExceptionService<AIRItemExtnOther> _exceptionService;
         private readonly IAirItemExtnAbstractService _airItemExtnSharedService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IExceptionService<AIRItemExtnOther> _exceptionService;
 
-        public AirItemExtnOtherService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<AIRItemExtnOther> exceptionService,
-            IAirItemExtnAbstractService airItemExtnSharedService,
-            IItemCodeService itemCodeService)
+        public AirItemExtnOtherService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _airItemExtnSharedService = airItemExtnSharedService;
-            _itemCodeService = itemCodeService;
+            _airItemExtnSharedService = new AirItemExtnAbstractService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _exceptionService = new ExceptionService<AIRItemExtnOther>();
         }
+
+        //public AirItemExtnOtherService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<AIRItemExtnOther> exceptionService,
+        //    IAirItemExtnAbstractService airItemExtnSharedService,
+        //    IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _airItemExtnSharedService = airItemExtnSharedService;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public IQueryable<AIRItemExtnOther> GetByAirItemId(Guid? airItemId)
         {
@@ -63,58 +70,55 @@ namespace iLgs.Services.AIRs_
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
+            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
+            var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
+            var airItemQty = (int)_db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
+            var airItemExtnCount = _db.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == model.AIRItemId).Count();
+            var totalQty = airItemQty * groupQty;
+
+            if (airItemExtnCount == totalQty)
             {
-                var airItem = ctx.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
-                var orderItemUnitGroup = ctx.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
-                var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
-                var airItemQty = (int)ctx.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
-                var airItemExtnCount = ctx.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == model.AIRItemId).Count();
-                var totalQty = airItemQty * groupQty;
-
-                if (airItemExtnCount == totalQty)
-                {
-                    throw new InvalidValueException($"Cannot create more than {totalQty} record(s).");
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.SerialNo))
-                {
-                    if (await ctx.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.AIRItemId == model.AIRItemId && f.SerialNo == model.SerialNo))
-                    {
-                        throw new RecordAlreadyExistsException("Serial No. already exists!");
-                    }
-                }
-
-                var contentNo = ctx.AIRItemExtns.Where(w => w.AIRItemId == model.AIRItemId).Max(m => m.ContentNo) ?? 0;
-                model.TContentNo = airItemQty;
-                model.ContentNo = contentNo + 1;
-                model.Id = Guid.NewGuid();
-                model.InsertedBy = user;
-                model.UpdatedBy = user;
-                model.InsertedDt = date;
-                model.UpdatedDt = date;
-
-                model.Id = Guid.NewGuid();
-
-                var entity = new AIRItemExtnOther()
-                {
-                    Id = model.Id,
-                    AIRItemId = model.AIRItemId,
-                    ContentNo = model.ContentNo,
-                    TContentNo = model.TContentNo,
-                    CustItemNo = model.CustItemNo,
-                    IsAutoGen = model.IsAutoGen,
-                    SerialNo = model.SerialNo,
-                    Condition = model.Condition,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
-
-                ctx.AIRItemExtns.Add(entity);
-                await ctx.SaveChangesAsync();
+                throw new InvalidValueException($"Cannot create more than {totalQty} record(s).");
             }
+
+            if (!string.IsNullOrWhiteSpace(model.SerialNo))
+            {
+                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.AIRItemId == model.AIRItemId && f.SerialNo == model.SerialNo))
+                {
+                    throw new RecordAlreadyExistsException("Serial No. already exists!");
+                }
+            }
+
+            var contentNo = _db.AIRItemExtns.Where(w => w.AIRItemId == model.AIRItemId).Max(m => m.ContentNo) ?? 0;
+            model.TContentNo = airItemQty;
+            model.ContentNo = contentNo + 1;
+            model.Id = Guid.NewGuid();
+            model.InsertedBy = user;
+            model.UpdatedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedDt = date;
+
+            model.Id = Guid.NewGuid();
+
+            var entity = new AIRItemExtnOther()
+            {
+                Id = model.Id,
+                AIRItemId = model.AIRItemId,
+                ContentNo = model.ContentNo,
+                TContentNo = model.TContentNo,
+                CustItemNo = model.CustItemNo,
+                IsAutoGen = model.IsAutoGen,
+                SerialNo = model.SerialNo,
+                Condition = model.Condition,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+
+            _db.AIRItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -129,21 +133,15 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.AIRItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.AIRItemExtns.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRItemExtns.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -166,22 +164,17 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.ContentNo = model.ContentNo;
-                entity.CustItemNo = model.CustItemNo;
-                entity.IsAutoGen = model.IsAutoGen;
-                entity.SerialNo = model.SerialNo;
-                entity.Condition = model.Condition;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.ContentNo = model.ContentNo;
+            entity.CustItemNo = model.CustItemNo;
+            entity.IsAutoGen = model.IsAutoGen;
+            entity.SerialNo = model.SerialNo;
+            entity.Condition = model.Condition;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.AIRItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -193,33 +186,27 @@ namespace iLgs.Services.AIRs_
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var airItem = await _db.AIRItems.FirstOrDefaultAsync(f => f.Id == airItemId);
+
+            if (airItem.InvDist != "I")
             {
-                var airItem = await ctx.AIRItems.FirstOrDefaultAsync(f => f.Id == airItemId);
-
-                if (airItem.InvDist != "I")
-                {
-                    throw new InvalidValueException("Item is not For Inventory, cannot proceed.");
-                }
-
-                var orderItem = await ctx.OrderItems
-                    .Include(i => i.Order.OrderItemUnitGroups)
-                    .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
-                    .Where(w => w.Id == airItem.OrderItemId).FirstOrDefaultAsync();
-
-                var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
-                if (isWithParIcs != true)
-                {
-                    throw new InvalidValueException("Item is not For PAR/ICS, cannot proceed.");
-                }
-
-                // complete the serial number template here, new airitemExtn is injected inside airItem
-                await _airItemExtnSharedService.CreateAirItemExtnAsync(airItem, orderItem, user, date);
-                //_db.AIRItems.Attach(airItem);
-                //_db.Entry(airItem).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new InvalidValueException("Item is not For Inventory, cannot proceed.");
             }
-            
+
+            var orderItem = await _db.OrderItems
+                .Include(i => i.Order.OrderItemUnitGroups)
+                .Include(i => i.ItemCode.ItemType)
+                .Where(w => w.Id == airItem.OrderItemId).FirstOrDefaultAsync();
+
+            var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
+            if (isWithParIcs != true)
+            {
+                throw new InvalidValueException("Item is not For PAR/ICS, cannot proceed.");
+            }
+
+            // complete the serial number template here, new airitemExtn is injected inside airItem
+            await _airItemExtnSharedService.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+            await _db.SaveChangesAsync();
 
             return new AIRItemExtnOther();
         });
@@ -240,7 +227,7 @@ namespace iLgs.Services.AIRs_
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            
+
             if (entity.AIRItem.InvDist != "I")
             {
                 throw new InvalidValueException("Item is not For Inventory, cannot proceed.");
@@ -248,7 +235,7 @@ namespace iLgs.Services.AIRs_
 
             var orderItem = await _db.OrderItems
                 .Include(i => i.Order.OrderItemUnitGroups)
-                .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == entity.AIRItem.OrderItemId).FirstOrDefaultAsync();
 
             var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
@@ -256,7 +243,7 @@ namespace iLgs.Services.AIRs_
             {
                 throw new InvalidValueException("Item is not For PAR/ICS, cannot proceed.");
             }
-            
+
             var airItemExtns = await _db.AIRItemExtns
                 .Include(i => i.AIRItem.OrderItem.Order)
                 .OfType<AIRItemExtnOther>().Where(w => w.Id == airItemExtnId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();

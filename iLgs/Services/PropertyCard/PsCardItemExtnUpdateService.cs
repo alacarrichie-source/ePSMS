@@ -14,7 +14,7 @@ using static iLgs.Models.Enums;
 namespace iLgs.Services.PropertyCard
 {
     public interface IPsCardItemExtnUpdateService
-    {        
+    {
         IQueryable<PsCardItemExtnVM> GetAll();
 
         IQueryable<PsCardItemExtnVM> GetAll(int? accountGroup);
@@ -31,14 +31,13 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemExtnPpeEntryVM> GetCardItemExtnPpeEntryAsync(Guid? id);
 
         ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date);
-        ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date);        
+        ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date);
     }
 
 
-    public class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
+    internal class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private decimal? _SPHV;
 
         private readonly GetDisplayNameDelegate _getPpeDisplayName;
@@ -49,24 +48,36 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PsCardItemExtnLandEntryVM> _landExceptionService;
         private readonly ISemiExpendableService _semiExpendableService;
 
-        public PsCardItemExtnUpdateService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IPsCardSharedService psCardSharedService,
-            IExceptionService<PsCardItemExtnPpeEntryVM> ppeExceptionService,
-            IExceptionService<PsCardItemExtnVehicleEntryVM> vehicleExceptionService,
-            IExceptionService<PsCardItemExtnLandEntryVM> landExceptionService,
-            ISemiExpendableService semiExpendableService)
+        public PsCardItemExtnUpdateService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _psCardSharedService = psCardSharedService;
-            _ppeExceptionService = ppeExceptionService;
-            _vehicleExceptionService = vehicleExceptionService;
-            _landExceptionService = landExceptionService;
-            _semiExpendableService = semiExpendableService;
+            _psCardSharedService = new PsCardSharedService(_db);
+            _ppeExceptionService = new ExceptionService<PsCardItemExtnPpeEntryVM>();
+            _vehicleExceptionService = new ExceptionService<PsCardItemExtnVehicleEntryVM>();
+            _landExceptionService = new ExceptionService<PsCardItemExtnLandEntryVM>();
+            _semiExpendableService = new SemiExpendableService(_db);
             _getPpeDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnPpeEntryVM>(propertyName);
             _getVehicleDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleEntryVM>(propertyName);
         }
+
+        //public PsCardItemExtnUpdateService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IPsCardSharedService psCardSharedService,
+        //    IExceptionService<PsCardItemExtnPpeEntryVM> ppeExceptionService,
+        //    IExceptionService<PsCardItemExtnVehicleEntryVM> vehicleExceptionService,
+        //    IExceptionService<PsCardItemExtnLandEntryVM> landExceptionService,
+        //    ISemiExpendableService semiExpendableService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _psCardSharedService = psCardSharedService;
+        //    _ppeExceptionService = ppeExceptionService;
+        //    _vehicleExceptionService = vehicleExceptionService;
+        //    _landExceptionService = landExceptionService;
+        //    _semiExpendableService = semiExpendableService;
+        //    _getPpeDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnPpeEntryVM>(propertyName);
+        //    _getVehicleDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleEntryVM>(propertyName);
+        //}
 
         private decimal GetSPHV()
         {
@@ -117,7 +128,7 @@ namespace iLgs.Services.PropertyCard
                         .AsQueryable();
             return data;
         }
-                                               
+
         public async ValueTask<PsCardItemExtnStructuresEntryVM> GetCardItemExtnStructuresEntryAsync(Guid? id)
         {
             var data = await _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Building_GetById {0}", id).FirstOrDefaultAsync();
@@ -260,7 +271,7 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
 
-        
+
         public ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date) => _ppeExceptionService.TryCatch(async () =>
         {
             if (model == null)
@@ -272,33 +283,28 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
             {
-                var entity = await ctx.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-                if (entity == null)
-                {
-                    throw new NotFoundException(model.Id);
-                }
-
-                entity.CustItemNo = model.CustItemNo;
-                entity.Annex = model.Annex;
-                entity.SeriesNo = model.SeriesNo;
-                entity.SubLocation = model.SubLocation;
-                entity.Condition = model.Condition;
-                entity.AddCost = model.AddCost;
-                entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
-                entity.Remarks = model.Remarks;
-                entity.OldPropNo = model.OldPropNo;
-                entity.OldAmount = model.OldAmount;
-                entity.UpcomingOfficer = model.UpcomingOfficer;
-
-                entity.SerialNo = model.SerialNo;
-
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new NotFoundException(model.Id);
             }
+
+            entity.CustItemNo = model.CustItemNo;
+            entity.Annex = model.Annex;
+            entity.SeriesNo = model.SeriesNo;
+            entity.SubLocation = model.SubLocation;
+            entity.Condition = model.Condition;
+            entity.AddCost = model.AddCost;
+            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+            entity.Remarks = model.Remarks;
+            entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+
+            entity.SerialNo = model.SerialNo;
+
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -313,49 +319,44 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
             {
-                var entity = await ctx.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-                if (entity == null)
-                {
-                    throw new NotFoundException(model.Id);
-                }
-
-                entity.CustItemNo = model.CustItemNo;
-                entity.Annex = model.Annex;
-                entity.SeriesNo = model.SeriesNo;
-                entity.SubLocation = model.SubLocation;
-                entity.Condition = model.Condition;
-                entity.AddCost = model.AddCost;
-                entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
-                entity.Remarks = model.Remarks;
-                entity.OldPropNo = model.OldPropNo;
-                entity.OldAmount = model.OldAmount;
-                entity.UpcomingOfficer = model.UpcomingOfficer;
-
-                entity.YearModel = model.YearModel;
-                entity.PlateNo = model.PlateNo;
-                entity.BodyNo = model.BodyNo;
-                entity.EngineNo = model.EngineNo;
-                entity.ChasisNo = model.ChasisNo;
-                entity.Color = model.Color;
-                entity.CRN = model.CRN;
-                entity.CRDate = model.CRDate;
-                entity.MVFileNo = model.MVFileNo;
-                entity.OrNo = model.OrNo;
-                entity.OrDate = model.OrDate;
-                entity.NetWeight = model.NetWeight;
-                entity.InsPolicyNo = model.InsPolicyNo;
-                entity.ConductionNo = model.ConductionNo;
-
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new NotFoundException(model.Id);
             }
 
+            entity.CustItemNo = model.CustItemNo;
+            entity.Annex = model.Annex;
+            entity.SeriesNo = model.SeriesNo;
+            entity.SubLocation = model.SubLocation;
+            entity.Condition = model.Condition;
+            entity.AddCost = model.AddCost;
+            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+            entity.Remarks = model.Remarks;
+            entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+
+            entity.YearModel = model.YearModel;
+            entity.PlateNo = model.PlateNo;
+            entity.BodyNo = model.BodyNo;
+            entity.EngineNo = model.EngineNo;
+            entity.ChasisNo = model.ChasisNo;
+            entity.Color = model.Color;
+            entity.CRN = model.CRN;
+            entity.CRDate = model.CRDate;
+            entity.MVFileNo = model.MVFileNo;
+            entity.OrNo = model.OrNo;
+            entity.OrDate = model.OrDate;
+            entity.NetWeight = model.NetWeight;
+            entity.InsPolicyNo = model.InsPolicyNo;
+            entity.ConductionNo = model.ConductionNo;
+
+            await _db.SaveChangesAsync();
+
             return model;
-        });        
+        });
 
         public string GetEndSeries(string startSeries, Guid? itemId)
         {

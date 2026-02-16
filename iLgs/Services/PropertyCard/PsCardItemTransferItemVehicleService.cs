@@ -23,28 +23,37 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransferItemVehicleService : BaseValidator, IPsCardItemTransferItemVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnVehicleValidator;
         private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
 
-        public PsCardItemTransferItemVehicleService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardItemExtnVehicleValidator psCardItemExtnVehicleValidator,
-            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
+        public PsCardItemTransferItemVehicleService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleVM>(propertyName);
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _psCardItemExtnVehicleValidator = psCardItemExtnVehicleValidator;
-            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+            _exceptionService = new ExceptionService<PsCardItemExtnVehicleVM>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnVehicleValidator = new PsCardItemExtnVehicleValidator(_db);
+            _psCardItemTransferItemSharedService = new PsCardItemTransferItemSharedService(_db);
         }
+
+        //public PsCardItemTransferItemVehicleService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IPsCardItemExtnVehicleValidator psCardItemExtnVehicleValidator,
+        //    IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleVM>(propertyName);
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _psCardItemExtnVehicleValidator = psCardItemExtnVehicleValidator;
+        //    _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+        //}
 
         public List<PsCardItemExtnVehicleVM> GetCardItemExtns(Guid? psCardTransferId)
         {
@@ -58,39 +67,36 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnVehicleValidator.ValidateOnCreate(model);
             _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId);
+
+            if (itemExtns.Any(a => a.ConductionNo == model.ConductionNo))
             {
-                var itemExtns = ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId);
-
-                if (itemExtns.Any(a => a.ConductionNo == model.ConductionNo))
-                {
-                    throw new RecordAlreadyExistsException($"Conduction Sticker No. {model.ConductionNo} already exists!");
-                }
-
-                model.Id = Guid.NewGuid();
-                model.InsertedBy = user;
-                model.UpdatedBy = user;
-                model.InsertedDt = date;
-                model.UpdatedDt = date;
-
-                var entity = new PsCardItemExtnVehicle();
-                var psCardItemTransferItem = new PsCardItemTransferItem()
-                {
-                    Id = Guid.NewGuid(),
-                    PsCardItemTransferId = model.TransferId,
-                    PsCardItemExtnId = model.Id,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
-
-                entity.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                MapModelToEntityFields(entity, model, Mode.ADD);
-
-                ctx.PsCardItemExtns.Add(entity);
-                await ctx.SaveChangesAsync();
+                throw new RecordAlreadyExistsException($"Conduction Sticker No. {model.ConductionNo} already exists!");
             }
+
+            model.Id = Guid.NewGuid();
+            model.InsertedBy = user;
+            model.UpdatedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedDt = date;
+
+            var entity = new PsCardItemExtnVehicle();
+            var psCardItemTransferItem = new PsCardItemTransferItem()
+            {
+                Id = Guid.NewGuid(),
+                PsCardItemTransferId = model.TransferId,
+                PsCardItemExtnId = model.Id,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            entity.PsCardItemTransferItems.Add(psCardItemTransferItem);
+            MapModelToEntityFields(entity, model, Mode.ADD);
+
+            _db.PsCardItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
@@ -101,31 +107,26 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnVehicleValidator.ValidateOnUpdate(model);
             _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id && w.ConductionNo == model.ConductionNo).FirstOrDefaultAsync();
+            if (itemExtn != null)
             {
-                var itemExtn = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id && w.ConductionNo == model.ConductionNo).FirstOrDefaultAsync();
-                if (itemExtn != null)
-                {
-                    throw new RecordAlreadyExistsException($"Conduction Sticker No. {model.ConductionNo} already exists!");
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
-                    .Include(i => i.PsCardItemTransferItems)
-                    .FirstOrDefaultAsync(f => f.Id == model.Id);
-                var psCardItemTransferItem = entity.PsCardItemTransferItems.FirstOrDefault(f => f.Id == model.Id);
-                psCardItemTransferItem.UpdatedBy = user;
-                psCardItemTransferItem.UpdatedDt = date;
-
-                entity.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                MapModelToEntityFields(entity, model, Mode.EDIT);
-
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new RecordAlreadyExistsException($"Conduction Sticker No. {model.ConductionNo} already exists!");
             }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                .Include(i => i.PsCardItemTransferItems)
+                .FirstOrDefaultAsync(f => f.Id == model.Id);
+            var psCardItemTransferItem = entity.PsCardItemTransferItems.FirstOrDefault(f => f.Id == model.Id);
+            psCardItemTransferItem.UpdatedBy = user;
+            psCardItemTransferItem.UpdatedDt = date;
+
+            entity.PsCardItemTransferItems.Add(psCardItemTransferItem);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            await _db.SaveChangesAsync();
 
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
@@ -159,21 +160,15 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PsCardItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemExtns.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemExtns.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });

@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.Items;
@@ -21,61 +22,84 @@ namespace iLgs.Services.AIRs_
         ValueTask<AIR> GetByIdAsync(Guid id);
         ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
         ValueTask<AIR> GetByAirNoAsync(string airNo);
-        ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);        
-        
+        ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);
+
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date);
         ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date);
+
+        IAirItemService AirItem { get; }
+        IAirInvoiceService AirInvoice { get; }
     }
 
     public class AirService : BaseValidator, IAirService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<AIR_VM> _vmExceptionService;
         private readonly IExceptionService<AIR> _exceptionService;
-        private readonly IAirAbstractService _airAbstractService;
-        private readonly IAirItemService _airItemService;
+        private readonly IAirAbstractService _airAbstractService;        
         private readonly IItemCodeService _itemCodeService;
-        private readonly IAirUploadService _uploadService;        
+        private readonly IAirUploadService _uploadService;
         private readonly IUserService _userService;
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public AirService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<AIR_VM> vmExceptionService,
-            IExceptionService<AIR> exceptionService,
-            IAirAbstractService airAbstractService, 
-            IAirItemService airItemService, IAirUploadService uploadService, IItemCodeService itemCodeService,
-            IUserService userService, IPriceCapService priceCapService)
+        private IAirItemService _airItemService;
+        private IAirInvoiceService _airInvoiceService;
+
+        public AirService(AppManEntities db)
         {
-            _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _airAbstractService = airAbstractService;
-            _airItemService = airItemService;
-            _itemCodeService = itemCodeService;
-            _uploadService = uploadService;
-            _userService = userService;
-            _priceCapService = priceCapService;
-            _getDisplayName = Utility.GetDisplayName<OrderVM>;            
+            _db = db;            
+            _airAbstractService = new AirAbstractService(_db);            
+            _itemCodeService = new ItemCodeService(_db);
+            _uploadService = new AirUploadService(_db);
+            _userService = new UserService(_db);
+            _priceCapService = new PriceCapService(_db);
+            _vmExceptionService = new ExceptionService<AIR_VM>();
+            _exceptionService = new ExceptionService<AIR>();
+            _getDisplayName = Utility.GetDisplayName<OrderVM>;
+            _airItemService = new AirItemService(_db);
+            _airInvoiceService = new AirInvoiceService(_db);
         }
+
+        //public AirService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<AIR_VM> vmExceptionService,
+        //    IExceptionService<AIR> exceptionService,
+        //    IAirAbstractService airAbstractService, 
+        //    IAirItemService airItemService, IAirUploadService uploadService, IItemCodeService itemCodeService,
+        //    IUserService userService, IPriceCapService priceCapService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _airAbstractService = airAbstractService;
+        //    _airItemService = airItemService;
+        //    _itemCodeService = itemCodeService;
+        //    _uploadService = uploadService;
+        //    _userService = userService;
+        //    _priceCapService = priceCapService;
+        //    _getDisplayName = Utility.GetDisplayName<OrderVM>;            
+        //}
+
+        public IAirItemService AirItem => _airItemService;
+        public IAirInvoiceService AirInvoice => _airInvoiceService;
 
         private static Expression<Func<AIR, AIR_VM>> Projection
         = s => new AIR_VM
         {
             Id = s.Id,
-            Fund = s.Order.Request.RISs.Fund,
+            Fund = s.Order.Fund,
             OrderId = s.OrderId,
             PoNo = s.Order.PoNo,
             Supplier = s.Order.SupName,
             PoDate = s.Order.PoDate,
-            Department = s.Order.DeliveryPlace,
+            //Department = s.Order.DeliveryPlace,
+            Department = s.Order.Department,
             AIRNo = s.AIRNo,
             AIRDate = s.AIRDate,
             InvoiceNo = s.InvoiceNo,
@@ -120,7 +144,7 @@ namespace iLgs.Services.AIRs_
                 data = _db.AIRs
                     .Include(i => i.AIRInvoices)
                     .AsNoTracking()
-                    .Where(w => w.Order.Request.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Where(w => w.Order.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
                     .Select(Projection);
             }
             return data;
@@ -149,732 +173,748 @@ namespace iLgs.Services.AIRs_
         {
             return await _db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
         });
+
         
-
-        //public async Task<bool> IsPrPostedAsync(Guid risId)
-        //{
-        //    var pr = await db.Requests.Where(a => a.RisId == risId).FirstOrDefaultAsync();
-        //    if (pr != null)
-        //    {
-        //        return !string.IsNullOrWhiteSpace(pr.SubmittedBy);
-        //    }
-        //    return false;
-        //}
-
         public ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.AIRs.Include(i => i.AIRItems).Include(i => i.AIRInvoices).FirstOrDefaultAsync(f => f.Id == airId);
+            if (entity == null)
             {
-                var entity = await ctx.AIRs.Include(i => i.AIRItems).Include(i => i.AIRInvoices).FirstOrDefaultAsync(f => f.Id == airId);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(airId);
-                }
+                throw new NotFoundException(airId);
+            }
 
-                if (await IsPostedAsync(airId))
-                {
-                    throw new RecordAlreadyPostedException();
-                }
+            if (await IsPostedAsync(airId))
+            {
+                throw new RecordAlreadyPostedException();
+            }
 
-                if (!entity.AIRInvoices.Any())
-                {
-                    throw new RecordNotFoundException("Invoice Record is Required.");
-                }
+            if (!entity.AIRInvoices.Any())
+            {
+                throw new NotFoundException("Invoice Record is Required.");
+            }
 
-                var order = await ctx.Orders.FindAsync(entity.OrderId);
-                if (order == null)
+            var order = await _db.Orders.FindAsync(entity.OrderId);
+            if (order == null)
+            {
+                throw new RecordRelationshipException("Purchase Order not found.");
+            }
+            else
+            {
+                if (order.PoDate > entity.AIRDate)
                 {
-                    throw new RecordRelationshipException("Purchase Order not found.");
+                    throw new InvalidValueException("AIR Date Must be on or after the PO Date.");
                 }
-                else
+            }
+
+            if (!entity.AcceptedDate.HasValue)
+            {
+                throw new InvalidValueException("Date received is required.");
+            }
+
+            if (!entity.IsComplete == true && !entity.IsPartial == true)
+            {
+                throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.Custodian))
+            {
+                throw new InvalidValueException("Acceptance Custodian is required.");
+            }
+
+            if (!entity.InspectedDate.HasValue)
+            {
+                throw new InvalidValueException("Date inspected is required.");
+            }
+
+            if (!entity.IsInspected == true)
+            {
+                throw new InvalidValueException("Please mark Inspected checkbox as checked.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.Officer))
+            {
+                throw new InvalidValueException("Inspection Officer is required.");
+            }
+
+            await ValidateUploadAsync(airId, entity.AIRNo);
+
+            _airItemService.ValidAirItems(airId);
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.AIRs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+
+            List<Guid> psCardIdList = new List<Guid>();
+            var priceCap = _priceCapService.GetPriceCap(order.PoDate);
+            var orderItemGroups = await _db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}, {1}", entity.OrderId, priceCap).ToListAsync();
+            // create stock for each group
+            foreach (var oig in orderItemGroups)
+            {
+                // Post the OrderItems under the stocks having the same PsCodeId
+                var orderItemList = await _db.OrderItems.AsNoTracking()
+                    .Include(i => i.Order)
+                    .Where(w => w.OrderId == entity.OrderId
+                        && w.PsNo == oig.StockNo                        
+                        && w.Order.Fund == oig.Fund).ToListAsync();
+
+                foreach (var orderItem in orderItemList)
                 {
-                    if (order.PoDate > entity.AIRDate)
+                    //var risItem = await _db.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
+                    //risItem.QtyIssue = (int?)orderItem.Qty;
+                    //risItem.UpdatedBy = user;
+                    //risItem.UpdatedDt = date;
+                    //_db.RisItems.Attach(risItem);
+                    //_db.Entry(risItem).State = EntityState.Modified;
+
+                    var isNew = false;
+                    var psCard = await _db.PsCards.Include(i => i.PsCardItems)
+                        .Include(i => i.AllField)
+                        .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
+                            && w.FromDonation != true
+                        ).FirstOrDefaultAsync();
+
+                    var oAf = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
+                    var office = orderItem.Order.Department;
+                    var deptId = orderItem.Order.DeptId;
+
+                    if (psCard == null)
                     {
-                        throw new InvalidValueException("AIR Date Must be on or after the PO Date.");
-                    }
-                }
-
-                if (!entity.AcceptedDate.HasValue)
-                {
-                    throw new InvalidValueException("Date received is required.");
-                }
-
-                if (!entity.IsComplete == true && !entity.IsPartial == true)
-                {
-                    throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.Custodian))
-                {
-                    throw new InvalidValueException("Acceptance Custodian is required.");
-                }
-
-                if (!entity.InspectedDate.HasValue)
-                {
-                    throw new InvalidValueException("Date inspected is required.");
-                }
-
-                if (!entity.IsInspected == true)
-                {
-                    throw new InvalidValueException("Please mark Inspected checkbox as checked.");
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.Officer))
-                {
-                    throw new InvalidValueException("Inspection Officer is required.");
-                }
-
-                await ValidateUploadAsync(airId, entity.AIRNo);
-
-                _airItemService.ValidAirItems(airId);
-
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                ctx.AIRs.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
-
-                List<Guid> psCardIdList = new List<Guid>();
-                var priceCap = _priceCapService.GetPriceCap(order.PoDate);
-                var orderItemGroups = await ctx.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}, {1}", entity.OrderId, priceCap).ToListAsync();
-                // create stock for each group
-                foreach (var oig in orderItemGroups)
-                {
-                    // Post the OrderItems under the stocks having the same PsCodeId
-                    var orderItemList = await ctx.OrderItems
-                        .Include(i => i.Order)
-                        .Include(i => i.RequestItem.RisItem.RISs)
-                        .Where(w => w.OrderId == entity.OrderId
-                            && w.PsNo == oig.StockNo
-                            //&& w.StockName == oig.StockName
-                            //&& w.Description == oig.Description
-                            && w.RequestItem.RisItem.RISs.Fund == oig.Fund).ToListAsync();
-
-                    foreach (var orderItem in orderItemList)
-                    {
-                        var risItem = await ctx.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
-                        risItem.QtyIssue = (int?)orderItem.Qty;
-                        risItem.UpdatedBy = user;
-                        risItem.UpdatedDt = date;
-                        ctx.RisItems.Attach(risItem);
-                        ctx.Entry(risItem).State = EntityState.Modified;
-
-                        var isNew = false;
-                        var psCard = await ctx.PsCards.Include(i => i.PsCardItems)
-                            .Include(i => i.AllField)
-                            .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
-                                && w.FromDonation != true
-                            //&& w.Unit == oig.Unit
-                            ).FirstOrDefaultAsync();
-
-                        var oAf = await ctx.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
-                        var office = orderItem.RequestItem.RisItem.RISs.Office;                        
-                        var deptId = orderItem.RequestItem.RisItem.RISs.OfficeId;
-
-                        if (psCard == null)
+                        isNew = true;
+                        var psCardId = Guid.NewGuid();
+                        var subAccountCode = _itemCodeService.GetSubAccountCode(oig.ItemCodeId);
+                        psCard = new PsCard()
                         {
-                            isNew = true;
-                            var psCardId = Guid.NewGuid();
-                            var subAccountCode = _itemCodeService.GetSubAccountCode(oig.ItemCodeId);
-                            psCard = new PsCard()
+                            Id = psCardId,
+                            ItemCodeId = oig.ItemCodeId,
+                            Fund = oig.Fund,
+                            Description = "Please see attachment.",
+                            PsNo = oig.StockNo,
+                            SubAccountCode = subAccountCode,
+                            CardCategory = oig.CardCategory,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        AllField af = null;
+                        if (oAf != null)
+                        {
+                            string partialView = await _itemCodeService.GetPartialViewAsync(oig.ItemCodeId);
+
+                            //_FieldAlcohol
+                            //_FieldBrand
+                            //_FieldBrand_A
+                            //_FieldBrand_B
+                            //_FieldDrugs
+                            //_FieldLand
+                            //_FieldMultiple
+                            //_FieldMultiple_A
+                            //_FieldSeral_A
+                            //_FieldSerial
+                            //_FieldSerial_B
+                            //_FieldSerial_C
+                            //_FieldSerial_D
+                            //_FieldSerial_E
+                            //_FieldSerial_F
+                            af = new AllField()
                             {
                                 Id = psCardId,
-                                ItemCodeId = oig.ItemCodeId,
-                                Fund = oig.Fund,
-                                Description = "Please see attachment.",
-                                PsNo = oig.StockNo,
-                                SubAccountCode = subAccountCode,
-                                CardCategory = oig.CardCategory,
+                                AcqMode = oAf.AcqMode,
+                                InvDist = oAf.InvDist,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date
                             };
 
-                            AllField af = null;
-                            if (oAf != null)
-                            {                             
-                                string partialView = await _itemCodeService.GetPartialViewAsync(oig.ItemCodeId);
-
-                                //_FieldAlcohol
-                                //_FieldBrand
-                                //_FieldBrand_A
-                                //_FieldBrand_B
-                                //_FieldDrugs
-                                //_FieldLand
-                                //_FieldMultiple
-                                //_FieldMultiple_A
-                                //_FieldSeral_A
-                                //_FieldSerial
-                                //_FieldSerial_B
-                                //_FieldSerial_C
-                                //_FieldSerial_D
-                                //_FieldSerial_E
-                                //_FieldSerial_F
-                                af = new AllField()
+                            if (partialView == "_FieldAlcohol")
+                            {
+                                af.GenericName = oAf.GenericName;
+                                af.DosageVolume = oAf.DosageVolume;
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView.Contains("_FieldBrand"))
+                            {
+                                if (partialView == "_FieldBrand")
                                 {
-                                    Id = psCardId,
-                                    AcqMode = oAf.AcqMode,
-                                    InvDist = oAf.InvDist,
+                                    af.Multipliers = oAf.Multipliers;
+                                }
+                                af.Brand = oAf.Brand;
+
+                                if (partialView == "_FieldBrand_A")
+                                {
+                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Size.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                        {
+                                                            af.Color = oAf.Color;
+                                                        }
+                                                        else
+                                                        {
+                                                            af.Capacity = oAf.Capacity;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Materials = oAf.Materials;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Weight = oAf.Weight;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Size = oAf.Size;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Dimension = oAf.Dimension;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Model_ = oAf.Model_;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldDrugs")
+                            {
+                                af.GenericName = oAf.GenericName;
+                                af.DosageStrength = oAf.DosageStrength;
+                                af.DosageForm = oAf.DosageForm;
+                                af.DosageVolume = oAf.DosageVolume;
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView == "_FieldLand")
+                            {
+                                af.Area = oAf.Area;
+                            }
+                            else if (partialView == "_FieldMultiple")
+                            {
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldMultiple_A")
+                            {
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView == "_FieldSerial")
+                            {
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_A")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_B")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldSerial_C")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldSerial_D")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_E")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_F")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+                            }
+
+                            psCard.AllField = af;
+                        }
+                    }
+
+                    var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
+                    if (psCardItem == null)
+                    {
+                        var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
+                        var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                        var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                        var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
+                        var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
+                        var psCardItemId = Guid.NewGuid();
+                        psCardItem = new PsCardItem()
+                        {
+                            Id = psCardItemId,
+                            GroupId = psCardItemId,
+                            PsCardId = psCard.Id,
+                            OrderItemId = orderItem.Id,
+                            PoDate = orderItem.Order.PoDate,
+                            PoNo = orderItem.Order.PoNo,
+                            AirDate = entity.AIRDate,
+                            AirNo = entity.AIRNo,
+                            //Original Qty and Amount / Transit Data
+                            Qty = (int)orderItem.Qty * setQty,
+                            QtyIss = 0,
+                            QtyBal = (int)orderItem.Qty * setQty,
+                            Amount = orderItem.Amount,
+                            //TranType = "I",
+                            Unit = orderItem.Unit,
+                            UnitCost = orderItem.UnitCost,
+                            PriceRate = orderItem.PriceRate,
+                            AddCost = 0,
+                            TUnitCost = orderItem.UnitCost,
+                            GTotalCost = orderItem.Amount,
+                            DeptId = deptId,
+                            DeptDisplay = office,
+                            Description = oig.Description,
+                            OtherDesc = orderItem.OtherDesc,
+                            Type = oAf.Type,
+                            InvDist = oig.InvDist,
+                            FPP = orderItem.Order.FPP,
+                            SetLotNo = setLotNo,
+                            SetLotAmount = setLotAmount,
+                            SetLotRemarks = setLotRemarks,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date,
+                            PostedBy = user,
+                            PostedDt = date,
+                            PpmpCode = orderItem.PpmpCode
+                        };
+
+                        var psCardItemTransfer = new PsCardItemTransfer()
+                        {
+                            Id = Guid.NewGuid(),
+                            PsCardItemId = psCardItem.Id,
+                            Qty = (int)orderItem.Qty * setQty,
+                            QtyIss = 0,
+                            QtyBal = (int)orderItem.Qty * setQty,
+                            Amount = orderItem.Amount,
+                            TranType = "I",
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+
+                        // include ItemExtns
+                        var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
+                        foreach (var airItemExtnOther in airItemExtnOthers)
+                        {
+                            var psCardItemExtnOther = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
+                                .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnOther.Id);
+                            if (psCardItemExtnOther == null)
+                            {
+                                var psCardItemExtnId = Guid.NewGuid();
+                                psCardItemExtnOther = new PsCardItemExtnOther()
+                                {
+                                    Id = psCardItemExtnId,
+                                    GroupId = psCardItemExtnId,
+                                    PsCardItemId = psCardItem.Id,
+                                    AIRItemExtnId = airItemExtnOther.Id,
+                                    SetLotNo = airItemExtnOther.SetLotNo,
+                                    SetLotQtyNo = airItemExtnOther.SetLotQtyNo,
+                                    ContentNo = airItemExtnOther.ContentNo,
+                                    SerialNo = airItemExtnOther.SerialNo,
+                                    AddCost = 0,
+                                    AcqCost = airItemExtnOther.AIRItem.OrderItem.UnitCost,
                                     InsertedBy = user,
                                     InsertedDt = date,
                                     UpdatedBy = user,
                                     UpdatedDt = date
                                 };
-
-                                if (partialView == "_FieldAlcohol")
-                                {
-                                    af.GenericName = oAf.GenericName;
-                                    af.DosageVolume = oAf.DosageVolume;
-                                    af.Multipliers = oAf.Multipliers;
-                                    af.Brand = oAf.Brand;
-                                }
-                                else if (partialView.Contains("_FieldBrand"))
-                                {
-                                    if (partialView == "_FieldBrand")
-                                    {
-                                        af.Multipliers = oAf.Multipliers;
-                                    }
-                                    af.Brand = oAf.Brand;
-
-                                    if (partialView == "_FieldBrand_A")
-                                    {
-                                        if (oAf.Model_.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (oAf.Dimension.IsNullOrWhiteSpaceX())
-                                            {
-                                                if (oAf.Size.IsNullOrWhiteSpaceX())
-                                                {
-                                                    if (oAf.Weight.IsNullOrWhiteSpaceX())
-                                                    {
-                                                        if (oAf.Materials.IsNullOrWhiteSpaceX())
-                                                        {
-                                                            if (oAf.Capacity.IsNullOrWhiteSpaceX())
-                                                            {
-                                                                af.Color = oAf.Color;
-                                                            }
-                                                            else
-                                                            {
-                                                                af.Capacity = oAf.Capacity;
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            af.Materials = oAf.Materials;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        af.Weight = oAf.Weight;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    af.Size = oAf.Size;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                af.Dimension = oAf.Dimension;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.Model_ = oAf.Model_;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.Model_ = oAf.Model_;
-                                    }
-                                }
-                                else if (partialView == "_FieldDrugs")
-                                {
-                                    af.GenericName = oAf.GenericName;
-                                    af.DosageStrength = oAf.DosageStrength;
-                                    af.DosageForm = oAf.DosageForm;
-                                    af.DosageVolume = oAf.DosageVolume;
-                                    af.Multipliers = oAf.Multipliers;
-                                    af.Brand = oAf.Brand;
-                                }
-                                else if (partialView == "_FieldLand")
-                                {
-                                    af.Area = oAf.Area;
-                                }
-                                else if (partialView == "_FieldMultiple")
-                                {
-                                    af.Multipliers = oAf.Multipliers;
-                                }
-                                else if (partialView == "_FieldMultiple_A")
-                                {
-                                    af.Multipliers = oAf.Multipliers;
-                                    af.Brand = oAf.Brand;
-                                }
-                                else if (partialView == "_FieldSerial")
-                                {
-                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
-                                    {
-                                        af.PropNo = oAf.PropNo;
-                                    }
-                                    else
-                                    {
-                                        af.SerialNo = oAf.SerialNo;
-                                    }
-
-                                    af.Multipliers = oAf.Multipliers;
-                                    af.Brand = oAf.Brand;
-
-                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.Dimension.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (oAf.Size.IsNullOrWhiteSpaceX())
-                                            {
-                                                if (oAf.Weight.IsNullOrWhiteSpaceX())
-                                                {
-                                                    if (oAf.Materials.IsNullOrWhiteSpaceX())
-                                                    {
-                                                        if (oAf.Capacity.IsNullOrWhiteSpaceX())
-                                                        {
-                                                            af.Color = oAf.Color;
-                                                        }
-                                                        else
-                                                        {
-                                                            af.Capacity = oAf.Capacity;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        af.Materials = oAf.Materials;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    af.Weight = oAf.Weight;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                af.Size = oAf.Size;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.Dimension = oAf.Dimension;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.Model_ = oAf.Model_;
-                                    }
-                                }
-                                else if (partialView == "_FieldSerial_A")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.BodyNo.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
-                                            {
-                                                af.MVFileNo = oAf.MVFileNo;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.BodyNo = oAf.BodyNo;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.PlateNo = oAf.PlateNo;
-                                    }
-
-                                    af.Multipliers = oAf.Multipliers;
-                                    af.Brand = oAf.Brand;
-
-                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.Dimension.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (oAf.Size.IsNullOrWhiteSpaceX())
-                                            {
-                                                if (oAf.Weight.IsNullOrWhiteSpaceX())
-                                                {
-                                                    if (oAf.Materials.IsNullOrWhiteSpaceX())
-                                                    {
-                                                        if (oAf.Capacity.IsNullOrWhiteSpaceX())
-                                                        {
-                                                            af.Color = oAf.Color;
-                                                        }
-                                                        else
-                                                        {
-                                                            af.Capacity = oAf.Capacity;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        af.Materials = oAf.Materials;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    af.Weight = oAf.Weight;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                af.Size = oAf.Size;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.Dimension = oAf.Dimension;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.Model_ = oAf.Model_;
-                                    }
-                                }
-                                else if (partialView == "_FieldSerial_B")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        af.PropNo = oAf.PropNo;
-                                    }
-                                    else
-                                    {
-                                        af.SerialNo = oAf.SerialNo;
-                                    }
-
-                                    af.Multipliers = oAf.Multipliers;
-                                }
-                                else if (partialView == "_FieldSerial_C")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.BodyNo.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
-                                            {
-                                                af.MVFileNo = oAf.MVFileNo;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.BodyNo = oAf.BodyNo;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.PlateNo = oAf.PlateNo;
-                                    }
-
-                                    af.Multipliers = oAf.Multipliers;
-                                }
-                                else if (partialView == "_FieldSerial_D")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        af.PropNo = oAf.PropNo;
-                                    }
-                                    else
-                                    {
-                                        af.SerialNo = oAf.SerialNo;
-                                    }
-
-                                    af.Brand = oAf.Brand;
-
-                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.Dimension.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (oAf.Size.IsNullOrWhiteSpaceX())
-                                            {
-                                                if (oAf.Weight.IsNullOrWhiteSpaceX())
-                                                {
-                                                    if (oAf.Materials.IsNullOrWhiteSpaceX())
-                                                    {
-                                                        if (oAf.Capacity.IsNullOrWhiteSpaceX())
-                                                        {
-                                                            af.Color = oAf.Color;
-                                                        }
-                                                        else
-                                                        {
-                                                            af.Capacity = oAf.Capacity;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        af.Materials = oAf.Materials;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    af.Weight = oAf.Weight;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                af.Size = oAf.Size;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.Dimension = oAf.Dimension;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.Model_ = oAf.Model_;
-                                    }
-                                }
-                                else if (partialView == "_FieldSerial_E")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (oAf.BodyNo.IsNullOrWhiteSpaceX())
-                                        {
-                                            if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
-                                            {
-                                                af.MVFileNo = oAf.MVFileNo;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            af.BodyNo = oAf.BodyNo;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        af.PlateNo = oAf.PlateNo;
-                                    }
-                                }
-                                else if (partialView == "_FieldSerial_F")
-                                {
-                                    if (oAf.PlateNo.IsNullOrWhiteSpaceX())
-                                    {
-                                        af.PropNo = oAf.PropNo;
-                                    }
-                                    else
-                                    {
-                                        af.SerialNo = oAf.SerialNo;
-                                    }
-                                }
-
-                                psCard.AllField = af;
+                                psCardItem.PsCardItemExtns.Add(psCardItemExtnOther);
                             }
                         }
 
-                        var psCardItem = await ctx.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
-                        if (psCardItem == null)
+                        var airItemExtnVehicles = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnVehicle>(orderItem.Id);
+                        foreach (var airItemExtnVehicle in airItemExtnVehicles)
                         {
-                            var unitGroupDescriptionItem = ctx.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
-                            var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                            var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                            var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
-                            var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
-                            var psCardItemId = Guid.NewGuid();
-                            psCardItem = new PsCardItem()
+                            var psCardItemExtnVehicle = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                                    .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnVehicle.Id);
+                            if (psCardItemExtnVehicle == null)
                             {
-                                Id = psCardItemId,
-                                GroupId = psCardItemId,
-                                PsCardId = psCard.Id,
-                                OrderItemId = orderItem.Id,
-                                PoDate = orderItem.Order.PoDate,
-                                PoNo = orderItem.Order.PoNo,
-                                AirDate = entity.AIRDate,
-                                AirNo = entity.AIRNo,
-                                //Original Qty and Amount / Transit Data
-                                Qty = (int)orderItem.Qty * setQty,
-                                QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty * setQty,
-                                Amount = orderItem.Amount,
-                                //TranType = "I",
-                                Unit = orderItem.Unit,
-                                UnitCost = orderItem.UnitCost,
-                                PriceRate = orderItem.PriceRate,
-                                AddCost = 0,
-                                TUnitCost = orderItem.UnitCost,
-                                GTotalCost = orderItem.Amount,
-                                DeptId = deptId,
-                                DeptDisplay = office,
-                                Description = oig.Description,
-                                OtherDesc = orderItem.OtherDesc,
-                                Type = oAf.Type,
-                                InvDist = oig.InvDist,
-                                FPP = orderItem.RequestItem.RisItem.RISs.FPP,
-                                SetLotNo = setLotNo,
-                                SetLotAmount = setLotAmount,
-                                SetLotRemarks = setLotRemarks,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date,
-                                PostedBy = user,
-                                PostedDt = date,
-                                PpmpCode = orderItem.PpmpCode
-                            };
+                                var psCardItemExtnId = Guid.NewGuid();
+                                psCardItemExtnVehicle = new PsCardItemExtnVehicle()
+                                {
+                                    Id = psCardItemExtnId,
+                                    GroupId = psCardItemExtnId,
+                                    PsCardItemId = psCardItem.Id,
+                                    AIRItemExtnId = airItemExtnVehicle.Id,
+                                    SetLotNo = airItemExtnVehicle.SetLotNo,
+                                    SetLotQtyNo = airItemExtnVehicle.SetLotQtyNo,
+                                    ContentNo = airItemExtnVehicle.ContentNo,
+                                    YearModel = airItemExtnVehicle.YearModel,
+                                    PlateNo = airItemExtnVehicle.PlateNo,
+                                    BodyNo = airItemExtnVehicle.BodyNo,
+                                    EngineNo = airItemExtnVehicle.EngineNo,
+                                    ChasisNo = airItemExtnVehicle.ChasisNo,
+                                    Color = airItemExtnVehicle.Color,
+                                    CRN = airItemExtnVehicle.CRN,
+                                    CRDate = airItemExtnVehicle.CRDate,
+                                    MVFileNo = airItemExtnVehicle.MVFileNo,
+                                    OrNo = airItemExtnVehicle.OrNo,
+                                    OrDate = airItemExtnVehicle.OrDate,
+                                    NetWeight = airItemExtnVehicle.NetWeight,
+                                    InsPolicyNo = airItemExtnVehicle.InsPolicyNo,
+                                    ConductionNo = airItemExtnVehicle.ConductionNo,
+                                    //ParReissuance = airItemExtnVehicle.ParReissuance,
+                                    //Condition = airItemExtnVehicle.Condition,
+                                    SubLocation = airItemExtnVehicle.SubLocation,
+                                    AddCost = 0,
+                                    AcqCost = airItemExtnVehicle.AIRItem.OrderItem.UnitCost,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                psCardItem.PsCardItemExtns.Add(psCardItemExtnVehicle);
+                            }
+                        }
 
-                            var psCardItemTransfer = new PsCardItemTransfer()
+                        foreach (var psCardItemExtn in psCardItem.PsCardItemExtns)
+                        {
+                            var psCardItemTransferItem = new PsCardItemTransferItem()
                             {
                                 Id = Guid.NewGuid(),
-                                PsCardItemId = psCardItem.Id,
-                                Qty = (int)orderItem.Qty * setQty,
-                                QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty * setQty,
-                                Amount = orderItem.Amount,
-                                TranType = "I",
+                                PsCardItemTransferId = psCardItemTransfer.Id,
+                                PsCardItemExtnId = psCardItemExtn.Id,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date
                             };
+                            psCardItemTransfer.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                        }
+                        psCardItem.PsCardItemTransfers.Add(psCardItemTransfer);
+                        psCard.PsCardItems.Add(psCardItem);
+                    }
 
+                    if (isNew == true)
+                    {
+                        _db.PsCards.Add(psCard);
+                    }
 
-                            // include ItemExtns
-                            var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
-                            foreach (var airItemExtnOther in airItemExtnOthers)
+                    psCardIdList.Add(psCard.Id);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+
+            foreach (var psCardId in psCardIdList)
+            {
+                var psCardItemList = _db.PsCardItems.Where(w => w.PsCardId == psCardId).ToList();
+                foreach (var psCardItem in psCardItemList)
+                {
+                    // search unit group if any
+                    var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+                        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+                        .Include(i => i.OrderItem)
+                        .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
+                    if (orderItemUnitGroupDescriptionItem != null)
+                    {
+                        // search in psCard unit group
+                        if (!await _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
+                        {
+                            var psCardItemUnitGroup = await _db.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
+                            if (psCardItemUnitGroup == null)
                             {
-                                var psCardItemExtnOther = await ctx.PsCardItemExtns.OfType<PsCardItemExtnOther>()
-                                    .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnOther.Id);
-                                if (psCardItemExtnOther == null)
-                                {
-                                    var psCardItemExtnId = Guid.NewGuid();
-                                    psCardItemExtnOther = new PsCardItemExtnOther()
-                                    {
-                                        Id = psCardItemExtnId,
-                                        GroupId = psCardItemExtnId,
-                                        PsCardItemId = psCardItem.Id,
-                                        AIRItemExtnId = airItemExtnOther.Id,
-                                        SetLotNo = airItemExtnOther.SetLotNo,
-                                        SetLotQtyNo = airItemExtnOther.SetLotQtyNo,
-                                        ContentNo = airItemExtnOther.ContentNo,
-                                        SerialNo = airItemExtnOther.SerialNo,
-                                        AddCost = 0,
-                                        AcqCost = airItemExtnOther.AIRItem.OrderItem.UnitCost,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    psCardItem.PsCardItemExtns.Add(psCardItemExtnOther);
-                                }
-                            }
-
-                            var airItemExtnVehicles = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnVehicle>(orderItem.Id);
-                            foreach (var airItemExtnVehicle in airItemExtnVehicles)
-                            {
-                                var psCardItemExtnVehicle = await ctx.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
-                                        .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnVehicle.Id);
-                                if (psCardItemExtnVehicle == null)
-                                {
-                                    var psCardItemExtnId = Guid.NewGuid();
-                                    psCardItemExtnVehicle = new PsCardItemExtnVehicle()
-                                    {
-                                        Id = psCardItemExtnId,
-                                        GroupId = psCardItemExtnId,
-                                        PsCardItemId = psCardItem.Id,
-                                        AIRItemExtnId = airItemExtnVehicle.Id,
-                                        SetLotNo = airItemExtnVehicle.SetLotNo,
-                                        SetLotQtyNo = airItemExtnVehicle.SetLotQtyNo,
-                                        ContentNo = airItemExtnVehicle.ContentNo,
-                                        YearModel = airItemExtnVehicle.YearModel,
-                                        PlateNo = airItemExtnVehicle.PlateNo,
-                                        BodyNo = airItemExtnVehicle.BodyNo,
-                                        EngineNo = airItemExtnVehicle.EngineNo,
-                                        ChasisNo = airItemExtnVehicle.ChasisNo,
-                                        Color = airItemExtnVehicle.Color,
-                                        CRN = airItemExtnVehicle.CRN,
-                                        CRDate = airItemExtnVehicle.CRDate,
-                                        MVFileNo = airItemExtnVehicle.MVFileNo,
-                                        OrNo = airItemExtnVehicle.OrNo,
-                                        OrDate = airItemExtnVehicle.OrDate,
-                                        NetWeight = airItemExtnVehicle.NetWeight,
-                                        InsPolicyNo = airItemExtnVehicle.InsPolicyNo,
-                                        ConductionNo = airItemExtnVehicle.ConductionNo,
-                                        //ParReissuance = airItemExtnVehicle.ParReissuance,
-                                        //Condition = airItemExtnVehicle.Condition,
-                                        SubLocation = airItemExtnVehicle.SubLocation,
-                                        AddCost = 0,
-                                        AcqCost = airItemExtnVehicle.AIRItem.OrderItem.UnitCost,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    psCardItem.PsCardItemExtns.Add(psCardItemExtnVehicle);
-                                }
-                            }
-
-                            foreach (var psCardItemExtn in psCardItem.PsCardItemExtns)
-                            {
-                                var psCardItemTransferItem = new PsCardItemTransferItem()
+                                psCardItemUnitGroup = new PsCardItemUnitGroup()
                                 {
                                     Id = Guid.NewGuid(),
-                                    PsCardItemTransferId = psCardItemTransfer.Id,
-                                    PsCardItemExtnId = psCardItemExtn.Id,
+                                    PoNo = psCardItem.PoNo,
+                                    SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
+                                    Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
+                                    Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
+                                    UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
+                                    TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                                    AddCost = 0,
+                                    TUnitCost = 0,
+                                    GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
                                     InsertedBy = user,
                                     InsertedDt = date,
                                     UpdatedBy = user,
                                     UpdatedDt = date
                                 };
-                                psCardItemTransfer.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                            }
-                            psCardItem.PsCardItemTransfers.Add(psCardItemTransfer);
-                            psCard.PsCardItems.Add(psCardItem);
-                        }
-
-                        if (isNew == true)
-                        {
-                            ctx.PsCards.Add(psCard);
-                        }
-
-                        psCardIdList.Add(psCard.Id);
-                    }
-                }
-
-                await ctx.SaveChangesAsync();
-
-                foreach (var psCardId in psCardIdList)
-                {
-                    var psCardItemList = ctx.PsCardItems.Where(w => w.PsCardId == psCardId).ToList();
-                    foreach (var psCardItem in psCardItemList)
-                    {
-                        // search unit group if any
-                        var orderItemUnitGroupDescriptionItem = await ctx.OrderItemUnitGroupDescriptionItems
-                            //.Include(i => i.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup)
-                            .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                            .Include(i => i.OrderItem)
-                            .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
-                        if (orderItemUnitGroupDescriptionItem != null)
-                        {
-                            // search in psCard unit group
-                            if (!await ctx.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
-                            {
-                                var psCardItemUnitGroup = await ctx.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
-                                if (psCardItemUnitGroup == null)
+                                var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
                                 {
-                                    psCardItemUnitGroup = new PsCardItemUnitGroup()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        PoNo = psCardItem.PoNo,
-                                        SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
-                                        Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
-                                        Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
-                                        UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
-                                        TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                        AddCost = 0,
-                                        TUnitCost = 0,
-                                        GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
+                                    Id = Guid.NewGuid(),
+                                    UnitGroupId = psCardItemUnitGroup.Id,
+                                    Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+                                    PsCardItemId = psCardItem.Id,
+                                    PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+                                psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
+                                _db.PsCardItemUnitGroups.Add(psCardItemUnitGroup);
+                            }
+                            else
+                            {
+                                // if with psCardItemUnitGroup, check UnitGroupDescription
+                                var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
+                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
+                                    .FirstOrDefault();
+                                if (psCardItemUnitGroupDescription == null)
+                                {
+                                    psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
                                     {
                                         Id = Guid.NewGuid(),
                                         UnitGroupId = psCardItemUnitGroup.Id,
@@ -896,28 +936,16 @@ namespace iLgs.Services.AIRs_
                                         UpdatedDt = date
                                     };
                                     psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                    psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                    ctx.PsCardItemUnitGroups.Add(psCardItemUnitGroup);
+                                    _db.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
                                 }
                                 else
                                 {
-                                    // if with psCardItemUnitGroup, check UnitGroupDescription
-                                    var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
-                                        .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
-                                        .FirstOrDefault();
-                                    if (psCardItemUnitGroupDescription == null)
+                                    // if with UnitGroupDescription, check UnitGroupDescriptionItem
+                                    var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
+                                        .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
+                                    if (psCardItemUnitGroupDescriptionItem == null)
                                     {
-                                        psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
-                                        {
-                                            Id = Guid.NewGuid(),
-                                            UnitGroupId = psCardItemUnitGroup.Id,
-                                            Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
-                                            InsertedBy = user,
-                                            InsertedDt = date,
-                                            UpdatedBy = user,
-                                            UpdatedDt = date
-                                        };
-                                        var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+                                        psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
                                         {
                                             Id = Guid.NewGuid(),
                                             UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
@@ -928,38 +956,16 @@ namespace iLgs.Services.AIRs_
                                             UpdatedBy = user,
                                             UpdatedDt = date
                                         };
-                                        psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                        ctx.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                    }
-                                    else
-                                    {
-                                        // if with UnitGroupDescription, check UnitGroupDescriptionItem
-                                        var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
-                                            .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
-                                        if (psCardItemUnitGroupDescriptionItem == null)
-                                        {
-                                            psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                            {
-                                                Id = Guid.NewGuid(),
-                                                UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                                PsCardItemId = psCardItem.Id,
-                                                PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                                InsertedBy = user,
-                                                InsertedDt = date,
-                                                UpdatedBy = user,
-                                                UpdatedDt = date
-                                            };
-                                            ctx.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                        }
+                                        _db.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
                                     }
                                 }
-                                await ctx.SaveChangesAsync();
                             }
+                            await _db.SaveChangesAsync();
                         }
                     }
                 }
-                return entity;
             }
+            return entity;
         });
 
         private async Task<bool> IsWwithUploadAsync(Guid? id)
@@ -978,203 +984,194 @@ namespace iLgs.Services.AIRs_
 
         public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.AIRs.FindAsync(airId);
+            if (entity == null)
             {
-                var entity = await ctx.AIRs.FindAsync(airId);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(airId);
-                }
-
-                if (!await IsPostedAsync(airId))
-                {
-                    throw new RecordNotYetPostedException();
-                }
-
-                if (await ctx.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
-                {
-                    throw new RecordRelationshipException("Items were already issued, cannot unpost!");
-                }
-
-                /*
-                 * Check if in transit or issued
-                 */
-
-                var psCardItemTransfers = ctx.PsCardItemTransfers.Where(w => w.PsCardItem.OrderItemId == entity.OrderId);
-                if (await psCardItemTransfers.AnyAsync(a => a.ParentId != null))
-                {
-                    throw new RecordRelationshipException("Items were already transitted/transferred, cannot unpost!");
-                }
-
-                if (await psCardItemTransfers.AnyAsync(a => a.PsCardItemTransferIssuances.Any()))
-                {
-                    throw new RecordRelationshipException("Items were already issued, cannot unpost!");
-                }
-
-
-                if (await ctx.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
-                {
-                    throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
-                }
-
-                // recheck
-                if (await ctx.AIRItems.AnyAsync(a => a.AirId == entity.Id && a.AIRItemExtns
-                    .Any(b => b.PsCardItemExtns
-                        .Any(c => c.IcsParItems.Any()))))
-                {
-                    throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
-                }
-
-                /*
-                    * Delete the following records onUnpost:
-                    * PsCardItems, Fields..., PsCardItemExtns
-                    * PsCards --> if no PsItem                
-                */
-
-                var orderItems = ctx.OrderItems
-                    //.Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
-                    .Include(i => i.RequestItem.RisItem.RISs)
-                    .Where(w => w.OrderId == entity.OrderId).ToList();
-
-                foreach (var orderItem in orderItems)
-                {
-                    var psCardItems = ctx.PsCardItems
-                        .Include(i => i.PsCardItemExtns)
-                        .Include(i => i.PsCardItemTransfers)
-                        .Where(w => w.OrderItemId == orderItem.Id).ToList();
-                    Guid? psCardId = psCardItems?.FirstOrDefault()?.PsCardId;
-
-                    foreach (var psCardItem in psCardItems)
-                    {
-
-                        // check unit groups           
-                        var unitGroupDescriptionItems = ctx.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
-                        if (unitGroupDescriptionItems.Any())
-                        {
-                            ctx.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
-                            await ctx.SaveChangesAsync();
-                        }
-
-                        var unitGroupDescriptions = ctx.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
-                        if (unitGroupDescriptions.Any())
-                        {
-                            ctx.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
-                            await ctx.SaveChangesAsync();
-                        }
-
-                        var unitGroups = ctx.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
-                        if (unitGroups.Any())
-                        {
-                            ctx.PsCardItemUnitGroups.RemoveRange(unitGroups);
-                            await ctx.SaveChangesAsync();
-                        }
-
-                        if (psCardItem.PsCardItemTransfers.Any())
-                        {
-                            ctx.PsCardItemTransfers.RemoveRange(psCardItem.PsCardItemTransfers);
-                            await ctx.SaveChangesAsync();
-                        }
-
-                        if (psCardItem.PsCardItemExtns.Any())
-                        {
-                            ctx.PsCardItemExtns.RemoveRange(psCardItem.PsCardItemExtns);
-                            await ctx.SaveChangesAsync();
-                        }
-
-                        var item = await ctx.PsCardItems.FirstOrDefaultAsync(f => f.Id == psCardItem.Id);
-                        if (item != null)
-                        {
-                            item.UpdatedBy = user;
-                            item.UpdatedDt = date;
-
-                            ctx.PsCardItems.Attach(item);
-                            ctx.Entry(item).State = EntityState.Modified;
-                            await ctx.SaveChangesAsync();
-
-                            ctx.PsCardItems.Remove(item);
-                            ctx.Entry(item).State = EntityState.Deleted;
-                            await ctx.SaveChangesAsync();
-                        }
-                    }
-
-                    if (psCardId != null)
-                    {
-                        if (!ctx.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
-                        {
-                            var psCard = await ctx.PsCards.Include(i => i.AllField).Where(w => w.Id == psCardId).FirstOrDefaultAsync();
-                            psCard.UpdatedBy = user;
-                            psCard.UpdatedDt = date;
-
-                            ctx.PsCards.Attach(psCard);
-                            ctx.Entry(psCard).State = EntityState.Modified;
-                            await ctx.SaveChangesAsync();
-
-                            // delete stock during unpost if not used by other order item
-                            ctx.PsCards.Remove(psCard);
-                            ctx.Entry(psCard).State = EntityState.Deleted;
-                            await ctx.SaveChangesAsync();
-                        }
-                    }
-                }
-
-                foreach (var orderItem in orderItems)
-                {
-                    var risItem = await ctx.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
-                    risItem.QtyIssue = null;
-                    risItem.UpdatedBy = user;
-                    risItem.UpdatedDt = date;
-                    ctx.RisItems.Attach(risItem);
-                    ctx.Entry(risItem).State = EntityState.Modified;
-                }
-
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                ctx.AIRs.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                return entity;
+                throw new NotFoundException(airId);
             }
+
+            if (!await IsPostedAsync(airId))
+            {
+                throw new RecordNotYetPostedException();
+            }
+
+            if (await _db.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
+            {
+                throw new RecordRelationshipException("Items were already issued, cannot unpost!");
+            }
+
+            /*
+             * Check if in transit or issued
+             */
+
+            var psCardItemTransfers = _db.PsCardItemTransfers.Where(w => w.PsCardItem.OrderItemId == entity.OrderId);
+            if (await psCardItemTransfers.AnyAsync(a => a.ParentId != null))
+            {
+                throw new RecordRelationshipException("Items were already transitted/transferred, cannot unpost!");
+            }
+
+            if (await psCardItemTransfers.AnyAsync(a => a.PsCardItemTransferIssuances.Any()))
+            {
+                throw new RecordRelationshipException("Items were already issued, cannot unpost!");
+            }
+
+
+            if (await _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
+            {
+                throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
+            }
+
+            // recheck
+            if (await _db.AIRItems.AnyAsync(a => a.AirId == entity.Id && a.AIRItemExtns
+                .Any(b => b.PsCardItemExtns
+                    .Any(c => c.IcsParItems.Any()))))
+            {
+                throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
+            }
+
+            /*
+                * Delete the following records onUnpost:
+                * PsCardItems, Fields..., PsCardItemExtns
+                * PsCards --> if no PsItem                
+            */
+
+            var orderItems = await _db.OrderItems
+                .Where(w => w.OrderId == entity.OrderId).ToListAsync();
+
+            foreach (var orderItem in orderItems)
+            {
+                var psCardItems = await _db.PsCardItems
+                    .Include(i => i.PsCardItemExtns)
+                    .Include(i => i.PsCardItemTransfers)
+                    .Where(w => w.OrderItemId == orderItem.Id).ToListAsync();
+                Guid? psCardId = psCardItems?.FirstOrDefault()?.PsCardId;
+
+                foreach (var psCardItem in psCardItems)
+                {
+                    // check unit groups           
+                    var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
+                    if (unitGroupDescriptionItems.Any())
+                    {
+                        _db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    var unitGroupDescriptions = _db.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
+                    if (unitGroupDescriptions.Any())
+                    {
+                        _db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    var unitGroups = _db.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
+                    if (unitGroups.Any())
+                    {
+                        _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    if (psCardItem.PsCardItemTransfers.Any())
+                    {
+                        _db.PsCardItemTransfers.RemoveRange(psCardItem.PsCardItemTransfers);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    if (psCardItem.PsCardItemExtns.Any())
+                    {
+                        _db.PsCardItemExtns.RemoveRange(psCardItem.PsCardItemExtns);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    var item = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == psCardItem.Id);
+                    if (item != null)
+                    {
+                        item.UpdatedBy = user;
+                        item.UpdatedDt = date;
+
+                        //_db.PsCardItems.Attach(item);
+                        //_db.Entry(item).State = EntityState.Modified;
+                        await _db.SaveChangesAsync();
+
+                        _db.PsCardItems.Remove(item);
+                        //_db.Entry(item).State = EntityState.Deleted;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
+                if (psCardId != null)
+                {
+                    if (!_db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
+                    {
+                        var psCard = await _db.PsCards.Include(i => i.AllField).Where(w => w.Id == psCardId).FirstOrDefaultAsync();
+                        psCard.UpdatedBy = user;
+                        psCard.UpdatedDt = date;
+
+                        _db.PsCards.Attach(psCard);
+                        _db.Entry(psCard).State = EntityState.Modified;
+                        await _db.SaveChangesAsync();
+
+                        // delete stock during unpost if not used by other order item
+                        _db.PsCards.Remove(psCard);
+                        _db.Entry(psCard).State = EntityState.Deleted;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+            }
+
+            //foreach (var orderItem in orderItems)
+            //{
+            //    var risItem = await _db.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
+            //    risItem.QtyIssue = null;
+            //    risItem.UpdatedBy = user;
+            //    risItem.UpdatedDt = date;
+            //    _db.RisItems.Attach(risItem);
+            //    _db.Entry(risItem).State = EntityState.Modified;
+            //}
+
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            //_db.AIRs.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         private ValueTask<AIR> UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var orderItemIdList = await _db.AIRItems.Where(w => w.AirId == entity.Id).GroupBy(g => g.OrderItemId)
+                .Select(s => s.Key).ToListAsync();
+            foreach (var orderItemId in orderItemIdList)
             {
-                var orderItemIdList = await ctx.AIRItems.Where(w => w.AirId == entity.Id).GroupBy(g => g.OrderItemId)
-                    .Select(s => s.Key).ToListAsync();
-                foreach (var orderItemId in orderItemIdList)
+                decimal? qtyAccepted = 0;
+                if (post)
                 {
-                    decimal? qtyAccepted = 0;
-                    if (post)
-                    {
-                        qtyAccepted = ctx.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
-                    }
-                    var psCardItem = await ctx.PsCardItems
-                        // .Include(i => i.OrderItem.RequestItem.RisItem)
-                        .Include(i => i.OrderItem)
-                        .Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
-                    if (psCardItem != null)
-                    {
-                        psCardItem.AirNo = entity.AIRNo;
-                        psCardItem.AirDate = entity.AIRDate;
-                        psCardItem.Qty = (int)qtyAccepted;
-                        psCardItem.QtyBal = (int)qtyAccepted - psCardItem.QtyIss;
-                        psCardItem.UpdatedBy = user;
-                        psCardItem.UpdatedDt = date;
-                        //psCardItem.Description = psCardItem.OrderItem.RequestItem.RisItem.Description;
-                        //psCardItem.OtherDesc = psCardItem.OrderItem.RequestItem.RisItem.OtherDesc;
-                        psCardItem.Description = psCardItem.OrderItem.Description;
-                        psCardItem.OtherDesc = psCardItem.OrderItem.OtherDesc;
-                        ctx.PsCardItems.Attach(psCardItem);
-                        ctx.Entry(psCardItem).State = EntityState.Modified;
-                        await ctx.SaveChangesAsync();
-                    }
+                    qtyAccepted = _db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
                 }
-                return entity;
+                var psCardItem = await _db.PsCardItems
+                    // .Include(i => i.OrderItem.RequestItem.RisItem)
+                    .Include(i => i.OrderItem)
+                    .Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
+                if (psCardItem != null)
+                {
+                    psCardItem.AirNo = entity.AIRNo;
+                    psCardItem.AirDate = entity.AIRDate;
+                    psCardItem.Qty = (int)qtyAccepted;
+                    psCardItem.QtyBal = (int)qtyAccepted - psCardItem.QtyIss;
+                    psCardItem.UpdatedBy = user;
+                    psCardItem.UpdatedDt = date;
+                    //psCardItem.Description = psCardItem.OrderItem.RequestItem.RisItem.Description;
+                    //psCardItem.OtherDesc = psCardItem.OrderItem.RequestItem.RisItem.OtherDesc;
+                    psCardItem.Description = psCardItem.OrderItem.Description;
+                    psCardItem.OtherDesc = psCardItem.OrderItem.OtherDesc;
+                    _db.PsCardItems.Attach(psCardItem);
+                    _db.Entry(psCardItem).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
+                }
             }
+            return entity;
         });
 
         public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -1232,43 +1229,41 @@ namespace iLgs.Services.AIRs_
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                // include items during add
-                var orderItems = ctx.OrderItems
+            // include items during add
+            var orderItems = await _db.OrderItems
                 .Include(i => i.Order.OrderItemUnitGroups)
-                .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
-                .Where(w => w.OrderId == model.OrderId).AsNoTracking().OrderBy(o => o.InsertedDt).ToList();
-                foreach (var orderItem in orderItems)
+                .Include(i => i.ItemCode.ItemType)
+                .Where(w => w.OrderId == model.OrderId).AsNoTracking().OrderBy(o => o.InsertedDt).ToListAsync();
+            foreach (var orderItem in orderItems)
+            {
+                var insertedDt = DateTime.Now;
+                var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
+
+                if (string.IsNullOrWhiteSpace(invDist))
                 {
-                    var insertedDt = DateTime.Now;
-                    var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
-
-                    if (string.IsNullOrWhiteSpace(invDist))
-                    {
-                        invDist = model.InvDist;
-                    }
-
-                    AIRItem airItem = new AIRItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        AirId = entity.Id,
-                        OrderItemId = orderItem.Id,
-                        Qty = orderItem.Qty,
-                        InvDist = invDist,
-                        InsertedBy = user,
-                        InsertedDt = insertedDt,
-                        UpdatedBy = user,
-                        UpdatedDt = insertedDt
-                    };
-
-                    await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
-                    entity.AIRItems.Add(airItem);
+                    invDist = model.InvDist;
                 }
 
-                ctx.AIRs.Add(entity);
-                await ctx.SaveChangesAsync();
+                AIRItem airItem = new AIRItem()
+                {
+                    Id = Guid.NewGuid(),
+                    AirId = entity.Id,
+                    OrderItemId = orderItem.Id,
+                    Qty = orderItem.Qty,
+                    InvDist = invDist,
+                    InsertedBy = user,
+                    InsertedDt = insertedDt,
+                    UpdatedBy = user,
+                    UpdatedDt = insertedDt
+                };
+
+                await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+                entity.AIRItems.Add(airItem);
             }
+
+            _db.AIRs.Add(entity);
+            await _db.SaveChangesAsync();
+
             return model;
         }
 
@@ -1281,92 +1276,83 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.AIRs.FindAsync(model.Id);
+
+            // if there's a change of Order item
+            if (entity.OrderId != model.OrderId)
             {
-                var entity = await ctx.AIRs.FindAsync(model.Id);
-
-                // if there's a change of Order item
-                if (entity.OrderId != model.OrderId)
+                var airItems = _db.AIRItems.Where(w => w.AirId == model.Id);
+                await airItems.ForEachAsync(f =>
                 {
-                    var airItems = ctx.AIRItems.Where(w => w.AirId == model.Id);
-                    await airItems.ForEachAsync(f =>
+                    f.UpdatedBy = model.UpdatedBy;
+                    f.UpdatedDt = model.UpdatedDt;
+                });
+                await _db.SaveChangesAsync();
+
+                _db.AIRItems.RemoveRange(airItems);
+                await _db.SaveChangesAsync();
+
+                // include items during add
+                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
+                foreach (var orderItem in orderItems)
+                {
+                    //var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
+                    var invDist = model.InvDist;
+                    AIRItem airItem = new AIRItem()
                     {
-                        f.UpdatedBy = model.UpdatedBy;
-                        f.UpdatedDt = model.UpdatedDt;
-                    });
-                    await ctx.SaveChangesAsync();
+                        Id = Guid.NewGuid(),
+                        AirId = entity.Id,
+                        OrderItemId = orderItem.Id,
+                        Qty = orderItem.Qty,
+                        InvDist = invDist,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
 
-                    ctx.AIRItems.RemoveRange(airItems);
-                    await ctx.SaveChangesAsync();
-
-                    // include items during add
-                    var orderItems = ctx.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
-                    foreach (var orderItem in orderItems)
-                    {
-                        //var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
-                        var invDist = model.InvDist;
-                        AIRItem airItem = new AIRItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            AirId = entity.Id,
-                            OrderItemId = orderItem.Id,
-                            Qty = orderItem.Qty,
-                            InvDist = invDist,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        entity.AIRItems.Add(airItem);
-                    }
+                    entity.AIRItems.Add(airItem);
                 }
-
-                entity.AIRNo = model.AIRNo;
-                entity.AIRDate = model.AIRDate;
-                entity.OrderId = model.OrderId;
-                entity.AcceptedDate = model.AcceptedDate;
-                entity.IsComplete = model.IsComplete;
-                entity.IsPartial = model.IsPartial;
-                entity.Custodian = model.Custodian ?? "";
-                entity.InspectedDate = model.InspectedDate;
-                entity.IsInspected = model.IsInspected;
-                entity.Officer = model.Officer ?? "";
-                entity.Remarks = model.Remarks ?? "";
-                entity.InvDist = model.InvDist;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                ctx.AIRs.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
             }
+
+            entity.AIRNo = model.AIRNo;
+            entity.AIRDate = model.AIRDate;
+            entity.OrderId = model.OrderId;
+            entity.AcceptedDate = model.AcceptedDate;
+            entity.IsComplete = model.IsComplete;
+            entity.IsPartial = model.IsPartial;
+            entity.Custodian = model.Custodian ?? "";
+            entity.InspectedDate = model.InspectedDate;
+            entity.IsInspected = model.IsInspected;
+            entity.Officer = model.Officer ?? "";
+            entity.Remarks = model.Remarks ?? "";
+            entity.InvDist = model.InvDist;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            _db.AIRs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
             return model;
         }
 
         public ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-
             await ValidateOnDelete(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AIRs.FindAsync(model.Id);
+            var entity = await _db.AIRs.FindAsync(model.Id);
 
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                ctx.AIRs.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.AIRs.Remove(entity);
-                ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRs.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -1462,20 +1448,21 @@ namespace iLgs.Services.AIRs_
                         //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Series Year and month must be same as the year and month of the PO date.");
                         throw new InvalidValueException("Series Year and month of AIR No. must be same as the year and month of the AIR date.");
                     }
-                    else
-                    {
-                        var maxNo = _db.AIRs.Where(w => DbFunctions.TruncateTime(w.AIRDate) < DbFunctions.TruncateTime(model.AIRDate)).Max(m => m.AIRNo);
-                        if (!string.IsNullOrWhiteSpace(maxNo))
-                        {
-                            var refNoSeq = int.Parse(refNoParts[2]);
-                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            if (refNoSeq <= maxSeq)
-                            {
-                                //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), $"Serial No. must be greater than {maxSeq}");
-                                throw new InvalidValueException($"Serial No. of AIR No. must be greater than {maxSeq}");
-                            }
-                        }
-                    }
+                    //else
+                    //{
+                    //    //var maxNo = _db.AIRs.Where(w => DbFunctions.TruncateTime(w.AIRDate) <= DbFunctions.TruncateTime(model.AIRDate)).Max(m => m.AIRNo);
+                    //    var maxNo = _db.AIRs.Where(w => w.AIRDate.Value.Year == model.AIRDate.Value.Year).Max(m => m.AIRNo);
+                    //    if (!string.IsNullOrWhiteSpace(maxNo))
+                    //    {
+                    //        var refNoSeq = int.Parse(refNoParts[2]);
+                    //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                    //        if (refNoSeq < maxSeq)
+                    //        {
+                    //            //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), $"Serial No. must be greater than {maxSeq}");
+                    //            throw new InvalidValueException($"Serial No. of AIR No. must be greater than {maxSeq}");
+                    //        }
+                    //    }
+                    //}
                 }
             }
             //_imex.ThrowIfContainsErrors();
@@ -1485,7 +1472,7 @@ namespace iLgs.Services.AIRs_
         {
             if (await _db.AIRs.FindAsync(model.Id) == null)
             {
-                throw new RecordNotFoundException(model.Id);
+                throw new NotFoundException(model.Id);
             }
 
             if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo && a.Id != model.Id))
@@ -1503,7 +1490,7 @@ namespace iLgs.Services.AIRs_
         {
             if (await _db.AIRs.FindAsync(model.Id) == null)
             {
-                throw new RecordNotFoundException(model.Id);
+                throw new NotFoundException(model.Id);
             }
 
             if (await IsPostedAsync(model.Id))
@@ -1514,7 +1501,7 @@ namespace iLgs.Services.AIRs_
 
         public bool IsPosted(Guid airId)
         {
-            return _airAbstractService.IsPosted(airId);            
+            return _airAbstractService.IsPosted(airId);
         }
 
         public bool IsPosted(AIR air)
@@ -1536,5 +1523,5 @@ namespace iLgs.Services.AIRs_
         {
             return await _airAbstractService.IsPostedAsync(airId);
         }
-    }    
+    }
 }

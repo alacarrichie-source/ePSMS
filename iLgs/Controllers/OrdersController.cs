@@ -36,9 +36,9 @@ namespace iLgs.Controllers
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
 
-        public OrdersController(AppManEntities db)
+        public OrdersController()
         {
-            _db = db;
+            _db = new AppManEntities();
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);

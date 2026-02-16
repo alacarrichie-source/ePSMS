@@ -1268,7 +1268,7 @@ namespace iLgs.Controllers
                     sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
                 }
 
-                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_-{annex}_{DateTime.Now.ToShortDateString()}.xlsx";
+                string fileName = $"{locationCode}_{exportFileName}-{annex}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_{DateTime.Now.ToShortDateString()}.xlsx";
 
                 //return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);

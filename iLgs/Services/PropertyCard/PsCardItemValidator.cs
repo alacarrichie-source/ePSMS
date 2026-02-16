@@ -25,15 +25,23 @@ namespace iLgs.Services.PropertyCard
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
 
-        public PsCardItemValidator(AppManEntities db,
-            ICodextnService codextnService,
-            IUserService userService)
+        public PsCardItemValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
-            _codextnService = codextnService;
-            _userService = userService;
+            _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
         }
+
+        //public PsCardItemValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    IUserService userService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
+        //    _codextnService = codextnService;
+        //    _userService = userService;
+        //}
 
         public void ValidateOnCreate(PsCardItemVM cardItem)
         {
@@ -60,7 +68,20 @@ namespace iLgs.Services.PropertyCard
             ValidateIfPosted(cardItem);
             ValidateIfPosted(cardItem.PsCardId);
 
-            
+            var poYears = _codextnService.GetPoYears();
+            var poYear = entity.PoDate.Value.Year.ToString().Trim();
+            if (poYears.Where(w => w.Description == poYear && w.Desc2 == "Y").Any())
+            {
+                throw new RecordLockedException($"Year {poYear} is locked. Cannot delete.");
+            }
+            else
+            {
+                if (!poYears.Where(w => w.Description == poYear).Any())
+                {
+                    throw new RecordLockedException($"No setup found for PO Year {poYear}. Cannot delete.");
+                }
+            }
+
             if (_db.PsCardItemTransfers.Any(a => a.ParentId == cardItem.TransferId))
             {
                 throw new RecordRelationshipException("Items of this record were transfered to other department/location, cannot delete!");
@@ -139,52 +160,81 @@ namespace iLgs.Services.PropertyCard
                 ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
             }
             else
-            {                
-                var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == model.PoNo);
-                if (mode == Mode.ADD)
-                {                    
-                    // check user
-                    if (psCardItems.Any(a => a.InsertedBy != model.InsertedBy))
-                    {
-                        var isAdmin = _userService.IsUserNameAdmin(model.InsertedBy);
-                        if (!isAdmin)
-                        {
-                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already created by other user.");
-                        }
-                    }
-                    else
-                    {
-                        if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description)) // check description
-                        {
-                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
-                        }
-                    }
-
-                    // check po date
-                    if (psCardItems.Any(a => a.PoDate != model.PoDate))
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"PO NNo. already exists with different date.");
-                    }                                      
+            {
+                if (model.PoNo.Trim().Length != 12 || model.PoNo.Split('-')[2] == "0000")
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Invalid value.");
                 }
                 else
-                {                    
-                    if (psCardItems.Any(a => a.InsertedBy != model.UpdatedBy))
+                {
+                    var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == model.PoNo);
+                    if (mode == Mode.ADD)
                     {
-                        var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
-                        if (!isAdmin)
+                        // check user
+                        if (psCardItems.Any(a => a.InsertedBy != model.InsertedBy))
                         {
-                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Can only be modified by it's creator or an admin.");
+                            var isAdmin = _userService.IsUserNameAdmin(model.InsertedBy);
+                            if (!isAdmin)
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already created by other user.");
+                            }
+                        }
+                        else
+                        {
+                            if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description)) // check description
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description.");
+                            }
+                        }
+
+                        // check po date
+                        if (psCardItems.Any(a => a.PoDate != model.PoDate))
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with different date.");
                         }
                     }
                     else
                     {
-                        if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description && a.Id != model.Id)) // check description
+                        if (psCardItems.Any(a => a.InsertedBy != model.UpdatedBy))
                         {
-                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
+                            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                            if (!isAdmin)
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Can only be modified by it's creator or an admin.");
+                            }
+                        }
+                        else
+                        {
+                            if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description && a.Id != model.Id)) // check description
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
+                            }
                         }
                     }
-                }                
+                }          
             }            
+
+            if (!string.IsNullOrWhiteSpace(model.PoNo) && model.PoDate.HasValue)
+            {
+                var refNoParts = model.PoNo.Split('-');
+                var refNoYear = int.Parse(refNoParts[0]);
+                var refNoMonth = int.Parse(refNoParts[1]);
+                if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                }                
+            }
+
+            if (model.PoDate.HasValue)
+            {
+                var poYears = _codextnService.GetPoYears();
+                var poYear = model.PoDate.Value.Year.ToString().Trim();
+                poYears = poYears.Where(w => w.Description == poYear && w.Desc2 != "Y");
+                if (!poYears.Any())
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"Entry for Year {poYear} is not allowed.");
+                }
+            }
 
             if (model.TransDate.HasValue)
             {

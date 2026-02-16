@@ -23,7 +23,6 @@ namespace iLgs.Models
             this.CustodianDisposals = new HashSet<CustodianDisposal>();
             this.LocationBudgets = new HashSet<LocationBudget>();
             this.LocationBudgets1 = new HashSet<LocationBudget>();
-            this.RISses = new HashSet<RISs>();
             this.IcsPars = new HashSet<IcsPar>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.RpcPpes = new HashSet<RpcPpe>();
@@ -48,7 +47,9 @@ namespace iLgs.Models
             this.RpcPpeItems1 = new HashSet<RpcPpeItem>();
             this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
             this.Procurements = new HashSet<Procurement>();
+            this.RISses = new HashSet<RISs>();
             this.Orders = new HashSet<Order>();
+            this.Requests = new HashSet<Request>();
         }
     
         public System.Guid Id { get; set; }
@@ -77,8 +78,6 @@ namespace iLgs.Models
         public virtual ICollection<LocationBudget> LocationBudgets { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<LocationBudget> LocationBudgets1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RISs> RISses { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsPar> IcsPars { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -128,6 +127,10 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Procurement> Procurements { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RISs> RISses { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Order> Orders { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Request> Requests { get; set; }
     }
 }

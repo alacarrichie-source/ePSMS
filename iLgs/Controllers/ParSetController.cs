@@ -20,26 +20,36 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET")]
     public class ParSetController : BaseController
     {
+        private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
         private readonly ICodextnService _codextnService;
-        
-        public ParSetController(IIcsParService icsParService, IPsCardService psCardService, ICodextnService codextnService)
+
+        public ParSetController()
         {
-            _icsParService = icsParService;
-            _psCardService = psCardService;
-            _codextnService = codextnService;
+            _db = new AppManEntities();
+            _icsParService = new IcsParService(_db);
+            _psCardService = new PsCardService(_db);
+            _codextnService = new CodextnService(_db);
         }
+
+        //public ParSetController(IIcsParService icsParService, IPsCardService psCardService, ICodextnService codextnService)
+        //{
+        //    _icsParService = icsParService;
+        //    _psCardService = psCardService;
+        //    _codextnService = codextnService;
+        //}
 
         // GET: PARs
         public ActionResult Index()
         {
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? forYear)
         {
-            var data = _icsParService.ParService.GetAllPo();
+            var data = _icsParService.ParService.GetAllPo(forYear);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -57,9 +67,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<ActionResult> _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsParService.ParService.GetItemsByPoNo(poNo, poDate, deptId);
+            var data = await _icsParService.ParService.GetItemsByPoNoAsync(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {

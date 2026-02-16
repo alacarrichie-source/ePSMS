@@ -41,7 +41,7 @@ namespace iLgs.Services.PropertyCard
     }
 
 
-    public class PsCardItemExtnService : IPsCardItemExtnService
+    internal class PsCardItemExtnService : IPsCardItemExtnService
     {
         private readonly AppManEntities _db;
         private decimal? _SPHV;
@@ -56,28 +56,42 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
         private readonly ISemiExpendableService _semiExpendableService;
 
-        public PsCardItemExtnService(AppManEntities db,
-            IPsCardSharedService psCardSharedService,
-            IPsCardItemExtnSharedService psCardItemExtnSharedService,
-            IPsCardItemExtnVehicleService psCardItemExtnVehicleService,
-            IPsCardItemExtnOtherService psCardItemExtnOtherService,
-            IPsCardItemExtnLandService psCardItemExtnLandService,
-            IPsCardItemExtnBldgService psCardItemExtnBldgService,
-            IPsCardItemExtnUpdateService psCardItemExtnUpdateService,
-            IPsCardItemExtnAddCostService psCardItemExtnAddCostService,
-            ISemiExpendableService semiExpendableService)
+        public PsCardItemExtnService(AppManEntities db)
         {
             _db = db;
-            _psCardSharedService = psCardSharedService;
-            _psCardItemExtnSharedService = psCardItemExtnSharedService;
-            _psCardItemExtnVehicleService = psCardItemExtnVehicleService;
-            _psCardItemExtnOtherService = psCardItemExtnOtherService;
-            _psCardItemExtnLandService = psCardItemExtnLandService;
-            _psCardItemExtnBldgService = psCardItemExtnBldgService;
-            _psCardItemExtnUpdateService = psCardItemExtnUpdateService;
-            _psCardItemExtnAddCostService = psCardItemExtnAddCostService;
-            _semiExpendableService = semiExpendableService;
+            _psCardSharedService = new PsCardSharedService(_db);
+            _psCardItemExtnSharedService = new PsCardItemExtnSharedService(_db);
+            _psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
+            _psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
+            _psCardItemExtnLandService = new PsCardItemExtnLandService(_db);
+            _psCardItemExtnBldgService = new PsCardItemExtnBldgService(_db);
+            _psCardItemExtnUpdateService = new PsCardItemExtnUpdateService(_db);
+            _psCardItemExtnAddCostService = new PsCardItemExtnAddCostService(_db);
+            _semiExpendableService = new SemiExpendableService(_db);
         }
+
+        //public PsCardItemExtnService(AppManEntities db,
+        //    IPsCardSharedService psCardSharedService,
+        //    IPsCardItemExtnSharedService psCardItemExtnSharedService,
+        //    IPsCardItemExtnVehicleService psCardItemExtnVehicleService,
+        //    IPsCardItemExtnOtherService psCardItemExtnOtherService,
+        //    IPsCardItemExtnLandService psCardItemExtnLandService,
+        //    IPsCardItemExtnBldgService psCardItemExtnBldgService,
+        //    IPsCardItemExtnUpdateService psCardItemExtnUpdateService,
+        //    IPsCardItemExtnAddCostService psCardItemExtnAddCostService,
+        //    ISemiExpendableService semiExpendableService)
+        //{
+        //    _db = db;
+        //    _psCardSharedService = psCardSharedService;
+        //    _psCardItemExtnSharedService = psCardItemExtnSharedService;
+        //    _psCardItemExtnVehicleService = psCardItemExtnVehicleService;
+        //    _psCardItemExtnOtherService = psCardItemExtnOtherService;
+        //    _psCardItemExtnLandService = psCardItemExtnLandService;
+        //    _psCardItemExtnBldgService = psCardItemExtnBldgService;
+        //    _psCardItemExtnUpdateService = psCardItemExtnUpdateService;
+        //    _psCardItemExtnAddCostService = psCardItemExtnAddCostService;
+        //    _semiExpendableService = semiExpendableService;
+        //}
 
         public IPsCardItemExtnVehicleService PsCardItemExtnVehicle => _psCardItemExtnVehicleService;
         public IPsCardItemExtnLandService PsCardItemExtnLand => _psCardItemExtnLandService;

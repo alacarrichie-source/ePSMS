@@ -18,12 +18,13 @@ namespace iLgs.Models
         public RequestItemUnitGroup()
         {
             this.RequestItemUnitGroupDescriptions = new HashSet<RequestItemUnitGroupDescription>();
-            this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
+        public string SetLotNo { get; set; }
+        public Nullable<int> Qty { get; set; }
+        public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
@@ -34,8 +35,5 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItemUnitGroupDescription> RequestItemUnitGroupDescriptions { get; set; }
         public virtual Request Request { get; set; }
-        public virtual RisItemUnitGroup RisItemUnitGroup { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
     }
 }

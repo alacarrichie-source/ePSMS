@@ -25,6 +25,7 @@ namespace iLgs.Services.Codes
         IQueryable<Codextn> GetUploadListLand();
         IQueryable<Codextn> GetItemCodeRequestUploadList();
         IQueryable<Codextn> GetIssuanceYears();
+        IQueryable<Codextn> GetPoYears();
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
         ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
 
@@ -146,6 +147,12 @@ namespace iLgs.Services.Codes
         public IQueryable<Codextn> GetIssuanceYears()
         {
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUANCE-YEAR").AsNoTracking().OrderBy(o => o.Description);
+            return data;
+        }
+
+        public IQueryable<Codextn> GetPoYears()
+        {
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "PO-YEAR").AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
 

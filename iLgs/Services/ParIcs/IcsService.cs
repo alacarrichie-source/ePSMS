@@ -19,20 +19,21 @@ namespace iLgs.Services.ParIcs
     {
         IQueryable<IcsVM> GetAll();
         IQueryable<ParIcsPOGroupVM> GetAllPo();
+        IQueryable<ParIcsPOGroupVM> GetAllPo(int? forYear);
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
         ValueTask<ParIcsItemVm> GetItemByIdAsync(Guid? psCardItemId);
-        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo);
-        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
-        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo);
-        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
+        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo);
+        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
+        Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo);
+        Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
         ValueTask<IcsPar> PostAsync(string refNo, string user, DateTime date);
         ValueTask<IcsPar> UnPostAsync(string refNo, string user, DateTime date);
 
-        ValueTask<IcsVM> GetByIdAsync(AppManEntities ctx, Guid? id);
+        ValueTask<IcsVM> GetByIdAsync(Guid? id);
 
         ValueTask<GenerateIcsParVM> GenerateIcs(GenerateIcsParVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GenerateIcsSet(GenerateIcsParVM model, string user, DateTime date);
@@ -43,10 +44,9 @@ namespace iLgs.Services.ParIcs
 
     }
 
-    public class IcsService : BaseValidator, IIcsService
+    internal class IcsService : BaseValidator, IIcsService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private decimal? _priceCap;
         private decimal? _SPHV;
 
@@ -55,7 +55,7 @@ namespace iLgs.Services.ParIcs
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService;
         private readonly IExceptionService<PsCardItem> _postExceptionService;
         private readonly IExceptionService<IcsPar> _icsParExceptionService;
-        private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService;
+        private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemExceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IIcsParSharedService _icsParSharedService;
@@ -63,35 +63,52 @@ namespace iLgs.Services.ParIcs
         private readonly IPriceCapService _priceCapService;
         private readonly ISemiExpendableService _semiExpendableService;
 
-        public IcsService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IPsCardItemService psCardItemService,
-            IPsCardItemExtnService psCardItemExtnService,
-            IExceptionService<GenerateIcsParVM> generateParExceptionService,
-            IExceptionService<PsCardItem> postExceptionService,
-            IExceptionService<IcsPar> icsParExceptionService,
-            IExceptionService<PsCardItemUnitGroupDescriptionItem> psCardItemUnitGroupDescriptionItemService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IIcsParSharedService icsParSharedService,
-            IIcsSharedService icsSharedService,
-            IPriceCapService priceCapService,
-            ISemiExpendableService semiExpendableService)
+        public IcsService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _psCardItemService = psCardItemService;
-            _psCardItemExtnService = psCardItemExtnService;
-            _generateParExceptionService = generateParExceptionService;
-            _postExceptionService = postExceptionService;
-            _icsParExceptionService = icsParExceptionService;
-            _psCardItemUnitGroupDescriptionItemService = psCardItemUnitGroupDescriptionItemService;
+            _psCardItemService = new PsCardItemService(_db);
+            _psCardItemExtnService = new PsCardItemExtnService(_db);
+            _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
+            _postExceptionService = new ExceptionService<PsCardItem>();
+            _icsParExceptionService = new ExceptionService<IcsPar>();
+            _psCardItemUnitGroupDescriptionItemExceptionService = new ExceptionService<PsCardItemUnitGroupDescriptionItem>();
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _icsParSharedService = icsParSharedService;
-            _icsSharedService = icsSharedService;
-            _priceCapService = priceCapService;
-            _semiExpendableService = semiExpendableService;
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _icsParSharedService = new IcsParSharedService(_db);
+            _icsSharedService = new IcsSharedService(_db);
+            _priceCapService = new PriceCapService(_db);
+            _semiExpendableService = new SemiExpendableService(_db);
         }
+
+        //public IcsService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IPsCardItemService psCardItemService,
+        //    IPsCardItemExtnService psCardItemExtnService,
+        //    IExceptionService<GenerateIcsParVM> generateParExceptionService,
+        //    IExceptionService<PsCardItem> postExceptionService,
+        //    IExceptionService<IcsPar> icsParExceptionService,
+        //    IExceptionService<PsCardItemUnitGroupDescriptionItem> psCardItemUnitGroupDescriptionItemService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IIcsParSharedService icsParSharedService,
+        //    IIcsSharedService icsSharedService,
+        //    IPriceCapService priceCapService,
+        //    ISemiExpendableService semiExpendableService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _psCardItemService = psCardItemService;
+        //    _psCardItemExtnService = psCardItemExtnService;
+        //    _generateParExceptionService = generateParExceptionService;
+        //    _postExceptionService = postExceptionService;
+        //    _icsParExceptionService = icsParExceptionService;
+        //    _psCardItemUnitGroupDescriptionItemService = psCardItemUnitGroupDescriptionItemService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _icsParSharedService = icsParSharedService;
+        //    _icsSharedService = icsSharedService;
+        //    _priceCapService = priceCapService;
+        //    _semiExpendableService = semiExpendableService;
+        //}
 
         private decimal GetPriceCap()
         {
@@ -154,6 +171,14 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
+        public IQueryable<ParIcsPOGroupVM> GetAllPo(int? forYear)
+        {
+            var priceCap = GetPriceCap();
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'I', {0}, {1}", priceCap, forYear).AsQueryable();
+
+            return data;
+        }
+
         public IQueryable<ParIcsPOGroupVM> GetAllPoCombo()
         {
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPoByText ''").AsQueryable();
@@ -198,12 +223,19 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo)
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo)
         {
-            return GetItemsByPoNo(poNo, null, null);
+            return await GetItemsByPoNoAsync(poNo, null, null);
         }
 
-        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        {
+            var priceCap = GetPriceCap();
+            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetIcsPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
+            return data;
+        }
+
+        public IQueryable<ParIcsItemVm> GetItemsByPoNoOld(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
             var data = _db.PsCardItems.AsNoTracking()
@@ -273,12 +305,19 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo)
+        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo)
         {
-            return GetItemSetsByPoNo(poNo, null, null);
+            return await GetItemSetsByPoNoAsync(poNo, null, null);
         }
 
-        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        {
+            var priceCap = GetPriceCap();
+            var data = await _db.Database.SqlQuery<ParIcsItemSetVm>("Exec ParIcs_GetIcsSetPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
+            return data;
+        }
+
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNoOld(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
             var data = _db.PsCardItemUnitGroups
@@ -359,9 +398,9 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public async ValueTask<IcsVM> GetByIdAsync(AppManEntities ctx, Guid? id)
+        public async ValueTask<IcsVM> GetByIdAsync(Guid? id)
         {
-            var data = await ctx.PsCardItems.Where(w => w.Id == id)
+            var data = await _db.PsCardItems.Where(w => w.Id == id)
                 .Select(s => new IcsVM
                 {
                     Id = s.Id,
@@ -387,7 +426,7 @@ namespace iLgs.Services.ParIcs
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    IcsBalance = (int?)s.Qty - (ctx.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    IcsBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId),
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
@@ -402,125 +441,121 @@ namespace iLgs.Services.ParIcs
         public ValueTask<GenerateIcsParVM> GenerateIcs(GenerateIcsParVM model, string user, DateTime date) =>
         _generateParExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            if (model.LocationId == null || model.LocationId == Guid.Empty)
             {
-                if (model.LocationId == null || model.LocationId == Guid.Empty)
+                throw new InvalidValueException("Field Location is required!");
+            }
+
+            var cardItem = await GetByIdAsync(model.PsCardItemId);
+
+            if (cardItem == null)
+            {
+                throw new NotFoundException((Guid)model.PsCardItemId);
+            }
+
+            if (cardItem.IsConsumable == true)
+            {
+                throw new InvalidValueException("Item is marked as Consumable, cannot generate ICS!");
+            }
+
+            if (cardItem.IsIncorporated == true)
+            {
+                throw new InvalidValueException("Item is marked as Incorporated, cannot generate ICS!");
+            }
+
+            if (cardItem.IsOthers == true)
+            {
+                throw new InvalidValueException(string.Format("Item is {0}, cannot generate ICS!", cardItem.OtherRemarks));
+            }
+
+            if (cardItem.IcsBalance == 0)
+            {
+                throw new InvalidValueException(string.Format("All Items have ICS."));
+            }
+
+
+            if (model.Qty > cardItem.IcsBalance)
+            {
+                throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
+            }
+
+            if (cardItem.InvDist == "D")
+            {
+                throw new InvalidValueException(string.Format("Item is For Distribution, cannot generate ICS!"));
+            }
+
+
+            // -----------
+            if (model.SelectedIds == null)
+            {
+                throw new InvalidValueException(string.Format("No selected items, cannot generate."));
+            }
+
+            var selectedItemExtnIds = model.SelectedIds.Split(',');
+            if (selectedItemExtnIds.Count() == 0)
+            {
+                throw new InvalidValueException(string.Format("No selected items, cannot generate."));
+            }
+            // -----------
+
+            var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
+            if (!string.IsNullOrWhiteSpace(refType))
+            {
+                throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
+            }
+
+            var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
+            var selectedIcsValues = await SetIcsValueAsync(selectedItemExtnIds);
+            var selectedIcsValueGroups = selectedIcsValues.GroupBy(g => g.IcsValue).Select(s => s.Key);
+            foreach (var selectedIcsValueGroup in selectedIcsValueGroups)
+            {
+                var icsPar = await SetIcsParAsync(model, (int)selectedIcsValueGroup, user, date);
+                var selectedIcsValueGroupItems = selectedIcsValues.Where(w => w.IcsValue == selectedIcsValueGroup);
+                foreach (var selectedIcsValueGroupItem in selectedIcsValueGroupItems)
                 {
-                    throw new InvalidValueException("Field Location is required!");
-                }
-
-                var cardItem = await GetByIdAsync(ctx, model.PsCardItemId);
-
-                if (cardItem == null)
-                {
-                    throw new NotFoundException((Guid)model.PsCardItemId);
-                }
-
-                if (cardItem.IsConsumable == true)
-                {
-                    throw new InvalidValueException("Item is marked as Consumable, cannot generate ICS!");
-                }
-
-                if (cardItem.IsIncorporated == true)
-                {
-                    throw new InvalidValueException("Item is marked as Incorporated, cannot generate ICS!");
-                }
-
-                if (cardItem.IsOthers == true)
-                {
-                    throw new InvalidValueException(string.Format("Item is {0}, cannot generate ICS!", cardItem.OtherRemarks));
-                }
-
-                if (cardItem.IcsBalance == 0)
-                {
-                    throw new InvalidValueException(string.Format("All Items have ICS."));
-                }
-
-
-                if (model.Qty > cardItem.IcsBalance)
-                {
-                    throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
-                }
-
-                if (cardItem.InvDist == "D")
-                {
-                    throw new InvalidValueException(string.Format("Item is For Distribution, cannot generate ICS!"));
-                }
-
-
-                // -----------
-                if (model.SelectedIds == null)
-                {
-                    throw new InvalidValueException(string.Format("No selected items, cannot generate."));
-                }
-
-                var selectedItemExtnIds = model.SelectedIds.Split(',');
-                if (selectedItemExtnIds.Count() == 0)
-                {
-                    throw new InvalidValueException(string.Format("No selected items, cannot generate."));
-                }
-                // -----------
-
-                var refType = (await ctx.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
-                if (!string.IsNullOrWhiteSpace(refType))
-                {
-                    throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
-                }
-
-                var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
-                var selectedIcsValues = await SetIcsValueAsync(selectedItemExtnIds);
-                var selectedIcsValueGroups = selectedIcsValues.GroupBy(g => g.IcsValue).Select(s => s.Key);
-                foreach (var selectedIcsValueGroup in selectedIcsValueGroups)
-                {
-                    var icsPar = await SetIcsParAsync(model, (int)selectedIcsValueGroup, user, date);
-                    var selectedIcsValueGroupItems = selectedIcsValues.Where(w => w.IcsValue == selectedIcsValueGroup);
-                    foreach (var selectedIcsValueGroupItem in selectedIcsValueGroupItems)
+                    var psCardItemExtnId = selectedIcsValueGroupItem.Id;
+                    var acqCost = (await _db.PsCardItemExtns.FirstOrDefaultAsync(f => f.Id == psCardItemExtnId)).AcqCost;
+                    IcsParItem icsParItem = new IcsParItem()
                     {
-                        var psCardItemExtnId = selectedIcsValueGroupItem.Id;
-                        var acqCost = (await ctx.PsCardItemExtns.FirstOrDefaultAsync(f => f.Id == psCardItemExtnId)).AcqCost;
-                        IcsParItem icsParItem = new IcsParItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            IcsParId = icsPar.Id,
-                            PsCardItemExtnId = psCardItemExtnId,
-                            Qty = 1,
-                            Amount = acqCost,
-                            IssuedTo = model.IssuedTo,
-                            Designation = model.Designation,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        icsPar.IcsParItems.Add(icsParItem);
-                    }
+                        Id = Guid.NewGuid(),
+                        IcsParId = icsPar.Id,
+                        PsCardItemExtnId = psCardItemExtnId,
+                        Qty = 1,
+                        Amount = acqCost,
+                        IssuedTo = model.IssuedTo,
+                        Designation = model.Designation,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    icsPar.IcsParItems.Add(icsParItem);
+                }
 
-                    ctx.IcsPars.Add(icsPar);
-                    //ctx.Entry(icsPar).State = EntityState.Added;
-                    await ctx.SaveChangesAsync();
+                _db.IcsPars.Add(icsPar);
+                //_db.Entry(icsPar).State = EntityState.Added;
+                await _db.SaveChangesAsync();
 
-                    // assign property numbers to the items of generated ICS/PAR
-                    foreach (var selectedIcsValueGroupItem in selectedIcsValueGroupItems)
-                    {
-                        var psCardItemExtnId = selectedIcsValueGroupItem.Id;
-                        var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                        var propSplit = propNo.Split('/');
-                        var propSeq = propSplit[propSplit.Length - 2];
-                        var psCardItemExtn = await ctx.PsCardItemExtns.FirstOrDefaultAsync(f => f.Id == psCardItemExtnId);
-                        psCardItemExtn.LocationId = model.LocationId;
-                        psCardItemExtn.PropYear = acqYear;
-                        psCardItemExtn.PropNo = propNo;
-                        psCardItemExtn.PropSeq = propSeq;
-                        psCardItemExtn.UpdatedBy = user;
-                        psCardItemExtn.UpdatedDt = date;
+                // assign property numbers to the items of generated ICS/PAR
+                foreach (var selectedIcsValueGroupItem in selectedIcsValueGroupItems)
+                {
+                    var psCardItemExtnId = selectedIcsValueGroupItem.Id;
+                    var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                    var propSplit = propNo.Split('/');
+                    var propSeq = propSplit[propSplit.Length - 2];
+                    var psCardItemExtn = await _db.PsCardItemExtns.FirstOrDefaultAsync(f => f.Id == psCardItemExtnId);
+                    psCardItemExtn.LocationId = model.LocationId;
+                    psCardItemExtn.PropYear = acqYear;
+                    psCardItemExtn.PropNo = propNo;
+                    psCardItemExtn.PropSeq = propSeq;
+                    psCardItemExtn.UpdatedBy = user;
+                    psCardItemExtn.UpdatedDt = date;
 
-                        //ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                        //ctx.Entry(psCardItemExtn).State = EntityState.Modified;
-                        await ctx.SaveChangesAsync();
-                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
-                    }
+                    await _db.SaveChangesAsync();
+                    await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
                 }
             }
+
             return model;
         });
 
@@ -544,189 +579,186 @@ namespace iLgs.Services.ParIcs
                 throw new InvalidValueException(string.Format("No selected items, cannot generate."));
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            // validate records
+            foreach (var selectedItem in selectedItems)
             {
-                // validate records
-                foreach (var selectedItem in selectedItems)
+                var psCardItemExtnId = selectedItem.Id;
+                var psCardItemExtn = await _db.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
+                var cardItem = await GetByIdAsync(psCardItemExtn.PsCardItemId);
+
+                if (cardItem == null)
                 {
-                    var psCardItemExtnId = selectedItem.Id;
-                    var psCardItemExtn = await ctx.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
-                    var cardItem = await GetByIdAsync(ctx, psCardItemExtn.PsCardItemId);
-
-                    if (cardItem == null)
-                    {
-                        throw new RecordNotFoundException((Guid)psCardItemExtn.PsCardItemId);
-                    }
-
-                    if (cardItem.IcsBalance == 0)
-                    {
-                        throw new InvalidValueException(string.Format("All Items have ICS."));
-                    }
-
-                    if (model.Qty > cardItem.IcsBalance)
-                    {
-                        throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
-                    }
-
-                    var refType = (await ctx.IcsParItems.Include(i => i.IcsPar).AsNoTracking()
-                        .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemExtn.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
-                    if (!string.IsNullOrWhiteSpace(refType))
-                    {
-                        throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
-                    }
+                    throw new RecordNotFoundException((Guid)psCardItemExtn.PsCardItemId);
                 }
-                var selectedIcsValueGroups = selectedItems.GroupBy(g => new { g.IcsValue })
-                        .Select(s => new
-                        {
-                            IcsValue = s.Key.IcsValue
-                        }).ToList();
-                // process Set by valueGroup
-                foreach (var selectedIcsValueGroup in selectedIcsValueGroups)
+
+                if (cardItem.IcsBalance == 0)
                 {
-                    var icsPar = await SetIcsParAsync(model, (int)selectedIcsValueGroup.IcsValue, user, date);
-                    ctx.IcsPars.Add(icsPar);
-                    ctx.Entry(icsPar).State = EntityState.Added;
-                    await ctx.SaveChangesAsync();
+                    throw new InvalidValueException(string.Format("All Items have ICS."));
+                }
 
-                    /*
-                     *  Get all Sets w/ specific ValueGroup
-                     *  Get all Set Items
-                    */
+                if (model.Qty > cardItem.IcsBalance)
+                {
+                    throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
+                }
 
-                    var selectedItemGroups = selectedItems.Where(w => w.IcsValue == selectedIcsValueGroup.IcsValue).GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
-                        .Select(s => new
-                        {
-                            SetLotNo = s.Key.SetLotNo,
-                            SetLotQtyNo = s.Key.SetLotQtyNo
-                        }).ToList();
-                    foreach (var selectedItemGroup in selectedItemGroups)
+                var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking()
+                    .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemExtn.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
+                if (!string.IsNullOrWhiteSpace(refType))
+                {
+                    throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
+                }
+            }
+            var selectedIcsValueGroups = selectedItems.GroupBy(g => new { g.IcsValue })
+                    .Select(s => new
                     {
-                        var selectedSetItems = selectedItems.Where(w => w.SetLotNo == selectedItemGroup.SetLotNo && w.SetLotQtyNo == selectedItemGroup.SetLotQtyNo).ToList();
-                        foreach (var selectedSetItem in selectedSetItems)
+                        IcsValue = s.Key.IcsValue
+                    }).ToList();
+            // process Set by valueGroup
+            foreach (var selectedIcsValueGroup in selectedIcsValueGroups)
+            {
+                var icsPar = await SetIcsParAsync(model, (int)selectedIcsValueGroup.IcsValue, user, date);
+                _db.IcsPars.Add(icsPar);
+                _db.Entry(icsPar).State = EntityState.Added;
+                await _db.SaveChangesAsync();
+
+                /*
+                 *  Get all Sets w/ specific ValueGroup
+                 *  Get all Set Items
+                */
+
+                var selectedItemGroups = selectedItems.Where(w => w.IcsValue == selectedIcsValueGroup.IcsValue).GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
+                    .Select(s => new
+                    {
+                        SetLotNo = s.Key.SetLotNo,
+                        SetLotQtyNo = s.Key.SetLotQtyNo
+                    }).ToList();
+                foreach (var selectedItemGroup in selectedItemGroups)
+                {
+                    var selectedSetItems = selectedItems.Where(w => w.SetLotNo == selectedItemGroup.SetLotNo && w.SetLotQtyNo == selectedItemGroup.SetLotQtyNo).ToList();
+                    foreach (var selectedSetItem in selectedSetItems)
+                    {
+                        var psCardItemExtnId = selectedSetItem.Id;
+                        var psCardItemExtn = await _db.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
+                        var cardItem = await GetByIdAsync(psCardItemExtn.PsCardItemId);
+                        string acqYear = GetAcqDate(cardItem).Value.Year.ToString();
+
+                        IcsParItem icsParItem = new IcsParItem()
                         {
-                            var psCardItemExtnId = selectedSetItem.Id;
-                            var psCardItemExtn = await ctx.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
-                            var cardItem = await GetByIdAsync(ctx, psCardItemExtn.PsCardItemId);
-                            string acqYear = GetAcqDate(cardItem).Value.Year.ToString();
+                            Id = Guid.NewGuid(),
+                            IcsParId = icsPar.Id,
+                            PsCardItemExtnId = selectedSetItem.Id,
+                            Qty = 1,
+                            Amount = selectedSetItem.AcqCost,
+                            IssuedTo = model.IssuedTo,
+                            Designation = model.Designation,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
 
-                            IcsParItem icsParItem = new IcsParItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                IcsParId = icsPar.Id,
-                                PsCardItemExtnId = selectedSetItem.Id,
-                                Qty = 1,
-                                Amount = selectedSetItem.AcqCost,
-                                IssuedTo = model.IssuedTo,
-                                Designation = model.Designation,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
+                        _db.IcsParItems.Add(icsParItem);
+                        _db.Entry(icsParItem).State = EntityState.Added;
+                        await _db.SaveChangesAsync();
 
-                            ctx.IcsParItems.Add(icsParItem);
-                            ctx.Entry(icsParItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
+                        var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                        var propSplit = propNo.Split('/');
+                        var propSeq = propSplit[propSplit.Length - 2];
 
-                            var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                            var propSplit = propNo.Split('/');
-                            var propSeq = propSplit[propSplit.Length - 2];
+                        psCardItemExtn.LocationId = model.LocationId;
+                        psCardItemExtn.PropYear = acqYear;
+                        psCardItemExtn.PropNo = propNo;
+                        psCardItemExtn.PropSeq = propSeq;
+                        psCardItemExtn.UpdatedBy = user;
+                        psCardItemExtn.UpdatedDt = date;
 
-                            psCardItemExtn.LocationId = model.LocationId;
-                            psCardItemExtn.PropYear = acqYear;
-                            psCardItemExtn.PropNo = propNo;
-                            psCardItemExtn.PropSeq = propSeq;
-                            psCardItemExtn.UpdatedBy = user;
-                            psCardItemExtn.UpdatedDt = date;
+                        //_db.PsCardItemExtns.Attach(psCardItemExtn);
+                        //_db.Entry(psCardItemExtn).State = EntityState.Modified;
+                        await _db.SaveChangesAsync();
 
-                            //ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                            //ctx.Entry(psCardItemExtn).State = EntityState.Modified;
-                            await ctx.SaveChangesAsync();
+                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
+                    }
 
-                            await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
-                        }
+                    // insert unit groups after creating the par/ics
 
-                        // insert unit groups after creating the par/ics
+                    var psCardItemId = selectedItems.FirstOrDefault().PsCardItemId;
+                    var poNo = selectedItems.FirstOrDefault().PoNo;
 
-                        var psCardItemId = selectedItems.FirstOrDefault().PsCardItemId;
-                        var poNo = selectedItems.FirstOrDefault().PoNo;
-
-                        var unitGroups = ctx.PsCardItemUnitGroups
-                            .Include(i => i.PsCardItemUnitGroupDescriptions)
-                            .Where(w => w.PoNo == poNo)
-                            .ToList();
-                        foreach (var unitGroup in unitGroups)
+                    var unitGroups = _db.PsCardItemUnitGroups
+                        .Include(i => i.PsCardItemUnitGroupDescriptions)
+                        .Where(w => w.PoNo == poNo)
+                        .ToList();
+                    foreach (var unitGroup in unitGroups)
+                    {
+                        for (int q = 1; q <= unitGroup.Qty; q++)
                         {
-                            for (int q = 1; q <= unitGroup.Qty; q++)
-                            {
-                                var selectedItemList = selectedSetItems.Where(w => w.SetLotNo == unitGroup.SetLotNo && w.SetLotQtyNo == q).ToList();
-                                var selectedCount = selectedItemList.Count();
-                                var groupItemCount = ctx.PsCardItemUnitGroupDescriptionItems
-                                    .Where(w => w.PsCardItemUnitGroupDescription.UnitGroupId == unitGroup.Id)
-                                    .Sum(s => s.PoQty) ?? 0;
+                            var selectedItemList = selectedSetItems.Where(w => w.SetLotNo == unitGroup.SetLotNo && w.SetLotQtyNo == q).ToList();
+                            var selectedCount = selectedItemList.Count();
+                            var groupItemCount = _db.PsCardItemUnitGroupDescriptionItems
+                                .Where(w => w.PsCardItemUnitGroupDescription.UnitGroupId == unitGroup.Id)
+                                .Sum(s => s.PoQty) ?? 0;
 
-                                if (selectedCount == groupItemCount) // all items in the set were selected
+                            if (selectedCount == groupItemCount) // all items in the set were selected
+                            {
+                                // create set record
+                                int qty = 1;
+                                var icsParUnitGroup = new IcsParUnitGroup()
                                 {
-                                    // create set record
-                                    int qty = 1;
-                                    var icsParUnitGroup = new IcsParUnitGroup()
+                                    Id = Guid.NewGuid(),
+                                    IcsParId = icsPar.Id,
+                                    SetLotNo = unitGroup.SetLotNo,
+                                    Qty = qty,
+                                    Unit = unitGroup.Unit,
+                                    UnitCost = unitGroup.UnitCost,
+                                    TotalCost = unitGroup.UnitCost * qty,
+                                    AddCost = unitGroup.AddCost,
+                                    TUnitCost = unitGroup.TUnitCost,
+                                    GTotalCost = unitGroup.GTotalCost,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    Updatedby = user,
+                                    UpdatedDt = date
+                                };
+
+                                foreach (var unitGroupDescription in unitGroup.PsCardItemUnitGroupDescriptions)
+                                {
+                                    var icsParUnitGroupDescription = new IcsPartUnitGroupDescription()
                                     {
                                         Id = Guid.NewGuid(),
-                                        IcsParId = icsPar.Id,
-                                        SetLotNo = unitGroup.SetLotNo,
-                                        Qty = qty,
-                                        Unit = unitGroup.Unit,
-                                        UnitCost = unitGroup.UnitCost,
-                                        TotalCost = unitGroup.UnitCost * qty,
-                                        AddCost = unitGroup.AddCost,
-                                        TUnitCost = unitGroup.TUnitCost,
-                                        GTotalCost = unitGroup.GTotalCost,
+                                        UnitGroupId = icsParUnitGroup.Id,
+                                        Description = unitGroupDescription.Description,
                                         InsertedBy = user,
                                         InsertedDt = date,
-                                        Updatedby = user,
+                                        UpdatedBy = user,
                                         UpdatedDt = date
                                     };
 
-                                    foreach (var unitGroupDescription in unitGroup.PsCardItemUnitGroupDescriptions)
+                                    var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).ToList();
+                                    foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
                                     {
-                                        var icsParUnitGroupDescription = new IcsPartUnitGroupDescription()
+                                        var unitGroupDescriptionItemSelections = selectedItemList.Where(w => w.PsCardItemId == unitGroupDescriptionItem.PsCardItemId);
+                                        foreach (var selectedItem in unitGroupDescriptionItemSelections) // selecteditemList from GenerateParSet Selection
                                         {
-                                            Id = Guid.NewGuid(),
-                                            UnitGroupId = icsParUnitGroup.Id,
-                                            Description = unitGroupDescription.Description,
-                                            InsertedBy = user,
-                                            InsertedDt = date,
-                                            UpdatedBy = user,
-                                            UpdatedDt = date
-                                        };
-
-                                        var unitGroupDescriptionItems = ctx.PsCardItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).ToList();
-                                        foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
-                                        {
-                                            var unitGroupDescriptionItemSelections = selectedItemList.Where(w => w.PsCardItemId == unitGroupDescriptionItem.PsCardItemId);
-                                            foreach (var selectedItem in unitGroupDescriptionItemSelections) // selecteditemList from GenerateParSet Selection
+                                            var icsParItemId = _db.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == icsPar.RefNo).FirstOrDefault().Id;
+                                            var icsParUnitGroupDescriptionItems = new IcsParUnitGroupDescriptionItem()
                                             {
-                                                var icsParItemId = ctx.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == icsPar.RefNo).FirstOrDefault().Id;
-                                                var icsParUnitGroupDescriptionItems = new IcsParUnitGroupDescriptionItem()
-                                                {
-                                                    Id = Guid.NewGuid(),
-                                                    UnitGroupDescriptionId = icsParUnitGroupDescription.Id,
-                                                    IcsParItemId = icsParItemId,
-                                                    InsertedBy = user,
-                                                    InsertedDt = date,
-                                                    UpdatedBy = user,
-                                                    UpdatedDt = date
-                                                };
-                                                icsParUnitGroupDescription.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescriptionItems);
-                                            }
+                                                Id = Guid.NewGuid(),
+                                                UnitGroupDescriptionId = icsParUnitGroupDescription.Id,
+                                                IcsParItemId = icsParItemId,
+                                                InsertedBy = user,
+                                                InsertedDt = date,
+                                                UpdatedBy = user,
+                                                UpdatedDt = date
+                                            };
+                                            icsParUnitGroupDescription.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescriptionItems);
                                         }
-                                        icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDescription);
                                     }
-
-                                    ctx.IcsParUnitGroups.Add(icsParUnitGroup);
-                                    ctx.Entry(icsParUnitGroup).State = EntityState.Added;
-                                    await ctx.SaveChangesAsync();
+                                    icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDescription);
                                 }
+
+                                _db.IcsParUnitGroups.Add(icsParUnitGroup);
+                                _db.Entry(icsParUnitGroup).State = EntityState.Added;
+                                await _db.SaveChangesAsync();
                             }
                         }
                     }
@@ -803,15 +835,15 @@ namespace iLgs.Services.ParIcs
 
             // Get all PO Items, For ICS (Cost < 50k) without ICS            
             var priceCap = GetPriceCap();
-            var cardPoItems = GetItemsByPoNo(model.PoNo, model.PoDate, model.DeptId)
-                .Where(w => w.InvDist == "I"
-                    && w.IsConsumable != true
-                    && w.IsIncorporated != true
-                    && w.IsOthers != true
-                    && _db.PsCardItemExtns.Any(a => a.PsCardItemId == w.Id && a.AcqCost < priceCap && !a.IcsParItems.Any())).ToList();
+            var cardPoItems = await GetItemsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);
+            cardPoItems = cardPoItems.Where(w => w.InvDist == "I"
+                && w.IsConsumable != true
+                && w.IsIncorporated != true
+                && w.IsOthers != true
+                && _db.PsCardItemExtns.Any(a => a.PsCardItemId == w.Id && a.AcqCost < priceCap && !a.IcsParItems.Any())).ToList();
 
-            var unitGroups = GetItemSetsByPoNo(model.PoNo, model.PoDate, model.DeptId)
-                .Where(w => w.UnitCost < priceCap && _db.PsCardItemUnitGroupDescriptionItems
+            var unitGroups = await GetItemSetsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);                
+            unitGroups = unitGroups.Where(w => w.UnitCost < priceCap && _db.PsCardItemUnitGroupDescriptionItems
                     .Any(a => a.PsCardItemUnitGroupDescription.UnitGroupId == w.Id &&
                         a.PsCardItem.PsCardItemExtns.Any(b => !b.IcsParItems.Any()))).ToList();
 
@@ -823,353 +855,72 @@ namespace iLgs.Services.ParIcs
             var SPHV = GetSPHV();
             List<PsCardItemExtn> psCardItemExtnList = null;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            for (int icsValue = 1; icsValue <= 2; icsValue++)
             {
-                for (int icsValue = 1; icsValue <= 2; icsValue++)
-                {
 
-                    IcsPar icsPar = null;
-                    var icsSw = 0;
-                    // Individual Items
-                    foreach (var cardPoItem in cardPoItems)
-                    {
-                        if (icsValue == (int)IcsValue.SPLV)
-                        {
-                            // Get Low Value Items
-                            psCardItemExtnList = await ctx.PsCardItemExtns
-                                    .Where(w => w.PsCardItemId == cardPoItem.Id && !w.IcsParItems.Any() && w.AcqCost < SPHV)
-                                    .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
-                                    .ToListAsync();
-                        }
-                        else
-                        {
-                            // Get High Value Items
-                            psCardItemExtnList = await ctx.PsCardItemExtns
-                                    .Where(w => w.PsCardItemId == cardPoItem.Id && !w.IcsParItems.Any() && w.AcqCost >= SPHV)
-                                    .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
-                                    .ToListAsync();
-                        }
-
-                        // Create ICS for icsValue if not yet created and if with item
-                        if (icsSw == 0 && psCardItemExtnList.Any())
-                        {
-                            icsPar = await SetIcsParAsync(model, icsValue, user, date);
-                            ctx.IcsPars.Add(icsPar);
-                            ctx.Entry(icsPar).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
-
-                            icsSw = 1;
-                        }
-
-                        foreach (var psCardItemExtn in psCardItemExtnList)
-                        {
-                            var psCardItemExtnId = psCardItemExtn.Id;
-                            var acqCost = psCardItemExtn.AcqCost;
-                            var icsParItem = new IcsParItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                IcsParId = icsPar.Id,
-                                PsCardItemExtnId = psCardItemExtnId,
-                                Qty = 1,
-                                Amount = acqCost,
-                                IssuedTo = model.IssuedTo,
-                                Designation = model.Designation,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-                            ctx.IcsParItems.Add(icsParItem);
-                            ctx.Entry(icsParItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
-
-                            // generate and update property number foreach item
-                            var cardItem = await GetByIdAsync(ctx, cardPoItem.Id);
-                            var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
-                            var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                            var propSplit = propNo.Split('/');
-                            var propSeq = propSplit[propSplit.Length - 2];
-
-                            var psCardItemExtnEntity = ctx.PsCardItemExtns.Find(psCardItemExtn.Id);
-                            psCardItemExtnEntity.LocationId = model.LocationId;
-                            psCardItemExtnEntity.PropNo = propNo;
-                            psCardItemExtnEntity.PropYear = acqYear;
-                            psCardItemExtnEntity.PropSeq = propSeq;
-                            psCardItemExtnEntity.UpdatedBy = user;
-                            psCardItemExtnEntity.UpdatedDt = date;
-
-                            //ctx.PsCardItemExtns.Attach(psCardItemExtnEntity);
-                            //ctx.Entry(psCardItemExtnEntity).State = EntityState.Modified;
-                            await ctx.SaveChangesAsync();
-                            await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
-                        }
-                    }
-
-                    // Set Items
-                    foreach (var unitGroup in unitGroups)
-                    {
-                        var selectedItems = _psCardItemExtnService.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroup.Id);
-                        var selectedItemGroups = selectedItems.Where(w => w.IcsValue == icsValue) // Get groups by icsValue (LV or HV)
-                                .GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
-                                .Select(s => new
-                                {
-                                    SetLotNo = s.Key.SetLotNo,
-                                    SetLotQtyNo = s.Key.SetLotQtyNo
-                                }).ToList();
-
-                        // Create ICS for icsValue if not yet created and if with item
-                        if (icsSw == 0 && selectedItemGroups.Any())
-                        {
-                            icsPar = await SetIcsParAsync(model, icsValue, user, date);
-                            ctx.IcsPars.Add(icsPar);
-                            ctx.Entry(icsPar).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
-
-                            icsSw = 1;
-                        }
-
-                        foreach (var selectedItemGroup in selectedItemGroups) // Groups may hve multiple SetLotNo
-                        {
-                            var selectedSetItems = selectedItems.Where(w => w.SetLotNo == selectedItemGroup.SetLotNo && w.SetLotQtyNo == selectedItemGroup.SetLotQtyNo).ToList();
-                            foreach (var selectedSetItem in selectedSetItems)
-                            {
-                                var psCardItemExtnId = selectedSetItem.Id;
-                                // check if with ics
-                                if (ctx.IcsParItems.Any(a => a.PsCardItemExtnId == psCardItemExtnId))
-                                {
-                                    continue;
-                                }
-
-                                var psCardItemExtn = await ctx.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
-                                var cardItem = await GetByIdAsync(ctx, psCardItemExtn.PsCardItemId);
-                                var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
-
-                                var icsParItem = new IcsParItem()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    IcsParId = icsPar.Id,
-                                    PsCardItemExtnId = selectedSetItem.Id,
-                                    Qty = 1,
-                                    Amount = psCardItemExtn.AcqCost,
-                                    IssuedTo = model.IssuedTo,
-                                    Designation = model.Designation,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                ctx.IcsParItems.Add(icsParItem);
-                                ctx.Entry(icsParItem).State = EntityState.Added;
-                                await ctx.SaveChangesAsync();
-
-                                var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                                var propSplit = propNo.Split('/');
-                                var propSeq = propSplit[propSplit.Length - 2];
-
-                                psCardItemExtn.LocationId = model.LocationId;
-                                psCardItemExtn.PropYear = acqYear;
-                                psCardItemExtn.PropNo = propNo;
-                                psCardItemExtn.PropSeq = propSeq;
-                                psCardItemExtn.UpdatedBy = user;
-                                psCardItemExtn.UpdatedDt = date;
-
-                                //ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                                //ctx.Entry(psCardItemExtn).State = EntityState.Modified;
-                                await ctx.SaveChangesAsync();
-
-                                await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
-                            }
-
-                            // insert unit groups after creating the par/ics                   
-                            for (int q = 1; q <= unitGroup.Qty; q++)
-                            {
-                                var selectedItemList = selectedSetItems.Where(w => w.SetLotNo == unitGroup.SetLotNo && w.SetLotQtyNo == q).ToList();
-                                var selectedCount = selectedItemList.Count();
-                                var groupItemCount = ctx.PsCardItemUnitGroupDescriptionItems
-                                    .Where(w => w.PsCardItemUnitGroupDescription.UnitGroupId == unitGroup.Id)
-                                    .Sum(s => s.PoQty) ?? 0;
-
-                                if (selectedCount == groupItemCount) // all items in the set were selected
-                                {
-                                    // create set record
-                                    int qty = 1;
-                                    var icsParUnitGroup = new IcsParUnitGroup()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        IcsParId = icsPar.Id,
-                                        SetLotNo = unitGroup.SetLotNo,
-                                        Qty = qty,
-                                        Unit = unitGroup.Unit,
-                                        UnitCost = unitGroup.UnitCost,
-                                        TotalCost = unitGroup.UnitCost * qty,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        Updatedby = user,
-                                        UpdatedDt = date
-                                    };
-
-                                    foreach (var unitGroupDescription in unitGroup.UnitGroupDescriptions)
-                                    {
-                                        var icsParUnitGroupDescription = new IcsPartUnitGroupDescription()
-                                        {
-                                            Id = Guid.NewGuid(),
-                                            UnitGroupId = icsParUnitGroup.Id,
-                                            Description = unitGroupDescription.Description,
-                                            InsertedBy = user,
-                                            InsertedDt = date,
-                                            UpdatedBy = user,
-                                            UpdatedDt = date
-                                        };
-
-                                        var unitGroupDescriptionItems = ctx.PsCardItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).ToList();
-                                        foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
-                                        {
-                                            var unitGroupDescriptionItemSelections = selectedItemList.Where(w => w.PsCardItemId == unitGroupDescriptionItem.PsCardItemId);
-                                            foreach (var selectedItem in unitGroupDescriptionItemSelections) // selecteditemList from GenerateParSet Selection
-                                            {
-                                                var icsParItemId = ctx.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == icsPar.RefNo).FirstOrDefault().Id;
-                                                var icsParUnitGroupDescriptionItems = new IcsParUnitGroupDescriptionItem()
-                                                {
-                                                    Id = Guid.NewGuid(),
-                                                    UnitGroupDescriptionId = icsParUnitGroupDescription.Id,
-                                                    IcsParItemId = icsParItemId,
-                                                    InsertedBy = user,
-                                                    InsertedDt = date,
-                                                    UpdatedBy = user,
-                                                    UpdatedDt = date
-                                                };
-                                                icsParUnitGroupDescription.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescriptionItems);
-                                            }
-                                        }
-                                        icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDescription);
-                                    }
-
-                                    ctx.IcsParUnitGroups.Add(icsParUnitGroup);
-                                    ctx.Entry(icsParUnitGroup).State = EntityState.Added;
-                                    await ctx.SaveChangesAsync();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return model;
-        });
-
-        public ValueTask<GenerateIcsParVM> GenerateIcsBatchOld(GenerateIcsParVM model, string user, DateTime date) =>
-        _generateParExceptionService.TryCatch(async () =>
-        {
-            if (model.LocationId == null || model.LocationId == Guid.Empty)
-            {
-                throw new InvalidValueException("Field Location is required!");
-            }
-
-            // Check if any Item for ICS
-            // Get Non Set Items
-            var cardItems = GetItemsByPoNo(model.PoNo, model.PoDate, model.DeptId)
-                .Where(w => w.InvDist == "I"
-                    && w.IsConsumable != true
-                    && w.IsIncorporated != true
-                    && w.IsOthers != true)
-                    .ToList();
-
-
-            var any = false;
-            foreach (var cardItem in cardItems)
-            {
-                var cardItemId = cardItem.Id;
-                var psCardItemExtnList = _db.PsCardItemExtns
-                    .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0);
-                if (psCardItemExtnList.Any())
-                {
-                    any = true;
-                    break;
-                }
-            }
-
-            var unitGroups = GetItemSetsByPoNo(model.PoNo, model.PoDate, model.DeptId).ToList();
-            if (!any)
-            {
-                // Get Set Items                
-                foreach (var unitGroup in unitGroups)
-                {
-                    var unitGroupDescriptions = GetItemSetDescriptionsByUnitGroupId(unitGroup.Id).ToList();
-                    foreach (var unitGroupDescription in unitGroupDescriptions)
-                    {
-                        var unitGroupDescriptionItems = GetItemSetDescriptionItemsByUnitGroupDescriptionId(unitGroupDescription.Id).ToList();
-                        foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
-                        {
-                            var cardItemId = unitGroupDescriptionItem.Id;
-                            var psCardItemExtnList = _db.PsCardItemExtns
-                                .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0);
-                            if (psCardItemExtnList.Any())
-                            {
-                                any = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (!any)
-                {
-                    throw new NotFoundException("No candidate items found for ICS.");
-                }
-            }
-
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                //var icsValue = await GetIcsValueAsync(model.PsCardItemId);
-                var acqYear = model.PoDate.Value.Year.ToString();
-                //var refNo = await NextRefNoAsync(model.Date, model.RefType, icsValue);
-                var refNo = "";
-                var icsPar = new IcsPar()
-                {
-                    Id = Guid.NewGuid(),
-                    UpdateCode = "N",
-                    LocationId = model.LocationId,
-                    LocationCode = model.LocationCode,
-                    Location = model.Location,
-                    RefNo = refNo,
-                    RefDate = model.Date,
-                    RefType = model.RefType,
-                    ReceivedById = model.IcsPar.ReceivedById,
-                    ReceivedBy = model.IcsPar.ReceivedBy.Trim(),
-                    ReceivedByTitle = model.IcsPar.ReceivedByTitle?.Trim(),
-                    ReceivedByTitle2 = model.IcsPar.ReceivedByTitle2?.Trim(),
-                    ReceivedByPosition = model.IcsPar.ReceivedByPosition?.Trim(),
-                    ReceivedDate = model.IcsPar.ReceivedDate,
-                    ReceivedDept = model.IcsPar.ReceivedDept.Trim(),
-                    IssuedBy = model.IcsPar.IssuedBy.Trim(),
-                    IssuedByPosition = model.IcsPar.IssuedByPosition.Trim(),
-                    IssuedDate = model.IcsPar.IssuedDate,
-                    IssuedDept = model.IcsPar.IssuedDept.Trim(),
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
-                ctx.IcsPars.Add(icsPar);
-                //_db.Entry(icsPar).State = EntityState.Added;
-                await ctx.SaveChangesAsync();
-
+                IcsPar icsPar = null;
+                var icsSw = 0;
                 // Individual Items
-                // Generate Property Number foreach qty of the item
-                foreach (var cardItem in cardItems)
+                foreach (var cardPoItem in cardPoItems)
                 {
-                    var cardItemId = cardItem.Id;
-                    var psCardItemExtnList = await ctx.PsCardItemExtns
-                        .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0)
-                        .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
-                        .ToListAsync();
+                    if (icsValue == (int)IcsValue.SPLV)
+                    {
+                        // Get Low Value Items
+                        psCardItemExtnList = await _db.PsCardItemExtns
+                                .Where(w => w.PsCardItemId == cardPoItem.Id && !w.IcsParItems.Any() && w.AcqCost < SPHV)
+                                .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
+                                .ToListAsync();
+                    }
+                    else
+                    {
+                        // Get High Value Items
+                        psCardItemExtnList = await _db.PsCardItemExtns
+                                .Where(w => w.PsCardItemId == cardPoItem.Id && !w.IcsParItems.Any() && w.AcqCost >= SPHV)
+                                .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
+                                .ToListAsync();
+                    }
+
+                    // Create ICS for icsValue if not yet created and if with item
+                    if (icsSw == 0 && psCardItemExtnList.Any())
+                    {
+                        icsPar = await SetIcsParAsync(model, icsValue, user, date);
+                        _db.IcsPars.Add(icsPar);
+                        _db.Entry(icsPar).State = EntityState.Added;
+                        await _db.SaveChangesAsync();
+
+                        icsSw = 1;
+                    }
+
                     foreach (var psCardItemExtn in psCardItemExtnList)
                     {
+                        var psCardItemExtnId = psCardItemExtn.Id;
+                        var acqCost = psCardItemExtn.AcqCost;
+                        var icsParItem = new IcsParItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            IcsParId = icsPar.Id,
+                            PsCardItemExtnId = psCardItemExtnId,
+                            Qty = 1,
+                            Amount = acqCost,
+                            IssuedTo = model.IssuedTo,
+                            Designation = model.Designation,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        _db.IcsParItems.Add(icsParItem);
+                        _db.Entry(icsParItem).State = EntityState.Added;
+                        await _db.SaveChangesAsync();
+
+                        // generate and update property number foreach item
+                        var cardItem = await GetByIdAsync(cardPoItem.Id);
+                        var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
                         var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
                         var propSplit = propNo.Split('/');
                         var propSeq = propSplit[propSplit.Length - 2];
-                        var psCardItemExtnEntity = ctx.PsCardItemExtns.Find(psCardItemExtn.Id);
 
+                        var psCardItemExtnEntity = _db.PsCardItemExtns.Find(psCardItemExtn.Id);
                         psCardItemExtnEntity.LocationId = model.LocationId;
                         psCardItemExtnEntity.PropNo = propNo;
                         psCardItemExtnEntity.PropYear = acqYear;
@@ -1179,82 +930,67 @@ namespace iLgs.Services.ParIcs
 
                         //_db.PsCardItemExtns.Attach(psCardItemExtnEntity);
                         //_db.Entry(psCardItemExtnEntity).State = EntityState.Modified;
-                        await ctx.SaveChangesAsync();
-
-                        var icsParItem = new IcsParItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            IcsParId = icsPar.Id,
-                            PsCardItemExtnId = psCardItemExtn.Id,
-                            Qty = 1,
-                            Amount = cardItem.UnitCost,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        ctx.IcsParItems.Add(icsParItem);
-                        //_db.Entry(icsParItem).State = EntityState.Added;
-                        await ctx.SaveChangesAsync();
-                    }
-                }
-
-                foreach (var cardItem in cardItems)
-                {
-                    var psCardItemExtnList = await ctx.PsCardItemExtns.Where(w => w.PsCardItemId == cardItem.Id)
-                        .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
-                        .ToListAsync();
-                    foreach (var psCardItemExtn in psCardItemExtnList)
-                    {
+                        await _db.SaveChangesAsync();
                         await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
                     }
                 }
 
                 // Set Items
-                // Load Set Records
                 foreach (var unitGroup in unitGroups)
                 {
                     var selectedItems = _psCardItemExtnService.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroup.Id);
-                    var selectedItemGroups = selectedItems.GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
-                        .Select(s => new
-                        {
-                            SetLotNo = s.Key.SetLotNo,
-                            SetLotQtyNo = s.Key.SetLotQtyNo
-                        }).ToList();
+                    var selectedItemGroups = selectedItems.Where(w => w.IcsValue == icsValue) // Get groups by icsValue (LV or HV)
+                            .GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
+                            .Select(s => new
+                            {
+                                SetLotNo = s.Key.SetLotNo,
+                                SetLotQtyNo = s.Key.SetLotQtyNo
+                            }).ToList();
 
-                    foreach (var selectedItemGroup in selectedItemGroups)
+                    // Create ICS for icsValue if not yet created and if with item
+                    if (icsSw == 0 && selectedItemGroups.Any())
+                    {
+                        icsPar = await SetIcsParAsync(model, icsValue, user, date);
+                        _db.IcsPars.Add(icsPar);
+                        _db.Entry(icsPar).State = EntityState.Added;
+                        await _db.SaveChangesAsync();
+
+                        icsSw = 1;
+                    }
+
+                    foreach (var selectedItemGroup in selectedItemGroups) // Groups may hve multiple SetLotNo
                     {
                         var selectedSetItems = selectedItems.Where(w => w.SetLotNo == selectedItemGroup.SetLotNo && w.SetLotQtyNo == selectedItemGroup.SetLotQtyNo).ToList();
                         foreach (var selectedSetItem in selectedSetItems)
                         {
                             var psCardItemExtnId = selectedSetItem.Id;
-
                             // check if with ics
-                            if (await ctx.IcsParItems.AnyAsync(a => a.PsCardItemExtnId == psCardItemExtnId))
+                            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == psCardItemExtnId))
                             {
                                 continue;
                             }
 
-                            var psCardItemExtn = await ctx.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
-                            var cardItem = await GetByIdAsync(ctx, psCardItemExtn.PsCardItemId);
+                            var psCardItemExtn = await _db.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
+                            var cardItem = await GetByIdAsync(psCardItemExtn.PsCardItemId);
+                            var acqYear = GetAcqDate(cardItem).Value.Year.ToString();
 
-                            IcsParItem icsParItem = new IcsParItem()
+                            var icsParItem = new IcsParItem()
                             {
                                 Id = Guid.NewGuid(),
                                 IcsParId = icsPar.Id,
                                 PsCardItemExtnId = selectedSetItem.Id,
                                 Qty = 1,
-                                Amount = cardItem.UnitCost,
+                                Amount = psCardItemExtn.AcqCost,
+                                IssuedTo = model.IssuedTo,
+                                Designation = model.Designation,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date
                             };
-
-                            ctx.IcsParItems.Add(icsParItem);
-                            //_db.Entry(icsParItem).State = EntityState.Added;
-                            await ctx.SaveChangesAsync();
+                            _db.IcsParItems.Add(icsParItem);
+                            _db.Entry(icsParItem).State = EntityState.Added;
+                            await _db.SaveChangesAsync();
 
                             var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
                             var propSplit = propNo.Split('/');
@@ -1269,7 +1005,7 @@ namespace iLgs.Services.ParIcs
 
                             //_db.PsCardItemExtns.Attach(psCardItemExtn);
                             //_db.Entry(psCardItemExtn).State = EntityState.Modified;
-                            await ctx.SaveChangesAsync();
+                            await _db.SaveChangesAsync();
 
                             await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
                         }
@@ -1321,7 +1057,7 @@ namespace iLgs.Services.ParIcs
                                         var unitGroupDescriptionItemSelections = selectedItemList.Where(w => w.PsCardItemId == unitGroupDescriptionItem.PsCardItemId);
                                         foreach (var selectedItem in unitGroupDescriptionItemSelections) // selecteditemList from GenerateParSet Selection
                                         {
-                                            var icsParItemId = _db.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == refNo).FirstOrDefault().Id;
+                                            var icsParItemId = _db.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == icsPar.RefNo).FirstOrDefault().Id;
                                             var icsParUnitGroupDescriptionItems = new IcsParUnitGroupDescriptionItem()
                                             {
                                                 Id = Guid.NewGuid(),
@@ -1338,10 +1074,299 @@ namespace iLgs.Services.ParIcs
                                     icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDescription);
                                 }
 
-                                ctx.IcsParUnitGroups.Add(icsParUnitGroup);
-                                //_db.Entry(icsParUnitGroup).State = EntityState.Added;
-                                await ctx.SaveChangesAsync();
+                                _db.IcsParUnitGroups.Add(icsParUnitGroup);
+                                _db.Entry(icsParUnitGroup).State = EntityState.Added;
+                                await _db.SaveChangesAsync();
                             }
+                        }
+                    }
+                }
+            }
+
+            return model;
+        });
+
+        public ValueTask<GenerateIcsParVM> GenerateIcsBatchOld(GenerateIcsParVM model, string user, DateTime date) =>
+        _generateParExceptionService.TryCatch(async () =>
+        {
+            if (model.LocationId == null || model.LocationId == Guid.Empty)
+            {
+                throw new InvalidValueException("Field Location is required!");
+            }
+
+            // Check if any Item for ICS
+            // Get Non Set Items
+            var cardItems = await GetItemsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);           
+            cardItems = cardItems.Where(w => w.InvDist == "I"
+                    && w.IsConsumable != true
+                    && w.IsIncorporated != true
+                    && w.IsOthers != true).ToList();
+
+
+            var any = false;
+            foreach (var cardItem in cardItems)
+            {
+                var cardItemId = cardItem.Id;
+                var psCardItemExtnList = _db.PsCardItemExtns
+                    .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0);
+                if (psCardItemExtnList.Any())
+                {
+                    any = true;
+                    break;
+                }
+            }
+
+            var unitGroups = await GetItemSetsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);
+            if (!any)
+            {
+                // Get Set Items                
+                foreach (var unitGroup in unitGroups)
+                {
+                    var unitGroupDescriptions = GetItemSetDescriptionsByUnitGroupId(unitGroup.Id).ToList();
+                    foreach (var unitGroupDescription in unitGroupDescriptions)
+                    {
+                        var unitGroupDescriptionItems = GetItemSetDescriptionItemsByUnitGroupDescriptionId(unitGroupDescription.Id).ToList();
+                        foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                        {
+                            var cardItemId = unitGroupDescriptionItem.Id;
+                            var psCardItemExtnList = _db.PsCardItemExtns
+                                .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0);
+                            if (psCardItemExtnList.Any())
+                            {
+                                any = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!any)
+                {
+                    throw new NotFoundException("No candidate items found for ICS.");
+                }
+            }
+
+            //var icsValue = await GetIcsValueAsync(model.PsCardItemId);
+            var acqYear = model.PoDate.Value.Year.ToString();
+            //var refNo = await NextRefNoAsync(model.Date, model.RefType, icsValue);
+            var refNo = "";
+            var icsPar = new IcsPar()
+            {
+                Id = Guid.NewGuid(),
+                UpdateCode = "N",
+                LocationId = model.LocationId,
+                LocationCode = model.LocationCode,
+                Location = model.Location,
+                RefNo = refNo,
+                RefDate = model.Date,
+                RefType = model.RefType,
+                ReceivedById = model.IcsPar.ReceivedById,
+                ReceivedBy = model.IcsPar.ReceivedBy.Trim(),
+                ReceivedByTitle = model.IcsPar.ReceivedByTitle?.Trim(),
+                ReceivedByTitle2 = model.IcsPar.ReceivedByTitle2?.Trim(),
+                ReceivedByPosition = model.IcsPar.ReceivedByPosition?.Trim(),
+                ReceivedDate = model.IcsPar.ReceivedDate,
+                ReceivedDept = model.IcsPar.ReceivedDept.Trim(),
+                IssuedBy = model.IcsPar.IssuedBy.Trim(),
+                IssuedByPosition = model.IcsPar.IssuedByPosition.Trim(),
+                IssuedDate = model.IcsPar.IssuedDate,
+                IssuedDept = model.IcsPar.IssuedDept.Trim(),
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+            _db.IcsPars.Add(icsPar);
+            //_db.Entry(icsPar).State = EntityState.Added;
+            await _db.SaveChangesAsync();
+
+            // Individual Items
+            // Generate Property Number foreach qty of the item
+            foreach (var cardItem in cardItems)
+            {
+                var cardItemId = cardItem.Id;
+                var psCardItemExtnList = await _db.PsCardItemExtns
+                    .Where(w => w.PsCardItemId == cardItemId && w.IcsParItems.Count() == 0)
+                    .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
+                    .ToListAsync();
+                foreach (var psCardItemExtn in psCardItemExtnList)
+                {
+                    var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                    var propSplit = propNo.Split('/');
+                    var propSeq = propSplit[propSplit.Length - 2];
+                    var psCardItemExtnEntity = _db.PsCardItemExtns.Find(psCardItemExtn.Id);
+
+                    psCardItemExtnEntity.LocationId = model.LocationId;
+                    psCardItemExtnEntity.PropNo = propNo;
+                    psCardItemExtnEntity.PropYear = acqYear;
+                    psCardItemExtnEntity.PropSeq = propSeq;
+                    psCardItemExtnEntity.UpdatedBy = user;
+                    psCardItemExtnEntity.UpdatedDt = date;
+
+                    //_db.PsCardItemExtns.Attach(psCardItemExtnEntity);
+                    //_db.Entry(psCardItemExtnEntity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
+
+                    var icsParItem = new IcsParItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        IcsParId = icsPar.Id,
+                        PsCardItemExtnId = psCardItemExtn.Id,
+                        Qty = 1,
+                        Amount = cardItem.UnitCost,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    _db.IcsParItems.Add(icsParItem);
+                    //_db.Entry(icsParItem).State = EntityState.Added;
+                    await _db.SaveChangesAsync();
+                }
+            }
+
+            foreach (var cardItem in cardItems)
+            {
+                var psCardItemExtnList = await _db.PsCardItemExtns.Where(w => w.PsCardItemId == cardItem.Id)
+                    .OrderBy(o => o.SetLotNo).ThenBy(o => o.SetLotQtyNo).ThenBy(o => o.ContentNo)
+                    .ToListAsync();
+                foreach (var psCardItemExtn in psCardItemExtnList)
+                {
+                    await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
+                }
+            }
+
+            // Set Items
+            // Load Set Records
+            foreach (var unitGroup in unitGroups)
+            {
+                var selectedItems = _psCardItemExtnService.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroup.Id);
+                var selectedItemGroups = selectedItems.GroupBy(g => new { g.SetLotNo, g.SetLotQtyNo })
+                    .Select(s => new
+                    {
+                        SetLotNo = s.Key.SetLotNo,
+                        SetLotQtyNo = s.Key.SetLotQtyNo
+                    }).ToList();
+
+                foreach (var selectedItemGroup in selectedItemGroups)
+                {
+                    var selectedSetItems = selectedItems.Where(w => w.SetLotNo == selectedItemGroup.SetLotNo && w.SetLotQtyNo == selectedItemGroup.SetLotQtyNo).ToList();
+                    foreach (var selectedSetItem in selectedSetItems)
+                    {
+                        var psCardItemExtnId = selectedSetItem.Id;
+
+                        // check if with ics
+                        if (await _db.IcsParItems.AnyAsync(a => a.PsCardItemExtnId == psCardItemExtnId))
+                        {
+                            continue;
+                        }
+
+                        var psCardItemExtn = await _db.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefaultAsync();
+                        var cardItem = await GetByIdAsync(psCardItemExtn.PsCardItemId);
+
+                        IcsParItem icsParItem = new IcsParItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            IcsParId = icsPar.Id,
+                            PsCardItemExtnId = selectedSetItem.Id,
+                            Qty = 1,
+                            Amount = cardItem.UnitCost,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        _db.IcsParItems.Add(icsParItem);
+                        //_db.Entry(icsParItem).State = EntityState.Added;
+                        await _db.SaveChangesAsync();
+
+                        var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                        var propSplit = propNo.Split('/');
+                        var propSeq = propSplit[propSplit.Length - 2];
+
+                        psCardItemExtn.LocationId = model.LocationId;
+                        psCardItemExtn.PropYear = acqYear;
+                        psCardItemExtn.PropNo = propNo;
+                        psCardItemExtn.PropSeq = propSeq;
+                        psCardItemExtn.UpdatedBy = user;
+                        psCardItemExtn.UpdatedDt = date;
+
+                        //_db.PsCardItemExtns.Attach(psCardItemExtn);
+                        //_db.Entry(psCardItemExtn).State = EntityState.Modified;
+                        await _db.SaveChangesAsync();
+
+                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "ICS", user, date);
+                    }
+
+                    // insert unit groups after creating the par/ics                   
+                    for (int q = 1; q <= unitGroup.Qty; q++)
+                    {
+                        var selectedItemList = selectedSetItems.Where(w => w.SetLotNo == unitGroup.SetLotNo && w.SetLotQtyNo == q).ToList();
+                        var selectedCount = selectedItemList.Count();
+                        var groupItemCount = _db.PsCardItemUnitGroupDescriptionItems
+                            .Where(w => w.PsCardItemUnitGroupDescription.UnitGroupId == unitGroup.Id)
+                            .Sum(s => s.PoQty) ?? 0;
+
+                        if (selectedCount == groupItemCount) // all items in the set were selected
+                        {
+                            // create set record
+                            int qty = 1;
+                            var icsParUnitGroup = new IcsParUnitGroup()
+                            {
+                                Id = Guid.NewGuid(),
+                                IcsParId = icsPar.Id,
+                                SetLotNo = unitGroup.SetLotNo,
+                                Qty = qty,
+                                Unit = unitGroup.Unit,
+                                UnitCost = unitGroup.UnitCost,
+                                TotalCost = unitGroup.UnitCost * qty,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                Updatedby = user,
+                                UpdatedDt = date
+                            };
+
+                            foreach (var unitGroupDescription in unitGroup.UnitGroupDescriptions)
+                            {
+                                var icsParUnitGroupDescription = new IcsPartUnitGroupDescription()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UnitGroupId = icsParUnitGroup.Id,
+                                    Description = unitGroupDescription.Description,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+
+                                var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).ToList();
+                                foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                                {
+                                    var unitGroupDescriptionItemSelections = selectedItemList.Where(w => w.PsCardItemId == unitGroupDescriptionItem.PsCardItemId);
+                                    foreach (var selectedItem in unitGroupDescriptionItemSelections) // selecteditemList from GenerateParSet Selection
+                                    {
+                                        var icsParItemId = _db.IcsParItems.Where(w => w.PsCardItemExtnId == selectedItem.Id && w.IcsPar.RefNo == refNo).FirstOrDefault().Id;
+                                        var icsParUnitGroupDescriptionItems = new IcsParUnitGroupDescriptionItem()
+                                        {
+                                            Id = Guid.NewGuid(),
+                                            UnitGroupDescriptionId = icsParUnitGroupDescription.Id,
+                                            IcsParItemId = icsParItemId,
+                                            InsertedBy = user,
+                                            InsertedDt = date,
+                                            UpdatedBy = user,
+                                            UpdatedDt = date
+                                        };
+                                        icsParUnitGroupDescription.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescriptionItems);
+                                    }
+                                }
+                                icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDescription);
+                            }
+
+                            _db.IcsParUnitGroups.Add(icsParUnitGroup);
+                            //_db.Entry(icsParUnitGroup).State = EntityState.Added;
+                            await _db.SaveChangesAsync();
                         }
                     }
                 }
@@ -1475,7 +1500,7 @@ namespace iLgs.Services.ParIcs
         }
 
         public ValueTask<PsCardItemUnitGroupDescriptionItem> UpdateNoICSAsync(PsCardItemUnitGroupDescriptionItem model, string user, DateTime date)
-        => _psCardItemUnitGroupDescriptionItemService.TryCatch(async () =>
+        => _psCardItemUnitGroupDescriptionItemExceptionService.TryCatch(async () =>
         {
             var parIcsItemVm = await GetItemByIdAsync(model.PsCardItemId);
             await _psCardItemService.UpdateNoICSAsync(parIcsItemVm, user, date);

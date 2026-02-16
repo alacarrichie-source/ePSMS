@@ -19,12 +19,19 @@ namespace iLgs.Services.AIRs_
         private readonly IAirItemAbstractService _airItemSharedService;
         private readonly IItemCodeService _itemCodeService;
 
-        public AirItemExtnAbstractService(AppManEntities db, IAirItemAbstractService airItemSharedService, IItemCodeService itemCodeService)
+        public AirItemExtnAbstractService(AppManEntities db)
         {
             _db = db;
-            _airItemSharedService = airItemSharedService;
-            _itemCodeService = itemCodeService;
+            _airItemSharedService = new AirItemAbstractService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public AirItemExtnAbstractService(AppManEntities db, IAirItemAbstractService airItemSharedService, IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _airItemSharedService = airItemSharedService;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public async Task CreateAirItemExtnAsync(AIRItem airItem, OrderItem orderItem, string user, DateTime date)
         {
@@ -44,7 +51,7 @@ namespace iLgs.Services.AIRs_
                        .Where(w => w.OrderItemId == orderItem.Id)
                        .FirstOrDefaultAsync();
             var qty = (int?)orderItem.Qty;
-            string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
+            string category = orderItem.ItemCode.ItemType.Code;
             string itemExtnName = _airItemSharedService.GetItemExtnNameByCategory(category);
 
             // create template based on number of qty

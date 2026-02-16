@@ -1,4 +1,5 @@
-﻿using iLgs.Services.AIRs_;
+﻿using iLgs.Models;
+using iLgs.Services.AIRs_;
 using iLgs.Services.Codes;
 using iLgs.Services.Requisition;
 
@@ -13,43 +14,47 @@ namespace iLgs.Agents.Services
         IAirInvoiceService AirInvoice { get; }
     }
 
-    public class ServiceAgent : IServiceAgent
-    {
-        public IRisService Ris { get; }
-        public ICodextnService Codextn { get; }
-        public IAirService Air { get; }
-        public IAirInvoiceService AirInvoice { get; }
-
-        public ServiceAgent(
-            IRisService risService,
-            ICodextnService codextnService,
-            IAirService airService,
-            IAirInvoiceService airInvoiceService)
-        {
-            Ris = risService;
-            Codextn = codextnService;
-            Air = airService;
-            AirInvoice = airInvoiceService;
-        }
-    }
-
     //public class ServiceAgent : IServiceAgent
     //{
-    //    private readonly AppManEntities _db = new AppManEntities();
+    //    public IRisService Ris { get; }
+    //    public ICodextnService Codextn { get; }
+    //    public IAirService Air { get; }
+    //    public IAirInvoiceService AirInvoice { get; }
 
-    //    private IRisService _risService;
-    //    private ICodextnService _codextnService;
-    //    private IAirService _airService;
-    //    private IAirInvoiceService _airInvoiceService;
-
-    //    public ServiceAgent(AppManEntities db)
+    //    public ServiceAgent(
+    //        IRisService risService,
+    //        ICodextnService codextnService,
+    //        IAirService airService,
+    //        IAirInvoiceService airInvoiceService)
     //    {
-    //        _db = db;
+    //        Ris = risService;
+    //        Codextn = codextnService;
+    //        Air = airService;
+    //        AirInvoice = airInvoiceService;
     //    }
-
-    //    public IRisService Ris { get { return _risService = _risService ?? new RisService(_db); } }
-    //    public ICodextnService Codextn { get { return _codextnService = _codextnService ?? new CodextnService(_db); } }
-    //    public IAirService Air { get { return _airService = _airService ?? new AirService(_db); } }
-    //    public IAirInvoiceService AirInvoice { get { return _airInvoiceService = _airInvoiceService ?? new AirInvoiceService(_db); } }
     //}
+
+    public class ServiceAgent : IServiceAgent
+    {
+        private readonly AppManEntities _db;
+
+        private IRisService _risService;
+        private ICodextnService _codextnService;
+        private IAirService _airService;
+        private IAirInvoiceService _airInvoiceService;
+
+        public ServiceAgent(AppManEntities db)
+        {
+            _db = db;
+            _risService = new RisService(_db);
+            _codextnService = new CodextnService(_db);
+            _airService = new AirService(_db);
+            _airInvoiceService = new AirInvoiceService(_db);
+        }
+
+        public IRisService Ris => _risService;
+        public ICodextnService Codextn => _codextnService;
+        public IAirService Air => _airService;
+        public IAirInvoiceService AirInvoice => _airInvoiceService;
+    }
 }

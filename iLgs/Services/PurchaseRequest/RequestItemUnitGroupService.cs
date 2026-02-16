@@ -54,16 +54,17 @@ namespace iLgs.Services.PurchaseRequest
         public IQueryable<RequestItemUnitGroupVM> GetByPrId(Guid? prId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RequestItemUnitGroups.Include(i => i.RisItemUnitGroup).AsNoTracking().Where(w => w.PrId == prId)
+            var data = _db.RequestItemUnitGroups.AsNoTracking().Where(w => w.PrId == prId)
                 .Select(s => new RequestItemUnitGroupVM
                 {
                     Id = s.Id,
                     PrId = s.PrId,
-                    RisItemUnitGroupId = s.RisItemUnitGroupId,
-                    RisItemUnitGroup = s.RisItemUnitGroup,
+                    //RisItemUnitGroupId = s.RisItemUnitGroupId,
+                    //RisItemUnitGroup = s.RisItemUnitGroup,
                     //Unit = s.RisItemUnitGroup.Unit,
-                    //Qty = s.RisItemUnitGroup.Qty,
-                    SetLotNo = s.RisItemUnitGroup.SetLotNo,
+                    Qty = s.Qty,
+                    Unit = s.Unit,
+                    SetLotNo = s.SetLotNo,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
                     InsertedDt = s.InsertedDt
@@ -84,13 +85,16 @@ namespace iLgs.Services.PurchaseRequest
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-            model.TotalCost = model.RisItemUnitGroup.Qty * model.UnitCost;
+            model.TotalCost = model.Qty * model.UnitCost;
 
             var entity = new RequestItemUnitGroup()
             {
                 Id = model.Id,
                 PrId = model.PrId,
-                RisItemUnitGroupId = model.RisItemUnitGroupId,
+                //RisItemUnitGroupId = model.RisItemUnitGroupId,
+                SetLotNo = model.SetLotNo,
+                Qty = model.Qty,
+                Unit = model.Unit,
                 UnitCost = model.UnitCost,
                 TotalCost = model.TotalCost,
                 InsertedBy = model.InsertedBy,
@@ -155,10 +159,13 @@ namespace iLgs.Services.PurchaseRequest
             model.UpdatedDt = date;
 
             entity.PrId = model.PrId;
-            entity.RisItemUnitGroupId = model.RisItemUnitGroupId;
-            
+            //entity.RisItemUnitGroupId = model.RisItemUnitGroupId;
+
+            entity.SetLotNo = model.SetLotNo;
+            entity.Qty = model.Qty;
+            entity.Unit = model.Unit;
             entity.UnitCost = model.UnitCost;
-            entity.TotalCost = model.RisItemUnitGroup.Qty * model.UnitCost;
+            entity.TotalCost = model.Qty * model.UnitCost;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

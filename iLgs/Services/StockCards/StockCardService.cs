@@ -19,7 +19,7 @@ namespace iLgs.Services.StockCards
         StockCardVM GetById(Guid? id);
         ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
-        ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);                
+        ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);
     }
     public class StockCardService : PsCardService, IStockCardService
     {
@@ -28,25 +28,34 @@ namespace iLgs.Services.StockCards
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
 
-        public StockCardService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<PsCardVM> vmExceptionService,
-            IExceptionService<PsCard> exceptionService,
-            IAllFieldService allFieldService,
-            IPsCardSharedService psCardSharedService,
-            IPsCardItemService psCardItemService,
-            IExceptionService<StockCardVM> stockExceptionService,
-            IStockCardValidator validator,
-            IItemCodeService itemCodeService,
-            IUserService userService) 
-            : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+        public StockCardService(AppManEntities db)
+            : base(db)
         {
-            _stockExceptionService = stockExceptionService;
-            _validator = validator;
-            _itemCodeService = itemCodeService;
-            _userService = userService;
+            _stockExceptionService = new ExceptionService<StockCardVM>();
+            _validator = new StockCardValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
         }
+
+        //public StockCardService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<PsCardVM> vmExceptionService,
+        //    IExceptionService<PsCard> exceptionService,
+        //    IAllFieldService allFieldService,
+        //    IPsCardSharedService psCardSharedService,
+        //    IPsCardItemService psCardItemService,
+        //    IExceptionService<StockCardVM> stockExceptionService,
+        //    IStockCardValidator validator,
+        //    IItemCodeService itemCodeService,
+        //    IUserService userService) 
+        //    : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+        //{
+        //    _stockExceptionService = stockExceptionService;
+        //    _validator = validator;
+        //    _itemCodeService = itemCodeService;
+        //    _userService = userService;
+        //}
 
         private Expression<Func<PsCard, StockCardVM>> Projection()
         {
@@ -149,12 +158,12 @@ namespace iLgs.Services.StockCards
 
         public new IQueryable<StockCardVM> GetAll(string userName)
         {
-            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();            
+            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();
 
             return data;
         }
 
-        public StockCardVM GetById(Guid? id) 
+        public StockCardVM GetById(Guid? id)
         {
             var data = _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                 .Where(w => w.ItemCode.ItemType.Category == "S")
@@ -204,7 +213,7 @@ namespace iLgs.Services.StockCards
                     Amount = s.Amount,
                     AllField = s.AllField,
                     InsertedDt = s.InsertedDt
-                }).FirstOrDefault();            
+                }).FirstOrDefault();
             return data;
         }
 
@@ -223,42 +232,39 @@ namespace iLgs.Services.StockCards
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = new PsCard
             {
-                var entity = new PsCard
-                {
-                    Id = model.Id,
-                    ItemCodeId = model.ItemCodeId,
-                    SubAccountCode = model.SubAccountCode,
-                    Fund = model.Fund,
-                    Description = model.Description,
-                    Unit = model.Unit,
-                    CardCategory = model.CardCategory,
-                    PsNo = model.PsNo,
-                    PsName = model.PsName,
-                    PrevPsNo = model.PrevPsNo,
-                    FromDonation = model.FromDonation,
-                    Amount = model.Amount,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
+                Id = model.Id,
+                ItemCodeId = model.ItemCodeId,
+                SubAccountCode = model.SubAccountCode,
+                Fund = model.Fund,
+                Description = model.Description,
+                Unit = model.Unit,
+                CardCategory = model.CardCategory,
+                PsNo = model.PsNo,
+                PsName = model.PsName,
+                PrevPsNo = model.PrevPsNo,
+                FromDonation = model.FromDonation,
+                Amount = model.Amount,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-                model.AllField.Id = model.Id;
-                model.AllField.InsertedBy = user;
-                model.AllField.InsertedDt = date;
-                model.AllField.UpdatedBy = user;
-                model.AllField.UpdatedDt = date;
-                entity.AllField = model.AllField;
+            model.AllField.Id = model.Id;
+            model.AllField.InsertedBy = user;
+            model.AllField.InsertedDt = date;
+            model.AllField.UpdatedBy = user;
+            model.AllField.UpdatedDt = date;
+            entity.AllField = model.AllField;
 
-                ctx.PsCards.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCards.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
-        
+
         public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             var stockNo = await GetStockNoAsync(model);
@@ -268,33 +274,28 @@ namespace iLgs.Services.StockCards
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.FindAsync(model.Id);
+            var entity = await _db.PsCards.FindAsync(model.Id);
 
-                ValidateUser(entity, model);
+            ValidateUser(entity, model);
+            await ValidateIfWithPostedItemAsync(model.Id);
 
-                model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
-                entity.ItemCodeId = model.ItemCodeId;
-                entity.SubAccountCode = model.SubAccountCode;
-                entity.Fund = model.Fund;
-                entity.Description = model.Description;
-                entity.Unit = model.Unit;
-                entity.CardCategory = model.CardCategory;
-                entity.PsNo = model.PsNo;
-                entity.PsName = model.PsName;
-                entity.PrevPsNo = model.PrevPsNo;
-                entity.FromDonation = model.FromDonation;
-                entity.Amount = model.Amount;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-                entity.AllField = model.AllField;
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
+            entity.ItemCodeId = model.ItemCodeId;
+            entity.SubAccountCode = model.SubAccountCode;
+            entity.Fund = model.Fund;
+            entity.Description = model.Description;
+            entity.Unit = model.Unit;
+            entity.CardCategory = model.CardCategory;
+            entity.PsNo = model.PsNo;
+            entity.PsName = model.PsName;
+            entity.PrevPsNo = model.PrevPsNo;
+            entity.FromDonation = model.FromDonation;
+            entity.Amount = model.Amount;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+            entity.AllField = model.AllField;
 
-                //_db.PsCards.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -306,24 +307,19 @@ namespace iLgs.Services.StockCards
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.FindAsync(model.Id);
+            var entity = await _db.PsCards.FindAsync(model.Id);
 
-                ValidateUser(entity, model);
+            ValidateUser(entity, model);
+            await ValidateIfWithPostedItemAsync(model.Id);
 
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.PsCards.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCards.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
-            
+            _db.PsCards.Remove(entity);
+            await _db.SaveChangesAsync();
+
             return model;
         });
 
@@ -336,6 +332,14 @@ namespace iLgs.Services.StockCards
                 {
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
+            }
+        }
+
+        private async Task ValidateIfWithPostedItemAsync(Guid? psCardId)
+        {
+            if (await _db.PsCardItems.AnyAsync(a => a.PsCardId == psCardId && a.PostedBy != null && a.PostedBy != ""))
+            {
+                throw new RecordLockedException("Posted items where found for this card. Cannot update.");
             }
         }
     }

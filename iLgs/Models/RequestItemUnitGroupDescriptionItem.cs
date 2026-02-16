@@ -14,25 +14,15 @@ namespace iLgs.Models
     
     public partial class RequestItemUnitGroupDescriptionItem
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RequestItemUnitGroupDescriptionItem()
-        {
-            this.OrderItemUnitGroupDescriptionItems = new HashSet<OrderItemUnitGroupDescriptionItem>();
-        }
-    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupDescriptionItemId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
         public virtual RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
         public virtual RequestItem RequestItem { get; set; }
-        public virtual RisItemUnitGroupDescriptionItem RisItemUnitGroupDescriptionItem { get; set; }
     }
 }

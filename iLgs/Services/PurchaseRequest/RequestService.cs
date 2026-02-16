@@ -20,7 +20,7 @@ namespace iLgs.Services.PurchaseRequest
         Task<RequestVM> GetByIdAsync(Guid? prId);
         Task<RequestVM> GetByPrNoAsync(string prNo);
         Task<bool> IsAnyPrNoAsync(Guid id, string prNo);
-        Task<bool> IsAnyRisNoAsync(Guid id, string risNo);
+        //Task<bool> IsAnyRisNoAsync(Guid id, string risNo);
         bool IsPosted(Guid requestId);
         bool IsPosted(Request request);
         bool IsPosted(RequestItem requestItem);
@@ -89,17 +89,15 @@ namespace iLgs.Services.PurchaseRequest
             IsWithPO = s.Orders.Any(),
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt,
-            // Transients from RIS
-            RisNo = s.RISs.RisNo,
-            Fund = s.RISs.Fund,
-            Department = s.RISs.Office,
-            Section = s.RISs.Division,
-            FPP = s.RISs.FPP,
-            Purpose = s.RISs.Purpose,
-            RequestedBy = s.RISs.RequestedBy,
-            RequestedDesig = s.RISs.ReceivedByDesignation,
-            RisDate = s.RISs.RisDate,
-            RisId = s.RisId
+            Fund = s.Fund,
+            Department = s.Department,
+            Section = s.Section,
+            FPP = s.FPP,
+            Purpose = s.Purpose,
+            RequestedBy = s.RequestedBy,
+            RequestedDesig = s.RequestedDesig
+            //RisDate = s.RISs.RisDate,
+            //RisId = s.RisId
         };
 
         public IQueryable<RequestVM> GetAll()
@@ -113,13 +111,13 @@ namespace iLgs.Services.PurchaseRequest
             if (await _userService.IsAdminAsync(userId))
             {
                 data = _db.Requests.AsNoTracking()
-                    .Select(Projection).OrderByDescending(o => o.RisNo);
+                    .Select(Projection).OrderByDescending(o => o.PrNo);
             }
             else
             {
                 data = _db.Requests.AsNoTracking()
-                    .Where(w => w.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
-                    .Select(Projection).OrderByDescending(o => o.RisNo);
+                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Select(Projection).OrderByDescending(o => o.PrNo);
             }
             return data;
         }
@@ -134,10 +132,10 @@ namespace iLgs.Services.PurchaseRequest
             return await _db.Requests.AnyAsync(a => a.Id != id && a.PrNo == prNo);
         }
 
-        public async Task<bool> IsAnyRisNoAsync(Guid id, string risNo)
-        {
-            return await _db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
-        }
+        //public async Task<bool> IsAnyRisNoAsync(Guid id, string risNo)
+        //{
+        //    return await _db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
+        //}
 
         public Task<RequestVM> GetByPrNoAsync(string prNo)
         {
@@ -235,9 +233,17 @@ namespace iLgs.Services.PurchaseRequest
             var entity = new Request()
             {
                 Id = model.Id,
-                RisId = model.RisId,
+                //RisId = model.RisId,
+                Fund = model.Fund,
+                DeptId = model.DeptId,
+                Department = model.Department,
+                Section = model.Section,
                 PrNo = model.PrNo,
                 PrDate = model.PrDate,
+                FPP = model.FPP,
+                Purpose = model.Purpose,
+                RequestedBy = model.RequestedBy ?? "",
+                RequestedDesig = model.RequestedDesig ?? "",
                 Availability = model.Availability ?? "",
                 AvaialbilityDesig = model.AvaialbilityDesig ?? "",
                 ApprovedBy = model.ApprovedBy ?? "",
@@ -245,108 +251,97 @@ namespace iLgs.Services.PurchaseRequest
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-
-                // Transients From RIS Removed
-                //Fund = model.Fund,
-                //Department = model.Department,
-                //Section = model.Section,
-                //PrNo = model.PrNo,
-                //PrDate = model.PrDate,
-                //FPP = model.FPP,
-                //Purpose = model.Purpose,
-                //RequestedBy = model.RequestedBy,
-                //RequestedDesig = model.RequestedDesig,
+                UpdatedDt = model.UpdatedDt                
             };
 
             // include items during add
-            var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToList();
-            foreach (var risItem in risItems)
-            {
-                var insertedDt = DateTime.Now;
-                RequestItem requestItem = new RequestItem()
-                {
-                    Id = Guid.NewGuid(),
-                    RisItemId = risItem.Id,
-                    PrId = entity.Id,
-                    Qty = risItem.QtyRequest,
-                    InsertedBy = user,
-                    InsertedDt = insertedDt,
-                    UpdatedBy = user,
-                    UpdatedDt = insertedDt
-                };
+            //var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToList();
+            //foreach (var risItem in risItems)
+            //{
+            //    var insertedDt = DateTime.Now;
+            //    RequestItem requestItem = new RequestItem()
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        RisItemId = risItem.Id,
+            //        PrId = entity.Id,
+            //        Qty = risItem.QtyRequest,
+            //        InsertedBy = user,
+            //        InsertedDt = insertedDt,
+            //        UpdatedBy = user,
+            //        UpdatedDt = insertedDt
+            //    };
 
-                //foreach (var risItemExtn in risItem.RisItemExtns)
-                //{
-                //    RequestItemExtn requestItemExtn = new RequestItemExtn()
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        RequestItemId = requestItem.Id,
-                //        ItemKey = risItemExtn.ItemKey,
-                //        ItemValue = risItemExtn.ItemValue,
-                //        Sequence = risItemExtn.Sequence,
-                //        InsertedBy = user,
-                //        InsertedDt = date,
-                //        UpdatedBy = user,
-                //        UpdatedDt = date
-                //    };
-                //    requestItem.RequestItemExtns.Add(requestItemExtn);
-                //}
+            //    //foreach (var risItemExtn in risItem.RisItemExtns)
+            //    //{
+            //    //    RequestItemExtn requestItemExtn = new RequestItemExtn()
+            //    //    {
+            //    //        Id = Guid.NewGuid(),
+            //    //        RequestItemId = requestItem.Id,
+            //    //        ItemKey = risItemExtn.ItemKey,
+            //    //        ItemValue = risItemExtn.ItemValue,
+            //    //        Sequence = risItemExtn.Sequence,
+            //    //        InsertedBy = user,
+            //    //        InsertedDt = date,
+            //    //        UpdatedBy = user,
+            //    //        UpdatedDt = date
+            //    //    };
+            //    //    requestItem.RequestItemExtns.Add(requestItemExtn);
+            //    //}
 
-                entity.RequestItems.Add(requestItem);
-            }
+            //    entity.RequestItems.Add(requestItem);
+            //}
 
-            // Unit Groups
-            var unitGroups = await _db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
-            foreach (var unitGroup in unitGroups)
-            {
-                var unitGroupDt = DateTime.Now;
-                var requestItemUnitGroup = new RequestItemUnitGroup()
-                {
-                    Id = Guid.NewGuid(),
-                    PrId = model.Id,
-                    RisItemUnitGroupId = unitGroup.Id,
-                    InsertedBy = user,
-                    InsertedDt = unitGroupDt,
-                    UpdatedBy = user,
-                    UpdatedDt = unitGroupDt
-                };
+            //// Unit Groups
+            //var unitGroups = await _db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
+            //foreach (var unitGroup in unitGroups)
+            //{
+            //    var unitGroupDt = DateTime.Now;
+            //    var requestItemUnitGroup = new RequestItemUnitGroup()
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        PrId = model.Id,
+            //        RisItemUnitGroupId = unitGroup.Id,
+            //        InsertedBy = user,
+            //        InsertedDt = unitGroupDt,
+            //        UpdatedBy = user,
+            //        UpdatedDt = unitGroupDt
+            //    };
 
-                foreach (var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
-                {
-                    var groupDescriptionDt = DateTime.Now;
-                    var requestItemUnitGroupDescription = new RequestItemUnitGroupDescription()
-                    {
-                        Id = Guid.NewGuid(),
-                        RequestItemUnitGroupId = requestItemUnitGroup.Id,
-                        RisItemUnitGroupDescriptionId = unitGroupDescription.Id,
-                        InsertedBy = user,
-                        InsertedDt = groupDescriptionDt,
-                        UpdatedBy = user,
-                        UpdatedDt = groupDescriptionDt
-                    };
+            //    foreach (var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
+            //    {
+            //        var groupDescriptionDt = DateTime.Now;
+            //        var requestItemUnitGroupDescription = new RequestItemUnitGroupDescription()
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            RequestItemUnitGroupId = requestItemUnitGroup.Id,
+            //            RisItemUnitGroupDescriptionId = unitGroupDescription.Id,
+            //            InsertedBy = user,
+            //            InsertedDt = groupDescriptionDt,
+            //            UpdatedBy = user,
+            //            UpdatedDt = groupDescriptionDt
+            //        };
 
-                    var risItemUnitGroupDescriptionItems = await _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
-                    foreach (var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
-                    {
-                        var groupDescriptionItemDt = DateTime.Now;
-                        var requsetItemUnitGroupDescriptionItem = new RequestItemUnitGroupDescriptionItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            RisItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
-                            RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescription.Id,
-                            RequestItemId = entity.RequestItems.FirstOrDefault(f => f.RisItemId == unitGroupDescriptionItem.RisItemId).Id,
-                            InsertedBy = user,
-                            InsertedDt = groupDescriptionItemDt,
-                            UpdatedBy = user,
-                            UpdatedDt = groupDescriptionItemDt
-                        };
-                        requestItemUnitGroupDescription.RequestItemUnitGroupDescriptionItems.Add(requsetItemUnitGroupDescriptionItem);
-                    }
-                    requestItemUnitGroup.RequestItemUnitGroupDescriptions.Add(requestItemUnitGroupDescription);
-                }
-                entity.RequestItemUnitGroups.Add(requestItemUnitGroup);
-            }
+            //        var risItemUnitGroupDescriptionItems = await _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+            //        foreach (var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
+            //        {
+            //            var groupDescriptionItemDt = DateTime.Now;
+            //            var requsetItemUnitGroupDescriptionItem = new RequestItemUnitGroupDescriptionItem()
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                RisItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+            //                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescription.Id,
+            //                RequestItemId = entity.RequestItems.FirstOrDefault(f => f.RisItemId == unitGroupDescriptionItem.RisItemId).Id,
+            //                InsertedBy = user,
+            //                InsertedDt = groupDescriptionItemDt,
+            //                UpdatedBy = user,
+            //                UpdatedDt = groupDescriptionItemDt
+            //            };
+            //            requestItemUnitGroupDescription.RequestItemUnitGroupDescriptionItems.Add(requsetItemUnitGroupDescriptionItem);
+            //        }
+            //        requestItemUnitGroup.RequestItemUnitGroupDescriptions.Add(requestItemUnitGroupDescription);
+            //    }
+            //    entity.RequestItemUnitGroups.Add(requestItemUnitGroup);
+            //}
 
             _db.Requests.Add(entity);
             await _db.SaveChangesAsync();
@@ -368,59 +363,66 @@ namespace iLgs.Services.PurchaseRequest
             ValidateOnCreateUpdate(model, Mode.EDIT);
 
             // if there's a change of requisition item
-            if (entity.RisId != model.RisId)
-            {
-                var requestItems = _db.RequestItems.Where(w => w.PrId == model.Id);
-                await requestItems.ForEachAsync(f =>
-                {
-                    f.UpdatedBy = model.UpdatedBy;
-                    f.UpdatedDt = model.UpdatedDt;
-                });
-                await _db.SaveChangesAsync();
+            //if (entity.RisId != model.RisId)
+            //{
+            //    var requestItems = _db.RequestItems.Where(w => w.PrId == model.Id);
+            //    await requestItems.ForEachAsync(f =>
+            //    {
+            //        f.UpdatedBy = model.UpdatedBy;
+            //        f.UpdatedDt = model.UpdatedDt;
+            //    });
+            //    await _db.SaveChangesAsync();
 
-                _db.RequestItems.RemoveRange(requestItems);
-                await _db.SaveChangesAsync();
+            //    _db.RequestItems.RemoveRange(requestItems);
+            //    await _db.SaveChangesAsync();
 
-                // include items during add
-                var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
-                foreach (var risItem in risItems)
-                {
-                    RequestItem requestItem = new RequestItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        RisItemId = risItem.Id,
-                        PrId = entity.Id,
-                        Qty = risItem.QtyRequest,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
+            //    // include items during add
+            //    var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
+            //    foreach (var risItem in risItems)
+            //    {
+            //        RequestItem requestItem = new RequestItem()
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            RisItemId = risItem.Id,
+            //            PrId = entity.Id,
+            //            Qty = risItem.QtyRequest,
+            //            InsertedBy = user,
+            //            InsertedDt = date,
+            //            UpdatedBy = user,
+            //            UpdatedDt = date
+            //        };
 
-                    //foreach (var risItemExtn in risItem.RisItemExtns)
-                    //{
-                    //    RequestItemExtn requestItemExtn = new RequestItemExtn()
-                    //    {
-                    //        Id = Guid.NewGuid(),
-                    //        RequestItemId = requestItem.Id,
-                    //        ItemKey = risItemExtn.ItemKey,
-                    //        ItemValue = risItemExtn.ItemValue,
-                    //        Sequence = risItemExtn.Sequence,
-                    //        InsertedBy = user,
-                    //        InsertedDt = date,
-                    //        UpdatedBy = user,
-                    //        UpdatedDt = date
-                    //    };
-                    //    requestItem.RequestItemExtns.Add(requestItemExtn);
-                    //}
+            //        //foreach (var risItemExtn in risItem.RisItemExtns)
+            //        //{
+            //        //    RequestItemExtn requestItemExtn = new RequestItemExtn()
+            //        //    {
+            //        //        Id = Guid.NewGuid(),
+            //        //        RequestItemId = requestItem.Id,
+            //        //        ItemKey = risItemExtn.ItemKey,
+            //        //        ItemValue = risItemExtn.ItemValue,
+            //        //        Sequence = risItemExtn.Sequence,
+            //        //        InsertedBy = user,
+            //        //        InsertedDt = date,
+            //        //        UpdatedBy = user,
+            //        //        UpdatedDt = date
+            //        //    };
+            //        //    requestItem.RequestItemExtns.Add(requestItemExtn);
+            //        //}
 
-                    entity.RequestItems.Add(requestItem);
-                }
-            }
+            //        entity.RequestItems.Add(requestItem);
+            //    }
+            //}
 
-            entity.RisId = model.RisId;
+            entity.Fund = model.Fund;
+                entity.DeptId = model.DeptId;
+            entity.Department = model.Department;
+            entity.Section = model.Section;
             entity.PrNo = model.PrNo;
             entity.PrDate = model.PrDate;
+            entity.FPP = model.FPP;
+            entity.Purpose = model.Purpose;
+            entity.RequestedBy = model.RequestedBy ?? "";
+            entity.RequestedDesig = model.RequestedDesig ?? "";
             entity.Availability = model.Availability ?? "";
             entity.AvaialbilityDesig = model.AvaialbilityDesig ?? "";
             entity.ApprovedBy = model.ApprovedBy ?? "";
@@ -478,70 +480,70 @@ namespace iLgs.Services.PurchaseRequest
                 }
 
 
-                var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems
-                    .AsNoTracking()
-                    .Include(i => i.RequestItem)
-                    .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
-                    .Where(w => w.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId == entity.Id).ToList();
-                if (unitGroupItems.Any())
-                {
-                    var rate = unitGroupItems.Sum(s => s.RequestItem.PriceRate) ?? 0;
-                    if (rate != 100)
-                    {
-                        throw new InvalidValueException("Price rate must be 100%");
-                    }
-                }
+                //var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems
+                //    .AsNoTracking()
+                //    .Include(i => i.RequestItem)
+                //    .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
+                //    .Where(w => w.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId == entity.Id).ToList();
+                //if (unitGroupItems.Any())
+                //{
+                //    var rate = unitGroupItems.Sum(s => s.RequestItem.PriceRate) ?? 0;
+                //    if (rate != 100)
+                //    {
+                //        throw new InvalidValueException("Price rate must be 100%");
+                //    }
+                //}
 
-                if (_db.RequestItems.Any(a => a.PrId == requestId && (!a.UnitCost.HasValue || a.UnitCost == 0)))
-                {
-                    throw new InvalidValueException("All items must have a unit cost.");
-                }
+                //if (_db.RequestItems.Any(a => a.PrId == requestId && (!a.UnitCost.HasValue || a.UnitCost == 0)))
+                //{
+                //    throw new InvalidValueException("All items must have a unit cost.");
+                //}
 
-                // validate item price
-                var priceCap = GetPriceCap();
-                var requestItems = _db.RequestItems.Include(i => i.RisItem.ItemCode.ItemType).AsNoTracking().Where(w => w.PrId == requestId).ToList();
-                foreach(var requestItem in requestItems)
-                {                    
-                    var category = requestItem.RisItem.ItemCode.ItemType.Category;
-                    decimal? unitCost = 0;
-                    var unitGroup = _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(b => b.RequestItemId == requestItem.Id))).FirstOrDefault();
-                    if (unitGroup != null)
-                    {
-                        unitCost = unitGroup.UnitCost;
-                        if (category != "S")
-                        {
-                            if (unitCost < priceCap)
-                            {
-                                throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {priceCap:n0}.");
-                            }
-                        }
-                        else
-                        {
-                            if (unitCost >= priceCap)
-                            {
-                                throw new InvalidValueException($"Please use property code for items with a group unit cost of {priceCap:n0} and above.");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        unitCost = requestItem.UnitCost;
-                        if (category != "S")
-                        {
-                            if (unitCost < priceCap)
-                            {
-                                throw new InvalidValueException($"Please use supplies code for items with a unit cost below {priceCap:n0}.");
-                            }
-                        }
-                        else
-                        {
-                            if (unitCost >= priceCap)
-                            {
-                                throw new InvalidValueException($"Please use property code for items with a unit cost of {priceCap:n0} and above.");
-                            }
-                        }
-                    }
-                }
+                //// validate item price
+                //var priceCap = GetPriceCap();
+                //var requestItems = _db.RequestItems.Include(i => i.RisItem.ItemCode.ItemType).AsNoTracking().Where(w => w.PrId == requestId).ToList();
+                //foreach(var requestItem in requestItems)
+                //{                    
+                //    var category = requestItem.RisItem.ItemCode.ItemType.Category;
+                //    decimal? unitCost = 0;
+                //    var unitGroup = _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(b => b.RequestItemId == requestItem.Id))).FirstOrDefault();
+                //    if (unitGroup != null)
+                //    {
+                //        unitCost = unitGroup.UnitCost;
+                //        if (category != "S")
+                //        {
+                //            if (unitCost < priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {priceCap:n0}.");
+                //            }
+                //        }
+                //        else
+                //        {
+                //            if (unitCost >= priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use property code for items with a group unit cost of {priceCap:n0} and above.");
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        unitCost = requestItem.UnitCost;
+                //        if (category != "S")
+                //        {
+                //            if (unitCost < priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use supplies code for items with a unit cost below {priceCap:n0}.");
+                //            }
+                //        }
+                //        else
+                //        {
+                //            if (unitCost >= priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use property code for items with a unit cost of {priceCap:n0} and above.");
+                //            }
+                //        }
+                //    }
+                //}
 
                 entity.SubmittedBy = user;
                 entity.SubmittedDt = date;
@@ -664,15 +666,15 @@ namespace iLgs.Services.PurchaseRequest
                 throw new RecordAlreadyExistsException(string.Format("PR Number {0} already exists!", model.PrNo));
             }
 
-            var ris = _db.RISses.Find(model.RisId);
-            if (ris == null)
-            {
-                throw new RecordRelationshipException(string.Format("RIS Number {0} does exists!", model.RisNo));
-            }
-            else if (ris.RisDate > model.PrDate)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");                
-            }
+            //var ris = _db.RISses.Find(model.RisId);
+            //if (ris == null)
+            //{
+            //    throw new RecordRelationshipException(string.Format("RIS Number {0} does exists!", model.RisNo));
+            //}
+            //else if (ris.RisDate > model.PrDate)
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");                
+            //}
             _imex.ThrowIfContainsErrors();
         }
 

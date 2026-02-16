@@ -26,33 +26,40 @@ namespace iLgs.Services.AIRs_
     public class AirItemService : IAirItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory; 
         private readonly IExceptionService<AIRItemVM> _vmExceptionService;
         private readonly IAirItemAbstractService _airItemAbstractService;
         private readonly IAirItemExtnService _airItemExtnService;
 
         public IAirItemExtnService AirItemExtn => _airItemExtnService;
 
-        public AirItemService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<AIRItemVM> vmExceptionService, IAirItemAbstractService airItemAbstractService, IAirItemExtnService airItemExtnService)
+        public AirItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _vmExceptionService = vmExceptionService;
-            _airItemAbstractService = airItemAbstractService;
-            _airItemExtnService = airItemExtnService;            
+            _vmExceptionService = new ExceptionService<AIRItemVM>();
+            _airItemAbstractService = new AirItemAbstractService(_db);
+            _airItemExtnService = new AirItemExtnService(_db);
         }
+
+        //public AirItemService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<AIRItemVM> vmExceptionService, IAirItemAbstractService airItemAbstractService, IAirItemExtnService airItemExtnService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _vmExceptionService = vmExceptionService;
+        //    _airItemAbstractService = airItemAbstractService;
+        //    _airItemExtnService = airItemExtnService;            
+        //}
 
 
         public string GetItemExtnName(Guid? id)
         {
-            return _airItemAbstractService.GetItemExtnName(id);            
+            return _airItemAbstractService.GetItemExtnName(id);
         }
 
         public string GetItemExtnNameByCategory(string category)
         {
-            return _airItemAbstractService.GetItemExtnNameByCategory(category);            
+            return _airItemAbstractService.GetItemExtnNameByCategory(category);
         }
 
         private Expression<Func<AIRItem, AIRItemVM>> Projection()
@@ -67,7 +74,7 @@ namespace iLgs.Services.AIRs_
                 PsItem = s.OrderItem.ItemCode.Description,
                 Description = s.OrderItem.Description,
                 OrderDescription = s.OrderItem.OtherDesc,
-                PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
+                PsUnit = s.OrderItem.Unit,
                 Qty = s.Qty,
                 Remarks = s.Remarks,
                 AreaSoldDonated = s.AreaSoldDonated,
@@ -123,11 +130,8 @@ namespace iLgs.Services.AIRs_
                 UpdatedDt = date
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.AIRItems.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -142,21 +146,15 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                AIRItem entity = await ctx.AIRItems.FindAsync(model.Id);
+            AIRItem entity = await _db.AIRItems.FindAsync(model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.AIRItems.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.AIRItems.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRItems.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -223,32 +221,27 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            AIRItem entity = await _db.AIRItems.FindAsync(model.Id);
+
+            if (entity.InvDist != model.InvDist)
             {
-                AIRItem entity = await ctx.AIRItems.FindAsync(model.Id);
-
-                if (entity.InvDist != model.InvDist)
+                if (_db.AIRItemExtns.Any(w => w.AIRItemId == model.Id))
                 {
-                    if (ctx.AIRItemExtns.Any(w => w.AIRItemId == model.Id))
-                    {
-                        throw new RecordRelationshipException("Serial Numbers for this item already exist, cannot change Inventory/For Distribution.");
-                    }
+                    throw new RecordRelationshipException("Serial Numbers for this item already exist, cannot change Inventory/For Distribution.");
                 }
-
-                entity.AirId = model.AirId;
-                entity.OrderItemId = model.OrderItemId;
-                entity.Qty = model.Qty;
-                entity.Remarks = model.Remarks;
-                entity.AreaSoldDonated = model.AreaSoldDonated;
-                entity.ConstructionYear = model.ConstructionYear;
-                entity.InvDist = model.InvDist;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //_db.AIRItems.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
             }
+
+            entity.AirId = model.AirId;
+            entity.OrderItemId = model.OrderItemId;
+            entity.Qty = model.Qty;
+            entity.Remarks = model.Remarks;
+            entity.AreaSoldDonated = model.AreaSoldDonated;
+            entity.ConstructionYear = model.ConstructionYear;
+            entity.InvDist = model.InvDist;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            await _db.SaveChangesAsync();
 
             return model;
         });

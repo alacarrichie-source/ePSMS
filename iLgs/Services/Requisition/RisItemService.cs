@@ -20,12 +20,12 @@ namespace iLgs.Services.Requisition
         string PsNoDisplay(RisItemEntryVM model);
         Task<string> GetDescriptionAsync(RisItemEntryVM entry);        
 
-        ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
-        ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);
-        ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date);
+        //ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
+        //ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);
+        //ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date);
     }
 
-    public class RisItemService : IRisItemService
+    internal class RisItemService : IRisItemService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
@@ -36,24 +36,36 @@ namespace iLgs.Services.Requisition
         private readonly IAllFieldService _allFieldService;
         private readonly IRisItemValidator _validator;
 
-        public RisItemService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RisItemVM> vmExceptionService,
-            IExceptionService<RisItemEntryVM> entryVmExceptionService,
-            IExceptionService<RisItem> exceptionService,
-            IItemCodeService itemCodeService,
-            IAllFieldService allFieldService,
-            IRisItemValidator validator)
+        public RisItemService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _entryVmExceptionService = entryVmExceptionService;
-            _exceptionService = exceptionService;
-            _itemCodeService = itemCodeService;
-            _allFieldService = allFieldService;
-            _validator = validator;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RisItemVM>();
+            _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();
+            _exceptionService = new ExceptionService<RisItem>();
+            _itemCodeService = new ItemCodeService(_db);
+            _allFieldService = new AllFieldService(_db);
+            _validator = new RisItemValidator(_db);
         }
+
+        //public RisItemService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RisItemVM> vmExceptionService,
+        //    IExceptionService<RisItemEntryVM> entryVmExceptionService,
+        //    IExceptionService<RisItem> exceptionService,
+        //    IItemCodeService itemCodeService,
+        //    IAllFieldService allFieldService,
+        //    IRisItemValidator validator)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _entryVmExceptionService = entryVmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _itemCodeService = itemCodeService;
+        //    _allFieldService = allFieldService;
+        //    _validator = validator;
+        //}
 
         public RisItemEntryVM GetVmById(Guid? id) 
         {
@@ -62,9 +74,9 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.OrderItem.ItemNo,
                     ItemCodeId = s.ItemCodeId,
-                    ItemCode = s.ItemCode.Code,
-                    //ItemNo = s.ItemCode.ItemNo,
+                    ItemCode = s.ItemCode.Code,                    
                     ItemType = s.ItemCode.Description,
                     Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
@@ -89,9 +101,9 @@ namespace iLgs.Services.Requisition
                 .Select(s => new RisItemEntryVM {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.ItemNo,
                     ItemCodeId = s.ItemCodeId,
-                    ItemCode = s.ItemCode,
-                    //ItemNo = s.ItemNo,
+                    ItemCode = s.ItemCode,                    
                     ItemType = s.ItemType,
                     Category = s.Category,
                     PsType = s.PsType,
@@ -124,9 +136,9 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.OrderItem.ItemNo,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,
-                    //ItemNo = s.ItemCode.ItemNo,
                     ItemType = s.ItemCode.Description,
                     Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
@@ -152,9 +164,9 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.ItemNo,
                     ItemCodeId = s.ItemCodeId,
-                    ItemCode = s.ItemCode,
-                    //ItemNo = s.ItemNo,
+                    ItemCode = s.ItemCode,                    
                     ItemType = s.ItemType,
                     Category = s.Category,
                     PsType = s.PsType,
@@ -195,9 +207,9 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.OrderItem.ItemNo,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,
-                    //ItemNo = s.ItemCode.ItemNo,
                     ItemType = s.ItemCode.Description,
                     Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
@@ -223,9 +235,9 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
+                    ItemNo = s.ItemNo,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode,
-                    //ItemNo = s.ItemNo,
                     ItemType = s.ItemType,
                     Category = s.Category,
                     PsType = s.PsType,
@@ -277,25 +289,25 @@ namespace iLgs.Services.Requisition
             {
                 Id = model.Id,
                 RisId = model.RisId,
+                OrderItemId = model.OrderItemId,
                 ItemCodeId = model.ItemCodeId,
+                SubAccountCode = model.SubAccountCode,
                 PsNo = model.PsNo,
                 PsNoDisplay = model.PsNoDisplay,
-                ItemName = model.ItemType,
-                Unit = model.Unit,
-                SubAccountCode = model.SubAccountCode,
+                ItemName = model.ItemType,                                
                 Description = model.Description,
                 OtherDesc = model.OtherDesc,
+                Unit = model.Unit,
                 QtyRequest = model.QtyRequest,
                 QtyIssue = model.QtyIssue,
                 Remarks = model.Remarks ?? "",
+                PpmpCode = model.PpmpCode,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt,
-                PpmpCode = model.PpmpCode
+                UpdatedDt = model.UpdatedDt,                
             };
 
-            //entity = SetItemEntity(entity, model);
             model.AllField.Id = entity.Id;
             entity.AllField = model.AllField;
             entity.AllField.InsertedBy = user;
@@ -381,30 +393,30 @@ namespace iLgs.Services.Requisition
             // PO, Description, Qty
             // AIR, Qty            
 
-            var prItem = await _db.RequestItems.FirstOrDefaultAsync(f => f.RisItemId == model.Id);
-            if (prItem != null)
-            {
-                prItem.Qty = model.QtyRequest;
-                prItem.TotalCost = model.QtyRequest * prItem.UnitCost;
-                _db.RequestItems.Attach(prItem);
-                _db.Entry(prItem).State = EntityState.Modified;
+            //var prItem = await _db.RequestItems.FirstOrDefaultAsync(f => f.RisItemId == model.Id);
+            //if (prItem != null)
+            //{
+            //    prItem.Qty = model.QtyRequest;
+            //    prItem.TotalCost = model.QtyRequest * prItem.UnitCost;
+            //    _db.RequestItems.Attach(prItem);
+            //    _db.Entry(prItem).State = EntityState.Modified;
 
-                var poItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.RequestItemId == prItem.Id);
-                if (poItem != null)
-                {
-                    poItem.Qty = model.QtyRequest;
-                    poItem.Description = model.Description;
-                    poItem.Amount = model.QtyRequest * poItem.UnitCost;
-                    poItem.Unit = model.Unit;
-                    _db.OrderItems.Attach(poItem);
-                    _db.Entry(poItem).State = EntityState.Modified;
+            //    var poItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.RequestItemId == prItem.Id);
+            //    if (poItem != null)
+            //    {
+            //        poItem.Qty = model.QtyRequest;
+            //        poItem.Description = model.Description;
+            //        poItem.Amount = model.QtyRequest * poItem.UnitCost;
+            //        poItem.Unit = model.Unit;
+            //        _db.OrderItems.Attach(poItem);
+            //        _db.Entry(poItem).State = EntityState.Modified;
 
-                    var airItem = await _db.AIRItems.FirstOrDefaultAsync(f => f.OrderItemId == poItem.Id);
-                    airItem.Qty = model.QtyRequest;
-                    _db.AIRItems.Attach(airItem);
-                    _db.Entry(airItem).State = EntityState.Modified;
-                }
-            }
+            //        var airItem = await _db.AIRItems.FirstOrDefaultAsync(f => f.OrderItemId == poItem.Id);
+            //        airItem.Qty = model.QtyRequest;
+            //        _db.AIRItems.Attach(airItem);
+            //        _db.Entry(airItem).State = EntityState.Modified;
+            //    }
+            //}
 
             await _db.SaveChangesAsync();
 

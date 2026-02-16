@@ -13,12 +13,14 @@ namespace iLgs.Services.Requisition
     {
         IQueryable<RisItemUnitGroupVM> GetByRisId(Guid? risId);
         ValueTask<RisItemUnitGroupVM> GetByIdAsync(Guid? id);
-        ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date);        
+        //ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date);
+
+        IRisItemUnitGroupDescriptionService UnitGroupDescription { get; }
     }
 
-    public class RisItemUnitGroupService : IRisItemUnitGroupService
+    internal class RisItemUnitGroupService : IRisItemUnitGroupService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
@@ -26,18 +28,33 @@ namespace iLgs.Services.Requisition
         private readonly IExceptionService<RisItemUnitGroup> _exceptionService;
         private readonly IRisItemUnitGroupValidator _validator;
 
-        public RisItemUnitGroupService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RisItemUnitGroupVM> vmExceptionService,
-            IExceptionService<RisItemUnitGroup> exceptionService,
-            IRisItemUnitGroupValidator validator)
+        private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
+
+        public RisItemUnitGroupService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _validator = validator;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RisItemUnitGroupVM>();
+            _exceptionService = new ExceptionService<RisItemUnitGroup>();
+            _validator = new RisItemUnitGroupValidator(_db);
+
+            _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
         }
+
+        public IRisItemUnitGroupDescriptionService UnitGroupDescription => _risItemUnitGroupDescriptionService;
+
+        //public RisItemUnitGroupService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RisItemUnitGroupVM> vmExceptionService,
+        //    IExceptionService<RisItemUnitGroup> exceptionService,
+        //    IRisItemUnitGroupValidator validator)
+        //{
+        //    _db = db;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _validator = validator;
+        //}
 
         private static Expression<Func<RisItemUnitGroup, RisItemUnitGroupVM>> Projection
         = s => new RisItemUnitGroupVM

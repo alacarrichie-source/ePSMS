@@ -19,7 +19,7 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemExtnLandVM> DeleteAsync(PsCardItemExtnLandVM model, string user, DateTime date);
     }
 
-    public class PsCardItemExtnLandService : IPsCardItemExtnLandService
+    internal class PsCardItemExtnLandService : IPsCardItemExtnLandService
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnLandVM> _exceptionService;
@@ -27,18 +27,27 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnLandValidator _psCardItemExtnLandValidator;
         private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
-        public PsCardItemExtnLandService(AppManEntities db,
-            IExceptionService<PsCardItemExtnLandVM> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardItemExtnLandValidator psCardItemExtnLandValidator,
-            IPsCardItemExtnSharedService psCardItemExtnSharedService)
+        public PsCardItemExtnLandService(AppManEntities db)
         {
             _db = db;
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _psCardItemExtnLandValidator = psCardItemExtnLandValidator;
-            _psCardItemExtnSharedService = psCardItemExtnSharedService;
+            _exceptionService = new ExceptionService<PsCardItemExtnLandVM>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnLandValidator = new PsCardItemExtnLandValidator(_db);
+            _psCardItemExtnSharedService = new PsCardItemExtnSharedService(_db);
         }
+
+        //public PsCardItemExtnLandService(AppManEntities db,
+        //    IExceptionService<PsCardItemExtnLandVM> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IPsCardItemExtnLandValidator psCardItemExtnLandValidator,
+        //    IPsCardItemExtnSharedService psCardItemExtnSharedService)
+        //{
+        //    _db = db;
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _psCardItemExtnLandValidator = psCardItemExtnLandValidator;
+        //    _psCardItemExtnSharedService = psCardItemExtnSharedService;
+        //}
 
         private Expression<Func<PsCardItemExtnLand, PsCardItemExtnLandVM>> GetProjection()
         {

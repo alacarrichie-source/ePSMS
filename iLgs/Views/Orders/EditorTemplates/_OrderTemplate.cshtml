@@ -94,7 +94,9 @@
             <div class="col-md-6">
                 @Html.DisplayFor(model => model.Department, "Label")
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.Department).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().MaskedTextBoxFor(model => model.Department).PromptChar(" ")
+                        .Events(e => e.Change("onChangeDeptDisplay"))
+                        .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.Department)
                 </div>
             </div>
@@ -247,7 +249,7 @@
             <div class="col-md-6">
                 @Html.DisplayFor(model => model.DeliveryPlace, "Label")
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.DeliveryPlace).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.DeliveryPlace).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.DeliveryPlace)
                 </div>
             </div>

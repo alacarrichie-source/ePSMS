@@ -31,18 +31,28 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IStockCardValidator _stockCardValidator;
-        private readonly IUserService _userService; 
+        private readonly IUserService _userService;
 
-        public StockCardController(AppManEntities db, IStockCardService stockCardService, ICodextnService codextnService,
-            IItemCodeService itemCodeService, IStockCardValidator stockCardValidator, IUserService userService)
+        public StockCardController()
         {
-            _db = db;
-            _codextnService = codextnService;
-            _stockCardService = stockCardService;
-            _itemCodeService = itemCodeService;
-            _stockCardValidator = stockCardValidator;
-            _userService = userService;
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+            _stockCardService = new StockCardService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _stockCardValidator = new StockCardValidator(_db);
+            _userService = new UserService(_db);
         }
+
+        //public StockCardController(AppManEntities db, IStockCardService stockCardService, ICodextnService codextnService,
+        //    IItemCodeService itemCodeService, IStockCardValidator stockCardValidator, IUserService userService)
+        //{
+        //    _db = db;
+        //    _codextnService = codextnService;
+        //    _stockCardService = stockCardService;
+        //    _itemCodeService = itemCodeService;
+        //    _stockCardValidator = stockCardValidator;
+        //    _userService = userService;
+        //}
 
         // GET: Index
         public async Task<ActionResult> Index()
@@ -177,7 +187,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _StockCardAddEdit(Guid? cardId, string mode)
+        public ActionResult _StockCardAddEdit(Guid? cardId, string mode, bool? isAdmin)
         {
             var data = _stockCardService.GetById(cardId);
             if (data == null)
@@ -188,6 +198,7 @@ namespace iLgs.Controllers
                 };
             }
             data.Mode = mode;
+            ViewBag.IsAdmin = isAdmin;
 
             return PartialView(data);
         }

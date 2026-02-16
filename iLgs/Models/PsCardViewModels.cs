@@ -129,7 +129,7 @@ namespace iLgs.Models
     }
 
     public class PsCardItemVM 
-    {
+    {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public Nullable<System.Guid> GroupId { get; set; }
@@ -363,6 +363,10 @@ namespace iLgs.Models
 
         [Display(Name = "PPMP Code")]
         public string PpmpCode { get; set; }
+
+
+        // Extras
+        public bool? IsAdmin { get; set; }
     }
 
     public class PsCardItemIssuanceVM

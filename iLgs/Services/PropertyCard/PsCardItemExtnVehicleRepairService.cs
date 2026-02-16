@@ -14,7 +14,7 @@ namespace iLgs.Services.PropertyCard
     public interface IPsCardItemExtnVehicleRepairService
     {
         IQueryable<PsCardItemExtnVehicleRepair> GetAll(Guid? psCardItemExtnVehicleId);
-        ValueTask<PsCardItemExtnVehicleRepair> GetByIdAsync(Guid? id);        
+        ValueTask<PsCardItemExtnVehicleRepair> GetByIdAsync(Guid? id);
 
         ValueTask<PsCardItemExtnVehicleRepair> CreateAsync(PsCardItemExtnVehicleRepair model, string user, DateTime date);
         ValueTask<PsCardItemExtnVehicleRepair> UpdateAsync(PsCardItemExtnVehicleRepair model, string user, DateTime date);
@@ -24,22 +24,29 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnVehicleRepairService : BaseValidator, IPsCardItemExtnVehicleRepairService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<PsCardItemExtnVehicleRepair> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public PsCardItemExtnVehicleRepairService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<PsCardItemExtnVehicleRepair> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService)
+        public PsCardItemExtnVehicleRepairService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
+            _exceptionService = new ExceptionService<PsCardItemExtnVehicleRepair>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleRepair>(propertyName);
         }
+
+        //public PsCardItemExtnVehicleRepairService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<PsCardItemExtnVehicleRepair> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleRepair>(propertyName);
+        //}
 
         public IQueryable<PsCardItemExtnVehicleRepair> GetAll(Guid? psCardItemExtnVehicleId)
         {
@@ -54,7 +61,7 @@ namespace iLgs.Services.PropertyCard
                 .Where(w => w.Id == id).FirstOrDefaultAsync();
             return data;
         });
-        
+
 
         private void ValidateFields(PsCardItemExtnVehicleRepair model, Mode mode)
         {
@@ -64,8 +71,8 @@ namespace iLgs.Services.PropertyCard
             }
             else
             {
-                var record = _db.PsCardItemExtnVehicleRepairs.Where(a => a.PsCardItemExtnVehicleId == model.PsCardItemExtnVehicleId 
-                    && a.InvoiceNo== model.InvoiceNo);
+                var record = _db.PsCardItemExtnVehicleRepairs.Where(a => a.PsCardItemExtnVehicleId == model.PsCardItemExtnVehicleId
+                    && a.InvoiceNo == model.InvoiceNo);
                 if (record.Any())
                 {
                     if (mode == Mode.ADD)
@@ -125,15 +132,12 @@ namespace iLgs.Services.PropertyCard
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = new PsCardItemExtnVehicleRepair();
-                MapModelToEntityFields(entity, model, Mode.ADD);
+            var entity = new PsCardItemExtnVehicleRepair();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-                ctx.PsCardItemExtnVehicleRepairs.Add(entity);
-                await ctx.SaveChangesAsync();
-                await UpdateAccumulation(ctx, model.PsCardItemExtnVehicleId);
-            }
+            _db.PsCardItemExtnVehicleRepairs.Add(entity);
+            await _db.SaveChangesAsync();
+            await UpdateAccumulation(model.PsCardItemExtnVehicleId);
 
             return model;
         });
@@ -146,17 +150,12 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCardItemExtnVehicleRepairs.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtnVehicleRepairs.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //_db.PsCardItemExtnVehicleRepairs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                await UpdateAccumulation(ctx, model.PsCardItemExtnVehicleId);
-            }
+            await _db.SaveChangesAsync();
+            await UpdateAccumulation(model.PsCardItemExtnVehicleId);
 
             return model;
         });
@@ -166,22 +165,17 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await _db.PsCardItemExtnVehicleRepairs.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtnVehicleRepairs.FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PsCardItemExtnVehicleRepairs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemExtnVehicleRepairs.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-                await UpdateAccumulation(ctx, model.PsCardItemExtnVehicleId);
-            }
+            _db.PsCardItemExtnVehicleRepairs.Remove(entity);
+
+            await _db.SaveChangesAsync();
+            await UpdateAccumulation(model.PsCardItemExtnVehicleId);
 
             return model;
         });
@@ -197,7 +191,7 @@ namespace iLgs.Services.PropertyCard
 
             entity.PsCardItemExtnVehicleId = model.PsCardItemExtnVehicleId;
             entity.InvoiceNo = model.InvoiceNo;
-            entity.RepairDate = model.RepairDate;            
+            entity.RepairDate = model.RepairDate;
             entity.Nature = model.Nature;
             entity.Amount = model.Amount;
             entity.AccTotal = model.AccTotal;
@@ -206,9 +200,9 @@ namespace iLgs.Services.PropertyCard
             entity.UpdatedDt = model.UpdatedDt;
         }
 
-        private async ValueTask UpdateAccumulation(AppManEntities ctx, Guid? psCardItemExtnVehicleId)
+        private async ValueTask UpdateAccumulation(Guid? psCardItemExtnVehicleId)
         {
-            var repairs = await ctx.PsCardItemExtnVehicleRepairs
+            var repairs = await _db.PsCardItemExtnVehicleRepairs
                 .AsNoTracking()
                 .Where(w => w.PsCardItemExtnVehicleId == psCardItemExtnVehicleId)
                 .OrderBy(o => o.RepairDate).ThenBy(t => t.InsertedDt)
@@ -219,14 +213,14 @@ namespace iLgs.Services.PropertyCard
             {
                 accTotal += repair.Amount;
 
-                var entity = await ctx.PsCardItemExtnVehicleRepairs.FindAsync(repair.Id);
+                var entity = await _db.PsCardItemExtnVehicleRepairs.FindAsync(repair.Id);
                 entity.AccTotal = accTotal;
 
-                ctx.PsCardItemExtnVehicleRepairs.Attach(entity);
-                ctx.Entry(entity).State = EntityState.Modified;
+                _db.PsCardItemExtnVehicleRepairs.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
             }
 
-            await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
     }
 }

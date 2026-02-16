@@ -30,17 +30,26 @@ namespace iLgs.Controllers
         private readonly IPropertyCardService _propertyCardService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IPropertyCardValidator _propertyCardValidator;
-        
-        public PropertyCardController(AppManEntities db,
-            ICodextnService codextnService, IPropertyCardService propertyCardService, IItemCodeService itemCodeService,
-            IPropertyCardValidator propertyCardValidator)
+
+        public PropertyCardController()
         {
-            _db = db;
-            _codextnService = codextnService;
-            _propertyCardService = propertyCardService;
-            _itemCodeService = itemCodeService;
-            _propertyCardValidator = propertyCardValidator;
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+            _propertyCardService = new PropertyCardService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _propertyCardValidator = new PropertyCardValidator(_db);
         }
+
+        //public PropertyCardController(AppManEntities db,
+        //    ICodextnService codextnService, IPropertyCardService propertyCardService, IItemCodeService itemCodeService,
+        //    IPropertyCardValidator propertyCardValidator)
+        //{
+        //    _db = db;
+        //    _codextnService = codextnService;
+        //    _propertyCardService = propertyCardService;
+        //    _itemCodeService = itemCodeService;
+        //    _propertyCardValidator = propertyCardValidator;
+        //}
 
         // GET: Index
         public ActionResult Index()

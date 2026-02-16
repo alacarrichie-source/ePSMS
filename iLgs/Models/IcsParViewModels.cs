@@ -202,11 +202,18 @@ namespace iLgs.Models
             public Nullable<System.Guid> IcsParId { get; set; }
             public Nullable<System.Guid> PsCardItemExtnId { get; set; }
             public Nullable<int> Qty { get; set; }
+
+            [Display(Name = "Additional Cost")]
+            public Nullable<decimal> AddCost { get; set; }
             public Nullable<decimal> Amount { get; set; }
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+            public string Designation { get; set; }
 
             public IcsPar IcsPar { get; set; }
             public PsCardItemExtn PsCardItemExtn { get; set; }        

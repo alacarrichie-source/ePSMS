@@ -15,18 +15,18 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Remarks).Width(70);
             col.Bound(c => c.SetLotNo).Width(50);
-            col.Command(command =>
-            {
-                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");
-                command.Destroy();                
-            }).Width(100);
+            //col.Command(command =>
+            //{
+            //    command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");
+            //    command.Destroy();                
+            //}).Width(100);
         })
-        .ToolBar(toolbar =>
+        @*.ToolBar(toolbar =>
         {
             toolbar.Template(@<text>
             @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
             </text>);
-        })
+        })*@
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -60,11 +60,11 @@
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_RISItemRead", "RIS", new { risId = @ViewData["risId"] }))
-            .Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
+            //.Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
+            //.Edit("onEditGridItems")
             .DataBound("onDataBoundGridItems")         
         )
         .AutoBind(true)

@@ -37,7 +37,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual ItemCode ItemCode1 { get; set; }
         public virtual RSMI RSMI { get; set; }
+        public virtual ItemCode ItemCode1 { get; set; }
     }
 }

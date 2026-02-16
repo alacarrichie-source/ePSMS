@@ -26,18 +26,18 @@ namespace iLgs.Services.PropertyCard
         string GetItemFieldsPartialView(string category);
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
-        Task<string> GetStockNoAsync(PsCardVM model);        
+        Task<string> GetStockNoAsync(PsCardVM model);
         bool IsPosted(Guid psCardId);
         bool IsPosted(PsCard psCard);
         bool IsPosted(PsCardItem psCardItem);
         bool IsPosted(PsCardItemExtn psCardItemExtn);
-        
+
         ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date);
         ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date);
 
         IAllFieldService AllField { get; }
         IPsCardItemService PsCardItem { get; }
-        
+
         ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date);
 
     }
@@ -45,39 +45,49 @@ namespace iLgs.Services.PropertyCard
     public class PsCardService : IPsCardService
     {
         protected readonly AppManEntities _db;
-        protected readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<PsCardVM> _vmExceptionService;
         private readonly IExceptionService<PsCard> _exceptionService;
         protected readonly IAllFieldService _allFieldService;
         protected readonly IPsCardSharedService _psCardSharedService;
-        protected readonly IPsCardItemService _psCardItemService;        
+        protected readonly IPsCardItemService _psCardItemService;
 
-        public PsCardService(AppManEntities db,     
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<PsCardVM> vmExceptionService,
-            IExceptionService<PsCard> exceptionService,
-            IAllFieldService allFieldService,
-            IPsCardSharedService psCardSharedService,
-            IPsCardItemService psCardItemService            
-            )
+        public PsCardService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _allFieldService = allFieldService;
-            _psCardSharedService = psCardSharedService;
-            _psCardItemService = psCardItemService;            
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<PsCardVM>();
+            _exceptionService = new ExceptionService<PsCard>();
+            _allFieldService = new AllFieldService(_db);
+            _psCardSharedService = new PsCardSharedService(_db);
+            _psCardItemService = new PsCardItemService(_db);
         }
 
+        //public PsCardService(AppManEntities db,     
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<PsCardVM> vmExceptionService,
+        //    IExceptionService<PsCard> exceptionService,
+        //    IAllFieldService allFieldService,
+        //    IPsCardSharedService psCardSharedService,
+        //    IPsCardItemService psCardItemService            
+        //    )
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _allFieldService = allFieldService;
+        //    _psCardSharedService = psCardSharedService;
+        //    _psCardItemService = psCardItemService;            
+        //}
+
         public IAllFieldService AllField => _allFieldService;
-        public IPsCardItemService PsCardItem => _psCardItemService;        
+        public IPsCardItemService PsCardItem => _psCardItemService;
 
         public IQueryable<PsCardVM> GetAll(string userName) => _vmExceptionService.TryCatch(() =>
-        {            
+        {
             var data = _db.Database.SqlQuery<PsCardVM>("Exec Card_GetRecords 'P', {0}", userName).AsQueryable();
             return data;
         });
@@ -122,9 +132,9 @@ namespace iLgs.Services.PropertyCard
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt
                 });
-            return data;        
-        });        
-        
+            return data;
+        });
+
         public IQueryable<PsCardVM> GetAllByItemCodeId(Guid? itemCodeId) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCards.Where(w => w.ItemCodeId == itemCodeId).AsNoTracking()
@@ -198,7 +208,7 @@ namespace iLgs.Services.PropertyCard
                 .FirstOrDefaultAsync(f => f.Id == id);
         });
 
-        public PsCard GetById(Guid id) 
+        public PsCard GetById(Guid id)
         {
             return _db.PsCards
                 .Include(i => i.ItemCode.ItemType)
@@ -281,7 +291,7 @@ namespace iLgs.Services.PropertyCard
             {
                 throw new InvalidValueException("Article is Required!");
             }
-            
+
             if (string.IsNullOrWhiteSpace(model.Fund))
             {
                 throw new InvalidValueException("Fund is Required!");
@@ -291,10 +301,10 @@ namespace iLgs.Services.PropertyCard
             {
                 throw new InvalidValueException("Property/Stock No. is Required!");
             }
-        }     
-        
+        }
+
         public async Task<string> GetStockNoAsync(PsCardVM model) => await _allFieldService.GetCardStockNoAsync(model);
-                
+
         public string GetDescription(PsCardVM fields) => "Please see attachment.";
 
         public string GetItemExtnNameByItmExtnId(Guid? id)
@@ -310,74 +320,72 @@ namespace iLgs.Services.PropertyCard
         public virtual ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateIfPosted(entity);
+            var entity = await _db.PsCards.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
 
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //ctx.PsCards.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                return entity;
-            }
+            return entity;
         });
 
         public virtual ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateIfNotPosted(entity);
+            var entity = await _db.PsCards.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfNotPosted(entity);
 
-                entity.PostedBy = "";
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.PsCards.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                return entity;
-            }
+            return entity;
         });
 
 
-        public virtual ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date) =>        
+        public virtual ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var targetEntity = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(p => p.Id == transferToPsCardId);
+            ValidateRecord(targetEntity);
+
+            // load source
+            var psCardItemSource = await _db.PsCardItems.FindAsync(psCardItemId);
+            if (psCardItemSource == null)
             {
-                var targetEntity = await ctx.PsCards.FindAsync(transferToPsCardId);
-                ValidateRecord(targetEntity);
-
-                // load source
-                var psCardItemSource = await ctx.PsCardItems.FindAsync(psCardItemId);
-                if (psCardItemSource == null)
-                {
-                    throw new NotFoundException((Guid)psCardItemId);
-                }
-
-                // transfer source to target card
-                psCardItemSource.PsCardId = targetEntity.Id;
-                psCardItemSource.UpdatedBy = user;
-                psCardItemSource.UpdatedDt = date;
-
-                //_db.PsCardItems.Attach(psCardItemSource);
-                //_db.Entry(psCardItemSource).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return targetEntity;
+                throw new NotFoundException((Guid)psCardItemId);
             }
+
+            // transfer source to target card
+            psCardItemSource.PsCardId = targetEntity.Id;
+            psCardItemSource.UpdatedBy = user;
+            psCardItemSource.UpdatedDt = date;
+
+            if (targetEntity.ItemCode.IsConsumable?.ToUpper() == "Y")
+            {
+                psCardItemSource.IsConsumable = true;
+            }
+            else if (targetEntity.ItemCode.IsConsumable?.ToUpper() == "N")
+            {
+                psCardItemSource.IsConsumable = false;
+            }
+            else
+            {
+                psCardItemSource.IsConsumable = null;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return targetEntity;
         });
         public bool IsPosted(Guid psCardId)
         {
@@ -434,6 +442,6 @@ namespace iLgs.Services.PropertyCard
                 var msg = $"Record not yet posted!";
                 throw new RecordNotYetPostedException(msg);
             }
-        }       
+        }
     }
 }

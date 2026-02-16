@@ -89,10 +89,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
-                else if (await _requestService.IsAnyRisNoAsync(model.Id, model.RisNo))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS number already used by other PR!");
-                }
+
+                //else if (await _requestService.IsAnyRisNoAsync(model.Id, model.RisNo))
+                //{
+                //    ModelState.AddModelError("RIS No.", "RIS number already used by other PR!");
+                //}
 
                 if (model != null && ModelState.IsValid)
                 {

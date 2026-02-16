@@ -159,7 +159,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> RequestItemId { get; set; }
 
         [Display(Name = "Item No.")]
-        public Nullable<int> ItemNo { get; set; }
+        public string ItemNo { get; set; }
 
         [Display(Name = "Article")]
         [Required]
@@ -239,7 +239,7 @@ namespace iLgs.Models
         [Display(Name = "Account")]
         public string PsTypeDesc { get; set; }
 
-        public Nullable<System.Guid> RisItemId { get; set; }
+        //public Nullable<System.Guid> RisItemId { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -497,5 +497,5 @@ namespace iLgs.Models
         public Nullable<int> QtyRequest { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
-    }
+    }    
 }

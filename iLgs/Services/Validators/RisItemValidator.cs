@@ -27,23 +27,32 @@ namespace iLgs.Services.Validators
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
-        private readonly IRisService _risService;
+        private readonly IRisSharedService _risSharedService;
         private readonly IAllFieldsValidator _allFieldsValidator;
 
-
-        public RisItemValidator(AppManEntities db,
-            ICodextnService codextnService,
-            IItemCodeService itemCodeService,
-            IRisService risService,
-            IAllFieldsValidator allFieldsValidator)
+        public RisItemValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
-            _codextnService = codextnService;
-            _itemCodeService = itemCodeService;
-            _risService = risService;
-            _allFieldsValidator = allFieldsValidator;
+            _codextnService = new CodextnService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _risSharedService = new RisSharedService(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
         }
+
+        //public RisItemValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    IItemCodeService itemCodeService,
+        //    IRisService risService,
+        //    IAllFieldsValidator allFieldsValidator)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
+        //    _codextnService = codextnService;
+        //    _itemCodeService = itemCodeService;
+        //    _risService = risService;
+        //    _allFieldsValidator = allFieldsValidator;
+        //}
 
         public async Task ValidateOnCreateAsync(RisItemEntryVM model)
         {
@@ -66,11 +75,11 @@ namespace iLgs.Services.Validators
             ValidateRecord(model.Id);
             ValidateIfPosted((Guid)model.RisId, Mode.DELETE);
 
-            var pr = await _db.Requests.Where(w => w.RequestItems.Any(a => a.RisItemId == model.Id)).FirstOrDefaultAsync();
-            if (pr != null)
-            {
-                throw new RecordRelationshipException($"Record is in use by PR No. {pr.PrNo}, cannot delete!");
-            }
+            //var pr = await _db.Requests.Where(w => w.RequestItems.Any(a => a.RisItemId == model.Id)).FirstOrDefaultAsync();
+            //if (pr != null)
+            //{
+            //    throw new RecordRelationshipException($"Record is in use by PR No. {pr.PrNo}, cannot delete!");
+            //}
 
             if (await _db.RisItemUnitGroupDescriptionItems.AnyAsync(a => a.RisItemId == model.Id))
             {
@@ -125,7 +134,7 @@ namespace iLgs.Services.Validators
 
         public void ValidateIfPosted(Guid risId, Mode mode)
         {
-            var isPosted = _risService.IsPosted(risId);
+            var isPosted = _risSharedService.IsPosted(risId);
             if (isPosted)
             {
                 if (mode == Mode.DELETE)

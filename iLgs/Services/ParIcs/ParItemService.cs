@@ -21,13 +21,17 @@ namespace iLgs.Services.ParIcs
     public class ParItemService : IParItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
 
-        public ParItemService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        public ParItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
         }
+
+        //public ParItemService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //}
 
         public IQueryable<PARItemVM> GetAll(Guid? parId)
         {
@@ -39,8 +43,8 @@ namespace iLgs.Services.ParIcs
                     OrderItemId = s.OrderItemId,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    Unit = s.OrderItem.Unit,
+                    PsNo = s.OrderItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     InsertedDt = s.InsertedDt
                 });
@@ -56,8 +60,8 @@ namespace iLgs.Services.ParIcs
                     ParId = s.ParId,
                     OrderItemId = s.OrderItemId,
                     Qty = s.Qty,
-                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    Unit = s.OrderItem.Unit,
+                    PsNo = s.OrderItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
@@ -89,11 +93,8 @@ namespace iLgs.Services.ParIcs
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.PARItems.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PARItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -103,20 +104,15 @@ namespace iLgs.Services.ParIcs
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PARItems.FindAsync(model.Id);
+            var entity = await _db.PARItems.FindAsync(model.Id);
 
-                entity.ParId = model.ParId;
-                entity.OrderItemId = model.OrderItemId;
-                entity.Qty = model.Qty;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.ParId = model.ParId;
+            entity.OrderItemId = model.OrderItemId;
+            entity.Qty = model.Qty;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PARItems.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -126,23 +122,17 @@ namespace iLgs.Services.ParIcs
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await _db.PARItems.FindAsync(model.Id);
+            var entity = await _db.PARItems.FindAsync(model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.PARItems.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PARItems.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.PARItems.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
-        }        
+        }
     }
 }

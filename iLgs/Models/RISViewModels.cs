@@ -123,19 +123,19 @@ namespace iLgs.Models
         public string Mode { get; set; }
         public System.Guid Id { get; set; }
 
-        [Required]
         public string Fund { get; set; }
         public string Division { get; set; }
 
-        [Required]
         [Display(Name = "Office")]
         public Nullable<System.Guid> OfficeId { get; set; }
 
-        [Required]
+        [Display(Name = "Office")]
+        public string OfficeDesc { get; set; }
+
+
         [Display(Name = "Office Display")]
         public string Office { get; set; }
 
-        [Required]
         public string FPP { get; set; }
 
         [Display(Name = "RIS No.")]
@@ -208,6 +208,20 @@ namespace iLgs.Models
         public bool IssuanceSw { get; set; }
 
         public List<RisItemEntryVM> RisItems { get; set; }
+
+        [Display(Name = "PO No.")]
+
+        public Nullable<System.Guid> OrderId { get; set; }
+
+        // Transients
+
+        [Required]
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "PO Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
     }
 
     public class RisItemCommonVM
@@ -260,6 +274,10 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
 
         [Required]
         [Display(Name = "Item")]

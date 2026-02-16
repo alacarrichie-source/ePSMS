@@ -21,17 +21,25 @@ namespace iLgs.Services.Validators
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
-        private readonly IRisService _risService;    
+        private readonly IRisSharedService _risSharedService;
 
-        public RisItemUnitGroupValidator(AppManEntities db,
-            ICodextnService codextnService,
-            IRisService risService)
+        public RisItemUnitGroupValidator(AppManEntities db)
         {
-            _db = db;            
+            _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupVM>(propertyName);
-            _risService = risService;
-            _codextnService = codextnService;
+            _risSharedService = new RisSharedService(_db);
+            _codextnService = new CodextnService(_db);
         }
+
+        //public RisItemUnitGroupValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    IRisService risService)
+        //{
+        //    _db = db;            
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupVM>(propertyName);
+        //    _risService = risService;
+        //    _codextnService = codextnService;
+        //}
 
         public void ValidateOnCreate(RisItemUnitGroupVM model)
         {
@@ -57,7 +65,7 @@ namespace iLgs.Services.Validators
 
         public void ValidateIfPosted(Guid risId)
         {
-            var isPosted = _risService.IsPosted(risId);
+            var isPosted = _risSharedService.IsPosted(risId);
             if (isPosted)
             {
                 throw new RecordAlreadyPostedException();

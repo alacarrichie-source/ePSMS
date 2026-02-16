@@ -22,23 +22,33 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
+        private readonly AppManEntities _db;
         private readonly IPoIssuanceService _poIssuanceService;
         private readonly IPsCardService _psCardService;
-        private readonly IPsCardItemService _psCardItemService;
         private readonly IIcsParItemService _icsParItemService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
-        
-        public PoIssuanceController(IPoIssuanceService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
-            IIcsParItemService icsParItemService, IPsCardItemTransactionService psCardItemTransactionService, IPoIssuanceUploadService poIssuanceUploadService)
+
+        public PoIssuanceController()
         {
-            _poIssuanceService = poIssuanceService;
-            _psCardService = psCardService;
-            _psCardItemService = psCardItemService;
-            _icsParItemService = icsParItemService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _uploadService = poIssuanceUploadService;
+            _db = new AppManEntities();
+            _poIssuanceService = new PoIssuanceService(_db);
+            _psCardService = new PsCardService(_db);
+            _icsParItemService = new IcsParItemService(_db);
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _uploadService = new PoIssuanceUploadService(_db);
         }
+
+        //public PoIssuanceController(IPoIssuanceService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
+        //    IIcsParItemService icsParItemService, IPsCardItemTransactionService psCardItemTransactionService, IPoIssuanceUploadService poIssuanceUploadService)
+        //{
+        //    _poIssuanceService = poIssuanceService;
+        //    _psCardService = psCardService;
+        //    _psCardService.PsCardItem = psCardItemService;
+        //    _icsParItemService = icsParItemService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _uploadService = poIssuanceUploadService;
+        //}
 
         // GET: PoIssuance
         public ActionResult Index()
@@ -62,7 +72,7 @@ namespace iLgs.Controllers
         
         public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId, Guid? locationId)
         {
-            var model = await _psCardItemService.GetByTransferIdAsync(transferId);
+            var model = await  _psCardService.PsCardItem.GetByTransferIdAsync(transferId);
 
             ViewData["CardItemId"] = cardItemId;
             ViewData["TransferId"] = transferId;
@@ -254,7 +264,7 @@ namespace iLgs.Controllers
         #region TRANSFER
         //public async Task<ActionResult> _Transfer(Guid? cardItemId, Guid? groupId)
         //{            
-        //    var model =  await _psCardItemService.GetByTransferIdAsync(transferId);
+        //    var model =  await _psCardService.PsCardItem.GetByTransferIdAsync(transferId);
 
         //    ViewData["CardItemId"] = cardItemId;
         //    ViewData["TransferId"] = transferId;
@@ -266,7 +276,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _Transfer(Guid? cardItemId, Guid? transferId)
         {
-            var model = await _psCardItemService.PsCardItemTransfer.GetByIdAsync(transferId);
+            var model = await _psCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(transferId);
             model.TransferOut = null;
             model.TransDate = DateTime.Now;
             model.LocationId = null;

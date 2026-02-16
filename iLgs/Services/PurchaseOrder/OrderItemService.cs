@@ -9,6 +9,7 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -87,7 +88,7 @@ namespace iLgs.Services.PurchaseOrder
                 Description = s.Description,
                 Brand = s.Brand,
 
-                RisItemId = s.RequestItem.RisItem.Id,
+                //RisItemId = s.RequestItem.RisItem.Id,
                 Category = s.ItemCode.ItemType.Category,
 
                 ItemCode = s.ItemCode.Code,
@@ -132,9 +133,23 @@ namespace iLgs.Services.PurchaseOrder
             return await _orderItemSharedService.GetAnyAirItemsAsync(id);
         }
 
-        private void ValidateFields(OrderItemVM model)
+        private async Task ValidateFieldsAsync(OrderItemVM model)
         {
             _imex = new InvalidModelException();
+
+            if (!(await _db.ItemCodes.AnyAsync(a => a.Id == model.ItemCodeId)))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.ItemCodeId)), "Invalid Value.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.ItemNo))
+            {
+                var regex = new Regex(@"^(0|[1-9]\d*)(\.(0|[1-9]\d*))*$");
+                if (!regex.IsMatch(model.ItemNo))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Invalid Value.");
+                }
+            }
 
             //if (Enum.TryParse(model.PsType, out Category c))
             //{
@@ -153,7 +168,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            ValidateFields(model);
+            await ValidateFieldsAsync(model);
             await _orderSharedService.ValidateStatusAsync((Guid)model.OrderId);
 
             model.Id = Guid.NewGuid();
@@ -162,7 +177,7 @@ namespace iLgs.Services.PurchaseOrder
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            if (model.ItemNo == null || model.ItemNo == 0)
+            if (string.IsNullOrWhiteSpace(model.ItemNo))
             {
                 model.ItemNo = await NextItemNoAsync(model.OrderId);
             }
@@ -231,6 +246,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            await ValidateFieldsAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -282,7 +298,7 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            if (model.ItemNo == null || model.ItemNo == 0)
+            if (string.IsNullOrWhiteSpace(model.ItemNo))
             {
                 model.ItemNo = await NextItemNoAsync(model.OrderId);
             }
@@ -305,11 +321,12 @@ namespace iLgs.Services.PurchaseOrder
             return model;
         });
 
-        private async Task<int?> NextItemNoAsync(Guid? orderId)
+        private async Task<string> NextItemNoAsync(Guid? orderId)
         {
             var nextItemNo = await _db.OrderItems.Where(w => w.OrderId == orderId)
-                    .Select(i => (int?)i.ItemNo).MaxAsync() ?? 0;
-            return nextItemNo + 1;
+                    .Select(i => int.Parse(i.ItemNo))
+                    .MaxAsync();
+            return (nextItemNo + 1).ToString();
         }
 
         private void ValidateIfNull(OrderItemVM model)

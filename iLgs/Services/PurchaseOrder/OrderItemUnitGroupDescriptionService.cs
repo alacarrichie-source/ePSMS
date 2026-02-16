@@ -43,6 +43,7 @@ namespace iLgs.Services.PurchaseOrder
             _vmExceptionService = new ExceptionService<OrderItemUnitGroupDescriptionVM>();
             _exceptionService = new ExceptionService<OrderItemUnitGroupDescription>();
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderItemUnitGroupDescriptionVM>(propertyName);
+            _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
         }
 
         //public OrderItemUnitGroupDescriptionService(AppManEntities db,
@@ -58,7 +59,7 @@ namespace iLgs.Services.PurchaseOrder
         //    _exceptionService = exceptionService;
         //}
 
-        public IOrderItemUnitGroupDescriptionItemService UnitGroupDescriptionItem { get { return _unitGroupDescriptionItemService = _unitGroupDescriptionItemService ?? new OrderItemUnitGroupDescriptionItemService(_db); } }
+        public IOrderItemUnitGroupDescriptionItemService UnitGroupDescriptionItem => _unitGroupDescriptionItemService;
 
         private static Expression<Func<OrderItemUnitGroupDescription, OrderItemUnitGroupDescriptionVM>> GetProjection()
         {

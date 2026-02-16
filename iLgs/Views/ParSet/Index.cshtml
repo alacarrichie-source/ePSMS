@@ -5,6 +5,25 @@
 }
 
 
+<br />
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("PO Year", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-2">
+            @(Html.Kendo().NumericTextBox()
+                .Name("forYear")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Decimals(0)
+                .Spinners(false)
+                .Events(e => e.Change("onChangeForYear"))
+                .Format("0")
+                .Value(@ViewBag.ForYear)
+            )            
+        </div>
+    </div>
+</div>
+<br />
+
 @(Html.Kendo().PanelBar()
     .Name("panelbar")
     .ExpandMode(PanelBarExpandMode.Multiple)
@@ -42,13 +61,11 @@
     })
 )
 
-
-
 @helper RenderOrders()
 {
     @(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
     .Name("grid")
-    //.HtmlAttributes(new { style = "height: 100%;" })
+    .HtmlAttributes(new { style = "height: calc(30vh);" })
     .Columns(col =>
     {
         col.Bound(c => c.PoNo).Width(50);
@@ -89,6 +106,7 @@
     .Resizable(r => r.Columns(true))
     .Filterable()
     .Sortable()
+    .Scrollable()
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
@@ -108,7 +126,7 @@
             s.Add(a => a.PoNo);
             //s.Add(a => a.QtyBalance).Descending();            
             })
-        .Read(read => read.Action("Read", "ParSet"))
+        .Read(read => read.Action("Read", "ParSet").Data("DataGrid"))
     ).AutoBind(true)
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Events(e => e
@@ -122,7 +140,7 @@
 {
     @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
                     .Name("gridItems")
-                    .HtmlAttributes(new { style = "height: 100%;" })
+                    .HtmlAttributes(new { style = "height: calc(30vh);" })
                     .Columns(col =>
                     {
                         col.Bound(c => c.Article).Width(100);
@@ -167,6 +185,7 @@
                     .Resizable(r => r.Columns(true))
                     .Sortable()
                     .NoRecords()
+                    .Scrollable()
                     //.ClientDetailTemplateId("UploadedFiles")
                     .DataSource(dataSource => dataSource
                         .Ajax()
@@ -211,6 +230,7 @@
 {
     @(Html.Kendo().Grid<iLgs.Models.ParIcsItemSetVm>()
         .Name("gridItemSet")
+        .HtmlAttributes(new { style = "height: calc(30vh);" })
         .Columns(col =>
         {
             col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -294,6 +314,7 @@
                     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
                     .Resizable(r => r.Columns(true))
                     .Sortable()
+                    .Scrollable()
                     .NoRecords()
                     .DataSource(dataSource => dataSource
                         .Ajax()
@@ -597,6 +618,10 @@
 
 
 <script type="text/javascript">
+    function onChangeForYear(e) {
+        refreshAllGrids();
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -831,6 +856,12 @@
         //    $(".k-grid-btnAddIcs", grid).hide();
         //}
 
+    }
+
+    function DataGrid(e) {
+        return {
+            forYear: $("#forYear").val()
+        };
     }
 
     function refreshAllGrids() {
@@ -2464,7 +2495,7 @@
 
             alert(message); // You can replace this with any other UI method to display errors
 
-            $("#gridItemsPar").data("kendoGrid").dataSource.read();            
+            $("#gridItemsPar").data("kendoGrid").dataSource.read();
         }
     }
 

@@ -63,9 +63,9 @@ namespace iLgs.Models
         public string ItemType { get; set; }
     
         public virtual Codextn Codextn { get; set; }
-        public virtual ItemCode ItemCode1 { get; set; }
         public virtual RPCI RPCI { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItemExtn> RPCIItemExtns { get; set; }
+        public virtual ItemCode ItemCode1 { get; set; }
     }
 }

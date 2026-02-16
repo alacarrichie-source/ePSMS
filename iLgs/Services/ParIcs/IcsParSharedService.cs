@@ -25,64 +25,57 @@ namespace iLgs.Services.ParIcs
 
     public class IcsParSharedService : IIcsParSharedService
     {
-
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
 
-        public IcsParSharedService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        public IcsParSharedService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
         }
+
+        //public IcsParSharedService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //}
 
         public async ValueTask<IcsPar> PostAsync(string refNo, string refType, string user, DateTime date)
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
+            if (entity == null)
             {
-                var entity = await ctx.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
-                if (entity == null)
-                {
-                    throw new NotFoundException(refNo);
-                }
-
-                ValidateIfPosted(entity); ;
-                await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
-
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-
-                //_db.IcsPars.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return entity;
+                throw new NotFoundException(refNo);
             }
+
+            ValidateIfPosted(entity); ;
+            await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+
+            await _db.SaveChangesAsync();
+
+            return entity;
         }
 
         public async ValueTask<IcsPar> UnPostAsync(string refNo, string refType, string user, DateTime date)
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
+            if (entity == null)
             {
-                var entity = await ctx.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
-                if (entity == null)
-                {
-                    throw new NotFoundException($"Ref No. {refNo} does not exists.");
-                }
-
-                ValidateIfNotPosted(entity);
-                ValidateUpdates(refNo, refType);
-
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //_db.IcsPars.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return entity;
+                throw new NotFoundException($"Ref No. {refNo} does not exists.");
             }
+
+            ValidateIfNotPosted(entity);
+            ValidateUpdates(refNo, refType);
+
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            await _db.SaveChangesAsync();
+
+            return entity;
         }
 
         public void ValidateUpdates(string refNo, string refType)
@@ -122,7 +115,7 @@ namespace iLgs.Services.ParIcs
         {
             if (!await IsWwithUploadAsync(icsParId))
             {
-                throw new InvalidValueException($"No uploaded files found, cannot post!");                
+                throw new InvalidValueException($"No uploaded files found, cannot post!");
             }
         }
 

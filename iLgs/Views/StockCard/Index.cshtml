@@ -144,7 +144,7 @@
     )
     .Events(events => events
         .Change("onChangeGrid")
-        //.Edit("onEditGrid")
+        //.Edit("onEditGrid")        
         .DataBound("onDataBoundGrid")
     )
 )
@@ -165,7 +165,7 @@
         {
             items.Add().Text("PO Items")
             .Selected(true)
-            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
+            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#", isAdmin = ViewBag.IsAdmin });
         })
        .ToClientTemplate()
     )
@@ -1187,7 +1187,10 @@
                                         if (subGrid) {
                                             subGrid.addRow(); // Trigger the "Add" action
                                         }
-                                    }, 2000); // Delay for rendering subgrid
+                                        else {
+                                            console.log("gridItems_" + selectedId + " Not found.");
+                                        }
+                                    }, 5000); // Delay for rendering subgrid
 
                                 } else {
                                     console.log("No visible rows to select.");
@@ -1462,6 +1465,12 @@
                 textbox.enable(parentId); // Enables the Kendo TextBox
             }
         }
+
+        var isAdmin = @(ViewBag.IsAdmin.ToString().ToLower());
+
+        var switchWidget = $("#IsConsumable").data("kendoSwitch");
+        switchWidget.enable(isAdmin);
+
         trackingId = selectedTransferId;
         var popupWindow = e.container.data("kendoWindow");
 
@@ -1489,7 +1498,7 @@
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Id;        
+        selectedItemId = selectedData.Id;
         selectedTransferId = selectedData.TransferId;
         trackingId = selectedItemId;
         selectedIssuedId = null;
@@ -1602,7 +1611,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        selectedItemId = dataItem.Id;        
+        selectedItemId = dataItem.Id;
         selectedTransferId = dataItem.TransferId;
         trackingId = selectedItemId;
         PrintPo(0);
@@ -1653,7 +1662,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        selectedItemId = dataItem.Id;        
+        selectedItemId = dataItem.Id;
         selectedTransferId = dataItem.TransferId;
         trackingId = selectedItemId;
         postItem();
@@ -1676,7 +1685,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        selectedItemId = dataItem.Id;        
+        selectedItemId = dataItem.Id;
         selectedTransferId = dataItem.TransferId;
         trackingId = selectedItemId;
         unpostItem();

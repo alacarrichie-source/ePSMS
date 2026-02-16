@@ -31,29 +31,38 @@ namespace iLgs.Services.ParIcs
     public class IcsParItemService : BaseValidator, IIcsParItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly GetDisplayNameDelegate _getDisplayNameVM;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<IcsParItem> _exceptionService;
         private readonly IExceptionService<IcsParItemVM> _vmExceptionService;
-        
-        public IcsParItemService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<IcsParItem> exceptionService,
-            IExceptionService<IcsParItemVM> vmExceptionService)
+
+        public IcsParItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
             _getDisplayName = propertyName => Utility.GetDisplayName<IcsParItem>(propertyName);
             _getDisplayNameVM = propertyName => Utility.GetDisplayName<IcsParItemVM>(propertyName);
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _vmExceptionService = vmExceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<IcsParItem>();
+            _vmExceptionService = new ExceptionService<IcsParItemVM>();
         }
 
-        public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId) 
+        //public IcsParItemService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<IcsParItem> exceptionService,
+        //    IExceptionService<IcsParItemVM> vmExceptionService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<IcsParItem>(propertyName);
+        //    _getDisplayNameVM = propertyName => Utility.GetDisplayName<IcsParItemVM>(propertyName);
+        //    _exceptions = exceptions;
+        //    _exceptionService = exceptionService;
+        //    _vmExceptionService = vmExceptionService;
+        //}
+
+        public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId)
         {
             var data = _db.IcsParItems.Where(w => w.IcsParId == icsParId).AsNoTracking();
             return data;
@@ -63,7 +72,8 @@ namespace iLgs.Services.ParIcs
         {
             var data = _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem)
                 .Where(w => w.IcsParId == icsParId)
-                .Select(s => new IcsParItemVM {
+                .Select(s => new IcsParItemVM
+                {
                     Id = s.Id,
                     PsCardItemExtnId = s.PsCardItemExtnId,
                     ContentNo = s.PsCardItemExtn.ContentNo,
@@ -95,13 +105,13 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId) 
+        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId)
         {
             var data = GetAllIcsParItems(psCardItemGroupId, "P");
             return data;
         }
 
-        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId) 
+        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId)
         {
             var data = GetAllIcsParItems(psCardItemGroupId, "I");
             return data;
@@ -158,11 +168,8 @@ namespace iLgs.Services.ParIcs
                 UpdatedDt = model.UpdatedDt
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.IcsParItems.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.IcsParItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -175,39 +182,46 @@ namespace iLgs.Services.ParIcs
             ValidateIfPosted(model.Id);
             ValidateFields(model, Mode.EDIT);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.IcsParItems.Include(i => i.IcsPar)
-                    .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
-                    .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
-                    .Include(i => i.PsCardItemExtn)                
-                .Where(w => w.Id == model.Id)
-                .FirstOrDefaultAsync(); 
+            var entity = await _db.IcsParItems.Include(i => i.IcsPar)
+                .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
+                .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
+                .Include(i => i.PsCardItemExtn)
+            .Where(w => w.Id == model.Id)
+            .FirstOrDefaultAsync();
 
-                ValidateRecord(model.Id);
+            ValidateRecord(model.Id);
 
-                var propSplit = model.PsCardItemExtn.PropNo.Split('/');
-                var propYear = model.PsCardItemExtn.PropNo.Substring(0, 4);
-                var propSeq = propSplit[propSplit.Length - 2];
+            var propSplit = model.PsCardItemExtn.PropNo.Split('/');
+            var propYear = model.PsCardItemExtn.PropNo.Substring(0, 4);
+            var propSeq = propSplit[propSplit.Length - 2];
 
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-                entity.PsCardItemExtn.PropNo = model.PsCardItemExtn.PropNo;
-                entity.PsCardItemExtn.PropYear = propYear;
-                entity.PsCardItemExtn.PropSeq = propSeq;
-                entity.PsCardItemExtn.UpdatedBy = user;
-                entity.PsCardItemExtn.UpdatedDt = date;
+            entity.IcsPar.ReceivedByTitle = model.IcsPar.ReceivedByTitle?.Trim();
+            entity.IcsPar.ReceivedByTitle2 = model.IcsPar.ReceivedByTitle2?.Trim();
+            entity.IcsPar.ReceivedById = model.IcsPar.ReceivedById;
+            entity.IcsPar.ReceivedBy = model.IcsPar.ReceivedBy?.Trim();
+            entity.IcsPar.ReceivedDept = model.IcsPar.ReceivedDept?.Trim();
+            entity.IcsPar.ReceivedDate = model.IcsPar.ReceivedDate;
 
-                entity.IssuedTo = model.IssuedTo;
-                entity.Designation = model.Designation;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.IcsPar.IssuedBy = model.IcsPar.IssuedBy?.Trim();
+            entity.IcsPar.IssuedByPosition = model.IcsPar.IssuedByPosition?.Trim();
+            entity.IcsPar.IssuedDept = model.IcsPar.IssuedDept?.Trim();
+            entity.IcsPar.IssuedDate = model.IcsPar.IssuedDate;
 
-                //ctx.IcsParItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            entity.PsCardItemExtn.PropNo = model.PsCardItemExtn.PropNo?.Trim();
+            entity.PsCardItemExtn.PropYear = propYear;
+            entity.PsCardItemExtn.PropSeq = propSeq;
+            entity.PsCardItemExtn.UpdatedBy = user;
+            entity.PsCardItemExtn.UpdatedDt = date;
+
+            entity.IssuedTo = model.IssuedTo?.Trim();
+            entity.Designation = model.Designation?.Trim();
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -221,37 +235,32 @@ namespace iLgs.Services.ParIcs
             ValidateIfPosted(model.Id);
             ValidateFields(model, Mode.EDIT);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.IcsParItems.Include(i => i.IcsPar)
-                       .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
-                       .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
-                       .Include(i => i.PsCardItemExtn)
-                   .Where(w => w.Id == model.Id)
-                   .FirstOrDefaultAsync();
+            var entity = await _db.IcsParItems.Include(i => i.IcsPar)
+                   .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
+                   .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
+                   .Include(i => i.PsCardItemExtn)
+               .Where(w => w.Id == model.Id)
+               .FirstOrDefaultAsync();
 
-                ValidateRecord(model.Id);
+            ValidateRecord(model.Id);
 
-                var propSplit = model.PropNo.Split('/');
-                var propYear = model.PropNo.Substring(0, 4);
-                var propSeq = propSplit[propSplit.Length - 2];
+            var propSplit = model.PropNo.Split('/');
+            var propYear = model.PropNo.Substring(0, 4);
+            var propSeq = propSplit[propSplit.Length - 2];
 
 
-                entity.PsCardItemExtn.PropNo = model.PropNo;
-                entity.PsCardItemExtn.PropYear = propYear;
-                entity.PsCardItemExtn.PropSeq = propSeq;
-                entity.PsCardItemExtn.UpdatedBy = user;
-                entity.PsCardItemExtn.UpdatedDt = date;
+            entity.PsCardItemExtn.PropNo = model.PropNo;
+            entity.PsCardItemExtn.PropYear = propYear;
+            entity.PsCardItemExtn.PropSeq = propSeq;
+            entity.PsCardItemExtn.UpdatedBy = user;
+            entity.PsCardItemExtn.UpdatedDt = date;
 
-                entity.IssuedTo = model.IssuedTo;
-                entity.Designation = model.Designation;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.IssuedTo = model.IssuedTo?.Trim();
+            entity.Designation = model.Designation?.Trim();
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.IcsParItems.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -261,74 +270,63 @@ namespace iLgs.Services.ParIcs
         {
             ValidateIfPosted(model.Id);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            IcsParItem entity = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (_db.IcsParUpdates.Any(a => a.PrevRefNo == entity.IcsPar.RefNo && a.RefType == entity.IcsPar.RefType))
             {
-                IcsParItem entity = await ctx.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.Id == model.Id);
+                throw new RecordRelationshipException("This record was already updated or transfered to other ICS/PAR, cannot continue.");
+            }
 
-                if (ctx.IcsParUpdates.Any(a => a.PrevRefNo == entity.IcsPar.RefNo && a.RefType == entity.IcsPar.RefType))
+            if (_db.PsCardItemTransferItems.Any(a => a.IcsParItemId == entity.Id))
+            {
+                throw new RecordRelationshipException("Transit/Issuance was already made for this record, cannot continue.");
+            }
+
+            var psCardItemExtnId = entity.PsCardItemExtnId;
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            _db.IcsParItems.Remove(entity);
+            await _db.SaveChangesAsync();
+
+            PsCardItemExtn psCardItemExtn = await _db.PsCardItemExtns.FindAsync(psCardItemExtnId);
+            if (psCardItemExtn != null)
+            {
+                psCardItemExtn.UpdatedBy = user;
+                psCardItemExtn.UpdatedDt = date;
+
+                psCardItemExtn.LocationId = null;
+                psCardItemExtn.PropNo = null;
+                psCardItemExtn.PropSeq = null;
+                psCardItemExtn.PropYear = null;
+                psCardItemExtn.SeriesNo = null;
+
+                await _db.SaveChangesAsync();
+            }
+
+            // remove master record if no child record exists
+            if (!(await _db.IcsParItems.AnyAsync(a => a.IcsParId == model.IcsParId)))
+            {
+                var icsPar = await _db.IcsPars.FindAsync(model.IcsParId);
+                if (icsPar != null)
                 {
-                    throw new RecordRelationshipException("This record was already updated or transfered to other ICS/PAR, cannot continue.");
-                }
+                    icsPar.UpdatedBy = user;
+                    icsPar.UpdatedDt = date;
 
-                if (ctx.PsCardItemTransferItems.Any(a => a.IcsParItemId == entity.Id))
-                {
-                    throw new RecordRelationshipException("Transit/Issuance was already made for this record, cannot continue.");
-                }
+                    await _db.SaveChangesAsync();
 
-                var psCardItemExtnId = entity.PsCardItemExtnId;
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //ctx.IcsParItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.IcsParItems.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-
-                PsCardItemExtn psCardItemExtn = await ctx.PsCardItemExtns.FindAsync(psCardItemExtnId);
-                if (psCardItemExtn != null)
-                {
-                    psCardItemExtn.UpdatedBy = user;
-                    psCardItemExtn.UpdatedDt = date;
-
-                    psCardItemExtn.LocationId = null;
-                    psCardItemExtn.PropNo = null;
-                    psCardItemExtn.PropSeq = null;
-                    psCardItemExtn.PropYear = null;
-                    psCardItemExtn.SeriesNo = null;
-
-                    //ctx.PsCardItemExtns.Attach(psCardItemExtn);
-                    //ctx.Entry(psCardItemExtn).State = EntityState.Modified;
-                    await ctx.SaveChangesAsync();                    
-                }
-
-                // remove master record if no child record exists
-                if (!(await ctx.IcsParItems.AnyAsync(a => a.IcsParId == model.IcsParId)))
-                {
-                    var icsPar = await ctx.IcsPars.FindAsync(model.IcsParId);
-                    if (icsPar != null)
-                    {
-                        icsPar.UpdatedBy = user;
-                        icsPar.UpdatedDt = date;
-
-                        //ctx.IcsPars.Attach(icsPar);
-                        //ctx.Entry(icsPar).State = EntityState.Modified;
-                        await ctx.SaveChangesAsync();
-
-                        ctx.IcsPars.Remove(icsPar);
-                        //ctx.Entry(icsPar).State = EntityState.Deleted;
-                        await ctx.SaveChangesAsync();
-                    }
+                    _db.IcsPars.Remove(icsPar);
+                    await _db.SaveChangesAsync();
                 }
             }
-            
-            return model;            
+
+            return model;
         });
 
         public bool IsPosted(Guid? id)
@@ -360,19 +358,21 @@ namespace iLgs.Services.ParIcs
             }
 
             var icsPars = _db.IcsPars.Where(a => a.RefNo == model.IcsPar.RefNo && a.RefType == model.IcsPar.RefType).AsNoTracking();
-            if ((mode == Mode.ADD && icsPars.Any()) 
-                || (mode == Mode.EDIT && icsPars.Any(a => a.Id != model.IcsParId))) {                
-                if (model.IcsPar.RefType == "P") {
+            if ((mode == Mode.ADD && icsPars.Any())
+                || (mode == Mode.EDIT && icsPars.Any(a => a.Id != model.IcsParId)))
+            {
+                if (model.IcsPar.RefType == "P")
+                {
                     _imex.UpsertDataList("PAR No.", "Already Exists.");
                 }
                 else
                 {
                     _imex.UpsertDataList("ICS No.", "Already Exists.");
-                }                
+                }
             }
 
             var icsPar = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PropNo == model.PsCardItemExtn.PropNo)).AsNoTracking().FirstOrDefault();
-            if ((mode == Mode.ADD && icsPar != null) 
+            if ((mode == Mode.ADD && icsPar != null)
                 || (mode == Mode.EDIT && icsPar != null && icsPar.Id != model.IcsParId))
             {
                 if (model.IcsPar.RefType == "P")
@@ -424,7 +424,7 @@ namespace iLgs.Services.ParIcs
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.IcsPar.IssuedDate)), "Field is required.");
             }
-            
+
             _imex.ThrowIfContainsErrors();
         }
 
@@ -446,7 +446,7 @@ namespace iLgs.Services.ParIcs
                         _imex.UpsertDataList("Prop. No.", "Already Exists.");
                     }
                 }
-            }            
+            }
             _imex.ThrowIfContainsErrors();
         }
 

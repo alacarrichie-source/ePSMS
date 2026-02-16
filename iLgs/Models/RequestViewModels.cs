@@ -57,6 +57,9 @@ namespace iLgs.Models
         [Display(Name = "RIS Date")]
         public Nullable<System.DateTime> RisDate { get; set; }
         public string Fund { get; set; }
+
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
         public string Department { get; set; }
         public string Section { get; set; }
         public string FPP { get; set; }
@@ -70,32 +73,48 @@ namespace iLgs.Models
 
         public Nullable<System.DateTime> ApprovedDate { get; set; }
 
-        [Display(Name = "RIS No.")]
-        public string RisNo { get; set; }
+        //[Display(Name = "RIS No.")]
+        //public string RisNo { get; set; }
     }
 
-    public class RequestItemVM : RisItemCommonVM
+    public class RequestItemVM
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RisItemId { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
+
+        [Required]
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
+
+        [Required]
+        public string Description { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }
 
-        //[Required]
+        public string Unit { get; set; }
+
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
-        //[Required]
-        [Display(Name = "Total Cost")]
+        [Display(Name = "Unit Cost")]
         public Nullable<decimal> TotalCost { get; set; }
+
+        [Display(Name = "Price Rate")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }                
-        
-        public string GridRequestItemExtns { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+
+        public string SetLotNo { get; set; }
+
+        //public string GridRequestItemExtns { get; set; }
     }
 
     public class RequestItemExtnVM
@@ -126,7 +145,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
+        //public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
 
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
@@ -141,9 +160,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public RisItemUnitGroup RisItemUnitGroup { get; set; }
+        //public RisItemUnitGroup RisItemUnitGroup { get; set; }
 
-        // transients
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
@@ -178,21 +196,25 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupDescriptionId { get; set; }
+        //public Nullable<System.Guid> RisItemUnitGroupDescriptionId { get; set; }
+        public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherParticulars { get; set; }
         public string InsertedBy { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
-        public RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
+        //public RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
     }
 
     public class RequestItemUnitGroupDescriptionItemVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupDescriptionItemId { get; set; }
+        //public Nullable<System.Guid> RisItemUnitGroupDescriptionItemId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

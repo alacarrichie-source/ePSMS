@@ -16,39 +16,51 @@ namespace iLgs.Services.Requisition
         IQueryable<RisItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<RisItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
         IQueryable<RisItemUnitGroupAvailableVM> GetAvailableUnitGroupItem(Guid? risId);
-        ValueTask<RisItemUnitGroupDescriptionItemVM> CreateAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupDescriptionItemVM> UpdateAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupDescriptionItemVM> DeleteAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupDescriptionItemVM> CreateAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupDescriptionItemVM> UpdateAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
+        //ValueTask<RisItemUnitGroupDescriptionItemVM> DeleteAsync(RisItemUnitGroupDescriptionItemVM model, string user, DateTime date);
     }
 
-    public class RisItemUnitGroupDescriptionItemService : BaseValidator, IRisItemUnitGroupDescriptionItemService
+    internal class RisItemUnitGroupDescriptionItemService : BaseValidator, IRisItemUnitGroupDescriptionItemService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<RisItemUnitGroupDescriptionItemVM> _vmExceptionService;
         private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService;
         private readonly IExceptionService<RisItemUnitGroupDescriptionItem> _exceptionService;
-        private readonly IRisService _risService;        
+        private readonly IRisSharedService _risSharedService;        
         private readonly IItemCodeService _itemCodeService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public RisItemUnitGroupDescriptionItemService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RisItemUnitGroupDescriptionItemVM> vmExceptionService,
-            IExceptionService<RisItemUnitGroupAvailableVM> vmUnitGroupAvailableExceptionService,
-            IExceptionService<RisItemUnitGroupDescriptionItem> exceptionService,
-            IRisService risService,
-            IItemCodeService itemCodeService)
+        public RisItemUnitGroupDescriptionItemService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionItemVM>(propertyName);
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _vmUnitGroupAvailableExceptionService = vmUnitGroupAvailableExceptionService;
-            _exceptionService = exceptionService;
-            _risService = risService;
-            _itemCodeService = itemCodeService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RisItemUnitGroupDescriptionItemVM>();
+            _vmUnitGroupAvailableExceptionService = new ExceptionService<RisItemUnitGroupAvailableVM>();
+            _exceptionService = new ExceptionService<RisItemUnitGroupDescriptionItem>();
+            _risSharedService = new RisSharedService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public RisItemUnitGroupDescriptionItemService(AppManEntities db,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RisItemUnitGroupDescriptionItemVM> vmExceptionService,
+        //    IExceptionService<RisItemUnitGroupAvailableVM> vmUnitGroupAvailableExceptionService,
+        //    IExceptionService<RisItemUnitGroupDescriptionItem> exceptionService,
+        //    IRisService risService,
+        //    IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionItemVM>(propertyName);
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _vmUnitGroupAvailableExceptionService = vmUnitGroupAvailableExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _risService = risService;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public ValueTask<RisItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
@@ -243,7 +255,7 @@ namespace iLgs.Services.Requisition
 
         public void ValidateIfPosted(RisItemUnitGroupDescriptionItemVM model)
         {
-            var isPosted = _risService.IsPosted(model);
+            var isPosted = _risSharedService.IsPosted(model);
             if (isPosted)
             {
                 throw new RecordAlreadyPostedException();

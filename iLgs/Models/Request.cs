@@ -17,14 +17,14 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Request()
         {
-            this.RequestItemUnitGroups = new HashSet<RequestItemUnitGroup>();
-            this.RequestItems = new HashSet<RequestItem>();
             this.Orders = new HashSet<Order>();
+            this.RequestItems = new HashSet<RequestItem>();
+            this.RequestItemUnitGroups = new HashSet<RequestItemUnitGroup>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RisId { get; set; }
         public string Fund { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
         public string Department { get; set; }
         public string Section { get; set; }
         public string PrNo { get; set; }
@@ -44,12 +44,12 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItem> RequestItems { get; set; }
-        public virtual RISs RISs { get; set; }
+        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Order> Orders { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItem> RequestItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
     }
 }

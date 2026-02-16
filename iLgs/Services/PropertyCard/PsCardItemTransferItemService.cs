@@ -39,7 +39,6 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransferItemService : IPsCardItemTransferItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
         private readonly IPsCardItemTransferItemOtherService _psCardItemTransferItemOtherService;
         private readonly IPsCardItemTransferItemVehicleService _psCardItemTransferItemVehicleService;
@@ -47,24 +46,35 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemTransferItemLandService _psCardItemTransferItemLandService;
         private readonly IPsCardSharedService _psCardSharedService;
 
-        public PsCardItemTransferItemService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService,
-            IPsCardItemTransferItemOtherService psCardItemTransferItemOtherService,
-            IPsCardItemTransferItemVehicleService psCardItemTransferItemVehicleService,
-            IPsCardItemTransferItemBldgService psCardItemTransferItemBldgService,
-            IPsCardItemTransferItemLandService psCardItemTransferItemLandService,
-            IPsCardSharedService psCardSharedService)
+        public PsCardItemTransferItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
-            _psCardItemTransferItemOtherService = psCardItemTransferItemOtherService;
-            _psCardItemTransferItemVehicleService = psCardItemTransferItemVehicleService;
-            _psCardItemTransferItemBldgService = psCardItemTransferItemBldgService;
-            _psCardItemTransferItemLandService = psCardItemTransferItemLandService;
-            _psCardSharedService = psCardSharedService;
+            _psCardItemTransferItemSharedService = new PsCardItemTransferItemSharedService(_db);
+            _psCardItemTransferItemOtherService = new PsCardItemTransferItemOtherService(_db);
+            _psCardItemTransferItemVehicleService = new PsCardItemTransferItemVehicleService(_db);
+            _psCardItemTransferItemBldgService = new PsCardItemTransferItemBldgService(_db);
+            _psCardItemTransferItemLandService = new PsCardItemTransferItemLandService(_db);
+            _psCardSharedService = new PsCardSharedService(_db);
         }
+
+        //public PsCardItemTransferItemService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService,
+        //    IPsCardItemTransferItemOtherService psCardItemTransferItemOtherService,
+        //    IPsCardItemTransferItemVehicleService psCardItemTransferItemVehicleService,
+        //    IPsCardItemTransferItemBldgService psCardItemTransferItemBldgService,
+        //    IPsCardItemTransferItemLandService psCardItemTransferItemLandService,
+        //    IPsCardSharedService psCardSharedService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+        //    _psCardItemTransferItemOtherService = psCardItemTransferItemOtherService;
+        //    _psCardItemTransferItemVehicleService = psCardItemTransferItemVehicleService;
+        //    _psCardItemTransferItemBldgService = psCardItemTransferItemBldgService;
+        //    _psCardItemTransferItemLandService = psCardItemTransferItemLandService;
+        //    _psCardSharedService = psCardSharedService;
+        //}
 
         public IPsCardItemTransferItemOtherService PsCardItemTransferItemOther => _psCardItemTransferItemOtherService;
         public IPsCardItemTransferItemVehicleService PsCardItemTransferItemVehicle => _psCardItemTransferItemVehicleService;
@@ -163,32 +173,26 @@ namespace iLgs.Services.PropertyCard
 
         public void ValidateIfTransit(Guid? psCardTransferId)
         {
-            _psCardItemTransferItemSharedService.ValidateIfTransit(psCardTransferId);            
+            _psCardItemTransferItemSharedService.ValidateIfTransit(psCardTransferId);
         }
 
         public async ValueTask DeleteAsync(Guid? id, string user, DateTime? date)
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var transferItemEntity = await ctx.PsCardItemTransferItems.FindAsync(id);
-                var psCardItemExtnId = transferItemEntity.PsCardItemExtnId;
+            var transferItemEntity = await _db.PsCardItemTransferItems.FindAsync(id);
+            var psCardItemExtnId = transferItemEntity.PsCardItemExtnId;
 
-                transferItemEntity.UpdatedBy = user;
-                transferItemEntity.UpdatedDt = date;
+            transferItemEntity.UpdatedBy = user;
+            transferItemEntity.UpdatedDt = date;
 
-                //_db.PsCardItemTransferItems.Attach(transferItemEntity);
-                //_db.Entry(transferItemEntity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCardItemTransferItems.Remove(transferItemEntity);
-                //_db.Entry(transferItemEntity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemTransferItems.Remove(transferItemEntity);
+            await _db.SaveChangesAsync();
         }
 
         public void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode)
         {
-            _psCardItemTransferItemSharedService.MapModelToEntityFields(entity, model, mode);            
+            _psCardItemTransferItemSharedService.MapModelToEntityFields(entity, model, mode);
         }
     }
 }

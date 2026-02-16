@@ -48,9 +48,9 @@ namespace iLgs.Controllers
         private readonly IAnnexDService _annexDService;
         private readonly string _stockId, _ppeId, _transpoId;
 
-        public CustodianReportController(AppManEntities db)
+        public CustodianReportController()
         {
-            _db = db;
+            _db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportItemService = new CustodianReportItemService(_db);
             _custodianReportItemStockService = new CustodianReportItemStockService(_db);
@@ -3435,7 +3435,7 @@ namespace iLgs.Controllers
                     sa4 = (await _itemCodeService.GetByCodeAsync(subAccount4)).Description;
                 }
 
-                string fileName = $"{locationCode}_{exportFileName}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_-{annex}_{DateTime.Now.ToShortDateString()}.xlsx";
+                string fileName = $"{locationCode}_{exportFileName}-{annex}_{mainAccount}_{sa1}_{sa2}_{sa3}_{sa4}_{DateTime.Now.ToShortDateString()}.xlsx";
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
 
                 //return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{locationCode}_{exportFileName}-{annex}_{DateTime.Now.ToShortDateString()}.xlsx");

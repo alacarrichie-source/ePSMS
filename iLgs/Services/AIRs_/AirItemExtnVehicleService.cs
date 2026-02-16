@@ -31,21 +31,28 @@ namespace iLgs.Services.AIRs_
     public class AirItemExtnVehicleService : BaseValidator, IAirItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
+        private readonly IAirAbstractService _airService;
         private readonly IExceptionService<AIRItemExtnVehicle> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IAirAbstractService _airService;
 
-        public AirItemExtnVehicleService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<AIRItemExtnVehicle> exceptionService, IAirAbstractService airService)
+        public AirItemExtnVehicleService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptionService = exceptionService;
-            _airService = airService;
+            _airService = new AirAbstractService(_db);
+            _exceptionService = new ExceptionService<AIRItemExtnVehicle>();
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIIRUP>(propertyName);
         }
+
+        //public AirItemExtnVehicleService(AppManEntities db, 
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<AIRItemExtnVehicle> exceptionService, IAirAbstractService airService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptionService = exceptionService;
+        //    _airService = airService;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIIRUP>(propertyName);
+        //}
 
         public IQueryable<AIRItemExtnVehicle> GetByAirItemId(Guid? airItemId)
         {
@@ -66,9 +73,9 @@ namespace iLgs.Services.AIRs_
                 throw new InvalidValueException("Incomplete item quantitny contents detected.");
             }
         }
-        
+
         public ValueTask<AIRItemExtnVehicle> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {            
+        {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -108,35 +115,26 @@ namespace iLgs.Services.AIRs_
                 SetLotQtyNo = model.SetLotQtyNo
             };
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.AIRItemExtns.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
 
         public ValueTask<AIRItemExtnVehicle> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {            
+        {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.AIRItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.AIRItemExtns.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.AIRItemExtns.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -146,38 +144,33 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                entity.ContentNo = model.ContentNo;
-                entity.CustItemNo = model.CustItemNo;
-                entity.IsAutoGen = model.IsAutoGen;
-                entity.SeriesNo = model.SeriesNo;
-                entity.YearModel = model.YearModel;
-                entity.PlateNo = model.PlateNo;
-                entity.BodyNo = model.BodyNo;
-                entity.EngineNo = model.EngineNo;
-                entity.ChasisNo = model.ChasisNo;
-                entity.Color = model.Color;
-                entity.CRN = model.CRN;
-                entity.CRDate = model.CRDate;
-                entity.MVFileNo = model.MVFileNo;
-                entity.OrNo = model.OrNo;
-                entity.OrDate = model.OrDate;
-                entity.NetWeight = model.NetWeight;
-                entity.InsPolicyNo = model.InsPolicyNo;
-                entity.SubLocation = model.SubLocation;
-                entity.ConductionNo = model.ConductionNo;
-                entity.SetLotNo = model.SetLotNo;
-                entity.SetLotQtyNo = model.SetLotQtyNo;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.ContentNo = model.ContentNo;
+            entity.CustItemNo = model.CustItemNo;
+            entity.IsAutoGen = model.IsAutoGen;
+            entity.SeriesNo = model.SeriesNo;
+            entity.YearModel = model.YearModel;
+            entity.PlateNo = model.PlateNo;
+            entity.BodyNo = model.BodyNo;
+            entity.EngineNo = model.EngineNo;
+            entity.ChasisNo = model.ChasisNo;
+            entity.Color = model.Color;
+            entity.CRN = model.CRN;
+            entity.CRDate = model.CRDate;
+            entity.MVFileNo = model.MVFileNo;
+            entity.OrNo = model.OrNo;
+            entity.OrDate = model.OrDate;
+            entity.NetWeight = model.NetWeight;
+            entity.InsPolicyNo = model.InsPolicyNo;
+            entity.SubLocation = model.SubLocation;
+            entity.ConductionNo = model.ConductionNo;
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotQtyNo = model.SetLotQtyNo;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.AIRItemExtns.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -205,7 +198,7 @@ namespace iLgs.Services.AIRs_
 
             return !(airItemExtnCount >= airItemQty);
         }
-        
+
         private void ValidateFields(AIRItemExtnVehicle model, Mode mode)
         {
             if (!model.YearModel.HasValue)
@@ -216,7 +209,7 @@ namespace iLgs.Services.AIRs_
             if (string.IsNullOrWhiteSpace(model.ConductionNo))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Field is required.");
-            }            
+            }
 
             _imex.ThrowIfContainsErrors();
         }

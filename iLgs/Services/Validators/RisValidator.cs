@@ -29,15 +29,23 @@ namespace iLgs.Services.Validators
         private readonly ICodextnService _codextnService;
         private readonly ILocationBudgetService _locationBudgetService;
 
-        public RisValidator(AppManEntities db,
-            ICodextnService codextnService,
-            ILocationBudgetService locationBudgetService)
+        public RisValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RIS_VM>(propertyName);
-            _codextnService = codextnService;
-            _locationBudgetService = locationBudgetService;
+            _codextnService = new CodextnService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
         }
+
+        //public RisValidator(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    ILocationBudgetService locationBudgetService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RIS_VM>(propertyName);
+        //    _codextnService = codextnService;
+        //    _locationBudgetService = locationBudgetService;
+        //}
 
         public void ValidateOnCreate(RIS_VM model)
         {
@@ -66,14 +74,14 @@ namespace iLgs.Services.Validators
                     throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Cannot update!", rec.RisNo));
                 }
 
-                var pr = _db.Requests.Where(a => a.RisId == model.Id).FirstOrDefault();
-                if (pr != null)
-                {
-                    if (!string.IsNullOrWhiteSpace(pr.SubmittedBy))
-                    {
-                        throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
-                    }
-                }                
+                //var pr = _db.Requests.Where(a => a.RisId == model.Id).FirstOrDefault();
+                //if (pr != null)
+                //{
+                //    if (!string.IsNullOrWhiteSpace(pr.SubmittedBy))
+                //    {
+                //        throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
+                //    }
+                //}                
             }
 
             if (_db.RISses.Any(a => a.RisNo == model.RisNo && a.Id != model.Id))
@@ -128,13 +136,33 @@ namespace iLgs.Services.Validators
             if (mode == Mode.ADD) {
                 if (model.RisDate.Value.Date > DateTime.Now.Date)
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Future Date is not allowed.");
+                    ex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "Future Date is not allowed.");
                 }
 
                 //if (model.RisDate.Value.Date < DateTime.Now.Date)
                 //{
                 //    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Past Date is not allowed.");
                 //}
+            }
+
+            if (!model.OrderId.HasValue)
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Field is required.");
+            }
+            else
+            {
+                var order = _db.Orders.Find(model.OrderId);
+                if (order == null)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Record not found.");
+                }
+                else
+                {
+                    if (model.RisDate < order.PoDate)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "Date must be on or after the PO Date.");
+                    }
+                }
             }
 
             if (model.OfficeId.HasValue)
@@ -246,14 +274,14 @@ namespace iLgs.Services.Validators
                 throw new RecordAlreadyPostedException(string.Format("RIS No {0} is not yet posted. Please verify!", rec.RisNo));
             }
             
-            var pr = _db.Requests.Where(a => a.RisId == risId).FirstOrDefault();
-            if (pr != null)
-            {
-                if (!string.IsNullOrWhiteSpace(pr.SubmittedBy))
-                {
-                    throw new RecordRelationshipException("This RIS No has a posted PR, cannot unpost!");
-                }
-            }
+            //var pr = _db.Requests.Where(a => a.RisId == risId).FirstOrDefault();
+            //if (pr != null)
+            //{
+            //    if (!string.IsNullOrWhiteSpace(pr.SubmittedBy))
+            //    {
+            //        throw new RecordRelationshipException("This RIS No has a posted PR, cannot unpost!");
+            //    }
+            //}
         }
 
         private void ValidateRecord(Guid id)

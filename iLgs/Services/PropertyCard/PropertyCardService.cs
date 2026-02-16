@@ -16,7 +16,7 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PropertyCardVM> GetByIdAsync(Guid id);
         ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
-        ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
+        ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date);
     }
 
     public class PropertyCardService : PsCardService, IPropertyCardService
@@ -25,28 +25,36 @@ namespace iLgs.Services.PropertyCard
         private readonly IPropertyCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
-                
-        public PropertyCardService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<PsCardVM> vmExceptionService,
-            IExceptionService<PsCard> exceptionService,
-            IAllFieldService allFieldService,
-            IPsCardItemService psCardItemService,
-            IPsCardSharedService psCardSharedService,
-            IExceptionService<PropertyCardVM> propCardVMexceptionService,
-            IPropertyCardValidator validator,
-            IItemCodeService itemCodeService,
-            IUserService userService) : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+
+        public PropertyCardService(AppManEntities db) : base(db)
         {
-            _propCardVMexceptionService = propCardVMexceptionService;
-            _validator = validator;
-            _itemCodeService = itemCodeService;
-            _userService = userService;
+            _propCardVMexceptionService = new ExceptionService<PropertyCardVM>();
+            _validator = new PropertyCardValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
         }
 
+        //public PropertyCardService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<PsCardVM> vmExceptionService,
+        //    IExceptionService<PsCard> exceptionService,
+        //    IAllFieldService allFieldService,
+        //    IPsCardItemService psCardItemService,
+        //    IPsCardSharedService psCardSharedService,
+        //    IExceptionService<PropertyCardVM> propCardVMexceptionService,
+        //    IPropertyCardValidator validator,
+        //    IItemCodeService itemCodeService,
+        //    IUserService userService) : base(db, appManEntitiesFactory, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
+        //{
+        //    _propCardVMexceptionService = propCardVMexceptionService;
+        //    _validator = validator;
+        //    _itemCodeService = itemCodeService;
+        //    _userService = userService;
+        //}
+
         public IQueryable<PropertyCardVM> GetAll() => _propCardVMexceptionService.TryCatch(() =>
-        {            
+        {
             var data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P'").AsQueryable();
             return data;
         });
@@ -80,29 +88,29 @@ namespace iLgs.Services.PropertyCard
                }).ToListAsync();
 
             var data = list.Select(s => new PropertyCardVM
-               {
-                   Id = s.Id,
-                   ItemCodeId = s.ItemCodeId,
-                   Item = s.Item,
-                   ItemNo = s.ItemNo,
-                   ItemCode = s.ItemCode,
-                   ItemType = s.ItemType,
-                   ItemTypeCode = s.ItemTypeCode,
-                   PartialPage = s.PartialPage,
-                   CardCategory = s.CardCategory,
-                   Description = s.Description,
-                   SubAccountCode = s.SubAccountCode,
-                   SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId), 
-                   Fund = s.Fund,
-                   Unit = s.Unit,
-                   PsNo = s.PsNo,
-                   PsName = s.PsName,
-                   PrevPsNo = s.PrevPsNo,
-                   FromDonation = s.FromDonation,
-                   Amount = s.Amount,
-                   AllField = s.AllField,
-                   InsertedDt = s.InsertedDt
-               }).FirstOrDefault();
+            {
+                Id = s.Id,
+                ItemCodeId = s.ItemCodeId,
+                Item = s.Item,
+                ItemNo = s.ItemNo,
+                ItemCode = s.ItemCode,
+                ItemType = s.ItemType,
+                ItemTypeCode = s.ItemTypeCode,
+                PartialPage = s.PartialPage,
+                CardCategory = s.CardCategory,
+                Description = s.Description,
+                SubAccountCode = s.SubAccountCode,
+                SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId),
+                Fund = s.Fund,
+                Unit = s.Unit,
+                PsNo = s.PsNo,
+                PsName = s.PsName,
+                PrevPsNo = s.PrevPsNo,
+                FromDonation = s.FromDonation,
+                Amount = s.Amount,
+                AllField = s.AllField,
+                InsertedDt = s.InsertedDt
+            }).FirstOrDefault();
 
             return data;
         });
@@ -147,50 +155,41 @@ namespace iLgs.Services.PropertyCard
             model.AllField.UpdatedDt = date;
             entity.AllField = model.AllField;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.PsCards.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCards.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
 
         public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
-        {            
+        {
             await _validator.ValidateOnUpdateAsync(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCards.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                ValidateUser(entity, model);
-                model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
+            ValidateUser(entity, model);
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
-                entity.ItemCodeId = model.ItemCodeId;
-                entity.SubAccountCode = model.SubAccountCode;
-                entity.Fund = model.Fund;
-                entity.Description = model.Description;
-                entity.Unit = model.Unit;
-                entity.CardCategory = model.CardCategory;
-                entity.PsNo = model.PsNo;
-                entity.PsName = model.PsName;
-                entity.PrevPsNo = model.PrevPsNo;
-                entity.FromDonation = model.FromDonation;
-                entity.Amount = model.Amount;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.ItemCodeId = model.ItemCodeId;
+            entity.SubAccountCode = model.SubAccountCode;
+            entity.Fund = model.Fund;
+            entity.Description = model.Description;
+            entity.Unit = model.Unit;
+            entity.CardCategory = model.CardCategory;
+            entity.PsNo = model.PsNo;
+            entity.PsName = model.PsName;
+            entity.PrevPsNo = model.PrevPsNo;
+            entity.FromDonation = model.FromDonation;
+            entity.Amount = model.Amount;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                entity.AllField = model.AllField;
+            entity.AllField = model.AllField;
 
-                //_db.PsCards.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -202,23 +201,17 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.PsCards.FindAsync(model.Id);
+            var entity = await _db.PsCards.FindAsync(model.Id);
 
-                ValidateUser(entity, model);
+            ValidateUser(entity, model);
 
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.PsCards.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.PsCards.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCards.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });

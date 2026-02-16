@@ -27,7 +27,7 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroup> _exceptionService;
         private readonly IOrderSharedService _orderSharedService;
-        private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
+        //private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
 
         private IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
 
@@ -38,7 +38,8 @@ namespace iLgs.Services.PurchaseOrder
             _vmExceptionService = new ExceptionService<OrderItemUnitGroupVM>();
             _exceptionService = new ExceptionService<OrderItemUnitGroup>();
             _orderSharedService = new OrderSharedService(_db);
-            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
+            //_orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
         }
 
         //public OrderItemUnitGroupService(AppManEntities db,
@@ -58,7 +59,7 @@ namespace iLgs.Services.PurchaseOrder
         //    _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
         //}
 
-        public IOrderItemUnitGroupDescriptionService UnitGroupDescription { get { return _unitGroupDescriptionService = _unitGroupDescriptionService ?? new OrderItemUnitGroupDescriptionService(_db); } }
+        public IOrderItemUnitGroupDescriptionService UnitGroupDescription => _unitGroupDescriptionService;
 
         public ValueTask<OrderItemUnitGroup> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
@@ -201,7 +202,7 @@ namespace iLgs.Services.PurchaseOrder
                 {
                     var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
                     var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
-                    await _orderItemUnitGroupDescriptionItemService.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
+                    await _unitGroupDescriptionService.UnitGroupDescriptionItem.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
                 }
             }
 

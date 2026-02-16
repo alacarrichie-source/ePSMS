@@ -170,6 +170,7 @@
                                 c.Add().Field("Desc3").Title("Main-Location").Width("40%").Template("#= columnTemplate(data.Desc3) #");
                                 c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
                             })
+                            .Enable(false)
                             .Events(e => e.Select("onSelectLocationId"))
                             .Suggest(true)
                     )
@@ -317,7 +318,7 @@
                     @Html.DisplayFor(m => m.AddCost, "LabelDecimal")
                 </div>
                 <div class="col-md-4">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.AddCost).Decimals(2).Enable(true).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @(Html.Kendo().NumericTextBoxFor(m => m.AddCost).Decimals(2).Enable(false).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("UpdateBalance"))
                     )
                     @Html.ValidationMessageFor(m => m.AddCost)
@@ -376,7 +377,7 @@
                     @Html.DisplayFor(m => m.OtherDesc, "Label")
                 </div>
                 <div class="col-md-4">
-                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OtherDesc)
                 </div>
             
@@ -384,7 +385,7 @@
                     @Html.DisplayFor(m => m.OtherQty, "LabelInt")
                 </div>
                 <div class="col-md-4">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.OtherQty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })                     
+                    @(Html.Kendo().NumericTextBoxFor(m => m.OtherQty).Decimals(0).Enable(false).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })                     
                     )
                     @Html.ValidationMessageFor(m => m.OtherQty)
                 </div>

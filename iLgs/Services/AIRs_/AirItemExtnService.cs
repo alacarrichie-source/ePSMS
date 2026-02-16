@@ -11,6 +11,7 @@ namespace iLgs.Services.AIRs_
     {
         IQueryable<T> GetAirItemExtnByItemId<T>(Guid? airItemId) where T : AIRItemExtn;
         IQueryable<T> GetAirItemExtnByOrderItemId<T>(Guid? orderItemId) where T : AIRItemExtn;
+
         IAirItemExtnVehicleService AirItemExtnVehicle { get; }
         IAirItemExtnOtherService AirItemExtnOther { get; }
     }
@@ -22,19 +23,31 @@ namespace iLgs.Services.AIRs_
         private readonly IAirItemAbstractService _airItemSharedService;
         private readonly IAirItemExtnAbstractService _airItemExtnSharedService;
 
-        public AirItemExtnService(AppManEntities db, IAirItemAbstractService airItemSharedService, IAirItemExtnAbstractService airItemExtnSharedService, IAirItemExtnVehicleService airItemExtnVehicleService,
-            IAirItemExtnOtherService airItemExtnOtherService, IItemCodeService itemCodeService)
+        private IAirItemExtnVehicleService _itemExtnVehicleService;
+        private IAirItemExtnOtherService _itemExtnOtherService;
+
+        public AirItemExtnService(AppManEntities db)
         {
             _db = db;
-            AirItemExtnVehicle = airItemExtnVehicleService;
-            AirItemExtnOther = airItemExtnOtherService;
-            _itemCodeService = itemCodeService;
-            _airItemSharedService = airItemSharedService;
-            _airItemExtnSharedService = airItemExtnSharedService;
+            _itemCodeService = new ItemCodeService(_db);
+            _airItemSharedService = new AirItemAbstractService(_db);
+            _airItemExtnSharedService = new AirItemExtnAbstractService(_db);
         }
 
-        public IAirItemExtnVehicleService AirItemExtnVehicle { get; }
-        public IAirItemExtnOtherService AirItemExtnOther { get; }
+        //public AirItemExtnService(AppManEntities db, IAirItemAbstractService airItemSharedService, IAirItemExtnAbstractService airItemExtnSharedService, IAirItemExtnVehicleService airItemExtnVehicleService,
+        //    IAirItemExtnOtherService airItemExtnOtherService, IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    AirItemExtnVehicle = airItemExtnVehicleService;
+        //    AirItemExtnOther = airItemExtnOtherService;
+        //    _itemCodeService = itemCodeService;
+        //    _airItemSharedService = airItemSharedService;
+        //    _airItemExtnSharedService = airItemExtnSharedService;
+        //}
+
+        
+        public IAirItemExtnVehicleService AirItemExtnVehicle { get { return _itemExtnVehicleService = _itemExtnVehicleService ?? new AirItemExtnVehicleService(_db); } }
+        public IAirItemExtnOtherService AirItemExtnOther { get { return _itemExtnOtherService = _itemExtnOtherService ?? new AirItemExtnOtherService(_db); } }
 
         public async Task CreateAirItemExtnAsync(AIRItem airItem, OrderItem orderItem, string user, DateTime date)
         {

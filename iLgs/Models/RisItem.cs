@@ -17,12 +17,12 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public RisItem()
         {
-            this.RequestItems = new HashSet<RequestItem>();
             this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public string SubAccountCode { get; set; }
         public string PsNo { get; set; }
@@ -41,11 +41,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual AllField AllField { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItem> RequestItems { get; set; }
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
     }
 }

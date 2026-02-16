@@ -8,7 +8,7 @@ using static iLgs.Models.Enums;
 namespace iLgs.Utilities
 {
     public static class AllFieldsUtil
-    {                
+    {
         public static CategoryGroup GetCategoryGroup(string itemTypeCode, string itemCode)
         {
             CategoryGroup retval = CategoryGroup.NONE;
@@ -18,7 +18,7 @@ namespace iLgs.Utilities
                 {
                     retval = CategoryGroup.LAND;
                 }
-                else if (                   
+                else if (
                     c == CatMedicalSupply()
                     || c == CatAgriculturalSupply()
                     || c == CatAnimalSupplies()
@@ -32,7 +32,7 @@ namespace iLgs.Utilities
                     retval = CategoryGroup.OTHERS; // with Multiples
                 }
                 else if (
-                    c == CatMachineriesProp()                    
+                    c == CatMachineriesProp()
                     || c == CatOtherProperties()
                     || c == CatTransportationProp()
                     || c == CatFurnituresProp())
@@ -180,6 +180,50 @@ namespace iLgs.Utilities
                 partialName = "_ItemFieldSerial";
             }
             return partialName;
+        }
+
+        public static AllField NewAllField(AllField model)
+        {
+            return new AllField()
+            {
+                Id = model.Id,
+                AcqMode = model.AcqMode,
+                InvDist = model.InvDist,
+                GenericName = model.GenericName,
+                DosageStrength = model.DosageStrength,
+                DosageForm = model.DosageForm,
+                DosageVolume = model.DosageVolume,
+                Others = model.Others,
+                Brand = model.Brand,
+                Multipliers = model.Multipliers,
+                Model_ = model.Model_,
+                Area = model.Area,
+                Barangay = model.Barangay,
+                DateSale = model.DateSale,
+                DateDonation = model.DateDonation,
+                DateAcquisition = model.DateAcquisition,
+                DateConstruction = model.DateConstruction,
+                AreaSoldDonated = model.AreaSoldDonated,
+                PricePerSqm = model.PricePerSqm,
+                AcqCost = model.AcqCost,
+                VendorDonor = model.VendorDonor,
+                Type = model.Type,
+                Dimension = model.Dimension,
+                Size = model.Size,
+                Weight = model.Weight,
+                Materials = model.Materials,
+                Capacity = model.Capacity,
+                Color = model.Color,
+                SerialNo = model.SerialNo,
+                PropNo = model.PropNo,
+                PlateNo = model.PlateNo,
+                BodyNo = model.BodyNo,
+                MVFileNo = model.MVFileNo,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt,
+            };
         }
     }
 }

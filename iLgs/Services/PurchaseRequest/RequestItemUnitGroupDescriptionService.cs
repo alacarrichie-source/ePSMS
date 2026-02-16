@@ -50,8 +50,9 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     Id = s.Id,
                     RequestItemUnitGroupId = s.RequestItemUnitGroupId,
-                    RisItemUnitGroupDescriptionId = s.RisItemUnitGroupDescriptionId,
-                    RisItemUnitGroupDescription = s.RisItemUnitGroupDescription,
+                    //RisItemUnitGroupDescriptionId = s.RisItemUnitGroupDescriptionId,
+                    Description = s.Description,
+                    OtherParticulars = s.OtherParticulars,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -70,7 +71,9 @@ namespace iLgs.Services.PurchaseRequest
             {
                 Id = model.Id,
                 RequestItemUnitGroupId = model.RequestItemUnitGroupId,
-                RisItemUnitGroupDescriptionId = model.RisItemUnitGroupDescriptionId,
+                //RisItemUnitGroupDescriptionId = model.RisItemUnitGroupDescriptionId,
+                Description = model.Description,
+                OtherParticulars = model.OtherParticulars,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -114,7 +117,9 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.RequestItemUnitGroupDescriptions.FindAsync(model.Id);
 
             entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
-            entity.RisItemUnitGroupDescriptionId = model.RisItemUnitGroupDescriptionId;
+            //entity.RisItemUnitGroupDescriptionId = model.RisItemUnitGroupDescriptionId;
+            entity.Description = model.Description;
+            entity.OtherParticulars = model.OtherParticulars;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

@@ -31,15 +31,14 @@ namespace iLgs.Controllers
         private readonly IItemCodeService _itemCodeService;
         private readonly IPoIssuanceService _poIssuanceService;
 
-        public ItemCardController(AppManEntities db, IIcsParService icsParService, IPsCardService psCardService, IAddCostUploadService addCostUploadService,
-            IItemCodeService itemCodeService, IPoIssuanceService poIssuanceService)
+        public ItemCardController()
         {
-            _db = db;
-            _icsParService = icsParService;
-            _psCardService = psCardService;
-            _uploadService = addCostUploadService;
-            _itemCodeService = itemCodeService;
-            _poIssuanceService = poIssuanceService;
+            _db = new AppManEntities();
+            _icsParService = new IcsParService(_db);
+            _psCardService = new PsCardService(_db);
+            _uploadService = new AddCostUploadService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _poIssuanceService = new PoIssuanceService(_db);
         }
 
         public ActionResult Supplies()

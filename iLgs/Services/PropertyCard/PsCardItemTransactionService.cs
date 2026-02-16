@@ -12,7 +12,7 @@ namespace iLgs.Services.PropertyCard
     public interface IPsCardItemTransactionService
     {
         IQueryable<PsCardItemTransaction> GetAllByPsCardItemExtnId(Guid? psCardItemExtnId);
-        Task<PsCardItemTransaction> GetByIdAsync(AppManEntities ctx, Guid? id);
+        Task<PsCardItemTransaction> GetByIdAsync(Guid? id);
         ValueTask<bool> IsSelectedIssuanceAsync(Guid? psCardItemExtnId, Guid? refId, string remarks);
         ValueTask<PsCardItemTransaction> LogUpdates(Guid? psCardItemExtnId, Guid? refId, string remarks, string user, DateTime date);
         ValueTask<PsCardItemTransaction> CreateAsync(PsCardItemTransaction model, string user, DateTime date);
@@ -23,20 +23,26 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransactionService : IPsCardItemTransactionService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<PsCardItemTransaction> _exceptionService;
 
-        public PsCardItemTransactionService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<PsCardItemTransaction> exceptionService)
+        public PsCardItemTransactionService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<PsCardItemTransaction>();
         }
+
+        //public PsCardItemTransactionService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<PsCardItemTransaction> exceptionService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _exceptionService = exceptionService;
+        //}
 
         public IQueryable<PsCardItemTransaction> GetAllByPsCardItemExtnId(Guid? psCardItemExtnId) =>
         _exceptionService.TryCatch(() =>
@@ -48,7 +54,8 @@ namespace iLgs.Services.PropertyCard
         public async ValueTask<bool> IsSelectedIssuanceAsync(Guid? psCardItemExtnId, Guid? refId, string remarks)
         {
             bool isSelected = false;
-            if (remarks == "CARD") {
+            if (remarks == "CARD")
+            {
                 isSelected = await _db.PsCardItemTransactions.AnyAsync(a => a.PsCardItemExtnId == psCardItemExtnId && a.PsCardItemId == refId);
             }
             else if (remarks == "TRANSIT")
@@ -66,9 +73,9 @@ namespace iLgs.Services.PropertyCard
             return isSelected;
         }
 
-        public Task<PsCardItemTransaction> GetByIdAsync(AppManEntities ctx, Guid? id)
+        public Task<PsCardItemTransaction> GetByIdAsync(Guid? id)
         {
-            return ctx.PsCardItemTransactions.Where(w => w.Id == id).FirstOrDefaultAsync();            
+            return _db.PsCardItemTransactions.Where(w => w.Id == id).FirstOrDefaultAsync();
         }
 
         public ValueTask<PsCardItemTransaction> LogUpdates(Guid? psCardItemExtnId, Guid? refId, string remarks, string user, DateTime date) =>
@@ -79,68 +86,63 @@ namespace iLgs.Services.PropertyCard
             Guid? psCardItemTransferId = null;
             Guid? psCardItemIssuanceId = null;
             Guid? icsParId = null;
-            using (var ctx = await _contextFactory.CreateContextAsync())
+
+            if (remarks == "CARD" || remarks == "TRANSIT")
             {
-                if (remarks == "CARD" || remarks == "TRANSIT")
-                {
-                    entity = await ctx.PsCardItemTransactions
-                        .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemId == refId)
-                        .SingleOrDefaultAsync();
-                    psCardItemId = refId;
-                }
-                else if (remarks == "ISSUANCE" || remarks == "TRANSFER")
-                {
-                    entity = await ctx.PsCardItemTransactions
-                        .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemIssuanceId == refId)
-                        .SingleOrDefaultAsync();
-                    psCardItemIssuanceId = refId;
-                }
-                else if (remarks == "PAR" || remarks == "ICS")
-                {
-                    entity = await ctx.PsCardItemTransactions
-                        .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.IcsParId == refId)
-                        .SingleOrDefaultAsync();
-                    icsParId = refId;
-                }
-                else
-                {
-                    throw new InvalidValueException($"Value for Remarks [{remarks}] is unknown");
-                }
-
-                if (entity == null)
-                {
-                    entity = new PsCardItemTransaction
-                    {
-                        Id = Guid.NewGuid(),
-                        PsCardItemExtnId = psCardItemExtnId,
-                        PsCardItemTransferId = psCardItemTransferId,
-                        PsCardItemId = psCardItemId,
-                        PsCardItemIssuanceId = psCardItemIssuanceId,
-                        IcsParId = icsParId,
-                        Remarks = remarks,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    ctx.PsCardItemTransactions.Add(entity);
-                }
-                else
-                {
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    //_db.PsCardItemTransactions.Attach(entity);
-                    //_db.Entry(entity).State = EntityState.Modified;
-                }
-
-                await ctx.SaveChangesAsync();
+                entity = await _db.PsCardItemTransactions
+                    .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemId == refId)
+                    .SingleOrDefaultAsync();
+                psCardItemId = refId;
             }
+            else if (remarks == "ISSUANCE" || remarks == "TRANSFER")
+            {
+                entity = await _db.PsCardItemTransactions
+                    .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemIssuanceId == refId)
+                    .SingleOrDefaultAsync();
+                psCardItemIssuanceId = refId;
+            }
+            else if (remarks == "PAR" || remarks == "ICS")
+            {
+                entity = await _db.PsCardItemTransactions
+                    .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.IcsParId == refId)
+                    .SingleOrDefaultAsync();
+                icsParId = refId;
+            }
+            else
+            {
+                throw new InvalidValueException($"Value for Remarks [{remarks}] is unknown");
+            }
+
+            if (entity == null)
+            {
+                entity = new PsCardItemTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    PsCardItemExtnId = psCardItemExtnId,
+                    PsCardItemTransferId = psCardItemTransferId,
+                    PsCardItemId = psCardItemId,
+                    PsCardItemIssuanceId = psCardItemIssuanceId,
+                    IcsParId = icsParId,
+                    Remarks = remarks,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                _db.PsCardItemTransactions.Add(entity);
+            }
+            else
+            {
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+            }
+
+            await _db.SaveChangesAsync();
 
             return entity;
         });
-        
+
         public ValueTask<PsCardItemTransaction> CreateAsync(PsCardItemTransaction model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
@@ -154,11 +156,8 @@ namespace iLgs.Services.PropertyCard
             var entity = new PsCardItemTransaction();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ctx.PsCardItemTransactions.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.PsCardItemTransactions.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -166,24 +165,19 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemTransaction> UpdateAsync(PsCardItemTransaction model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await GetByIdAsync(model.Id);
+
+            if (entity == null)
             {
-                var entity = await GetByIdAsync(ctx, model.Id);
-
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                MapModelToEntityFields(entity, model, Mode.EDIT);
-
-                //_db.PsCardItemTransactions.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new RecordNotFoundException(model.Id);
             }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -191,28 +185,22 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemTransaction> DeleteAsync(PsCardItemTransaction model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            PsCardItemTransaction entity = await _db.PsCardItemTransactions.FindAsync(model.Id);
+            if (entity == null)
             {
-                PsCardItemTransaction entity = await ctx.PsCardItemTransactions.FindAsync(model.Id);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.PsCardItemTransactions.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.PsCardItemTransactions.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                throw new RecordNotFoundException(model.Id);
             }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            _db.PsCardItemTransactions.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });

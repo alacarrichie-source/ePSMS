@@ -28,19 +28,29 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnBldgValidator _psCardItemExtnBldgValidator;
         private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
 
-        public PsCardItemTransferItemBldgService(AppManEntities db,
-            IExceptionService<PsCardItemExtnBldgVM> exceptionService,
-            IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
-            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
+        public PsCardItemTransferItemBldgService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnBldgVM>(propertyName);
-            _exceptionService = exceptionService;
-            _psCardItemTransactionService = psCardItemTransactionService;
-            _psCardItemExtnBldgValidator = psCardItemExtnBldgValidator;
-            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+            _exceptionService = new ExceptionService<PsCardItemExtnBldgVM>();
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnBldgValidator = new PsCardItemExtnBldgValidator(_db);
+            _psCardItemTransferItemSharedService = new PsCardItemTransferItemSharedService(_db);
         }
+
+        //public PsCardItemTransferItemBldgService(AppManEntities db,
+        //    IExceptionService<PsCardItemExtnBldgVM> exceptionService,
+        //    IPsCardItemTransactionService psCardItemTransactionService,
+        //    IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
+        //    IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
+        //{
+        //    _db = db;
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnBldgVM>(propertyName);
+        //    _exceptionService = exceptionService;
+        //    _psCardItemTransactionService = psCardItemTransactionService;
+        //    _psCardItemExtnBldgValidator = psCardItemExtnBldgValidator;
+        //    _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+        //}
 
         public List<PsCardItemExtnBldgVM> GetCardItemExtns(Guid? psCardTransferId)
         {

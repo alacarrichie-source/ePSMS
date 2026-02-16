@@ -58,20 +58,20 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     Id = s.Id,
                     RequestItemUnitGroupDescriptionId = s.RequestItemUnitGroupDescriptionId,
-                    RisItemUnitGroupDescriptionItemId = s.RisItemUnitGroupDescriptionItemId,
+                    //RisItemUnitGroupDescriptionItemId = s.RisItemUnitGroupDescriptionItemId,
                     RequestItemId = s.RequestItemId,
-                    Category = s.RequestItem.RisItem.ItemCode.ItemType.Category,
-                    PsNo = s.RisItemUnitGroupDescriptionItem.RisItem.PsNoDisplay,
-                    ItemName = s.RisItemUnitGroupDescriptionItem.RisItem.ItemName,
-                    Description = s.RisItemUnitGroupDescriptionItem.RisItem.Description,
-                    Unit = s.RisItemUnitGroupDescriptionItem.RisItem.Unit,
-                    QtyRequest = (int?)s.RisItemUnitGroupDescriptionItem.RisItem.QtyRequest,
+                    //Category = s.RequestItem.RisItem.ItemCode.ItemType.Category,
+                    //PsNo = s.RisItemUnitGroupDescriptionItem.RisItem.PsNoDisplay,
+                    //ItemName = s.RisItemUnitGroupDescriptionItem.RisItem.ItemName,
+                    Description = s.RequestItem.Description,
+                    Unit = s.RequestItem.Unit,
+                    QtyRequest = (int?)s.RequestItem.Qty,
                     PriceRate = s.RequestItem.PriceRate,
                     UnitCost = s.RequestItem.UnitCost,
                     TotalCost = s.RequestItem.TotalCost,
                     GroupUnitCost = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost,
                     GroupTotalCost = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost,
-                    GroupQty = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.RisItemUnitGroup.Qty,
+                    GroupQty = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.Qty,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -112,7 +112,7 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.RequestItemUnitGroupDescriptionItems.Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             entity.RequestItemUnitGroupDescriptionId = model.RequestItemUnitGroupDescriptionId;
-            entity.RisItemUnitGroupDescriptionItemId = model.RisItemUnitGroupDescriptionItemId;
+            //entity.RisItemUnitGroupDescriptionItemId = model.RisItemUnitGroupDescriptionItemId;
             entity.RequestItemId = model.RequestItemId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -131,13 +131,10 @@ namespace iLgs.Services.PurchaseRequest
         public async Task UpdateRequestItemAsync(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
             var reqItem = await _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefaultAsync();
-            var unitGroup = await _db.RequestItemUnitGroups.Include(i => i.RisItemUnitGroup).Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefaultAsync();
-            //var setUnitCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            //var setTotalCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost;
-            //var setQty = _db.RisItemUnitGroups.Where(w => w.Id == unitGroup.RisItemUnitGroupId).FirstOrDefault().Qty;                
+            var unitGroup = await _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefaultAsync();            
             var setUnitCost = unitGroup.UnitCost;
             var setTotalCost = unitGroup.TotalCost;
-            var setQty = unitGroup.RisItemUnitGroup.Qty;
+            var setQty = unitGroup.Qty;
 
             if (priceRate == 0)
             {
