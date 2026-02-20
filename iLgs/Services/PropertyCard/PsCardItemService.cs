@@ -539,18 +539,19 @@ namespace iLgs.Services.PropertyCard
                 else
                 {
                     var psCard = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(f => f.Id == model.PsCardId);
-                    if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
-                    {
-                        psCardItemEntity.IsConsumable = true;
-                    }
-                    else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
-                    {
-                        psCardItemEntity.IsConsumable = false;
-                    }
-                    else
-                    {
-                        psCardItemEntity.IsConsumable = null;
-                    }
+                    psCardItemEntity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);
+                    //if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
+                    //{
+                    //    psCardItemEntity.IsConsumable = true;
+                    //}
+                    //else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
+                    //{
+                    //    psCardItemEntity.IsConsumable = false;
+                    //}
+                    //else
+                    //{
+                    //    psCardItemEntity.IsConsumable = null;
+                    //}
                 }
 
                 entity.TransDate = model.TransDate;

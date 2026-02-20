@@ -24,7 +24,9 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
         public string ItemNo { get; set; }
+        public string ItemNoIndex { get; set; }
         public string Description { get; set; }
+        public string Remarks { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }

@@ -11,36 +11,50 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
 
-        [Required]
-        [Display(Name = "RIS No.")]        
-        public Nullable<System.Guid> RisId { get; set; }        
-        
+        //[Required]
+        //[Display(Name = "RIS No.")]        
+        //public Nullable<System.Guid> RisId { get; set; }        
+
+        [Display(Name = "Ctrl. No.")]
+        public string CtrlNo { get; set; }
+
         [Display(Name = "PR No.")]
         public string PrNo { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "PR Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> PrDate { get; set; }        
-        
+        public Nullable<System.DateTime> PrDate { get; set; }
 
+        [Required]
         [Display(Name = "Cash Availability")]
         public string Availability { get; set; }
 
+        [Required]
         [Display(Name = "Designation")]
         public string AvaialbilityDesig { get; set; }
 
+        [Required]
         [Display(Name = "Approved By")]
         public string ApprovedBy { get; set; }
 
+        [Required]
         [Display(Name = "Designation")]
         public string ApprovedDesig { get; set; }
 
-        [Display(Name = "Posted By")]
+        [Display(Name = "Submitted By")]
         public string SubmittedBy { get; set; }
 
-        [Display(Name = "Posted Date")]
+        [Display(Name = "Submitted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> SubmittedDt { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -52,22 +66,37 @@ namespace iLgs.Models
         // TRANSIENTS 
         // From RIS
 
+        //[Required]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[Display(Name = "RIS Date")]
+        //public Nullable<System.DateTime> RisDate { get; set; }
+
         [Required]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Display(Name = "RIS Date")]
-        public Nullable<System.DateTime> RisDate { get; set; }
         public string Fund { get; set; }
 
+        [Display(Name = "Specific")]
+        public string FundSpecific { get; set; }
+
+        [Required]
         [Display(Name = "Department")]
         public Nullable<System.Guid> DeptId { get; set; }
+
+        [Required]
+        [Display(Name = "Department Display")]
         public string Department { get; set; }
         public string Section { get; set; }
+
+        [Required]
         public string FPP { get; set; }
+
+        [Required]
         public string Purpose { get; set; }
 
+        [Required]
         [Display(Name = "Requested By")] // --> ApprovedBy From RIS
         public string RequestedBy { get; set; }
 
+        [Required]
         [Display(Name = "Designation")]
         public string RequestedDesig { get; set; }
 
@@ -82,22 +111,23 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
 
-        [Required]
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
-
-        [Required]
+        
+        //[Required]
         public string Description { get; set; }
+        public string Remarks { get; set; }
 
-        [Required]
+        //[Required]
         public Nullable<decimal> Qty { get; set; }
 
+        //[Required]
         public string Unit { get; set; }
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
-        [Display(Name = "Unit Cost")]
+        [Display(Name = "Total Cost")]
         public Nullable<decimal> TotalCost { get; set; }
 
         [Display(Name = "Price Rate")]
@@ -113,33 +143,12 @@ namespace iLgs.Models
         // Transients
 
         public string SetLotNo { get; set; }
+        public string ItemNoIndex { get; set; }
+
+        public int? Padding { get; set; }
 
         //public string GridRequestItemExtns { get; set; }
-    }
-
-    public class RequestItemExtnVM
-    {
-        public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RequestItemId { get; set; }
-        
-        [Display(Name = "Field No.")]
-        public string ItemNo { get; set; }
-
-        [Display(Name = "Field Name")]
-        public string ItemKey { get; set; }
-
-        [Display(Name = "Field Value")]
-        public string ItemValue { get; set; }
-
-        public int? Sequence { get; set; }
-
-        public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }
-        public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }      
-        
-        public bool IsEnabled { get; set; }
-    }
+    }    
 
     public class RequestItemUnitGroupVM
     {        

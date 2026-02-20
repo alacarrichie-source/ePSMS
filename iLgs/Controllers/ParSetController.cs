@@ -10,6 +10,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -413,16 +414,18 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> _GeneratePar(Guid? psCardItemId, string refType)
-        {            
+        {
+            var date = DateTime.Now;
+            var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
             var psCardItem = await _icsParService.ParService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,
                 Qty = psCardItem.ParBalance,
-                Date = DateTime.Now,
-                RefType = refType,
-                IcsPar = new IcsPar(),
-                IndSet = "I"
+                Date = date,
+                RefType = refType,                
+                IndSet = "I",
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued?.Description, IssuedByPosition = issued?.Desc2, IssuedDept = issued?.Desc3 }
             };
 
             model.IcsPar.RefDate = model.Date;
@@ -434,13 +437,15 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateParSet(Guid? unitGroupId, string refType)
         {
+            var date = DateTime.Now;
+            var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
             var model = new GenerateIcsParVM()
             {
                 UnitGroupId = unitGroupId,
-                Date = DateTime.Now,
-                RefType = refType,
-                IcsPar = new IcsPar(),
-                IndSet = "S"
+                Date = date,
+                RefType = refType,                
+                IndSet = "S",
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued?.Description, IssuedByPosition = issued?.Desc2, IssuedDept = issued?.Desc3 }
             };
 
             ViewData["unitGroupId"] = unitGroupId;

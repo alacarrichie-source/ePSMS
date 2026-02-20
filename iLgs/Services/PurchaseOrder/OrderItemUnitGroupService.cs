@@ -17,6 +17,8 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderItemUnitGroupVM> UpdateAsync(OrderItemUnitGroupVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupVM> DeleteAsync(OrderItemUnitGroupVM model, string user, DateTime date);
 
+        Task DistributeSetAmountAsync(Guid? orderId, string itemNo);
+
         IOrderItemUnitGroupDescriptionService UnitGroupDescription { get; }
     }
 
@@ -191,22 +193,31 @@ namespace iLgs.Services.PurchaseOrder
             entity.UpdatedDt = model.UpdatedDt;
 
             await _db.SaveChangesAsync();
-
-            var unitGroupDescriptions = entity.OrderItemUnitGroupDescriptions.ToList();
-            foreach (var unitGroupDescription in unitGroupDescriptions)
-            {
-                var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
-                    .Include(i => i.OrderItem)
-                    .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
-                foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
-                {
-                    var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
-                    var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
-                    await _unitGroupDescriptionService.UnitGroupDescriptionItem.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
-                }
-            }
+            await DistributeSetAmountAsync(model.OrderId, model.SetLotNo);            
 
             return model;
         });
+
+        public async Task DistributeSetAmountAsync(Guid? orderId, string itemNo)
+        {
+            var unitGroup = await _db.OrderItemUnitGroups.AsNoTracking()
+                .Include(i => i.OrderItemUnitGroupDescriptions).FirstOrDefaultAsync(f => f.OrderId == orderId && f.SetLotNo == itemNo);
+            if (unitGroup != null)
+            {
+                var unitGroupDescriptions = unitGroup.OrderItemUnitGroupDescriptions.ToList();
+                foreach (var unitGroupDescription in unitGroupDescriptions)
+                {
+                    var unitGroupDescriptionItems = await _db.OrderItemUnitGroupDescriptionItems
+                        .Include(i => i.OrderItem)
+                        .Where(w => w.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
+                    foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                    {
+                        var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
+                        var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
+                        await _unitGroupDescriptionService.UnitGroupDescriptionItem.UpdateOrderItemAsync(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, unitGroup.UpdatedBy, (DateTime)unitGroup.UpdatedDt);
+                    }
+                }
+            }
+        }
     }
 }

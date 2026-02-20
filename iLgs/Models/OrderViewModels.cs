@@ -15,7 +15,10 @@ namespace iLgs.Models
 
         public string Fund { get; set; }
 
-        //[Required]
+        //[Display(Name = "Specific")]
+        //public string FundSpecific { get; set; }
+
+        [Required]
         [Display(Name = "PR No.")]
         public string PrNo { get; set; }
 
@@ -24,16 +27,16 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? PrDate { get; set; }
 
-        [Required]
-        [Display(Name = "Department")]
-        public Nullable<System.Guid> DeptId { get; set; }
+        //[Required]
+        //[Display(Name = "Department")]
+        //public Nullable<System.Guid> DeptId { get; set; }
 
-        [Display(Name = "Department Display")]
+        [Display(Name = "Department")]
         public string Department { get; set; }
 
-        public string Section { get; set; }
+        //public string Section { get; set; }
 
-        public string FPP { get; set; }
+        //public string FPP { get; set; }
         //        
 
         [Display(Name = "Mode of Procurement")]
@@ -72,12 +75,13 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
+        [Required]
         [Display(Name = "PR No.")]
         public Nullable<System.Guid> PrId { get; set; }
 
         [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Required]
+        //[Required]
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "Mode of Procurement")]
@@ -160,9 +164,10 @@ namespace iLgs.Models
 
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
+        public string ItemNoIndex { get; set; }
 
         [Display(Name = "Article")]
-        [Required]
+        //[Required]
         public Nullable<System.Guid> ItemCodeId { get; set; }
 
         [Display(Name = "Stock/Property No.")] // Generic (Without Brand)        
@@ -238,6 +243,11 @@ namespace iLgs.Models
 
         [Display(Name = "Account")]
         public string PsTypeDesc { get; set; }
+
+        public int? Padding { get; set; }
+
+        public bool IsSetLot { get; set; } // Sw, to hold to determine the unit. If set/lot, only set/lot unit is allowed.
+        public string OriginalDescription { get; set; }
 
         //public Nullable<System.Guid> RisItemId { get; set; }
     }
@@ -477,6 +487,10 @@ namespace iLgs.Models
 
         [Display(Name = "Qty of Sets/Lots")]
         public Nullable<int> GroupQty { get; set; }
+
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
+        public string ItemNoIndex { get; set; }
 
         public string GridItems { get; set; }
     }

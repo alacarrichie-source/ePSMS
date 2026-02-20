@@ -116,14 +116,16 @@ namespace iLgs.Services.PurchaseOrder
             {
                 Id = s.Id,
                 CtrlNo = s.CtrlNo,
-                Fund = s.Fund,
-                FPP = s.FPP,
                 PrId = s.PrId,
-                PrNo = s.PrNo,
-                PrDate = s.PrDate,
-                DeptId = s.DeptId,
-                Department = s.Department,
-                Section = s.Section,
+                PrNo = s.Request.PrNo,
+                PrDate = s.Request.PrDate,
+                Department = s.Request.Department,
+                Fund = s.Request.Fund,
+
+                //FundSpecific = s.Request.FundSpecific,
+                //FPP = s.Request.FPP,                                
+                //DeptId = s.Request.DeptId,
+                //Section = s.Request.Section,
                 PoNo = s.PoNo,
                 PoDate = s.PoDate,
                 PoMode = s.PoMode,
@@ -173,7 +175,7 @@ namespace iLgs.Services.PurchaseOrder
             else
             {
                 data = _db.Orders.AsNoTracking()
-                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
                     .Select(Projection(_db)).OrderByDescending(o => o.PoNo);
             }
             return data;
@@ -197,7 +199,7 @@ namespace iLgs.Services.PurchaseOrder
                     SupContactNo = s.SupContactNo,
                     SupEmail = s.SupEmail,
                     SupZipCode = s.SupZipCode,
-                    Department = s.Department
+                    Department = s.Request.Department
                 })
                 .AsQueryable();
             return data;
@@ -270,10 +272,10 @@ namespace iLgs.Services.PurchaseOrder
 
             model.Id = Guid.NewGuid();
 
-            if (string.IsNullOrWhiteSpace(model.PoNo))
-            {
-                model.PoNo = NextPoNo((DateTime)model.PoDate);
-            }
+            //if (string.IsNullOrWhiteSpace(model.PoNo))
+            //{
+            //    model.PoNo = NextPoNo((DateTime)model.PoDate);
+            //}
 
             model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
@@ -283,6 +285,106 @@ namespace iLgs.Services.PurchaseOrder
 
             var entity = new Order();
             MapModelToEntityFields(entity, model, Mode.ADD);
+
+            // include avaiable items during add
+            var requestItems = await _db.RequestItems                
+                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any(a => a.RequestItemId == w.Id)).AsNoTracking().OrderBy(o => o.ItemNoIndex).ToListAsync();
+            foreach (var requestItem in requestItems)
+            {
+                var orderItemId = Guid.NewGuid();
+                var orderItem = new OrderItem()
+                {                    
+                    Id = orderItemId,
+                    OrderId = entity.Id,
+                    ItemNo = requestItem.ItemNo,
+                    ItemNoIndex = requestItem.ItemNoIndex,
+                    RequestItemId = requestItem.Id,                    
+                    Description = requestItem.Description,                    
+                    Unit = requestItem.Unit,                    
+                    Qty = requestItem.Qty,
+                    UnitCost = requestItem.UnitCost,
+                    Amount = requestItem.TotalCost,
+                    PriceRate = null,                    
+                    PpmpCode = requestItem.PpmpCode,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date,
+                    AllField = new AllField() { Id = orderItemId }                    
+                    //ItemCodeId,
+                    //PsNo,
+                    //PsNoDisplay,
+                    //ItemName,
+                    //Brand,
+                    //EstimatedLife,
+                    //OtherDesc,
+                    //AddCost,
+                    //TUnitCost,
+                    //GTotalCost,
+
+                    //AirId = entity.Id,
+                    //OrderItemId = requestItem.Id,
+                    //Qty = requestItem.Qty,
+                    //InvDist = invDist,
+                    //InsertedBy = user,
+                    //InsertedDt = insertedDt,
+                    //UpdatedBy = user,
+                    //UpdatedDt = insertedDt
+                };
+
+                entity.OrderItems.Add(orderItem);                
+            }
+
+            var setItems = requestItems.Where(w => w.Unit == "set" || w.Unit == "lot").ToList();
+            foreach(var setItem in setItems)
+            {
+                var unitGroupId = Guid.NewGuid();
+                var unitGroup = new OrderItemUnitGroup()
+                {
+                    Id = unitGroupId,
+                    OrderId = entity.Id,
+                    SetLotNo = setItem.ItemNo,
+                    Qty = (int?)setItem.Qty,
+                    Unit = setItem.Unit,
+                    UnitCost = setItem.UnitCost,
+                    TotalCost = setItem.TotalCost,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+                var unitGroupDescriptionId = Guid.NewGuid();
+                var unitGroupDescription = new OrderItemUnitGroupDescription()
+                {
+                    Id = unitGroupDescriptionId,
+                    OrderItemUnitGroupId = unitGroupId,
+                    Description = setItem.Description,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                var setItemContents = requestItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
+                    && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).ToList();
+                foreach(var setItemContent in setItemContents)
+                {
+                    var orderItemId = entity.OrderItems.First(f => f.RequestItemId == setItemContent.Id).Id;
+                    var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
+                        OrderItemId = orderItemId,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
+                }
+                unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
+                entity.OrderItemUnitGroups.Add(unitGroup);
+            }            
 
             _db.Orders.Add(entity);
             await _db.SaveChangesAsync();            
@@ -319,35 +421,36 @@ namespace iLgs.Services.PurchaseOrder
                 entity.InsertedDt = model.InsertedDt;
             }
 
-            entity.DeptId = model.DeptId;
-            entity.Department = model.Department;
-            entity.Section = model.Section;
-            entity.FPP = model.FPP;
-            entity.Fund = model.Fund;
-            entity.PrNo = model.PrNo;
-            entity.PrDate = model.PrDate;
+            //entity.DeptId = model.DeptId;
+            //entity.Department = model.Department?.Trim();
+            //entity.Section = model.Section?.Trim();
+            //entity.FPP = model.FPP?.Trim();
+            //entity.Fund = model.Fund?.Trim().ToUpper();
+            //entity.FundSpecific = model.FundSpecific;
+            //entity.PrNo = model.PrNo;
+            //entity.PrDate = model.PrDate;
             entity.SupplierId = model.SupplierId;
-            entity.SupName = model.SupName;
-            entity.SupBusiness = model.SupBusiness;
-            entity.SupAddress = model.SupAddress;
-            entity.SupContactNo = model.SupContactNo;
-            entity.SupZipCode = model.SupZipCode;
-            entity.SupEmail = model.SupEmail;
-            entity.SupTIN = model.SupTIN;
+            entity.SupName = model.SupName?.Trim();
+            entity.SupBusiness = model.SupBusiness?.Trim();
+            entity.SupAddress = model.SupAddress?.Trim();
+            entity.SupContactNo = model.SupContactNo?.Trim();
+            entity.SupZipCode = model.SupZipCode?.Trim();
+            entity.SupEmail = model.SupEmail?.Trim();
+            entity.SupTIN = model.SupTIN?.Trim();
             entity.PoNo = model.PoNo;
             entity.PoDate = model.PoDate;
             entity.PoMode = model.PoMode;
             entity.PrId = model.PrId;
-            entity.DeliveryPlace = model.DeliveryPlace;
+            entity.DeliveryPlace = model.DeliveryPlace?.Trim();
             entity.DeliveryDate = model.DeliveryDate;
-            entity.TermDelivery = model.TermDelivery;
+            entity.TermDelivery = model.TermDelivery?.Trim();
             entity.TermPayment = model.TermPayment;
-            entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
-            entity.SignedByAuthName = model.SignedByAuthName;
+            entity.SignedByAuthDesignation = model.SignedByAuthDesignation?.Trim();
+            entity.SignedByAuthName = model.SignedByAuthName?.Trim();
             entity.SignedBySuppDate = model.SignedBySuppDate;
-            entity.SignedBySuppName = model.SignedBySuppName;
-            entity.ResoNo = model.ResoNo;
-            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+            entity.SignedBySuppName = model.SignedBySuppName?.Trim();
+            entity.ResoNo = model.ResoNo?.Trim();
+            entity.CertifiedCorrectBy = model.CertifiedCorrectBy?.Trim();
             entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -441,7 +544,6 @@ namespace iLgs.Services.PurchaseOrder
             }
         }
 
-
         private string NextCtrlNo(DateTime date)
         {
             string yyyy = date.Year.ToString().Trim();
@@ -460,7 +562,7 @@ namespace iLgs.Services.PurchaseOrder
             }
             else
             {
-                var sequence = (int.Parse(order.PoNo.Split('-')[2]) + 1).ToString();
+                var sequence = (int.Parse(order.CtrlNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
@@ -503,47 +605,68 @@ namespace iLgs.Services.PurchaseOrder
                 }
                 else
                 {
-                    var refNoParts = model.PoNo.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                    if (!model.PrId.HasValue)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrId)), "Required for PO numbering.");
                     }
-                    //else
-                    //{
-                    //    var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
-                    //    if (!string.IsNullOrWhiteSpace(maxNo))
-                    //    {
-                    //        var refNoSeq = int.Parse(refNoParts[2]);
-                    //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                    //        if (refNoSeq <= maxSeq)
-                    //        {
-                    //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
-                    //        }
-                    //    }
-                    //}
 
-                    if (mode == Mode.ADD)
+                    if (!model.PoDate.HasValue)
                     {
-                        if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
-                        {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already Exits.");
-                        }
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Field is required.");
                     }
                     else
                     {
-                        if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo && a.Id != model.Id))
+                        var refNoParts = model.PoNo.Split('-');
+                        var refNoYear = int.Parse(refNoParts[0]);
+                        var refNoMonth = int.Parse(refNoParts[1]);
+                        if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
                         {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already Exits.");
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series year and month must match the PO date’s year and month.");
                         }
-                    }                    
+
+                        //else
+                        //{
+                        //    var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
+                        //    if (!string.IsNullOrWhiteSpace(maxNo))
+                        //    {
+                        //        var refNoSeq = int.Parse(refNoParts[2]);
+                        //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                        //        if (refNoSeq <= maxSeq)
+                        //        {
+                        //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
+                        //        }
+                        //    }
+                        //}
+
+                        if (mode == Mode.ADD)
+                        {
+                            if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exits.");
+                            }
+                        }
+                        else
+                        {
+                            if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo && a.Id != model.Id))
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exits.");
+                            }
+                        }
+                    }
                 }
             }
 
-            if (model.PoDate.HasValue && model.PrDate.HasValue && model.PrDate > model.PoDate)
+            if (model.PoDate.HasValue && model.PrDate.HasValue)
             {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"PO Date must be greater than or equal to PR date!");                
+                if (model.PoDate.Value.Date > DateTime.Now.Date)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Futre date is not allowed.");
+                }
+
+                if (model.PrDate > model.PoDate)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "PO date must be on or after the PR date.");
+                }
             }
 
             _imex.ThrowIfContainsErrors();
@@ -556,20 +679,15 @@ namespace iLgs.Services.PurchaseOrder
 
         private async Task ValidateOnPostAsync(Order entity)
         {
+            if (string.IsNullOrEmpty(entity.PoNo))
+            {
+                throw new InvalidValueException("PO Number is required.");
+            }
+
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
                 var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}. Please Verify.";
                 throw new RecordAlreadyPostedException(msg);
-            }
-
-            if (string.IsNullOrWhiteSpace(entity.PrNo))
-            {
-                throw new InvalidValueException("PR Number is required.");
-            }
-
-            if (!entity.PrDate.HasValue)
-            {
-                throw new InvalidValueException("PR Date is required.");
             }
             
             if (!(await _db.OrderItems.AnyAsync(a => a.OrderId == entity.Id)))
@@ -604,7 +722,7 @@ namespace iLgs.Services.PurchaseOrder
                 var rate = unitGroupItems.Sum(s => s.OrderItem.PriceRate) ?? 0;
                 if (rate != 100)
                 {
-                    throw new InvalidValueException("Price rate must be 100%");
+                    throw new InvalidValueException("Total price rate of Set/Lot items must be 100%");
                 }
             }
 
@@ -615,12 +733,17 @@ namespace iLgs.Services.PurchaseOrder
                 .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
             {                
+                if (!orderItem.ItemCodeId.HasValue)
+                {
+                    throw new InvalidValueException("Item code is not configured properly.");
+                }
+
                 if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
                 {
                     var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
                     if (allfield == null)
                     {
-                        throw new RecordRelationshipException("Required fields are missing. Please recreate this Order.");
+                        throw new RecordRelationshipException("Required fields are missing. Please recreate the order.");
                     }
                     {
                         if (string.IsNullOrWhiteSpace(allfield.Brand))
@@ -650,14 +773,14 @@ namespace iLgs.Services.PurchaseOrder
                     {
                         if (unitCost < _priceCap)
                         {
-                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
+                            throw new InvalidValueException($"Please use the Supplies Code for items with a group unit cost below {_priceCap:n0}.”");
                         }
                     }
                     else
                     {
                         if (unitCost >= _priceCap)
                         {
-                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
+                            throw new InvalidValueException($"Please use the Property Ccode for items with a group unit cost of {_priceCap:n0} and above.");
                         }
                     }
                 }
@@ -668,14 +791,14 @@ namespace iLgs.Services.PurchaseOrder
                     {
                         if (unitCost < _priceCap)
                         {
-                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
+                            throw new InvalidValueException($"Please use the Supplies Code for items with a unit cost below {_priceCap:n0}.");
                         }
                     }
                     else
                     {
                         if (unitCost >= _priceCap)
                         {
-                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
+                            throw new InvalidValueException($"Please use the Property Code for items with a unit cost of {_priceCap:n0} and above.");
                         }
                     }
                 }
@@ -691,14 +814,19 @@ namespace iLgs.Services.PurchaseOrder
         {
             if (string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.PoNo));
+                throw new RecordNotYetPostedException(string.Format("PO Number {0} is not yet posted.", entity.PoNo));
             }
 
             var airs = await _db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
-
             foreach (var air in airs)
             {
                 throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
+            }
+
+            var riss = await _db.RISses.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+            foreach (var ris in riss)
+            {
+                throw new RecordRelationshipException(string.Format("RIS Number {0} of this PO is already posted.", ris.RisNo));
             }
         }
 

@@ -21,6 +21,7 @@ namespace iLgs.Services.PurchaseRequest
         Task<bool> IsPostedAsync(Guid prId);
         Task<bool> GetAnyOrderAsync(Guid id);
         //Task<bool> GetAnyParsAsync(Guid id);
+        Task<bool> IsSubmittedAsync(Guid prId);
         Task ValidateStatusAsync(Guid prId);
     }
 
@@ -36,7 +37,7 @@ namespace iLgs.Services.PurchaseRequest
         public bool IsPosted(Guid prId)
         {
             var entity = _db.Requests.Find(prId);
-            return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 
         public bool IsPosted(Request request)
@@ -75,12 +76,28 @@ namespace iLgs.Services.PurchaseRequest
                 .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
             return IsPosted(prId);
         }
-
+        
         public async Task<bool> IsPostedAsync(Guid prId)
         {
-            var entity = await _db.Requests.FindAsync(prId);
-            return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
+            var result = await _db.Requests
+                .Where(r => r.Id == prId)
+                .Select(r => r.PostedBy)
+                .FirstOrDefaultAsync();
+
+            return !string.IsNullOrWhiteSpace(result);
         }
+
+
+        public async Task<bool> IsSubmittedAsync(Guid prId)
+        {
+            var result = await _db.Requests
+                .Where(r => r.Id == prId)
+                .Select(r => r.SubmittedBy)
+                .FirstOrDefaultAsync();
+
+            return !string.IsNullOrWhiteSpace(result);
+        }
+
 
         public async Task ValidateStatusAsync(Guid prId)
         {

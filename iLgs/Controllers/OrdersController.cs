@@ -205,7 +205,29 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId, string setLotNo)
+        public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId, bool isSetLot)
+        {
+            var data = await _orderService.OrderItem.GetByIdAsync(orderItemId);
+            if (data == null)
+            {
+                data = new OrderItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    Mode = "A",
+                    IsSetLot = isSetLot
+                };
+            }            
+            else
+            {
+                data.Mode = "E";
+            }
+            ViewData["orderItemId"] = orderItemId;
+            ViewData["isSetLot"] = isSetLot;
+            return PartialView(data);
+        }
+
+        public async Task<ActionResult> _OrderItemAddEditSet(Guid orderId, Guid? orderItemId, string setLotNo)
         {
             var data = await _orderService.OrderItem.GetByIdAsync(orderItemId);
             if (data == null)
@@ -216,7 +238,7 @@ namespace iLgs.Controllers
                     OrderId = orderId,
                     Mode = "A"
                 };
-            }            
+            }
             else
             {
                 data.Mode = "E";
@@ -306,6 +328,95 @@ namespace iLgs.Controllers
                            }).ToList() // List of messages for the current field
                        })
                        .ToList();            
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _OrderItemSaveSet(OrderItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+
+                var entity = await _orderService.OrderItem.GetByIdAsync(model.Id);
+                if (entity == null)
+                {
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    if (entity == null)
+                    {
+                        model = await _orderService.OrderItem.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _orderService.OrderItem.UpdateAsync(model, user, date);
+                    }
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
 
             if (errorList.Any())
             {
@@ -938,9 +1049,9 @@ namespace iLgs.Controllers
         public async Task<JsonResult> GetDescription(OrderItemVM fields)
         {
             var stockNo = await _allFieldService.GetOrderStockNoAsync(fields);
-            var description = await _allFieldService.GetDescriptionAsync(fields.AllField, fields.ItemCodeId);
+            //var description = await _allFieldService.GetDescriptionAsync(fields.AllField, fields.ItemCodeId);
 
-            return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
+            return Json(new { Description = "", StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -1089,7 +1200,7 @@ namespace iLgs.Controllers
         #endregion
 
         #region PRINTOUTS
-        public ActionResult PurchaseOrderRpt(string poNo)
+        public ActionResult PurchaseOrderRpt(string ctrlNo)
         {
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
@@ -1119,7 +1230,7 @@ namespace iLgs.Controllers
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("LGU", lgu);
-            rpt.SetParameterValue("@cPoNo", poNo);
+            rpt.SetParameterValue("@cCtrlNo", ctrlNo);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();

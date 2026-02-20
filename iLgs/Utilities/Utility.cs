@@ -177,5 +177,10 @@ namespace iLgs.Utilities
         {
             return Utility.ToProperCase(model).Replace(" ", "");
         }
+
+        public static string GetItemNoIndex(string itemNo)
+        {
+            return string.Join(".", itemNo.Split('.').Select(x => int.TryParse(x, out var n) ? n.ToString("D3") : "000"));
+        }
     }
 }

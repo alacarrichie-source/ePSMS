@@ -28,6 +28,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
         public string ItemNo { get; set; }
+        public string ItemNoIndex { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public string PsNo { get; set; }
         public string PsNoDisplay { get; set; }
@@ -53,7 +54,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual AllField AllField { get; set; }
-        public virtual Order Order { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
         public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
@@ -63,6 +64,6 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItem> RisItems { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
+        public virtual Order Order { get; set; }
     }
 }

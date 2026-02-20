@@ -34,7 +34,7 @@ namespace iLgs.Controllers
         private readonly IOrderService _orderService;        
         private readonly IAirUploadService _uploadService;        
 
-        public AIRsController(AppManEntities db)
+        public AIRsController()
         {
             _db = new AppManEntities();
             _airService = new AirService(_db);

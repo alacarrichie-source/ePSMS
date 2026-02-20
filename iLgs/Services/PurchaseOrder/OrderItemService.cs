@@ -21,7 +21,7 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderItemVM> GetByIdAsync(Guid? id);
         ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);
-        ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);
+        ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);        
     }
 
     internal class OrderItemService : BaseValidator, IOrderItemService
@@ -81,6 +81,7 @@ namespace iLgs.Services.PurchaseOrder
                 OrderId = s.OrderId,
                 RequestItemId = s.RequestItemId,
                 ItemNo = s.ItemNo,
+                ItemNoIndex = s.ItemNoIndex,
                 ItemCodeId = s.ItemCodeId,
                 PsNo = s.PsNo,
                 PsNoDisplay = s.PsNoDisplay,
@@ -105,7 +106,10 @@ namespace iLgs.Services.PurchaseOrder
                 PriceRate = s.PriceRate,
                 InsertedDt = s.InsertedDt,
                 SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
-                PpmpCode = s.PpmpCode
+                PpmpCode = s.PpmpCode,
+                Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20,
+                IsSetLot = s.Unit == "set" || s.Unit == "lot" ? true : false,
+                OriginalDescription = s.Description
             };
         }
 
@@ -137,17 +141,55 @@ namespace iLgs.Services.PurchaseOrder
         {
             _imex = new InvalidModelException();
 
-            if (!(await _db.ItemCodes.AnyAsync(a => a.Id == model.ItemCodeId)))
+            if (model.IsSetLot)
             {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.ItemCodeId)), "Invalid Value.");
+                if (!string.IsNullOrWhiteSpace(model.ItemNo))
+                {
+                    if (!int.TryParse(model.ItemNo, out var num) || num < 1)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Decimal places are not allowed for Set/Lot.");
+                    }
+                }                                
+            }
+            else
+            {
+                if (model.ItemCodeId.HasValue)
+                {
+                    if (!(await _db.ItemCodes.AnyAsync(a => a.Id == model.ItemCodeId)))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.ItemCodeId)), "Invalid Value.");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.ItemNo))
+                {
+                    var regex = new Regex(@"^(0|[1-9]\d*)(\.(0|[1-9]\d*))*$");
+                    if (!regex.IsMatch(model.ItemNo))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Invalid Value.");
+                    }
+                }                
             }
 
-            if (!string.IsNullOrWhiteSpace(model.ItemNo))
+            if (string.IsNullOrWhiteSpace(model.Unit))
             {
-                var regex = new Regex(@"^(0|[1-9]\d*)(\.(0|[1-9]\d*))*$");
-                if (!regex.IsMatch(model.ItemNo))
+                _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
+            }
+            else 
+            {
+                if (model.IsSetLot)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Invalid Value.");
+                    if (!(await _db.Codextns.Where(w => w.CodeMast.Code == "UNIT-GROUP").AnyAsync()))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid Value.");
+                    }
+                }
+                else
+                {
+                    if (!(await _db.Codextns.Where(w => w.CodeMast.Code == "UNIT").AnyAsync()))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid Value.");
+                    }
                 }
             }
 
@@ -179,7 +221,14 @@ namespace iLgs.Services.PurchaseOrder
 
             if (string.IsNullOrWhiteSpace(model.ItemNo))
             {
-                model.ItemNo = await NextItemNoAsync(model.OrderId);
+                if (model.IsSetLot)
+                {
+                    model.ItemNo = await NextSetItemNoAsync(model.OrderId);
+                }
+                else
+                {
+                    model.ItemNo = await NextItemNoAsync(model.OrderId);
+                }
             }
             
             if (await _db.OrderItems.AnyAsync(a => a.OrderId == model.OrderId && a.ItemNo == model.ItemNo))
@@ -193,87 +242,100 @@ namespace iLgs.Services.PurchaseOrder
 
             SetItemEntity(entity, model, Mode.ADD);
 
-            _db.OrderItems.Add(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
-        });
-
-        private void SetItemEntity(OrderItem entity, OrderItemVM model, Mode mode)
-        {
-            if (mode == Mode.ADD)
+            if (model.IsSetLot)
             {
-                model.Id = Guid.NewGuid();
-                model.AllField.Id = model.Id;
-                model.AllField.InsertedBy = model.InsertedBy;
-                model.AllField.InsertedDt = model.InsertedDt;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-                //model.PsNo = "";
+                var unitGroupId = Guid.NewGuid();
+                var unitGroup = new OrderItemUnitGroup()
+                {
+                    Id = unitGroupId,
+                    OrderId = model.OrderId,
+                    SetLotNo = model.ItemNo,
+                    Qty = (int?)model.Qty,
+                    Unit = model.Unit,
+                    UnitCost = model.UnitCost,
+                    TotalCost = model.Amount,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+                var unitGroupDescriptionId = Guid.NewGuid();
+                var unitGroupDescription = new OrderItemUnitGroupDescription()
+                {
+                    Id = unitGroupDescriptionId,
+                    OrderItemUnitGroupId = unitGroupId,
+                    Description = model.Description,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                //var setItemContents = requestItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
+                //    && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).ToList();
+                //foreach (var setItemContent in setItemContents)
+                //{
+                //    var orderItemId = entity.OrderItems.First(f => f.RequestItemId == setItemContent.Id).Id;
+                //    var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
+                //        OrderItemId = orderItemId,
+                //        InsertedBy = user,
+                //        InsertedDt = date,
+                //        UpdatedBy = user,
+                //        UpdatedDt = date
+                //    };
+                //    unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
+                //}
+                //unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
+
+                var order = await _db.Orders.FindAsync(model.OrderId);
+                order.OrderItems.Add(entity);
+                order.OrderItemUnitGroups.Add(unitGroup);
             }
-
-            model.PsNoDisplay = _allFieldService.GetOrderPsNoDisplay(model);
-
-            entity.Id = model.Id;
-            entity.ItemNo = model.ItemNo;
-            entity.OrderId = model.OrderId;
-            entity.RequestItemId = model.RequestItemId;
-            entity.ItemCodeId = model.ItemCodeId;
-            entity.PsNo = model.PsNo;
-            entity.PsNoDisplay = model.PsNoDisplay;
-            entity.ItemName = model.ItemName;
-            entity.Unit = model.Unit;
-            entity.Description = model.Description;
-            entity.OtherDesc = model.OtherDesc;
-            entity.Unit = model.Unit;
-            entity.Qty = model.Qty;
-            entity.UnitCost = model.UnitCost;
-            entity.Amount = model.Amount;
-            entity.PriceRate = model.PriceRate;
-            entity.PpmpCode = model.PpmpCode;
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            model.AllField.UpdatedBy = model.UpdatedBy;
-            model.AllField.UpdatedDt = model.UpdatedDt;
-
-            entity.AllField = model.AllField;
-
-            _allFieldService.SetEntity(entity.AllField, model.AllField, mode);
-        }
-
-        public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-        {
-            ValidateIfNull(model);
-            await ValidateFieldsAsync(model);
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-            
-            var entity = await _db.OrderItems.FirstOrDefaultAsync(f => f.Id == model.Id);
-            ValidateRecord(entity, model.Id);
-            await _orderSharedService.ValidateStatusAsync((Guid)entity.OrderId);
-
-            var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems.Where(w => w.OrderItemId == model.Id).FirstOrDefaultAsync();
-
-            if (unitGroupDescriptionItem != null)
+            else
             {
-                unitGroupDescriptionItem.UpdatedBy = model.UpdatedBy;
-                unitGroupDescriptionItem.UpdatedDt = model.UpdatedDt;
-                await _db.SaveChangesAsync();
-
-                _db.OrderItemUnitGroupDescriptionItems.Remove(unitGroupDescriptionItem);
-                await _db.SaveChangesAsync();
-            }
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+                if (model.ItemNo.Contains("."))
+                {
+                    var setGroup = model.ItemNoIndex.Substring(0, 3);
+                    /*
+                     * Get Parent Set/Lot in OrderIteem
+                     * Locate in UnitGroup
+                     * Add to Unit Group Item
+                     */
+                    var parentOrderItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.ItemNoIndex.Substring(0, 3) == setGroup);
+                    if (parentOrderItem == null)
+                    {
+                        throw new RecordRelationshipException("The main Item No. for this record does not exists.");
+                    }
+                    var itemNo = parentOrderItem.ItemNo;
+                    var description = parentOrderItem.Description;
+                    var unitGroupDescription = await _db.OrderItemUnitGroupDescriptions
+                        .Where(w => w.OrderItemUnitGroup.OrderId == model.OrderId
+                        && w.OrderItemUnitGroup.SetLotNo == itemNo 
+                        && w.Description == description 
+                        && !w.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemId == entity.Id)).FirstOrDefaultAsync();
+                    if (unitGroupDescription != null)
+                    {
+                        var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            OrderItemUnitGroupDescriptionId = unitGroupDescription.Id,
+                            OrderItemId = entity.Id,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
+                    }
+                }
+                _db.OrderItems.Add(entity);
+            }            
 
             await _db.SaveChangesAsync();
-
-            _db.OrderItems.Remove(entity);
-            await _db.SaveChangesAsync();
+            await _orderItemUnitGroupService.DistributeSetAmountAsync(model.OrderId, model.ItemNo);
 
             return model;
         });
@@ -281,6 +343,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
+            await ValidateFieldsAsync(model);
             await _orderSharedService.ValidateStatusAsync((Guid)model.OrderId);
 
             //var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
@@ -310,7 +373,7 @@ namespace iLgs.Services.PurchaseOrder
                 _imex.ThrowIfContainsErrors();
             }
 
-            var entity = await _db.OrderItems.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.OrderItems.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
 
             ValidateRecord(entity, model.Id);
 
@@ -318,15 +381,215 @@ namespace iLgs.Services.PurchaseOrder
 
             await _db.SaveChangesAsync();
 
+            if (model.IsSetLot)
+            {
+                /* Validate unit group record
+                 * Locate in UnitGroup
+                 * Update info
+                 * Update Description
+                 * Distribute Amount
+                 */
+                if (await _db.OrderItemUnitGroupDescriptions.AsNoTracking()
+                   .AnyAsync(f => f.OrderItemUnitGroup.OrderId == model.OrderId
+                       && f.OrderItemUnitGroup.SetLotNo == model.ItemNo
+                       && f.Description == model.Description && f.Description != model.OriginalDescription))
+                {
+                    throw new InvalidValueException("Description", "Already exists.");
+                }
+
+                var unitGroupDescription = await _db.OrderItemUnitGroupDescriptions.Include(i => i.OrderItemUnitGroup)
+                    .FirstOrDefaultAsync(f => f.OrderItemUnitGroup.OrderId == model.OrderId
+                        && f.OrderItemUnitGroup.SetLotNo == model.ItemNo
+                        && f.Description == model.OriginalDescription);
+                if (unitGroupDescription == null)
+                {
+                    throw new RecordRelationshipException("The Set/Lot group for this record does not exists. Please verify.");
+                }
+
+                unitGroupDescription.OrderItemUnitGroup.SetLotNo = model.ItemNo;
+                unitGroupDescription.OrderItemUnitGroup.Qty = (int?)model.Qty;
+                unitGroupDescription.OrderItemUnitGroup.Unit = model.Unit;
+                unitGroupDescription.OrderItemUnitGroup.UnitCost = model.UnitCost;
+                unitGroupDescription.OrderItemUnitGroup.TotalCost = model.Qty * model.UnitCost;
+                unitGroupDescription.OrderItemUnitGroup.UpdatedBy = user;
+                unitGroupDescription.OrderItemUnitGroup.UpdatedDt = date;
+                unitGroupDescription.Description = model.Description;
+                unitGroupDescription.UpdatedBy = user;
+                unitGroupDescription.UpdatedDt = date;
+
+                await _db.SaveChangesAsync();
+            }
+
+            await _orderItemUnitGroupService.DistributeSetAmountAsync(model.OrderId, model.ItemNo);
+
+            return model;
+        });        
+
+        public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            ValidateIfNull(model);
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+            
+            var entity = await _db.OrderItems.FirstOrDefaultAsync(f => f.Id == model.Id);
+            ValidateRecord(entity, model.Id);
+            await _orderSharedService.ValidateStatusAsync((Guid)entity.OrderId);
+
+            if (model.IsSetLot)
+            {
+                /* Locate in UnitGroupDescription
+                 * Delete if without UnitGroupDescriptionItem
+                 * Delete (Main)UnitGroup if no more UnitGroupDescription 
+                 */
+                
+                var unitGroup = await _db.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions)
+                    .FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.SetLotNo == model.ItemNo);
+                var unitGroupDescriptionCount = unitGroup.OrderItemUnitGroupDescriptions.Count();
+                var unitGroupDescription = unitGroup.OrderItemUnitGroupDescriptions.First(f => f.Description == model.Description);
+                if (await _db.OrderItemUnitGroupDescriptionItems.AnyAsync(a => a.OrderItemUnitGroupDescriptionId == unitGroupDescription.Id))
+                {
+                    throw new RecordRelationshipException("Delete Set/Lot items before proceeding.");
+                }
+
+                unitGroupDescription.UpdatedBy = user;
+                unitGroupDescription.UpdatedDt = date;
+                await _db.SaveChangesAsync();
+                _db.OrderItemUnitGroupDescriptions.Remove(unitGroupDescription);
+                await _db.SaveChangesAsync();
+
+                if (unitGroupDescriptionCount == 1) // the only 1 Description was deleted above, then delete also the Main Set/Lot 
+                {
+                    unitGroup.UpdatedBy = user;
+                    unitGroup.UpdatedDt = date;
+                    await _db.SaveChangesAsync();
+                    _db.OrderItemUnitGroups.Remove(unitGroup);
+                    await _db.SaveChangesAsync();
+                }                
+            }
+            else
+            {
+                var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems.Where(w => w.OrderItemId == model.Id).FirstOrDefaultAsync();
+                if (unitGroupDescriptionItem != null)
+                {
+                    unitGroupDescriptionItem.UpdatedBy = model.UpdatedBy;
+                    unitGroupDescriptionItem.UpdatedDt = model.UpdatedDt;
+                    await _db.SaveChangesAsync();
+
+                    _db.OrderItemUnitGroupDescriptionItems.Remove(unitGroupDescriptionItem);
+                    await _db.SaveChangesAsync();
+                }
+            }
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            await _db.SaveChangesAsync();
+
+            _db.OrderItems.Remove(entity);
+            await _db.SaveChangesAsync();
+            await _orderItemUnitGroupService.DistributeSetAmountAsync(model.OrderId, model.ItemNo);
+
             return model;
         });
 
-        private async Task<string> NextItemNoAsync(Guid? orderId)
+        private void SetItemEntity(OrderItem entity, OrderItemVM model, Mode mode)
         {
-            var nextItemNo = await _db.OrderItems.Where(w => w.OrderId == orderId)
-                    .Select(i => int.Parse(i.ItemNo))
-                    .MaxAsync();
-            return (nextItemNo + 1).ToString();
+            if (mode == Mode.ADD)
+            {
+                model.Id = Guid.NewGuid();
+                model.AllField.Id = model.Id;
+                model.AllField.InsertedBy = model.InsertedBy;
+                model.AllField.InsertedDt = model.InsertedDt;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+                //model.PsNo = "";
+            }
+
+            if (!model.IsSetLot)
+            {
+                model.PsNoDisplay = _allFieldService.GetOrderPsNoDisplay(model);
+            }
+
+            model.ItemNoIndex = Utility.GetItemNoIndex(model.ItemNo);
+
+            entity.Id = model.Id;
+            entity.ItemNo = model.ItemNo;
+            entity.ItemNoIndex = model.ItemNoIndex;
+            entity.OrderId = model.OrderId;
+            entity.RequestItemId = model.RequestItemId;
+            entity.ItemCodeId = model.ItemCodeId;
+            entity.PsNo = model.PsNo;
+            entity.PsNoDisplay = model.PsNoDisplay;
+            entity.ItemName = model.ItemName;
+            entity.Unit = model.Unit;
+            entity.Description = model.Description;
+            entity.OtherDesc = model.OtherDesc;
+            entity.Unit = model.Unit;
+            entity.Qty = model.Qty;
+            entity.UnitCost = model.UnitCost;
+            entity.Amount = model.Amount;
+            entity.PriceRate = model.PriceRate;
+            entity.PpmpCode = model.PpmpCode;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            model.AllField.UpdatedBy = model.UpdatedBy;
+            model.AllField.UpdatedDt = model.UpdatedDt;
+
+            entity.AllField = model.AllField;
+
+            _allFieldService.SetEntity(entity.AllField, model.AllField, mode);
+        }
+
+        private async Task<string> NextItemNoAsync(Guid? orderId)
+        {            
+            var itemNos = await _db.OrderItems
+                .Where(w => w.OrderId == orderId)
+                .Select(i => i.ItemNo)
+                .ToListAsync();
+
+            if (!itemNos.Any())
+                return "1";
+
+            var maxItemNo = itemNos
+                .OrderByDescending(x => x.Split('.')
+                    .Select(n => int.Parse(n))
+                    .ToArray(), new ItemNoSequenceUtil())
+                .First();
+
+            var parts = maxItemNo.Split('.');
+            int lastIndex = parts.Length - 1;
+
+            int lastNumber;
+            if (int.TryParse(parts[lastIndex], out lastNumber))
+            {
+                parts[lastIndex] = (lastNumber + 1).ToString();
+            }
+
+            return string.Join(".", parts);
+        }
+
+        private async Task<string> NextSetItemNoAsync(Guid? orderId)
+        {
+            var itemNos = await _db.OrderItems
+                .Where(w => w.OrderId == orderId)
+                .Select(i => i.ItemNo)
+                .ToListAsync();
+
+            if (!itemNos.Any())
+                return "1";
+
+            // Flatten all segments into integers
+            var allNumbers = itemNos
+                .SelectMany(x => x.Split('.'))
+                .Select(n => int.TryParse(n, out var v) ? v : 0)
+                .ToList();
+
+            int nextNumber = allNumbers.Any() ? allNumbers.Max() + 1 : 1;
+
+            return nextNumber.ToString();
         }
 
         private void ValidateIfNull(OrderItemVM model)

@@ -75,10 +75,10 @@ namespace iLgs.Services.PurchaseRequest
         public ValueTask<RequestItemUnitGroupVM> CreateAsync(RequestItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (await _requestService.IsPostedAsync((Guid)model.PrId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
+            //if (await _requestService.IsPostedAsync((Guid)model.PrId))
+            //{
+            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            //}
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -119,10 +119,10 @@ namespace iLgs.Services.PurchaseRequest
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (await _requestService.IsPostedAsync((Guid)model.PrId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
+            //if (await _requestService.IsPostedAsync((Guid)model.PrId))
+            //{
+            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -150,10 +150,10 @@ namespace iLgs.Services.PurchaseRequest
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (await _requestService.IsPostedAsync((Guid)model.PrId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
+            //if (await _requestService.IsPostedAsync((Guid)model.PrId))
+            //{
+            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

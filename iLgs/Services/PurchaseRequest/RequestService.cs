@@ -17,19 +17,20 @@ namespace iLgs.Services.PurchaseRequest
     {
         IQueryable<RequestVM> GetAll();
         ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId);
+        ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId, bool? isSubmitted);
         Task<RequestVM> GetByIdAsync(Guid? prId);
         Task<RequestVM> GetByPrNoAsync(string prNo);
         Task<bool> IsAnyPrNoAsync(Guid id, string prNo);
         //Task<bool> IsAnyRisNoAsync(Guid id, string risNo);
-        bool IsPosted(Guid requestId);
-        bool IsPosted(Request request);
-        bool IsPosted(RequestItem requestItem);
-        bool IsPosted(RequestItemUnitGroup requestItemUnitGroup);
-        bool IsPosted(RequestItemUnitGroupDescription requestItemunitGroupDescription);
-        bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemunitGroupDescriptionItem);
-        Task<bool> IsPostedAsync(Guid? requestId);
-        Task<bool> IsWithPOAsync(Guid? requestId);
-        Task<bool> IsPoPostedAsync(Guid? requestId);
+        //bool IsPosted(Guid requestId);
+        //bool IsPosted(Request request);
+        //bool IsPosted(RequestItem requestItem);
+        //bool IsPosted(RequestItemUnitGroup requestItemUnitGroup);
+        //bool IsPosted(RequestItemUnitGroupDescription requestItemunitGroupDescription);
+        //bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemunitGroupDescriptionItem);
+        //Task<bool> IsPostedAsync(Guid? requestId);
+        //Task<bool> IsWithPOAsync(Guid? requestId);
+        //Task<bool> IsPoPostedAsync(Guid? requestId);
         Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId);
 
         ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
@@ -37,24 +38,34 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date);
         ValueTask PostAsync(Guid requestId, string user, DateTime date);
         ValueTask UnpostAsync(Guid requestId, string user, DateTime date);
+        ValueTask SubmitAsync(Guid requestId, string user, DateTime date);
+        ValueTask UnsubmitAsync(Guid requestId, string user, DateTime date);
+
+        IRequestItemService RequestItem { get; }
     }
 
     public class RequestService : BaseValidator, IRequestService
     {
         private decimal? _priceCap;
         private readonly AppManEntities _db;
-        private readonly IUserService _userService;                
+        private readonly IRequestSharedService _requestSharedService;
+        private readonly IUserService _userService;
         private readonly IExceptionService<RequestVM> _vmExceptionService;
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
+        private IRequestItemService _requestItemService;
+
         public RequestService(AppManEntities db)
         {
             _db = db;
+            _requestSharedService = new RequestSharedService(_db);
             _userService = new UserService(_db);
             _vmExceptionService = new ExceptionService<RequestVM>();
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
             _priceCapService = new PriceCapService(_db);
+
+            _requestItemService = new RequestItemService(_db);
         }
 
         //public RequestService(AppManEntities db,
@@ -69,35 +80,40 @@ namespace iLgs.Services.PurchaseRequest
         //    _priceCapService = priceCapService;            
         //}
 
+        public IRequestItemService RequestItem => _requestItemService;
+
         private decimal GetPriceCap()
         {
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
-        
+
         private static Expression<Func<Request, RequestVM>> Projection
         = s => new RequestVM
         {
             Id = s.Id,
+            CtrlNo = s.CtrlNo,
+            Fund = s.Fund,
+            FundSpecific = s.FundSpecific,
+            DeptId = s.DeptId,
+            Department = s.Department,
+            Section = s.Section,
             PrNo = s.PrNo,
             PrDate = s.PrDate,
+            FPP = s.FPP,
+            Purpose = s.Purpose,
+            RequestedBy = s.RequestedBy,
+            RequestedDesig = s.RequestedDesig,
             Availability = s.Availability,
             AvaialbilityDesig = s.AvaialbilityDesig,
             ApprovedBy = s.ApprovedBy,
             ApprovedDesig = s.ApprovedDesig,
             SubmittedBy = s.SubmittedBy,
             SubmittedDt = s.SubmittedDt,
+            PostedBy = s.PostedBy,
+            PostedDt = s.PostedDt,
             IsWithPO = s.Orders.Any(),
             InsertedBy = s.InsertedBy,
-            InsertedDt = s.InsertedDt,
-            Fund = s.Fund,
-            Department = s.Department,
-            Section = s.Section,
-            FPP = s.FPP,
-            Purpose = s.Purpose,
-            RequestedBy = s.RequestedBy,
-            RequestedDesig = s.RequestedDesig
-            //RisDate = s.RISs.RisDate,
-            //RisId = s.RisId
+            InsertedDt = s.InsertedDt
         };
 
         public IQueryable<RequestVM> GetAll()
@@ -107,19 +123,29 @@ namespace iLgs.Services.PurchaseRequest
 
         public async ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId)
         {
-            IQueryable<RequestVM> data = null;
-            if (await _userService.IsAdminAsync(userId))
+            var data = _db.Requests.AsQueryable();
+            if (!(await _userService.IsAdminAsync(userId)))
             {
-                data = _db.Requests.AsNoTracking()
-                    .Select(Projection).OrderByDescending(o => o.PrNo);
-            }
-            else
+                data = data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
+            }            
+
+            return data.Select(Projection).AsNoTracking();
+        }
+
+        public async ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId, bool? isSubmitted)
+        {
+            var data = _db.Requests.AsQueryable();
+            if (!(await _userService.IsAdminAsync(userId)))
             {
-                data = _db.Requests.AsNoTracking()
-                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
-                    .Select(Projection).OrderByDescending(o => o.PrNo);
+                data =  data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));                    
             }
-            return data;
+
+            if (isSubmitted.Value == true)
+            {
+                data = data.Where(w => !(w.SubmittedBy == null || w.SubmittedBy == ""));
+            }
+
+            return data.Select(Projection).AsNoTracking(); 
         }
 
         public Task<RequestVM> GetByIdAsync(Guid? prId)
@@ -142,72 +168,49 @@ namespace iLgs.Services.PurchaseRequest
             return _db.Requests.Where(w => w.PrNo == prNo).Select(Projection).FirstOrDefaultAsync();
         }
 
-        public bool IsPosted(Guid requestId)
-        {
-            var entity = _db.Requests.Find(requestId);
-            return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
-        }
+        //public bool IsPosted(Guid requestId)
+        //{
+        //    var entity = _db.Requests.Find(requestId);
+        //    return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
+        //}
 
-        public bool IsPosted(Request request)
-        {
-            return IsPosted(request.Id);
-        }
+        //public bool IsPosted(Request request)
+        //{
+        //    return IsPosted(request.Id);
+        //}
 
-        public bool IsPosted(RequestItem requestItem)
-        {
-            var requestId = (Guid)requestItem.PrId;
-            return IsPosted(requestId);
-        }
+        //public bool IsPosted(RequestItem requestItem)
+        //{
+        //    var requestId = (Guid)requestItem.PrId;
+        //    return IsPosted(requestId);
+        //}
 
-        public bool IsPosted(RequestItemUnitGroup requestItemUnitGroup)
-        {
-            var requestId = (Guid)requestItemUnitGroup.PrId;
-            return IsPosted(requestId);
-        }
+        //public bool IsPosted(RequestItemUnitGroup requestItemUnitGroup)
+        //{
+        //    var requestId = (Guid)requestItemUnitGroup.PrId;
+        //    return IsPosted(requestId);
+        //}
 
-        public bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription)
-        {
-            var requestId = (Guid)_db.RequestItemUnitGroupDescriptions
-                .Include(i => i.RequestItemUnitGroup)
-                .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescription.RequestItemUnitGroupId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RequestItemUnitGroup.PrId;
-            return IsPosted(requestId);
-        }
+        //public bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription)
+        //{
+        //    var requestId = (Guid)_db.RequestItemUnitGroupDescriptions
+        //        .Include(i => i.RequestItemUnitGroup)
+        //        .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescription.RequestItemUnitGroupId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.RequestItemUnitGroup.PrId;
+        //    return IsPosted(requestId);
+        //}
 
-        public bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem)
-        {
-            var requestId = (Guid)_db.RequestItemUnitGroupDescriptionItems
-                .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
-                .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
-            return IsPosted(requestId);
-        }
-
-        public async Task<bool> IsPostedAsync(Guid? requestId)
-        {
-            var entity = await _db.Requests.FindAsync(requestId);
-            if (entity == null)
-            {
-                return false;
-            }
-            else
-            {
-                return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
-            }
-        }
-
-        public async Task<bool> IsWithPOAsync(Guid? requestId)
-        {
-            return await _db.Orders.AnyAsync(a => a.PrId == requestId);
-        }
-
-        public async Task<bool> IsPoPostedAsync(Guid? requestId)
-        {
-            return await _db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null));
-        }
-
+        //public bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem)
+        //{
+        //    var requestId = (Guid)_db.RequestItemUnitGroupDescriptionItems
+        //        .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
+        //        .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
+        //    return IsPosted(requestId);
+        //}
+        
         public async Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId)
         {
             return await _db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
@@ -218,131 +221,23 @@ namespace iLgs.Services.PurchaseRequest
         {
             ValidateIfNull(model);
             model.Id = Guid.NewGuid();
-            if (string.IsNullOrWhiteSpace(model.PrNo))
-            {
-                model.PrNo = NextPrNo((DateTime)model.PrDate);
-            }
+
+            //if (string.IsNullOrWhiteSpace(model.PrNo))
+            //{
+            //    model.PrNo = NextPrNo((DateTime)model.PrDate);
+            //}
+            
+            model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ValidateOnCreate(model);
-            ValidateOnCreateUpdate(model, Mode.ADD);
+            await ValidateOnCreateUpdateAsync(model, Mode.ADD);
 
-            var entity = new Request()
-            {
-                Id = model.Id,
-                //RisId = model.RisId,
-                Fund = model.Fund,
-                DeptId = model.DeptId,
-                Department = model.Department,
-                Section = model.Section,
-                PrNo = model.PrNo,
-                PrDate = model.PrDate,
-                FPP = model.FPP,
-                Purpose = model.Purpose,
-                RequestedBy = model.RequestedBy ?? "",
-                RequestedDesig = model.RequestedDesig ?? "",
-                Availability = model.Availability ?? "",
-                AvaialbilityDesig = model.AvaialbilityDesig ?? "",
-                ApprovedBy = model.ApprovedBy ?? "",
-                ApprovedDesig = model.ApprovedDesig ?? "",
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt                
-            };
-
-            // include items during add
-            //var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToList();
-            //foreach (var risItem in risItems)
-            //{
-            //    var insertedDt = DateTime.Now;
-            //    RequestItem requestItem = new RequestItem()
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        RisItemId = risItem.Id,
-            //        PrId = entity.Id,
-            //        Qty = risItem.QtyRequest,
-            //        InsertedBy = user,
-            //        InsertedDt = insertedDt,
-            //        UpdatedBy = user,
-            //        UpdatedDt = insertedDt
-            //    };
-
-            //    //foreach (var risItemExtn in risItem.RisItemExtns)
-            //    //{
-            //    //    RequestItemExtn requestItemExtn = new RequestItemExtn()
-            //    //    {
-            //    //        Id = Guid.NewGuid(),
-            //    //        RequestItemId = requestItem.Id,
-            //    //        ItemKey = risItemExtn.ItemKey,
-            //    //        ItemValue = risItemExtn.ItemValue,
-            //    //        Sequence = risItemExtn.Sequence,
-            //    //        InsertedBy = user,
-            //    //        InsertedDt = date,
-            //    //        UpdatedBy = user,
-            //    //        UpdatedDt = date
-            //    //    };
-            //    //    requestItem.RequestItemExtns.Add(requestItemExtn);
-            //    //}
-
-            //    entity.RequestItems.Add(requestItem);
-            //}
-
-            //// Unit Groups
-            //var unitGroups = await _db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
-            //foreach (var unitGroup in unitGroups)
-            //{
-            //    var unitGroupDt = DateTime.Now;
-            //    var requestItemUnitGroup = new RequestItemUnitGroup()
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        PrId = model.Id,
-            //        RisItemUnitGroupId = unitGroup.Id,
-            //        InsertedBy = user,
-            //        InsertedDt = unitGroupDt,
-            //        UpdatedBy = user,
-            //        UpdatedDt = unitGroupDt
-            //    };
-
-            //    foreach (var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
-            //    {
-            //        var groupDescriptionDt = DateTime.Now;
-            //        var requestItemUnitGroupDescription = new RequestItemUnitGroupDescription()
-            //        {
-            //            Id = Guid.NewGuid(),
-            //            RequestItemUnitGroupId = requestItemUnitGroup.Id,
-            //            RisItemUnitGroupDescriptionId = unitGroupDescription.Id,
-            //            InsertedBy = user,
-            //            InsertedDt = groupDescriptionDt,
-            //            UpdatedBy = user,
-            //            UpdatedDt = groupDescriptionDt
-            //        };
-
-            //        var risItemUnitGroupDescriptionItems = await _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
-            //        foreach (var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
-            //        {
-            //            var groupDescriptionItemDt = DateTime.Now;
-            //            var requsetItemUnitGroupDescriptionItem = new RequestItemUnitGroupDescriptionItem()
-            //            {
-            //                Id = Guid.NewGuid(),
-            //                RisItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
-            //                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescription.Id,
-            //                RequestItemId = entity.RequestItems.FirstOrDefault(f => f.RisItemId == unitGroupDescriptionItem.RisItemId).Id,
-            //                InsertedBy = user,
-            //                InsertedDt = groupDescriptionItemDt,
-            //                UpdatedBy = user,
-            //                UpdatedDt = groupDescriptionItemDt
-            //            };
-            //            requestItemUnitGroupDescription.RequestItemUnitGroupDescriptionItems.Add(requsetItemUnitGroupDescriptionItem);
-            //        }
-            //        requestItemUnitGroup.RequestItemUnitGroupDescriptions.Add(requestItemUnitGroupDescription);
-            //    }
-            //    entity.RequestItemUnitGroups.Add(requestItemUnitGroup);
-            //}
-
+            var entity = new Request();
+            MapModelToEntityFields(entity, model, Mode.ADD);
+            
             _db.Requests.Add(entity);
             await _db.SaveChangesAsync();
 
@@ -358,80 +253,11 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = await _db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             ValidateRecord(entity, model.Id);
-            ValidateIfPosted(entity);
-            ValidateOnUpdate(entity, model);
-            ValidateOnCreateUpdate(model, Mode.EDIT);
+            await ValidateStatusAsync(model.Id);
+            await ValidateOnCreateUpdateAsync(model, Mode.EDIT);
 
-            // if there's a change of requisition item
-            //if (entity.RisId != model.RisId)
-            //{
-            //    var requestItems = _db.RequestItems.Where(w => w.PrId == model.Id);
-            //    await requestItems.ForEachAsync(f =>
-            //    {
-            //        f.UpdatedBy = model.UpdatedBy;
-            //        f.UpdatedDt = model.UpdatedDt;
-            //    });
-            //    await _db.SaveChangesAsync();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-            //    _db.RequestItems.RemoveRange(requestItems);
-            //    await _db.SaveChangesAsync();
-
-            //    // include items during add
-            //    var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
-            //    foreach (var risItem in risItems)
-            //    {
-            //        RequestItem requestItem = new RequestItem()
-            //        {
-            //            Id = Guid.NewGuid(),
-            //            RisItemId = risItem.Id,
-            //            PrId = entity.Id,
-            //            Qty = risItem.QtyRequest,
-            //            InsertedBy = user,
-            //            InsertedDt = date,
-            //            UpdatedBy = user,
-            //            UpdatedDt = date
-            //        };
-
-            //        //foreach (var risItemExtn in risItem.RisItemExtns)
-            //        //{
-            //        //    RequestItemExtn requestItemExtn = new RequestItemExtn()
-            //        //    {
-            //        //        Id = Guid.NewGuid(),
-            //        //        RequestItemId = requestItem.Id,
-            //        //        ItemKey = risItemExtn.ItemKey,
-            //        //        ItemValue = risItemExtn.ItemValue,
-            //        //        Sequence = risItemExtn.Sequence,
-            //        //        InsertedBy = user,
-            //        //        InsertedDt = date,
-            //        //        UpdatedBy = user,
-            //        //        UpdatedDt = date
-            //        //    };
-            //        //    requestItem.RequestItemExtns.Add(requestItemExtn);
-            //        //}
-
-            //        entity.RequestItems.Add(requestItem);
-            //    }
-            //}
-
-            entity.Fund = model.Fund;
-                entity.DeptId = model.DeptId;
-            entity.Department = model.Department;
-            entity.Section = model.Section;
-            entity.PrNo = model.PrNo;
-            entity.PrDate = model.PrDate;
-            entity.FPP = model.FPP;
-            entity.Purpose = model.Purpose;
-            entity.RequestedBy = model.RequestedBy ?? "";
-            entity.RequestedDesig = model.RequestedDesig ?? "";
-            entity.Availability = model.Availability ?? "";
-            entity.AvaialbilityDesig = model.AvaialbilityDesig ?? "";
-            entity.ApprovedBy = model.ApprovedBy ?? "";
-            entity.ApprovedDesig = model.ApprovedDesig ?? "";
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.Requests.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             return model;
@@ -446,29 +272,63 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = await _db.Requests.FindAsync(model.Id);
             ValidateRecord(entity, model.Id);
-            ValidateIfPosted(entity);
-            ValidateRelationship(model.Id);
+            await ValidateStatusAsync(model.Id);            
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
-
-            _db.Requests.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
+            
             await _db.SaveChangesAsync();
 
             _db.Requests.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
             return model;
         });
 
+        private void MapModelToEntityFields(Request entity, RequestVM model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.CtrlNo = model.CtrlNo;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+
+            entity.Fund = model.Fund?.Trim().ToUpper();
+            entity.FundSpecific = model.FundSpecific;
+            entity.DeptId = model.DeptId;
+            entity.Department = model.Department?.Trim();
+            entity.Section = model.Section?.Trim() ?? "";
+            entity.PrNo = model.PrNo;
+            entity.PrDate = model.PrDate;
+            entity.FPP = model.FPP;
+            entity.Purpose = model.Purpose?.Trim() ?? "";
+            entity.RequestedBy = model.RequestedBy?.Trim() ?? "";
+            entity.RequestedDesig = model.RequestedDesig?.Trim() ?? "";
+            entity.Availability = model.Availability?.Trim() ?? "";
+            entity.AvaialbilityDesig = model.AvaialbilityDesig?.Trim() ?? "";
+            entity.ApprovedBy = model.ApprovedBy?.Trim() ?? "";
+            entity.ApprovedDesig = model.ApprovedDesig?.Trim() ?? "";
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+        }
 
         public async ValueTask PostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
+                if (string.IsNullOrEmpty(entity.PrNo))
+                {
+                    throw new InvalidValueException("PR Numbmer is Required.");
+                }
+
+                if (!entity.PrDate.HasValue)
+                {
+                    throw new InvalidValueException("PR Date is Required.");
+                }
+
                 if (string.IsNullOrEmpty(entity.Availability))
                 {
                     throw new InvalidValueException("Cash availability is Required.");
@@ -545,13 +405,11 @@ namespace iLgs.Services.PurchaseRequest
                 //    }
                 //}
 
-                entity.SubmittedBy = user;
-                entity.SubmittedDt = date;
+                entity.PostedBy = user;
+                entity.PostedDt = date;
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                _db.Requests.Attach(entity);
-                _db.Entry(entity).State = EntityState.Modified;
                 await _db.SaveChangesAsync();
             }
         }
@@ -561,13 +419,64 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
+                if (string.IsNullOrEmpty(entity.PostedBy))
+                {
+                    throw new InvalidValueException("This record is not yet posted, please verify.");
+                }
+
+                entity.PostedBy = null;
+                entity.PostedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async ValueTask SubmitAsync(Guid requestId, string user, DateTime date)
+        {
+            var entity = await _db.Requests.Include(i => i.RequestItems).FirstOrDefaultAsync(f => f.Id == requestId);
+            if (entity != null)
+            {
+                if (string.IsNullOrEmpty(entity.Availability))
+                {
+                    throw new InvalidValueException("Cash availability is Required.");
+                }
+
+                if (string.IsNullOrEmpty(entity.ApprovedBy))
+                {
+                    throw new InvalidValueException("Approved by is Required.");
+                }                
+
+                if (!entity.RequestItems.Any())
+                {
+                    throw new InvalidValueException("No request items were found.");
+                }
+
+                entity.SubmittedBy = user;
+                entity.SubmittedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async ValueTask UnsubmitAsync(Guid requestId, string user, DateTime date)
+        {
+            var entity = await _db.Requests.FindAsync(requestId);
+            if (entity != null)
+            {
+                if (string.IsNullOrEmpty(entity.SubmittedBy))
+                {
+                    throw new InvalidValueException("This record is not yet posted, please verify.");
+                }
+
                 entity.SubmittedBy = null;
                 entity.SubmittedDt = null;
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                _db.Requests.Attach(entity);
-                _db.Entry(entity).State = EntityState.Modified;
                 await _db.SaveChangesAsync();
             }
         }
@@ -595,32 +504,32 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
-        private void ValidateOnCreate(RequestVM model)
+        private string NextCtrlNo(DateTime date)
         {
-            if (!string.IsNullOrWhiteSpace(model.PrNo) && _db.Requests.Any(a => a.PrNo == model.PrNo))
+            string yyyy = date.Year.ToString().Trim();
+            string mm = date.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var order = _db.Requests.Where(w => w.CtrlNo.Substring(0, 4) == yyyy).OrderByDescending(o => o.CtrlNo).FirstOrDefault();
+            if (order == null)
             {
-                throw new RecordAlreadyExistsException(string.Format("PR Number {0} already exists", model.PrNo));
+                return keyName + "-" + "0001";
             }
             else
             {
-                var ris = _db.RISses.Find(model.RisId);
-                if (ris == null)
-                {
-                    throw new NotFoundException((Guid)model.RisId);
-                }
-                else
-                {
-                    if (ris.RisDate > model.PrDate)
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");
-                    }
-                }
+                var sequence = (int.Parse(order.CtrlNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
             }
-            _imex.ThrowIfContainsErrors();
         }
-
-        private void ValidateOnCreateUpdate(RequestVM model, Mode mode)
+        
+        private async Task ValidateOnCreateUpdateAsync(RequestVM model, Mode mode)
         {
+            _imex = new InvalidModelException();
             if (!string.IsNullOrWhiteSpace(model.PrNo))
             {
                 if (model.PrNo.Trim().Length != 12)
@@ -629,55 +538,65 @@ namespace iLgs.Services.PurchaseRequest
                 }
                 else
                 {
-                    var refNoParts = model.PrNo.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
+                    if (!model.PrDate.HasValue)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series Year and month must be same as the year and month of the PR date.");
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), $"Field is required.");
                     }
                     else
                     {
-                        var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
-                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        var refNoParts = model.PrNo.Split('-');
+                        var refNoYear = int.Parse(refNoParts[0]);
+                        var refNoMonth = int.Parse(refNoParts[1]);
+                        if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
                         {
-                            var refNoSeq = int.Parse(refNoParts[2]);
-                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            if (refNoSeq <= maxSeq)
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series year and month must be same as the year and month of the PR date.");
+                        }
+                        //else
+                        //{
+                        //    var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
+                        //    if (!string.IsNullOrWhiteSpace(maxNo))
+                        //    {
+                        //        var refNoSeq = int.Parse(refNoParts[2]);
+                        //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                        //        if (refNoSeq <= maxSeq)
+                        //        {
+                        //            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Serial No. must be greater than {maxSeq}");
+                        //        }
+                        //    }
+                        //}
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(model.PrNo))
+                    {
+                        if (mode == Mode.ADD)
+                        {
+                            if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo))
                             {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Serial No. must be greater than {maxSeq}");
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
+                            }
+                        }
+                        else
+                        {
+                            if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo && a.Id != model.Id))
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
                             }
                         }
                     }
                 }
             }
-            _imex.ThrowIfContainsErrors();
-        }
 
-        private void ValidateOnUpdate(Request entity, RequestVM model)
-        {            
-            if (entity.SubmittedDt != null)
+            if (model.PrDate.HasValue)
             {
-                throw new RecordAlreadyPostedException(string.Format("PR Number {0} already posted, cannot update!", model.PrNo));
+                if (model.PrDate.Value.Date > model.UpdatedDt.Value.Date)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), $"Future date is not allowed.");
+                }
             }
 
-            if (_db.Requests.Any(a => a.PrNo == model.PrNo && a.Id != model.Id))
-            {
-                throw new RecordAlreadyExistsException(string.Format("PR Number {0} already exists!", model.PrNo));
-            }
-
-            //var ris = _db.RISses.Find(model.RisId);
-            //if (ris == null)
-            //{
-            //    throw new RecordRelationshipException(string.Format("RIS Number {0} does exists!", model.RisNo));
-            //}
-            //else if (ris.RisDate > model.PrDate)
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");                
-            //}
             _imex.ThrowIfContainsErrors();
         }
-
+        
         //private async ValueTask ValidateOnDestroy(RequestVM model)
         //{
         //    var order = await _db.Orders.FindAsync(model.Id);
@@ -702,15 +621,11 @@ namespace iLgs.Services.PurchaseRequest
         //    }
         //}
 
-        private void ValidateRelationship(Guid prId)
+        private async Task ValidateStatusAsync(Guid prId)
         {
-            var order = _db.Orders.Where(a => a.PrId == prId).AsNoTracking().FirstOrDefault();
-            if (order != null)
-            {
-                throw new RecordRelationshipException($"This PR Number is in use by PO Number {order.PoNo}, cannot delete!");
-            }
+            await _requestSharedService.ValidateStatusAsync(prId);
         }
-
+        
         private void ValidateRecord(Request entity, Guid id)
         {
             if (entity is null)
@@ -725,14 +640,6 @@ namespace iLgs.Services.PurchaseRequest
             {
                 throw new NullException();
             }
-        }
-
-        private void ValidateIfPosted(Request entity)
-        {
-            if (entity != null && !string.IsNullOrWhiteSpace(entity.SubmittedBy))
-            {
-                throw new RecordAlreadyPostedException(string.Format("PR Number {0} already posted, cannot update!", entity.PrNo));
-            }
-        }
+        }        
     }
 }

@@ -204,7 +204,7 @@ namespace iLgs.Services.ParIcs
             return await GetItemsByPoNoAsync(poNo, null, null);
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
 
@@ -213,11 +213,12 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public IQueryable<ParIcsItemVm> GetItemsByPoNoOld(string poNo, DateTime? poDate, Guid? deptId)
+        //public IQueryable<ParIcsItemVm> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
 
-            var data = _db.PsCardItems.Include(i => i.PsCard.ItemCode)
+            var data = await _db.PsCardItems.Include(i => i.PsCard.ItemCode)
                 .AsNoTracking()
                 .Where(w =>
                     w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
@@ -248,7 +249,7 @@ namespace iLgs.Services.ParIcs
                     ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
                     ParPostedBy = s.ParPostedBy,
                     ParPostedDt = s.ParPostedDt
-                }).AsQueryable();
+                }).ToListAsync();
             return data;
         }
 
@@ -480,6 +481,8 @@ namespace iLgs.Services.ParIcs
                     Qty = 1,
                     AddCost = psCardItemExtn.AddCost,
                     Amount = psCardItemExtn.AcqCost,
+                    IssuedTo = model.IssuedTo,
+                    Designation = model.Designation,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -640,6 +643,8 @@ namespace iLgs.Services.ParIcs
                         Qty = 1,
                         AddCost = addCost,
                         Amount = amount,
+                        IssuedTo = model.IssuedTo,
+                        Designation = model.Designation,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

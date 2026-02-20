@@ -48,7 +48,6 @@ namespace iLgs.Models
             this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
             this.Procurements = new HashSet<Procurement>();
             this.RISses = new HashSet<RISs>();
-            this.Orders = new HashSet<Order>();
             this.Requests = new HashSet<Request>();
         }
     
@@ -128,8 +127,6 @@ namespace iLgs.Models
         public virtual ICollection<Procurement> Procurements { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RISs> RISses { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Order> Orders { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Request> Requests { get; set; }
     }

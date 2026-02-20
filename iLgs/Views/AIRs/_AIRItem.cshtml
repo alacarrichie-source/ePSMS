@@ -55,10 +55,7 @@
         {
             a.Add(p => p.Qty).Sum();
         })
-        .Sort(s =>
-        {
-            s.Add(a => a.InsertedDt);
-        })
+        .Sort(s => s.Add(a => a.ItemNoIndex))
         .Read(read => read.Action("_AIRItemRead", "AIRs", new { airId = @ViewData["airId"] }))
     //.Create(create => create.Action("_AIRItemCreate", "AIRs"))
     .Update(update => update.Action("_AIRItemUpdate", "AIRs"))

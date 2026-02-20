@@ -55,17 +55,14 @@
                 a.Add(p => p.QtyRequest).Sum();
                 a.Add(p => p.QtyIssue).Sum();
             })
-            .Sort(s =>
-            {
-                s.Add(a => a.InsertedDt);
-            })
+            .Sort(s => s.Add(a => a.ItemNoIndex))
             .Read(read => read.Action("_RISItemRead", "RIS", new { risId = @ViewData["risId"] }))
-            //.Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
+        //.Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
             //.Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")         
+            .DataBound("onDataBoundGridItems")
         )
         .AutoBind(true)
 )

@@ -20,7 +20,6 @@ namespace iLgs.Models
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
-            this.OrderItems = new HashSet<OrderItem>();
             this.ProcurementItems = new HashSet<ProcurementItem>();
             this.PsCards = new HashSet<PsCard>();
             this.RisItems = new HashSet<RisItem>();
@@ -28,6 +27,7 @@ namespace iLgs.Models
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
             this.RSMIItems = new HashSet<RSMIItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
+            this.OrderItems = new HashSet<OrderItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -55,8 +55,6 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProcurementItem> ProcurementItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCard> PsCards { get; set; }
@@ -70,5 +68,7 @@ namespace iLgs.Models
         public virtual ICollection<RSMIItem> RSMIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

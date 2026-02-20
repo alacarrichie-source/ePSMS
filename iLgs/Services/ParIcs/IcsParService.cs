@@ -379,16 +379,16 @@ namespace iLgs.Services.ParIcs
                 RefDate = model.RefDate,
                 RefType = model.RefType,
                 ReceivedById = model.ReceivedById,
-                ReceivedBy = model.ReceivedBy.Trim(),
+                ReceivedBy = model.ReceivedBy?.Trim(),
                 ReceivedByTitle = model.ReceivedByTitle?.Trim(),
                 ReceivedByTitle2 = model.ReceivedByTitle2?.Trim(),
                 ReceivedByPosition = model.ReceivedByPosition?.Trim(),
                 ReceivedDate = model.ReceivedDate,
-                ReceivedDept = model.ReceivedDept.Trim(),
-                IssuedBy = model.IssuedBy.Trim(),
-                IssuedByPosition = model.IssuedByPosition.Trim(),
+                ReceivedDept = model.ReceivedDept?.Trim(),
+                IssuedBy = model.IssuedBy?.Trim(),
+                IssuedByPosition = model.IssuedByPosition?.Trim(),
                 IssuedDate = model.IssuedDate,
-                IssuedDept = model.IssuedDept.Trim(),
+                IssuedDept = model.IssuedDept?.Trim(),
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -496,7 +496,7 @@ namespace iLgs.Services.ParIcs
                             var gSelectedId = Guid.Parse(selectedId);
                             if (gSelectedId == prevUnitGroupDescriptionItem.IcsParItemId)
                             {
-                                var newIcsParItem = await _db.IcsParItems.AsNoTracking().SingleOrDefaultAsync(s => s.PrevItemId == gSelectedId);
+                                var newIcsParItem = await _db.IcsParItems.Include(i => i.PsCardItemExtn).AsNoTracking().SingleOrDefaultAsync(s => s.PrevItemId == gSelectedId);
                                 var icsParUnitGroupDescItem = new IcsParUnitGroupDescriptionItem()
                                 {
                                     Id = Guid.NewGuid(),
@@ -508,8 +508,8 @@ namespace iLgs.Services.ParIcs
                                     UpdatedDt = date
                                 };
                                 icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
-                                addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost;
-                                gTotalCost = gTotalCost + newIcsParItem.PsCardItemExtn.AcqCost;
+                                addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost ?? 0;
+                                gTotalCost = gTotalCost + newIcsParItem.PsCardItemExtn.AcqCost ?? 0;
                                 break;
                             }
                         }
@@ -630,16 +630,16 @@ namespace iLgs.Services.ParIcs
                         RefDate = model.RefDate,
                         RefType = model.RefType,
                         ReceivedById = model.ReceivedById,
-                        ReceivedBy = model.ReceivedBy.Trim(),
+                        ReceivedBy = model.ReceivedBy?.Trim(),
                         ReceivedByTitle = model.ReceivedByTitle?.Trim(),
                         ReceivedByTitle2 = model.ReceivedByTitle2?.Trim(),
                         ReceivedByPosition = model.ReceivedByPosition?.Trim(),
                         ReceivedDate = model.ReceivedDate,
-                        ReceivedDept = model.ReceivedDept.Trim(),
-                        IssuedBy = model.IssuedBy.Trim(),
-                        IssuedByPosition = model.IssuedByPosition.Trim(),
+                        ReceivedDept = model.ReceivedDept?.Trim(),
+                        IssuedBy = model.IssuedBy?.Trim(),
+                        IssuedByPosition = model.IssuedByPosition?.Trim(),
                         IssuedDate = model.IssuedDate,
-                        IssuedDept = model.IssuedDept.Trim(),
+                        IssuedDept = model.IssuedDept?.Trim(),
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -766,8 +766,8 @@ namespace iLgs.Services.ParIcs
                                             UpdatedDt = date
                                         };
                                         icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
-                                        addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost;
-                                        gTotalCost = gTotalCost + newIcsParItem.PsCardItemExtn.AcqCost;
+                                        addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost ?? 0;
+                                        gTotalCost = gTotalCost + newIcsParItem.PsCardItemExtn.AcqCost ?? 0;
                                         break;
                                     }
                                 }
@@ -1071,7 +1071,7 @@ namespace iLgs.Services.ParIcs
                                             UpdatedDt = date
                                         };
                                         icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
-                                        addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost;
+                                        addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost ?? 0;
                                         break;
                                     }
                                 }

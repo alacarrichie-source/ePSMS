@@ -4,7 +4,62 @@
     ViewBag.Title = "Error";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-<h3>@ViewBag.Error</h3>
+<style>
+    .error-page-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
 
+    .error-card {
+        max-width: 640px;
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .error-icon {
+        font-size: 64px;
+    }
+</style>
+
+<div class="error-page-wrapper">
+    <div class="card shadow-lg border-0 error-card">
+        <div class="card-body p-5 text-center">
+
+            <div class="mb-4">
+                <i class="fa fa-exclamation-triangle text-danger error-icon"></i>
+            </div>
+
+            <h2 class="text-danger fw-bold mb-3">
+                Oops! Something went wrong
+            </h2>
+
+            <p class="text-muted mb-4">
+                An error occurred while processing your request.
+                Please try again or contact the system administrator if the problem persists.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(ViewBag.Error as string))
+            {
+                <div class="alert alert-danger text-start">
+                    <strong>Error Details:</strong><br />
+                    @ViewBag.Error
+                </div>
+            }
+
+            <div class="mt-4">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary me-2">
+                    <i class="fa fa-home"></i> Go Home
+                </a>
+
+                <button onclick="window.history.back();" class="btn btn-outline-secondary">
+                    <i class="fa fa-arrow-left"></i> Go Back
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

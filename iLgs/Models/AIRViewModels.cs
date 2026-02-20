@@ -16,6 +16,9 @@ namespace iLgs.Models
 
         public System.Guid Id { get; set; }
 
+        [Display(Name = "Ctrl. No.")]
+        public string CtrlNo { get; set; }
+
         [Display(Name = "PO No.")]
         public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
@@ -151,6 +154,8 @@ namespace iLgs.Models
 
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
+
+        public string ItemNoIndex { get; set; }
     }
 
     public class AIRInvoiceVM

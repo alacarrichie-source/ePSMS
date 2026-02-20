@@ -21,11 +21,17 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
 
-        public IcsParUpdateController(AppManEntities db, IIcsParService icsParService)
+        public IcsParUpdateController()
         {
-            _db = db;
-            _icsParService = icsParService;
+            _db = new AppManEntities();
+            _icsParService = new IcsParService(_db);
         }
+
+        //public IcsParUpdateController(AppManEntities db, IIcsParService icsParService)
+        //{
+        //    _db = db;
+        //    _icsParService = icsParService;
+        //}
 
         // GET: IcsParUpdate
         public ActionResult Index()

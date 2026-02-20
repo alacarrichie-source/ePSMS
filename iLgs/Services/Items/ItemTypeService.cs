@@ -26,17 +26,22 @@ namespace iLgs.Services
     public class ItemTypeService : IItemTypeService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IItemCodeService _itemCodeService;
 
-        public ItemTypeService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IItemCodeService itemCodeService)
+        public ItemTypeService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _itemCodeService = itemCodeService;
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public ItemTypeService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         private Expression<Func<ItemType, ItemTypeVM>> Projection(AppManEntities _db)
         {
@@ -93,25 +98,22 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            ItemType entity = new ItemType()
             {
-                ItemType entity = new ItemType()
-                {
-                    Id = (Guid)model.Id,
-                    Code = model.Code,
-                    Description = model.Description,
-                    PartialPage = model.PartialPage,
-                    Category = model.Category,
-                    GroupCode = model.GroupCode,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
+                Id = (Guid)model.Id,
+                Code = model.Code,
+                Description = model.Description,
+                PartialPage = model.PartialPage,
+                Category = model.Category,
+                GroupCode = model.GroupCode,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
 
-                ctx.ItemTypes.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.ItemTypes.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -146,25 +148,20 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ItemType entity = await ctx.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
+            ItemType entity = await _db.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
 
-                ValidateRecord(entity, (Guid)model.Id);
-                ValidateRelationship(ctx, entity);
+            ValidateRecord(entity, (Guid)model.Id);
+            ValidateRelationship(entity);
 
-                entity.Code = model.Code;
-                entity.Description = model.Description;
-                entity.PartialPage = model.PartialPage;
-                entity.Category = model.Category;
-                entity.GroupCode = model.GroupCode;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.Code = model.Code;
+            entity.Description = model.Description;
+            entity.PartialPage = model.PartialPage;
+            entity.Category = model.Category;
+            entity.GroupCode = model.GroupCode;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //_db.ItemTypes.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-            }
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -174,24 +171,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                ItemType entity = await ctx.ItemTypes.FindAsync(model.Id);
+            ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
 
-                ValidateRecord(entity, (Guid)model.Id);
-                ValidateRelationship(ctx, entity);
+            ValidateRecord(entity, (Guid)model.Id);
+            ValidateRelationship(entity);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.ItemTypes.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                ctx.ItemTypes.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-            }
+            _db.ItemTypes.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -204,11 +195,11 @@ namespace iLgs.Services
             }
         }
 
-        private void ValidateRelationship(AppManEntities ctx, ItemType entity)
+        private void ValidateRelationship(ItemType entity)
         {
             foreach (var itemCode in entity.ItemCodes)
             {
-                _itemCodeService.ValidateRelationship(ctx, itemCode.Id);
+                _itemCodeService.ValidateRelationship(itemCode.Id);
             }
         }
     }

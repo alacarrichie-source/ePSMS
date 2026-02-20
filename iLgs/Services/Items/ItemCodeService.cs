@@ -28,6 +28,7 @@ namespace iLgs.Services.Items
         string GetSubAccount(Guid? id, int pos);
         string GetSubAccountCode(Guid? id);
         string GetPartialView(Guid? id);
+        bool? GetIsConsumable(string isConsumable);
         Task<string> GetPartialViewAsync(Guid? id);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
@@ -55,7 +56,7 @@ namespace iLgs.Services.Items
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date);
 
-        void ValidateRelationship(AppManEntities ctx, Guid itemcodeId);
+        void ValidateRelationship(Guid itemcodeId);
     }
 
     public class ItemCodeService : IItemCodeService
@@ -329,9 +330,20 @@ namespace iLgs.Services.Items
                 }
                 return itemCode.ItemType.PartialPage ?? "";
             }
-
             return itemCode.PartialPage ?? "";
+        }
 
+        public bool? GetIsConsumable(string isConsumable)
+        {
+            if (isConsumable?.ToUpper() == "Y")
+            {
+                return true;
+            }
+            else if (isConsumable?.ToUpper() == "N")
+            {
+                return false;
+            }            
+            return null;            
         }
 
         public async Task<string> GetPartialViewAsync(Guid? id)
@@ -578,7 +590,7 @@ namespace iLgs.Services.Items
             //{
                 ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
                 ValidateRecord(entity, model.Id);
-                ValidateRelationship(_db, model.Id);
+                ValidateRelationship(model.Id);
 
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
@@ -595,7 +607,7 @@ namespace iLgs.Services.Items
 
         private string GetItemCode(AppManEntities ctx, Guid? itemTypeId, string itemNo, string description)
         {
-            var itemType = ctx.ItemTypes.Find(itemTypeId);
+            var itemType = _db.ItemTypes.Find(itemTypeId);
             //string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
             //string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
             //if (string.IsNullOrWhiteSpace(description))
@@ -617,46 +629,46 @@ namespace iLgs.Services.Items
             return itemNoIndex;
         }
 
-        public void ValidateRelationship(AppManEntities ctx, Guid itemcodeId)
+        public void ValidateRelationship(Guid itemcodeId)
         {
-            var psCards = ctx.PsCards.Where(w => w.ItemCodeId == itemcodeId);
+            var psCards = _db.PsCards.Where(w => w.ItemCodeId == itemcodeId);
             if (psCards.Any())
             {
                 //var cardNos = string.Join("/", psCards.Select(s => s.PsNo));
                 throw new RecordRelationshipException($"Item Code is in use in Stock/Property Card, cannot proceed!");
             }
 
-            var cust1 = ctx.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust1 = _db.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust1.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian report, cannot proceed!");
             }
 
-            var cust2 = ctx.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust2 = _db.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust2.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian structures, cannot proceed!");
             }
 
-            var cust3 = ctx.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
+            var cust3 = _db.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust3.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in custodian land, cannot proceed!");
             }
 
-            var rpciItems = ctx.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
+            var rpciItems = _db.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
             if (rpciItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in RPCI, cannot proceed!");
             }
 
-            var risItems = ctx.RisItems.Where(w => w.ItemCodeId == itemcodeId);
+            var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
             if (risItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in RIS, cannot proceed!");
             }
 
-            var orderItems = ctx.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
+            var orderItems = _db.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
             if (orderItems.Any())
             {
                 throw new RecordRelationshipException("Item Code is in use in PURHASE ORDERS, cannot proceed!");

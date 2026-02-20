@@ -1274,6 +1274,7 @@
     <Compile Include="Controllers\BaseConroller.cs" />
     <Compile Include="Utilities\AppManEntitiesFactory.cs" />
     <Compile Include="Utilities\DefaultDependencyResolver.cs" />
+    <Compile Include="Utilities\ItemNoSequenceUtil.cs" />
     <Compile Include="Utilities\ServiceProviderControllerFactory.cs" />
     <Compile Include="Utilities\SignalRHubs.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />

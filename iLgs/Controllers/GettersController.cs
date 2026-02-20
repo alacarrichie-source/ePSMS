@@ -255,6 +255,32 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetUnitGroup(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "UNIT-GROUP").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetAllUnits(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "UNIT" || w.CodeMast.Code == "UNIT-GROUP").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCodes(string mastCode, string text)
         {
 
@@ -379,9 +405,9 @@ namespace iLgs.Controllers
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetSupplier(string text)
+        public async Task<JsonResult> GetSupplier(string text)
         {
-            var model = _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll {0}", text).AsQueryable().Take(100);
+            var model = (await _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll {0}", text).ToListAsync()).Take(100);
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN, ZipCode = c.ZipCode, Email = c.Email, ContactNo = c.ContactNo }), JsonRequestBehavior.AllowGet);
         }
@@ -406,38 +432,45 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.Department }), JsonRequestBehavior.AllowGet);
         }
 
-        //public async Task<JsonResult> GetPrNoWithRemainingItems(Guid? orderId, string text)
-        //{
-        //    orderId = orderId ?? Guid.Empty;
-        //    var userId = User.Identity.GetUserId();
-        //    var IsAdmin = await _userService.IsAdminAsync(userId);
-        //    IQueryable<Request> model;
-        //    if (IsAdmin)
-        //    {
-        //        model = _db.Requests.Where(w => w.SubmittedBy != null).AsNoTracking().AsQueryable();
-        //    }
-        //    else
-        //    {
-        //        model = _db.Requests.Where(w => w.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.SubmittedBy != null).AsNoTracking().AsQueryable();
-        //    }
+        public async Task<JsonResult> GetPrNoWithRemainingItems(Guid? orderId, string text)
+        {
+            orderId = orderId ?? Guid.Empty;
+            var userId = User.Identity.GetUserId();
+            var IsAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<Request> model;
+            if (IsAdmin)
+            {
+                model = _db.Requests.Where(w => w.PostedDt != null).AsNoTracking().AsQueryable();
+            }
+            else
+            {
+                model = _db.Requests.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedDt != null).AsNoTracking().AsQueryable();
+            }
 
-        //    if (orderId == Guid.Empty)
-        //    {
-        //        model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
-        //    }
-        //    else
-        //    {
-        //        model = model.Where(w => w.Orders.Any(a => a.Id == orderId) || (!w.Orders.Any(a => a.Id != orderId && w.RequestItems.Any(a2 => !a2.OrderItems.Any()))));
-        //        //model = model.Where(w => w.Requests.Any(a => a.Id == prId) || !w.Requests.Any(a => a.Id != prId));
-        //    }
+            if (orderId == Guid.Empty)
+            {
+                model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
+            }
+            else
+            {
+                model = model.Where(w => w.Orders.Any(a => a.Id == orderId) || (!w.Orders.Any(a => a.Id != orderId && w.RequestItems.Any(a2 => !a2.OrderItems.Any()))));
+            }
 
-        //    if (!string.IsNullOrWhiteSpace(text))
-        //    {
-        //        model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
-        //    }
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
+            }
 
-        //    return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office, ApprovedBy = c.ApprovedBy, ApprovedDesig = c.ApprovedDesig }), JsonRequestBehavior.AllowGet);
-        //}
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                PrNo = c.PrNo,
+                PrDate = c.PrDate,
+                Department = c.Department,
+                ApprovedBy = c.ApprovedBy,
+                ApprovedDesig = c.ApprovedDesig
+            }), JsonRequestBehavior.AllowGet);
+        }
 
         public JsonResult GetFpp(string department, string text)
         {
@@ -591,14 +624,14 @@ namespace iLgs.Controllers
 
         public JsonResult GetPoNos(string text)
         {
-            var model = _db.Orders.AsNoTracking().AsQueryable();
+            var model = _db.Orders.Include(i => i.Request).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public async Task<JsonResult> GetPoNosWithoutPr(Guid? airId, string text)
@@ -609,11 +642,11 @@ namespace iLgs.Controllers
             IQueryable<Order> model;
             if (IsAdmin)
             {
-                model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders.Include(i => i.Request).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
             }
             else
             {
-                model = _db.Orders.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders.Include(i => i.Request).Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
             }
 
             if (airId == Guid.Empty)
@@ -630,7 +663,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public async Task<JsonResult> GetPoNosWithoutRis(Guid? risId, string text)
@@ -641,21 +674,25 @@ namespace iLgs.Controllers
             IQueryable<Order> model;
             if (IsAdmin)
             {
-                model = _db.Orders.Include(i  => i.Codextn).Include(i => i.Request).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders
+                    .Include(i => i.Request)
+                    .Include(i => i.RISses).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
             }
             else
             {
-                model = _db.Orders.Include(i => i.Codextn).Include(i => i.Request).Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders
+                    .Include(i => i.Request)
+                    .Include(i => i.RISses).Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
             }
 
             if (risId == Guid.Empty)
             {
                 model = model.Where(w => !w.RISses.Any());
             }
-            //else
-            //{
-            //    model = model.Where(w => w.RISses.Any(a => a.Id == risId) || !w.RISses.Any(a => a.Id != risId));
-            //}
+            else
+            {
+                model = model.Where(w => w.RISses.Any(a => a.Id == risId) || !w.RISses.Any(a => a.Id != risId));
+            }
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -667,13 +704,13 @@ namespace iLgs.Controllers
                 Id = c.Id,
                 PoNo = c.PoNo,
                 PoDate = c.PoDate,
-                DeptId = c.DeptId,
-                DeptDesc = c.Codextn.Description,
-                Department = c.Department,
-                Section = c.Section,
-                FPP = c.FPP,
-                Fund = c.Fund,
-                Purpose = c.Request == null ? "" : c.Request.Purpose
+                DeptId = c.Request.DeptId,
+                DeptDesc = c.Request.Codextn.Description,
+                Department = c.Request.Department,
+                Section = c.Request.Section,
+                FPP = c.Request.FPP,
+                Fund = c.Request.Fund,
+                Purpose = c.Request.Purpose
             }).OrderBy(o => o.PoNo), JsonRequestBehavior.AllowGet);
         }
 

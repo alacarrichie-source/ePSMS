@@ -302,6 +302,10 @@ namespace iLgs.Models
         // for reference in dropdown templates
         public string Department { get; set; }
         public bool IsPosted { get; set; }
+
+        // transients
+        public string ItemNoIndex { get; set; }
+        public int? Padding { get; set; }
     }
 
     [MetadataType(typeof(RisItemMedecine.Metadata))]

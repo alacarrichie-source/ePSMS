@@ -85,6 +85,8 @@ namespace iLgs.Services.PurchaseOrder
                     OrderItemId = s.OrderItemId,
                     //RequestItemUnitGroupDescriptionItemId = s.RequestItemUnitGroupDescriptionItemId,
                     //RequestItemUnitGroupDescriptionItem = s.RequestItemUnitGroupDescriptionItem,
+                    ItemNo = s.OrderItem.ItemNo,
+                    ItemNoIndex = s.OrderItem.ItemNoIndex,
                     Category = s.OrderItem.ItemCode.ItemType.Category,
                     PsNo = s.OrderItem.PsNo,
                     ItemName = s.OrderItem.ItemName,
@@ -246,7 +248,7 @@ namespace iLgs.Services.PurchaseOrder
 
         public async Task UpdateOrderItemAsync(Guid? orderItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
-            var orderItem = await _db.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
+            var orderItem = await _db.OrderItems.Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
             var unitGroup = await _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefaultAsync();
             var setUnitCost = unitGroup.UnitCost;
             var setTotalCost = unitGroup.TotalCost;

@@ -29,23 +29,31 @@ namespace iLgs.Controllers
         private readonly IItemCodeService _itemCodeService;
         private readonly ICodextnService _codextnService;
         private readonly IDirectoryService _directoryService;
-        
-        public ItemsController(AppManEntities db, IItemTypeService itemTypeService, 
-            IItemCodeService itemCodeService, ICodextnService codextnService, IDirectoryService directoryService)
+
+        public ItemsController()
         {
-            _db = db;
-            _itemTypeService = itemTypeService;
-            _itemCodeService = itemCodeService;
-            _codextnService = codextnService;
-            _directoryService = directoryService;        
+            _db = new AppManEntities();
+            _itemTypeService = new ItemTypeService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _codextnService = new CodextnService(_db);
+            _directoryService = new DirectoryService(_db);
         }
+
+        //public ItemsController(AppManEntities db, IItemTypeService itemTypeService, 
+        //    IItemCodeService itemCodeService, ICodextnService codextnService, IDirectoryService directoryService)
+        //{
+        //    _db = db;
+        //    _itemTypeService = itemTypeService;
+        //    _itemCodeService = itemCodeService;
+        //    _codextnService = codextnService;
+        //    _directoryService = directoryService;        
+        //}
 
         // GET: Codes
         public ActionResult Index()
         {
             return View();
         }
-
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {

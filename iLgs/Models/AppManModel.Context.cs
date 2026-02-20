@@ -129,10 +129,10 @@ namespace iLgs.Models
         public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<OrderItem> OrderItems { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<RequestItem> RequestItems { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
     }
 }

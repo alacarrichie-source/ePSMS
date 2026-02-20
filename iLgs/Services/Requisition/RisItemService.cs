@@ -75,6 +75,7 @@ namespace iLgs.Services.Requisition
                     Id = s.Id,
                     RisId = s.RisId,
                     ItemNo = s.OrderItem.ItemNo,
+                    ItemNoIndex = s.OrderItem.ItemNoIndex,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,                    
                     ItemType = s.ItemCode.Description,
@@ -124,7 +125,8 @@ namespace iLgs.Services.Requisition
                     IsPosted = s.IsPosted,
                     AllField = s.AllField,
                     SetLotNo = s.SetLotNo,
-                    PpmpCode = s.PpmpCode
+                    PpmpCode = s.PpmpCode,
+                    Padding = s.ItemNo.Count(c => c == '.') * 30
                 }).FirstOrDefault();
             return data;
         }

@@ -415,9 +415,9 @@
         e.preventDefault();
         selectedGrid = e.sender;
         if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
             selectedId = null;
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);            
 
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
@@ -444,6 +444,10 @@
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            var combo = $("#OrderId").data("kendoMultiColumnComboBox");
+            if (combo) {
+                combo.enable(false);
+            }   
         }
     }
 
@@ -501,7 +505,7 @@
                         }
                     });
 
-                    //RisItem("A", null);
+                    //RisItem("A", null, null);
                 }
             }
         }
@@ -660,7 +664,7 @@
         model.set("OfficeDesc", dataItem.DeptDesc);
         model.set("Office", dataItem.Department);
         model.set("Section", dataItem.Section);
-        model.set("Purpose", dataItem.Purpose);        
+        model.set("Purpose", dataItem.Purpose);
     }
 
     function DataPsCodeId() {

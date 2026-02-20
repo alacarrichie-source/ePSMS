@@ -43,14 +43,14 @@
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="5.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="5.25" PointY="9.125" />
-        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="10.625" />
-        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="3" PointY="5.5" />
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="10" />
-        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
+        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="5.25" PointY="8.5" />
+        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="3" PointY="4.625" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
-        <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="10.25" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
+        <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="4.75" />

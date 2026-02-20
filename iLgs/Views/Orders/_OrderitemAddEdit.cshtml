@@ -17,6 +17,9 @@
     @Html.HiddenFor(model => model.ItemType)
     @Html.HiddenFor(model => model.ItemCode)
     @Html.HiddenFor(model => model.ItemName)
+    @Html.HiddenFor(model => model.IsSetLot)
+    @Html.HiddenFor(model => model.SetLotNo)
+    @Html.HiddenFor(model => model.OriginalDescription)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -29,7 +32,7 @@
             <div class="col-md-12">
                 <div class="col-md-6`">
                     <div class="col-md-2">
-                        @Html.DisplayFor(m => m.ItemNo, "LabelInt")
+                        @Html.DisplayFor(m => m.ItemNo, "Label")
                     </div>
                     <div class="col-md-10">
                         @(Html.Kendo().TextBoxFor(m => m.ItemNo).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
@@ -42,97 +45,111 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.ItemCodeId, "LabelGuid")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
-                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select Item")
-                        .DataTextField("Article")
-                        .DataValueField("Id")
-                        .ValuePrimitive(true)
-                        .Filter(FilterType.Contains)
-                        .DataSource(source =>
-                        {
-                            source.Read(read =>
-                            {
-                                read.Action("GetItemAccounts", "ItemHelper");
-                            })
-                            .ServerFiltering(true);
-                        })
-                        .Columns(c =>
-                        {
-                            c.Add().Field("Category").Title("Category").Width("10%").Template("#= columnTemplate(data.Category) #");
-                            c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
-                            c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
-                            c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
-                            c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
-                            c.Add().Field("SubAccount3").Title("Sub-Account3").Width("10%").Template("#= columnTemplate(data.SubAccount3) #");
-                            c.Add().Field("SubAccount4").Title("Sub-Account4").Width("10%").Template("#= columnTemplate(data.SubAccount4) #");
-                            c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
-                        })
-                        //.Suggest(true)
-                        .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.ItemCodeId)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-6`">
+        @if (!Model.IsSetLot)
+        {
+            <div class="row k-mb-2">
+                <div class="col-md-12">
                     <div class="col-md-2">
-                        @Html.DisplayFor(m => m.PpmpCode, "Label")
+                        @Html.DisplayFor(m => m.ItemCodeId, "LabelGuid")
                     </div>
                     <div class="col-md-10">
-                        @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Item")
+                    .DataTextField("Article")
+                    .DataValueField("Id")
+                    .ValuePrimitive(true)
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetItemAccounts", "ItemHelper");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Category").Title("Category").Width("10%").Template("#= columnTemplate(data.Category) #");
+                        c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
+                        c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
+                        c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
+                        c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
+                        c.Add().Field("SubAccount3").Title("Sub-Account3").Width("10%").Template("#= columnTemplate(data.SubAccount3) #");
+                        c.Add().Field("SubAccount4").Title("Sub-Account4").Width("10%").Template("#= columnTemplate(data.SubAccount4) #");
+                        c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
+                    })
+                    //.Suggest(true)
+                    .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
+                        )
+                        @Html.ValidationMessageFor(m => m.ItemCodeId)
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.Category, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Category).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-6`">
+                        <div class="col-md-2">
+                            @Html.DisplayFor(m => m.PpmpCode, "Label")
+                        </div>
+                        <div class="col-md-10">
+                            @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.PsTypeDesc, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.PsTypeDesc).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.SubAccount, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.SubAccount).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.Category, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.Category).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <br />
-        <div id="DIV_ALLFIELDS" class="hidden">
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.PsTypeDesc, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PsTypeDesc).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                </div>
+            </div>
 
-        </div>
-        <br />
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.SubAccount, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.SubAccount).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div id="DIV_ALLFIELDS" class="hidden">
+
+            </div>
+            <br />
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.PsNo, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PsNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.PsNo)
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -146,19 +163,7 @@
             </div>
         </div>
 
-        <br />
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.PsNo, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.PsNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.PsNo)
-                </div>
-            </div>
-        </div>
+        <br />        
 
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -177,7 +182,14 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetUnits", "Getters");
+                                if (Model.IsSetLot)
+                                {
+                                    read.Action("GetUnitGroup", "Getters");
+                                }
+                                else
+                                {
+                                    read.Action("GetUnits", "Getters");
+                                }
                             })
                             .ServerFiltering(true);
                         })
@@ -216,7 +228,7 @@
                 </div>
                 <div class="col-md-10">
                     @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost)
-                        .Enable(string.IsNullOrWhiteSpace(ViewData["setLotNo"] as string))
+                        .Enable(string.IsNullOrWhiteSpace(Model.SetLotNo)) // disable if member of Set/Lot
                         .Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("changeAmount"))
                     )

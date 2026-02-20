@@ -81,7 +81,9 @@ namespace iLgs.Services.AIRs_
                 ConstructionYear = s.ConstructionYear,
                 InvDist = s.InvDist,
                 InsertedDt = s.InsertedDt,
-                SetLotNo = s.OrderItem.Order.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? ""
+                SetLotNo = s.OrderItem.Order.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
+                ItemNo = s.OrderItem.ItemNo,
+                ItemNoIndex = s.OrderItem.ItemNoIndex
             };
         }
 

@@ -588,7 +588,7 @@ namespace iLgs.Controllers
                 DeptId = deptId,
                 Date = date,                
                 RefType = "I",
-                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued?.Description, IssuedByPosition = issued?.Desc2, IssuedDept = issued?.Desc3},                
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued?.Description, IssuedByPosition = issued?.Desc2, IssuedDept = issued?.Desc3}
             };
 
             return PartialView(model);

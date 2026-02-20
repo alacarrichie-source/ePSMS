@@ -25,14 +25,21 @@ namespace iLgs.Controllers
         private readonly ICustodianDeptUploadService _uploadService;
         private readonly IUserService _userService;
 
-        public CustodianAccountability2Controller(AppManEntities db,
-            ICustodianDeptUploadService uploadService,
-            IUserService userService)
+        public CustodianAccountability2Controller()
         {
-            _db = db;
-            _uploadService = uploadService.Create("PROCUREMENT");
-            _userService = userService;
+            _db = new AppManEntities();
+            _uploadService = new CustodianDeptUploadService(_db).Create("PROCUREMENT");
+            _userService = new UserService(_db);
         }
+
+        //public CustodianAccountability2Controller(AppManEntities db,
+        //    ICustodianDeptUploadService uploadService,
+        //    IUserService userService)
+        //{
+        //    _db = db;
+        //    _uploadService = uploadService.Create("PROCUREMENT");
+        //    _userService = userService;
+        //}
 
         public ActionResult Index()
         {
