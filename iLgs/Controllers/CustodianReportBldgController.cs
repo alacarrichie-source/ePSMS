@@ -32,21 +32,32 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
 
-        public CustodianReportBldgController(AppManEntities db, ICustodianReportService custodianReportService,
-            ICustodianReportBldgItemService custodianReportBldgItemService,
-            ICustodianBldgUploadService custodianBldgUploadService, 
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
-            ICodextnService codextnService,
-            IItemCodeService itemCodeService)
+        public CustodianReportBldgController()
         {
-            _db = db;
-            _custodianReportService = custodianReportService;
-            _custodianReportBldgItemService = custodianReportBldgItemService;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
-            _uploadService = custodianBldgUploadService;
-            _codextnService = codextnService;
-            _itemCodeService = itemCodeService;
+            _db = new AppManEntities();
+            _custodianReportService = new CustodianReportService(_db);
+            _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
+            _uploadService = new CustodianBldgUploadService(_db);
+            _codextnService = new CodextnService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
+
+        //public CustodianReportBldgController(AppManEntities db, ICustodianReportService custodianReportService,
+        //    ICustodianReportBldgItemService custodianReportBldgItemService,
+        //    ICustodianBldgUploadService custodianBldgUploadService, 
+        //    ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
+        //    ICodextnService codextnService,
+        //    IItemCodeService itemCodeService)
+        //{
+        //    _db = db;
+        //    _custodianReportService = custodianReportService;
+        //    _custodianReportBldgItemService = custodianReportBldgItemService;
+        //    _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
+        //    _uploadService = custodianBldgUploadService;
+        //    _codextnService = codextnService;
+        //    _itemCodeService = itemCodeService;
+        //}
 
         public ActionResult BldgQuery()
         {

@@ -85,13 +85,15 @@
                 {
                     source.Read(read =>
                     {
-                        read.Action("GetCustodianBldgMainAccounts", "Getters").Data("DataAccount");
+                        //read.Action("GetCustodianBldgMainAccounts", "Getters").Data("DataAccount");
+                        read.Action("GetCustodianMainAccounts", "ItemHelper").Data("DataAccount");
                     })
                     .ServerFiltering(true);
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("MainAccount").Title("Account").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("MainAccount").Title("Account").Width("80%");
                 })
             //.Events(e => { e.Select("onSelectOrderId"); })
             )
@@ -122,7 +124,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 //.Events(e => { e.Select("onSelectOrderId"); })
                 .CascadeFrom("mainAccount")
@@ -153,7 +156,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount1")
             )
@@ -183,7 +187,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount2")
             )
@@ -213,7 +218,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount3")
             )

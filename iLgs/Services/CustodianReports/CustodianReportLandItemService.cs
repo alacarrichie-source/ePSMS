@@ -30,9 +30,11 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
-        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
     }
 
@@ -535,11 +537,12 @@ namespace iLgs.Services.CustodianReports
 
         public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName)
         {
-            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, "", "", "", "", userName);
+            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, null, "", "", "", "", userName);
         }
 
         //public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup)
-        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -549,7 +552,8 @@ namespace iLgs.Services.CustodianReports
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
             //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath);
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
         private void SetRowColValue(IXLWorksheet ws, CustodianReportLandItem reportItem, int row, bool isAnnex)
@@ -660,14 +664,15 @@ namespace iLgs.Services.CustodianReports
         //    return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, "", "");
         //}
 
-        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+        private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
         
         private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             
@@ -684,7 +689,7 @@ namespace iLgs.Services.CustodianReports
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 var reportItems = _db.Database.SqlQuery<CustodianReportLandItemVM>("Exec CustodianReport_GetLandItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, null, annex, userIsAdmin, subAccount, userId).AsQueryable();
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -1053,7 +1058,8 @@ namespace iLgs.Services.CustodianReports
         }
 
         //public MemoryStream ProcessExcelAnnexFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
-        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -1077,7 +1083,8 @@ namespace iLgs.Services.CustodianReports
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
             }
             //return ProcessExcelFileTemplate(forYear, deptId, accountGroup, templateFilePath, hdg, annex);
-            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+            return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
         

@@ -26,7 +26,6 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportBldgItemPhaseService : BaseValidator, ICustodianReportBldgItemPhaseService
     {
         protected readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportBldgItemPhasVM> _exceptionService;
         private readonly IExceptionService<CustodianReportBldgItemTransferVM> _transferItemExceptionService;
@@ -34,30 +33,41 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
 
-        public CustodianReportBldgItemPhaseService(AppManEntities db, 
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
-            IExceptionService<CustodianReportBldgItemTransferVM> transferItemExceptionService,
-            IUserService userService,
-            ICodextnService codextnService)
+        public CustodianReportBldgItemPhaseService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _transferItemExceptionService = transferItemExceptionService;
-            _userService = userService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<CustodianReportBldgItemPhasVM>();
+            _transferItemExceptionService = new ExceptionService<CustodianReportBldgItemTransferVM>();
+            _userService = new UserService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhasVM>;
-            _codextnService = codextnService;
+            _codextnService = new CodextnService(_db);
         }
+
+        //public CustodianReportBldgItemPhaseService(AppManEntities db, 
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<CustodianReportBldgItemPhasVM> exceptionService,
+        //    IExceptionService<CustodianReportBldgItemTransferVM> transferItemExceptionService,
+        //    IUserService userService,
+        //    ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _exceptions = exceptions;
+        //    _exceptionService = exceptionService;
+        //    _transferItemExceptionService = transferItemExceptionService;
+        //    _userService = userService;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhasVM>;
+        //    _codextnService = codextnService;
+        //}
 
         private Expression<Func<CustodianReportBldgItemPhas, CustodianReportBldgItemPhasVM>> Projection()
         {
             return s => new CustodianReportBldgItemPhasVM
             {
                 Id = s.Id,
-                BldgItemId = s.BldgItemId,                
+                BldgItemId = s.BldgItemId,
                 PhaseNo = s.PhaseNo,
                 CapitalOutlay = s.CapitalOutlay,
                 MOOE = s.MOOE,
@@ -78,7 +88,7 @@ namespace iLgs.Services.CustodianReports
                 UpdatedDt = s.UpdatedDt,
                 Fund = s.Fund,
                 Annex = s.Annex,
-                BldgItem = s.BldgItem                
+                BldgItem = s.BldgItem
             };
         }
 
@@ -106,65 +116,62 @@ namespace iLgs.Services.CustodianReports
             ValidateReportingYearEnd(model.SourceId);
             ValidateIfPosted(model.SourceId);
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            // 1. Load source with phases
+            var sourceItem = await _db.CustodianReportBldgItems
+                .Include(i => i.CustodianReportBldgItemPhases).AsNoTracking()
+                .FirstOrDefaultAsync(f => f.Id == model.SourceId);
+
+            if (sourceItem == null)
             {
-                // 1. Load source with phases
-                var sourceItem = await ctx.CustodianReportBldgItems
-                    .Include(i => i.CustodianReportBldgItemPhases).AsNoTracking()
-                    .FirstOrDefaultAsync(f => f.Id == model.SourceId);
-
-                if (sourceItem == null)
-                {
-                    throw new NotFoundException(model.SourceId);
-                }
-
-                // 2. Load target item
-                var targetItems = ctx.CustodianReportBldgItems
-                    .Include(i => i.CustodianReportBldgItemPhases)
-                    .Where(p =>
-                        p.ReportId == model.ReportId &&
-                        p.CustodianItemNo == model.TargetCustodianItemNo);
-
-                if (targetItems.Count() > 1)
-                {
-                    throw new RecordRelationshipException($"More than 1 {model.TargetCustodianItemNo} was found.");
-                }
-
-                var targetItem = targetItems.FirstOrDefault();    
-
-                if (targetItem == null)
-                {
-                    throw new NotFoundException($"Custodian Item No. {model.TargetCustodianItemNo} not found.");
-                }
-
-                // 3. Extract child phases
-                var sourcePhases = sourceItem.CustodianReportBldgItemPhases.ToList();
-
-                // 4. Transfer each phase
-                foreach (var phase in sourcePhases)
-                {
-                    //// remove from source navigation
-                    //sourceItem.CustodianReportBldgItemPhases.Remove(phase);
-
-                    //// change FK
-                    //phase.BldgItemId = targetItem.Id;
-
-                    //// add to target navigation
-                    //targetItem.CustodianReportBldgItemPhases.Add(phase);
-
-                    var fund = string.IsNullOrWhiteSpace(phase.Fund) ? phase.CustodianReportBldgItem.Fund : phase.Fund;
-                    var annex = string.IsNullOrWhiteSpace(phase.Annex) ? phase.CustodianReportBldgItem.Annex : phase.Annex;
-                    var bldgItem = string.IsNullOrWhiteSpace(phase.BldgItem) ? phase.CustodianReportBldgItem.BldgItem : phase.BldgItem;
-
-                    await ctx.Database.ExecuteSqlCommandAsync("Update CustodianReportBldgItemPhases " +
-                        "Set BldgItemId = {0}, BldgItem = {1}, " +
-                        "Fund = {2}, Annex = {3}, UpdatedBy = {4}, UpdatedDt = {5} " +
-                        "Where Id = {6}", targetItem.Id, bldgItem, fund, annex, user, date, phase.Id);
-                }
-
-                //// Save
-                //await ctx.SaveChangesAsync();
+                throw new NotFoundException(model.SourceId);
             }
+
+            // 2. Load target item
+            var targetItems = _db.CustodianReportBldgItems
+                .Include(i => i.CustodianReportBldgItemPhases)
+                .Where(p =>
+                    p.ReportId == model.ReportId &&
+                    p.CustodianItemNo == model.TargetCustodianItemNo);
+
+            if (targetItems.Count() > 1)
+            {
+                throw new RecordRelationshipException($"More than 1 {model.TargetCustodianItemNo} was found.");
+            }
+
+            var targetItem = targetItems.FirstOrDefault();
+
+            if (targetItem == null)
+            {
+                throw new NotFoundException($"Custodian Item No. {model.TargetCustodianItemNo} not found.");
+            }
+
+            // 3. Extract child phases
+            var sourcePhases = sourceItem.CustodianReportBldgItemPhases.ToList();
+
+            // 4. Transfer each phase
+            foreach (var phase in sourcePhases)
+            {
+                //// remove from source navigation
+                //sourceItem.CustodianReportBldgItemPhases.Remove(phase);
+
+                //// change FK
+                //phase.BldgItemId = targetItem.Id;
+
+                //// add to target navigation
+                //targetItem.CustodianReportBldgItemPhases.Add(phase);
+
+                var fund = string.IsNullOrWhiteSpace(phase.Fund) ? phase.CustodianReportBldgItem.Fund : phase.Fund;
+                var annex = string.IsNullOrWhiteSpace(phase.Annex) ? phase.CustodianReportBldgItem.Annex : phase.Annex;
+                var bldgItem = string.IsNullOrWhiteSpace(phase.BldgItem) ? phase.CustodianReportBldgItem.BldgItem : phase.BldgItem;
+
+                await _db.Database.ExecuteSqlCommandAsync("Update CustodianReportBldgItemPhases " +
+                    "Set BldgItemId = {0}, BldgItem = {1}, " +
+                    "Fund = {2}, Annex = {3}, UpdatedBy = {4}, UpdatedDt = {5} " +
+                    "Where Id = {6}", targetItem.Id, bldgItem, fund, annex, user, date, phase.Id);
+            }
+
+            //// Save
+            //await _db.SaveChangesAsync();
 
             return model;
         }
@@ -183,32 +190,29 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
 
-                var entity = new CustodianReportBldgItemPhas();
-                MapModelToEntityFields(entity, model, Mode.ADD);
+            var entity = new CustodianReportBldgItemPhas();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-                ctx.CustodianReportBldgItemPhases.Add(entity);
-                await ctx.SaveChangesAsync();
-                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
+            _db.CustodianReportBldgItemPhases.Add(entity);
+            await _db.SaveChangesAsync();
+            await UpdateBldgAnnexAsync(model.BldgItemId);
 
-                return model;
-            }
+            return model;
         }
 
-        private async Task UpdateBldgAnnexAsync(AppManEntities ctx, Guid? bldgItemId)
+        private async Task UpdateBldgAnnexAsync(Guid? bldgItemId)
         {
-            var annex = await ctx.CustodianReportBldgItemPhases.Where(p => p.BldgItemId == bldgItemId && p.Annex != null && p.Annex != "")
+            var annex = await _db.CustodianReportBldgItemPhases.Where(p => p.BldgItemId == bldgItemId && p.Annex != null && p.Annex != "")
                 .OrderBy(o => o.Annex)
                 .Select(s => s.Annex)
                 .FirstOrDefaultAsync();
-                        
-            var bldgItem = await ctx.CustodianReportBldgItems.FirstOrDefaultAsync(p => p.Id == bldgItemId && p.Annex != annex);
+
+            var bldgItem = await _db.CustodianReportBldgItems.FirstOrDefaultAsync(p => p.Id == bldgItemId && p.Annex != annex);
             if (bldgItem != null) // update if with changes
             {
                 bldgItem.Annex = annex;
-                await ctx.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
         }
 
@@ -220,25 +224,22 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportBldgItemPhases.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateIfPosted(entity.BldgItemId);
-                ValidateIfSubmitted(model);
-                ValidateEntry(model, Mode.EDIT);
+            var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity.BldgItemId);
+            ValidateIfSubmitted(model);
+            ValidateEntry(model, Mode.EDIT);
 
-                //ValidateUser(entity, model);
+            //ValidateUser(entity, model);
 
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //_db.CustodianReportBldgItemPhases.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
+            //_db.CustodianReportBldgItemPhases.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            await UpdateBldgAnnexAsync(model.BldgItemId);
 
-                return model;
-            }
+            return model;
         }
 
         public virtual async ValueTask<CustodianReportBldgItemPhasVM> DeleteAsync(CustodianReportBldgItemPhasVM model, string user, DateTime date)
@@ -248,27 +249,24 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportBldgItemPhases.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateIfPosted(entity.BldgItemId);
-                ValidateIfSubmitted(model);
+            var entity = await _db.CustodianReportBldgItemPhases.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity.BldgItemId);
+            ValidateIfSubmitted(model);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.CustodianReportBldgItemPhases.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            //_db.CustodianReportBldgItemPhases.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                ctx.CustodianReportBldgItemPhases.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
-                await UpdateBldgAnnexAsync(ctx, model.BldgItemId);
+            _db.CustodianReportBldgItemPhases.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
+            await UpdateBldgAnnexAsync(model.BldgItemId);
 
-                return model;
-            }
+            return model;
         }
 
         protected void MapModelToEntityFields(CustodianReportBldgItemPhas entity, CustodianReportBldgItemPhasVM model, Mode mode)
@@ -282,7 +280,7 @@ namespace iLgs.Services.CustodianReports
 
             entity.BldgItemId = model.BldgItemId;
             entity.PhaseNo = model.PhaseNo;
-            entity.CapitalOutlay= model.CapitalOutlay;
+            entity.CapitalOutlay = model.CapitalOutlay;
             entity.MOOE = model.MOOE;
             entity.ProjectName = model.ProjectName;
             entity.BuildingType = model.BuildingType;
@@ -384,7 +382,7 @@ namespace iLgs.Services.CustodianReports
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), "Field is required.");
             }
-            
+
             if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "C")
             {
                 if (string.IsNullOrWhiteSpace(model.Remarks))

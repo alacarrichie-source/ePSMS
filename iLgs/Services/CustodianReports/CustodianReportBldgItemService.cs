@@ -52,7 +52,6 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<CustodianReportBldgItemVM> _vmExceptionService;
         private readonly IExceptionService<CustodianReportBldgItem> _exceptionService;
         private readonly ICustodianReportItemPpeValidator _validator;
@@ -63,29 +62,43 @@ namespace iLgs.Services.CustodianReports
         private readonly ICustodianBldgUploadService _custodianBldgUploadService;
         private readonly ICodextnService _codextnService;
 
-        public CustodianReportBldgItemService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<CustodianReportBldgItemVM> vmExceptionService,
-            IExceptionService<CustodianReportBldgItem> exceptionService,
-            IAllFieldService allFieldService,
-            IUserService userService,
-            ICustodianReportBldgItemPhaseService custodianReportBldgItemPhase,
-            ICustodianReportItemPpeValidator validator,
-            ICustodianBldgUploadService custodianBldgUploadService, 
-            ICodextnService codextnService)
+        public CustodianReportBldgItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _validator = validator;
-            _allFieldService = allFieldService;
-            _userService = userService;
-            _custodianReportBldgItemPhase = custodianReportBldgItemPhase;
+            _vmExceptionService = new ExceptionService<CustodianReportBldgItemVM>();
+            _exceptionService = new ExceptionService<CustodianReportBldgItem>();
+            _validator = new CustodianReportItemPpeValidator(_db);
+            _allFieldService = new AllFieldService(_db);
+            _userService = new UserService(_db);
+            _custodianReportBldgItemPhase = new CustodianReportBldgItemPhaseService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
-            _custodianBldgUploadService = custodianBldgUploadService;
-            _codextnService = codextnService;
+            _custodianBldgUploadService = new CustodianBldgUploadService(_db);
+            _codextnService = new CodextnService(_db);
         }
+
+        //public CustodianReportBldgItemService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<CustodianReportBldgItemVM> vmExceptionService,
+        //    IExceptionService<CustodianReportBldgItem> exceptionService,
+        //    IAllFieldService allFieldService,
+        //    IUserService userService,
+        //    ICustodianReportBldgItemPhaseService custodianReportBldgItemPhase,
+        //    ICustodianReportItemPpeValidator validator,
+        //    ICustodianBldgUploadService custodianBldgUploadService, 
+        //    ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _validator = validator;
+        //    _allFieldService = allFieldService;
+        //    _userService = userService;
+        //    _custodianReportBldgItemPhase = custodianReportBldgItemPhase;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
+        //    _custodianBldgUploadService = custodianBldgUploadService;
+        //    _codextnService = codextnService;
+        //}
 
         public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase => _custodianReportBldgItemPhase;
 
@@ -290,7 +303,7 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NullException();
             }
-        }        
+        }
 
         public async ValueTask UpdateItemCodeAsync(int? reportingYearEnd, string selectedIds, Guid? newItemId, string user, DateTime date)
         {
@@ -307,31 +320,28 @@ namespace iLgs.Services.CustodianReports
                 throw new RecordNotFoundException("No Items to process");
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            foreach (var selectedId in selectedIdList)
             {
-                foreach (var selectedId in selectedIdList)
+                var id = Guid.Parse(selectedId);
+                var entity = await _db.CustodianReportBldgItems.FirstOrDefaultAsync(f => f.Id == id);
+                if (entity != null)
                 {
-                    var id = Guid.Parse(selectedId);
-                    var entity = await ctx.CustodianReportBldgItems.FirstOrDefaultAsync(f => f.Id == id);
-                    if (entity != null)
+                    var newItemCode = await _db.ItemCodes.FindAsync(newItemId);
+                    if (newItemCode != null)
                     {
-                        var newItemCode = await ctx.ItemCodes.FindAsync(newItemId);
-                        if (newItemCode != null)
-                        {
-                            entity.ItemCodeId = newItemId;
-                            entity.Item_Code = newItemCode.Code;
-                            var psNo = await GetStockNoAsync(entity);
-                            entity.PsNo = psNo;
-                            entity.UpdatedBy = user;
-                            entity.UpdatedDt = date;
+                        entity.ItemCodeId = newItemId;
+                        entity.Item_Code = newItemCode.Code;
+                        var psNo = await GetStockNoAsync(entity);
+                        entity.PsNo = psNo;
+                        entity.UpdatedBy = user;
+                        entity.UpdatedDt = date;
 
-                            await ctx.SaveChangesAsync();
-                        }
+                        await _db.SaveChangesAsync();
                     }
                 }
-
-                //await ctx.SaveChangesAsync();
             }
+
+            //await _db.SaveChangesAsync();            
         }
 
         public ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -354,35 +364,32 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+            if (custodianReport == null)
             {
-                var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
-                if (custodianReport == null)
-                {
-                    custodianReport = new CustodianReport();
-                    custodianReport.Id = Guid.NewGuid();
-                    custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
-                    custodianReport.DeptId = model.MainDeptId;
-                    custodianReport.Department = model.MainDeptName;
-                    custodianReport.AccountGroup = model.AccountGroup;
-                    custodianReport.InsertedBy = user;
-                    custodianReport.InsertedDt = date;
-                    custodianReport.UpdatedBy = user;
-                    custodianReport.UpdatedDt = date;
-                    ctx.CustodianReports.Add(custodianReport);
-                    await ctx.SaveChangesAsync();
-                }
-
-                model.ReportId = custodianReport.Id;
-                ValidateIfSubmitted(model, ctx);
-                var entity = new CustodianReportBldgItem();
-                MapModelToEntityFields(entity, model, Mode.ADD);
-
-                ctx.CustodianReportBldgItems.Add(entity);
-                await ctx.SaveChangesAsync();
-
-                return model;
+                custodianReport = new CustodianReport();
+                custodianReport.Id = Guid.NewGuid();
+                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
+                custodianReport.DeptId = model.MainDeptId;
+                custodianReport.Department = model.MainDeptName;
+                custodianReport.AccountGroup = model.AccountGroup;
+                custodianReport.InsertedBy = user;
+                custodianReport.InsertedDt = date;
+                custodianReport.UpdatedBy = user;
+                custodianReport.UpdatedDt = date;
+                _db.CustodianReports.Add(custodianReport);
+                await _db.SaveChangesAsync();
             }
+
+            model.ReportId = custodianReport.Id;
+            ValidateIfSubmitted(model);
+            var entity = new CustodianReportBldgItem();
+            MapModelToEntityFields(entity, model, Mode.ADD);
+
+            _db.CustodianReportBldgItems.Add(entity);
+            await _db.SaveChangesAsync();
+
+            return model;
         });
 
         public ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -394,100 +401,88 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportBldgItems.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateIfPosted(entity);
-                ValidateIfSubmitted(model, ctx);
+            var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
-                MapModelToEntityFields(entity, model, Mode.EDIT);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-                //ctx.CustodianReportBldgItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            //_db.CustodianReportBldgItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                return model;
-            }
+            return model;
         });
 
         public ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            ValidateIfNull(model);            
+            ValidateIfNull(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportBldgItems.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(model.ReportId);                
-                ValidateIfPosted(entity);
-                ValidateIfSubmitted(model, ctx);
+            var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(model.ReportId);
+            ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //ctx.CustodianReportBldgItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            //_db.CustodianReportBldgItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                ctx.CustodianReportBldgItems.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+            _db.CustodianReportBldgItems.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
-                return model;
-            }
+            return model;
         });
 
         public ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.CustodianReportBldgItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(entity.ReportId);
+            ValidateIfPosted(entity);
+
+            if (!_custodianBldgUploadService.GetAllByImageId(id).Any())
             {
-                var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(entity.ReportId);
-                ValidateIfPosted(entity);
-
-                if (!_custodianBldgUploadService.GetAllByImageId(id).Any())
-                {
-                    throw new NotFoundException("No uploaded images found for this record, cannot post!");
-                }
-
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //ctx.CustodianReportBldgItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                return entity;
+                throw new NotFoundException("No uploaded images found for this record, cannot post!");
             }
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            //_db.CustodianReportBldgItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         public ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportBldgItems.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(entity.ReportId);
-                ValidateIfNotPosted(entity);
+            var entity = await _db.CustodianReportBldgItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(entity.ReportId);
+            ValidateIfNotPosted(entity);
 
-                entity.PostedBy = "";
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //ctx.CustodianReportBldgItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                return entity;
-            }
+            //_db.CustodianReportBldgItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         private AllField SetAllField(CustodianReportBldgItem custodianReportItem)
@@ -624,7 +619,7 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(8).SetValue(reportItem.SubLocation);
             ws.Row(row).Cell(9).SetValue(reportItem.Latitude);
             ws.Row(row).Cell(10).SetValue(reportItem.Longitude);
-            
+
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(14).SetValue("From Donation");
@@ -683,7 +678,7 @@ namespace iLgs.Services.CustodianReports
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
-        }        
+        }
 
         private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
             , string templateFilePath, string hdg, string annex, string mainAccount
@@ -826,14 +821,14 @@ namespace iLgs.Services.CustodianReports
                         if (deptId == null)
                         {
                             //custCellVal.SetValue($"ALL : {reportItem.DeptCode} {reportItem.Department}");
-                            custCellVal.SetValue($"ALL : {reportItem.MainDeptCode} {reportItem.MainDeptName}");                            
+                            custCellVal.SetValue($"ALL : {reportItem.MainDeptCode} {reportItem.MainDeptName}");
                         }
                         else
                         {
                             //custCellVal.SetValue($"{reportItem.DeptCode} {reportItem.Department}");
                             custCellVal.SetValue($"{reportItem.MainDeptCode} {reportItem.MainDeptName}");
                         }
-                        
+
                         if (custCellVal.IsMerged())
                         {
                             custCellVal.MergedRange().Unmerge();
@@ -877,14 +872,14 @@ namespace iLgs.Services.CustodianReports
                         ws.Range($"V{row - 1}:V{row}").Merge();
                         ws.Range($"W{row - 1}:W{row}").Merge();
                         ws.Range($"X{row - 1}:X{row}").Merge();
-                        ws.Range($"Y{row - 1}:Y{row}").Merge();                        
+                        ws.Range($"Y{row - 1}:Y{row}").Merge();
                         ws.Range($"AD{row - 2}:AD{row}").Merge();
                         ws.Range($"AE{row - 2}:AE{row}").Merge();
                         ws.Range($"AF{row - 2}:AF{row}").Merge();
                         ws.Range($"AG{row - 2}:AG{row}").Merge();
                     }
 
-                    row++;                    
+                    row++;
 
                     if (string.IsNullOrWhiteSpace(annex))
                     {
@@ -933,7 +928,7 @@ namespace iLgs.Services.CustodianReports
                             ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                         }
                         tAcqCost += (engAmt.AcqCost ?? 0);
-                    }                    
+                    }
                 }
 
                 ws.Row(++row).Cell(19).SetValue("TOTAL");
@@ -1011,9 +1006,9 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateIfSubmitted(CustodianReportBldgItem model, AppManEntities ctx)
+        private void ValidateIfSubmitted(CustodianReportBldgItem model)
         {
-            var submitForCount = ctx.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
             if (submitForCount != null)
             {
                 var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";

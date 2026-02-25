@@ -180,7 +180,6 @@ namespace iLgs.Services.CustodianReports
                 .Where(w => w.ReportId == reportId && w.Annex != "D")
                 .Select(CustodianReporStockItemProjection);
             }
-
             return data;
         }
 
@@ -191,7 +190,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
+                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();                
                 if (data.Any() && isDemand == true)
                 {
                     data = data.Where(w => w.Annex == "C");
@@ -211,7 +210,7 @@ namespace iLgs.Services.CustodianReports
             {
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
                 if (data.Any() && isDemand == true)
                 {
                     data = data.Where(w => w.Annex == "C");
@@ -229,7 +228,7 @@ namespace iLgs.Services.CustodianReports
             IQueryable<CustodianReportItemStockVM> data = null;
             var userId = _userService.GetByUserName(userName).Id;
             var userIsAdmin = _userService.IsUserNameAdmin(userName);
-            data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();
+            data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, null, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
             
             return data.AsNoTracking();
         }

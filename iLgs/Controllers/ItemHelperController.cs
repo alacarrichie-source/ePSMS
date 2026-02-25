@@ -125,9 +125,9 @@ namespace iLgs.Controllers
 
         public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
         {
-            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.MainAccount).ToList();
+            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.Code).ToList();
             // Insert "ALL" at the top
-            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, Code = string.Empty, MainAccount = "ALL" });
 
             return Json(model, JsonRequestBehavior.AllowGet);
         }

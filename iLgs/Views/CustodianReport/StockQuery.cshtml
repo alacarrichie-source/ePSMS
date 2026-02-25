@@ -119,14 +119,16 @@
                 {
                     source.Read(read =>
                     {
-                        read.Action("GetCustodianMainAccounts", "Getters").Data("DataAccount");
                         //read.Action("GetCustodianMainAccounts", "ItemHelper").Data("DataAccount");
+                        //read.Action("GetCustodianMainAccounts", "Getters").Data("DataAccount"); // 2026/02/25
+                        read.Action("GetCustodianMainAccounts", "ItemHelper").Data("DataAccount");
                     })
                     .ServerFiltering(true);
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("MainAccount").Title("Account").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("MainAccount").Title("Account").Width("80%");
                 })
             //.Events(e => { e.Select("onSelectOrderId"); })
             )
@@ -157,7 +159,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 //.Events(e => { e.Select("onSelectOrderId"); })
                 .CascadeFrom("mainAccount")
@@ -188,7 +191,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount1")
             )
@@ -218,7 +222,8 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount2")
             )
@@ -248,16 +253,18 @@
                 })
                 .Columns(c =>
                 {
-                    c.Add().Field("Description").Title("Description").Width("100%");
+                    c.Add().Field("Code").Title("Code").Width("20%");
+                    c.Add().Field("Description").Title("Description").Width("80%");
                 })
                 .CascadeFrom("subAccount3")
             )
         </div>
     </div>
 </div>
+
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("As of", htmlAttributes: new { @class = "col-md-3" })
+        @Html.Label("Acquisition as of", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().DatePicker().Value(DateTime.Now)
                 .Name("asOf")
@@ -267,6 +274,17 @@
     </div>
 </div>
 
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("Inserted as of", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().DateTimePicker().Value(DateTime.Now)
+                .Name("insertedAsOf")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            )
+        </div>
+    </div>
+</div>
 <br />
 @(Html.Kendo().Grid<iLgs.Models.CustodianReportItemStockVM>()
         .HtmlAttributes(new { @class = "custom-max-grid-2" })
@@ -539,10 +557,12 @@
         var subAccount3 = $("#subAccount3").val();
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
+        var insertedAsOf = $("#insertedAsOf").val();
         // Construct the URL for the Excel export
 
         var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&insertedAsOf=' + insertedAsOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
@@ -569,9 +589,11 @@
         var subAccount3 = $("#subAccount3").val();
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
+        var insertedAsOf = $("#insertedAsOf").val();
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&insertedAsOf=' + insertedAsOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
@@ -599,9 +621,11 @@
         var subAccount3 = $("#subAccount3").val();
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
+        var insertedAsOf = $("#insertedAsOf").val();
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&insertedAsOf=' + insertedAsOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
@@ -629,9 +653,11 @@
         var subAccount3 = $("#subAccount3").val();
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
+        var insertedAsOf = $("#insertedAsOf").val();
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&insertedAsOf=' + insertedAsOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
@@ -659,9 +685,11 @@
         var subAccount3 = $("#subAccount3").val();
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
+        var insertedAsOf = $("#insertedAsOf").val();
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
+            + '&insertedAsOf=' + insertedAsOf
             + '&subAccount1=' + subAccount1
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3

@@ -37,9 +37,11 @@ namespace iLgs.Services.CustodianReports
         Task UpdateAllSetLotRemarksAsync(int forYear);
 
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
-        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
     }
 
@@ -891,10 +893,11 @@ namespace iLgs.Services.CustodianReports
 
         public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string userName)
         {
-            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, "", "", "", "", userName);
+            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, "", null, null, "", "", "", "", userName);
         }
 
-        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -905,17 +908,20 @@ namespace iLgs.Services.CustodianReports
             }
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
-                return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+                return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
-                return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+                return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else
             {
-                return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount, asOf
+                return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
         }
@@ -1528,9 +1534,8 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-
         private MemoryStream ProcessExcelFileStockTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
@@ -1547,8 +1552,8 @@ namespace iLgs.Services.CustodianReports
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);                
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount1, userId).AsQueryable();
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount1, userId).AsQueryable();
                 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -1786,7 +1791,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFilePpeTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
@@ -1803,8 +1808,8 @@ namespace iLgs.Services.CustodianReports
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();                
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();                
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -2057,7 +2062,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
@@ -2074,8 +2079,8 @@ namespace iLgs.Services.CustodianReports
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, annex, userIsAdmin, subAccount, userId).AsQueryable();                
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();                
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -2332,25 +2337,29 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFileStockTemplate(int? forYear, Guid? deptId,  Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+        private MemoryStream ProcessExcelFileStockTemplate(int? forYear, Guid? deptId,  Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
-        private MemoryStream ProcessExcelFilePpeTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+        private MemoryStream ProcessExcelFilePpeTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string templateFilePath, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
-        private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? deptId, Guid? sectiondI, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
+        private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? deptId, Guid? sectiondI, int? accountGroup, string templateFilePath, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileVehicleTemplate(forYear, deptId, sectiondI, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFileVehicleTemplate(forYear, deptId, sectiondI, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
-        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
@@ -2376,17 +2385,20 @@ namespace iLgs.Services.CustodianReports
 
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
-                return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+                return ProcessExcelFileStockTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
-                return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+                return ProcessExcelFilePpeTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else
             {
-                return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
+                return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount
+                    , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
         }

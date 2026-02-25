@@ -1132,12 +1132,12 @@ namespace iLgs.Controllers
             }
 
             model = query
-                .GroupBy(g => new { g.ItemCode.ItemType.Id, g.ItemCode.ItemType.Description })
-                .Select(s => new CustodianAccountVM { Id = s.Key.Id, MainAccount = s.Key.Description })
+                .GroupBy(g => new { g.ItemCode.ItemType.Id, g.ItemCode.ItemType.Code, g.ItemCode.ItemType.GroupCode, g.ItemCode.ItemType.Description })
+                .Select(s => new CustodianAccountVM { Id = s.Key.Id, Code = s.Key.Code.Trim() + s.Key.GroupCode.Trim(), MainAccount = s.Key.Description })
                 .OrderBy(o => o.MainAccount)
                 .ToList();
 
-            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, Code = string.Empty, MainAccount = "ALL" });
 
             return Json(model, JsonRequestBehavior.AllowGet);
         }
@@ -1168,7 +1168,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetCustodianSubAccount1(int? accountGroup, Guid? mainAccount, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, Code, Article from dbo.fn_SubAccount1({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount1({0})", accountGroup).AsQueryable();
 
             query = query.Where(w => w.ItemTypeId == mainAccount);
 
@@ -1177,49 +1177,49 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }).OrderBy(o => o.Description), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount2(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount2({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount2({0})", accountGroup).AsQueryable();
 
-            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount3(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount3({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount3({0})", accountGroup).AsQueryable();
 
-            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount4(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount4({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount4({0})", accountGroup).AsQueryable();
 
-            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCurrentDate()
