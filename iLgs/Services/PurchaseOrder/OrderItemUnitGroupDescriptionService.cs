@@ -17,9 +17,11 @@ namespace iLgs.Services.PurchaseOrder
         IQueryable<OrderItemUnitGroupDescriptionVM> GetByUnitGroupId(Guid? unitGroupId);
         IQueryable<OrderItemUnitGroupDescriptionVM> GetByOrderId(Guid? orderId);
         ValueTask<OrderItemUnitGroupDescriptionVM> GetByIdAsync(Guid? id);
-        ValueTask<OrderItemUnitGroupDescriptionVM> CreateAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
-        ValueTask<OrderItemUnitGroupDescriptionVM> UpdateAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
-        ValueTask<OrderItemUnitGroupDescriptionVM> DeleteAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
+
+        //CUD is vial OrderItem's CUD
+        //ValueTask<OrderItemUnitGroupDescriptionVM> CreateAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
+        //ValueTask<OrderItemUnitGroupDescriptionVM> UpdateAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
+        //ValueTask<OrderItemUnitGroupDescriptionVM> DeleteAsync(OrderItemUnitGroupDescriptionVM model, string user, DateTime date);
 
         IOrderItemUnitGroupDescriptionItemService UnitGroupDescriptionItem { get; }        
     }
@@ -69,6 +71,7 @@ namespace iLgs.Services.PurchaseOrder
                 OrderItemUnitGroupId = s.OrderItemUnitGroupId,
                 RequestItemUnitGroupDescriptionId = s.RequestItemUnitGroupDescriptionId,
                 Description = s.Description,
+                OtherParticulars = s.OtherParticulars,
                 InsertedDt = s.InsertedDt,
                 // Transient
                 OrderId = s.OrderItemUnitGroup.OrderId,

@@ -28,6 +28,11 @@ namespace iLgs.Models
         public Nullable<decimal> AreaSoldDonated { get; set; }
         public Nullable<int> ConstructionYear { get; set; }
         public string InvDist { get; set; }
+        public Nullable<bool> IsForICS { get; set; }
+        public Nullable<bool> IsConsumable { get; set; }
+        public Nullable<bool> IsIncorporated { get; set; }
+        public Nullable<bool> IsOthers { get; set; }
+        public string OthersRemarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

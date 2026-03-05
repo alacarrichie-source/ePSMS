@@ -367,14 +367,14 @@
             <div class="col-md-6">
                 @Html.DisplayFor(model => model.SignedByAuthName, "Label")
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SignedByAuthName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.SignedByAuthName).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedByAuthName)
                 </div>
             </div>
             <div class="col-md-6">
                 @Html.DisplayFor(model => model.SignedByAuthDesignation, "Label")
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SignedByAuthDesignation).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.SignedByAuthDesignation).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedByAuthDesignation)
                 </div>
             </div>

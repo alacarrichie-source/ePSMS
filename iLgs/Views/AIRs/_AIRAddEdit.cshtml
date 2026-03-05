@@ -13,6 +13,8 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.Mode)
+    @Html.HiddenFor(model => model.CtrlNo)
+
     <fieldset>
         <div class="row k-mb-2">
             <div class="col-md-6">
@@ -20,7 +22,7 @@
                 <div class="col-md-12">
                     @(Html.Kendo().MaskedTextBoxFor(model => model.AIRNo).Mask("0000-00-0000")
                                 .PromptChar(" ")
-                                .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 @*.Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
                     @Html.ValidationMessageFor(model => model.AIRNo)
                 </div>
@@ -118,7 +120,7 @@
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Partial (pls. specify)"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(false).Label("Partial (pls. specify)"))
                                 </div>
                             </div>
                         </div>
@@ -128,7 +130,7 @@
                                     &nbsp;
                                 </div>
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>

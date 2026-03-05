@@ -24,7 +24,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
-        public virtual RisItem RisItem { get; set; }
         public virtual RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

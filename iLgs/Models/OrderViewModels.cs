@@ -191,17 +191,17 @@ namespace iLgs.Models
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
-        [Display(Name = "Other Description")]
+        [Display(Name = "Other Particulars")]
         public string OtherDesc { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
-        [Required]
+        //[Required]
         public Nullable<decimal> Amount { get; set; }
 
         [Display(Name = "Price Rate")]
@@ -248,8 +248,9 @@ namespace iLgs.Models
 
         public bool IsSetLot { get; set; } // Sw, to hold to determine the unit. If set/lot, only set/lot unit is allowed.
         public string OriginalDescription { get; set; }
+        public string OriginalOtherDesc { get; set; }
 
-        //public Nullable<System.Guid> RisItemId { get; set; }
+        public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -466,6 +467,9 @@ namespace iLgs.Models
         public string PsNo { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherDesc { get; set; }
 
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }

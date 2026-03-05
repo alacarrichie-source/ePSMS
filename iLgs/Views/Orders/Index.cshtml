@@ -33,10 +33,10 @@
                         .Encoded(false)
                         .Selected(true)
                         .Content(@<text>@RenderItem()</text>);
-                    items.Add()
+                    @*items.Add()
                         .Text("<i class='k-icon k-i-add-outline'></i> Groups")
                         .Encoded(false)
-                        .Content(@<text>@RenderUnitGroup()</text>);
+                        .Content(@<text>@RenderUnitGroup()</text>);*@
                 })
 )
         </div>
@@ -131,13 +131,23 @@
         .Name("gridItems")
         .HtmlAttributes(new { style = "height: 100%" })
         .Columns(col =>
-        {
+        {            
+            //col.Bound(c => c.UnitGroupDescriptionId).Width(50);
             col.Bound(c => c.ItemNo).Width(50);
             col.Bound(c => c.Category).Width(50);
-            col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.PsNo).Width(70);            
             col.Bound(c => c.ItemName).Width(70);
-            col.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
+            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
+                                                                       "<div>" +
+                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
+                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
+                                                                           "# } else { #" +
+                                                                               "#= kendo.htmlEncode(Description) #" +
+                                                                           "# } #" +
+                                                                       "</div>" +
+                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
+                                                                   "</div>");            
             //col.Bound(c => c.Brand).Width(50);
             col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
@@ -152,6 +162,7 @@
             {
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditOrderItem");
                 command.Destroy();
+                command.Custom("Items").IconClass("k-icon k-i-list-ordered").SendDataKeys(true).Click("onClickBtnUnitGroupDescriptionItem").Visible("IsSetLot");
             }).Width(100);
         })
         // ALL FIELDS NOT BINDING ON SUBMIT WHEN POPUP IS USED
@@ -219,6 +230,7 @@
         {
             col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.Description).Width(100);
+            col.Bound(c => c.OtherParticulars).Width(100);
             col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -232,23 +244,17 @@
             col.Bound(c => c.InsertedDt).Width(100);
             col.Command(command =>
             {
-                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditUnitGroup");
-                command.Destroy();
+                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditUnitGroup");
+                //command.Destroy();
                 command.Custom("Items").IconClass("k-icon k-i-list-ordered").SendDataKeys(true).Click("onClickBtnUnitGroupDescriptionItem");
             }).Width(120);
-        })
-        //.ToolBar(t =>
-        //{
-        //    t.Create();
-        //})
-        //.Editable(e => e.Mode(GridEditMode.InLine))
-        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UnitGroupDescriptionTemplate").Window(w => w.Width("70%").Title("Unit Group")))
-        .ToolBar(toolbar =>
+        })        
+        @*.ToolBar(toolbar =>
         {
-            toolbar.Template(@<text>
+        toolbar.Template(@<text>
             @(Html.Kendo().Button().Name("btnAddGroup").Content("Add Group").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddUnitGroup")))
             </text>);
-        })
+        })*@
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -289,13 +295,13 @@
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_UnitGroupDescriptionRead", "Orders").Data("DataGridItem"))
-            .Create(create => create.Action("_UnitGroupDescriptionCreate", "Orders"))
-            .Update(update => update.Action("_UnitGroupDescriptionUpdate", "Orders"))
-            .Destroy(destroy => destroy.Action("_UnitGroupDescriptionDestroy", "Orders"))
+        //.Create(create => create.Action("_UnitGroupDescriptionCreate", "Orders"))
+        //.Update(update => update.Action("_UnitGroupDescriptionUpdate", "Orders"))
+        //.Destroy(destroy => destroy.Action("_UnitGroupDescriptionDestroy", "Orders"))
         )
         .Events(events => events
             .Change("onChangeGridItemUnitGroupDescriptions")
-            .Edit("onEditGridItemUnitGroupDescriptions")
+            //.Edit("onEditGridItemUnitGroupDescriptions")
             .DataBound("onDataBoundGridItemUnitGroupDescriptions")
         )
         .AutoBind(true)
@@ -358,6 +364,11 @@
 
 
 <script type="text/javascript">
+    function IsSetLot(dataItem)
+    {
+        return dataItem.IsSetLot == true;
+    }
+
     function onActivateTabstripDetail(e) {
         refreshTabstrip();
     }
@@ -385,7 +396,6 @@
             orderId: orderId
         };
     }
-
 
     function onSelectTabStrip(e) {
         var tabStrip = this;
@@ -475,6 +485,9 @@
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 //$("#grid").data("kendoGrid").dataSource.read();
+                if (e.type == "destroy") {
+                    selectedId = null;
+                }
                 selectedGrid.dataSource.read();
             }
             if (e.type == "create") {
@@ -792,7 +805,7 @@
         });
         mywindow.open();
         //setTimeout(mywindow.center(), 200);
-    }    
+    }
 
     function resizeWindow() {
         var mywindow = $("#window").data("kendoWindow");
@@ -835,19 +848,19 @@
         //    }
         //});
 
-        var grid = e.sender;
-        var dataItems = grid.dataSource.view(); // currently visible rows
+        //var grid = e.sender;
+        //var dataItems = grid.dataSource.view(); // currently visible rows
 
-        // --- Italicize rows where Unit == "Set"
-        grid.tbody.find("tr").each(function (index) {
-            var dataItem = dataItems[index];
-            if (dataItem.Unit === "set" || dataItem.Unit === "lot") {
-                $(this).css({
-                    "font-style": "italic",
-                    "font-weight": "bold"
-                });
-            }
-        });
+        //// --- Italicize rows where Unit == "Set"
+        //grid.tbody.find("tr").each(function (index) {
+        //    var dataItem = dataItems[index];
+        //    if (dataItem.Unit === "set" || dataItem.Unit === "lot") {
+        //        $(this).css({
+        //            "font-style": "italic",
+        //            "font-weight": "bold"
+        //        });
+        //    }
+        //});
     }
 
     function getTotalCostSumExcludingSet() {
@@ -973,7 +986,7 @@
         $("#SupZipCode").val(dataItem.ZipCode).trigger("change");
         $("#SupEmail").val(dataItem.Email).trigger("change");
         $("#SupTIN").val(dataItem.TIN).trigger("change");
-        $("#SupContactNo").val(dataItem.ContactNo).trigger("change");
+        $("#SupContactNo").val(dataItem.ContactNos).trigger("change");
         $("#SignedBySuppName").val(dataItem.Name).trigger("change");
         //disabled.attr('disabled', 'disabled')
     }
@@ -1022,9 +1035,13 @@
             url: url,
             type: 'POST',
             data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
             success: function(data) {
                 fieldsContainer.html(data);
                 resizeWindow();
+                window.kendo.ui.progress($("#form"), false);
             }
         });
     }
@@ -1039,10 +1056,10 @@
             url: '@Url.Action("GetDescription", "Orders")',
             data: data,
             beforeSend: function () {
-                window.kendo.ui.progress($(document.body), true);
+                window.kendo.ui.progress($("#form"), true);
             },
             success: function (result) {
-                window.kendo.ui.progress($(document.body), false);
+                window.kendo.ui.progress($("#form"), false);
                 //$("#Description").val(result.Description).trigger("change");
                 $("#PsNo").val(result.StockNo).trigger("change");
                 disabled.attr('disabled', 'disabled')
@@ -1540,7 +1557,6 @@
     function onClickBtnUnitGroupDescriptionItem(e) {
         e.preventDefault();
 
-        // the current row for this detail
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
@@ -1548,7 +1564,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        UnitGroupDescriptionItem(dataItem.Id);
+        UnitGroupDescriptionItem(dataItem.UnitGroupDescriptionId);
     }
 
     function UnitGroupDescriptionItem(recId) {
@@ -1563,9 +1579,9 @@
                     modal: true,
                     visible: false,
                     autoheight: true,
-                    //close: function () {
-                    //    $("#gridItems").data("kendoGrid").dataSource.read();
-                    //},
+                    close: function () {
+                        $("#gridItems").data("kendoGrid").dataSource.read();
+                    },
                     deactivate: function () {
                         this.destroy();
                     }
@@ -1607,7 +1623,8 @@
                     visible: false,
                     autoheight: true,
                     close: function () {
-                        $("#gridItemUnitGroupDescriptionItems").data("kendoGrid").dataSource.read();
+                        //$("#gridItemUnitGroupDescriptionItems").data("kendoGrid").dataSource.read();
+                        $("#gridItems").data("kendoGrid").dataSource.read();
                     },
                     deactivate: function () {
                         this.destroy();

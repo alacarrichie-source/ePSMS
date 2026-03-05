@@ -31,7 +31,7 @@ namespace iLgs.Services.Requisition
         IRisItemUnitGroupService UnitGroup { get; }
     }
 
-    public class RisService : IRisService
+    public class RisService : BaseValidator, IRisService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
@@ -40,6 +40,7 @@ namespace iLgs.Services.Requisition
         private readonly IUserService _userService;
         private readonly IRisValidator _validator;
         private readonly IRisSharedService _risSharedService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         private IRisItemService _risItemService;
         private IRisItemUnitGroupService _risItemUnitGroupService;
@@ -53,6 +54,7 @@ namespace iLgs.Services.Requisition
             _userService = new UserService(_db);
             _validator = new RisValidator(_db);
             _risSharedService = new RisSharedService(_db);
+            _getDisplayName = Utility.GetDisplayName<RIS_VM>;
 
             _risItemService = new RisItemService(_db);
             _risItemUnitGroupService = new RisItemUnitGroupService(_db);
@@ -80,6 +82,7 @@ namespace iLgs.Services.Requisition
         = s => new RIS_VM
         {
             Id = s.Id,
+            CtrlNo = s.CtrlNo,
             Fund = s.Fund,
             Division = s.Division,
             OfficeId = s.OfficeId,
@@ -157,17 +160,108 @@ namespace iLgs.Services.Requisition
         public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnPost(risId);
+            _validator.ValidateOnPost(risId);            
 
             var entity = await _db.RISses.FindAsync(risId);
+
+            if (string.IsNullOrWhiteSpace(entity.RisNo))
+            {
+                throw new InvalidValueException("RIS No is required when posting.");
+            }
+
+            if (!entity.RisDate.HasValue)
+            {
+                throw new InvalidValueException("RIS Date is required when posting.");
+            }
+
+            var order = await _db.Orders.FindAsync(entity.OrderId);
+            if (order == null)
+            {
+                throw new RecordRelationshipException("Purchase Order not found.");
+            }
+            else
+            {
+                if (order.PoDate > entity.RisDate)
+                {
+                    throw new InvalidValueException("RIS Date must be on or after the PO Date.");
+                }
+            }
+
+            if (entity.RequestedDate.HasValue)
+            {
+                if (entity.RequestedDate.Value.Date < entity.RisDate.Value.Date)
+                {
+                    throw new InvalidValueException("Requested Date must be on or after the RIS Date.");
+                }
+            }
+            else
+            {
+                throw new InvalidValueException("Requested Date is required.");
+            }
+
+            if (entity.ApprovedDate.HasValue)
+            {
+                if (entity.ApprovedDate.Value.Date < entity.RequestedDate.Value.Date)
+                {
+                    throw new InvalidValueException("Approved Date must be on or after the Requested Date.");
+                }
+            }
+            else
+            {
+                throw new InvalidValueException("Approved Date is required.");
+            }
+
+            if (entity.IssuedDate.HasValue)
+            {
+                if (entity.ApprovedDate.Value.Date < entity.RequestedDate.Value.Date)
+                {
+                    throw new InvalidValueException("Approved Date must be on or after the Requested Date.");
+                }
+            }
+            else
+            {
+                throw new InvalidValueException("Approved Date is required.");
+            }
+
+            if (entity.ReceivedDate.HasValue)
+            {
+                if (entity.ReceivedDate.Value.Date < entity.IssuedDate.Value.Date)
+                {
+                    throw new InvalidValueException("Received Date must be on or after the Issued Date.");
+                }
+            }
+            else
+            {
+                throw new InvalidValueException("Received Date is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.IssuedBy))
+            {
+                throw new InvalidValueException("Isseud by is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.IssuedByDesignation))
+            {
+                throw new InvalidValueException("Designation of Isseud by is required.");
+            }            
+
+            if (string.IsNullOrWhiteSpace(entity.ReceivedBy))
+            {
+                throw new InvalidValueException("Received by is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.ReceivedByDesignation))
+            {
+                throw new InvalidValueException("Designation of Received by is required.");
+            }
+            
+            ///await ValidateUploadAsync(airId, entity.AIRNo);
 
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            _db.RISses.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
             return entity;
 
@@ -208,8 +302,6 @@ namespace iLgs.Services.Requisition
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            _db.RISses.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
             return entity;
 
@@ -232,11 +324,13 @@ namespace iLgs.Services.Requisition
         {
             _validator.ValidateOnCreate(model);
 
-            model.Id = Guid.NewGuid(); 
-            if (string.IsNullOrWhiteSpace(model.RisNo))
-            {
-                model.RisNo = NextRisNo((DateTime)model.RisDate);
-            }
+            model.Id = Guid.NewGuid();
+            //if (string.IsNullOrWhiteSpace(model.RisNo))
+            //{
+            //    model.RisNo = NextRisNo((DateTime)model.RisDate);
+            //}
+
+            model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
@@ -356,12 +450,9 @@ namespace iLgs.Services.Requisition
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            _db.RISses.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             _db.RISses.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
             return model;
@@ -376,17 +467,15 @@ namespace iLgs.Services.Requisition
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            if (string.IsNullOrWhiteSpace(model.RisNo))
-            {
-                model.RisNo = NextRisNo((DateTime)model.RisDate);
-            }
+            //if (string.IsNullOrWhiteSpace(model.RisNo))
+            //{
+            //    model.RisNo = NextRisNo((DateTime)model.RisDate);
+            //}
 
             var entity = await _db.RISses.FindAsync(model.Id);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            _db.RISses.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             return model;
@@ -397,30 +486,31 @@ namespace iLgs.Services.Requisition
             if (mode == Mode.ADD)
             {
                 entity.Id = model.Id;
+                entity.CtrlNo = model.CtrlNo;
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
             }
 
             entity.OrderId = model.OrderId;
             entity.Fund = model.Fund;
-            entity.Division = model.Division ?? "";
+            entity.Division = model.Division?.Trim() ?? "";
             entity.OfficeId = model.OfficeId;
-            entity.Office = model.Office;
+            entity.Office = model.Office?.Trim() ?? "";
             entity.FPP = model.FPP;
             entity.RisNo = model.RisNo;
             entity.RisDate = model.RisDate;
-            entity.Purpose = model.Purpose;
-            entity.RequestedBy = model.RequestedBy ?? "";
-            entity.RequestedByDesignation = model.RequestedByDesignation ?? "";
+            entity.Purpose = model.Purpose?.Trim() ?? "";
+            entity.RequestedBy = model.RequestedBy?.Trim() ?? "";
+            entity.RequestedByDesignation = model.RequestedByDesignation?.Trim() ?? "";
             entity.RequestedDate = model.RequestedDate;
-            entity.ApprovedBy = model.ApprovedBy ?? "";
-            entity.ApprovedByDesignation = model.ApprovedByDesignation ?? "";
+            entity.ApprovedBy = model.ApprovedBy?.Trim() ?? "";
+            entity.ApprovedByDesignation = model.ApprovedByDesignation?.Trim() ?? "";
             entity.ApprovedDate = model.ApprovedDate;
-            entity.IssuedBy = model.IssuedBy ?? "";
-            entity.IssuedByDesignation = model.IssuedByDesignation ?? "";
+            entity.IssuedBy = model.IssuedBy?.Trim() ?? "";
+            entity.IssuedByDesignation = model.IssuedByDesignation?.Trim() ?? "";
             entity.IssuedDate = model.IssuedDate;
-            entity.ReceivedBy = model.ReceivedBy ?? "";
-            entity.ReceivedByDesignation = model.ReceivedByDesignation ?? "";
+            entity.ReceivedBy = model.ReceivedBy?.Trim() ?? "";
+            entity.ReceivedByDesignation = model.ReceivedByDesignation?.Trim() ?? "";
             entity.ReceivedDate = model.ReceivedDate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -445,6 +535,29 @@ namespace iLgs.Services.Requisition
             else
             {
                 var sequence = (int.Parse(data.RisNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
+            }
+        }
+
+        private string NextCtrlNo(DateTime date)
+        {
+            string yyyy = date.Year.ToString().Trim();
+            string mm = date.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var retval = _db.RISses.Where(w => w.CtrlNo.Substring(0, 4) == yyyy).OrderByDescending(o => o.CtrlNo).FirstOrDefault();
+            if (retval == null)
+            {
+                return keyName + "-" + "0001";
+            }
+            else
+            {
+                var sequence = (int.Parse(retval.CtrlNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
@@ -509,195 +622,20 @@ namespace iLgs.Services.Requisition
             //}
         }
 
-        #endregion
-
-        #region EXCEPTION
-        //private delegate ValueTask NonReturningFunction();
-        //private delegate ValueTask<RIS_VM> ReturningVMFunction();
-        //private delegate ValueTask<RISs> ReturningFunction();
-        //private delegate IQueryable<RIS_VM> ReturningQueryableVMFunction();
-        //private delegate IQueryable<RISs> ReturningQueryableFunction();
-
-        //private async ValueTask TryCatch(NonReturningFunction nonReturningFunction)
+        //private async Task<bool> IsWwithUploadAsync(Guid? id)
         //{
-        //    try
-        //    {
-        //        await nonReturningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+        //    var result = await _uploadService.GetAllByImageId(id).AnyAsync();
+        //    return result;
+        //}
 
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
+        //private async Task ValidateUploadAsync(Guid? id, string airNo)
+        //{
+        //    if (!await IsWwithUploadAsync(id))
         //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //        throw new InvalidValueException($"No attachments found for AIR No. {airNo}, cannot post!");
         //    }
         //}
-        //private async ValueTask<RIS_VM> TryCatch(ReturningVMFunction returningVMFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningVMFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
 
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private async ValueTask<RISs> TryCatch(ReturningFunction returningFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private IQueryable<RIS_VM> TryCatch(ReturningQueryableVMFunction returningQueryableVMFunction)
-        //{
-        //    try
-        //    {
-        //        return returningQueryableVMFunction();
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private IQueryable<RISs> TryCatch(ReturningQueryableFunction returningQueryableFunction)
-        //{
-        //    try
-        //    {
-        //        return returningQueryableFunction();
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}        
-        #endregion
+        #endregion        
     }
 }

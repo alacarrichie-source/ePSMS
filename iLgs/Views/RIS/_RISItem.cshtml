@@ -2,19 +2,29 @@
         .Name("gridItems_" + @ViewData["risId"])
         .Columns(col =>
         {
+            col.Bound(c => c.ItemNo).Width(30);
             col.Bound(c => c.Category).Width(50);
-            col.Bound(c => c.PsNoDisplay).Width(100);
+            col.Bound(c => c.PsNoDisplay).Width(70);            
+            col.Bound(c => c.ItemName).Width(70);
+            col.Bound(c => c.Description).Width(150).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
+                                                                       "<div>" +
+                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
+                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
+                                                                           "# } else { #" +
+                                                                               "#= kendo.htmlEncode(Description) #" +
+                                                                           "# } #" +
+                                                                       "</div>" +
+                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
+                                                                   "</div>");
             col.Bound(c => c.Unit).Width(30);
-            col.Bound(c => c.ItemName).Width(100);
-            col.Bound(c => c.Description).Width(200);
-            col.Bound(c => c.QtyRequest).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.QtyRequest).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.QtyIssue).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.QtyIssue).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
             .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Remarks).Width(70);
-            col.Bound(c => c.SetLotNo).Width(50);
+            //col.Bound(c => c.Remarks).Width(70);
+            //col.Bound(c => c.SetLotNo).Width(50);
             //col.Command(command =>
             //{
             //    command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");

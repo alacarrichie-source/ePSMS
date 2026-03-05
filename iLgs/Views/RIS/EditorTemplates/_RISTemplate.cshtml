@@ -25,7 +25,7 @@
                         @*@(Html.Kendo().TextBoxFor(model => model.RisNo).Placeholder("(AUTO)").Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
                         @(Html.Kendo().MaskedTextBoxFor(model => model.RisNo).Mask("0000-00-0000")
                                 .PromptChar(" ")
-                                .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                                .Enable(true).HtmlAttributes(new { placeholder = "", style = "width:100%; max-width:100%;" }))
                         @Html.ValidationMessageFor(model => model.RisNo)
                     </div>
                 </div>
@@ -289,7 +289,7 @@
                 <div class="col-md-3">
                     @Html.DisplayFor(model => model.IssuedDate, "Label")
                     <div class="col-md-12">
-                        @(Html.Kendo().DatePickerFor(model => model.IssuedDate).Enable(false))
+                        @(Html.Kendo().DatePickerFor(model => model.IssuedDate).Enable(true))
                         @Html.ValidationMessageFor(model => model.IssuedDate)
                     </div>
                 </div>
@@ -299,7 +299,7 @@
                 <div class="col-md-5">
                     @Html.DisplayFor(model => model.ReceivedBy, "Label")
                     <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.ReceivedBy).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @(Html.Kendo().TextBoxFor(model => model.ReceivedBy).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.ReceivedBy)
                                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                                 .Placeholder("Select Received by")
@@ -329,14 +329,14 @@
                 <div class="col-md-4">
                     @Html.DisplayFor(model => model.ReceivedByDesignation, "Label")
                     <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.ReceivedByDesignation).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @(Html.Kendo().TextBoxFor(model => model.ReceivedByDesignation).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         @Html.ValidationMessageFor(model => model.ReceivedByDesignation)
                     </div>
                 </div>
                 <div class="col-md-3">
                     @Html.DisplayFor(model => model.ReceivedDate, "Label")
                     <div class="col-md-12">
-                        @(Html.Kendo().DatePickerFor(model => model.ReceivedDate).Enable(false))
+                        @(Html.Kendo().DatePickerFor(model => model.ReceivedDate).Enable(true))
                         @Html.ValidationMessageFor(model => model.ReceivedDate)
                     </div>
                 </div>

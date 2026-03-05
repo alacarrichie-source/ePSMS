@@ -48,6 +48,7 @@ namespace iLgs.Services.PurchaseRequest
                 ItemNo = s.ItemNo,
                 ItemNoIndex = s.ItemNoIndex,
                 Description = s.Description,
+                OtherDesc  = s.OtherDesc,
                 Remarks = s.Remarks,
                 Qty = s.Qty,
                 Unit = s.Unit,
@@ -183,6 +184,7 @@ namespace iLgs.Services.PurchaseRequest
             entity.ItemNo = model.ItemNo;
             entity.ItemNoIndex = Utility.GetItemNoIndex(model.ItemNo);
             entity.Description = model.Description?.Trim() ?? "";
+            entity.OtherDesc = model.OtherDesc?.Trim() ?? "";
             entity.Remarks = model.Remarks?.Trim() ?? "";
             entity.Qty = model.Qty;
             entity.Unit = model.Unit?.Trim() ?? "";

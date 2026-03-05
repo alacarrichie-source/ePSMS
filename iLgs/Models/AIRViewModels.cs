@@ -27,8 +27,8 @@ namespace iLgs.Models
         [Display(Name = "AIR No.")]
         public string AIRNo { get; set; }
 
-        [Display(Name = "Date")]
-        [Required]
+        [Display(Name = "AIR Date")]
+        //[Required]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AIRDate { get; set; }
 
@@ -129,7 +129,7 @@ namespace iLgs.Models
         public string Description { get; set; }
 
         [Display(Name = "Other Description")]
-        public string OrderDescription { get; set; }
+        public string OtherDesc { get; set; }
 
         [Display(Name = "Unit of Measurement")]
         public string PsUnit { get; set; }
@@ -152,10 +152,26 @@ namespace iLgs.Models
         [Display(Name = "Inventory/For Distribution")]
         public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
 
+        [Display(Name = "For ICS")]
+        public Nullable<bool> IsForICS { get; set; }
+
+        [Display(Name = "Consumable")]
+        public Nullable<bool> IsConsumable { get; set; }
+
+        [Display(Name = "Incorporated")]
+        public Nullable<bool> IsIncorporated { get; set; }
+
+        [Display(Name = "Others")]
+        public Nullable<bool> IsOthers { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string OthersRemarks { get; set; }
+
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
         public string ItemNoIndex { get; set; }
+        public int? Padding { get; set; }
     }
 
     public class AIRInvoiceVM

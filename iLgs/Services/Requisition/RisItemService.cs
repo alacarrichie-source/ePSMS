@@ -97,7 +97,7 @@ namespace iLgs.Services.Requisition
                     IsPosted = s.RISs.PostedDt != null,
                     AllField = s.AllField,
                     SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
-                    PpmpCode = s.PpmpCode
+                    PpmpCode = s.PpmpCode                    
                 }).ToList()
                 .Select(s => new RisItemEntryVM {
                     Id = s.Id,
@@ -126,7 +126,7 @@ namespace iLgs.Services.Requisition
                     AllField = s.AllField,
                     SetLotNo = s.SetLotNo,
                     PpmpCode = s.PpmpCode,
-                    Padding = s.ItemNo.Count(c => c == '.') * 30
+                    Padding = s.ItemNo.Count(c => c == '.') * 20
                 }).FirstOrDefault();
             return data;
         }
@@ -231,7 +231,8 @@ namespace iLgs.Services.Requisition
                     IsPosted = s.RISs.PostedDt != null,
                     AllField = s.AllField,
                     SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
-                    PpmpCode = s.PpmpCode
+                    PpmpCode = s.PpmpCode,
+                    ItemNoIndex = s.OrderItem.ItemNoIndex
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -260,7 +261,9 @@ namespace iLgs.Services.Requisition
                     IsPosted = s.IsPosted,
                     AllField = s.AllField,
                     SetLotNo = s.SetLotNo,
-                    PpmpCode = s.PpmpCode
+                    PpmpCode = s.PpmpCode,
+                    Padding = s.ItemNo.Count(c => c == '.') * 20,
+                    ItemNoIndex = s.ItemNoIndex
                 }).AsQueryable();
             return data;
         });

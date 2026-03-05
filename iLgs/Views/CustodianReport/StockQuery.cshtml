@@ -127,8 +127,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("MainAccount").Title("Account").Width("80%");
+                    c.Add().Field("MainAccount").Title("Account").Width("60%");
                 })
             //.Events(e => { e.Select("onSelectOrderId"); })
             )
@@ -159,8 +160,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 //.Events(e => { e.Select("onSelectOrderId"); })
                 .CascadeFrom("mainAccount")
@@ -191,8 +193,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount1")
             )
@@ -222,8 +225,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount2")
             )
@@ -253,8 +257,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount3")
             )
@@ -304,9 +309,9 @@
             col.Bound(c => c.Location).Width(70);            
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.SetLotNo).Width(50);
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });            
             col.Bound(c => c.AcqDate).Width(50);
+            col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PsNo).Width(70);

@@ -123,6 +123,9 @@ namespace iLgs.Models
         public string Mode { get; set; }
         public System.Guid Id { get; set; }
 
+        [Display(Name = "Ctrl. No.")]
+        public string CtrlNo { get; set; }
+
         public string Fund { get; set; }
         public string Division { get; set; }
 
@@ -141,7 +144,7 @@ namespace iLgs.Models
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "RIS Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> RisDate { get; set; }
@@ -161,19 +164,19 @@ namespace iLgs.Models
         [Display(Name = "Date")]
         public Nullable<System.DateTime> RequestedDate { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Approved by")]
         public string ApprovedBy { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Designation")]
         public string ApprovedByDesignation { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Date")]
         public Nullable<System.DateTime> ApprovedDate { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Issued by")]
         public string IssuedBy { get; set; }
 
@@ -210,12 +213,12 @@ namespace iLgs.Models
         public List<RisItemEntryVM> RisItems { get; set; }
 
         [Display(Name = "PO No.")]
-
+        [Required]
         public Nullable<System.Guid> OrderId { get; set; }
 
         // Transients
 
-        [Required]
+        //[Required]
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
@@ -612,6 +615,9 @@ namespace iLgs.Models
     {
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
+
+        [Display(Name = "Control No.")]
+        public string CtrlNo { get; set; }
 
         [Required]
         [Display(Name = "As Of")]

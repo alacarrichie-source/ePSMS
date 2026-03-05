@@ -720,6 +720,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\StockCardViewModels.cs" />
+    <Compile Include="Models\Supplier.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\SupplierViewModel.cs" />
     <Compile Include="Models\Tracking.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -1059,6 +1062,7 @@
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
+    <Compile Include="Services\Supplier_\SupplierService.cs" />
     <Compile Include="Services\Tracking_\TrackingService.cs" />
     <Compile Include="Services\Uploads\UploadService.cs" />
     <Compile Include="Services\Uploads\AddCostUploadService.cs" />
@@ -4198,7 +4202,6 @@
     <Content Include="Views\Shared\EditorTemplates\_DaysToConsumeTemplate.cshtml" />
     <Content Include="Views\Requests\Index.cshtml" />
     <Content Include="Views\Requests\EditorTemplates\_RequestTemplate.cshtml" />
-    <Content Include="Views\Requests\EditorTemplates\_RequestItemTemplate.cshtml" />
     <Content Include="Views\Orders\Index.cshtml" />
     <Content Include="Views\AIRs\Index.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
@@ -4366,7 +4369,6 @@
     <Content Include="Views\CustodianAccountability2\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\CustodianReportCount\Department.cshtml" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
-    <Content Include="Views\Orders\_OrderItem.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
     <Content Include="Views\RIS\Index.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
@@ -4719,9 +4721,12 @@
     <Content Include="Views\Orders\_UnitGroupDescriptionAddEdit.cshtml" />
     <Content Include="Views\Orders\_UnitGroupDescriptionItemSelection.cshtml" />
     <Content Include="Views\Orders\_UnitGroupDescriptionItems.cshtml" />
+    <Content Include="Views\Suppliers\EditorTemplates\_SupplierTemplate.cshtml" />
+    <Content Include="Views\IcsSet\Index_bak.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
+    <Folder Include="Services\ParIcsFromPo\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
     <Folder Include="Views\Card\" />

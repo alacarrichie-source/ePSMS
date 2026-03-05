@@ -155,9 +155,9 @@
             col.Bound(c => c.Location).Width(70);
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.SetLotNo).Width(50);
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });            
             col.Bound(c => c.AcqDate).Width(50);
+            col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
             col.Bound(c => c.ItemSerialNo).Width(70);
@@ -704,7 +704,8 @@
             deptId: $("#deptId").val(),
             sectionId: $("#sectionId").val(),
             accountGroup: '@ViewBag.AccountGroup',
-            isDemand: '@ViewBag.IsDemand'
+            isDemand: '@ViewBag.IsDemand',
+            isSet: '@ViewBag.IsSet'
         };
     }
 
@@ -1804,9 +1805,9 @@
                     //var newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
                     if ($("#grid").data("kendoGrid").dataSource.data().length == 0) {
                         //if (deptId != locationId) {
-                        //    btn.hide();                        
+                        //    btn.hide();
                         //}
-                        //else {                            
+                        //else {
                         //    btn.show();
                         //}
                         newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";

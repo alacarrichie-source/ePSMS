@@ -3,8 +3,19 @@
         .Columns(columns =>
         {
             columns.Bound(o => o.ItemNo).Width(50);
-            columns.Bound(o => o.Description).Width(150).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
-            columns.Bound(o => o.Unit).Width(30);                        
+            columns.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
+                                                                       "<div>" +
+                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
+                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
+                                                                           "# } else { #" +
+                                                                               "#= kendo.htmlEncode(Description) #" +
+                                                                           "# } #" +
+                                                                       "</div>" +
+                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
+                                                                   "</div>");
+            //columns.Bound(o => o.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
+            //columns.Bound(o => o.OtherDesc).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= OtherDesc #</div>");
+            columns.Bound(o => o.Unit).Width(30);
             columns.Bound(o => o.Qty).Width(50)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 //.ClientFooterTemplate("#=kendo.format('{0:n0}', getQtySumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })

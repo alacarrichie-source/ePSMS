@@ -136,8 +136,34 @@ namespace iLgs.Controllers
             ViewBag.IsAdmin = isAdmin;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
+            ViewBag.IsSet = false;
 
             return View();
+        }
+
+        public ActionResult StockSet()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
+            ViewBag.Title = "Custodian Report - Supplies";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsSet = true;
+
+            return View("Stock");
         }
 
         public ActionResult StockDemand()
@@ -152,6 +178,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);            
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
 
             return View("Stock");
         }
@@ -193,6 +220,31 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public ActionResult PpeSet()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Equipment";
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
+            ViewBag.IsSet = true;
+
+            return View("Ppe");
+        }
+
         public ActionResult Ppe()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
@@ -213,6 +265,7 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
             ViewBag.IsView = false;
+            ViewBag.IsSet = false;
 
             return View();
         }
@@ -230,6 +283,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
 
             return View("Ppe");
         }
@@ -247,6 +301,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
 
             return View("Ppe");
         }
@@ -291,6 +346,32 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public ActionResult VehicleSet()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Vehicles";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsView = false;
+            ViewBag.IsSet = true;
+
+            return View("Transpo");
+        }
+
         public ActionResult Transpo()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
@@ -312,6 +393,7 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
             ViewBag.IsView = false;
+            ViewBag.IsSet = false;
 
             return View();
         }
@@ -329,6 +411,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
 
             return View("Transpo");
         }
@@ -346,6 +429,7 @@ namespace iLgs.Controllers
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
 
             return View("Transpo");
         }
@@ -388,7 +472,61 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsView = false;
 
+            ViewBag.Category = string.Empty;
+
             return View();
+        }
+
+        public ActionResult VehiclePropQuery()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Property Vehicles";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsView = false;
+
+            ViewBag.Category = "P";
+
+            return View("TranspoQuery");
+        }
+
+        public ActionResult VehicleSupQuery()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Supplies Vehicles";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsView = false;
+
+            ViewBag.Category = "S";
+
+            return View("TranspoQuery");
         }
 
         public ActionResult Uploads()
@@ -703,10 +841,18 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isSet)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+
+            if (isSet.HasValue && isSet == true)
+            {
+                data = data.Where(w => w.SetLotNo != null && w.SetLotNo != "")
+                    .GroupBy(x => x.SetLotNo)
+                    .Where(g => g.Select(x => x.Annex).Distinct().Count() > 1)
+                    .SelectMany(g => g);
+            }
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -841,10 +987,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isSet)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+
+            if (isSet.HasValue && isSet == true)
+            {
+                data = data.Where(w => w.SetLotNo != null && w.SetLotNo != "")
+                    .GroupBy(x => x.SetLotNo)
+                    .Where(g => g.Select(x => x.Annex).Distinct().Count() > 1)
+                    .SelectMany(g => g);
+            }
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -979,10 +1133,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView, bool? isSet)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
+
+            if (isSet.HasValue && isSet == true)
+            {
+                data = data.Where(w => w.SetLotNo != null && w.SetLotNo != "")
+                    .GroupBy(x => x.SetLotNo)
+                    .Where(g => g.Select(x => x.Annex).Distinct().Count() > 1)
+                    .SelectMany(g => g);
+            }
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -995,10 +1157,22 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _VehicleItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
+        public ActionResult _VehicleItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup, string category)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
             var data = _custodianReportItemVehicleService.GetAllByAcctGroup(forYear, accountGroup, user);
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                if (category == "S")
+                {
+                    data = data.Where(w => w.Category == "S");
+                }
+                else
+                {
+                    data = data.Where(w => w.Category != "S");
+                }
+            }
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -3296,17 +3470,17 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, null, "", "", "", "");
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, null, "", "", "", "", "");
         }
 
         public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category);
         }
 
         public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
         {
             try
             {
@@ -3372,18 +3546,25 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
         {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category);
         }
 
         public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, null, "", "", "", "");
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, null, "", "", "", "", "");
         }
 
+        //public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
+        //    , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+        //{
+        //    return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, 
+        //        asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, "");
+        //}
+
         public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
         {
             try
             {
@@ -3404,7 +3585,7 @@ namespace iLgs.Controllers
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf, insertedAsOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, category, user);
                 var locationCode = "ALL";
                 if (deptId != null && deptId != Guid.Empty)
                 {

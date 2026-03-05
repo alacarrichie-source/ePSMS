@@ -48,6 +48,18 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-2">
+                    @Html.DisplayFor(m => m.OtherParticulars, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().TextAreaFor(m => m.OtherParticulars).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OtherParticulars)
+                </div>
+            </div>
+        </div>        
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
                     @Html.DisplayFor(m => m.Unit, "Label")
                 </div>
                 <div class="col-md-10">

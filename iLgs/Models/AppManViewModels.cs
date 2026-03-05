@@ -416,6 +416,8 @@ namespace iLgs.Models
         [Display(Name = "Group")]
         public string Department { get; set; }
         public string Division { get; set; }
+
+        [Display(Name = "Messenger Account")]
         public string Section { get; set; }
 
         [Display(Name = "User Code")]

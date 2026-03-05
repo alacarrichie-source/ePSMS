@@ -33,8 +33,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public Nullable<int> TContentNo { get; set; }
     
-        public virtual AIRItem AIRItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
+        public virtual AIRItem AIRItem { get; set; }
     }
 }

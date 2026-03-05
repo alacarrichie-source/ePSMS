@@ -3,6 +3,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -21,7 +22,9 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderItemVM> GetByIdAsync(Guid? id);
         ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);
-        ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);        
+        ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);
+
+        ValidPriceCapVM ValidatePriceCap(DateTime date, Guid? itemCodeId, decimal? unitCost);
     }
 
     internal class OrderItemService : BaseValidator, IOrderItemService
@@ -30,6 +33,8 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IExceptionService<OrderItemVM> _vmExceptionService;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldService _allFieldService;
+        private readonly IItemCodeService _itemCodeService;
+        private readonly IPriceCapService _priceCapService;
         private readonly IOrderSharedService _orderSharedService;
         private readonly IOrderItemSharedService _orderItemSharedService;
         private readonly IOrderItemUnitGroupService _orderItemUnitGroupService;
@@ -43,6 +48,8 @@ namespace iLgs.Services.PurchaseOrder
             _vmExceptionService = new ExceptionService<OrderItemVM>();
             _codextnService = new CodextnService(_db);
             _allFieldService = new AllFieldService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _priceCapService = new PriceCapService(_db);
             _orderSharedService = new OrderSharedService(_db);
             _orderItemSharedService = new OrderItemSharedService(_db);
             _orderItemUnitGroupService = new OrderItemUnitGroupService(_db);
@@ -105,11 +112,16 @@ namespace iLgs.Services.PurchaseOrder
                 Amount = s.Amount,
                 PriceRate = s.PriceRate,
                 InsertedDt = s.InsertedDt,
-                SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
+                SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo ?? "",
+                UnitGroupDescriptionId = _db.OrderItemUnitGroupDescriptions.FirstOrDefault(f =>                     
+                    f.OrderItemUnitGroup.OrderId == s.OrderId &&
+                    f.OrderItemUnitGroup.SetLotNo == s.ItemNo && 
+                    f.Description == s.Description).Id,
                 PpmpCode = s.PpmpCode,
                 Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20,
                 IsSetLot = s.Unit == "set" || s.Unit == "lot" ? true : false,
-                OriginalDescription = s.Description
+                OriginalDescription = s.Description,
+                OriginalOtherDesc = s.OtherDesc
             };
         }
 
@@ -186,11 +198,19 @@ namespace iLgs.Services.PurchaseOrder
                 }
                 else
                 {
-                    if (!(await _db.Codextns.Where(w => w.CodeMast.Code == "UNIT").AnyAsync()))
+                    if (!(await _db.Codextns.Where(w => w.CodeMast.Code == "UNIT" && !(w.Code == "set" || w.Code == "lot")).AnyAsync()))
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid Value.");
                     }
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.ItemNo) && !model.ItemNo.Contains(".")) // not part of set
+            {
+                if (!model.UnitCost.HasValue || model.UnitCost == 0)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
+                }                
             }
 
             //if (Enum.TryParse(model.PsType, out Category c))
@@ -265,6 +285,7 @@ namespace iLgs.Services.PurchaseOrder
                     Id = unitGroupDescriptionId,
                     OrderItemUnitGroupId = unitGroupId,
                     Description = model.Description,
+                    OtherParticulars = model.OtherDesc,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -304,7 +325,7 @@ namespace iLgs.Services.PurchaseOrder
                      * Locate in UnitGroup
                      * Add to Unit Group Item
                      */
-                    var parentOrderItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.ItemNoIndex.Substring(0, 3) == setGroup);
+                    var parentOrderItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.ItemNoIndex == setGroup);
                     if (parentOrderItem == null)
                     {
                         throw new RecordRelationshipException("The main Item No. for this record does not exists.");
@@ -312,6 +333,7 @@ namespace iLgs.Services.PurchaseOrder
                     var itemNo = parentOrderItem.ItemNo;
                     var description = parentOrderItem.Description;
                     var unitGroupDescription = await _db.OrderItemUnitGroupDescriptions
+                        .Include(i => i.OrderItemUnitGroupDescriptionItems)
                         .Where(w => w.OrderItemUnitGroup.OrderId == model.OrderId
                         && w.OrderItemUnitGroup.SetLotNo == itemNo 
                         && w.Description == description 
@@ -414,6 +436,7 @@ namespace iLgs.Services.PurchaseOrder
                 unitGroupDescription.OrderItemUnitGroup.UpdatedBy = user;
                 unitGroupDescription.OrderItemUnitGroup.UpdatedDt = date;
                 unitGroupDescription.Description = model.Description;
+                unitGroupDescription.OtherParticulars = model.OtherDesc;
                 unitGroupDescription.UpdatedBy = user;
                 unitGroupDescription.UpdatedDt = date;
 
@@ -523,8 +546,8 @@ namespace iLgs.Services.PurchaseOrder
             entity.PsNoDisplay = model.PsNoDisplay;
             entity.ItemName = model.ItemName;
             entity.Unit = model.Unit;
-            entity.Description = model.Description;
-            entity.OtherDesc = model.OtherDesc;
+            entity.Description = model.Description?.Trim() ?? "";
+            entity.OtherDesc = model.OtherDesc?.Trim() ?? "";
             entity.Unit = model.Unit;
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
@@ -606,6 +629,45 @@ namespace iLgs.Services.PurchaseOrder
             {
                 throw new NotFoundException(id);
             }
+        }
+
+        /*
+         * Validates a given pricecap for the given parameters, returns:
+         * 0 - InValid
+         * priceCap - Valid
+         */
+        public ValidPriceCapVM ValidatePriceCap(DateTime date, Guid? itemCodeId, decimal? unitCost)
+        {
+            ValidPriceCapVM validPriceCap = null;
+            if (unitCost.HasValue && unitCost > 0)
+            {
+                var priceCap = _priceCapService.GetPriceCap(date);
+                if (_itemCodeService.IsProperty(itemCodeId))
+                {
+                    if (unitCost < priceCap)
+                    {
+                        validPriceCap = new ValidPriceCapVM()
+                        {
+                            Category = "Property",
+                            PriceCap = priceCap
+                        };
+                        //throw new InvalidValueException($"Please use the Supplies Code for items with a unit cost below {_priceCap:n0}.");
+                    }
+                }
+                else
+                {
+                    if (unitCost >= priceCap)
+                    {
+                        //throw new InvalidValueException($"Please use the Property Code for items with a unit cost of {_priceCap:n0} and above.");
+                        validPriceCap = new ValidPriceCapVM()
+                        {
+                            Category = "Supplies",
+                            PriceCap = priceCap
+                        };
+                    }
+                }
+            }
+            return validPriceCap;
         }
     }
 }

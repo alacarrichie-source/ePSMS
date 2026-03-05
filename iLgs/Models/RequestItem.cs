@@ -26,6 +26,7 @@ namespace iLgs.Models
         public string ItemNo { get; set; }
         public string ItemNoIndex { get; set; }
         public string Description { get; set; }
+        public string OtherDesc { get; set; }
         public string Remarks { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public string Unit { get; set; }

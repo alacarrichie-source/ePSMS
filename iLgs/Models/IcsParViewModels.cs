@@ -565,7 +565,7 @@ namespace iLgs.Models
         public string Unit { get; set; }
 
         [Display(Name = "Unit Cost")]
-        public Nullable<decimal> UnitCost { get; set; }        
+        public Nullable<decimal> UnitCost { get; set; }
 
         [Display(Name = "Total Cost")]
         public Nullable<decimal> TotalCost { get; set; }
@@ -627,6 +627,12 @@ namespace iLgs.Models
         public string SetLotDesc { get; set; }
 
         public int? ParIcsBalance { get { return this.Qty - this.GeneratedItems; } }
+
+        public string OtherDesc { get; set; }
+        public string ItemNo { get; set; }
+        public string ItemNoIndex { get; set; }
+        public int? Padding { get; set; }
+        public bool IsSetLot { get; set; } // Sw, to hold to determine the unit. If set/lot, only set/lot unit is allowed.
     }
 
     public class ParIcsItemSetVm

@@ -1185,6 +1185,7 @@ namespace iLgs.Models
     public class CustodianAccountVM
     {
         public Guid? Id { get; set; }
+        public string Category { get; set; }
         public string Code { get; set; }
         public string MainAccount { get; set; }
         public string MainDesc { get; set; }

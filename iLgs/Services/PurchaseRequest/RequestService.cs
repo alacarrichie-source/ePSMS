@@ -127,7 +127,7 @@ namespace iLgs.Services.PurchaseRequest
             if (!(await _userService.IsAdminAsync(userId)))
             {
                 data = data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
-            }            
+            }
 
             return data.Select(Projection).AsNoTracking();
         }
@@ -137,7 +137,7 @@ namespace iLgs.Services.PurchaseRequest
             var data = _db.Requests.AsQueryable();
             if (!(await _userService.IsAdminAsync(userId)))
             {
-                data =  data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));                    
+                data = data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
             }
 
             if (isSubmitted.Value == true)
@@ -145,7 +145,7 @@ namespace iLgs.Services.PurchaseRequest
                 data = data.Where(w => !(w.SubmittedBy == null || w.SubmittedBy == ""));
             }
 
-            return data.Select(Projection).AsNoTracking(); 
+            return data.Select(Projection).AsNoTracking();
         }
 
         public Task<RequestVM> GetByIdAsync(Guid? prId)
@@ -210,7 +210,7 @@ namespace iLgs.Services.PurchaseRequest
         //        .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
         //    return IsPosted(requestId);
         //}
-        
+
         public async Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId)
         {
             return await _db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
@@ -226,7 +226,7 @@ namespace iLgs.Services.PurchaseRequest
             //{
             //    model.PrNo = NextPrNo((DateTime)model.PrDate);
             //}
-            
+
             model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
             model.InsertedDt = date;
@@ -237,7 +237,7 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = new Request();
             MapModelToEntityFields(entity, model, Mode.ADD);
-            
+
             _db.Requests.Add(entity);
             await _db.SaveChangesAsync();
 
@@ -272,11 +272,11 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = await _db.Requests.FindAsync(model.Id);
             ValidateRecord(entity, model.Id);
-            await ValidateStatusAsync(model.Id);            
+            await ValidateStatusAsync(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
-            
+
             await _db.SaveChangesAsync();
 
             _db.Requests.Remove(entity);
@@ -321,7 +321,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 if (string.IsNullOrEmpty(entity.PrNo))
                 {
-                    throw new InvalidValueException("PR Numbmer is Required.");
+                    throw new InvalidValueException("PR Number is Required.");
                 }
 
                 if (!entity.PrDate.HasValue)
@@ -446,7 +446,7 @@ namespace iLgs.Services.PurchaseRequest
                 if (string.IsNullOrEmpty(entity.ApprovedBy))
                 {
                     throw new InvalidValueException("Approved by is Required.");
-                }                
+                }
 
                 if (!entity.RequestItems.Any())
                 {
@@ -526,7 +526,7 @@ namespace iLgs.Services.PurchaseRequest
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
-        
+
         private async Task ValidateOnCreateUpdateAsync(RequestVM model, Mode mode)
         {
             _imex = new InvalidModelException();
@@ -547,40 +547,45 @@ namespace iLgs.Services.PurchaseRequest
                         var refNoParts = model.PrNo.Split('-');
                         var refNoYear = int.Parse(refNoParts[0]);
                         var refNoMonth = int.Parse(refNoParts[1]);
-                        if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
+                        var refNoSeq = int.Parse(refNoParts[2]);
+                        if (refNoSeq == 0)
                         {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series year and month must be same as the year and month of the PR date.");
-                        }
-                        //else
-                        //{
-                        //    var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
-                        //    if (!string.IsNullOrWhiteSpace(maxNo))
-                        //    {
-                        //        var refNoSeq = int.Parse(refNoParts[2]);
-                        //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                        //        if (refNoSeq <= maxSeq)
-                        //        {
-                        //            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Serial No. must be greater than {maxSeq}");
-                        //        }
-                        //    }
-                        //}
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(model.PrNo))
-                    {
-                        if (mode == Mode.ADD)
-                        {
-                            if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo))
-                            {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
-                            }
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Invalid sequence number.");
                         }
                         else
                         {
-                            if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo && a.Id != model.Id))
+                            if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
                             {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series year and month must match the PR date’s year and month.");
                             }
+                            //else
+                            //{
+                            //    //var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
+                            //    var maxNo = _db.Requests.Where(w => w.PrDate.Value.Year == model.PrDate.Value.Year).Max(m => m.PrNo);
+                            //    if (!string.IsNullOrWhiteSpace(maxNo))
+                            //    {
+                            //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            //        if (refNoSeq <= maxSeq)
+                            //        {
+                            //            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Sequnce No. must be greater than {maxSeq}");
+                            //        }
+                            //    }
+                            //}
+                        }
+                    }
+
+                    if (mode == Mode.ADD)
+                    {
+                        if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo))
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
+                        }
+                    }
+                    else
+                    {
+                        if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo && a.Id != model.Id))
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
                         }
                     }
                 }
@@ -588,7 +593,7 @@ namespace iLgs.Services.PurchaseRequest
 
             if (model.PrDate.HasValue)
             {
-                if (model.PrDate.Value.Date > model.UpdatedDt.Value.Date)
+                if (model.PrDate > model.UpdatedDt)
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), $"Future date is not allowed.");
                 }
@@ -596,7 +601,7 @@ namespace iLgs.Services.PurchaseRequest
 
             _imex.ThrowIfContainsErrors();
         }
-        
+
         //private async ValueTask ValidateOnDestroy(RequestVM model)
         //{
         //    var order = await _db.Orders.FindAsync(model.Id);
@@ -625,7 +630,7 @@ namespace iLgs.Services.PurchaseRequest
         {
             await _requestSharedService.ValidateStatusAsync(prId);
         }
-        
+
         private void ValidateRecord(Request entity, Guid id)
         {
             if (entity is null)
@@ -640,6 +645,6 @@ namespace iLgs.Services.PurchaseRequest
             {
                 throw new NullException();
             }
-        }        
+        }
     }
 }

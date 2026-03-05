@@ -12,27 +12,34 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RisItemUnitGroupDescription
+    public partial class Supplier
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RisItemUnitGroupDescription()
+        public Supplier()
         {
-            this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
+            this.Orders = new HashSet<Order>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> UnitGroupId { get; set; }
-        public Nullable<System.Guid> OrderItemUnitGroupDescriptionId { get; set; }
-        public string Description { get; set; }
-        public string OtherDesc { get; set; }
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Address { get; set; }
+        public string BusinessName { get; set; }
+        public string DTI { get; set; }
+        public string SEC { get; set; }
+        public string BIN { get; set; }
+        public string TIN { get; set; }
+        public string ContactNos { get; set; }
+        public string Email { get; set; }
+        public Nullable<bool> IsCorp { get; set; }
+        public Nullable<bool> IsVat { get; set; }
+        public string ZipCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItemUnitGroupDescription OrderItemUnitGroupDescription { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        public virtual RisItemUnitGroup RisItemUnitGroup { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }

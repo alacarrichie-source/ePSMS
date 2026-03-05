@@ -2,6 +2,7 @@
 using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
+using iLgs.Services.Supplier_;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -23,20 +24,30 @@ namespace iLgs.Controllers
         private readonly INotificationMessageService _notificationMessageService;
         private readonly IUserService _userService;
 
-        public GettersController(AppManEntities db,
-            ICodextnService codextnService,
-            ILocationService locationService,
-            ILocationBudgetService locationBudgetService,
-            INotificationMessageService notificationMessageService,
-            IUserService userService)
+        public GettersController()
         {
-            _db = db;
-            _codextnService = codextnService;
-            _locationService = locationService;
-            _locationBudgetService = locationBudgetService;
-            _notificationMessageService = notificationMessageService;
-            _userService = userService;
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+            _locationService = new LocationService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
+            _notificationMessageService = new NotificationMessageService(_db);
+            _userService = new UserService(_db);
         }
+
+        //public GettersController(AppManEntities db,
+        //    ICodextnService codextnService,
+        //    ILocationService locationService,
+        //    ILocationBudgetService locationBudgetService,
+        //    INotificationMessageService notificationMessageService,
+        //    IUserService userService)
+        //{
+        //    _db = db;
+        //    _codextnService = codextnService;
+        //    _locationService = locationService;
+        //    _locationBudgetService = locationBudgetService;
+        //    _notificationMessageService = notificationMessageService;
+        //    _userService = userService;
+        //}
 
         //public ActionResult GetSysCodeList(string text)
         //{
@@ -255,6 +266,19 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetUnitInd(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "UNIT" && !(w.Code == "set" || w.Code == "lot")).AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetUnitGroup(string text)
         {
 
@@ -405,11 +429,26 @@ namespace iLgs.Controllers
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<JsonResult> GetSupplier(string text)
+        public JsonResult GetSupplier(string text)
         {
-            var model = (await _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll {0}", text).ToListAsync()).Take(100);
+            var model = _db.Suppliers.AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Code.Contains(text) || p.Name.Contains(text));
+            }
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN, ZipCode = c.ZipCode, Email = c.Email, ContactNo = c.ContactNo }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Name = c.Name,
+                BusinessName = c.BusinessName,
+                Address = c.Address,
+                TIN = c.TIN,
+                ZipCode = c.ZipCode,
+                Email = c.Email,
+                ContactNos = c.ContactNos
+            }).OrderBy(o => o.Name).Take(100), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetEmployee(string text)
@@ -671,18 +710,14 @@ namespace iLgs.Controllers
             risId = risId ?? Guid.Empty;
             var userId = User.Identity.GetUserId();
             var IsAdmin = await _userService.IsAdminAsync(userId);
-            IQueryable<Order> model;
-            if (IsAdmin)
-            {
-                model = _db.Orders
+            // get all orders with air
+            var model = _db.Orders
                     .Include(i => i.Request)
-                    .Include(i => i.RISses).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
-            }
-            else
+                    .Include(i => i.RISses)
+                    .Where(w => w.PostedBy != null && w.AIRs.Any(a => a.OrderId == w.Id && a.PostedBy != null)).AsNoTracking().AsQueryable();
+            if (!IsAdmin)
             {
-                model = _db.Orders
-                    .Include(i => i.Request)
-                    .Include(i => i.RISses).Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = model.Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
             }
 
             if (risId == Guid.Empty)
@@ -1168,7 +1203,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetCustodianSubAccount1(int? accountGroup, Guid? mainAccount, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount1({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Category, Code, Article from dbo.fn_SubAccount1({0})", accountGroup).AsQueryable();
 
             query = query.Where(w => w.ItemTypeId == mainAccount);
 
@@ -1177,12 +1212,12 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount2(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount2({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Category, Code, Article from dbo.fn_SubAccount2({0})", accountGroup).AsQueryable();
 
             query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
@@ -1191,12 +1226,12 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex,  Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount3(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount3({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Category, Code, Article from dbo.fn_SubAccount3({0})", accountGroup).AsQueryable();
 
             query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
@@ -1205,12 +1240,12 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount4(int? accountGroup, string subAccountCode, string text)
         {
-            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Code, Article from dbo.fn_SubAccount4({0})", accountGroup).AsQueryable();
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, ItemNoIndex, Category, Code, Article from dbo.fn_SubAccount4({0})", accountGroup).AsQueryable();
 
             query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode + "."));
 
@@ -1219,7 +1254,7 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCurrentDate()

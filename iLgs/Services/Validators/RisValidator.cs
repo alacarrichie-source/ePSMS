@@ -110,41 +110,60 @@ namespace iLgs.Services.Validators
                 }
                 else
                 {
-                    var refNoParts = model.RisNo.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.RisDate.Value.Year || refNoMonth != model.RisDate.Value.Month)
+                    if (!model.RisDate.HasValue)
                     {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), "Series Year and month must be same as the year and month of the RIS date.");
+                        ex.UpsertDataList("RIS Date", "Field is required.");
                     }
                     else
                     {
-                        var maxNo = _db.RISses.Where(w => DbFunctions.TruncateTime(w.RisDate) < DbFunctions.TruncateTime(model.RisDate)).Max(m => m.RisNo);                        
-                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        var refNoParts = model.RisNo.Split('-');
+                        var refNoYear = int.Parse(refNoParts[0]);
+                        var refNoMonth = int.Parse(refNoParts[1]);
+                        var refNoSeq = int.Parse(refNoParts[2]);
+                        if (refNoSeq == 0)
                         {
-                            var refNoSeq = int.Parse(refNoParts[2]);
-                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            if (refNoSeq <= maxSeq)
+                            ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), "Invalid sequence number.");
+                        }
+                        else
+                        {
+                            if (refNoYear != model.RisDate.Value.Year || refNoMonth != model.RisDate.Value.Month)
                             {
-                                ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), $"Serial No. must be greater than {maxSeq}");
+                                ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), "Series year and month must match the RIS date’s year and month.");
                             }
+                            //else
+                            //{
+                            //    //var maxNo = _db.RISses.Where(w => DbFunctions.TruncateTime(w.RisDate) < DbFunctions.TruncateTime(model.RisDate)).Max(m => m.RisNo);
+                            //    var maxNo = _db.RISses.Where(w => w.RisDate.Value.Year == model.RisDate.Value.Year).Max(m => m.RisNo);
+                            //    if (!string.IsNullOrWhiteSpace(maxNo))
+                            //    {
+                            //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            //        if (refNoSeq <= maxSeq)
+                            //        {
+                            //            ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), $"Series No. must be greater than {maxSeq}");
+                            //        }
+                            //    }
+                            //}
                         }
                     }
                 }
             }
 
-            if (mode == Mode.ADD) {
-                if (model.RisDate.Value.Date > DateTime.Now.Date)
+            if (model.RisDate.HasValue)
+            {
+                if (model.RisDate > model.UpdatedDt)
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "Future Date is not allowed.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), $"Future date is not allowed.");
                 }
 
-                //if (model.RisDate.Value.Date < DateTime.Now.Date)
-                //{
-                //    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Past Date is not allowed.");
-                //}
-            }
-
+                if (model.PoDate.HasValue)
+                {
+                    if (model.PoDate > model.RisDate)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "RIS date must be on or after the PO date.");
+                    }
+                }
+            }            
+            
             if (!model.OrderId.HasValue)
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Field is required.");
@@ -155,14 +174,7 @@ namespace iLgs.Services.Validators
                 if (order == null)
                 {
                     ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Record not found.");
-                }
-                else
-                {
-                    if (model.RisDate < order.PoDate)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "Date must be on or after the PO Date.");
-                    }
-                }
+                }                
             }
 
             if (model.OfficeId.HasValue)
@@ -201,19 +213,35 @@ namespace iLgs.Services.Validators
                     ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
                 }
             }
-
-            if (!model.RisDate.HasValue)
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.RisDate)), "Date is required.");
-            }
-
+            
             if (string.IsNullOrWhiteSpace(model.Purpose))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.Purpose)), "Field is required.");
-            }            
+            }
+
+            if (model.RisDate.HasValue && model.PoDate.HasValue)
+            {
+                if (model.RisDate < model.PoDate)
+                {
+                    ex.UpsertDataList("RIS Date", "Must be on or after the PO Date.");
+                }                
+            }
+
+            if (model.RequestedDate.HasValue)
+            {
+                if (model.RequestedDate < model.PoDate)
+                {
+                    ex.UpsertDataList("Requested Date", "Must be on or after the PO Date.");
+                }
+            }
 
             if (model.RisDate.HasValue && model.RequestedDate.HasValue)
             {
+                if (model.RisDate < model.PoDate)
+                {
+                    ex.UpsertDataList("Requested Date", "Must be on or after the PO Date.");
+                }
+
                 if (model.RequestedDate < model.RisDate)
                 {
                     ex.UpsertDataList("Requested Date", "Must be on or after the RIS Date.");
@@ -225,6 +253,22 @@ namespace iLgs.Services.Validators
                 if (model.ApprovedDate < model.RequestedDate)
                 {
                     ex.UpsertDataList("Approved Date", "Must be on or after the Requested Date.");
+                }
+            }
+
+            if (model.IssuedDate.HasValue && model.ApprovedDate.HasValue)
+            {
+                if (model.IssuedDate < model.ApprovedDate)
+                {
+                    ex.UpsertDataList("Issued Date", "Must be on or after the Approved Date.");
+                }
+            }
+
+            if (model.ReceivedDate.HasValue && model.IssuedDate.HasValue)
+            {
+                if (model.ReceivedDate < model.IssuedDate)
+                {
+                    ex.UpsertDataList("Received Date", "Must be on or after the Issued Date.");
                 }
             }
 

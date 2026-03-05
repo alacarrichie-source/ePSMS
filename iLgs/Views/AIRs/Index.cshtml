@@ -8,6 +8,7 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
+        col.Bound(c => c.CtrlNo).Width(50);
         col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.AIRNo).Width(50);
         col.Bound(c => c.AIRDate).Width(50);
@@ -16,6 +17,8 @@
         col.Bound(c => c.Department).Width(100);
         col.Bound(c => c.InvoiceNo).Width(50);
         col.Bound(c => c.InvoiceDate).Width(50);
+        col.Bound(c => c.Custodian).Width(100);
+        col.Bound(c => c.Officer).Width(100);
         col.Bound(c => c.PostedBy).Width(50);
         //if (ViewBag.AirGroup != 3) // serial
         //{
@@ -34,23 +37,23 @@
             command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             command.Custom("AIR").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
-            command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
-        }).Width(200);
+            //command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
+        }).Width(120);
     })
     .ToolBar(t =>
     {
     //t.Create().Text("Add Record");
     @*@(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
         .Events(e => e.Click("onClickBtnAdd"))*@
-        if (ViewBag.AirGroup != 2) 
+        if (ViewBag.AirGroup != 2)
         {
-            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });            
+            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });
         }
 
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
 
         if (ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4)
-        {            
+        {
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         }
@@ -90,7 +93,7 @@
             model.Field(p => p.Id).DefaultValue(Guid.NewGuid()).Editable(true);
         })
         .Sort(s => s.Add(a => a.InsertedDt).Descending())
-        .Read(read => read.Action("AIRRead", "AIRs"))
+        .Read(read => read.Action("AIRRead", "AIRs", new { airGroup = ViewBag.AirGroup }))
         //.Create(create => create.Action("AIRCreate", "AIRs"))
         //.Update(update => update.Action("AIRUpdate", "AIRs"))
         .Destroy(destroy => destroy.Action("AIRDestroy", "AIRs"))
@@ -121,8 +124,8 @@
         items.Add().Text("Items")
             .Selected(true)
             .LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#", airGroup = ViewBag.AirGroup });
-        items.Add().Text("Groups")
-                    .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#", airGroup = ViewBag.AirGroup });
+        //items.Add().Text("Groups")
+        //            .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#", airGroup = ViewBag.AirGroup });
     }).ToClientTemplate())
 
 </script>
@@ -364,6 +367,11 @@
 
 
 <script type="text/javascript">
+    function IsNotSet(dataItem)
+    {
+        return !(dataItem.PsUnit == "set" || dataItem == "lot");
+    }
+
     function onSelectTabStrip(e) {
         var tabStrip = this;
         for (var idx = 0; ; ++idx) {
@@ -449,6 +457,7 @@
     var selectedItemId = null;
     var postedBy = null;
     var selectedAirNo = null;
+    var selectedCtrlNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -460,6 +469,7 @@
 
         postedBy = selectedData.PostedBy;
         selectedAirNo = selectedData.AIRNo;
+        selectedCtrlNo = selectedData.CtrlNo
 
         if ('@ViewBag.AirGroup' == 2 || '@ViewBag.AirGroup' == 4) {
             if (postedBy) {
@@ -492,7 +502,7 @@
             });
         }
 
-        var grid = $("#grid");
+        var grid = this;
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrint_", grid).hide();
             if ('@ViewBag.AirGroup' == 2 || '@ViewBag.AirGroup' == 4) {
@@ -554,9 +564,10 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
         selectedGrid.select(row);
-        var selectedAirNo = selectedGrid.dataItem(selectedGrid.select()).AIRNo;
+        selectedAirNo = selectedGrid.dataItem(selectedGrid.select()).AIRNo;
+        selectedCtrlNo = selectedGrid.dataItem(selectedGrid.select()).CtrlNo;
 
-        var url = '@Url.Action("RisByAirRpt", "AIRs")?airNo=' + selectedAirNo;
+        var url = '@Url.Action("RisByAirRpt", "AIRs")?ctrlNo=' + selectedCtrlNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -611,6 +622,24 @@
                     visible: false,
                     close: function () {
                         $("#grid").data("kendoGrid").dataSource.read();
+                        if (selectedId) {
+
+                            var grid = $("#grid").data("kendoGrid");
+
+                            // Trigger a read operation on the data source.
+                            grid.dataSource.read().then(function () {
+                                // Additional actions to be performed after the read operation.
+
+                                // Find the row with the specified Id.
+                                var dataItem = grid.dataSource.get(selectedId);
+
+                                // If the row is found, expand it.
+                                if (dataItem) {
+                                    var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                                    grid.expandRow(row);
+                                }
+                            });
+                        }
                     },
                     deactivate: function () {
                         this.destroy();
@@ -740,6 +769,16 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
         }
+
+        var grid = this;
+
+        grid.tbody.find("tr.k-master-row").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (dataItem.PsUnit == "set" || dataItem.PsUnit == "lot") {
+                grid.collapseRow(this); // hide detail row
+                $(this).find(".k-hierarchy-cell a").hide(); // hide expand/collapse button
+            }
+        });
     }
 
     function onEditGridItems(e) {
@@ -912,7 +951,7 @@
             alert("AIR already posted by " + postedBy);
         }
         else {
-            var msg = "Post AIR Number " + selectedAirNo + "?";
+            var msg = "Post Control Number " + selectedCtrlNo + "?";
 
             if (confirm(msg)) {
                 var popupNotification = $("#popupNotification").data("kendoNotification");
@@ -973,7 +1012,7 @@
 
     $(".k-grid-btnPrint_").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("AIRRpt", "AIRs")?airNo=' + selectedAirNo;
+        var url = '@Url.Action("AIRRpt", "AIRs")?ctrlNo=' + selectedCtrlNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -1091,11 +1130,11 @@
             success: function (result) {
                 window.kendo.ui.progress($("#formAir"), false);
                 if (result.Errors == "") {
-                    $("#formAir input[name=Id]").val(result.Model.Id).trigger("change");
-                    $("#formAir input[name=AIRNo]").val(result.Model.AIRNo).trigger("change");
+                    //$("#formAir input[name=Id]").val(result.Model.Id).trigger("change");
+                    //$("#formAir input[name=AIRNo]").val(result.Model.AIRNo).trigger("change");
 
                     selectedId = result.Model.Id;
-                    var grid = $("#grid").data("kendoGrid");                    
+                    var grid = $("#grid").data("kendoGrid");
                     var dataItem = grid.dataSource.get(selectedId);
                     if (dataItem) {
                         var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
@@ -1104,26 +1143,42 @@
 
                     if (closeWindow) {
                         $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
-
-
-                        //if (e.model.isNew()) {
-                        //    selectedId = result.Model.Id;
-
-                        //    e.model.set("AirId", selectedId);
-
-                        //    var row = e.sender.tbody.find("tr:first");
-                        //    if (row) {
-                        //        selectedGrid.select(row);
-                        //    }
-                        //} else {
-                        //    selectedId = e.model.get("Id");
-                        //    var rowitem = selectedGrid.dataSource.get(selectedId);
-                        //    selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-                        //}
+                        
                     }
                     disabled.attr('disabled', 'disabled')
                 } else {
-                    alert(result.Errors);
+                    //alert(result.Errors);
+                        //// Clear previous error messages
+                        $('#ErrorContent .errors').empty();
+
+                        result.Errors.forEach(function (error) {
+                            var key = error.Key;
+                            var messages = error.Message; // Use Message from the JSON
+
+                            // Check if messages exists and is an array
+                            if (Array.isArray(messages)) {
+                                // Create the field name list item
+                                var errorListItem = $('<li></li>').text(key);
+
+                                // Create a nested unordered list for the messages
+                                var messageList = $('<ul></ul>');
+
+                                // Loop through each message and append it to the messageList
+                                messages.forEach(function (message) {
+                                    messageList.append($('<li></li>').text(message));
+                                });
+
+                                // Append the message list to the error list item
+                                errorListItem.append(messageList);
+
+                                // Append the error list item to the .errors container
+                                $('#ErrorContent .errors').append(errorListItem);
+                            } else {
+                                console.error(`Expected messages to be an array for field ${key}`);
+                            }
+                        });
+                        // Show the error content
+                        $('#ErrorContent').removeClass('hidden');                    
                 }
             },
             error: function (req, status, errorObj) {

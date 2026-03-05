@@ -20,6 +20,7 @@
     @Html.HiddenFor(model => model.IsSetLot)
     @Html.HiddenFor(model => model.SetLotNo)
     @Html.HiddenFor(model => model.OriginalDescription)
+    @Html.HiddenFor(model => model.OriginalOtherDesc)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -157,13 +158,28 @@
                     @Html.DisplayFor(m => m.Description, "Label")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(1).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
             </div>
         </div>
 
-        <br />        
+        @if (Model.IsSetLot)
+        {
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.OtherDesc, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.OtherDesc)
+                    </div>
+                </div>
+            </div>
+        }
+
+        <br />
 
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -188,7 +204,7 @@
                                 }
                                 else
                                 {
-                                    read.Action("GetUnits", "Getters");
+                                    read.Action("GetUnitInd", "Getters");
                                 }
                             })
                             .ServerFiltering(true);
@@ -264,90 +280,124 @@
 
 
 <script type="text/javascript">
-        $("#btnSave").click(function (e) {
-            e.preventDefault();
-            //var grid = $("#gridItemExtn").data("kendoGrid");
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        //var grid = $("#gridItemExtn").data("kendoGrid");
 
-            //// Get all data items (rows) in the Grid
-            //var dataItems = grid.dataItems();
+        //// Get all data items (rows) in the Grid
+        //var dataItems = grid.dataItems();
 
-            //// Create an array to store the row values
-            //var rowValues = [];
+        //// Create an array to store the row values
+        //var rowValues = [];
 
-            //// Iterate over each data item (row) and extract the values
-            //for (var i = 0; i < dataItems.length; i++) {
-            //    var row = dataItems[i];
-            //    rowValues.push(row);
-            //}
+        //// Iterate over each data item (row) and extract the values
+        //for (var i = 0; i < dataItems.length; i++) {
+        //    var row = dataItems[i];
+        //    rowValues.push(row);
+        //}
 
-            //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+        //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
 
-
-            var validator = $("#form").kendoValidator().data("kendoValidator");
-            if (validator.validate()) {
-                var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-                var data = $("#form").serialize();
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("_OrderItemSave", "Orders")',
-                    data: data,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($("#form"), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($("#form"), false);
-                        if (result.Errors == "") {
-                            selectedItemId = result.Id;
-                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                        }
-                        else {
-                            //// Clear previous error messages
-                            $('#ErrorContent .errors').empty();
-
-                            result.Errors.forEach(function (error) {
-                                var key = error.Key;
-                                var messages = error.Message; // Use Message from the JSON
-
-                                // Check if messages exists and is an array
-                                if (Array.isArray(messages)) {
-                                    // Create the field name list item
-                                    var errorListItem = $('<li></li>').text(key);
-
-                                    // Create a nested unordered list for the messages
-                                    var messageList = $('<ul></ul>');
-
-                                    // Loop through each message and append it to the messageList
-                                    messages.forEach(function (message) {
-                                        messageList.append($('<li></li>').text(message));
-                                    });
-
-                                    // Append the message list to the error list item
-                                    errorListItem.append(messageList);
-
-                                    // Append the error list item to the .errors container
-                                    $('#ErrorContent .errors').append(errorListItem);
-                                } else {
-                                    console.error(`Expected messages to be an array for field ${key}`);
-                                }
-                            });
-                            // Show the error content
-                            $('#ErrorContent').removeClass('hidden');
-
-                        }
-                        //selectedId = result.Id;
-                    },
-                    error: function (req, status, errorObj) {
-                        alert(req.responseText);
+        //if ($("#IsSetLot").val() != true && $("#SetLotNo").val() != "") {
+        if ($("#SetLotNo").val() == "") {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ValidatePriceCap", "Orders")',
+                data: {
+                    itemCodeId: $("#ItemCodeId").val(),
+                    unitCost: $("#UnitCost").val()
+                },
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Error == "") {
+                        Save();
                     }
-                });
-                disabled.attr('disabled', 'disabled');
-            }
-        });
+                    else {
+                        if (confirm(result.Error)) {
+                            Save();
+                        }
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+        else {
+            Save();
+        }
+    });
 
-        $("#btnCancel").click(function (e) {
-            e.preventDefault();
-            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
-        });
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+    function Save()
+    {
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            var data = $("#form").serialize();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_OrderItemSave", "Orders")',
+                data: data,
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        selectedItemId = result.Id;
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        //// Clear previous error messages
+                        $('#ErrorContent .errors').empty();
+
+                        result.Errors.forEach(function (error) {
+                            var key = error.Key;
+                            var messages = error.Message; // Use Message from the JSON
+
+                            // Check if messages exists and is an array
+                            if (Array.isArray(messages)) {
+                                // Create the field name list item
+                                var errorListItem = $('<li></li>').text(key);
+
+                                // Create a nested unordered list for the messages
+                                var messageList = $('<ul></ul>');
+
+                                // Loop through each message and append it to the messageList
+                                messages.forEach(function (message) {
+                                    messageList.append($('<li></li>').text(message));
+                                });
+
+                                // Append the message list to the error list item
+                                errorListItem.append(messageList);
+
+                                // Append the error list item to the .errors container
+                                $('#ErrorContent .errors').append(errorListItem);
+                            } else {
+                                console.error(`Expected messages to be an array for field ${key}`);
+                            }
+                        });
+                        // Show the error content
+                        $('#ErrorContent').removeClass('hidden');
+
+                    }
+                    //selectedId = result.Id;
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    }
 </script>
 
 

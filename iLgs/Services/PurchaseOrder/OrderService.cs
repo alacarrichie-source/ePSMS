@@ -287,8 +287,12 @@ namespace iLgs.Services.PurchaseOrder
             MapModelToEntityFields(entity, model, Mode.ADD);
 
             // include avaiable items during add
-            var requestItems = await _db.RequestItems                
-                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any(a => a.RequestItemId == w.Id)).AsNoTracking().OrderBy(o => o.ItemNoIndex).ToListAsync();
+            var request = await _db.Requests.Include(i => i.RequestItems)
+                .Where(w => w.Id == model.PrId).FirstOrDefaultAsync();
+
+            entity.DeliveryPlace = request.Department;
+
+            var requestItems = request.RequestItems.Where(w => !_db.OrderItems.Any(a => a.RequestItemId == w.Id)).OrderBy(o => o.ItemNoIndex).ToList();            
             foreach (var requestItem in requestItems)
             {
                 var orderItemId = Guid.NewGuid();
@@ -299,7 +303,8 @@ namespace iLgs.Services.PurchaseOrder
                     ItemNo = requestItem.ItemNo,
                     ItemNoIndex = requestItem.ItemNoIndex,
                     RequestItemId = requestItem.Id,                    
-                    Description = requestItem.Description,                    
+                    Description = requestItem.Description,    
+                    OtherDesc = requestItem.OtherDesc,
                     Unit = requestItem.Unit,                    
                     Qty = requestItem.Qty,
                     UnitCost = requestItem.UnitCost,
@@ -359,6 +364,7 @@ namespace iLgs.Services.PurchaseOrder
                     Id = unitGroupDescriptionId,
                     OrderItemUnitGroupId = unitGroupId,
                     Description = setItem.Description,
+                    OtherParticulars = setItem.OtherDesc,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -605,38 +611,45 @@ namespace iLgs.Services.PurchaseOrder
                 }
                 else
                 {
-                    if (!model.PrId.HasValue)
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrId)), "Required for PO numbering.");
-                    }
+                    //if (!model.PrId.HasValue)
+                    //{
+                    //    _imex.UpsertDataList(_getDisplayName(nameof(model.PrId)), "Required for PO numbering.");
+                    //}
 
                     if (!model.PoDate.HasValue)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Field is required.");
+                        _imex.UpsertDataList("PO Date", "Field is required.");
                     }
                     else
                     {
                         var refNoParts = model.PoNo.Split('-');
                         var refNoYear = int.Parse(refNoParts[0]);
                         var refNoMonth = int.Parse(refNoParts[1]);
-                        if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                        var refNoSeq = int.Parse(refNoParts[2]);
+                        if (refNoSeq == 0)
                         {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series year and month must match the PO date’s year and month.");
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Invalid sequence number.");
                         }
-
-                        //else
-                        //{
-                        //    var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
-                        //    if (!string.IsNullOrWhiteSpace(maxNo))
-                        //    {
-                        //        var refNoSeq = int.Parse(refNoParts[2]);
-                        //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                        //        if (refNoSeq <= maxSeq)
-                        //        {
-                        //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
-                        //        }
-                        //    }
-                        //}
+                        else
+                        {
+                            if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series year and month must match the PO date’s year and month.");
+                            }
+                            //else
+                            //{
+                            //    //var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
+                            //    var maxNo = _db.Orders.Where(w => w.PoDate.Value.Year == model.PoDate.Value.Year).Max(m => m.PoNo);
+                            //    if (!string.IsNullOrWhiteSpace(maxNo))
+                            //    {
+                            //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            //        if (refNoSeq <= maxSeq)
+                            //        {
+                            //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Sequence No. must be greater than {maxSeq}");
+                            //        }
+                            //    }
+                            //}
+                        }
 
                         if (mode == Mode.ADD)
                         {
@@ -656,16 +669,32 @@ namespace iLgs.Services.PurchaseOrder
                 }
             }
 
-            if (model.PoDate.HasValue && model.PrDate.HasValue)
+            if (model.PoDate.HasValue)
             {
-                if (model.PoDate.Value.Date > DateTime.Now.Date)
+                if (model.PoDate > model.UpdatedDt)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Futre date is not allowed.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"Future date is not allowed.");
                 }
 
-                if (model.PrDate > model.PoDate)
+                if (model.PrDate.HasValue)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "PO date must be on or after the PR date.");
+                    if (model.PrDate > model.PoDate)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "PO date must be on or after the PR date.");
+                    }
+                }
+            }
+
+            if (!model.PrId.HasValue)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.PrId)), "Field is required.");
+            }
+            else
+            {
+                var request = _db.Requests.Find(model.PrId);
+                if (request == null)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PrId)), "Record not found.");
                 }
             }
 
@@ -682,6 +711,21 @@ namespace iLgs.Services.PurchaseOrder
             if (string.IsNullOrEmpty(entity.PoNo))
             {
                 throw new InvalidValueException("PO Number is required.");
+            }
+
+            if (string.IsNullOrEmpty(entity.DeliveryDate))
+            {
+                throw new InvalidValueException("Delivery Date is required.");
+            }
+
+            if (string.IsNullOrEmpty(entity.TermDelivery))
+            {
+                throw new InvalidValueException("Delivery Term is required.");
+            }
+
+            if (string.IsNullOrEmpty(entity.TermPayment))
+            {
+                throw new InvalidValueException("Payment Term is required.");
             }
 
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
@@ -732,75 +776,64 @@ namespace iLgs.Services.PurchaseOrder
                 .Include(i => i.AllField)
                 .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
-            {                
-                if (!orderItem.ItemCodeId.HasValue)
+            {
+                if (orderItem.Unit == "set" || orderItem.Unit == "lot")
                 {
-                    throw new InvalidValueException("Item code is not configured properly.");
-                }
-
-                if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
-                {
-                    var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
-                    if (allfield == null)
+                    decimal? unitCost = 0;
+                    var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
+                    if (unitGroup != null)
                     {
-                        throw new RecordRelationshipException("Required fields are missing. Please recreate the order.");
-                    }
-                    {
-                        if (string.IsNullOrWhiteSpace(allfield.Brand))
+                        unitCost = unitGroup.UnitCost;
+                        if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
                         {
-                            brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+                            if (unitCost < _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use the Supplies Code for items with a group unit cost below {_priceCap:n0}.”");
+                            }
+                        }
+                        else
+                        {
+                            if (unitCost >= _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use the Property Ccode for items with a group unit cost of {_priceCap:n0} and above.");
+                            }
                         }
                     }
                 }
-
-                if (string.IsNullOrWhiteSpace(orderItem.PsNo))
+                else
                 {
-                    throw new InvalidValueException("All items must have a valid Property/Stock No.");
+                    if (!orderItem.ItemCodeId.HasValue)
+                    {
+                        throw new InvalidValueException("Item code is not configured properly.");
+                    }
+                    else
+                    {
+                        if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
+                        {
+                            var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+                            if (allfield == null)
+                            {
+                                throw new RecordRelationshipException("Required fields are missing. Please recreate the order.");
+                            }
+                            {
+                                if (string.IsNullOrWhiteSpace(allfield.Brand))
+                                {
+                                    brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+                                }
+                            }
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(orderItem.PsNo))
+                    {
+                        throw new InvalidValueException("All items must have a valid Property/Stock No.");
+                    }
                 }
 
                 // validate unit cost
                 if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)
                 {
                     throw new InvalidValueException("All items must unit cost.");
-                }
-
-                decimal? unitCost = 0;
-                var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
-                if (unitGroup != null)
-                {
-                    unitCost = unitGroup.UnitCost;
-                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
-                    {
-                        if (unitCost < _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use the Supplies Code for items with a group unit cost below {_priceCap:n0}.”");
-                        }
-                    }
-                    else
-                    {
-                        if (unitCost >= _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use the Property Ccode for items with a group unit cost of {_priceCap:n0} and above.");
-                        }
-                    }
-                }
-                else
-                {
-                    unitCost = orderItem.UnitCost;
-                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
-                    {
-                        if (unitCost < _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use the Supplies Code for items with a unit cost below {_priceCap:n0}.");
-                        }
-                    }
-                    else
-                    {
-                        if (unitCost >= _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use the Property Code for items with a unit cost of {_priceCap:n0} and above.");
-                        }
-                    }
                 }
             }
 

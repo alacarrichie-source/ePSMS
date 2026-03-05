@@ -225,6 +225,7 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.CustodianItemNo, "contains");
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
@@ -711,7 +712,8 @@
             sectionId: $("#sectionId").val(),
             accountGroup: '@ViewBag.AccountGroup',
             isDemand: '@ViewBag.IsDemand',
-            isView: '@ViewBag.IsView'
+            isView: '@ViewBag.IsView',
+            isSet: '@ViewBag.IsSet'
         };
     }
 
@@ -1835,18 +1837,18 @@
                     //var newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
                     if ($("#grid").data("kendoGrid").dataSource.data().length == 0) {
                         //if (deptId != locationId) {
-                        //    btn.hide();                        
+                        //    btn.hide();
                         //}
-                        //else {                            
+                        //else {
                         //    btn.show();
                         //}
                         newText = result.IsSubmitForCount ? "Unsubmit None " + result.UpdateDate + " for Count" : "Submit None for Count";
                     }
                     else {
                         newText = result.IsSubmitForCount ? "Unsubmit " + result.UpdateDate + " for Count" : "Submit for Count";
-                        
+
                     }
-                    btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);                        
+                    btn.html('<span class="k-icon k-i-track-changes-accept"></span>' + newText);
                 },
                 error: function (req, status, errorObj) {
                     alert(req.responseText);

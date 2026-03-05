@@ -29,20 +29,15 @@
         col.Command(command =>
         {
             command.Edit();
-            command.Destroy();
+            //command.Destroy();
         }).Width(100);
     })
-    //.ToolBar(t =>
-    //{
-    //    t.Create();
-    //})
-    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RisUnitGroupDescriptionItemTemplate").Window(w => w.Width(1000).Title("Available Items")))
-    .ToolBar(toolbar =>
+    @*.ToolBar(toolbar =>
     {
         toolbar.Template(@<text>
             @(Html.Kendo().Button().Name("btnAddUnitGroupItem").Content("Add Group Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddGroupItem")))
         </text>);
-    })
+    })*@
     .Sortable()
     .Scrollable()
     .NoRecords()
@@ -74,7 +69,7 @@
         .Sort(s => { s.Add(a => a.ItemNoIndex); })
         .Read(read => read.Action("_UnitGroupDescriptionItemRead", "Orders", new { unitGroupDescriptionId = ViewData["unitGroupDescriptionId"] }))
         .Update(update => update.Action("_UnitGroupDescriptionItemUpdate", "Orders"))
-        .Destroy(destroy => destroy.Action("_UnitGroupDescriptionItemDestroy", "Orders"))
+        //.Destroy(destroy => destroy.Action("_UnitGroupDescriptionItemDestroy", "Orders"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Events(e => e

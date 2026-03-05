@@ -24,6 +24,7 @@
 </div>
 <br />
 
+
 @(Html.Kendo().PanelBar()
     .Name("panelbar")
     .ExpandMode(PanelBarExpandMode.Multiple)
@@ -68,7 +69,7 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.QtyBalance).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });        
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
     })
     .ToolBar(t =>
     {
@@ -157,7 +158,7 @@
         col.Bound(c => c.InvDistDisplay).Width(50);
         // Modified: Posting is per ICS Number
         //col.Bound(c => c.ParPostedBy).Width(50);
-        //col.Bound(c => c.ParPostedDt).Width(50);        
+        //col.Bound(c => c.ParPostedDt).Width(50);
         col.Command(command =>
         {
             command.Edit().Visible("IsNoGenerated");
@@ -170,9 +171,9 @@
     .ToolBar(t =>
     {
     t.Template(@<text>
-        @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))
-        @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
-        @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))*@
+            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))
+            @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
+                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))*@
     </text>);
     })
     .Sortable()
@@ -238,11 +239,11 @@
         })
         .ToolBar(t =>
         {
-        t.Template(@<text>        
-            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItemSet").Content("Generate ICS").Events(e => e.Click("onClickBtnAddParSet")))        
+        t.Template(@<text>
+            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItemSet").Content("Generate ICS").Events(e => e.Click("onClickBtnAddParSet")))
             @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostParSet")))
-            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))*@
-            </text>);
+                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))*@
+        </text>);
         })
         .ClientDetailTemplateId("item-set-description-template")
         .Sortable()
@@ -294,14 +295,14 @@
                         .ToolBar(t =>
                         {
                         t.Template(@<text>
-        @*<div clas="row" style="padding: 10px; font-size: 14px; font-weight: bold;">
-                ICS
-            </div>*@
+            @*<div clas="row" style="padding: 10px; font-size: 14px; font-weight: bold;">
+                    ICS
+                </div>*@
 
-        @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))*@
-        @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
-            @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
-            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
+            @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))*@
+            @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
+                @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
+                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
 
                         </text>);
                         })
@@ -318,7 +319,9 @@
                                 model.Id(p => p.Id);
                                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
                             })
-                            .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PsCardItemExtn.PropNo);
+                            .Sort(s =>
+                            {
+                                s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PsCardItemExtn.PropNo);
                             })
                             .Read(read => read.Action("_IcsRead", "IcsSet").Data("DataGridItemPar"))
                             //.Read(read => read.Action("_IcsRead", "IcsSet", new { cardItemId = "#=Id#" }))
@@ -351,7 +354,7 @@
 
 
 <script id="Details" type="text/kendo-tmpl">
-                    @(Html.Kendo().TabStrip()
+    @(Html.Kendo().TabStrip()
     .Name("tabStrip_#=Id#")
     .HtmlAttributes(new { @class = "no-text-tabstrip" })
     .TabPosition(TabStripTabPosition.Top)
@@ -373,7 +376,7 @@
         //items.Add().Text("ICS")
         //    .LoadContentFrom("_Ics", "PoIssuance", new { CardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
     }).ToClientTemplate())
-                </script>
+</script>
 
 <script id="item-set-description-template" type="text/x-kendo-template">
     @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescription>()
@@ -403,17 +406,17 @@
             .Change("onChangeGridItemSetDescription")
             .DataBound("onDataBoundGridItemSetDescription")
         ).ToClientTemplate()
-                    )
+    )
 </script>
 
 <script id="item-set-description-item-template" type="text/x-kendo-template">
-                    @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
+    @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
         .Name("gridItemSetDescriptionItem_#=Id#")
         .HtmlAttributes(new { style = "height: 100%;" })
         .Columns(col =>
         {
             col.Bound(c => c.Article).Width(100);
-            col.Bound(c => c.Description).Width(100);            
+            col.Bound(c => c.Description).Width(100);
             col.Bound(c => c.Unit).Width(50);
             col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
@@ -476,7 +479,7 @@
             })
             .Sort(s => s.Add(a => a.InsertedDt))
             .Read(read => read.Action("_PoItemSetDescriptionItemRead", "IcsSet", new { unitGroupDescriptionId = "#=Id#" }))
-        //.Update(update => update.Action("_PoItemsUpdate", "IcsSet"))        
+        //.Update(update => update.Action("_PoItemsUpdate", "IcsSet"))
 
         ).Selectable(s => s.Mode(GridSelectionMode.Single))
         .Events(e => e
@@ -485,12 +488,12 @@
             .DataBound("onDataBoundGridItemSetDescriptionItem")
         )
         .ToClientTemplate()
-                    )
-                </script>
+    )
+</script>
 
 
 <script id="item-set-description-item-template-xx" type="text/x-kendo-template">
-            @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescriptionItem>()
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescriptionItem>()
         .Name("gridItemSetDescriptionItem_#=Id#")
         .Columns(col =>
         {
@@ -504,7 +507,7 @@
             col.Command(command =>
             {
                 command.Edit();
-            }).Width(100);            
+            }).Width(100);
         })
         //.ClientDetailTemplateId("item-set-description-template")
         .Sortable()
@@ -529,8 +532,8 @@
             .DataBound("onDataBoundGridItemSetDescriptionItem")
         )
         .ToClientTemplate()
-                    )
-    </script>
+    )
+</script>
 
 <script id="IcsParItemsTemplate" type="text/x-kendo-template">
     @(Html.Kendo().Grid<iLgs.Models.IcsParItemVM>()
@@ -615,7 +618,7 @@
         overflow: hidden; /* Hide any overflow */
     }
 
-     /*#grid .k-grid-content {
+    /*#grid .k-grid-content {
         height: calc(100vh - 180px) !important;
     }*/
 
@@ -679,11 +682,11 @@
         color: inherit !important; /* Ensure grid text color remains unaffected */
     }
 
-    /* Specific styles for Kendo Grid headers to avoid hover interference */
-    .k-grid-header th {
-        background-color: inherit !important; /* Ensure header background remains unaffected */
-        color: inherit !important; /* Ensure text color remains unaffected */
-    }
+        /* Specific styles for Kendo Grid headers to avoid hover interference */
+        .k-grid-header th {
+            background-color: inherit !important; /* Ensure header background remains unaffected */
+            color: inherit !important; /* Ensure text color remains unaffected */
+        }
 </style>
 
 
@@ -2603,6 +2606,7 @@
     }
     // end grid item issuance
 </script>
+
 
 
 

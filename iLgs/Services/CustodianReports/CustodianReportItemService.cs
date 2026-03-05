@@ -40,9 +40,18 @@ namespace iLgs.Services.CustodianReports
         MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
             , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
+
+        MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category, string userName);
+
         MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
             , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
+
+        MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category, string userName);
     }
 
     public class CustodianReportItemService : BaseValidator, ICustodianReportItemService
@@ -578,6 +587,43 @@ namespace iLgs.Services.CustodianReports
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), "Field is required.");                
             }
+            else
+            {
+                if (model.Annex.ToUpper() == "B")                    
+                {
+                    var msg = "Annex B is for items with no amount due to lack of supporting documents. " +
+                        "However, do not encode Annex B for items that seem to have no amount but actually do, " +
+                        "if they belong to a set \"with a specified amount.\" Instead, use Annex A if the item exists or Annex C if it does not.";
+                    if (string.IsNullOrWhiteSpace(model.SetLotNo)) // individual
+                    {
+                        if (model.TotalCost.HasValue && model.TotalCost > 0)
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), msg);
+                        }
+                    }
+                    else // set/lot items
+                    {
+                        var item = _db.CustodianReportItems
+                            .Where(w => w.ReportId == model.ReportId
+                                && w.LocationId == model.LocationId
+                                && w.SetLotNo == model.SetLotNo
+                                && w.Id != model.Id
+                                && w.SetLotRemarks.Substring(0, 4) == "1 of")
+                            .OrderBy(o => o.Annex)
+                            .ThenBy(t => t.ItemCode.ItemType.GroupCode)
+                            .ThenBy(t => t.ItemCode.ItemType.Code)
+                            .ThenBy(t => t.ItemCode.ItemNoIndex)
+                            .FirstOrDefault();
+                        if (item != null)
+                        {
+                            if ((item.SetLotAmount > 0 || item.TotalCost > 0) && (model.TotalCost.HasValue && model.TotalCost > 0))
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.Annex)), msg);
+                            }
+                        }
+                    }
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "A")
             {
@@ -593,6 +639,17 @@ namespace iLgs.Services.CustodianReports
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.Remarks)), "Field is Required for Annex C.");
                 }
+            }
+
+            var custodianReport = _db.CustodianReports.Find(model.ReportId);
+            if (model.PoDate.HasValue && model.PoDate.Value.Date > custodianReport.AsOf.Value.Date)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Date beyond the Reporting year-end is not allowed.");
+            }
+
+            if (model.AcqDate.HasValue && model.AcqDate.Value.Date > custodianReport.AsOf.Value.Date)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.AcqDate)), "Date beyond the Reporting year-end is not allowed.");
             }
 
             _imex.ThrowIfContainsErrors();
@@ -900,6 +957,14 @@ namespace iLgs.Services.CustodianReports
             , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
+            return ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf, insertedAsOf,
+                subAccount1, subAccount2, subAccount3, subAccount4, "", userName);
+        }
+
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category, string userName)
+        {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
             if (!templateFile.Exists)
@@ -922,7 +987,7 @@ namespace iLgs.Services.CustodianReports
             {
                 return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, mainAccount
                     , asOf, insertedAsOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, category, userName);
             }
         }
 
@@ -2063,7 +2128,7 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
             , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -2080,11 +2145,26 @@ namespace iLgs.Services.CustodianReports
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
                 var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
-                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();                
+                    forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, annex, userIsAdmin, subAccount, userId).AsQueryable();
 
-                if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
+                if (reportItems.Any())
                 {
-                    reportItems = reportItems.Where(w => w.Annex != "D");
+                    if (!string.IsNullOrWhiteSpace(category))
+                    {
+                        if (category == "S")
+                        {
+                            reportItems = reportItems.Where(w => w.Category == "S");
+                        }
+                        else
+                        {
+                            reportItems = reportItems.Where(w => w.Category != "S");
+                        }
+
+                        if (string.IsNullOrWhiteSpace(annex))
+                        {
+                            reportItems = reportItems.Where(w => w.Annex != "D");
+                        }
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(annex))
@@ -2353,14 +2433,22 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? deptId, Guid? sectiondI, int? accountGroup, string templateFilePath, string mainAccount
             , DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category, string userName)
         {
-            return ProcessExcelFileVehicleTemplate(forYear, deptId, sectiondI, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
+            return ProcessExcelFileVehicleTemplate(forYear, deptId, sectiondI, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category, userName);
         }
 
         public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
             , DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
+        {
+                return ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf, insertedAsOf,
+                    subAccount1, subAccount2, subAccount3, subAccount4, "", userName);
+        }
+
+        public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
+            , DateTime? asOf, DateTime? insertedAsOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4,  string category, string userName)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -2399,7 +2487,7 @@ namespace iLgs.Services.CustodianReports
             {
                 return ProcessExcelFileVehicleTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, hdg, annex, mainAccount
                     , asOf, insertedAsOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, category, userName);
             }
         }
 
@@ -2430,11 +2518,15 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateIfSubmitted(CustodianReportItem model)
         {
-            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
-            if (submitForCount != null)
+            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            if (!isAdmin)
             {
-                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
-                throw new RecordAlreadyPostedException(msg);
+                var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+                if (submitForCount != null)
+                {
+                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                    throw new RecordAlreadyPostedException(msg);
+                }
             }
         }
 

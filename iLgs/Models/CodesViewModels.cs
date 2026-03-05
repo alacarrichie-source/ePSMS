@@ -123,6 +123,13 @@ namespace iLgs.Models
         }
     }
 
+    public class ValidPriceCapVM 
+    {            
+        public string Category { get; set; }
+
+        public decimal? PriceCap { get; set; }        
+    }
+
     [MetadataType(typeof(SemiExpendableVM.Metadata))]
     public class SemiExpendableVM : Codextn
     {

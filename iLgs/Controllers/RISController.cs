@@ -865,12 +865,12 @@ namespace iLgs.Controllers
             return PartialView(partialView, model);
         }
         
-        public ActionResult _PrintRisDepartment(string risNo)
+        public ActionResult _PrintRisDepartment(string ctrlNo)
         {
             var date = DateTime.Now;
             var model = new RisPrintVM()
             {
-                RisNo = risNo,
+                CtrlNo = ctrlNo,
                 AsOfDate = date
             };
 
@@ -960,7 +960,7 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            rpt.SetParameterValue("@cRisNo", model.RisNo);
+            rpt.SetParameterValue("@cCtrlNo", model.CtrlNo);
             rpt.SetParameterValue("@dAsOfDate", model.AsOfDate);
             rpt.SetParameterValue("LGU", lgu);
 
@@ -970,7 +970,7 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
 
-        public async Task<ActionResult> RISRpt(string risNo)
+        public async Task<ActionResult> RISRpt(string ctrlNo)
         {
             try
             {
@@ -1053,7 +1053,7 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            rpt.SetParameterValue("@cRisNo", risNo);
+            rpt.SetParameterValue("@cCtrlNo", ctrlNo);
             rpt.SetParameterValue("LGU", lgu);
             
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);

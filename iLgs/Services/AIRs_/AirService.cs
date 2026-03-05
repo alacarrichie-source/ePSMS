@@ -18,7 +18,7 @@ namespace iLgs.Services.AIRs_
     public interface IAirService : IAirAbstractService
     {
         IQueryable<AIR_VM> GetAll();
-        ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId);
+        ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId, AirGroup airGroup);
         ValueTask<AIR> GetByIdAsync(Guid id);
         ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
         ValueTask<AIR> GetByAirNoAsync(string airNo);
@@ -60,7 +60,7 @@ namespace iLgs.Services.AIRs_
             _priceCapService = new PriceCapService(_db);
             _vmExceptionService = new ExceptionService<AIR_VM>();
             _exceptionService = new ExceptionService<AIR>();
-            _getDisplayName = Utility.GetDisplayName<OrderVM>;
+            _getDisplayName = Utility.GetDisplayName<AIR_VM>;
             _airItemService = new AirItemService(_db);
             _airInvoiceService = new AirInvoiceService(_db);
         }
@@ -130,7 +130,7 @@ namespace iLgs.Services.AIRs_
             return data;
         }
 
-        public async ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId)
+        public async ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId, AirGroup airGroup)
         {
             IQueryable<AIR_VM> data = null;
             if (await _userService.IsAdminAsync(userId))
@@ -148,6 +148,12 @@ namespace iLgs.Services.AIRs_
                     .Where(w => w.Order.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
                     .Select(Projection);
             }
+
+            if (airGroup == AirGroup.ACCEPTANCE)
+            {
+                data = data.Where(w => w.IsInspected == true);
+            }
+
             return data;
         }
 
@@ -174,445 +180,7 @@ namespace iLgs.Services.AIRs_
         {
             return await _db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
         });
-
-        public ValueTask<AIR> PostAsyncNew(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            var entity = await _db.AIRs.Include(i => i.AIRItems).Include(i => i.AIRInvoices).FirstOrDefaultAsync(f => f.Id == airId);
-            if (entity == null)
-            {
-                throw new NotFoundException(airId);
-            }
-
-            if (await IsPostedAsync(airId))
-            {
-                throw new RecordAlreadyPostedException();
-            }
-
-            if (!entity.AIRInvoices.Any())
-            {
-                throw new NotFoundException("Invoice Record is Required.");
-            }
-
-            var order = await _db.Orders.FindAsync(entity.OrderId);
-            if (order == null)
-            {
-                throw new RecordRelationshipException("Purchase Order not found.");
-            }
-            else
-            {
-                if (order.PoDate > entity.AIRDate)
-                {
-                    throw new InvalidValueException("AIR Date Must be on or after the PO Date.");
-                }
-            }
-
-            var ris = await _db.RISses.FirstOrDefaultAsync(f => f.OrderId == entity.OrderId);
-            if (ris == null)
-            {
-                throw new RecordRelationshipException("RIS not found.");
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(ris.PostedBy))
-                {
-                    throw new InvalidValueException("RIS is not yet posted.");
-                }
-            }
-
-            if (!entity.AcceptedDate.HasValue)
-            {
-                throw new InvalidValueException("Date received is required.");
-            }
-
-            if (!entity.IsComplete == true && !entity.IsPartial == true)
-            {
-                throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
-            }
-
-            if (string.IsNullOrWhiteSpace(entity.Custodian))
-            {
-                throw new InvalidValueException("Acceptance Custodian is required.");
-            }
-
-            if (!entity.InspectedDate.HasValue)
-            {
-                throw new InvalidValueException("Date inspected is required.");
-            }
-
-            if (!entity.IsInspected == true)
-            {
-                throw new InvalidValueException("Please mark Inspected checkbox as checked.");
-            }
-
-            if (string.IsNullOrWhiteSpace(entity.Officer))
-            {
-                throw new InvalidValueException("Inspection Officer is required.");
-            }
-
-            await ValidateUploadAsync(airId, entity.AIRNo);
-
-            _airItemService.ValidAirItems(airId);
-
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.AIRs.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-
-            List<Guid> psCardIdList = new List<Guid>();
-            var priceCap = _priceCapService.GetPriceCap(order.PoDate);
-            var orderItemGroups = await _db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}, {1}", entity.OrderId, priceCap).ToListAsync();
-            // create stock for each group
-            foreach (var oig in orderItemGroups)
-            {
-                // Post the OrderItems under the stocks having the same PsCodeId
-                var orderItemList = await _db.OrderItems.AsNoTracking()                    
-                    .Include(i => i.ItemCode)
-                    .Include(i => i.Order.Request)
-                    .Include(i => i.AllField)
-                    .Where(w => w.OrderId == entity.OrderId
-                        && w.PsNo == oig.StockNo
-                        && w.Order.Request.Fund == oig.Fund).ToListAsync();
-
-                foreach (var orderItem in orderItemList)
-                {
-                    var risItem = await _db.RisItems.FirstOrDefaultAsync(f => f.OrderItemId == orderItem.Id);
-                    risItem.QtyIssue = (int?)orderItem.Qty;
-                    risItem.UpdatedBy = user;
-                    risItem.UpdatedDt = date;
-                    //_db.RisItems.Attach(risItem);
-                    //_db.Entry(risItem).State = EntityState.Modified;
-
-                    var isNew = false;
-                    var psCard = await _db.PsCards
-                        .Include(i => i.PsCardItems)
-                        .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
-                            && w.FromDonation != true
-                        ).FirstOrDefaultAsync();
-
-                    var oAf = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
-                    var office = orderItem.Order.Request.Department;
-                    var deptId = orderItem.Order.Request.DeptId;
-
-                    if (psCard == null)
-                    {
-                        isNew = true;
-                        var psCardId = Guid.NewGuid();
-                        var subAccountCode = _itemCodeService.GetSubAccountCode(oig.ItemCodeId);
-                        psCard = new PsCard()
-                        {
-                            Id = psCardId,
-                            ItemCodeId = oig.ItemCodeId,
-                            Fund = oig.Fund,
-                            Description = "Please see attachment.",
-                            PsNo = oig.StockNo,
-                            SubAccountCode = subAccountCode,
-                            CardCategory = oig.CardCategory,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        var allfield = AllFieldsUtil.NewAllField(orderItem.AllField);
-                        allfield.Id = psCardId;
-                        psCard.AllField = allfield;                        
-                    }
-
-                    var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
-                    if (psCardItem == null)
-                    {
-                        var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
-                        var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                        var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                        var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
-                        var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
-                        var psCardItemId = Guid.NewGuid();
-                        psCardItem = new PsCardItem()
-                        {
-                            Id = psCardItemId,
-                            GroupId = psCardItemId,
-                            PsCardId = psCard.Id,
-                            OrderItemId = orderItem.Id,
-                            PoDate = orderItem.Order.PoDate,
-                            PoNo = orderItem.Order.PoNo,
-                            AirDate = entity.AIRDate,
-                            AirNo = entity.AIRNo,
-                            //Original Qty and Amount / Transit Data
-                            Qty = (int)orderItem.Qty * setQty,
-                            QtyIss = 0,
-                            QtyBal = (int)orderItem.Qty * setQty,
-                            Amount = orderItem.Amount,
-                            //TranType = "I",
-                            Unit = orderItem.Unit,
-                            UnitCost = orderItem.UnitCost,
-                            PriceRate = orderItem.PriceRate,
-                            AddCost = 0,
-                            TUnitCost = orderItem.UnitCost,
-                            GTotalCost = orderItem.Amount,
-                            DeptId = deptId,
-                            DeptDisplay = office,
-                            Description = oig.Description,
-                            OtherDesc = orderItem.OtherDesc,
-                            Type = oAf.Type,
-                            InvDist = oig.InvDist,
-                            FPP = orderItem.Order.Request.FPP,
-                            SetLotNo = setLotNo,
-                            SetLotAmount = setLotAmount,
-                            SetLotRemarks = setLotRemarks,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date,
-                            PostedBy = user,
-                            PostedDt = date,
-                            PpmpCode = orderItem.PpmpCode,
-                            IsConsumable = _itemCodeService.GetIsConsumable(orderItem.ItemCode.IsConsumable)
-                        };
-
-                        var psCardItemTransfer = new PsCardItemTransfer()
-                        {
-                            Id = Guid.NewGuid(),
-                            PsCardItemId = psCardItem.Id,
-                            Qty = (int)orderItem.Qty * setQty,
-                            QtyIss = 0,
-                            QtyBal = (int)orderItem.Qty * setQty,
-                            Amount = orderItem.Amount,
-                            TranType = "I",
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        // include ItemExtns
-                        var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
-                        foreach (var airItemExtnOther in airItemExtnOthers)
-                        {
-                            var psCardItemExtnOther = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
-                                .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnOther.Id);
-                            if (psCardItemExtnOther == null)
-                            {
-                                var psCardItemExtnId = Guid.NewGuid();
-                                psCardItemExtnOther = new PsCardItemExtnOther()
-                                {
-                                    Id = psCardItemExtnId,
-                                    GroupId = psCardItemExtnId,
-                                    PsCardItemId = psCardItem.Id,
-                                    AIRItemExtnId = airItemExtnOther.Id,
-                                    SetLotNo = airItemExtnOther.SetLotNo,
-                                    SetLotQtyNo = airItemExtnOther.SetLotQtyNo,
-                                    ContentNo = airItemExtnOther.ContentNo,
-                                    SerialNo = airItemExtnOther.SerialNo,
-                                    AddCost = 0,
-                                    AcqCost = airItemExtnOther.AIRItem.OrderItem.UnitCost,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                psCardItem.PsCardItemExtns.Add(psCardItemExtnOther);
-                            }
-                        }
-
-                        var airItemExtnVehicles = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnVehicle>(orderItem.Id);
-                        foreach (var airItemExtnVehicle in airItemExtnVehicles)
-                        {
-                            var psCardItemExtnVehicle = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
-                                    .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnVehicle.Id);
-                            if (psCardItemExtnVehicle == null)
-                            {
-                                var psCardItemExtnId = Guid.NewGuid();
-                                psCardItemExtnVehicle = new PsCardItemExtnVehicle()
-                                {
-                                    Id = psCardItemExtnId,
-                                    GroupId = psCardItemExtnId,
-                                    PsCardItemId = psCardItem.Id,
-                                    AIRItemExtnId = airItemExtnVehicle.Id,
-                                    SetLotNo = airItemExtnVehicle.SetLotNo,
-                                    SetLotQtyNo = airItemExtnVehicle.SetLotQtyNo,
-                                    ContentNo = airItemExtnVehicle.ContentNo,
-                                    YearModel = airItemExtnVehicle.YearModel,
-                                    PlateNo = airItemExtnVehicle.PlateNo,
-                                    BodyNo = airItemExtnVehicle.BodyNo,
-                                    EngineNo = airItemExtnVehicle.EngineNo,
-                                    ChasisNo = airItemExtnVehicle.ChasisNo,
-                                    Color = airItemExtnVehicle.Color,
-                                    CRN = airItemExtnVehicle.CRN,
-                                    CRDate = airItemExtnVehicle.CRDate,
-                                    MVFileNo = airItemExtnVehicle.MVFileNo,
-                                    OrNo = airItemExtnVehicle.OrNo,
-                                    OrDate = airItemExtnVehicle.OrDate,
-                                    NetWeight = airItemExtnVehicle.NetWeight,
-                                    InsPolicyNo = airItemExtnVehicle.InsPolicyNo,
-                                    ConductionNo = airItemExtnVehicle.ConductionNo,
-                                    //ParReissuance = airItemExtnVehicle.ParReissuance,
-                                    //Condition = airItemExtnVehicle.Condition,
-                                    SubLocation = airItemExtnVehicle.SubLocation,
-                                    AddCost = 0,
-                                    AcqCost = airItemExtnVehicle.AIRItem.OrderItem.UnitCost,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                psCardItem.PsCardItemExtns.Add(psCardItemExtnVehicle);
-                            }
-                        }
-
-                        foreach (var psCardItemExtn in psCardItem.PsCardItemExtns)
-                        {
-                            var psCardItemTransferItem = new PsCardItemTransferItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                PsCardItemTransferId = psCardItemTransfer.Id,
-                                PsCardItemExtnId = psCardItemExtn.Id,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-                            psCardItemTransfer.PsCardItemTransferItems.Add(psCardItemTransferItem);
-                        }
-                        psCardItem.PsCardItemTransfers.Add(psCardItemTransfer);
-                        psCard.PsCardItems.Add(psCardItem);
-                    }
-
-                    if (isNew == true)
-                    {
-                        _db.PsCards.Add(psCard);
-                    }
-
-                    psCardIdList.Add(psCard.Id);
-                }
-            }
-
-            await _db.SaveChangesAsync();
-
-            foreach (var psCardId in psCardIdList)
-            {
-                var psCardItemList = _db.PsCardItems.Where(w => w.PsCardId == psCardId).ToList();
-                foreach (var psCardItem in psCardItemList)
-                {
-                    // search unit group if any
-                    var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                        .Include(i => i.OrderItem)
-                        .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
-                    if (orderItemUnitGroupDescriptionItem != null)
-                    {
-                        // search in psCard unit group
-                        if (!await _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
-                        {
-                            var psCardItemUnitGroup = await _db.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
-                            if (psCardItemUnitGroup == null)
-                            {
-                                psCardItemUnitGroup = new PsCardItemUnitGroup()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    PoNo = psCardItem.PoNo,
-                                    SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
-                                    Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
-                                    Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
-                                    UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
-                                    TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                    AddCost = 0,
-                                    TUnitCost = 0,
-                                    GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    UnitGroupId = psCardItemUnitGroup.Id,
-                                    Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                    PsCardItemId = psCardItem.Id,
-                                    PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                _db.PsCardItemUnitGroups.Add(psCardItemUnitGroup);
-                            }
-                            else
-                            {
-                                // if with psCardItemUnitGroup, check UnitGroupDescription
-                                var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
-                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
-                                    .FirstOrDefault();
-                                if (psCardItemUnitGroupDescription == null)
-                                {
-                                    psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        UnitGroupId = psCardItemUnitGroup.Id,
-                                        Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                        PsCardItemId = psCardItem.Id,
-                                        PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                    _db.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                }
-                                else
-                                {
-                                    // if with UnitGroupDescription, check UnitGroupDescriptionItem
-                                    var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
-                                        .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
-                                    if (psCardItemUnitGroupDescriptionItem == null)
-                                    {
-                                        psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                        {
-                                            Id = Guid.NewGuid(),
-                                            UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                            PsCardItemId = psCardItem.Id,
-                                            PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                            InsertedBy = user,
-                                            InsertedDt = date,
-                                            UpdatedBy = user,
-                                            UpdatedDt = date
-                                        };
-                                        _db.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                    }
-                                }
-                            }
-                            await _db.SaveChangesAsync();
-                        }
-                    }
-                }
-            }
-            return entity;
-        });
-
+        
         public ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.AIRs.Include(i => i.AIRItems).Include(i => i.AIRInvoices).FirstOrDefaultAsync(f => f.Id == airId);
@@ -621,6 +189,11 @@ namespace iLgs.Services.AIRs_
                 throw new NotFoundException(airId);
             }
 
+            if (string.IsNullOrWhiteSpace(entity.AIRNo))
+            {
+                throw new InvalidValueException("AIR No is required.");
+            }
+
             if (await IsPostedAsync(airId))
             {
                 throw new RecordAlreadyPostedException();
@@ -644,27 +217,32 @@ namespace iLgs.Services.AIRs_
                 }
             }
 
-            var ris = await _db.RISses.FirstOrDefaultAsync(f => f.OrderId == entity.OrderId);
-            if (ris == null)
-            {
-                throw new RecordRelationshipException("RIS not found.");
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(ris.PostedBy))
-                {
-                    throw new InvalidValueException("RIS is not yet posted.");
-                }
-            }
+            //var ris = await _db.RISses.FirstOrDefaultAsync(f => f.OrderId == entity.OrderId);
+            //if (ris == null)
+            //{
+            //    throw new RecordRelationshipException("RIS not found.");
+            //}
+            //else
+            //{
+            //    if (string.IsNullOrWhiteSpace(ris.PostedBy))
+            //    {
+            //        throw new InvalidValueException("RIS is not yet posted.");
+            //    }
+            //}
 
             if (!entity.AcceptedDate.HasValue)
             {
                 throw new InvalidValueException("Date received is required.");
             }
 
-            if (!entity.IsComplete == true && !entity.IsPartial == true)
+            //if (!entity.IsComplete == true && !entity.IsPartial == true)
+            //{
+            //    throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
+            //}
+
+            if (!entity.IsComplete == true)
             {
-                throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
+                throw new InvalidValueException("Please select if Acceptance");
             }
 
             if (string.IsNullOrWhiteSpace(entity.Custodian))
@@ -687,9 +265,9 @@ namespace iLgs.Services.AIRs_
                 throw new InvalidValueException("Inspection Officer is required.");
             }
 
-            await ValidateUploadAsync(airId, entity.AIRNo);
-
             _airItemService.ValidAirItems(airId);
+
+            await ValidateUploadAsync(airId, entity.AIRNo);            
 
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -710,19 +288,18 @@ namespace iLgs.Services.AIRs_
                     .Include(i => i.ItemCode)
                     .Include(i => i.Order.Request)
                     .Include(i => i.AllField)
+                    .Include(i => i.AIRItems)
                     .Where(w => w.OrderId == entity.OrderId
                         && w.PsNo == oig.StockNo
                         && w.Order.Request.Fund == oig.Fund).ToListAsync();
 
                 foreach (var orderItem in orderItemList)
                 {
-                    var risItem = await _db.RisItems.FirstOrDefaultAsync(f => f.OrderItemId ==  orderItem.Id);
-                    risItem.QtyIssue = (int?)orderItem.Qty;
-                    risItem.UpdatedBy = user;
-                    risItem.UpdatedDt = date;
-                    //_db.RisItems.Attach(risItem);
-                    //_db.Entry(risItem).State = EntityState.Modified;
-
+                    //var risItem = await _db.RisItems.FirstOrDefaultAsync(f => f.OrderItemId ==  orderItem.Id);
+                    //risItem.QtyIssue = (int?)orderItem.Qty;
+                    //risItem.UpdatedBy = user;
+                    //risItem.UpdatedDt = date;
+                    
                     var isNew = false;
                     var psCard = await _db.PsCards
                         .Include(i => i.PsCardItems)
@@ -1177,7 +754,8 @@ namespace iLgs.Services.AIRs_
                             PostedBy = user,
                             PostedDt = date,
                             PpmpCode = orderItem.PpmpCode,
-                            IsConsumable = _itemCodeService.GetIsConsumable(orderItem.ItemCode.IsConsumable)
+                            //IsConsumable = _itemCodeService.GetIsConsumable(orderItem.ItemCode.IsConsumable)
+                            IsConsumable = orderItem.AIRItems.FirstOrDefault()?.IsConsumable
                         };
 
                         var psCardItemTransfer = new PsCardItemTransfer()
@@ -1652,17 +1230,17 @@ namespace iLgs.Services.AIRs_
             }
         });
 
-        public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
+        public ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             await ValidateOnCreate(model);
             await ValidateOnCreateUpdate(model, Mode.ADD);
             ValidateAirNo(model);
 
             model.Id = (model.Id == Guid.Empty || model.Id == null) ? Guid.NewGuid() : model.Id;
-            if (string.IsNullOrWhiteSpace(model.AIRNo))
-            {
-                model.AIRNo = NextAirNo((DateTime)model.AIRDate);
-            }
+            //if (string.IsNullOrWhiteSpace(model.AIRNo))
+            //{
+            //    model.AIRNo = NextAirNo((DateTime)model.AIRDate);
+            //}            
 
             model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
@@ -1670,31 +1248,10 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = new AIR()
-            {
-                Id = model.Id,
-                CtrlNo = model.CtrlNo,
-                AIRNo = model.AIRNo,
-                AIRDate = model.AIRDate,
-                OrderId = model.OrderId,
-                //InvoiceNo = model.InvoiceNo ?? "",
-                //InvoiceDate = model.InvoiceDate,
-                AcceptedDate = model.AcceptedDate,
-                IsComplete = model.IsComplete,
-                IsPartial = model.IsPartial,
-                Custodian = model.Custodian ?? "",
-                InspectedDate = model.InspectedDate,
-                IsInspected = model.IsInspected,
-                Officer = model.Officer ?? "",
-                Remarks = model.Remarks ?? "",
-                InvDist = model.InvDist,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+            var entity = new AIR();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-            // include items during add
+            // include items during add except null ItemCodeId (set/lot items)
             var orderItems = await _db.OrderItems
                 .Include(i => i.Order.OrderItemUnitGroups)
                 .Include(i => i.ItemCode.ItemType)
@@ -1702,13 +1259,20 @@ namespace iLgs.Services.AIRs_
             foreach (var orderItem in orderItems)
             {
                 var insertedDt = DateTime.Now;
-                var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
+                var invDist = string.Empty;
+                bool? isConsumable = null;
 
-                if (string.IsNullOrWhiteSpace(invDist))
-                {
-                    invDist = model.InvDist;
+                // this will have value if not set or lot item
+                if (orderItem.ItemCodeId.HasValue) {
+                    invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
+                    isConsumable = _itemCodeService.GetIsConsumable(orderItem.ItemCode.IsConsumable);
+
+                    if (string.IsNullOrWhiteSpace(invDist))
+                    {
+                        invDist = model.InvDist;
+                    }
                 }
-
+                 
                 AIRItem airItem = new AIRItem()
                 {
                     Id = Guid.NewGuid(),
@@ -1716,13 +1280,18 @@ namespace iLgs.Services.AIRs_
                     OrderItemId = orderItem.Id,
                     Qty = orderItem.Qty,
                     InvDist = invDist,
+                    IsConsumable = isConsumable,
                     InsertedBy = user,
                     InsertedDt = insertedDt,
                     UpdatedBy = user,
                     UpdatedDt = insertedDt
                 };
 
-                await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+                if (orderItem.ItemCodeId.HasValue)
+                {
+                    await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+                }
+
                 entity.AIRItems.Add(airItem);
             }
 
@@ -1730,9 +1299,9 @@ namespace iLgs.Services.AIRs_
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
+        public ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             await ValidateOnUpdate(model);
             await ValidateOnCreateUpdate(model, Mode.EDIT);
@@ -1758,10 +1327,9 @@ namespace iLgs.Services.AIRs_
                 await _db.SaveChangesAsync();
 
                 // include items during add
-                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
+                var orderItems = await _db.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToListAsync();
                 foreach (var orderItem in orderItems)
                 {
-                    //var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
                     var invDist = model.InvDist;
                     AIRItem airItem = new AIRItem()
                     {
@@ -1780,26 +1348,37 @@ namespace iLgs.Services.AIRs_
                 }
             }
 
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+        private void MapModelToEntityFields(AIR entity, AIR_VM model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.CtrlNo = model.CtrlNo;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+
             entity.AIRNo = model.AIRNo;
             entity.AIRDate = model.AIRDate;
             entity.OrderId = model.OrderId;
             entity.AcceptedDate = model.AcceptedDate;
             entity.IsComplete = model.IsComplete;
             entity.IsPartial = model.IsPartial;
-            entity.Custodian = model.Custodian ?? "";
+            entity.Custodian = model.Custodian?.Trim() ?? "";
             entity.InspectedDate = model.InspectedDate;
             entity.IsInspected = model.IsInspected;
-            entity.Officer = model.Officer ?? "";
-            entity.Remarks = model.Remarks ?? "";
+            entity.Officer = model.Officer?.Trim() ?? "";
+            entity.Remarks = model.Remarks?.Trim() ?? "";
             entity.InvDist = model.InvDist;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-
-            _db.AIRs.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return model;
         }
 
         public ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -1870,24 +1449,69 @@ namespace iLgs.Services.AIRs_
 
         private async ValueTask ValidateOnCreate(AIR_VM model)
         {
-            if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo))
+            _imex = new InvalidModelException();
+            if (!string.IsNullOrWhiteSpace(model.AIRNo))
             {
-                throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
+                if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Already Exists.");
+                }
             }
+            _imex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnCreateUpdate(AIR_VM model, Mode mode)
         {
+            _imex = new InvalidModelException();
             var order = await _db.Orders.FindAsync(model.OrderId);
             if (order == null)
             {
-                throw new RecordRelationshipException("Purchase Order not found.");
+                _imex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Does not Exists.");
             }
             else
             {
                 if (order.PoDate > model.AIRDate)
                 {
-                    throw new InvalidValueException("AIR Date must be on or after the PO Date.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AIRDate)), "AIR Date must be on or after the PO Date.");
+                }
+            }            
+
+            if (model.IsInspected.HasValue && model.IsInspected.Value == true)
+            {
+                if (!model.InspectedDate.HasValue)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.InspectedDate)), "Field is required when inspected.");
+                }                
+
+                if (string.IsNullOrWhiteSpace(model.Officer))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Officer)), "Field is required when inspected.");
+                }
+            }
+
+            if (model.IsComplete.HasValue && model.IsComplete.Value == true)
+            {
+                if (!model.IsInspected.HasValue || model.IsInspected.Value == false)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.IsComplete)), "Cannot mark as complete when not yet inspected.");
+                }
+
+                if (!model.AcceptedDate.HasValue)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AcceptedDate)), "Field is required when inspected.");
+                }                
+
+                if (string.IsNullOrWhiteSpace(model.Custodian))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Custodian)), "Field is required when accepted.");
+                }
+            }
+
+            if (model.InspectedDate.HasValue)
+            {
+                if (model.InspectedDate < model.PoDate)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.InspectedDate)), "Date Inspected must be on or after the PO Date.");
                 }
             }
 
@@ -1895,83 +1519,126 @@ namespace iLgs.Services.AIRs_
             {
                 if (!model.InspectedDate.HasValue)
                 {
-                    throw new InvalidValueException("Inspection Date is requred.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AcceptedDate)), "Inspection Date is required.");
                 }
                 else
                 {
                     if (model.AcceptedDate < model.InspectedDate)
                     {
-                        throw new InvalidValueException("Date Received must be on or after the Inspection Date.");
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.AcceptedDate)), "Date Received must be on or after the Inspection Date.");
                     }
                 }
-            }
-
-            if (model.IsInspected.HasValue)
-            {
-                if (model.InspectedDate < model.AIRDate)
-                {
-                    throw new InvalidValueException("Date Inspected must be on or after the PO Date.");
-                }
-            }
-
-            //_imex.ThrowIfContainsErrors();
+            }    
+            
+            
+            _imex.ThrowIfContainsErrors();
         }
 
         private void ValidateAirNo(AIR_VM model)
         {
+            _imex = new InvalidModelException();
             if (!string.IsNullOrWhiteSpace(model.AIRNo))
             {
                 if (model.AIRNo.Trim().Length != 12)
                 {
-                    //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Invalid value.");
-                    throw new InvalidValueException("Invalid AIR No.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Invalid value.");
+                    //throw new InvalidValueException("Invalid AIR No.");
                 }
                 else
                 {
-                    var refNoParts = model.AIRNo.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.AIRDate.Value.Month)
+                    if (!model.AIRDate.HasValue)
                     {
-                        //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Series Year and month must be same as the year and month of the PO date.");
-                        throw new InvalidValueException("Series Year and month of AIR No. must be same as the year and month of the AIR date.");
+                        _imex.UpsertDataList("AIR Date", "Field is required.");
                     }
-                    //else
-                    //{
-                    //    //var maxNo = _db.AIRs.Where(w => DbFunctions.TruncateTime(w.AIRDate) <= DbFunctions.TruncateTime(model.AIRDate)).Max(m => m.AIRNo);
-                    //    var maxNo = _db.AIRs.Where(w => w.AIRDate.Value.Year == model.AIRDate.Value.Year).Max(m => m.AIRNo);
-                    //    if (!string.IsNullOrWhiteSpace(maxNo))
-                    //    {
-                    //        var refNoSeq = int.Parse(refNoParts[2]);
-                    //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                    //        if (refNoSeq < maxSeq)
-                    //        {
-                    //            //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), $"Serial No. must be greater than {maxSeq}");
-                    //            throw new InvalidValueException($"Serial No. of AIR No. must be greater than {maxSeq}");
-                    //        }
-                    //    }
-                    //}
+                    else
+                    {
+                        var refNoParts = model.AIRNo.Split('-');
+                        var refNoYear = int.Parse(refNoParts[0]);
+                        var refNoMonth = int.Parse(refNoParts[1]);
+                        var refNoSeq = int.Parse(refNoParts[2]);
+                        if (refNoSeq == 0)
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Invalid sequence number.");
+                        }
+                        else
+                        {
+                            if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.AIRDate.Value.Month)
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Series year and month must match the AIR date’s year and month.");
+                                //throw new InvalidValueException("Series Year and month of AIR No. must be same as the year and month of the AIR date.");
+                            }
+                            //else
+                            //{
+                            //    //var maxNo = _db.AIRs.Where(w => DbFunctions.TruncateTime(w.AIRDate) <= DbFunctions.TruncateTime(model.AIRDate)).Max(m => m.AIRNo);
+                            //    var maxNo = _db.AIRs.Where(w => w.AIRDate.Value.Year == model.AIRDate.Value.Year).Max(m => m.AIRNo);
+                            //    if (!string.IsNullOrWhiteSpace(maxNo))
+                            //    {
+                            //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            //        if (refNoSeq < maxSeq)
+                            //        {
+                            //            _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), $"Series No. must be greater than {maxSeq}");
+                            //        }
+                            //    }
+                            //}
+                        }
+                    }
+                }                
+            }
+
+            if (model.AIRDate.HasValue)
+            {
+                if (model.AIRDate > model.UpdatedDt)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AIRDate)), $"Future date is not allowed.");
+                }
+
+                if (model.PoDate.HasValue)
+                {
+                    if (model.PoDate > model.AIRDate)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.AIRDate)), "AIR date must be on or after the PO date.");
+                    }
                 }
             }
-            //_imex.ThrowIfContainsErrors();
+
+            if (!model.OrderId.HasValue)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Field is required.");
+            }
+            else
+            {
+                var order = _db.Orders.Find(model.OrderId);
+                if (order == null)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Record not found.");
+                }
+            }
+
+            _imex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnUpdate(AIR_VM model)
         {
+            _imex = new InvalidModelException();
             if (await _db.AIRs.FindAsync(model.Id) == null)
-            {
-                throw new NotFoundException(model.Id);
+            {                
+                _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Record does not exists.");
             }
 
-            if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo && a.Id != model.Id))
+            if (!string.IsNullOrWhiteSpace(model.AIRNo))
             {
-                throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
+                if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo && a.Id != model.Id))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Record already exists.");
+                }
             }
 
             if (await IsPostedAsync(model.Id))
             {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update");
+                _imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Record has been posted, cannot update.");
             }
+
+            _imex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnDelete(AIR_VM model)
@@ -1983,7 +1650,7 @@ namespace iLgs.Services.AIRs_
 
             if (await IsPostedAsync(model.Id))
             {
-                throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
+                throw new RecordAlreadyPostedException("Record has ben posted, cannot delete.");
             }
         }
 

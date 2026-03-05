@@ -14,7 +14,7 @@ namespace iLgs.Services.Codes
     public interface IPriceCapService
     {
         IQueryable<PriceCapVM> GetAll();
-        decimal? GetPriceCap();
+        decimal? GetPriceCap(); // cannot make async, because it async is not allowed in the contructor.
         decimal? GetPriceCap(DateTime? asOfDate);
         ValueTask<PriceCapVM> GetByIdAsync(Guid id);
         ValueTask<PriceCapVM> CreateAsync(PriceCapVM model, string user, DateTime date);

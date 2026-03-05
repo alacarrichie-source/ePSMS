@@ -276,6 +276,7 @@
     var submittedBy = null;
     var postedBy = null;
     var selectedPrNo = null;
+    var selectedCtrlNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -286,6 +287,7 @@
         submittedBy = selectedData.SubmittedBy;
         postedBy = selectedData.PostedBy;
         selectedPrNo = selectedData.PrNo;
+        selectedCtrlNo = selectedData.CtrlNo;
 
         if (postedBy) {
             $(".k-grid-btnUnpostPR", grid).show();
@@ -337,7 +339,7 @@
             });
         }
 
-        var grid = this;
+        var grid = $("#grid");
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrintPR", grid).hide();
             $(".k-grid-btnPostPR", grid).hide();
@@ -468,19 +470,19 @@
         //    }
         //});
 
-        var grid = e.sender;
-        var dataItems = grid.dataSource.view(); // currently visible rows
+        //var grid = e.sender;
+        //var dataItems = grid.dataSource.view(); // currently visible rows
 
-        // --- Italicize rows where Unit == "Set"
-        grid.tbody.find("tr").each(function (index) {
-            var dataItem = dataItems[index];
-            if (dataItem.Unit === "set" || dataItem.Unit === "lot") {
-                $(this).css({
-                    "font-style": "italic",
-                    "font-weight": "bold"
-                });
-            }
-        });
+        //// --- Italicize rows where Unit == "Set"
+        //grid.tbody.find("tr").each(function (index) {
+        //    var dataItem = dataItems[index];
+        //    if (dataItem.Unit === "set" || dataItem.Unit === "lot") {
+        //        $(this).css({
+        //            "font-style": "italic",
+        //            "font-weight": "bold"
+        //        });
+        //    }
+        //});
     }
 
     function onEditGridItems(e) {
@@ -749,7 +751,7 @@
             alert("Request already posted by " + postedBy);
         }
         else {
-            var msg = "Post PR Number " + selectedPrNo + "?";
+            var msg = "Post Control Number " + selectedCtrlNo + "?";
 
             if (confirm(msg)) {
                 $.ajax({
@@ -810,7 +812,7 @@
             alert("Request already submitted by " + submittedBy);
         }
         else {
-            var msg = "Submit PR Number " + selectedPrNo + " for posting?";
+            var msg = "Submit Control Number " + selectedCtrlNo + " for posting?";
 
             if (confirm(msg)) {
                 $.ajax({
@@ -839,7 +841,7 @@
 
     $(".k-grid-btnUnsubmitPR").click(function (e) {
         e.preventDefault();
-        var msg = "Unsubmit PR Number " + selectedPrNo + " for posting?";
+        var msg = "Unsubmit Control Number " + selectedCtrlNo + " for posting?";
 
         if (confirm(msg)) {
             $.ajax({

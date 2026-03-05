@@ -108,7 +108,9 @@ namespace iLgs.Services.PurchaseOrder
         _vmExceptionService.TryCatch(() =>
         {
             var data = _db.OrderItems
-            .Where(w => w.OrderId == orderId && !w.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemId == w.Id))
+            .Where(w => w.OrderId == orderId 
+                && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "")
+                && !w.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemId == w.Id))
             .AsNoTracking()
             .Select(s => new OrderItemUnitGroupDescriptionItemVM
             {

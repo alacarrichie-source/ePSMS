@@ -93,8 +93,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("MainAccount").Title("Account").Width("80%");
+                    c.Add().Field("MainAccount").Title("Account").Width("60%");
                 })
             //.Events(e => { e.Select("onSelectOrderId"); })
             )
@@ -125,8 +126,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 //.Events(e => { e.Select("onSelectOrderId"); })
                 .CascadeFrom("mainAccount")
@@ -157,8 +159,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount1")
             )
@@ -188,8 +191,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount2")
             )
@@ -219,8 +223,9 @@
                 })
                 .Columns(c =>
                 {
+                    c.Add().Field("Category").Title("Category").Width("20%");
                     c.Add().Field("Code").Title("Code").Width("20%");
-                    c.Add().Field("Description").Title("Description").Width("80%");
+                    c.Add().Field("Description").Title("Description").Width("60%");
                 })
                 .CascadeFrom("subAccount3")
             )

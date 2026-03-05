@@ -98,8 +98,8 @@ namespace iLgs.Services.CustodianReports
                         ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
                     }
                 }
-            }            
-
+            }
+            
             ex.ThrowIfContainsErrors();
         }
 

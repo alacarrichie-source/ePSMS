@@ -234,8 +234,7 @@ namespace iLgs.Services.ParIcs
             var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetIcsPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
             return data;
         }
-
-        //public IQueryable<ParIcsItemVm> GetItemsByPoNoOld(string poNo, DateTime? poDate, Guid? deptId)
+        
         public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
@@ -245,33 +244,7 @@ namespace iLgs.Services.ParIcs
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && (w.UnitCost < priceCap || w.IsForICS == true)
-                    && !w.PsCardItemUnitGroupDescriptionItems.Any() // not a member of set
-                                                                    //&& (w.IsForICS == true
-                                                                    //     || (w.IsForICS != true
-                                                                    //        && w.UnitCost < _parPrice
-                                                                    //        && !w.PsCardItemUnitGroupDescriptionItems
-                                                                    //            .Any(a => a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost >= _parPrice))
-                                                                    //    )
-
-
-                // 2025/0217
-                //&& w.InvDist == "I"
-                //&& (w.IsForICS == true 
-                //    || (w.UnitCost < _parPrice 
-                //        && !w.PsCardItemUnitGroupDescriptionItems
-                //            .Any(a => a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost >= _parPrice)) 
-                //    || w.PsCardItemUnitGroupDescriptionItems
-                //        .Any(a => a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost < _parPrice)
-                //)
-                //
-                //&& !w.OrderItem.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                //&& ((w.UnitCost < _parPrice && !w.OrderItem.OrderItemUnitGroupDescriptionItems
-                //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)) 
-                //            || (w.OrderItem.OrderItemUnitGroupDescriptionItems
-                //                .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                //        && w.IsForICS == true
-                //      )
-                //    )
+                    && !w.PsCardItemUnitGroupDescriptionItems.Any()                     
                 )
                 .Select(s => new ParIcsItemVm
                 {
@@ -304,7 +277,7 @@ namespace iLgs.Services.ParIcs
                     //SetLotDesc = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId)).FirstOrDefault().Description ?? ""
                 }).ToListAsync();
             return data;
-        }
+        }        
 
         public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo)
         {

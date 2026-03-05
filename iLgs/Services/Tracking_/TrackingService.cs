@@ -175,6 +175,7 @@ namespace iLgs.Services.Tracking_
 
         private void ValidateFields(TrackingVM model, Mode mode)
         {
+            _imex = new InvalidModelException();
             if (model.CodeMastId == null)
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.CodeMastId)), "Field is required.");

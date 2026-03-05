@@ -127,10 +127,33 @@ namespace iLgs.Controllers
         {
             var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text).OrderBy(o => o.Code).ToList();
             // Insert "ALL" at the top
-            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, Code = string.Empty, MainAccount = "ALL" });
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, Category = string.Empty, Code = string.Empty, MainAccount = "ALL" });
 
             return Json(model, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetCustodianMainAccountVehiclesCategory(int? accountGroup, string category, string text)
+        {
+            var model = _itemTypeService.GetCustodianMainAccounts(accountGroup, text);
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                if (category == "S")
+                {
+                    model = model.Where(w => w.Category == "S");
+                }
+                else
+                {
+                    model = model.Where(w => w.Category != "S");
+                }
+            }
+
+            var modelList = model.OrderBy(o => o.Code).ToList();
+            // Insert "ALL" at the top
+            modelList.Insert(0, new CustodianAccountVM { Id = Guid.Empty, Category = string.Empty, Code = string.Empty, MainAccount = "ALL" });
+
+            return Json(modelList, JsonRequestBehavior.AllowGet);
+        }        
 
         public JsonResult GetCustodianItemPpe(string text)
         {

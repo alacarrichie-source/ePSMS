@@ -22,8 +22,10 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public string CtrlNo { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
+        public string FundSpecific { get; set; }
         public string Division { get; set; }
         public Nullable<System.Guid> OfficeId { get; set; }
         public string Office { get; set; }
@@ -49,13 +51,12 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
-        public string FundSpecific { get; set; }
     
         public virtual Codextn Codextn { get; set; }
+        public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItem> RisItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroup> RisItemUnitGroups { get; set; }
-        public virtual Order Order { get; set; }
     }
 }

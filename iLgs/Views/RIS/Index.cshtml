@@ -8,26 +8,26 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        //col.Bound(c => c.Id);
+        col.Bound(c => c.CtrlNo).Width(50);
         col.Bound(c => c.Fund).Width(50);
         col.Bound(c => c.RisNo).Width(70);
-        col.Bound(c => c.RisDate).Width(70);
+        col.Bound(c => c.RisDate).Width(50);
         col.Bound(c => c.PoNo).Width(70);
-        col.Bound(c => c.PoDate).Width(70);
-        col.Bound(c => c.Office).Width(100);
-        col.Bound(c => c.FPP).Width(70);
-        col.Bound(c => c.RequestedBy).Width(100);
-        col.Bound(c => c.ApprovedBy).Width(100);
-        col.Bound(c => c.IssuedBy).Width(100);
-        col.Bound(c => c.ReceivedBy).Width(100);
-        col.Bound(c => c.PostedBy).Width(100);
+        col.Bound(c => c.PoDate).Width(50);
+        col.Bound(c => c.Office).Width(70);
+        //col.Bound(c => c.FPP).Width(70);
+        col.Bound(c => c.RequestedBy).Width(70);
+        col.Bound(c => c.ApprovedBy).Width(70);
+        col.Bound(c => c.IssuedBy).Width(70);
+        col.Bound(c => c.ReceivedBy).Width(70);
+        col.Bound(c => c.PostedBy).Width(50);
         //col.Bound(c => c.IsPosted).Width(30);
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted"); 
             //command.Custom("Issue").IconClass("k-icon k-i-book").Click("onClickIssue").Visible("CheckPostedBy");
-        }).Width(170);
+        }).Width(120);
     })
     .ToolBar(t =>
     {
@@ -43,10 +43,11 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISTemplate").Window(w => w.Width(800).Title("Requisition and Issue Slip")))
     .Search(s =>
     {
+        s.Field(o => o.CtrlNo, "contains");
         s.Field(o => o.RisNo, "contains");
         s.Field(o => o.Fund, "contains");
         s.Field(o => o.Office, "contains");
-        s.Field(o => o.FPP, "contains");
+        //s.Field(o => o.FPP, "contains");
         s.Field(o => o.RequestedBy, "contains");
         s.Field(o => o.IssuedBy, "contains");
         s.Field(o => o.ApprovedBy, "contains");
@@ -111,9 +112,9 @@
                 items.Add().Text("Items")
                     .Selected(true)
                     .LoadContentFrom("_RISItem", "RIS", new { risId = "#=Id#" });
-                items.Add().Text("Groups")
-                    .Selected(true)
-                    .LoadContentFrom("_RISItemUnitGroup", "RIS", new { risId = "#=Id#" });
+                //items.Add().Text("Groups")
+                //    .Selected(false)
+                //    .LoadContentFrom("_RISItemUnitGroup", "RIS", new { risId = "#=Id#" });
             }).ToClientTemplate())
 </script>
 
@@ -332,6 +333,7 @@
     var selectedItemId = null;
     var postedBy = null;
     var selectedRisNo = null;
+    var selectedCtrlNo = null;
     var issuedBy = null;
 
     function onChangeGrid(e) {
@@ -343,6 +345,7 @@
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
         selectedRisNo = selectedData.RisNo;
+        selectedCtrlNo = selectedData.CtrlNo;
         issuedBy = selectedData.IssuedBy;
 
         if (postedBy) {
@@ -424,10 +427,10 @@
                 type: "POST",
                 url: '@Url.Action("GetModelDefault", "RIS")',
                 success: function (result) {
-                    var date = kendo.toString(kendo.parseDate(result.model.RisDate), 'MM/dd/yyyy');
-                    var datePicker = $("#RisDate").data("kendoDatePicker");
-                    datePicker.value(date);
-                    datePicker.trigger("change");
+                    //var date = kendo.toString(kendo.parseDate(result.model.RisDate), 'MM/dd/yyyy');
+                    //var datePicker = $("#RisDate").data("kendoDatePicker");
+                    //datePicker.value(date);
+                    //datePicker.trigger("change");
 
                     $("#IssuedBy").data("kendoMultiColumnComboBox").value(result.model.IssuedBy);
                     $("#IssuedBy").data("kendoMultiColumnComboBox").trigger("change");
@@ -871,7 +874,7 @@
             alert("Request already posted by " + postedBy);
         }
         else {
-            var msg = "Post RIS Number " + selectedRisNo + "?";
+            var msg = "Post Control Number " + selectedCtrlNo + "?";
 
             if (confirm(msg)) {
                 $.ajax({
@@ -928,7 +931,7 @@
 
     $(".k-grid-btnPrintRIS").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("RISRpt", "RIS")?risNo=' + selectedRisNo;
+        var url = '@Url.Action("RISRpt", "RIS")?ctrlNo=' + selectedCtrlNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -976,7 +979,7 @@
         });
 
         mywindow.refresh({
-            url: '@Url.Action("_PrintRisDepartment", "RIS")?risNo=' + selectedRisNo
+            url: '@Url.Action("_PrintRisDepartment", "RIS")?ctrlNo=' + selectedCtrlNo
         });
         mywindow.center().open();
     });

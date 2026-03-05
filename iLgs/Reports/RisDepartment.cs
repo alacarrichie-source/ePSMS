@@ -138,7 +138,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_cRisNo {
+        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
             get {
                 return this.DataDefinition.ParameterFields[0];
             }
@@ -146,7 +146,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
+        public CrystalDecisions.Shared.IParameterField Parameter_dAsOfDate {
             get {
                 return this.DataDefinition.ParameterFields[1];
             }
@@ -154,7 +154,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_dAsOfDate {
+        public CrystalDecisions.Shared.IParameterField Parameter_cCtrlNo {
             get {
                 return this.DataDefinition.ParameterFields[2];
             }

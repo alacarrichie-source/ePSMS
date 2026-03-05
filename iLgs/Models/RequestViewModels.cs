@@ -116,6 +116,10 @@ namespace iLgs.Models
         
         //[Required]
         public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherDesc { get; set; }
+
         public string Remarks { get; set; }
 
         //[Required]
