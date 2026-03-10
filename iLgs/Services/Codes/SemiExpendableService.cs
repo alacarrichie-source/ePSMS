@@ -77,7 +77,7 @@ namespace iLgs.Services.Codes
         {
             var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
                 "Where MastId in (Select Id From CodeMast Where Code = 'SPHV') " +
-                "and convert(varchar(10), Code, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
+                "and convert(varchar(10), convert(datetime, Code), 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
             return data ?? 5000;
         }
 

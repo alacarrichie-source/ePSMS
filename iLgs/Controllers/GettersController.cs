@@ -1282,6 +1282,34 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetNumericOperators()
+        {
+            var operators = new[]
+            {
+                new { Text = "Is equal to", Value = "eq" },
+                new { Text = "Is not equal to", Value = "neq" },
+                new { Text = "Is greater than or equal to", Value = "gte" },
+                new { Text = "Is greater than", Value = "gt" },
+                new { Text = "Is less than or equal to", Value = "lte" },
+                new { Text = "Is less than", Value = "lt" },
+                new { Text = "Is null", Value = "isnull" },
+                new { Text = "Is not null", Value = "isnotnull" }
+            };
+
+            return Json(operators, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetLogicOperators()
+        {
+            var operators = new[]
+            {
+                new { Text = "And", Value = "and" },
+                new { Text = "Or", Value = "or" }                
+            };
+
+            return Json(operators, JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetPsNoVM

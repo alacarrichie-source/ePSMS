@@ -651,14 +651,12 @@ namespace iLgs.Services.PurchaseOrder
                             Category = "Property",
                             PriceCap = priceCap
                         };
-                        //throw new InvalidValueException($"Please use the Supplies Code for items with a unit cost below {_priceCap:n0}.");
                     }
                 }
                 else
                 {
                     if (unitCost >= priceCap)
                     {
-                        //throw new InvalidValueException($"Please use the Property Code for items with a unit cost of {_priceCap:n0} and above.");
                         validPriceCap = new ValidPriceCapVM()
                         {
                             Category = "Supplies",

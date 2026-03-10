@@ -289,6 +289,100 @@
         </div>
     </div>
 </div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("Acquisition Cost", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            <div class="col-md-6">
+                @(Html.Kendo().ComboBox()
+                .Name("acqFilter")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .Value("gte")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetNumericOperators", "Getters");
+                    });
+                })
+                )
+            </div>
+            <div class="col-md-6">
+                @(Html.Kendo().NumericTextBox()
+                    .Name("acqCost")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Decimals(2)
+                    .Spinners(false)
+                    .Format("{0:n2}")
+                    //.Value(0)
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            &nbsp;
+        </div>
+        <div class="col-md-9">
+            <div class="col-md-3">
+                @(Html.Kendo().ComboBox()
+                .Name("condFilter")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .Value("and")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetLogicOperators", "Getters");
+                    });
+                })
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            &nbsp;
+        </div>
+        <div class="col-md-9">
+            <div class="col-md-6">
+                @(Html.Kendo().ComboBox()
+                .Name("acqFilter2")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .Value("gte")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetNumericOperators", "Getters");
+                    });
+                })
+                )
+            </div>
+            <div class="col-md-6">
+                @(Html.Kendo().NumericTextBox()
+                    .Name("acqCost2")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Decimals(2)
+                    .Spinners(false)
+                    .Format("{0:n2}")
+                    //.Value(0)
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
 <br />
 
 @(Html.Kendo().Grid<iLgs.Models.CustodianReportItemVehicleVM>()
@@ -561,6 +655,11 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         var insertedAsOf = $("#insertedAsOf").val();
+        var acqFilter = $("#acqFilter").val();
+        var acqCost = $("#acqCost").val();
+        var condFilter = $("#condFilter").val();
+        var acqFilter2 = $("#acqFilter2").val();
+        var acqCost2 = $("#acqCost2").val();
         // Construct the URL for the Excel export
 
         var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
@@ -570,7 +669,13 @@
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
             + '&subAccount4=' + subAccount4
-            + '&category=' + '@ViewBag.Category';
+            + '&category=' + '@ViewBag.Category'
+            + '&acqFilter=' + acqFilter
+            + '&acqCost=' + acqCost
+            + '&condFilter=' + condFilter
+            + '&acqFilter2=' + acqFilter2
+            + '&acqCost2=' + acqCost2;
+
         // Redirect to the export URL to trigger download
         window.location.href = url;
         window.kendo.ui.progress($(document.body), false);
@@ -594,6 +699,12 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         var insertedAsOf = $("#insertedAsOf").val();
+        var acqFilter = $("#acqFilter").val();
+        var acqCost = $("#acqCost").val();
+        var condFilter = $("#condFilter").val();
+        var acqFilter2 = $("#acqFilter2").val();
+        var acqCost2 = $("#acqCost2").val();
+
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
@@ -602,7 +713,12 @@
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
             + '&subAccount4=' + subAccount4
-            + '&category=' + '@ViewBag.Category';
+            + '&category=' + '@ViewBag.Category'
+            + '&acqFilter=' + acqFilter
+            + '&acqCost=' + acqCost
+            + '&condFilter=' + condFilter
+            + '&acqFilter2=' + acqFilter2
+            + '&acqCost2=' + acqCost2;
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
@@ -627,6 +743,12 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         var insertedAsOf = $("#insertedAsOf").val();
+        var acqFilter = $("#acqFilter").val();
+        var acqCost = $("#acqCost").val();
+        var condFilter = $("#condFilter").val();
+        var acqFilter2 = $("#acqFilter2").val();
+        var acqCost2 = $("#acqCost2").val();
+
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
@@ -635,7 +757,12 @@
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
             + '&subAccount4=' + subAccount4
-            + '&category=' + '@ViewBag.Category';
+            + '&category=' + '@ViewBag.Category'
+            + '&acqFilter=' + acqFilter
+            + '&acqCost=' + acqCost
+            + '&condFilter=' + condFilter
+            + '&acqFilter2=' + acqFilter2
+            + '&acqCost2=' + acqCost2;
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
@@ -660,6 +787,12 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         var insertedAsOf = $("#insertedAsOf").val();
+        var acqFilter = $("#acqFilter").val();
+        var acqCost = $("#acqCost").val();
+        var condFilter = $("#condFilter").val();
+        var acqFilter2 = $("#acqFilter2").val();
+        var acqCost2 = $("#acqCost2").val();
+
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
@@ -668,7 +801,12 @@
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
             + '&subAccount4=' + subAccount4
-            + '&category=' + '@ViewBag.Category';
+            + '&category=' + '@ViewBag.Category'
+            + '&acqFilter=' + acqFilter
+            + '&acqCost=' + acqCost
+            + '&condFilter=' + condFilter
+            + '&acqFilter2=' + acqFilter2
+            + '&acqCost2=' + acqCost2;
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
@@ -693,6 +831,12 @@
         var subAccount4 = $("#subAccount4").val();
         var asOf = $("#asOf").val();
         var insertedAsOf = $("#insertedAsOf").val();
+        var acqFilter = $("#acqFilter").val();
+        var acqCost = $("#acqCost").val();
+        var condFilter = $("#condFilter").val();
+        var acqFilter2 = $("#acqFilter2").val();
+        var acqCost2 = $("#acqCost2").val();
+
         // Construct the URL for the Excel export
         var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
             + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
@@ -701,7 +845,12 @@
             + '&subAccount2=' + subAccount2
             + '&subAccount3=' + subAccount3
             + '&subAccount4=' + subAccount4
-            + '&category=' + '@ViewBag.Category';
+            + '&category=' + '@ViewBag.Category'
+            + '&acqFilter=' + acqFilter
+            + '&acqCost=' + acqCost
+            + '&condFilter=' + condFilter
+            + '&acqFilter2=' + acqFilter2
+            + '&acqCost2=' + acqCost2;
 
         // Redirect to the export URL to trigger download
         window.location.href = url;

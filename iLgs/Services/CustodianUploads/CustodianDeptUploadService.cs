@@ -278,8 +278,10 @@ namespace iLgs.Services
 
             // Validate all first
             foreach (var file in files)
-            {
+            {                
                 string originalName = Path.GetFileName(file.FileName);
+
+                FileNameValidator.Validate(originalName);
 
                 if (file.ContentLength > (1024 * 1024 * model.FileSize))
                     throw new InvalidValueException($"File '{originalName}' exceeds the allowed size of {model.FileSize} MB.");

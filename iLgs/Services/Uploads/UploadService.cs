@@ -76,7 +76,7 @@ namespace iLgs.Services
             var subDir = "/" + _subDir + "/";
             var data = _db.Uploads.AsNoTracking().Where(w => w.VirtualDirectory.EndsWith(subDir)).AsQueryable();
             return data;
-        }        
+        }
 
         public IQueryable<Upload> GetAllByImageId(Guid? imageId)
         {
@@ -88,8 +88,8 @@ namespace iLgs.Services
         public IQueryable<Upload> GetAllCustodianUploads(int? forYear, Guid? deptId, Guid? locationId)
         {
             var data = _db.Uploads.AsNoTracking()
-                .Where(w => _db.CustodianReports.Any(a => a.AsOf.Value.Year == forYear && a.DeptId == deptId 
-                    && a.CustodianReportItems.Any(b => b.Id == w.ImageId && (locationId == null || b.LocationId == locationId))));           
+                .Where(w => _db.CustodianReports.Any(a => a.AsOf.Value.Year == forYear && a.DeptId == deptId
+                    && a.CustodianReportItems.Any(b => b.Id == w.ImageId && (locationId == null || b.LocationId == locationId))));
             return data;
         }
 
@@ -243,7 +243,7 @@ namespace iLgs.Services
         }
 
         public virtual async ValueTask<Upload> UploadAsyncOld(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
-        {            
+        {
             if (files == null || !files.Any())
             {
                 throw new RecordNotFoundException("No files to upload!");
@@ -267,56 +267,58 @@ namespace iLgs.Services
 
             //using (var ctx = new AppManEntities())
             //{
-                foreach (var file in files)
+            foreach (var file in files)
+            {
+                model.Id = Guid.NewGuid();
+                var fileName = model.Id + "-" + file.FileName;
+
+                FileNameValidator.Validate(file.FileName);
+
+                if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
                 {
-                    model.Id = Guid.NewGuid();
-                    var fileName = model.Id + "-" + file.FileName;
-
-                    if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
-                    {
-                        throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
-                    }
-
-                    if (file.ContentLength > 1024 * 1024 * model.FileSize)
-                    {
-                        throw new InvalidValueException($"The size of the file should not exceeed {model.FileSize} MB");
-                    }
-                    var fileExt = System.IO.Path.GetExtension(file.FileName).Substring(1).ToLower();
-                    if (!_supportedTypes.Contains(fileExt))
-                    {
-                        throw new InvalidValueException("Invalid file type.");
-                    }
-                    
-                    var physicalPath = Path.Combine(_directory, fileName);
-                    var hostaddress = HttpContext.Current.Request.UserHostAddress;
-                    file.SaveAs(physicalPath);
-
-                    model.InsertedBy = user;
-                    model.UpdatedBy = user;
-                    model.InsertedDt = date;
-                    model.UpdatedDt = date;
-                    model.FileName = Path.GetFileName(fileName);
-                    model.VirtualDirectory = _directory;
-
-                    var entity = new Upload()
-                    {
-                        Id = model.Id,
-                        ImageId = model.ImageId,
-                        FileName = model.FileName,
-                        Description = model.Description,
-                        ServerIpAddress = model.ServerIpAddress,
-                        VirtualDirectory = model.VirtualDirectory,
-                        Remarks = model.Remarks,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt
-                    };
-
-                    _db.Uploads.Add(entity);
-                    await _db.SaveChangesAsync();
+                    throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
                 }
-                return model;
+
+                if (file.ContentLength > 1024 * 1024 * model.FileSize)
+                {
+                    throw new InvalidValueException($"The size of the file should not exceeed {model.FileSize} MB");
+                }
+                var fileExt = System.IO.Path.GetExtension(file.FileName).Substring(1).ToLower();
+                if (!_supportedTypes.Contains(fileExt))
+                {
+                    throw new InvalidValueException("Invalid file type.");
+                }
+
+                var physicalPath = Path.Combine(_directory, fileName);
+                var hostaddress = HttpContext.Current.Request.UserHostAddress;
+                file.SaveAs(physicalPath);
+
+                model.InsertedBy = user;
+                model.UpdatedBy = user;
+                model.InsertedDt = date;
+                model.UpdatedDt = date;
+                model.FileName = Path.GetFileName(fileName);
+                model.VirtualDirectory = _directory;
+
+                var entity = new Upload()
+                {
+                    Id = model.Id,
+                    ImageId = model.ImageId,
+                    FileName = model.FileName,
+                    Description = model.Description,
+                    ServerIpAddress = model.ServerIpAddress,
+                    VirtualDirectory = model.VirtualDirectory,
+                    Remarks = model.Remarks,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
+
+                _db.Uploads.Add(entity);
+                await _db.SaveChangesAsync();
+            }
+            return model;
             //}
         }
 
@@ -339,6 +341,8 @@ namespace iLgs.Services
             {
                 string originalName = Path.GetFileName(file.FileName);
 
+                FileNameValidator.Validate(originalName);
+
                 if (await IsFileNameExistAsync(originalName))
                     throw new RecordAlreadyExistsException($"File name '{originalName}' already exists.");
 
@@ -354,52 +358,51 @@ namespace iLgs.Services
             Upload lastEntity = null;
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                foreach (var file in files)
+            foreach (var file in files)
+            {
+                model.Id = Guid.NewGuid();
+                var fileName = model.Id + "-" + file.FileName;
+
+                if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
                 {
-                    model.Id = Guid.NewGuid();
-                    var fileName = model.Id + "-" + file.FileName;
-
-                    if (await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper()))
-                    {
-                        throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
-                    }
-
-                    var physicalPath = Path.Combine(_directory, fileName);
-                    var hostaddress = HttpContext.Current.Request.UserHostAddress;
-                    file.SaveAs(physicalPath);
-
-                    model.InsertedBy = user;
-                    model.UpdatedBy = user;
-                    model.InsertedDt = date;
-                    model.UpdatedDt = date;
-                    model.FileName = Path.GetFileName(fileName);
-                    model.VirtualDirectory = _directory;
-
-                    var entity = new Upload()
-                    {
-                        Id = model.Id,
-                        ImageId = model.ImageId,
-                        FileName = model.FileName,
-                        Description = model.Description,
-                        ServerIpAddress = model.ServerIpAddress,
-                        VirtualDirectory = model.VirtualDirectory,
-                        Remarks = model.Remarks,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt
-                    };
-
-                    _db.Uploads.Add(entity);
-                    lastEntity = entity; // Keep reference to return
+                    throw new RecordAlreadyExistsException($"File name '{fileName}' already exists.");
                 }
 
-                await _db.SaveChangesAsync();
+                var physicalPath = Path.Combine(_directory, fileName);
+                var hostaddress = HttpContext.Current.Request.UserHostAddress;
+                file.SaveAs(physicalPath);
+
+                model.InsertedBy = user;
+                model.UpdatedBy = user;
+                model.InsertedDt = date;
+                model.UpdatedDt = date;
+                model.FileName = Path.GetFileName(fileName);
+                model.VirtualDirectory = _directory;
+
+                var entity = new Upload()
+                {
+                    Id = model.Id,
+                    ImageId = model.ImageId,
+                    FileName = model.FileName,
+                    Description = model.Description,
+                    ServerIpAddress = model.ServerIpAddress,
+                    VirtualDirectory = model.VirtualDirectory,
+                    Remarks = model.Remarks,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
+
+                _db.Uploads.Add(entity);
+                lastEntity = entity; // Keep reference to return
+            }
+
+            await _db.SaveChangesAsync();
             //}
 
             return lastEntity; // Return the last successfully saved file
         }
-
 
         private void ValidateIfSubmitted(Upload model)
         {
@@ -472,22 +475,22 @@ namespace iLgs.Services
 
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                var entity = await _db.Uploads.FindAsync(model.Id);
+            var entity = await _db.Uploads.FindAsync(model.Id);
 
-                entity.ImageId = model.ImageId;
-                entity.FileName = model.FileName;
-                entity.Description = model.Description;
-                entity.ServerIpAddress = model.ServerIpAddress;
-                entity.VirtualDirectory = model.VirtualDirectory;
-                entity.Remarks = model.Remarks;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.ImageId = model.ImageId;
+            entity.FileName = model.FileName;
+            entity.Description = model.Description;
+            entity.ServerIpAddress = model.ServerIpAddress;
+            entity.VirtualDirectory = model.VirtualDirectory;
+            entity.Remarks = model.Remarks;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //_db.Uploads.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
+            //_db.Uploads.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                return model;
+            return model;
             //}
         }
 
@@ -499,30 +502,30 @@ namespace iLgs.Services
 
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                var entity = await _db.Uploads.FindAsync(model.Id);
+            var entity = await _db.Uploads.FindAsync(model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-                _db.Uploads.Remove(entity);
-                await _db.SaveChangesAsync();
+            _db.Uploads.Remove(entity);
+            await _db.SaveChangesAsync();
 
-                var directory = model.VirtualDirectory;
-                var fileName = model.FileName;
+            var directory = model.VirtualDirectory;
+            var fileName = model.FileName;
 
-                //var path = HttpContext.Current.Server.MapPath(directory);            
-                var physicalPath = Path.Combine(_directory, fileName);
-                var appPathDirectory = Path.GetDirectoryName(physicalPath);
+            //var path = HttpContext.Current.Server.MapPath(directory);            
+            var physicalPath = Path.Combine(_directory, fileName);
+            var appPathDirectory = Path.GetDirectoryName(physicalPath);
 
-                if (File.Exists(physicalPath))
-                {
-                    // The files are not actually removed in this demo
-                    File.Delete(physicalPath);
-                }
+            if (File.Exists(physicalPath))
+            {
+                // The files are not actually removed in this demo
+                File.Delete(physicalPath);
+            }
 
-                return model;
+            return model;
             //}
         }
 
@@ -535,42 +538,42 @@ namespace iLgs.Services
         {
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                var uploads = await _db.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
-                if (uploads.Any())
+            var uploads = await _db.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
+            if (uploads.Any())
+            {
+                foreach (var upload in uploads)
                 {
-                    foreach (var upload in uploads)
+                    // Pattern: match a GUID
+                    var fileName = Regex.Replace(upload.FileName, @"^[0-9a-fA-F\-]{36}", "");
+                    var resultPath = upload.VirtualDirectory.Substring(upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase));
+                    var destinationPath = directoryPath + upload.Id.ToString() + fileName;
+                    if (!File.Exists(directoryPath))
                     {
-                        // Pattern: match a GUID
-                        var fileName = Regex.Replace(upload.FileName, @"^[0-9a-fA-F\-]{36}", "");
-                        var resultPath = upload.VirtualDirectory.Substring(upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase));
-                        var destinationPath = directoryPath + upload.Id.ToString() + fileName;
-                        if (!File.Exists(directoryPath))
+                        var uploadId = Guid.NewGuid();
+                        var entity = new Upload()
                         {
-                            var uploadId = Guid.NewGuid();
-                            var entity = new Upload()
-                            {
-                                Id = uploadId,
-                                ImageId = imageId,
-                                FileName = uploadId + fileName,
-                                Description = upload.Description,
-                                VirtualDirectory = directoryPath,
-                                Remarks = upload.Remarks,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
+                            Id = uploadId,
+                            ImageId = imageId,
+                            FileName = uploadId + fileName,
+                            Description = upload.Description,
+                            VirtualDirectory = directoryPath,
+                            Remarks = upload.Remarks,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
 
-                            _db.Uploads.Add(entity);
-                            await _db.SaveChangesAsync();
+                        _db.Uploads.Add(entity);
+                        await _db.SaveChangesAsync();
 
-                            int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
-                            var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
+                        int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
+                        var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
 
-                            File.Copy(sourcePath, destinationPath);
-                        }
+                        File.Copy(sourcePath, destinationPath);
                     }
                 }
+            }
             //}
         }
     }

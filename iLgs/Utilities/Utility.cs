@@ -6,8 +6,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Data.Entity.Infrastructure;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
+using System.Web.Mvc;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Utilities
@@ -77,7 +79,7 @@ namespace iLgs.Utilities
             // Convert the input to lowercase and then to title case
             return textInfo.ToTitleCase(input.ToLower());
         }
-        
+
         public static string GetDisplayName(Type modelType, string propertyName)
         {
             // Get the property info from the main model type
@@ -110,7 +112,7 @@ namespace iLgs.Utilities
 
         public static string GetDisplayName<T>(string propertyName)
         {
-            return GetDisplayName(typeof(T), propertyName);            
+            return GetDisplayName(typeof(T), propertyName);
         }
 
         private static string GetDisplayNameFromType(Type type, string propertyName)
@@ -181,6 +183,85 @@ namespace iLgs.Utilities
         public static string GetItemNoIndex(string itemNo)
         {
             return string.Join(".", itemNo.Split('.').Select(x => int.TryParse(x, out var n) ? n.ToString("D3") : "000"));
+        }
+
+        public static IQueryable<T> ApplyFilters<T>(IQueryable<T> query, FilterGroup filterGroup)
+        {
+            var parameter = Expression.Parameter(typeof(T), "x");
+            Expression combined = null;
+
+            foreach (var filter in filterGroup.Filters)
+            {
+                var property = Expression.Property(parameter, filter.Field);
+                //var constant = Expression.Constant(Convert.ChangeType(filter.Value, property.Type));
+                var propertyType = property.Type;
+                var targetType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+                object convertedValue = null;
+
+                if (filter.Value != null)
+                {
+                    if (targetType.IsAssignableFrom(filter.Value.GetType()))
+                    {
+                        convertedValue = filter.Value;
+                    }
+                    else
+                    {
+                        convertedValue = Convert.ChangeType(filter.Value, targetType);
+                    }
+                }
+
+                var constant = Expression.Constant(convertedValue, propertyType);
+
+                Expression condition = null;
+
+                switch (filter.Operator)
+                {
+                    case "eq":
+                        condition = Expression.Equal(property, constant);
+                        break;
+
+                    case "neq":
+                        condition = Expression.NotEqual(property, constant);
+                        break;
+
+                    case "gt":
+                        condition = Expression.GreaterThan(property, constant);
+                        break;
+
+                    case "gte":
+                        condition = Expression.GreaterThanOrEqual(property, constant);
+                        break;
+
+                    case "lt":
+                        condition = Expression.LessThan(property, constant);
+                        break;
+
+                    case "lte":
+                        condition = Expression.LessThanOrEqual(property, constant);
+                        break;
+                }
+
+                if (combined == null)
+                {
+                    combined = condition;
+                }
+                else
+                {
+                    combined = filterGroup.Logic == "and"
+                        ? Expression.AndAlso(combined, condition)
+                        : Expression.OrElse(combined, condition);
+                }
+            }
+
+            if (combined == null)
+            {
+                return query;
+            }
+
+            var lambda = Expression.Lambda<Func<T, bool>>(combined, parameter);
+
+            return query.Where(lambda);
         }
     }
 }

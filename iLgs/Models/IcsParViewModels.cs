@@ -140,38 +140,46 @@ namespace iLgs.Models
 
             public string Location { get; set; }
 
+            [Required]
             [Display(Name = "Received by")]
             public Nullable<System.Guid> ReceivedById { get; set; }
 
             [Display(Name = "Received by")]
             public string ReceivedBy { get; set; }
-
+            
             [Display(Name = "Title")]
             public string ReceivedByTitle { get; set; }
 
             [Display(Name = "Add'l Title")]
             public string ReceivedByTitle2 { get; set; }
 
+            [Required]
             [Display(Name = "Position")]
             public string ReceivedByPosition { get; set; }
 
+            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> ReceivedDate { get; set; }
 
+            [Required]
             [Display(Name = "Department")]            
             public string ReceivedDept { get; set; }
 
+            [Required]
             [Display(Name = "Issued By")]
             public string IssuedBy { get; set; }
 
+            [Required]
             [Display(Name = "Position")]
             public string IssuedByPosition { get; set; }
 
+            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> IssuedDate { get; set; }
 
+            [Required]
             [Display(Name = "Department")]
             public string IssuedDept { get; set; }
 
@@ -233,6 +241,7 @@ namespace iLgs.Models
         public DateTime? PoDate { get; set; }
         public Guid? UnitGroupId { get; set; }
         public Guid? PsCardItemId { get; set; }
+        public Guid? PoItemId { get; set; }
 
         public Guid? DeptId { get; set; }
 
@@ -554,14 +563,25 @@ namespace iLgs.Models
 
     public class ParIcsItemVm
     {
-        public System.Guid Id { get; set; }
+        public System.Guid Id { get; set; }        
         public System.Guid? GroupId { get; set; }
         public System.Guid? PsCardId { get; set; }
+        public System.Guid? PsCardItemId { get; set; }
+        public Guid? UnitGroupId { get; set; }
+
+        [Display(Name = "Set Qty")]
+        public int? SetQty { get; set; }
+
+        [Display(Name = "Idividual Qty")]
         public int? Qty { get; set; }
 
         [Display(Name = "Total Qty")]
         public int? TotalQty { get; set; }
 
+        public string PoNo { get; set; }
+        public string AirNo { get; set; }
+        public Nullable<System.DateTime> PoDate { get; set; }
+        public Nullable<System.DateTime> AirDate { get; set; }
         public string Unit { get; set; }
 
         [Display(Name = "Unit Cost")]
@@ -629,6 +649,8 @@ namespace iLgs.Models
         public int? ParIcsBalance { get { return this.Qty - this.GeneratedItems; } }
 
         public string OtherDesc { get; set; }
+
+        [Display(Name = "PO Item No.")]
         public string ItemNo { get; set; }
         public string ItemNoIndex { get; set; }
         public int? Padding { get; set; }

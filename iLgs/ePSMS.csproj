@@ -334,6 +334,7 @@
     <Compile Include="Controllers\IcsParRptController.cs" />
     <Compile Include="Controllers\IcsParUpdateController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
+    <Compile Include="Controllers\IcsSetOrderController.cs" />
     <Compile Include="Controllers\ItemCodeRequestController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\ItemListController.cs" />
@@ -475,6 +476,7 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ErrorLogViewModels.cs" />
+    <Compile Include="Models\FilterGroupViewModels.cs" />
     <Compile Include="Models\IcsPar.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -997,6 +999,14 @@
     <Compile Include="Services\Notifications_\NotificationMessageStatusService.cs" />
     <Compile Include="Services\Notifications_\NotificationService.cs" />
     <Compile Include="Services\Notifications_\NotificationUserService.cs" />
+    <Compile Include="Services\ParIcsFromPo\IcsParItemService.cs" />
+    <Compile Include="Services\ParIcsFromPo\IcsParService.cs" />
+    <Compile Include="Services\ParIcsFromPo\IcsParSharedService.cs" />
+    <Compile Include="Services\ParIcsFromPo\IcsService.cs" />
+    <Compile Include="Services\ParIcsFromPo\IcsSharedService.cs" />
+    <Compile Include="Services\ParIcsFromPo\ParIcsUploadService.cs" />
+    <Compile Include="Services\ParIcsFromPo\ParItemService.cs" />
+    <Compile Include="Services\ParIcsFromPo\ParService.cs" />
     <Compile Include="Services\ParIcs\IcsParItemService.cs" />
     <Compile Include="Services\ParIcs\IcsParService.cs" />
     <Compile Include="Services\ParIcs\IcsParSharedService.cs" />
@@ -1278,6 +1288,7 @@
     <Compile Include="Controllers\BaseConroller.cs" />
     <Compile Include="Utilities\AppManEntitiesFactory.cs" />
     <Compile Include="Utilities\DefaultDependencyResolver.cs" />
+    <Compile Include="Utilities\FileNameValidator.cs" />
     <Compile Include="Utilities\ItemNoSequenceUtil.cs" />
     <Compile Include="Utilities\ServiceProviderControllerFactory.cs" />
     <Compile Include="Utilities\SignalRHubs.cs" />
@@ -4723,10 +4734,26 @@
     <Content Include="Views\Orders\_UnitGroupDescriptionItems.cshtml" />
     <Content Include="Views\Suppliers\EditorTemplates\_SupplierTemplate.cshtml" />
     <Content Include="Views\IcsSet\Index_bak.cshtml" />
+    <Content Include="Views\IcsSetOrder\Index.cshtml" />
+    <Content Include="Views\IcsSetOrder\_GenerateIcs.cshtml" />
+    <Content Include="Views\IcsSetOrder\_GenerateIcsBatch.cshtml" />
+    <Content Include="Views\IcsSetOrder\_GenerateIcsSet.cshtml" />
+    <Content Include="Views\IcsSetOrder\_Ics.cshtml" />
+    <Content Include="Views\IcsSetOrder\_IcsItemEdit.cshtml" />
+    <Content Include="Views\IcsSetOrder\_IcsSet.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_FieldLand.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_FieldOther.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_FieldTransportation.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_IcsTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_IsConsumableTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_IsForIcsTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_IsIncorporatedTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_IsOthersTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\IcsSetOrder\EditorTemplates\_ItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
-    <Folder Include="Services\ParIcsFromPo\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
     <Folder Include="Views\Card\" />
@@ -4890,7 +4917,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

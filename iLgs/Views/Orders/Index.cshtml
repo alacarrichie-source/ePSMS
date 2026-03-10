@@ -155,7 +155,8 @@
             col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Amount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#")
+                .FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             //col.Bound(c => c.SetLotNo).Width(50);
             col.Command(command =>

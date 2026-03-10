@@ -7,6 +7,7 @@ using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
 using iLgs.Services.Items;
+using iLgs.Services.PurchaseOrder;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -42,10 +43,11 @@ namespace iLgs.Controllers
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianReportUploadService _uploadService;
-        private readonly ICustodianDeptUploadService _scanUploadService;        
+        private readonly ICustodianDeptUploadService _scanUploadService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IAnnexDService _annexDService;
+        private readonly IOrderService _orderService;
         private readonly string _stockId, _ppeId, _transpoId;
 
         public CustodianReportController()
@@ -68,6 +70,7 @@ namespace iLgs.Controllers
             _itemCodeService = new ItemCodeService(_db);
             _userService = new UserService(_db);
             _annexDService = new AnnexDService(_db);
+            _orderService = new OrderService(_db);
 
             _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
@@ -176,7 +179,7 @@ namespace iLgs.Controllers
             ViewBag.IsDemand = true;
 
             string userName = ControllerContext.HttpContext.User.Identity.Name;
-            var isAdmin = _userService.IsUserNameAdmin(userName);            
+            var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
             ViewBag.IsSet = false;
 
@@ -249,7 +252,7 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
-            ViewBag.Title = "Custodian Report - Equipment";            
+            ViewBag.Title = "Custodian Report - Equipment";
             string userName = ControllerContext.HttpContext.User.Identity.Name;
             var isAdmin = _userService.IsUserNameAdmin(userName);
             if (isAdmin || _annexDService.IsAny(userName))
@@ -533,9 +536,9 @@ namespace iLgs.Controllers
         {
             ViewBag.Title = "Custodian Report - Uploads";
 
-            string userName = ControllerContext.HttpContext.User.Identity.Name;            
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
-            
+
             return View();
         }
 
@@ -724,7 +727,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> SubmitForCountNew(int? forYear, Guid? deptId, Guid? locationId, int? accountGroup, string url)
         {
             try
-            {                
+            {
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 DateTime date = System.DateTime.Now;
 
@@ -785,7 +788,7 @@ namespace iLgs.Controllers
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 DateTime date = System.DateTime.Now;
 
-                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);               
+                await _custodianReportSubmitForCountService.UnsubmitAsync(reportId, locationId, url, user, date);
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
@@ -964,7 +967,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else 
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1110,7 +1113,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else 
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -1399,7 +1402,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else 
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -2180,7 +2183,7 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
                 else
-                { 
+                {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
@@ -2309,7 +2312,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else 
+                else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -3439,7 +3442,7 @@ namespace iLgs.Controllers
 
             return Json(new { IsSubmitForCount = true, UpdateDate = data.UpdatedDt.Value.ToShortDateString() }, JsonRequestBehavior.AllowGet);
         }
-        
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<JsonResult> IsSubmitForCountNew(int? forYear, Guid? deptId, Guid? locationId, int? accountGroup)
         {
@@ -3470,17 +3473,20 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ExcelExportReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, null, "", "", "", "", "");
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, "", null, null, "", "", "", "", "", "", null, "", "", null);
         }
 
         public async Task<ActionResult> ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category
+            , string acqFilter, decimal? acqCost, string condFilter, string acqFilter2, decimal? acqCost2)
         {
-            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category);
+            return await ExcelExport(forYear, deptId, sectionId, accountGroup, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category
+                , acqFilter, acqCost, condFilter, acqFilter2, acqCost2);
         }
 
         public async Task<ActionResult> ExcelExport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category
+            , string acqFilter, decimal? acqCost, string condFilter, string acqFilter2, decimal? acqCost2)
         {
             try
             {
@@ -3498,11 +3504,43 @@ namespace iLgs.Controllers
                     exportFileName = "CustodianVehicles";
                 }
 
+                FilterGroup filterGroup = null;
+                var filters = new List<FilterCondition>();
+
+                if (acqCost != null)
+                {
+                    filters.Add(new FilterCondition
+                    {
+                        Field = "TotalCost",
+                        Operator = acqFilter,
+                        Value = acqCost
+                    });
+                }
+
+                if (acqCost2 != null)
+                {
+                    filters.Add(new FilterCondition
+                    {
+                        Field = "TotalCost",
+                        Operator = acqFilter2,
+                        Value = acqCost2
+                    });
+                }
+
+                if (filters.Any())
+                {
+                    filterGroup = new FilterGroup
+                    {
+                        Logic = condFilter,
+                        Filters = filters
+                    };
+                }
+
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFile(forYear, deptId, sectionId, templateFilePath, accountGroup, mainAccount
                     , asOf, insertedAsOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, category, filterGroup, user);
                 var locationCode = "ALL";
                 if (deptId != null && deptId != Guid.Empty)
                 {
@@ -3546,14 +3584,17 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
-        {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, category);
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category
+            , string acqFilter, decimal? acqCost, string condFilter, string acqFilter2, decimal? acqCost2)
+        {                        
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, mainAccount, asOf, insertedAsOf
+                , subAccount1, subAccount2, subAccount3, subAccount4, category
+                , acqFilter, acqCost, condFilter, acqFilter2, acqCost2);
         }
 
         public async Task<ActionResult> ExcelExportAnnexReport(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, null, "", "", "", "", "");
+            return await ExcelExportAnnex(forYear, deptId, sectionId, accountGroup, annex, "", null, null, "", "", "", "", "", "", null, "", "", null);
         }
 
         //public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
@@ -3564,7 +3605,8 @@ namespace iLgs.Controllers
         //}
 
         public async Task<ActionResult> ExcelExportAnnex(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string category
+            , string acqFilter, decimal? acqCost, string condFilter, string acqFilter2, decimal? acqCost2)
         {
             try
             {
@@ -3582,10 +3624,42 @@ namespace iLgs.Controllers
                     exportFileName = $"CustodianVehiclesAnnex";
                 }
 
+                FilterGroup filterGroup = null;
+                var filters = new List<FilterCondition>();
+
+                if (acqCost != null)
+                {
+                    filters.Add(new FilterCondition
+                    {
+                        Field = "TotalCost",
+                        Operator = acqFilter,
+                        Value = acqCost
+                    });
+                }
+
+                if (acqCost2 != null)
+                {
+                    filters.Add(new FilterCondition
+                    {
+                        Field = "TotalCost",
+                        Operator = acqFilter2,
+                        Value = acqCost2
+                    });
+                }
+
+                if (filters.Any())
+                {
+                    filterGroup = new FilterGroup
+                    {
+                        Logic = condFilter,
+                        Filters = filters
+                    };
+                }
+
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf, insertedAsOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4, category, user);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, category, filterGroup, user);
                 var locationCode = "ALL";
                 if (deptId != null && deptId != Guid.Empty)
                 {
@@ -3859,7 +3933,7 @@ namespace iLgs.Controllers
                 return HttpNotFound("File not found"); // Handle not found case
             }
         }
-        
+
         #endregion
 
         #region DOWNLOAD RECORDS
@@ -3978,7 +4052,7 @@ namespace iLgs.Controllers
                 return new HttpStatusCodeResult(500, ex.Message);
             }
 
-            return new HttpStatusCodeResult(200, "Update Complete");            
+            return new HttpStatusCodeResult(200, "Update Complete");
         }
 
         #endregion
@@ -4056,6 +4130,29 @@ namespace iLgs.Controllers
             //}
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public JsonResult ValidatePriceCap(Guid? itemCodeId, decimal? unitCost)
+        {
+            var error = string.Empty;
+            if (itemCodeId.HasValue)
+            {
+                var validPriceCap = _orderService.OrderItem.ValidatePriceCap(DateTime.Now, itemCodeId, unitCost);
+                if (validPriceCap != null)
+                {
+                    if (validPriceCap.Category == "Property")
+                    {
+                        error = $"The acquisition cost or set amount of this item is below ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                    }
+                    else
+                    {
+                        error = $"The acquisition cost or set amount of this item has reached ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                    }
+                }
+            }
+
+            return Json(new { Error = error }, JsonRequestBehavior.AllowGet);
         }
     }
 }
