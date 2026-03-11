@@ -279,7 +279,7 @@ namespace iLgs.Controllers
                     AllowUpload = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "UPLOAD").Any(),
                     Actions = s.MenuAccessActions.Where(y => y.IsAllowed == true).ToList()
                 })
-                .SingleOrDefault();
+                .FirstOrDefault(); // problem if singleordefault() // do not use the same menu id
             if (access == null)
             {
                 return new Access();

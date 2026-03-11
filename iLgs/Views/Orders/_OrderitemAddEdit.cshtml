@@ -19,6 +19,7 @@
     @Html.HiddenFor(model => model.ItemName)
     @Html.HiddenFor(model => model.IsSetLot)
     @Html.HiddenFor(model => model.SetLotNo)
+    @Html.HiddenFor(model => model.SetUnitCost)
     @Html.HiddenFor(model => model.OriginalDescription)
     @Html.HiddenFor(model => model.OriginalOtherDesc)
 
@@ -299,36 +300,34 @@
         //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
 
         //if ($("#IsSetLot").val() != true && $("#SetLotNo").val() != "") {
-        if ($("#SetLotNo").val() == "") {
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("ValidatePriceCap", "Orders")',
-                data: {
-                    itemCodeId: $("#ItemCodeId").val(),
-                    unitCost: $("#UnitCost").val()
-                },
-                beforeSend: function () {
-                    window.kendo.ui.progress($("#form"), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($("#form"), false);
-                    if (result.Error == "") {
+        
+        var unitCost = $("#SetLotNo").val() == "" ? $("#UnitCost").val() : $("#SetUnitCost").val();
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ValidatePriceCap", "Orders")',
+            data: {
+                itemCodeId: $("#ItemCodeId").val(),
+                unitCost: unitCost
+            },
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("#form"), false);
+                if (result.Error == "") {
+                    Save();
+                }
+                else {
+                    if (confirm(result.Error)) {
                         Save();
                     }
-                    else {
-                        if (confirm(result.Error)) {
-                            Save();
-                        }
-                    }
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
                 }
-            });
-        }
-        else {
-            Save();
-        }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
     });
 
     $("#btnCancel").click(function (e) {

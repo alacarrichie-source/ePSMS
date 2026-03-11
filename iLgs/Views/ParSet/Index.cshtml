@@ -2330,7 +2330,7 @@
         selectedId = dataItem.Id;
         var rowitem = selectedGrid.dataSource.get(selectedId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedPars(dataItem.Id, "");
+        GeneratedPars(dataItem.GroupId, "");
     }
 
     function GeneratedPars(groupId, postedBy) {
@@ -2379,7 +2379,7 @@
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedParSet(dataItem.Id, "");
+        GeneratedParSet(dataItem.GroupId, "");
     }
 
     function GeneratedParSet(groupId, postedBy) {

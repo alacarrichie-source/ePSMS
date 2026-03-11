@@ -236,18 +236,18 @@ namespace iLgs.Services.ParIcsFromPo
             return data;
         }
 
-        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, DateTime? poDate)
-        {
-            var priceCap = GetPriceCap(poDate);
-            var data = await GetItemSetsByPoNoAsyncNew(poNo, priceCap);
-            return data;
-        }
+        //public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, DateTime? poDate)
+        //{
+        //    var priceCap = GetPriceCap(poDate);
+        //    var data = await GetItemSetsByPoNoAsyncNew(poNo, priceCap);
+        //    return data;
+        //}
 
-        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, decimal? priceCap)
-        {
-            var data = await _db.Database.SqlQuery<ParIcsItemSetVm>("Exec ParIcs_GetIcsSetPoItems {0}, {1}", poNo, priceCap).ToListAsync();
-            return data;
-        }
+        //public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, decimal? priceCap)
+        //{
+        //    var data = await _db.Database.SqlQuery<ParIcsItemSetVm>("Exec ParIcs_GetIcsSetPoItems {0}, {1}", poNo, priceCap).ToListAsync();
+        //    return data;
+        //}
 
         public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo, DateTime? poDate)
         {
@@ -1037,7 +1037,7 @@ namespace iLgs.Services.ParIcsFromPo
                 var icsParItem = await _db.IcsParItems.FirstOrDefaultAsync(f => f.PsCardItemExtnId == id);
                 if (icsParItem == null) // no ICS/PAR
                 {
-                    var poDate = _db.PsCardItemExtns.Where(f => f.Id == id).FirstOrDefault().PsCardItem.PoDate;
+                    var poDate = await _db.PsCardItemExtns.Where(f => f.Id == id).Select(f => f.PsCardItem.PoDate).FirstOrDefaultAsync();
                     var icsValue = new IcsValueVM()
                     {
                         Id = id,

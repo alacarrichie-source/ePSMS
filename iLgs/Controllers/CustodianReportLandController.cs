@@ -29,6 +29,13 @@ namespace iLgs.Controllers
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianLandUploadService _uploadService;
+        private readonly string[] _landId = new string[] {
+            "_custodian_report_land",
+            "_custodian_report_land_inquiry",
+            "_custodian_report_land_demand",
+            "_custodian_report_land_update",
+            "_custodian_report_land_multiple"
+        };
 
         public CustodianReportLandController(AppManEntities db, 
             ICustodianReportService custodianReportService,
@@ -92,7 +99,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -133,7 +140,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -173,7 +180,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -204,7 +211,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -254,7 +261,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -303,7 +310,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -353,7 +360,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -421,7 +428,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -461,7 +468,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -501,7 +508,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -651,7 +658,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -687,7 +694,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -731,7 +738,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -826,7 +833,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -878,7 +885,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_land");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _landId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {

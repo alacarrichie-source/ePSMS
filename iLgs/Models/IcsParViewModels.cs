@@ -596,6 +596,8 @@ namespace iLgs.Models
         [Display(Name = "Total Cost")]
         public Nullable<decimal> GTotalCost { get; set; }
 
+        public Nullable<decimal> SetCost { get; set; }
+
         public string Article { get; set; }
         public string Description { get; set; }
         public string StockNo { get; set; }

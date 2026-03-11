@@ -31,6 +31,13 @@ namespace iLgs.Controllers
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly string[] _bldgId = new string[] {
+            "_custodian_report_bldg",
+            "_custodian_report_bldg_inquiry",
+            "_custodian_report_bldg_demand",
+            "_custodian_report_bldg_update",
+            "_custodian_report_bldg_multiple"
+        };
 
         public CustodianReportBldgController()
         {
@@ -121,7 +128,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -161,7 +168,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -200,7 +207,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -231,7 +238,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -281,7 +288,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -330,7 +337,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                //Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 //Access access = await accessTask;
                 //if (!access.AllowPost)
                 //{
@@ -385,7 +392,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                //Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 //Access access = await accessTask;
                 //if (!access.AllowUnpost)
                 //{
@@ -470,7 +477,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -529,7 +536,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -569,7 +576,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -609,7 +616,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -642,7 +649,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
 
                 var entity = await _custodianReportBldgItemService.GetByIdAsync(model.Id);
@@ -719,7 +726,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -759,7 +766,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -799,7 +806,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -864,7 +871,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -900,7 +907,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -944,7 +951,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -1039,7 +1046,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -1091,7 +1098,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {

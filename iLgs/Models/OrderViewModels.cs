@@ -210,6 +210,7 @@ namespace iLgs.Models
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> TUnitCost { get; set; }
         public Nullable<decimal> GTotalCost { get; set; }
+        public Nullable<decimal> SetUnitCost { get; set; }
 
         [Display(Name = "PPMP Code")]
         public string PpmpCode { get; set; }

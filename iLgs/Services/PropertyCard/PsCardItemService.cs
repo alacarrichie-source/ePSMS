@@ -575,10 +575,10 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date) => _parIcsItemExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.PsCardItems.Include(i => i.PsCardItemTransfers).FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await _db.PsCardItems.Include(i => i.PsCardItemTransfers).FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
             if (entity == null)
             {
-                throw new RecordNotFoundException(model.Id);
+                throw new RecordNotFoundException(model.PsCardItemId);
             }
 
             if (!string.IsNullOrWhiteSpace(entity.ParPostedBy))
@@ -635,7 +635,7 @@ namespace iLgs.Services.PropertyCard
             var entity = _db.PsCardItems.Where(w => w.GroupId == model.GroupId);
             if (entity.Count() == 0)
             {
-                throw new RecordNotFoundException(model.Id);
+                throw new RecordNotFoundException(model.GroupId);
             }
 
             var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);

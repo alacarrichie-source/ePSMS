@@ -2,13 +2,13 @@
     .Name("gridItemsPar")
     .Columns(col =>
     {
-        col.Bound(c => c.RefDate).Title("ICS Date").Width(50)
+        col.Bound(c => c.RefDate).Title("PAR Date").Width(50)
             .ClientTemplate("#= kendo.toString(kendo.parseDate(RefDate), 'MM/dd/yyyy') #");
-        col.Bound(c => c.RefNo).Title("ICS No.").Width(50);
+        col.Bound(c => c.RefNo).Title("PAR No.").Width(50);
         col.Bound(c => c.Location).Width(70);
         col.Bound(c => c.ReceivedBy).Width(70);
         col.Bound(c => c.PostedBy).Width(50);
-        col.Bound(c => c.PostedDt).Width(70);
+        col.Bound(c => c.PostedDt).Width(50);
         col.Command(command =>
         {
             //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
@@ -16,10 +16,8 @@
             //{
             //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
             //}
-            //command.Custom("Print ICS").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintSet");
-            //command.Custom("Uploads").Click("onClickSetUploads");
             command.Custom("Delete").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickDeleteGridParItems").Visible("IsSetNotPosted");
-            command.Custom("Print ICS").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintSet");
+            command.Custom("Print PAR").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintSet");
             command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickSetUploads").SendDataKeys(true);
             command.Custom("Post").IconClass("k-icon k-i-lock").Click("onClickBtnPostParSet").SendDataKeys(true).Visible("IsSetNotPosted");
             command.Custom("Unpost").IconClass("k-icon k-i-unlock").Click("onClickBtnUnpostParSet").SendDataKeys(true).Visible("IsSetPosted");
@@ -51,8 +49,8 @@
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
             })
             .Sort(s => { s.Add(a => a.RefNo); })
-            .Read(read => read.Action("_IcsSetRead", "IcsSetOrder", new { unitGroupId = ViewData["unitGroupId"], cardItemId = ViewData["cardItemId"] }))
-            .Destroy(destroy => destroy.Action("_IcsSetDestroy", "IcsSetOrder"))
+            .Read(read => read.Action("_ParSetRead", "ParSetOrder", new { unitGroupId = ViewData["unitGroupId"], cardItemId = ViewData["cardItemId"] }))
+            .Destroy(destroy => destroy.Action("_ParSetDestroy", "ParSetOrder"))
         )
         .AutoBind(true)
         .Selectable(s => s.Mode(GridSelectionMode.Single))

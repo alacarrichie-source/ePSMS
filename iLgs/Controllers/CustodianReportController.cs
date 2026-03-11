@@ -49,6 +49,7 @@ namespace iLgs.Controllers
         private readonly IAnnexDService _annexDService;
         private readonly IOrderService _orderService;
         private readonly string _stockId, _ppeId, _transpoId;
+        private readonly string[] _raStockId, _raPpeId, _raTranspoId;
 
         public CustodianReportController()
         {
@@ -75,6 +76,9 @@ namespace iLgs.Controllers
             _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
             _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
+            _raStockId = new string[] { _stockId, $"{_stockId}_inquiry", $"{_stockId}_demand", $"{_stockId}_update", $"{_stockId}_view", $"{_stockId}_multiple" };
+            _raPpeId = new string[] { _ppeId, $"{_ppeId}_inquiry", $"{_ppeId}_demand", $"{_ppeId}_update", $"{_ppeId}_view", $"{_ppeId}_multiple" };
+            _raTranspoId = new string[] { _transpoId, $"{_transpoId}_inquiry", $"{_transpoId}_demand", $"{_transpoId}_update", $"{_transpoId}_view", $"{_transpoId}_multiple" };
         }
 
         //public CustodianReportController(AppManEntities db,
@@ -881,7 +885,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -921,7 +925,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -961,7 +965,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1027,7 +1031,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -1067,7 +1071,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1107,7 +1111,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1185,7 +1189,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -1225,7 +1229,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1265,7 +1269,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1317,7 +1321,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1357,7 +1361,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1396,7 +1400,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1447,7 +1451,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1487,7 +1491,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1526,7 +1530,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1577,7 +1581,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1617,7 +1621,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1656,7 +1660,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1707,7 +1711,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1747,7 +1751,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1786,7 +1790,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1837,7 +1841,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1877,7 +1881,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -1916,7 +1920,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raStockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -1967,7 +1971,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2007,7 +2011,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2046,7 +2050,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2097,7 +2101,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2137,7 +2141,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2176,7 +2180,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2227,7 +2231,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2267,7 +2271,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2306,7 +2310,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2357,7 +2361,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2397,7 +2401,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2436,7 +2440,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2487,7 +2491,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2527,7 +2531,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2566,7 +2570,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2618,7 +2622,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2658,7 +2662,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2697,7 +2701,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2749,7 +2753,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2789,7 +2793,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2828,7 +2832,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -2880,7 +2884,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2920,7 +2924,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -2959,7 +2963,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -3011,7 +3015,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -3051,7 +3055,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -3090,7 +3094,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -3142,7 +3146,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -3182,7 +3186,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -3221,7 +3225,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raPpeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -3251,7 +3255,7 @@ namespace iLgs.Controllers
         #region PRINTOUTS
         public async Task<ActionResult> StickerRpt(Guid? id, int? accountGroup)
         {
-            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
             //Access access = await accessTask;
             //if (!access.AllowPrint)
             //{
@@ -3303,7 +3307,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> CustodianStockRpt(Guid? id, int? accountGroup)
         {
-            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            //Task<Access> accessTask = Access(User.Identity.GetUserId(), _raTranspoId);
             //Access access = await accessTask;
             //if (!access.AllowDelete)
             //{

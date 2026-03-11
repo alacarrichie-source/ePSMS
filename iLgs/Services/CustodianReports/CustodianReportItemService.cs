@@ -584,11 +584,18 @@ namespace iLgs.Services.CustodianReports
 
             if (!string.IsNullOrWhiteSpace(model.SetLotNo))
             {
+                // different amount can be entered, to allow correction of invalid entry.
+                //var custodianReport = _db.CustodianReports.Find(model.ReportId);
                 if (mode == Mode.ADD)
                 {
+                    
                     var item = _db.CustodianReportItems.Where(a => a.ReportId == model.ReportId
                         && a.LocationCode == model.LocationCode
                         && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount && a.SetLotAmount > 0);
+
+                    //var item = _db.CustodianReportItems.Where(a => a.ReportId == model.ReportId
+                    //    && a.LocationCode == model.LocationCode
+                    //    && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount && a.SetLotAmount > 0);
                     if (item.Any())
                     {
                         var amount = item.FirstOrDefault().SetLotAmount;

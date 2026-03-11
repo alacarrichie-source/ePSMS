@@ -113,6 +113,7 @@ namespace iLgs.Services.PurchaseOrder
                 PriceRate = s.PriceRate,
                 InsertedDt = s.InsertedDt,
                 SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo ?? "",
+                SetUnitCost = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost ?? 0,
                 UnitGroupDescriptionId = _db.OrderItemUnitGroupDescriptions.FirstOrDefault(f =>                     
                     f.OrderItemUnitGroup.OrderId == s.OrderId &&
                     f.OrderItemUnitGroup.SetLotNo == s.ItemNo && 

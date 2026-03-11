@@ -23,10 +23,10 @@ namespace iLgs.Services.ParIcsFromPo
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
 
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo);
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
-        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo);
-        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
+        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate);
+        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, decimal? priceCap);
+        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate);
+        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, decimal? priceCap);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
@@ -94,14 +94,14 @@ namespace iLgs.Services.ParIcsFromPo
 
         public IParItemService ParItem => _parItemService;
 
-        private decimal GetPriceCap()
+        private decimal GetPriceCap(DateTime? asOfDate)
         {
-            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap(asOfDate)).Value;
         }
 
         public IQueryable<ParVM> GetAll()
         {
-            var priceCap = GetPriceCap();
+            var priceCap = GetPriceCap(DateTime.Now);
             var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
                     && (w.OrderItem.OrderItemUnitGroupDescriptionItems
@@ -149,14 +149,14 @@ namespace iLgs.Services.ParIcsFromPo
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo()
         {
-            var priceCap = GetPriceCap();
+            var priceCap = GetPriceCap(DateTime.Now);
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'P', {0}", priceCap).AsQueryable();
             return data;
         }
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo(int? forYear)
         {
-            var priceCap = GetPriceCap();
+            var priceCap = GetPriceCap(DateTime.Now);
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'P', {0}, {1}", priceCap, forYear).AsQueryable();
             return data;
         }
@@ -171,101 +171,34 @@ namespace iLgs.Services.ParIcsFromPo
 
         public IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text)
         {
-            //var data = _db.PsCardItems.AsNoTracking()
-            //    .Where(w => (w.OrderItem.OrderItemUnitGroupDescriptionItems
-            //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-            //        || w.UnitCost >= _parPrice) && (w.PoNo.Contains(text) || w.AirNo.Contains(text) ||  w.Codextn.Description.Contains(text)))
-            //    .Select(s => new
-            //    {
-            //        s.PoNo,
-            //        s.PoDate,
-            //        s.AirDate,
-            //        s.AirNo,
-            //        s.DeptId,
-            //        s.Codextn.Description
-            //    }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
-            //    .Select(s => new ParIcsPOGroupVM
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        PoNo = s.Key.PoNo,
-            //        PoDate = s.Key.PoDate,
-            //        AirNo = s.Key.AirNo,
-            //        AirDate = s.Key.AirDate,
-            //        DeptId = s.Key.DeptId,
-            //        Department = s.Key.Description
-            //    })
-            //    .AsQueryable().Take(100);
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPoBytext {0}", text).AsQueryable();
             return data;
         }
-
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo)
+        
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate)
         {
-            return await GetItemsByPoNoAsync(poNo, null, null);
-        }
-
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
-        {
-            var priceCap = GetPriceCap();
-
-            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
-
+            var priceCap = GetPriceCap(poDate);
+            var data = await GetItemsByPoNoAsync(poNo, priceCap);
             return data;
         }
 
-        //public IQueryable<ParIcsItemVm> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, decimal? priceCap)
         {
-            var priceCap = GetPriceCap();
-
-            var data = await _db.PsCardItems.Include(i => i.PsCard.ItemCode)
-                .AsNoTracking()
-                .Where(w =>
-                    w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
-                    && w.PoDate == (poDate == null ? w.PoDate : poDate)
-                    && w.DeptId == (deptId == null ? w.DeptId : deptId)
-                    && w.UnitCost >= priceCap
-                    && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
-                )
-                .Select(s => new ParIcsItemVm
-                {
-                    Id = s.Id,
-                    GroupId = s.GroupId,
-                    PsCardId = s.PsCardId,
-                    Qty = (int?)s.Qty,
-                    Unit = s.Unit,
-                    UnitCost = s.UnitCost,
-                    TotalCost = s.Amount,
-                    AddCost = _db.PsCardItemExtns.Where(w => w.PsCardItemId == s.Id).Sum(x => x.AddCost) ?? 0,
-                    GTotalCost = _db.PsCardItemExtns.Where(w => w.PsCardItemId == s.Id).Sum(x => x.AcqCost) ?? 0,
-                    Article = s.PsCard.ItemCode.Description,
-                    Description = s.Description,
-                    StockNo = s.PsCard.PsNo,
-                    IsForICS = s.IsForICS,
-                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                    InsertedDt = s.InsertedDt,
-                    IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
-                    IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
-                    ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
-                    ParPostedBy = s.ParPostedBy,
-                    ParPostedDt = s.ParPostedDt
-                }).ToListAsync();
+            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, NULL", poNo, priceCap).ToListAsync();
             return data;
+        }        
+
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate)
+        {
+            var priceCap = GetPriceCap(poDate);
+            return GetItemSetsByPoNo(poNo, priceCap);
         }
 
-        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo)
-        {
-            return GetItemSetsByPoNo(poNo, null, null);
-        }
-
-        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
-        {
-            var priceCap = GetPriceCap();
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, decimal? priceCap)
+        {            
             var data = _db.PsCardItemUnitGroups.AsNoTracking()
                 .Where(w => w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems
                     .Any(b => b.PsCardItem.PoNo == (string.IsNullOrEmpty(poNo) ? b.PsCardItem.PoNo : poNo)
-                        && b.PsCardItem.PoDate == (poDate == null ? b.PsCardItem.PoDate : poDate)
-                        && b.PsCardItem.DeptId == (deptId == null ? b.PsCardItem.DeptId : deptId)
                         ))
                 && w.UnitCost >= priceCap)
                 .Select(s => new ParIcsItemSetVm

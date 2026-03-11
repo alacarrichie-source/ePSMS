@@ -1,0 +1,85 @@
+﻿@model iLgs.Models.IcsParItem
+
+@{
+    var vehicle = Model.PsCardItemExtn as iLgs.Models.PsCardItemExtnVehicle;
+}
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.YearModel, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.YearModel).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.YearModel)
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.NetWeight, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.NetWeight).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.NetWeight)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.ConductionNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.ConductionNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.ConductionNo)
+        </div>
+    </div>
+</div>
+
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.PlateNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.PlateNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.PlateNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.BodyNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.BodyNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.BodyNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.CRDate, "LabelDate")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => vehicle.CRDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.CRDate)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => vehicle.CRN, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.CRN).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.CRN)
+        </div>
+    </div>
+</div>

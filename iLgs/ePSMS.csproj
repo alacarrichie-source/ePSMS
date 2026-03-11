@@ -342,6 +342,7 @@
     <Compile Include="Controllers\LoggingController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
+    <Compile Include="Controllers\ParSetOrderController.cs" />
     <Compile Include="Controllers\ProcurementOrderController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
@@ -4319,7 +4320,7 @@
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_CapitalOutlayTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_MooeTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\_ItemPhase.cshtml" />
-    <Content Include="Views\IcsSet\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
     <Content Include="Views\ItemCard\_AddCost.cshtml" />
     <Content Include="Views\ItemCard\_TransitIssuance.cshtml" />
     <Content Include="Views\ItemCard\_ItemCardPpeAccount.cshtml" />
@@ -4751,6 +4752,18 @@
     <Content Include="Views\IcsSetOrder\EditorTemplates\_IsOthersTemplate.cshtml" />
     <Content Include="Views\IcsSetOrder\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
     <Content Include="Views\IcsSetOrder\EditorTemplates\_ItemTemplate.cshtml" />
+    <Content Include="Views\ParSetOrder\Index.cshtml" />
+    <Content Include="Views\ParSetOrder\_FieldLand.cshtml" />
+    <Content Include="Views\ParSetOrder\_FieldOther.cshtml" />
+    <Content Include="Views\ParSetOrder\_FieldTransportation.cshtml" />
+    <Content Include="Views\ParSetOrder\_GeneratePar.cshtml" />
+    <Content Include="Views\ParSetOrder\_GenerateParSet.cshtml" />
+    <Content Include="Views\ParSetOrder\_ParItemEdit.cshtml" />
+    <Content Include="Views\ParSetOrder\_Pars.cshtml" />
+    <Content Include="Views\ParSetOrder\_ParSet.cshtml" />
+    <Content Include="Views\ParSetOrder\_PoItems.cshtml" />
+    <Content Include="Views\ParSetOrder\_Upload.cshtml" />
+    <Content Include="Views\ParSetOrder\EditorTemplates\_IsForICSTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
