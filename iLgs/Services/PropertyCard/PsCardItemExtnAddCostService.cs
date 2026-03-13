@@ -67,15 +67,18 @@ namespace iLgs.Services.PropertyCard
 
         public decimal? GetTotalAddCost(Guid? psCardItemExtnId)
         {
-            decimal? addCost = 0;
-            var addCostExtns = _db.PsCardItemExtnAddCosts.AsNoTracking().Where(w => w.PsCardItemExtnId == psCardItemExtnId).ToList();
-            foreach (var addCostExtn in addCostExtns)
-            {
-                if (_db.Uploads.Any(a => a.ImageId == addCostExtn.Id))
-                {
-                    addCost += addCostExtn.Amount;
-                }
-            }
+            //decimal? addCost = 0;
+            //var addCostExtns = _db.PsCardItemExtnAddCosts.AsNoTracking().Where(w => w.PsCardItemExtnId == psCardItemExtnId).ToList();
+            //foreach (var addCostExtn in addCostExtns)
+            //{
+            //    if (_db.Uploads.Any(a => a.ImageId == addCostExtn.Id))
+            //    {
+            //        addCost += addCostExtn.Amount;
+            //    }
+            //}
+
+            decimal? addCost = _db.PsCardItemExtnAddCosts.Where(w => w.PsCardItemExtnId == psCardItemExtnId)
+                .Sum(s => s.Amount) ?? 0;
 
             return addCost;
         }
@@ -155,6 +158,29 @@ namespace iLgs.Services.PropertyCard
             _db.PsCardItemExtnAddCosts.Add(entity);
             await _db.SaveChangesAsync();
 
+
+            var psCardItemExtn = await _db.PsCardItemExtns
+                .Include("PsCardItem.PsCardItemUnitGroupDescriptionItems.PsCardItemUnitGroupDescription.PsCardItemUnitGroup")
+                .Include(i => i.PsCardItemExtnAddCosts)
+                .FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId);
+            var totalAddCost = psCardItemExtn.PsCardItemExtnAddCosts.Sum(s => s.Amount) ?? 0;
+
+            psCardItemExtn.AddCost = totalAddCost;
+            psCardItemExtn.AcqCost = psCardItemExtn.PsCardItem.UnitCost + totalAddCost;
+            psCardItemExtn.UpdatedBy = user;
+            psCardItemExtn.UpdatedDt = date;
+
+            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            if (unitGroup != null)
+            {
+                unitGroup.AddCost = totalAddCost;
+                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+                unitGroup.UpdatedBy = user;
+                unitGroup.UpdatedDt = date;
+            }
+
+            await _db.SaveChangesAsync();
+            
             return model;
         });
 
@@ -169,6 +195,27 @@ namespace iLgs.Services.PropertyCard
             var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
+            await _db.SaveChangesAsync();
+
+            var psCardItemExtn = await _db.PsCardItemExtns
+                .Include("PsCardItem.PsCardItemUnitGroupDescriptionItems.PsCardItemUnitGroupDescription.PsCardItemUnitGroup")
+                .Include(i => i.PsCardItemExtnAddCosts)
+                .FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId && f.PsCardItemExtnAddCosts.Any(a => a.Id == model.Id));
+            var totalAddCost = psCardItemExtn.PsCardItemExtnAddCosts.Sum(s => s.Amount) ?? 0;
+
+            psCardItemExtn.AddCost = totalAddCost;
+            psCardItemExtn.AcqCost = psCardItemExtn.PsCardItem.UnitCost + totalAddCost;
+            psCardItemExtn.UpdatedBy = user;
+            psCardItemExtn.UpdatedDt = date;
+
+            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            if (unitGroup != null)
+            {
+                unitGroup.AddCost = totalAddCost;
+                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+                unitGroup.UpdatedBy = user;
+                unitGroup.UpdatedDt = date;
+            }
 
             await _db.SaveChangesAsync();
 
@@ -181,6 +228,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItemExtnAddCosts.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var psCardItemExtnId = entity.PsCardItemExtnId;
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -188,6 +236,28 @@ namespace iLgs.Services.PropertyCard
             await _db.SaveChangesAsync();
 
             _db.PsCardItemExtnAddCosts.Remove(entity);
+            await _db.SaveChangesAsync();
+
+            var psCardItemExtn = await _db.PsCardItemExtns
+                .Include("PsCardItem.PsCardItemUnitGroupDescriptionItems.PsCardItemUnitGroupDescription.PsCardItemUnitGroup")
+                .Include(i => i.PsCardItemExtnAddCosts)
+                .FirstOrDefaultAsync(f => f.Id == psCardItemExtnId);
+            var totalAddCost = psCardItemExtn.PsCardItemExtnAddCosts.Sum(s => s.Amount) ?? 0;
+
+            psCardItemExtn.AddCost = totalAddCost;
+            psCardItemExtn.AcqCost = psCardItemExtn.PsCardItem.UnitCost + totalAddCost;
+            psCardItemExtn.UpdatedBy = user;
+            psCardItemExtn.UpdatedDt = date;
+
+            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            if (unitGroup != null)
+            {
+                unitGroup.AddCost = totalAddCost;
+                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+                unitGroup.UpdatedBy = user;
+                unitGroup.UpdatedDt = date;
+            }
+
             await _db.SaveChangesAsync();
 
             return model;

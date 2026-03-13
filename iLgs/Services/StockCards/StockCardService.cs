@@ -220,7 +220,7 @@ namespace iLgs.Services.StockCards
         public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             var stockNo = await GetStockNoAsync(model);
-            model.PsNo = stockNo;
+            model.PsNo = stockNo;            
             await _validator.ValidateOnCreateAsync(model);
 
             model.Description = "Please see attachment.";
@@ -231,7 +231,7 @@ namespace iLgs.Services.StockCards
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-
+            model.PsName = await GetPsNoAsync(model.PsNo);
             var entity = new PsCard
             {
                 Id = model.Id,
@@ -280,6 +280,8 @@ namespace iLgs.Services.StockCards
             await ValidateIfWithPostedItemAsync(model.Id);
 
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
+            model.PsName = await GetPsNoAsync(model.PsNo);
+
             entity.ItemCodeId = model.ItemCodeId;
             entity.SubAccountCode = model.SubAccountCode;
             entity.Fund = model.Fund;

@@ -30,6 +30,10 @@ namespace iLgs.Services.CustodianReports
 
         ValueTask<CustodianReportSubmitForCountVM> SubmitNewAsync(int? reportYear, Guid? deptId, Guid? locationId, int? accountGroup, string url, string user, DateTime date, bool isLocationRequired);
         ValueTask<CustodianReportSubmitForCountVM> UnsubmitAsync(Guid? reportId, Guid? locationId, string url, string user, DateTime date);
+
+        void ValidateIfSubmitted(CustodianReportItem model);
+        void ValidateIfSubmitted(CustodianReportBldgItem model);
+        void ValidateIfSubmitted(CustodianReportLandItem model);
     }
 
     public class CustodianReportSubmitForCountService : BaseValidator, ICustodianReportSubmitForCountService
@@ -42,7 +46,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IItemCodeService _itemCodeService;
         private readonly INotificationMessageService _notificationMessageService;
         private readonly ICodextnService _codextnService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly GetDisplayNameDelegate _getDisplayName;        
 
         public CustodianReportSubmitForCountService(AppManEntities db)
         {
@@ -53,7 +57,7 @@ namespace iLgs.Services.CustodianReports
             _itemCodeService = new ItemCodeService(_db);
             _notificationMessageService = new NotificationMessageService(_db);
             _codextnService = new CodextnService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);
+            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportSubmitForCountVM>(propertyName);            
         }
 
         //public CustodianReportSubmitForCountService(AppManEntities db,
@@ -150,7 +154,7 @@ namespace iLgs.Services.CustodianReports
         {
             var data = await _db.CustodianReportSubmitForCounts
                 .Where(w => w.CustodianReport.Id == reportId && w.LocationId == locationId)
-                .Select(Projection()).AsNoTracking().FirstOrDefaultAsync();
+                .Select(Projection()).AsNoTracking().OrderByDescending(o => o.UpdatedDt).FirstOrDefaultAsync();
             return data;
         }
         
@@ -158,7 +162,7 @@ namespace iLgs.Services.CustodianReports
         {
             var data = await _db.CustodianReportSubmitForCounts
                 .Where(w => w.CustodianReport.AsOf.Value.Year == reportYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.LocationId == locationId)
-                .Select(Projection()).AsNoTracking().FirstOrDefaultAsync();
+                .Select(Projection()).AsNoTracking().OrderByDescending(o => o.UpdatedDt).FirstOrDefaultAsync();
             return data;
         }
 
@@ -357,6 +361,51 @@ namespace iLgs.Services.CustodianReports
                 return model;
             //}
         });
+
+        public void ValidateIfSubmitted(CustodianReportItem model)
+        {
+            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            if (!isAdmin)
+            {
+                var submitForCount = _db.CustodianReportSubmitForCounts
+                    .Where(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId).OrderByDescending(o => o.UpdatedDt).FirstOrDefault();
+                if (submitForCount != null && submitForCount.Status == "Submit")
+                {
+                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                    throw new RecordAlreadyPostedException(msg);
+                }
+            }
+        }
+
+        public void ValidateIfSubmitted(CustodianReportLandItem model)
+        {
+            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            if (!isAdmin)
+            {
+                var submitForCount = _db.CustodianReportSubmitForCounts
+                    .Where(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId).OrderByDescending(o => o.UpdatedDt).FirstOrDefault();
+                if (submitForCount != null && submitForCount.Status == "Submit")
+                {
+                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                    throw new RecordAlreadyPostedException(msg);
+                }
+            }
+        }
+
+        public void ValidateIfSubmitted(CustodianReportBldgItem model)
+        {
+            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            if (!isAdmin)
+            {
+                var submitForCount = _db.CustodianReportSubmitForCounts
+                    .Where(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId).OrderByDescending(o => o.UpdatedDt).FirstOrDefault();
+                if (submitForCount != null && submitForCount.Status == "Submit")
+                {
+                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+                    throw new RecordAlreadyPostedException(msg);
+                }
+            }
+        }
 
         private void ValidateIfNull(CustodianReportSubmitForCountVM model)
         {

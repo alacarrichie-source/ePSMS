@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
@@ -31,12 +32,14 @@ namespace iLgs.Controllers
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IUserService _userService;
+        private readonly IAnnexDService _annexDService;
         private readonly string[] _bldgId = new string[] {
-            "_custodian_report_bldg",
-            "_custodian_report_bldg_inquiry",
-            "_custodian_report_bldg_demand",
-            "_custodian_report_bldg_update",
-            "_custodian_report_bldg_multiple"
+            "custodian_report_bldg",
+            "custodian_report_bldg_inquiry",
+            "custodian_report_bldg_demand",
+            "custodian_report_bldg_update",
+            "custodian_report_bldg_multiple"
         };
 
         public CustodianReportBldgController()
@@ -48,6 +51,8 @@ namespace iLgs.Controllers
             _uploadService = new CustodianBldgUploadService(_db);
             _codextnService = new CodextnService(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
+            _annexDService = new AnnexDService(_db);
         }
 
         //public CustodianReportBldgController(AppManEntities db, ICustodianReportService custodianReportService,
@@ -72,6 +77,18 @@ namespace iLgs.Controllers
             ViewBag.Title = "Custodian Report - Structure - Query";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsView = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
             return View();
         }
 
@@ -82,6 +99,17 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
             ViewBag.IsView = false;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            if (isAdmin || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
             return View();
         }
 

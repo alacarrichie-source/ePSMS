@@ -60,6 +60,7 @@ namespace iLgs.Services.CustodianReports
         protected readonly IAllFieldService _allFieldService;
         protected readonly ICodextnService _codextnService;        
         protected readonly IUserService _userService;
+        protected readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
 
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<CustodianReportItem> _exceptionService;
@@ -75,6 +76,7 @@ namespace iLgs.Services.CustodianReports
             _exceptionService = new ExceptionService<CustodianReportItem>();
             _userService = new UserService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianReportItemPpeVM>;
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
         }
 
         //public CustodianReportItemService(AppManEntities db,
@@ -1673,43 +1675,7 @@ namespace iLgs.Services.CustodianReports
                     if (string.IsNullOrWhiteSpace(annex))
                     {
                         reportItems = reportItems.Where(w => w.Annex != "D");
-                    }
-
-                    //if (!string.IsNullOrWhiteSpace(acqFilter))
-                    //{
-                    //    if (acqFilter == "eq")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost == acqCost);
-                    //    }
-                    //    else if (acqFilter == "neq")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost != acqCost);
-                    //    }
-                    //    else if (acqFilter == "gte")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost >= acqCost);
-                    //    }
-                    //    else if (acqFilter == "gt")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost > acqCost);
-                    //    }
-                    //    else if (acqFilter == "lte")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost <= acqCost);
-                    //    }
-                    //    else if (acqFilter == "lt")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost < acqCost);
-                    //    }
-                    //    else if (acqFilter == "isnull")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost == null);
-                    //    }
-                    //    else if (acqFilter == "isnotnull")
-                    //    {
-                    //        reportItems = reportItems.Where(w => w.TotalCost != null);
-                    //    }
-                    //}
+                    }                    
 
                     if (filterGroup != null)
                     {
@@ -1719,7 +1685,14 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    if (annex == "X")
+                    {
+                        ws.Row(2).Cell(2).SetValue("No Annex");
+                    }
+                    else 
+                    {
+                        ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    }
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
                 if (asOf.HasValue)
@@ -2022,7 +1995,14 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    if (annex == "X")
+                    {
+                        ws.Row(2).Cell(2).SetValue("No Annex");
+                    }
+                    else
+                    {
+                        ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    }                    
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
 
@@ -2300,14 +2280,14 @@ namespace iLgs.Services.CustodianReports
                         else
                         {
                             reportItems = reportItems.Where(w => w.Category != "S");
-                        }
-
-                        if (string.IsNullOrWhiteSpace(annex))
-                        {
-                            reportItems = reportItems.Where(w => w.Annex != "D");
-                        }
+                        }                        
                     }
-                
+
+                    if (string.IsNullOrWhiteSpace(annex))
+                    {
+                        reportItems = reportItems.Where(w => w.Annex != "D");
+                    }
+
                     //if (!string.IsNullOrWhiteSpace(acqFilter))
                     //{
                     //    if (acqFilter == "eq")
@@ -2351,7 +2331,14 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    if (annex == "X")
+                    {
+                        ws.Row(2).Cell(2).SetValue("No Annex");
+                    }
+                    else
+                    {
+                        ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    }                    
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
                 if (asOf.HasValue)
@@ -2664,7 +2651,7 @@ namespace iLgs.Services.CustodianReports
             }
             string hdg = "";
 
-            if (annex == "A")
+            if (annex == "A" || annex == "X")
             {
                 hdg = "(INVENTORY COUNT FORM)";
             }
@@ -2733,16 +2720,17 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateIfSubmitted(CustodianReportItem model)
         {
-            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
-            if (!isAdmin)
-            {
-                var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
-                if (submitForCount != null)
-                {
-                    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
-                    throw new RecordAlreadyPostedException(msg);
-                }
-            }
+            _custodianReportSubmitForCountService.ValidateIfSubmitted(model);
+            //var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            //if (!isAdmin)
+            //{
+            //    var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            //    if (submitForCount != null)
+            //    {
+            //        var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+            //        throw new RecordAlreadyPostedException(msg);
+            //    }
+            //}
         }
 
         private void ValidateIfNotPosted(CustodianReportItem entity)

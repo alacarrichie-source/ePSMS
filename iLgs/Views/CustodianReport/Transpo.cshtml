@@ -197,6 +197,7 @@
                 t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+                t.Custom().Text("Export to Excel - No Annex").IconClass("k-icon k-i-excel").Name("btnExportX").HtmlAttributes(new { @class = "k-button", href = "" });
             }
             else
             {
@@ -210,6 +211,7 @@
                 {
                     t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
                 }
+                t.Custom().Text("Export to Excel - No Annex").IconClass("k-icon k-i-excel").Name("btnExportX").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
                 //t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
@@ -431,75 +433,30 @@
 
     $(".k-grid-btnExportA").click(function (e) {
         e.preventDefault();
-        // Get the selected row's data (assuming a single selection model)
-        //var grid = $("#grid").data("kendoGrid");
-        //var selectedRow = grid.select();
-        //var selectedData = grid.dataItem(selectedRow);
-
-        window.kendo.ui.progress($(document.body), true);
-
-        var forYear = $("#forYear").val();
-        var deptId = $("#deptId").val();
-        var sectionId = $("#sectionId").val();
-        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-            "&deptId=" + deptId +
-            "&sectionId=" + sectionId +
-            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
-
-        // Redirect to the export URL to trigger download
-        window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);
+        exportAnnex('A');
     });
 
     $(".k-grid-btnExportB").click(function (e) {
         e.preventDefault();
-        // Get the selected row's data (assuming a single selection model)
-        //var grid = $("#grid").data("kendoGrid");
-        //var selectedRow = grid.select();
-        //var selectedData = grid.dataItem(selectedRow);
-
-        window.kendo.ui.progress($(document.body), true);
-        var forYear = $("#forYear").val();
-        var deptId = $("#deptId").val();
-        var sectionId = $("#sectionId").val();
-        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-            "&deptId=" + deptId +
-            "&sectionId=" + sectionId +
-            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
-
-        // Redirect to the export URL to trigger download
-        window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);
+        exportAnnex('B');
     });
 
     $(".k-grid-btnExportC").click(function (e) {
         e.preventDefault();
-        // Get the selected row's data (assuming a single selection model)
-        //var grid = $("#grid").data("kendoGrid");
-        //var selectedRow = grid.select();
-        //var selectedData = grid.dataItem(selectedRow);
-
-        window.kendo.ui.progress($(document.body), true);
-        var forYear = $("#forYear").val();
-        var deptId = $("#deptId").val();
-        var sectionId = $("#sectionId").val();
-        var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
-            "&deptId=" + deptId +
-            "&sectionId=" + sectionId +
-            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
-
-        // Redirect to the export URL to trigger download
-        window.location.href = url;
-        window.kendo.ui.progress($(document.body), false);
+        exportAnnex('C');
     });
 
     $(".k-grid-btnExportD").click(function (e) {
         e.preventDefault();
-        // Get the selected row's data (assuming a single selection model)
-        //var grid = $("#grid").data("kendoGrid");
-        //var selectedRow = grid.select();
-        //var selectedData = grid.dataItem(selectedRow);
+        exportAnnex('D');
+    });
 
+    $(".k-grid-btnExportX").click(function (e) {
+        e.preventDefault();
+        exportAnnex('X');
+    });
+
+    function exportAnnex(annex) {
         window.kendo.ui.progress($(document.body), true);
         var forYear = $("#forYear").val();
         var deptId = $("#deptId").val();
@@ -507,12 +464,12 @@
         var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
             "&deptId=" + deptId +
             "&sectionId=" + sectionId +
-            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
+            "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=' + annex;
 
         // Redirect to the export URL to trigger download
         window.location.href = url;
         window.kendo.ui.progress($(document.body), false);
-    });
+    }
 
     $(document).ready(function () {
         var grid = $("#grid").data("kendoGrid");
@@ -522,6 +479,7 @@
         grid.wrapper.find(".k-grid-btnExportB").hide();
         grid.wrapper.find(".k-grid-btnExportC").hide();
         grid.wrapper.find(".k-grid-btnExportD").hide();
+        grid.wrapper.find(".k-grid-btnExportX").hide();
         grid.wrapper.find(".k-grid-btnPost").hide();
         grid.wrapper.find(".k-grid-btnUnpost").hide();
         //grid.wrapper.find(".k-grid-btnDownload").hide();
@@ -767,6 +725,7 @@
             $(".k-grid-btnExportA").show();
             $(".k-grid-btnExportB").show();
             $(".k-grid-btnExportC").show();
+            $(".k-grid-btnExportX").show();
             $(".k-grid-btnFiles").show();
         }
         else {
@@ -776,6 +735,7 @@
             $(".k-grid-btnExportA").hide();
             $(".k-grid-btnExportB").hide();
             $(".k-grid-btnExportC").hide();
+            $(".k-grid-btnExportX").hide();
             $(".k-grid-btnFile").hide();
         }
 

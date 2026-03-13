@@ -21,7 +21,7 @@ namespace iLgs.Services.CustodianReports
     {
         Task<string> GetStockNoAsync(CustodianReportLandItem model);
         ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id);
-        IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);        
+        IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);
         IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView);
         IQueryable<CustodianReportLandItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date);
@@ -41,7 +41,6 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly IExceptionService<CustodianReportLandItemVM> _vmExceptionService;
         private readonly IExceptionService<CustodianReportLandItem> _exceptionService;
         private readonly ICustodianLandUploadService _custodianLandUploadService;
@@ -49,26 +48,40 @@ namespace iLgs.Services.CustodianReports
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
 
-        public CustodianReportLandItemService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            IExceptionService<CustodianReportLandItemVM> vmExceptionService,
-            IExceptionService<CustodianReportLandItem> exceptionService,
-            ICustodianLandUploadService custodianLandUploadService,
-            IAllFieldService allFieldService,
-            IUserService userService, 
-            ICodextnService codextnService)
+        public CustodianReportLandItemService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _custodianLandUploadService = custodianLandUploadService;
-            _allFieldService = allFieldService;
-            _userService = userService;
-            _codextnService = codextnService;
+            _vmExceptionService = new ExceptionService<CustodianReportLandItemVM>();
+            _exceptionService = new ExceptionService<CustodianReportLandItem>();
+            _custodianLandUploadService = new CustodianLandUploadService(_db);
+            _allFieldService = new AllFieldService(_db);
+            _userService = new UserService(_db);
+            _codextnService = new CodextnService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
         }
+
+        //public CustodianReportLandItemService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    IExceptionService<CustodianReportLandItemVM> vmExceptionService,
+        //    IExceptionService<CustodianReportLandItem> exceptionService,
+        //    ICustodianLandUploadService custodianLandUploadService,
+        //    IAllFieldService allFieldService,
+        //    IUserService userService, 
+        //    ICodextnService codextnService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _custodianLandUploadService = custodianLandUploadService;
+        //    _allFieldService = allFieldService;
+        //    _userService = userService;
+        //    _codextnService = codextnService;
+        //    _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
+        //}
 
         private static Expression<Func<CustodianReportLandItem, CustodianReportLandItemVM>> CustodianReportLandItemProjection(AppManEntities db)
         {
@@ -223,7 +236,7 @@ namespace iLgs.Services.CustodianReports
                 {
                     userIsAdmin = true;
                 }
-                data = _db.Database.SqlQuery<CustodianReportLandItemVM>("Exec CustodianReport_GetLandItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", 
+                data = _db.Database.SqlQuery<CustodianReportLandItemVM>("Exec CustodianReport_GetLandItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}",
                     forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
                 if (data.Any() && isDemand == true)
                 {
@@ -264,44 +277,43 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {                
-                var custodianReport = await ctx.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
-                if (custodianReport == null)
-                {
-                    custodianReport = new CustodianReport();
-                    custodianReport.Id = Guid.NewGuid();
-                    custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
-                    custodianReport.DeptId = model.MainDeptId;
-                    custodianReport.Department = model.MainDeptName;
-                    custodianReport.AccountGroup = model.AccountGroup;
-                    custodianReport.InsertedBy = user;
-                    custodianReport.InsertedDt = date;
-                    custodianReport.UpdatedBy = user;
-                    custodianReport.UpdatedDt = date;
-                    ctx.CustodianReports.Add(custodianReport);
-                    await ctx.SaveChangesAsync();
-                }
 
-                model.ReportId = custodianReport.Id;
-                await ValidateIfSubmittedAsync(model);
-
-                if (!string.IsNullOrWhiteSpace(model.DRPNo))
-                {
-                    if (await ctx.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo))
-                    {
-                        throw new RecordAlreadyExistsException("DRP No. Already Exists!");
-                    }
-                }
-
-                var entity = new CustodianReportLandItem();
-                MapModelToEntityFields(entity, model, Mode.ADD);
-
-                ctx.CustodianReportLandItems.Add(entity);
-                await ctx.SaveChangesAsync();
-
-                return model;
+            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+            if (custodianReport == null)
+            {
+                custodianReport = new CustodianReport();
+                custodianReport.Id = Guid.NewGuid();
+                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
+                custodianReport.DeptId = model.MainDeptId;
+                custodianReport.Department = model.MainDeptName;
+                custodianReport.AccountGroup = model.AccountGroup;
+                custodianReport.InsertedBy = user;
+                custodianReport.InsertedDt = date;
+                custodianReport.UpdatedBy = user;
+                custodianReport.UpdatedDt = date;
+                _db.CustodianReports.Add(custodianReport);
+                await _db.SaveChangesAsync();
             }
+
+            model.ReportId = custodianReport.Id;
+            ValidateIfSubmitted(model);
+
+            if (!string.IsNullOrWhiteSpace(model.DRPNo))
+            {
+                if (await _db.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo))
+                {
+                    throw new RecordAlreadyExistsException("DRP No. Already Exists!");
+                }
+            }
+
+            var entity = new CustodianReportLandItem();
+            MapModelToEntityFields(entity, model, Mode.ADD);
+
+            _db.CustodianReportLandItems.Add(entity);
+            await _db.SaveChangesAsync();
+
+            return model;
+
         });
 
         public ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -313,29 +325,26 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
+
+            if (!string.IsNullOrWhiteSpace(model.DRPNo))
             {
-                var entity = await ctx.CustodianReportLandItems.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateIfPosted(entity);
-                await ValidateIfSubmittedAsync(model);
-
-                if (!string.IsNullOrWhiteSpace(model.DRPNo))
+                if (await _db.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo && p.Id != model.Id))
                 {
-                    if (await ctx.CustodianReportLandItems.AnyAsync(p => p.ReportId == model.ReportId && p.DRPNo == model.DRPNo && p.Id != model.Id))
-                    {
-                        throw new RecordAlreadyExistsException("DRP No. Already Exists!");
-                    }
+                    throw new RecordAlreadyExistsException("DRP No. Already Exists!");
                 }
-
-                MapModelToEntityFields(entity, model, Mode.EDIT);
-
-                //ctx.CustodianReportLandItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return model;
             }
+
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            //_db.CustodianReportLandItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
         });
 
         public ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -345,76 +354,67 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportLandItems.FindAsync(model.Id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(model.ReportId);
-                ValidateIfPosted(entity);
-                await ValidateIfSubmittedAsync(model);
+            var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(model.ReportId);
+            ValidateIfPosted(entity);
+            ValidateIfSubmitted(model);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                //ctx.CustodianReportLandItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+            //_db.CustodianReportLandItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-                ctx.CustodianReportLandItems.Remove(entity);
-                //ctx.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+            _db.CustodianReportLandItems.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
-                return model;
-            }
+            return model;
         });
 
         public ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.CustodianReportLandItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(entity.ReportId);
+            ValidateIfPosted(entity);
+
+            if (!_custodianLandUploadService.GetAllByImageId(id).Any())
             {
-                var entity = await ctx.CustodianReportLandItems.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(entity.ReportId);
-                ValidateIfPosted(entity);
-
-                if (!_custodianLandUploadService.GetAllByImageId(id).Any())
-                {
-                    throw new NotFoundException("No uploaded images found for this record, cannot post!");
-                }
-
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //ctx.CustodianReportLandItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                return entity;
+                throw new NotFoundException("No uploaded images found for this record, cannot post!");
             }
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            //_db.CustodianReportLandItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         public ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
-            {
-                var entity = await ctx.CustodianReportLandItems.FindAsync(id);
-                ValidateRecord(entity);
-                ValidateReportingYearEnd(entity.ReportId);
-                ValidateIfNotPosted(entity);
+            var entity = await _db.CustodianReportLandItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateReportingYearEnd(entity.ReportId);
+            ValidateIfNotPosted(entity);
 
-                entity.PostedBy = "";
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                //ctx.CustodianReportLandItems.Attach(entity);
-                //ctx.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-                return entity;
-            }
+            //_db.CustodianReportLandItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         private AllField SetAllField(CustodianReportLandItem custodianReportItem)
@@ -670,12 +670,12 @@ namespace iLgs.Services.CustodianReports
         {
             return ProcessExcelFileTemplate(forYear, deptId, sectionId, accountGroup, templateFilePath, "", "", mainAccount, asOf, insertedAsOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
-        
+
         private MemoryStream ProcessExcelFileTemplate(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
             , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf, DateTime? insertedAsOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            
+
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 int sw = 1;
@@ -698,15 +698,22 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    if (annex == "X")
+                    {
+                        ws.Row(2).Cell(2).SetValue("No Annex");
+                    }
+                    else
+                    {
+                        ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    }
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
 
                 ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
 
-                
+
                 if (deptId == null || deptId == Guid.Empty)
-                {                    
+                {
                     if (reportItems.Any())
                     {
                         var reportId = reportItems.First().ReportId;
@@ -750,7 +757,7 @@ namespace iLgs.Services.CustodianReports
                         if (custCell.IsMerged())
                         {
                             custCell.MergedRange().Unmerge();
-                        }                                               
+                        }
 
                         var custCellVal = ws.Row(row).Cell(3);
                         custCellVal.Style.Alignment.WrapText = false;
@@ -813,7 +820,7 @@ namespace iLgs.Services.CustodianReports
                     if (string.IsNullOrWhiteSpace(annex))
                     {
                         SetRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AD{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;                        
+                        ws.Range($"B{row}:AD{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
                     else
                     {
@@ -852,210 +859,217 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFileTemplateOld(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
-            , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
-        {
+        //private MemoryStream ProcessExcelFileTemplateOld(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup
+        //    , string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
+        //    , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
+        //{
 
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                int sw = 1;
-                int row = 10;
-                string itemTypeIndex = "";
-                string department = "";
-                decimal? tAcqCost = 0;
-                var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
-                var ws = wb.Worksheet(1);
-                var reportItems = _db.CustodianReportLandItems
-                    .Include(i => i.ItemCode.ItemType)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId                    
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear)
-                    .AsNoTracking();
+        //    using (XLWorkbook wb = new XLWorkbook(templateFilePath))
+        //    {
+        //        int sw = 1;
+        //        int row = 10;
+        //        string itemTypeIndex = "";
+        //        string department = "";
+        //        decimal? tAcqCost = 0;
+        //        var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
+        //        var ws = wb.Worksheet(1);
+        //        var reportItems = _db.CustodianReportLandItems
+        //            .Include(i => i.ItemCode.ItemType)
+        //            .Include(i => i.CustodianReport.Codextn)
+        //            .Include(i => i.Codextn) // deptId                    
+        //            .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.CustodianReport.AsOf.Value.Year == forYear)
+        //            .AsNoTracking();
 
-                if (!string.IsNullOrWhiteSpace(subAccount))
-                {
-                    reportItems = reportItems.Where(w => w.Item_Code.StartsWith(subAccount));
-                }
+        //        if (!string.IsNullOrWhiteSpace(subAccount))
+        //        {
+        //            reportItems = reportItems.Where(w => w.Item_Code.StartsWith(subAccount));
+        //        }
 
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    reportItems = reportItems.Where(w => w.Annex == annex);
-                }
+        //        if (!string.IsNullOrWhiteSpace(annex))
+        //        {
+        //            reportItems = reportItems.Where(w => w.Annex == annex);
+        //        }
 
-                if (deptId != null)
-                {
-                    reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
-                }
+        //        if (deptId != null)
+        //        {
+        //            reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
+        //        }
 
 
-                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
-                            .ThenBy(t => t.ItemCode.ItemType.GroupCode)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex)
-                            .ThenBy(o => o.CustodianReport.Department)
-                            .ThenBy(o => o.LocationCode)
-                            .ThenBy(o => o.CustodianItemNo);
+        //        reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
+        //                    .ThenBy(t => t.ItemCode.ItemType.GroupCode)
+        //                    .ThenBy(t => t.ItemCode.ItemNoIndex)
+        //                    .ThenBy(o => o.CustodianReport.Department)
+        //                    .ThenBy(o => o.LocationCode)
+        //                    .ThenBy(o => o.CustodianItemNo);
 
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                    ws.Row(4).Cell(2).SetValue(hdg);
-                }
-                ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+        //        if (!string.IsNullOrWhiteSpace(annex))
+        //        {
+        //            if (annex == "X")
+        //            {
+        //                ws.Row(2).Cell(2).SetValue("No Annex");
+        //            }
+        //            else
+        //            {
+        //                ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+        //            }
+        //            ws.Row(4).Cell(2).SetValue(hdg);
+        //        }
+        //        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
 
-                //if (deptId == null)
-                //{
-                //    if (reportItems.Any())
-                //    {
-                //        var report = ctx.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
-                //        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
-                //    }
-                //}
-                //else
-                //{
-                //    var codextn = ctx.Codextns.Find(deptId);
-                //    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
-                //}
+        //        //if (deptId == null)
+        //        //{
+        //        //    if (reportItems.Any())
+        //        //    {
+        //        //        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportItems.First().ReportId);
+        //        //        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+        //        //    }
+        //        //}
+        //        //else
+        //        //{
+        //        //    var codextn = _db.Codextns.Find(deptId);
+        //        //    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
+        //        //}
 
-                if (deptId == null || deptId == Guid.Empty)
-                {
-                    if (reportItems.Any())
-                    {
-                        var reportId = reportItems.First().ReportId;
-                        var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportId);
-                        ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
-                    }
-                    else
-                    {
-                        ws.Row(6).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                    }
-                }
-                else
-                {
-                    var codextn = _db.Codextns.Find(deptId);
-                    ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
-                }
+        //        if (deptId == null || deptId == Guid.Empty)
+        //        {
+        //            if (reportItems.Any())
+        //            {
+        //                var reportId = reportItems.First().ReportId;
+        //                var report = _db.CustodianReports.Include(i => i.Codextn).FirstOrDefault(f => f.Id == reportId);
+        //                ws.Row(6).Cell(3).SetValue($"ALL : {report.Codextn.Code} {report.Department}").Style.Font.Bold = true;
+        //            }
+        //            else
+        //            {
+        //                ws.Row(6).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            var codextn = _db.Codextns.Find(deptId);
+        //            ws.Row(6).Cell(3).SetValue($"{codextn.Code} {codextn.Description}").Style.Font.Bold = true;
+        //        }
 
-                foreach (var reportItem in reportItems)
-                {
-                    if (sw == 1)
-                    {
-                        itemTypeIndex = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
-                        department = reportItem.CustodianReport.Department;
-                        
-                        sw = 0;
-                    }
+        //        foreach (var reportItem in reportItems)
+        //        {
+        //            if (sw == 1)
+        //            {
+        //                itemTypeIndex = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
+        //                department = reportItem.CustodianReport.Department;
 
-                    //if (department != reportItem.CustodianReport.Department)
-                    if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
-                    {
-                        itemTypeIndex = reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
-                        //account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        row += 3;
-                        var custCell = ws.Row(row).Cell(2);
-                        custCell.SetValue("Custodian:").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        custCell.Style.Alignment.WrapText = false;
-                        if (custCell.IsMerged())
-                        {
-                            custCell.MergedRange().Unmerge();
-                        }
+        //                sw = 0;
+        //            }
 
-                        var custCellVal = ws.Row(row).Cell(3);
-                        custCellVal.Style.Alignment.WrapText = false;
-                        if (deptId == null)
-                        {
-                            custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
-                        else
-                        {
-                            custCellVal.SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        }
-                        if (custCellVal.IsMerged())
-                        {
-                            custCellVal.MergedRange().Unmerge();
-                        }
-                        row += 2;
-                        ws.Row(8).CopyTo(ws.Row(++row));
-                        ws.Row(9).CopyTo(ws.Row(++row));
-                        ws.Row(10).CopyTo(ws.Row(++row));
-                        ws.Range($"B{row - 2}:B{row}").Merge();
-                        ws.Range($"C{row - 2}:C{row}").Merge();
-                        ws.Range($"D{row - 2}:D{row}").Merge();
-                        ws.Range($"E{row - 2}:E{row}").Merge();
-                        ws.Range($"F{row - 2}:F{row}").Merge();
-                        ws.Range($"G{row - 2}:G{row}").Merge();
-                        ws.Range($"H{row - 2}:H{row}").Merge();
-                        ws.Range($"I{row - 2}:I{row}").Merge();
-                        ws.Range($"J{row - 2}:J{row}").Merge();
-                        ws.Range($"K{row - 2}:K{row}").Merge();
-                        ws.Range($"O{row - 2}:O{row}").Merge();
-                        ws.Range($"P{row - 2}:P{row}").Merge();
-                        ws.Range($"Q{row - 2}:Q{row}").Merge();
-                        ws.Range($"R{row - 2}:R{row}").Merge();
-                        ws.Range($"S{row - 2}:S{row}").Merge();
-                        ws.Range($"T{row - 1}:T{row}").Merge();
-                        ws.Range($"U{row - 1}:U{row}").Merge();
-                        ws.Range($"V{row - 1}:V{row}").Merge();
-                        ws.Range($"W{row - 1}:W{row}").Merge();
-                        ws.Range($"AB{row - 2}:AB{row}").Merge();
-                        ws.Range($"AC{row - 2}:AC{row}").Merge();
-                        ws.Range($"AD{row - 2}:AD{row}").Merge();
-                        ws.Range($"AN{row - 1}:AN{row}").Merge();
-                        ws.Range($"AO{row - 1}:AO{row}").Merge();
-                        ws.Range($"AP{row - 1}:AP{row}").Merge();
-                        ws.Range($"AQ{row - 1}:AQ{row}").Merge();
-                        ws.Range($"AR{row - 1}:AR{row}").Merge();
-                        ws.Range($"AS{row - 1}:AS{row}").Merge();
-                        ws.Range($"AT{row - 1}:AT{row}").Merge();
-                        ws.Range($"AU{row - 1}:AU{row}").Merge();
-                        ws.Range($"AV{row - 1}:AV{row}").Merge();
-                        ws.Range($"AW{row - 1}:AW{row}").Merge();
-                        ws.Range($"AX{row - 1}:AX{row}").Merge();
-                        ws.Range($"AY{row - 1}:AY{row}").Merge();
-                        ws.Range($"AZ{row - 1}:AZ{row}").Merge();
-                        ws.Range($"BA{row - 1}:BA{row}").Merge();
-                    }
-                    row++;
-                    if (string.IsNullOrWhiteSpace(annex))
-                    {
-                        SetRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AD{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    else
-                    {
-                        SetRowColValue(ws, reportItem, row, true);
-                        ws.Range($"B{row}:AC{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    ws.Range($"AF{row}:BA{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    tAcqCost += (reportItem.AcqCost ?? 0);
-                }
-                //ws.Row(++row).Cell(13).SetValue("TOTAL");
-                //ws.Row(row).Cell(14).SetValue(tAcqCost);
+        //            //if (department != reportItem.CustodianReport.Department)
+        //            if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
+        //            {
+        //                itemTypeIndex = reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode;
+        //                //account = reportItem.ItemCode.ItemType.Description;
+        //                department = reportItem.CustodianReport.Department;
+        //                row += 3;
+        //                var custCell = ws.Row(row).Cell(2);
+        //                custCell.SetValue("Custodian:").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+        //                custCell.Style.Alignment.WrapText = false;
+        //                if (custCell.IsMerged())
+        //                {
+        //                    custCell.MergedRange().Unmerge();
+        //                }
 
-                row += 4;
-                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                row += 3;
-                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                ws.Range($"K{row}:M{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                row++;
-                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge();
-                ws.Range($"K{row}:M{row}").Merge();
+        //                var custCellVal = ws.Row(row).Cell(3);
+        //                custCellVal.Style.Alignment.WrapText = false;
+        //                if (deptId == null)
+        //                {
+        //                    custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+        //                }
+        //                else
+        //                {
+        //                    custCellVal.SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+        //                }
+        //                if (custCellVal.IsMerged())
+        //                {
+        //                    custCellVal.MergedRange().Unmerge();
+        //                }
+        //                row += 2;
+        //                ws.Row(8).CopyTo(ws.Row(++row));
+        //                ws.Row(9).CopyTo(ws.Row(++row));
+        //                ws.Row(10).CopyTo(ws.Row(++row));
+        //                ws.Range($"B{row - 2}:B{row}").Merge();
+        //                ws.Range($"C{row - 2}:C{row}").Merge();
+        //                ws.Range($"D{row - 2}:D{row}").Merge();
+        //                ws.Range($"E{row - 2}:E{row}").Merge();
+        //                ws.Range($"F{row - 2}:F{row}").Merge();
+        //                ws.Range($"G{row - 2}:G{row}").Merge();
+        //                ws.Range($"H{row - 2}:H{row}").Merge();
+        //                ws.Range($"I{row - 2}:I{row}").Merge();
+        //                ws.Range($"J{row - 2}:J{row}").Merge();
+        //                ws.Range($"K{row - 2}:K{row}").Merge();
+        //                ws.Range($"O{row - 2}:O{row}").Merge();
+        //                ws.Range($"P{row - 2}:P{row}").Merge();
+        //                ws.Range($"Q{row - 2}:Q{row}").Merge();
+        //                ws.Range($"R{row - 2}:R{row}").Merge();
+        //                ws.Range($"S{row - 2}:S{row}").Merge();
+        //                ws.Range($"T{row - 1}:T{row}").Merge();
+        //                ws.Range($"U{row - 1}:U{row}").Merge();
+        //                ws.Range($"V{row - 1}:V{row}").Merge();
+        //                ws.Range($"W{row - 1}:W{row}").Merge();
+        //                ws.Range($"AB{row - 2}:AB{row}").Merge();
+        //                ws.Range($"AC{row - 2}:AC{row}").Merge();
+        //                ws.Range($"AD{row - 2}:AD{row}").Merge();
+        //                ws.Range($"AN{row - 1}:AN{row}").Merge();
+        //                ws.Range($"AO{row - 1}:AO{row}").Merge();
+        //                ws.Range($"AP{row - 1}:AP{row}").Merge();
+        //                ws.Range($"AQ{row - 1}:AQ{row}").Merge();
+        //                ws.Range($"AR{row - 1}:AR{row}").Merge();
+        //                ws.Range($"AS{row - 1}:AS{row}").Merge();
+        //                ws.Range($"AT{row - 1}:AT{row}").Merge();
+        //                ws.Range($"AU{row - 1}:AU{row}").Merge();
+        //                ws.Range($"AV{row - 1}:AV{row}").Merge();
+        //                ws.Range($"AW{row - 1}:AW{row}").Merge();
+        //                ws.Range($"AX{row - 1}:AX{row}").Merge();
+        //                ws.Range($"AY{row - 1}:AY{row}").Merge();
+        //                ws.Range($"AZ{row - 1}:AZ{row}").Merge();
+        //                ws.Range($"BA{row - 1}:BA{row}").Merge();
+        //            }
+        //            row++;
+        //            if (string.IsNullOrWhiteSpace(annex))
+        //            {
+        //                SetRowColValue(ws, reportItem, row, false);
+        //                ws.Range($"B{row}:AD{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+        //            }
+        //            else
+        //            {
+        //                SetRowColValue(ws, reportItem, row, true);
+        //                ws.Range($"B{row}:AC{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+        //            }
+        //            ws.Range($"AF{row}:BA{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+        //            tAcqCost += (reportItem.AcqCost ?? 0);
+        //        }
+        //        //ws.Row(++row).Cell(13).SetValue("TOTAL");
+        //        //ws.Row(row).Cell(14).SetValue(tAcqCost);
 
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
+        //        row += 4;
+        //        ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        row += 3;
+        //        ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+        //        ws.Range($"K{row}:M{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+        //        row++;
+        //        ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+        //        ws.Range($"D{row}:G{row}").Merge();
+        //        ws.Range($"K{row}:M{row}").Merge();
 
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
+        //        // Create a MemoryStream to save the output
+        //        var memoryStream = new MemoryStream();
+        //        wb.SaveAs(memoryStream);
+
+        //        // Reset the stream position to the beginning before returning
+        //        memoryStream.Position = 0;
+        //        return memoryStream;
+        //    }
+        //}
 
         //public MemoryStream ProcessExcelAnnexFile(int? forYear, Guid? deptId, string templateFilePath, int? accountGroup, string annex)
         public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? deptId, Guid? sectionId, string templateFilePath, int? accountGroup, string annex, string mainAccount
@@ -1070,7 +1084,7 @@ namespace iLgs.Services.CustodianReports
             }
             string hdg = "";
 
-            if (annex == "A")
+            if (annex == "A" || annex == "X")
             {
                 hdg = "(INVENTORY COUNT FORM)";
             }
@@ -1087,7 +1101,7 @@ namespace iLgs.Services.CustodianReports
                     , asOf, insertedAsOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
-        
+
 
         private void ValidateRequired(CustodianReportLandItemVM model)
         {
@@ -1167,14 +1181,15 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private async Task ValidateIfSubmittedAsync(CustodianReportLandItem model)
+        private void ValidateIfSubmitted(CustodianReportLandItem model)
         {
-            var submitForCount = await _db.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
-            if (submitForCount != null)
-            {
-                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
-                throw new RecordAlreadyPostedException(msg);
-            }
+            //var submitForCount = await _db.CustodianReportSubmitForCounts.FirstOrDefaultAsync(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            //if (submitForCount != null)
+            //{
+            //    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+            //    throw new RecordAlreadyPostedException(msg);
+            //}
+            _custodianReportSubmitForCountService.ValidateIfSubmitted(model);
         }
 
         private void ValidateUser(CustodianReportLandItem entity, CustodianReportLandItem model)

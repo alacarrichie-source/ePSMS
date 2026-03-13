@@ -61,6 +61,7 @@ namespace iLgs.Services.CustodianReports
         private readonly ICustodianReportBldgItemPhaseService _custodianReportBldgItemPhase;
         private readonly ICustodianBldgUploadService _custodianBldgUploadService;
         private readonly ICodextnService _codextnService;
+        private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
 
         public CustodianReportBldgItemService(AppManEntities db)
         {
@@ -74,6 +75,7 @@ namespace iLgs.Services.CustodianReports
             _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemVM>;
             _custodianBldgUploadService = new CustodianBldgUploadService(_db);
             _codextnService = new CodextnService(_db);
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
         }
 
         //public CustodianReportBldgItemService(AppManEntities db,
@@ -710,7 +712,14 @@ namespace iLgs.Services.CustodianReports
 
                 if (!string.IsNullOrWhiteSpace(annex))
                 {
-                    ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    if (annex == "X")
+                    {
+                        ws.Row(2).Cell(2).SetValue("No Annex");
+                    }
+                    else
+                    {
+                        ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                    }                    
                     ws.Row(4).Cell(2).SetValue(hdg);
                 }
 
@@ -893,9 +902,9 @@ namespace iLgs.Services.CustodianReports
                     }
 
                     var otherEngAmounts = _db.CustodianReportBldgItemPhases.Where(w => w.BldgItemId == reportItem.Id).OrderBy(o => o.PhaseNo).AsNoTracking();
-                    if (!string.IsNullOrWhiteSpace(annex))
-                    {
-                        otherEngAmounts = otherEngAmounts.Where(w => w.Annex == annex);
+                    if (!string.IsNullOrWhiteSpace(annex) && annex != "X")
+                    {                        
+                        otherEngAmounts = otherEngAmounts.Where(w => w.Annex == annex);                        
                     }
 
                     foreach (var engAmt in otherEngAmounts)
@@ -918,14 +927,14 @@ namespace iLgs.Services.CustodianReports
                         ws.Row(row).Cell(30).SetValue(engAmt.Fund); // new
                         ws.Row(row).Cell(32).SetValue(engAmt.Remarks);
 
-                        if (!string.IsNullOrWhiteSpace(annex))
+                        if (string.IsNullOrWhiteSpace(annex) || annex == "X")
                         {
-                            ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                            ws.Row(row).Cell(33).SetValue(string.IsNullOrWhiteSpace(engAmt.Annex) ? "" : engAmt.Annex.ToUpper()); // new                            
+                            ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;                            
                         }
                         else
                         {
-                            ws.Row(row).Cell(33).SetValue(string.IsNullOrWhiteSpace(engAmt.Annex) ? "" : engAmt.Annex.ToUpper()); // new                            
-                            ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                            ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                         }
                         tAcqCost += (engAmt.AcqCost ?? 0);
                     }
@@ -971,7 +980,7 @@ namespace iLgs.Services.CustodianReports
             }
             string hdg = "";
 
-            if (annex == "A")
+            if (annex == "A" || annex == "X")
             {
                 hdg = "(INVENTORY COUNT FORM)";
             }
@@ -1008,12 +1017,13 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateIfSubmitted(CustodianReportBldgItem model)
         {
-            var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
-            if (submitForCount != null)
-            {
-                var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
-                throw new RecordAlreadyPostedException(msg);
-            }
+            //var submitForCount = _db.CustodianReportSubmitForCounts.FirstOrDefault(f => f.ReportId == model.ReportId && f.LocationId == model.LocationId && f.Status == "Submit");
+            //if (submitForCount != null)
+            //{
+            //    var msg = $"Record already submitted for count by {submitForCount.UpdatedBy} on {submitForCount.UpdatedDt}, cannot update!";
+            //    throw new RecordAlreadyPostedException(msg);
+            //}
+            _custodianReportSubmitForCountService.ValidateIfSubmitted(model);
         }
 
         private void ValidateIfNotPosted(CustodianReportBldgItem entity)

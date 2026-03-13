@@ -34,6 +34,7 @@ namespace iLgs.Services.PropertyCard
 
         ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date);
         ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date);
+        Task<string> GetPsNoAsync(string psName);
 
         IAllFieldService AllField { get; }
         IPsCardItemService PsCardItem { get; }
@@ -304,6 +305,11 @@ namespace iLgs.Services.PropertyCard
         }
 
         public async Task<string> GetStockNoAsync(PsCardVM model) => await _allFieldService.GetCardStockNoAsync(model);
+
+        public Task<string> GetPsNoAsync(string psName)
+        {
+            return _db.Database.SqlQuery<string>("Select dbo.fn_GetPsNo({0})", psName).FirstOrDefaultAsync();
+        }
 
         public string GetDescription(PsCardVM fields) => "Please see attachment.";
 
