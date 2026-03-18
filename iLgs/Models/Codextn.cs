@@ -18,8 +18,6 @@ namespace iLgs.Models
         public Codextn()
         {
             this.DepartmentUsers = new HashSet<DepartmentUser>();
-            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
-            this.PsCardItemIssuances1 = new HashSet<PsCardItemIssuance>();
             this.CustodianDisposals = new HashSet<CustodianDisposal>();
             this.LocationBudgets = new HashSet<LocationBudget>();
             this.LocationBudgets1 = new HashSet<LocationBudget>();
@@ -67,10 +65,6 @@ namespace iLgs.Models
         public virtual CodeMast CodeMast { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianDisposal> CustodianDisposals { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

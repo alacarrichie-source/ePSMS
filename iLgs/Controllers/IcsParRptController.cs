@@ -14,13 +14,13 @@ namespace iLgs.Controllers
     [Authorize]
     public class IcsParRptController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
+        //private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
 
-        public IcsParRptController(AppManEntities db, ICodextnService codextnService)
+        public IcsParRptController()
         {
-            _db = db;
-            _codextnService = codextnService;
+            //_db = db;
+            _codextnService = new CodextnService(_db);
         }
 
         public async Task<ActionResult> IcsSetRpt(string icsNo)

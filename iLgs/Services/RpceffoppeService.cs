@@ -27,17 +27,13 @@ namespace iLgs.Services
         private readonly IExceptionService<RPCEFFOPPE> _exceptionService;
         private readonly IOrderService _orderService;
 
-        public RpceffoppeService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RPCEFFOPPE_VM> vmExceptionService,
-            IExceptionService<RPCEFFOPPE> exceptionService,
-            IOrderService orderService)
+        public RpceffoppeService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _orderService = orderService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RPCEFFOPPE_VM>();
+            _exceptionService = new ExceptionService<RPCEFFOPPE>();
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<RPCEFFOPPE> GetByIdAsync(Guid? id) =>

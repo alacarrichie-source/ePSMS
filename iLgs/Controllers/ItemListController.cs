@@ -10,16 +10,15 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [Authorize]
-    public class ItemListController : Controller
+    public class ItemListController : BaseController
     {
         private readonly IItemCodeService _itemCodeService;
         private readonly IItemUploadService _itemUploadService;
 
-        public ItemListController(IItemCodeService itemCodeService,
-            IItemUploadService itemUploadService)
+        public ItemListController()
         {
-            _itemCodeService = itemCodeService;
-            _itemUploadService = itemUploadService;
+            _itemCodeService = new ItemCodeService(_db);
+            _itemUploadService = new ItemUploadService(_db);
         }
 
         // GET: ItemList

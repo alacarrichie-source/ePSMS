@@ -20,8 +20,8 @@ namespace iLgs.Services.PoIssuance
         IQueryable<PsCardItemVM> GetById(Guid? id);
         IQueryable<PsCardItemVM> GetSummary();
         IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? transferId);
-        ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
-        ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
+        //ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
+        //ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask<PsCardItemTransferVM> TransferAsync(PsCardItemTransferVM model, string user, DateTime date);
     }
 
@@ -138,57 +138,57 @@ namespace iLgs.Services.PoIssuance
             return data;
         }
 
-        public async ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
-        {
-            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(psCardItemIssuanceId);
-            }
+        //public async ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
+        //{
+        //    var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+        //    if (entity == null)
+        //    {
+        //        throw new RecordNotFoundException(psCardItemIssuanceId);
+        //    }
 
-            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                throw new RecordAlreadyPostedException(string.Format("Record is currently posted.."));
-            }
+        //    if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+        //    {
+        //        throw new RecordAlreadyPostedException(string.Format("Record is currently posted.."));
+        //    }
 
-            if (entity.IssuedDate == null)
-            {
-                throw new InvalidValueException("Issued Date is Required!");
-            }
+        //    if (entity.IssuedDate == null)
+        //    {
+        //        throw new InvalidValueException("Issued Date is Required!");
+        //    }
 
-            if (entity.Qty == null || entity.Qty <= 0)
-            {
-                throw new InvalidValueException("Quantity is Required!");
-            }
+        //    if (entity.Qty == null || entity.Qty <= 0)
+        //    {
+        //        throw new InvalidValueException("Quantity is Required!");
+        //    }
 
 
-            entity.PostedBy = user;
-            entity.PostedDt = date;
+        //    entity.PostedBy = user;
+        //    entity.PostedDt = date;
 
-            await _db.SaveChangesAsync();
-        }
+        //    await _db.SaveChangesAsync();
+        //}
 
-        public async ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
-        {
-            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+        //public async ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
+        //{
+        //    var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
 
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(psCardItemIssuanceId);
-            }
+        //    if (entity == null)
+        //    {
+        //        throw new RecordNotFoundException(psCardItemIssuanceId);
+        //    }
 
-            if (string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                throw new RecordNotYetPostedException(string.Format("Record is not yet posted.."));
-            }
+        //    if (string.IsNullOrWhiteSpace(entity.PostedBy))
+        //    {
+        //        throw new RecordNotYetPostedException(string.Format("Record is not yet posted.."));
+        //    }
 
-            entity.PostedBy = null;
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+        //    entity.PostedBy = null;
+        //    entity.PostedDt = null;
+        //    entity.UpdatedBy = user;
+        //    entity.UpdatedDt = date;
 
-            await _db.SaveChangesAsync();
-        }
+        //    await _db.SaveChangesAsync();
+        //}
 
         private string RefTypeDesc(string refType)
         {

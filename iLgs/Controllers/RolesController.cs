@@ -17,7 +17,7 @@ namespace iLgs.Controllers
     [AppAuthorize("roles")]
     public class RolesController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        //private readonly AppManEntities _db = new AppManEntities();
 
         public RolesController()
         {

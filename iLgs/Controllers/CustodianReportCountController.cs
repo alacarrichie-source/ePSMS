@@ -13,17 +13,15 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTCOUNT")]
     public class CustodianReportCountController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly IUserService _userService;
         
-        public CustodianReportCountController(AppManEntities db,
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
-            IUserService userService)
+        public CustodianReportCountController()
         {
-            _db = db;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
-            _userService = userService;            
+            //_db = db;
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
+            _userService = new UserService(_db);            
         }
 
         // GET: Index

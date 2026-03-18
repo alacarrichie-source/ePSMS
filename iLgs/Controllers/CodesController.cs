@@ -21,19 +21,18 @@ namespace iLgs.Controllers
     [AppAuthorize("CODES")]
     public class CodesController : BaseController
     {
-        private AppManEntities _db;
+        //private AppManEntities _db;
         private ICodextnService _codextnService;
         private IDepartmentUserService _departmentUserService;
         private IAccountableOfficerService _accountableOfficerService;
         private ApplicationUserManager _userManager;
         
-        public CodesController(AppManEntities db,
-            ICodextnService codextnService, IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService)
+        public CodesController()
         {
-            _db = db;            
-            _codextnService = codextnService;
-            _departmentUserService = departmentUserService;
-            _accountableOfficerService = accountableOfficerService;        
+            //_db = db;            
+            _codextnService = new CodextnService(_db);
+            _departmentUserService = new DepartmentUserService(_db);
+            _accountableOfficerService = new AccountableOfficerService(_db);        
         }
 
 

@@ -19,21 +19,19 @@ namespace iLgs.Controllers
     [AppAuthorize("LOCATION")]
     public class LocationController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ILocationService _locationService;
         private readonly IDepartmentUserService _departmentUserService;
         private readonly IAccountableOfficerService _accountableOfficerService;
         private readonly ILocationBudgetService _locationBudgetService;
 
-        public LocationController(AppManEntities db, ILocationService locationService,
-            IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService,
-            ILocationBudgetService locationBudgetService)
+        public LocationController()
         {
-            _db = db;
-            _locationService = locationService;
-            _departmentUserService = departmentUserService;
-            _accountableOfficerService = accountableOfficerService;
-            _locationBudgetService = locationBudgetService;
+            //_db = db;
+            _locationService = new LocationService(_db);
+            _departmentUserService = new DepartmentUserService(_db);
+            _accountableOfficerService = new AccountableOfficerService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
         }
 
         // GET: Location

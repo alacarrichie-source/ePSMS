@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Stock Card"; 
+    ViewBag.Title = "Stock Card";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 <br />
@@ -40,7 +40,7 @@
 
 
 @(Html.Kendo().Grid<iLgs.Models.StockCardVM>()
-    .HtmlAttributes(new { @class = "max-grid-2" } )
+    .HtmlAttributes(new { @class = "max-grid-2" })
     .Name("grid")
     .Columns(col =>
     {
@@ -59,7 +59,7 @@
         col.Bound(c => c.ItemCount).Width(70);
         col.Bound(c => c.NotPosted).Width(70);
         col.Bound(c => c.QtyBal).Width(70)
-            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")            
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
         //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
@@ -127,7 +127,8 @@
             model.Field(p => p.CardCategory).DefaultValue("S").Editable(true);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Sort(s => {
+        .Sort(s =>
+        {
             s.Add(a => a.Fund);
             s.Add(a => a.ItemType);
             s.Add(a => a.SubAccount1);
@@ -144,7 +145,7 @@
     )
     .Events(events => events
         .Change("onChangeGrid")
-        //.Edit("onEditGrid")        
+        //.Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
     )
 )
@@ -172,64 +173,64 @@
 </script>
 
 @*<script id="IssuedItems" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemIssuanceVM>()
-    .Name("gridIssuance_#=Id#")
-    .Columns(col =>
-    {
-        col.Bound(c => c.Department).Width(100);
-        //col.Bound(c => c.Officer).Width(100);
-        col.Bound(c => c.IssuedTo).Width(50);
-        col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
-        col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
-        col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
-        col.Command(command =>
+        @(Html.Kendo().Grid<iLgs.Models.PsCardItemIssuanceVM>()
+        .Name("gridIssuance_#=Id#")
+        .Columns(col =>
         {
-            command.Edit();
-            command.Destroy();
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridIssuanceDeleteClick").SendDataKeys(true);
-        }).Width(100);
-    })
-    .ToolBar(t =>
-    {
-        t.Create();
-    })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemIssuanceTemplate").Window(w => w.Width(500).Title("Card Item Issuance")))
-    .Sortable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridIssuance")
+            col.Bound(c => c.Department).Width(100);
+            //col.Bound(c => c.Officer).Width(100);
+            col.Bound(c => c.IssuedTo).Width(50);
+            col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
+            col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                    .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
+            col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
+            col.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridIssuanceDeleteClick").SendDataKeys(true);
+            }).Width(100);
+        })
+        .ToolBar(t =>
+        {
+            t.Create();
+        })
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemIssuanceTemplate").Window(w => w.Width(500).Title("Card Item Issuance")))
+        .Sortable()
+        .NoRecords()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridIssuance")
+            )
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                model.Field(p => p.Amount).Editable(false);
+                model.Field(p => p.IssuedToSw).DefaultValue(1);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.Amount).Sum();
+            })
+            .Read(read => read.Action("IssuanceRead", "StockCard", new { cardItemId = "#=Id#" }))
+            .Create(create => create.Action("IssuanceCreate", "StockCard"))
+            .Update(update => update.Action("IssuanceUpdate", "StockCard"))
+            .Destroy(destroy => destroy.Action("IssuanceDestroy", "StockCard"))
         )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-            model.Field(p => p.Amount).Editable(false);
-            model.Field(p => p.IssuedToSw).DefaultValue(1);
-        })
-        .Aggregates(a =>
-        {
-            a.Add(p => p.Qty).Sum();
-            a.Add(p => p.Amount).Sum();
-        })
-        .Read(read => read.Action("IssuanceRead", "StockCard", new { cardItemId = "#=Id#" }))
-        .Create(create => create.Action("IssuanceCreate", "StockCard"))
-        .Update(update => update.Action("IssuanceUpdate", "StockCard"))
-        .Destroy(destroy => destroy.Action("IssuanceDestroy", "StockCard"))
-    )
-    .Events(events => events
-        .Change("onChangeGridIssuance")
-        .Edit("onEditGridIssuance")
-        .DataBound("onDataBoundGridIssuance")
-        .Remove("onRemoveGridIssuance")
-    )
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .ToClientTemplate())
-</script>*@
+        .Events(events => events
+            .Change("onChangeGridIssuance")
+            .Edit("onEditGridIssuance")
+            .DataBound("onDataBoundGridIssuance")
+            .Remove("onRemoveGridIssuance")
+        )
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .ToClientTemplate())
+    </script>*@
 
 <script id="default-template" type="text/kendo-tmpl">
     <h4>Loading..</h4>
@@ -299,7 +300,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.CustItemNo).Width(50);
-        col.Bound(c => c.SerialNo).Width(100);        
+        col.Bound(c => c.SerialNo).Width(100);
         //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
         {
@@ -379,21 +380,21 @@
         position: relative;
     }
 
-    .numeric-wrapper .k-numerictextbox {
-        width: 100%;
-    }
+        .numeric-wrapper .k-numerictextbox {
+            width: 100%;
+        }
 
-    .numeric-wrapper .custom-icon-btn {
-        position: absolute;
-        right: 0.25rem;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 0 8px;
-    }
+        .numeric-wrapper .custom-icon-btn {
+            position: absolute;
+            right: 0.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0 8px;
+        }
 
     .container {
         max-width: 100%;
@@ -1449,6 +1450,8 @@
             selectedItemId = null;
             selectedTransferId = null;
             e.model.set("PsCardId", parentModel.Id);
+
+            setIsConsumable(parentModel.Id);
         } else {
             selectedItemId = e.model.get("Id");
             selectedTransferId = e.model.get("TransferId");
@@ -1467,7 +1470,6 @@
         }
 
         var isAdmin = @(ViewBag.IsAdmin.ToString().ToLower());
-
         var switchWidget = $("#IsConsumable").data("kendoSwitch");
         switchWidget.enable(isAdmin);
 
@@ -1485,6 +1487,37 @@
                 });
             });
         }
+    }
+
+    function setIsConsumable(psCardId)
+    {
+        var switchWidget = $("#IsConsumable").data("kendoSwitch");
+
+         $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetIsConsumable", "StockCard")',
+            data: {
+                psCardId: psCardId
+            },
+            async: true,
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                if (result.Errors == "") {
+                    switchWidget.check(result.IsConsumable);
+                    switchWidget.trigger("change");                    
+                } else {
+                    alert(result.Errors);
+                    return false;
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+                return false;
+            }
+        });
     }
 
     function onSaveGridItems(e) {

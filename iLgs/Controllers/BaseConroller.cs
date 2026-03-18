@@ -19,6 +19,7 @@ namespace iLgs.Controllers
 {
     public abstract class BaseController : Controller
     {
+        protected readonly AppManEntities _db;
         protected static string sysCode = "PSMS";
         protected static string sysAdmin = "PSMS_ADMIN";
 
@@ -37,6 +38,7 @@ namespace iLgs.Controllers
         //Set the base address and the Header Formatter
         public BaseController()
         {
+            _db = new AppManEntities();
             client = new HttpClient();
             client.BaseAddress = new Uri(iLgsApiUrl);
             client.DefaultRequestHeaders.Accept.Clear();
@@ -322,6 +324,7 @@ namespace iLgs.Controllers
         {
             if (disposing)
             {
+                _db?.Dispose();
                 client.Dispose();
             }
             base.Dispose(disposing);

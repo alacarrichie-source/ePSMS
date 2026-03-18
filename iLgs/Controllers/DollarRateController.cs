@@ -17,9 +17,9 @@ namespace iLgs.Controllers
     {
         private readonly IDollarRateService _dollarRateService;
 
-        public DollarRateController(IDollarRateService dollarRateService)
+        public DollarRateController()
         {
-            _dollarRateService = dollarRateService;            
+            _dollarRateService = new DollarRateService(_db);            
         }
 
         public ActionResult Index()

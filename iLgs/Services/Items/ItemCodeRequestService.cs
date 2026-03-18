@@ -34,20 +34,15 @@ namespace iLgs.Services.Items
         private readonly IUserService _userService;
         private readonly INotificationMessageService _notificationMessageService;
 
-        public ItemCodeRequestService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<ItemCodeRequestVM> exceptionService,
-            ICodextnService codextnService,
-            IUserService userService,
-            INotificationMessageService notificationMessageService)
+        public ItemCodeRequestService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<ItemCodeRequestVM>;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _codextnService = codextnService;
-            _userService = userService;
-            _notificationMessageService = notificationMessageService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<ItemCodeRequestVM>();
+            _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
+            _notificationMessageService = new NotificationMessageService(_db);
         }
 
         private static Expression<Func<ItemCodeRequest, ItemCodeRequestVM>> Projection

@@ -338,7 +338,8 @@ namespace iLgs.Models
 
             public string Type { get; set; }
 
-            //[Required]            
+            [MaxLength(1)]
+            [Required]
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -911,7 +912,9 @@ namespace iLgs.Models
             public string Condition { get; set; }
             public string Remarks { get; set; }
 
+            //[MaxLength(1)]
             //[Required]
+            // value is assigned to the Annex of Phase Items.
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -1034,6 +1037,7 @@ namespace iLgs.Models
             
             public string Fund { get; set; }
 
+            [MaxLength(1)]
             [Required]
             public string Annex { get; set; }
         }

@@ -13,7 +13,7 @@ namespace iLgs.Controllers
 {
     public class ReportController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        //private readonly AppManEntities _db = new AppManEntities();
 
         public ReportController()
         {

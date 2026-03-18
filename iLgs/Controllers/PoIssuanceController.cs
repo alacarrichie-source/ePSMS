@@ -22,7 +22,7 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IPoIssuanceService _poIssuanceService;
         private readonly IPsCardService _psCardService;
         private readonly IIcsParItemService _icsParItemService;
@@ -31,7 +31,7 @@ namespace iLgs.Controllers
 
         public PoIssuanceController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _poIssuanceService = new PoIssuanceService(_db);
             _psCardService = new PsCardService(_db);
             _icsParItemService = new IcsParItemService(_db);
@@ -352,107 +352,107 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PostIssuance(Guid psCardItemIssuanceId)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
-                Access access = await accessTask;
-                if (!access.AllowPost)
-                {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> PostIssuance(Guid psCardItemIssuanceId)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+        //        Access access = await accessTask;
+        //        if (!access.AllowPost)
+        //        {
+        //            ModelState.AddModelError("UpdateError", "Access Denied!");
+        //        }
 
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    await _poIssuanceService.PostAsync(psCardItemIssuanceId, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
+        //            await _poIssuanceService.PostAsync(psCardItemIssuanceId, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
+        //    var query = from state in ModelState.Values
+        //                from error in state.Errors
+        //                select error.ErrorMessage;
 
-            var errorList = query.ToList();
+        //    var errorList = query.ToList();
 
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
+        //    if (errorList.Count() > 0)
+        //    {
+        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+        //    }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
+        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        //}
 
-        [HttpPost]
-        public async Task<ActionResult> UnpostIssuance(Guid psCardItemIssuanceId)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
-                Access access = await accessTask;
-                if (!access.AllowUnpost)
-                {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
-                }
+        //[HttpPost]
+        //public async Task<ActionResult> UnpostIssuance(Guid psCardItemIssuanceId)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+        //        Access access = await accessTask;
+        //        if (!access.AllowUnpost)
+        //        {
+        //            ModelState.AddModelError("UpdateError", "Access Denied!");
+        //        }
 
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    await _poIssuanceService.UnpostAsync(psCardItemIssuanceId, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
+        //            await _poIssuanceService.UnpostAsync(psCardItemIssuanceId, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
+        //    var query = from state in ModelState.Values
+        //                from error in state.Errors
+        //                select error.ErrorMessage;
 
-            var errorList = query.ToList();
+        //    var errorList = query.ToList();
 
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
+        //    if (errorList.Count() > 0)
+        //    {
+        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+        //    }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }        
+        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        //}        
 
         #region ICS ITEMS
         public ActionResult _Ics(Guid? cardItemId, decimal? unitCost)

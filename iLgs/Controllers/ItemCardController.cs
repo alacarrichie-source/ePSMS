@@ -24,7 +24,7 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMCARD")]
     public class ItemCardController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
         private readonly IAddCostUploadService _uploadService;
@@ -33,7 +33,7 @@ namespace iLgs.Controllers
 
         public ItemCardController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _icsParService = new IcsParService(_db);
             _psCardService = new PsCardService(_db);
             _uploadService = new AddCostUploadService(_db);

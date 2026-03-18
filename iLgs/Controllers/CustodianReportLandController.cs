@@ -24,7 +24,7 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTLAND")]
     public class CustodianReportLandController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportLandItemService _custodianReportLandItemService;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
@@ -40,19 +40,14 @@ namespace iLgs.Controllers
             "custodian_report_land_multiple"
         };
 
-        public CustodianReportLandController(AppManEntities db, 
-            ICustodianReportService custodianReportService,
-            ICustodianReportLandItemService custodianReportLandItemService,
-            ICustodianReportSubmitForCountService custodianReportSubmitForCountService,
-            ICodextnService codextnService,
-            ICustodianLandUploadService custodianLandUploadService)
+        public CustodianReportLandController()
         {
-            _db = db;
-            _custodianReportService = custodianReportService;
-            _custodianReportLandItemService = custodianReportLandItemService;
-            _custodianReportSubmitForCountService = custodianReportSubmitForCountService;
-            _codextnService = codextnService;
-            _uploadService = custodianLandUploadService;
+            //_db = db;
+            _custodianReportService = new CustodianReportService(_db);
+            _custodianReportLandItemService = new CustodianReportLandItemService(_db);
+            _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);
+            _codextnService = new CodextnService(_db);
+            _uploadService = new CustodianLandUploadService(_db);
             _userService = new UserService(_db);
             _annexDService = new AnnexDService(_db);
         }

@@ -33,13 +33,11 @@ namespace iLgs.Services.CustodianDisposal_
         private readonly IDollarRateService _dollarRateService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianDisposalItemService(AppManEntities db,
-            IExceptionService<CustodianDisposalItem> exceptionService,
-            IDollarRateService dollarRateService)
+        public CustodianDisposalItemService(AppManEntities db)
         {
             _db = db;
-            _exceptionService = exceptionService;
-            _dollarRateService = dollarRateService;
+            _exceptionService = new ExceptionService<CustodianDisposalItem>();
+            _dollarRateService = new DollarRateService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianDisposalItem>;
         }
 

@@ -18,13 +18,13 @@ namespace iLgs.Controllers
 {
     public class UploadsController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IDirectoryService _directoryService;
 
-        public UploadsController(AppManEntities db, IDirectoryService directoryService)
+        public UploadsController()
         {
-            _db = db;
-            _directoryService = directoryService;
+            //_db = db;
+            _directoryService = new DirectoryService(_db);
         }
         // GET: Uploads
         public ActionResult Index()

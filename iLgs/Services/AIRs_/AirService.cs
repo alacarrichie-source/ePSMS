@@ -1027,10 +1027,10 @@ namespace iLgs.Services.AIRs_
                 throw new RecordNotYetPostedException();
             }
 
-            if (await _db.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
-            {
-                throw new RecordRelationshipException("Items were already issued, cannot unpost!");
-            }
+            //if (await _db.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
+            //{
+            //    throw new RecordRelationshipException("Items were already issued, cannot unpost!");
+            //}
 
             /*
              * Check if in transit or issued
@@ -1474,7 +1474,26 @@ namespace iLgs.Services.AIRs_
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.AIRDate)), "AIR Date must be on or after the PO Date.");
                 }
-            }            
+            }
+
+            /*
+             * only 1 AIR per PO
+             */
+            var airOrder = await _db.AIRs.Where(w => w.OrderId == model.OrderId).FirstOrDefaultAsync();
+            if (airOrder != null)
+            {
+                if (mode == Mode.ADD)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), $"Already used by AIR No. {airOrder.AIRNo}.");
+                }
+                else
+                {
+                    if (airOrder.Id != model.Id)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), $"Already used by AIR No. {airOrder.AIRNo}.");
+                    }
+                }
+            }
 
             if (model.IsInspected.HasValue && model.IsInspected.Value == true)
             {

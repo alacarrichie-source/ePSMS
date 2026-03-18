@@ -28,7 +28,7 @@ namespace iLgs.Controllers
     [AppAuthorize("AIRS")]
     public class AIRsController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IAirService _airService;
         private readonly ICodextnService _codextnService;
         private readonly IOrderService _orderService;        
@@ -37,7 +37,7 @@ namespace iLgs.Controllers
 
         public AIRsController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _airService = new AirService(_db);
             _codextnService = new CodextnService(_db);
             _orderService = new OrderService(_db);            

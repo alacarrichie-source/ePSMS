@@ -18,26 +18,21 @@ namespace iLgs.Controllers
     [Authorize]
     public class NotificationController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly INotificationService _notificationService;
         private readonly INotificationUserService _notificationUserService;
         private readonly INotificationMessageService _notificationMessageService;
         private readonly INotificationMessageStatusService _notificationMessageStatusService;
         private readonly IUserService _userService;
 
-        public NotificationController(AppManEntities db,
-            INotificationService notificationService,
-            INotificationUserService notificationUserService,
-            INotificationMessageService notificationMessageService,
-            INotificationMessageStatusService notificationMessageStatusService,
-            IUserService userService)
+        public NotificationController()
         {
-            _db = db;
-            _notificationService = notificationService;
-            _notificationUserService = notificationUserService;
-            _notificationMessageService = notificationMessageService;
-            _notificationMessageStatusService = notificationMessageStatusService;
-            _userService = userService;
+            //_db = db;
+            _notificationService = new NotificationService(_db);
+            _notificationUserService = new NotificationUserService(_db);
+            _notificationMessageService = new NotificationMessageService(_db);
+            _notificationMessageStatusService = new NotificationMessageStatusService(_db);
+            _userService = new UserService(_db);
         }
 
         // GET: Index

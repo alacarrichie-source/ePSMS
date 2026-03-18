@@ -24,13 +24,13 @@ namespace iLgs.Controllers
     [AppAuthorize("RSMI")]
     public class RSMIController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly IRsmiService _rsmiService;
 
         public RSMIController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _codextnService = new CodextnService(_db);
             _rsmiService = new RsmiService(_db);
         }

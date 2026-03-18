@@ -18,17 +18,17 @@ namespace iLgs.Controllers
     [AppAuthorize("BUDGET")]
     public class BudgetController : BaseController
     {
-        private AppManEntities _db;
+        //private AppManEntities _db;
         private readonly IBudgetService _budgetService;
         private readonly IDepartmentUserService _departmentUserService;
         private readonly IAccountableOfficerService _accountableOfficerService;
 
-        public BudgetController(AppManEntities db, IBudgetService budgetService, IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService)
+        public BudgetController()
         {
-            _db = db;
-            _budgetService = budgetService;
-            _departmentUserService = departmentUserService;
-            _accountableOfficerService = accountableOfficerService;
+            //_db = db;
+            _budgetService = new BudgetService(_db);
+            _departmentUserService = new DepartmentUserService(_db);
+            _accountableOfficerService = new AccountableOfficerService(_db);
         }
 
         // GET: Location

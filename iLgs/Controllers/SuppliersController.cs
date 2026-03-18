@@ -14,12 +14,12 @@ namespace iLgs.Controllers
 {
     public class SuppliersController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ISupplierService _supplierService;
 
         public SuppliersController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _supplierService = new SupplierService(_db);
         }
         // GET: Suppliers

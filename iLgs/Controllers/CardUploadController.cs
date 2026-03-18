@@ -21,9 +21,9 @@ namespace iLgs.Controllers
     {
         private readonly ICardUploadService _uploadService;
 
-        public CardUploadController(ICardUploadService cardUploadService)
+        public CardUploadController()
         {
-            _uploadService = cardUploadService;
+            _uploadService = new CardUploadService(_db);
         }
 
         public ActionResult _Images(Guid? imageId, Guid? psCardItemId)

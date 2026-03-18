@@ -48,7 +48,6 @@ namespace iLgs.Models
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
-        public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<CustodianDisposal> CustodianDisposals { get; set; }
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
@@ -68,7 +67,6 @@ namespace iLgs.Models
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<IcsParUpdate> IcsParUpdates { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
-        public virtual DbSet<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }

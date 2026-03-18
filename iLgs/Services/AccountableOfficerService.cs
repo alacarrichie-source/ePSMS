@@ -22,15 +22,12 @@ namespace iLgs.Services
         private readonly IExceptionService<AccountableOfficerVM> _vmExceptionService;
         private readonly IExceptionService<AccountableOfficer> _exceptionService;
 
-        public AccountableOfficerService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<AccountableOfficerVM> vmExceptionService,
-            IExceptionService<AccountableOfficer> exceptionService)
+        public AccountableOfficerService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<AccountableOfficerVM>();
+            _exceptionService = new ExceptionService<AccountableOfficer>();
         }
 
         public IQueryable<AccountableOfficerVM> GetAllByLocationId(Guid? locationId) =>

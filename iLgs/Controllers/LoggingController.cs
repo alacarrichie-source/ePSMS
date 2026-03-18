@@ -11,13 +11,13 @@ using System.Web.Mvc;
 
 public class LoggingController : BaseController
 {
-    private readonly AppManEntities _db;
+    //private readonly AppManEntities _db;
     private readonly ILoggingService _loggingService;
 
-    public LoggingController(AppManEntities db, ILoggingService loggingService)
+    public LoggingController()
     {
-        _db = db;
-        _loggingService = loggingService;
+        //_db = db;
+        _loggingService = new LoggingService();
     }
 
     // ============================
@@ -40,7 +40,7 @@ public class LoggingController : BaseController
         }
         catch (Exception ex)
         {
-            _loggingService.LogError(ex);
+            await _loggingService.LogError(ex);
             return new HttpStatusCodeResult(500, "Error retrieving logs.");
         }
     }

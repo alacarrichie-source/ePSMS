@@ -24,7 +24,7 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMS")]
     public class ItemsController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IItemTypeService _itemTypeService;
         private readonly IItemCodeService _itemCodeService;
         private readonly ICodextnService _codextnService;
@@ -32,7 +32,7 @@ namespace iLgs.Controllers
 
         public ItemsController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _itemTypeService = new ItemTypeService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _codextnService = new CodextnService(_db);

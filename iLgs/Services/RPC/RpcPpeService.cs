@@ -40,20 +40,15 @@ namespace iLgs.Services.RPC
 
         private decimal? _priceCap;
 
-        public RpcPpeService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RpcPpe> exceptionService,
-            IOrderService orderService,
-            ICodextnService codextnService,
-            IPriceCapService priceCapService)
+        public RpcPpeService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RpcPpe>(propertyName);
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _orderService = orderService;
-            _codextnService = codextnService;
-            _priceCapService = priceCapService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<RpcPpe>();
+            _orderService = new OrderService(_db);
+            _codextnService = new CodextnService(_db);
+            _priceCapService = new PriceCapService(_db);
         }
 
         private decimal GetPriceCap()

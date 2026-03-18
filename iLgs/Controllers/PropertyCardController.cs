@@ -25,7 +25,7 @@ namespace iLgs.Controllers
     public class PropertyCardController : BaseController
     {
         private readonly string _cardCategory = "P";
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly IPropertyCardService _propertyCardService;
         private readonly IItemCodeService _itemCodeService;
@@ -33,7 +33,7 @@ namespace iLgs.Controllers
 
         public PropertyCardController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _codextnService = new CodextnService(_db);
             _propertyCardService = new PropertyCardService(_db);
             _itemCodeService = new ItemCodeService(_db);

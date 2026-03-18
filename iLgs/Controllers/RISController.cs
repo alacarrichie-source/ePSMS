@@ -27,15 +27,15 @@ namespace iLgs.Controllers
     [AppAuthorize("RIS")]
     public class RISController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IRisService _risService;        
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldService _allFieldService;
         private readonly IItemCodeService _itemCodeService;
 
-        public RISController(AppManEntities db)
+        public RISController()
         {
-            _db = db;
+            //_db = db;
             _risService = new RisService(_db);
             _codextnService = new CodextnService(_db);
             _allFieldService = new AllFieldService(_db);

@@ -28,7 +28,6 @@ namespace iLgs.Services.RPC
     public class RpciService : IRpciService
     {
         private readonly AppManEntities _db;
-        private readonly IAppManEntitiesFactory _contextFactory;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<RPCI_VM> _vmExceptionService;
         private readonly IExceptionService<RPCI> _exceptionService;
@@ -39,25 +38,37 @@ namespace iLgs.Services.RPC
         private decimal? _priceCap;
         private decimal? _SPHV;
 
-        public RpciService(AppManEntities db,
-            IAppManEntitiesFactory appManEntitiesFactory,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RPCI_VM> vmExceptionService,
-            IExceptionService<RPCI> exceptionService,
-            IOrderService orderService,
-            IPriceCapService priceCapService,
-            ISemiExpendableService semiExpendableService)
+        public RpciService(AppManEntities db)
         {
             _db = db;
-            _contextFactory = appManEntitiesFactory;
             _db.Database.CommandTimeout = 3000;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
-            _orderService = orderService;
-            _priceCapService = priceCapService;
-            _semiExpendableService = semiExpendableService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<RPCI_VM>();
+            _exceptionService = new ExceptionService<RPCI>();
+            _orderService = new OrderService(_db);
+            _priceCapService = new PriceCapService(_db);
+            _semiExpendableService = new SemiExpendableService(_db);
         }
+
+        //public RpciService(AppManEntities db,
+        //    IAppManEntitiesFactory appManEntitiesFactory,
+        //    ICreateAndLogExceptions exceptions,
+        //    IExceptionService<RPCI_VM> vmExceptionService,
+        //    IExceptionService<RPCI> exceptionService,
+        //    IOrderService orderService,
+        //    IPriceCapService priceCapService,
+        //    ISemiExpendableService semiExpendableService)
+        //{
+        //    _db = db;
+        //    _contextFactory = appManEntitiesFactory;
+        //    _db.Database.CommandTimeout = 3000;
+        //    _exceptions = exceptions;
+        //    _vmExceptionService = vmExceptionService;
+        //    _exceptionService = exceptionService;
+        //    _orderService = orderService;
+        //    _priceCapService = priceCapService;
+        //    _semiExpendableService = semiExpendableService;
+        //}
 
         private decimal GetPriceCap()
         {
@@ -166,26 +177,23 @@ namespace iLgs.Services.RPC
                 model.ItemTypeId = null;
             }
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
+                 && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
+                 && a.DeptId == model.DeptId && a.IsPosted == model.IsPosted))
             {
-                if (await ctx.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
-                     && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
-                     && a.DeptId == model.DeptId && a.IsPosted == model.IsPosted))
-                {
-                    throw new RecordAlreadyExistsException();
-                }
-
-                if (model.ItemTypeId == null)
-                {
-                    model.Account = "ALL";
-                }
-
-                var priceCap = _priceCapService.GetPriceCap(model.AsOf);
-                var sphv = _semiExpendableService.GetSPHV(model.AsOf);
-                await ctx.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}",
-                    model.Type, model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted, priceCap, sphv);
-                model = await GetByAsOfAsync(model.AsOf);
+                throw new RecordAlreadyExistsException();
             }
+
+            if (model.ItemTypeId == null)
+            {
+                model.Account = "ALL";
+            }
+
+            var priceCap = _priceCapService.GetPriceCap(model.AsOf);
+            var sphv = _semiExpendableService.GetSPHV(model.AsOf);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}",
+                model.Type, model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted, priceCap, sphv);
+            model = await GetByAsOfAsync(model.AsOf);
 
             return model;
         });
@@ -193,75 +201,69 @@ namespace iLgs.Services.RPC
         public ValueTask<RPCI> PostAsync(Guid? id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.RPCIs.FindAsync(id);
+            if (entity == null)
             {
-                var entity = await ctx.RPCIs.FindAsync(id);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(id);
-                }
-
-                if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-                {
-                    throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}");
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.CertifiedCorrectBy))
-                {
-                    throw new InvalidValueException("Certified Correct by is Required!");
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.ApprovedBy))
-                {
-                    throw new InvalidValueException("Aporoved by is Required!");
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.VerifiedBy))
-                {
-                    throw new InvalidValueException("Verified by is Required!");
-                }
-
-
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //_db.RPCIs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return entity;
+                throw new RecordNotFoundException(id);
             }
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.CertifiedCorrectBy))
+            {
+                throw new InvalidValueException("Certified Correct by is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.ApprovedBy))
+            {
+                throw new InvalidValueException("Aporoved by is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.VerifiedBy))
+            {
+                throw new InvalidValueException("Verified by is Required!");
+            }
+
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            //_db.RPCIs.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return entity;
         });
 
         public ValueTask<RPCI> UnPostAsync(Guid? id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.RPCIs.FindAsync(id);
+            if (entity == null)
             {
-                var entity = await _db.RPCIs.FindAsync(id);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(id);
-                }
-
-                if (string.IsNullOrWhiteSpace(entity.PostedBy))
-                {
-                    throw new RecordNotYetPostedException($"Record is not yet posted!");
-                }
-
-                entity.PostedBy = "";
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                //_db.RPCIs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                return entity;
+                throw new RecordNotFoundException(id);
             }
+
+            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordNotYetPostedException($"Record is not yet posted!");
+            }
+
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            //_db.RPCIs.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return entity;
         });
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>
@@ -279,34 +281,31 @@ namespace iLgs.Services.RPC
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = new RPCI()
             {
-                var entity = new RPCI()
-                {
-                    Id = model.Id,
-                    Type = model.Type,
-                    AsOf = model.AsOf,
-                    Fund = model.Fund,
-                    FromDonation = model.FromDonation,
-                    InvDist = model.InvDist,
-                    ItemTypeId = model.ItemTypeId,
-                    Account = model.Account,
-                    DeptId = model.DeptId,
-                    Department = model.Department,
-                    CertifiedCorrectBy = model.CertifiedCorrectBy,
-                    ApprovedBy = model.ApprovedBy,
-                    VerifiedBy = model.VerifiedBy,
-                    PostedBy = model.PostedBy,
-                    PostedDt = model.PostedDt,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
+                Id = model.Id,
+                Type = model.Type,
+                AsOf = model.AsOf,
+                Fund = model.Fund,
+                FromDonation = model.FromDonation,
+                InvDist = model.InvDist,
+                ItemTypeId = model.ItemTypeId,
+                Account = model.Account,
+                DeptId = model.DeptId,
+                Department = model.Department,
+                CertifiedCorrectBy = model.CertifiedCorrectBy,
+                ApprovedBy = model.ApprovedBy,
+                VerifiedBy = model.VerifiedBy,
+                PostedBy = model.PostedBy,
+                PostedDt = model.PostedDt,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-                ctx.RPCIs.Add(entity);
-                await ctx.SaveChangesAsync();
-            }
+            _db.RPCIs.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -314,35 +313,32 @@ namespace iLgs.Services.RPC
         public ValueTask<RPCI_VM> DeleteAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.RPCIs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+
+            if (entity == null)
             {
-                var entity = await ctx.RPCIs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-                {
-                    throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot delete!");
-                }
-
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.RPCIs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
-
-                ctx.RPCIs.Remove(entity);
-                //_db.Entry(entity).State = EntityState.Deleted;
-                await ctx.SaveChangesAsync();
+                throw new RecordNotFoundException(model.Id);
             }
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot delete!");
+            }
+
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            //_db.RPCIs.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            _db.RPCIs.Remove(entity);
+            //_db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -350,42 +346,39 @@ namespace iLgs.Services.RPC
         public ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            using (var ctx = await _contextFactory.CreateContextAsync())
+            var entity = await _db.RPCIs.FindAsync(model.Id);
+            if (entity == null)
             {
-                var entity = await ctx.RPCIs.FindAsync(model.Id);
-                if (entity == null)
-                {
-                    throw new RecordNotFoundException(model.Id);
-                }
-
-                if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-                {
-                    throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot update!");
-                }
-
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
-
-                entity.AsOf = model.AsOf;
-                entity.Fund = model.Fund;
-                entity.FromDonation = model.FromDonation;
-                entity.InvDist = model.InvDist;
-                entity.ItemTypeId = model.ItemTypeId;
-                entity.Account = model.Account;
-                entity.DeptId = model.DeptId;
-                entity.Department = model.Department;
-                entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
-                entity.ApprovedBy = model.ApprovedBy;
-                entity.VerifiedBy = model.VerifiedBy;
-                entity.PostedBy = model.PostedBy;
-                entity.PostedDt = model.PostedDt;
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-
-                //_db.RPCIs.Attach(entity);
-                //_db.Entry(entity).State = EntityState.Modified;
-                await ctx.SaveChangesAsync();
+                throw new RecordNotFoundException(model.Id);
             }
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot update!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.AsOf = model.AsOf;
+            entity.Fund = model.Fund;
+            entity.FromDonation = model.FromDonation;
+            entity.InvDist = model.InvDist;
+            entity.ItemTypeId = model.ItemTypeId;
+            entity.Account = model.Account;
+            entity.DeptId = model.DeptId;
+            entity.Department = model.Department;
+            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+            entity.ApprovedBy = model.ApprovedBy;
+            entity.VerifiedBy = model.VerifiedBy;
+            entity.PostedBy = model.PostedBy;
+            entity.PostedDt = model.PostedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            //_db.RPCIs.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         });

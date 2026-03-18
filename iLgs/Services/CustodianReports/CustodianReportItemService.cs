@@ -181,7 +181,7 @@ namespace iLgs.Services.CustodianReports
                 _db.CustodianReportItems.Add(entity);
 
                 await _db.SaveChangesAsync();
-                await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, model.LocationId, model.SetLotNo);
+                await UpdateSetLotRemarksRawAsync(asOfDate, model.ReportId, model.LocationId, model.SetLotNo);
 
                 return model;
             //}
@@ -220,11 +220,11 @@ namespace iLgs.Services.CustodianReports
                 await _db.SaveChangesAsync();
 
                 var asOfDate = Utility.GetAsOfDate((int)model.ForYear);
-                if (prevSetLotNo != model.SetLotNo)
+                if (prevSetLotNo != model.SetLotNo || prevLocationId != model.LocationId)
                 {
-                    await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, prevLocationId, prevSetLotNo);
+                    await UpdateSetLotRemarksRawAsync(asOfDate, model.ReportId, prevLocationId, prevSetLotNo);
                 }
-                await UpdateSetLotRemarksRawAsync(asOfDate, model.MainDeptId, model.LocationId, model.SetLotNo);
+                await UpdateSetLotRemarksRawAsync(asOfDate, model.ReportId, model.LocationId, model.SetLotNo);
 
                 return model;
             //}
@@ -337,6 +337,26 @@ namespace iLgs.Services.CustodianReports
             var asOfDate = Utility.GetAsOfDate(forYear);
             var custudianReportItemGroups = await _db.CustodianReportItems
                .Where(w => w.CustodianReport.AsOf == asOfDate && (w.SetLotNo.StartsWith("S") || w.SetLotNo.StartsWith("L")))
+               .GroupBy(g => new { g.ReportId, g.LocationId, g.SetLotNo })
+               .Select(g => new { g.Key.ReportId, g.Key.LocationId, g.Key.SetLotNo })
+               .ToListAsync();
+
+            foreach (var custodianReportItemGroup in custudianReportItemGroups)
+            {
+                await UpdateSetLotRemarksRawAsync(asOfDate,
+                    custodianReportItemGroup.ReportId,
+                    custodianReportItemGroup.LocationId,
+                    custodianReportItemGroup.SetLotNo);
+            }
+        }
+
+        public async Task UpdateAllSetLotRemarksAsyncOld(int forYear)
+        {
+            ValidateReportingYearEnd(forYear);
+
+            var asOfDate = Utility.GetAsOfDate(forYear);
+            var custudianReportItemGroups = await _db.CustodianReportItems
+               .Where(w => w.CustodianReport.AsOf == asOfDate && (w.SetLotNo.StartsWith("S") || w.SetLotNo.StartsWith("L")))
                .GroupBy(g => new { g.CustodianReport.DeptId, g.LocationId, g.SetLotNo })
                .Select(g => new { g.Key.DeptId, g.Key.LocationId, g.Key.SetLotNo })
                .ToListAsync();
@@ -348,10 +368,47 @@ namespace iLgs.Services.CustodianReports
                     custodianReportItemGroup.LocationId,
                     custodianReportItemGroup.SetLotNo);
             }
-
         }
 
-        private async Task UpdateSetLotRemarksRawAsync(DateTime asOfDate, Guid? deptId, Guid? locationId, string setLotNo)
+        private async Task UpdateSetLotRemarksRawAsync(DateTime asOfDate, Guid? reportId, Guid? locationId, string setLotNo)
+        {
+            ValidateReportingYearEnd(asOfDate.Year);
+
+            if (string.IsNullOrWhiteSpace(setLotNo))
+            {
+                return;
+            }
+
+            var items = await _db.CustodianReportItems
+                .Where(w => w.CustodianReport.AsOf == asOfDate
+                    && w.ReportId == reportId
+                    && w.LocationId == locationId
+                    && w.SetLotNo == setLotNo)
+                .OrderBy(o => o.Annex)
+                .ThenBy(t => t.ItemCode.ItemType.GroupCode)
+                .ThenBy(t => t.ItemCode.ItemType.Code)
+                .ThenBy(t => t.ItemCode.ItemNoIndex)
+                .Select(s => new { s.Id })
+                .ToListAsync();
+
+            if (items.Any())
+            {
+                var total = items.Count;
+                var sb = new StringBuilder();
+
+                int index = 1;
+                foreach (var item in items)
+                {
+                    var remarks = $"{index++} of {total}";
+                    sb.AppendLine($"UPDATE CustodianReportItems SET SetLotRemarks = '{remarks}' WHERE Id = '{item.Id}';");
+                }
+
+                var sql = sb.ToString();
+                await _db.Database.ExecuteSqlCommandAsync(TransactionalBehavior.EnsureTransaction, sql);
+            }
+        }
+
+        private async Task UpdateSetLotRemarksRawAsyncOld(DateTime asOfDate, Guid? deptId, Guid? locationId, string setLotNo)
         {
             ValidateReportingYearEnd(asOfDate.Year);
 
@@ -736,13 +793,12 @@ namespace iLgs.Services.CustodianReports
                 //_db.Entry(entity).State = EntityState.Deleted;
 
                 await _db.SaveChangesAsync();
-
                 
                 if (custodianReport != null)
                 {
                     var asOfDate = (DateTime)custodianReport.AsOf;
-                    var deptId = custodianReport.DeptId;
-                    await UpdateSetLotRemarksRawAsync(asOfDate, deptId, locationId, setLotNo);
+                    //var deptId = custodianReport.DeptId;
+                    await UpdateSetLotRemarksRawAsync(asOfDate, reportId, locationId, setLotNo);
                 }
 
                 return model;

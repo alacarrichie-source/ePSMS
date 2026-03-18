@@ -123,8 +123,10 @@ namespace iLgs.Services.PropertyCard
                 UnitCost = s.UnitCost,
                 //Amount = s.Amount,
                 Amount = s.UnitCost * s.PsCardItemTransfer.Qty,
-                IssueAmount = (s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost,
-                BalanceAmount = (s.UnitCost * s.PsCardItemTransfer.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
+                //IssueAmount = (s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost,
+                //BalanceAmount = (s.UnitCost * s.PsCardItemTransfer.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
+                IssueAmount = (s.PsCardItemTransfers.FirstOrDefault().PsCardItemTransferIssuances.Sum(t => t.Amount) ?? 0),
+                BalanceAmount = (s.PsCardItemTransfers.Sum(t => t.Amount) ?? 0),
                 PriceRate = s.PriceRate,
                 AddCost = s.AddCost,
                 TUnitCost = s.TUnitCost,
@@ -789,18 +791,21 @@ namespace iLgs.Services.PropertyCard
             else
             {
                 var psCard = _db.PsCards.Include(i => i.ItemCode).FirstOrDefault(f => f.Id == model.PsCardId);
-                if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
-                {
-                    entity.IsConsumable = true;
-                }
-                else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
-                {
-                    entity.IsConsumable = false;
-                }
-                else
-                {
-                    entity.IsConsumable = null;
-                }
+                entity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);
+
+                //var psCard = _db.PsCards.Include(i => i.ItemCode).FirstOrDefault(f => f.Id == model.PsCardId);
+                //if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
+                //{
+                //    entity.IsConsumable = true;
+                //}
+                //else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
+                //{
+                //    entity.IsConsumable = false;
+                //}
+                //else
+                //{
+                //    entity.IsConsumable = null;
+                //}
             }
 
             var psCardItemTransfer = new PsCardItemTransfer()

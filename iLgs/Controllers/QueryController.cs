@@ -16,13 +16,13 @@ namespace iLgs.Controllers
     [Authorize]
     public class QueryController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
 
-        public QueryController(AppManEntities db, ICodextnService codextnService)
+        public QueryController()
         {
-            _db = db;
-            _codextnService = codextnService;
+            //_db = db;
+            _codextnService = new CodextnService(_db);
         }        
 
         public ActionResult Po()

@@ -20,14 +20,14 @@ namespace iLgs.Controllers
     [AppAuthorize("ICSSET")]
     public class IcsSetController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IPsCardService _psCardService;
         private readonly IIcsParService _icsParService;
         private readonly ICodextnService _codextnService;
 
         public IcsSetController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _psCardService = new PsCardService(_db);
             _icsParService = new IcsParService(_db);
             _codextnService = new CodextnService(_db);

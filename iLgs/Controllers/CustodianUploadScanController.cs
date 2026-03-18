@@ -20,17 +20,15 @@ namespace iLgs.Controllers
     [Authorize]
     public class CustodianUploadScanController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianDeptUploadService _scanUploadService;
         
-        public CustodianUploadScanController(AppManEntities db,
-            ICustodianReportService custodianReportService,
-            ICustodianDeptUploadService custodianScanUploadService)
+        public CustodianUploadScanController()
         {
-            _db = db;
-            _custodianReportService = custodianReportService;
-            _scanUploadService = custodianScanUploadService.Create("SCAN");            
+            //_db = db;
+            _custodianReportService = new CustodianReportService(_db);
+            _scanUploadService = new CustodianDeptUploadService(_db).Create("SCAN");            
         }
 
         public ActionResult _Scanned(string deptCode, int? accountGroup, bool isAdmin)

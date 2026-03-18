@@ -27,19 +27,14 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly ICustodianIirupUploadService _uploadService;
 
-        public CustodianIirupController(ICustodianDisposalService custodianDisposalService, 
-              ICustodianDisposalItemService custodianDisposalItemService,
-              ICustodianIirupService custodianIirupService,
-              ICustodianIirupItemService custodianIirupItemService,
-              ICodextnService codextnService,
-              ICustodianIirupUploadService custodianIirupUploadService)
+        public CustodianIirupController()
         {
-            _custodianDisposalService = custodianDisposalService;
-            _custodianDisposalItemService = custodianDisposalItemService;
-            _custodianIirupService = custodianIirupService;
-            _custodianIirupItemService = custodianIirupItemService;
-            _codextnService = codextnService;
-            _uploadService = custodianIirupUploadService;
+            _custodianDisposalService = new CustodianDisposalService(_db);
+            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
+            _custodianIirupService = new CustodianIirupService(_db);
+            _custodianIirupItemService = new CustodianIirupItemService(_db);
+            _codextnService = new CodextnService(_db);
+            _uploadService = new CustodianIirupUploadService(_db);
         }
 
         public ActionResult Index()

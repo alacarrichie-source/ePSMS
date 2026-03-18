@@ -17,24 +17,21 @@ namespace iLgs.Controllers
 {
     public class CustodianDisposalController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportItemService _custodianReportItemService;
         private readonly ICustodianDisposalService _custodianDisposalService;
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;
         private readonly ICodextnService _codextnService;
 
-        public CustodianDisposalController(AppManEntities db, 
-            ICustodianReportService custodianReportService, ICustodianReportItemService custodianReportItemService,
-            ICustodianDisposalService custodianDisposalService, ICustodianDisposalItemService custodianDisposalItemService,
-            ICodextnService codextnService)
+        public CustodianDisposalController()
         {
-            _db = db;
-            _custodianReportService = custodianReportService;
-            _custodianReportItemService = custodianReportItemService;
-            _custodianDisposalService = custodianDisposalService;
-            _custodianDisposalItemService = custodianDisposalItemService;
-            _codextnService = codextnService;
+            //_db = db;
+            _custodianReportService = new CustodianReportService(_db);
+            _custodianReportItemService = new CustodianReportItemService(_db);
+            _custodianDisposalService = new CustodianDisposalService(_db);
+            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         public ActionResult Index()

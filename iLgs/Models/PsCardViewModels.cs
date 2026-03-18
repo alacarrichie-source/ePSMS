@@ -462,6 +462,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public PsCardItemExtn PsCardItemExtn { get; set; }
-        public PsCardItemIssuance PsCardItemIssuance { get; set; }
+        //public PsCardItemIssuance PsCardItemIssuance { get; set; }
     }
 }

@@ -30,13 +30,11 @@ namespace iLgs.Services.DollarRate_
         private readonly IExceptionService<DollarRate> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public DollarRateService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<DollarRate> exceptionService)
+        public DollarRateService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<DollarRate>();
             _getDisplayName = Utility.GetDisplayName<DollarRate>;
         }
 

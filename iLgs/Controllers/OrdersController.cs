@@ -27,7 +27,7 @@ namespace iLgs.Controllers
     [AppAuthorize("ORDERS")]
     public class OrdersController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IOrderService _orderService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
@@ -38,14 +38,15 @@ namespace iLgs.Controllers
 
         public OrdersController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _allFieldService = new AllFieldService(_db);
-            _uploadPoService = new OrderUploadService(_db).Create("ORDERS");
-            _uploadCafoaService = new OrderUploadService(_db).Create("CAFOA");
+            var uploadService = new OrderUploadService(_db);
+            _uploadPoService = uploadService.Create("ORDERS");
+            _uploadCafoaService = uploadService.Create("CAFOA");
         }
 
         //public OrdersController(AppManEntities db, IOrderService orderService, IOrderItemService orderItemService, IRequestService requestService,

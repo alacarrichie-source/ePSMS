@@ -28,13 +28,11 @@ namespace iLgs.Services.CustodianIirup
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;
         
-        public CustodianIirupItemService(AppManEntities db, 
-            IExceptionService<CustodianIirupItem> exceptionService, 
-            ICustodianDisposalItemService custodianDisposalItemService)
+        public CustodianIirupItemService(AppManEntities db)
         {
             _db = db;
-            _exceptionService = exceptionService;
-            _custodianDisposalItemService = custodianDisposalItemService;
+            _exceptionService = new ExceptionService<CustodianIirupItem>();
+            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
             _getDisplayName = Utility.GetDisplayName<CustodianIirupItem>;
         }
 

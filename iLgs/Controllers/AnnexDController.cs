@@ -17,13 +17,13 @@ namespace iLgs.Controllers
     [AppAuthorize("ANNEXD")]
     public class AnnexDController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IAnnexDService _annexDService;
         
-        public AnnexDController(AppManEntities db, IAnnexDService annexDService)
+        public AnnexDController()
         {
-            _db = db;
-            _annexDService = annexDService;        
+            //_db = db;
+            _annexDService = new AnnexDService(_db);        
         }
 
         // GET: Location

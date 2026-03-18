@@ -17,7 +17,7 @@ namespace iLgs.Controllers
     [Authorize]
     public class GettersController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly ILocationService _locationService;
         private readonly ILocationBudgetService _locationBudgetService;
@@ -26,7 +26,7 @@ namespace iLgs.Controllers
 
         public GettersController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _codextnService = new CodextnService(_db);
             _locationService = new LocationService(_db);
             _locationBudgetService = new LocationBudgetService(_db);

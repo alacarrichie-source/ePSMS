@@ -25,12 +25,11 @@ namespace iLgs.Services.Items
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IExceptionService<ItemTypeExclusion> _exceptionService;
 
-        public ItemTypeExclusionService(AppManEntities db,
-            IExceptionService<ItemTypeExclusion> exceptionService)
+        public ItemTypeExclusionService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = Utility.GetDisplayName<ItemTypeExclusion>;
-            _exceptionService = exceptionService;
+            _exceptionService = new ExceptionService<ItemTypeExclusion>();
         }
 
         public IQueryable<ItemTypeExclusion> GetAll(Guid? itemUserId)

@@ -16,10 +16,10 @@ namespace iLgs.Controllers
         private readonly IIcsParService _icsParService;
         private readonly IParService _parService;
 
-        public ParItemsController(IIcsParService icsParService, IParService parService)
+        public ParItemsController()
         {
-            _icsParService = icsParService;
-            _parService = parService;
+            _icsParService = new IcsParService(_db);
+            _parService = new ParService(_db);
         }
 
         public ActionResult _Item(Guid parId)

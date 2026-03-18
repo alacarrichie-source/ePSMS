@@ -18,12 +18,12 @@ namespace iLgs.Controllers
     [AppAuthorize("ICSPARUPDATE")]
     public class IcsParUpdateController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
 
         public IcsParUpdateController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _icsParService = new IcsParService(_db);
         }
 

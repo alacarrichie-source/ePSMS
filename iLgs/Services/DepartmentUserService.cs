@@ -25,15 +25,12 @@ namespace iLgs.Services
         private readonly IExceptionService<DepartmentUserVM> _vmExceptionService;
         private readonly IExceptionService<DepartmentUser> _exceptionService;
 
-        public DepartmentUserService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<DepartmentUserVM> vmExceptionService,
-            IExceptionService<DepartmentUser> exceptionService)
+        public DepartmentUserService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<DepartmentUserVM>();
+            _exceptionService = new ExceptionService<DepartmentUser>();
         }
 
         public IQueryable<DepartmentUserVM> GetAllByDeptId(Guid? deptId) =>

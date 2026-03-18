@@ -22,18 +22,17 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMCODEREQUEST")]
     public class ItemCodeRequestController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IItemCodeRequestService _itemCodeRequestService;
         private readonly IItemCodeRequestUploadService _uploadService;
         private readonly IUserService _userService;
 
-        public ItemCodeRequestController(AppManEntities db, IItemCodeRequestService itemCodeRequestService, IItemCodeRequestUploadService itemCodeRequestUploadService,
-            IUserService userService)
+        public ItemCodeRequestController()
         {
-            _db = db;
-            _itemCodeRequestService = itemCodeRequestService;
-            _uploadService = itemCodeRequestUploadService;
-            _userService = userService;
+            //_db = db;
+            _itemCodeRequestService = new ItemCodeRequestService(_db);
+            _uploadService = new ItemCodeRequestUploadService(_db);
+            _userService = new UserService(_db);
         }
 
         public ActionResult Index()

@@ -14,13 +14,13 @@ namespace iLgs.Controllers
     [System.Web.Mvc.Authorize]
     public class ChatController : BaseController
     {
-        private AppManEntities _db;
+        //private AppManEntities _db;
         private readonly INotificationMessageService _notificationMessageService;
 
-        public ChatController(AppManEntities db, INotificationMessageService notificationMessageService)
+        public ChatController()
         {
-            _db = db;
-            _notificationMessageService = notificationMessageService;
+            //_db = db;
+            _notificationMessageService = new NotificationMessageService(_db);
         }
 
         // GET: Chat

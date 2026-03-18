@@ -31,13 +31,11 @@ namespace iLgs.Services.CustodianDisposal_
         private readonly IExceptionService<CustodianDisposal> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         
-        public CustodianDisposalService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<CustodianDisposal> exceptionService)
+        public CustodianDisposalService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<CustodianDisposal>();
             _getDisplayName = Utility.GetDisplayName<CustodianDisposal>;
         }
 

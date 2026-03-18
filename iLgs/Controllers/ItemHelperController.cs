@@ -10,13 +10,15 @@ namespace iLgs.Controllers
     [Authorize]
     public class ItemHelperController : Controller
     {
+        private readonly AppManEntities _db;
         private readonly IItemTypeService _itemTypeService;
         private readonly IItemCodeService _itemCodeService;
         
-        public ItemHelperController(IItemTypeService itemTypeService, IItemCodeService itemCodeService)
+        public ItemHelperController()
         {
-            _itemTypeService = itemTypeService;
-            _itemCodeService = itemCodeService;        
+            _db = new AppManEntities();
+            _itemTypeService = new ItemTypeService(_db);
+            _itemCodeService = new ItemCodeService(_db);        
         }
 
         public JsonResult GetItems(string text)

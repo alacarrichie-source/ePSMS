@@ -780,7 +780,7 @@ namespace iLgs.Services.ParIcsFromPo
                 && w.IsConsumable != true
                 && w.IsIncorporated != true
                 && w.IsOthers != true
-                && _db.PsCardItemExtns.Any(a => a.PsCardItemId == w.PsCardItemId && a.AcqCost < priceCap && !a.IcsParItems.Any())).ToList();
+                && (w.IsForICS == true || _db.PsCardItemExtns.Any(a => a.PsCardItemId == w.PsCardItemId && a.AcqCost < priceCap && !a.IcsParItems.Any()))).ToList();
 
             var unitGroups = await GetItemSetsByPoNoAsync(model.PoNo, priceCap);                
             unitGroups = unitGroups.Where(w => _db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemUnitGroupDescription.UnitGroupId == w.Id 

@@ -21,15 +21,12 @@ namespace iLgs.Services.RPC
         private readonly IExceptionService<RpcPpeItem> _exceptionService;
         protected readonly IUserService _userService;
 
-        public RpcPpeItemService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RpcPpeItem> exceptionService,
-            IUserService userService)
+        public RpcPpeItemService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _userService = userService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<RpcPpeItem>();
+            _userService = new UserService(_db);
         }
 
         public ValueTask<RpcPpeItem> GetByIdAsync(Guid id) =>

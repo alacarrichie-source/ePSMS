@@ -21,13 +21,13 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANACCOUNTABILITY2")]
     public class CustodianAccountability2Controller : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianDeptUploadService _uploadService;
         private readonly IUserService _userService;
 
         public CustodianAccountability2Controller()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _uploadService = new CustodianDeptUploadService(_db).Create("PROCUREMENT");
             _userService = new UserService(_db);
         }

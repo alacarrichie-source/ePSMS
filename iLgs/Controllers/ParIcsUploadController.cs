@@ -21,9 +21,9 @@ namespace iLgs.Controllers
     {
         private readonly IParIcsUploadService _uploadService;
 
-        public ParIcsUploadController(IParIcsUploadService parIcsUploadService)
+        public ParIcsUploadController()
         {
-            _uploadService = parIcsUploadService;            
+            _uploadService = new ParIcsUploadService(_db);            
         }
 
         public ActionResult _Images(Guid? imageId, string postedBy, string description)

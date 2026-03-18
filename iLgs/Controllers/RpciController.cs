@@ -23,17 +23,17 @@ namespace iLgs.Controllers
     [AppAuthorize("RPCI")]
     public class RpciController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IRpciService _rpciService;
         private readonly IRpciItemService _rpciItemService;
         private readonly ICodextnService _codextnService;
 
-        public RpciController(AppManEntities db, IRpciService rpciService, IRpciItemService rpciItemService, ICodextnService codextnService)
+        public RpciController()
         {
-            _db = db;
-            _rpciService = rpciService;
-            _rpciItemService = rpciItemService;
-            _codextnService = codextnService;
+            //_db = db;
+            _rpciService = new RpciService(_db);
+            _rpciItemService = new RpciItemService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         public ActionResult SemiExpendable()

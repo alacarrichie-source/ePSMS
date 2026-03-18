@@ -198,7 +198,7 @@ namespace iLgs.Services.PropertyCard
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Include(i => i.IcsParItems)
                         .Where(w => w.PsCardItemId == psCardItemId 
-                            && !w.PsCardItemIssuanceItems.Any()
+                            //&& !w.PsCardItemIssuanceItems.Any()
                             && !w.PsCardItemTransferItems.Any())
                         .AsQueryable();            
             return data;

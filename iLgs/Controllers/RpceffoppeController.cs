@@ -20,17 +20,17 @@ namespace iLgs.Controllers
     [AppAuthorize("RPCEFFOPPE")]
     public class RpceffoppeController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IRpceffoppeService _rpcService;
         private readonly IRpceffoppeItemService _rpcItemService;
         private readonly ICodextnService _codextnService;
 
-        public RpceffoppeController(AppManEntities db, IRpceffoppeService rpceffoppeService, IRpceffoppeItemService rpceffoppeItemService, ICodextnService codextnService)
+        public RpceffoppeController()
         {
-            _db = db;
-            _rpcService = rpceffoppeService;
-            _rpcItemService = rpceffoppeItemService;
-            _codextnService = codextnService;
+            //_db = db;
+            _rpcService = new RpceffoppeService(_db);
+            _rpcItemService = new RpceffoppeItemService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         // GET: Rpceffoppe

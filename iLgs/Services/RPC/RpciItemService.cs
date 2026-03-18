@@ -26,17 +26,13 @@ namespace iLgs.Services.RPC
         private readonly IExceptionService<RPCIItemVM> _vmExceptionService;
         private readonly IOrderService _orderService;
 
-        public RpciItemService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<RPCIItem> exceptionService,
-            IExceptionService<RPCIItemVM> vmExceptionService,
-            IOrderService orderService)
+        public RpciItemService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _exceptionService = exceptionService;
-            _vmExceptionService = vmExceptionService;
-            _orderService = orderService;
+            _exceptions = new CreateAndLogExceptions();
+            _exceptionService = new ExceptionService<RPCIItem>();
+            _vmExceptionService = new ExceptionService<RPCIItemVM>();
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<RPCIItem> GetByIdAsync(Guid? id) =>

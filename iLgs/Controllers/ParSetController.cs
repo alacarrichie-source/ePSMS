@@ -21,14 +21,14 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET")]
     public class ParSetController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
         private readonly ICodextnService _codextnService;
 
         public ParSetController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _icsParService = new IcsParService(_db);
             _psCardService = new PsCardService(_db);
             _codextnService = new CodextnService(_db);

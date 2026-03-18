@@ -19,18 +19,17 @@ namespace iLgs.Controllers
     [AppAuthorize("PSCATEGORY")]
     public class PsCategoryController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IPsCategoryService _psCategoryService;
         private readonly IDepartmentUserService _userService;
         private readonly IItemTypeExclusionService _itemTypeExclusionService;
 
-        public PsCategoryController(AppManEntities db, IPsCategoryService psCategoryService, IDepartmentUserService departmentUserService, 
-            IItemTypeExclusionService itemTypeExclusionService)
+        public PsCategoryController()
         {
-            _db = db;
-            _psCategoryService = psCategoryService;
-            _userService = departmentUserService;
-            _itemTypeExclusionService = itemTypeExclusionService;
+            //_db = db;
+            _psCategoryService = new PsCategoryService(_db);
+            _userService = new DepartmentUserService(_db);
+            _itemTypeExclusionService = new ItemTypeExclusionService(_db);
         }
 
         // GET: Location

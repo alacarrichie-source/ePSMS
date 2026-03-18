@@ -24,7 +24,7 @@ namespace iLgs.Controllers
     [AppAuthorize("REQUESTS")]
     public class RequestsController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IOrderService _orderService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
@@ -34,7 +34,7 @@ namespace iLgs.Controllers
 
         public RequestsController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);
@@ -482,7 +482,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -532,7 +532,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
-                if (!access.AllowUnpost)
+                if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }

@@ -11,9 +11,9 @@ namespace iLgs.Controllers
     {
         private readonly AppManEntities _db;
 
-        public SequenceController(AppManEntities db)
+        public SequenceController()
         {
-            _db = db;
+            _db = new AppManEntities();
         }
 
         public async Task<string> NextPoNo(DateTime poDate)

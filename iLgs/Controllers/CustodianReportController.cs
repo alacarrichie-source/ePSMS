@@ -29,7 +29,7 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORT")]
     public class CustodianReportController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportItemService _custodianReportItemService;
         private readonly ICustodianReportItemStockService _custodianReportItemStockService;
@@ -50,10 +50,11 @@ namespace iLgs.Controllers
         private readonly IOrderService _orderService;
         private readonly string _stockId, _ppeId, _transpoId;
         private readonly string[] _raStockId, _raPpeId, _raTranspoId;
+        private readonly string[] _raMenuId;
 
         public CustodianReportController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportItemService = new CustodianReportItemService(_db);
             _custodianReportItemStockService = new CustodianReportItemStockService(_db);
@@ -79,6 +80,7 @@ namespace iLgs.Controllers
             _raStockId = new string[] { _stockId, $"{_stockId}_inquiry", $"{_stockId}_demand", $"{_stockId}_update", $"{_stockId}_view", $"{_stockId}_multiple" };
             _raPpeId = new string[] { _ppeId, $"{_ppeId}_inquiry", $"{_ppeId}_demand", $"{_ppeId}_update", $"{_ppeId}_view", $"{_ppeId}_multiple" };
             _raTranspoId = new string[] { _transpoId, $"{_transpoId}_inquiry", $"{_transpoId}_demand", $"{_transpoId}_update", $"{_transpoId}_view", $"{_transpoId}_multiple" };
+            _raMenuId = _raStockId.Concat(_raPpeId).Concat(_raTranspoId).ToArray();
         }
 
         //public CustodianReportController(AppManEntities db,
@@ -575,8 +577,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -626,8 +629,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -3772,8 +3776,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -3806,8 +3811,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -3849,8 +3855,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -3946,8 +3953,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -3999,8 +4007,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -4068,8 +4077,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _raMenuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {

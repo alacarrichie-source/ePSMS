@@ -13,6 +13,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace iLgs.Controllers
     public class StockCardController : BaseController
     {
         private readonly string _cardCategory = "S";
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IStockCardService _stockCardService;
         private readonly ICodextnService _codextnService;
         private readonly IItemCodeService _itemCodeService;
@@ -35,7 +36,7 @@ namespace iLgs.Controllers
 
         public StockCardController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _codextnService = new CodextnService(_db);
             _stockCardService = new StockCardService(_db);
             _itemCodeService = new ItemCodeService(_db);
@@ -1056,6 +1057,16 @@ namespace iLgs.Controllers
             string itemExtnName = _stockCardService.GetItemExtnName(itemTransfer.PsCardItemId);
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName, ItemTransfer = itemTransfer }, JsonRequestBehavior.AllowGet);
+
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> GetIsConsumable(Guid? psCardId)
+        {
+            var isConsumableYN = await _db.PsCards.Where(f => f.Id == psCardId).Select(s => s.ItemCode.IsConsumable).FirstOrDefaultAsync();
+            var isConsumableTF = _itemCodeService.GetIsConsumable(isConsumableYN);
+
+            return Json(new { Errors = "", IsConsumable = isConsumableTF }, JsonRequestBehavior.AllowGet);
 
         }
 

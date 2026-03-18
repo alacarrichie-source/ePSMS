@@ -24,20 +24,19 @@ namespace iLgs.Controllers
     [AppAuthorize("RPCPPE")]
     public class RpcPpeController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IRpcPpeService _rpcService;
         private readonly IRpcPpeItemService _rpcItemService;
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
 
-        public RpcPpeController(AppManEntities db, IRpcPpeService rpcPpeService, IRpcPpeItemService rpcPpeItemService,
-            ICodextnService codextnService, IUserService userService)
+        public RpcPpeController()
         {
-            _db = db;
-            _rpcService = rpcPpeService;
-            _rpcItemService = rpcPpeItemService;
-            _codextnService = codextnService;
-            _userService = userService;
+            //_db = db;
+            _rpcService = new RpcPpeService(_db);
+            _rpcItemService = new RpcPpeItemService(_db);
+            _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
         }
 
 

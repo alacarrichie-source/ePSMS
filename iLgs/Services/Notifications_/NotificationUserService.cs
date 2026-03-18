@@ -30,15 +30,12 @@ namespace iLgs.Services.CustodianReports
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public NotificationUserService(AppManEntities db,
-            ICreateAndLogExceptions exceptions,
-            IExceptionService<NotificationUserVM> vmExceptionService,
-            IUserService userService)
+        public NotificationUserService(AppManEntities db)
         {
             _db = db;
-            _exceptions = exceptions;
-            _vmExceptionService = vmExceptionService;
-            _userService = userService;
+            _exceptions = new CreateAndLogExceptions();
+            _vmExceptionService = new ExceptionService<NotificationUserVM>();
+            _userService = new UserService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<NotificationUserVM>(propertyName);
         }
 

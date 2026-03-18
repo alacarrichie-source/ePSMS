@@ -25,7 +25,7 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTBLDG")]
     public class CustodianReportBldgController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
         private readonly ICustodianBldgUploadService _uploadService;
@@ -44,7 +44,7 @@ namespace iLgs.Controllers
 
         public CustodianReportBldgController()
         {
-            _db = new AppManEntities();
+            //_db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
             _custodianReportSubmitForCountService = new CustodianReportSubmitForCountService(_db);

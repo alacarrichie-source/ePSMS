@@ -10,13 +10,13 @@ namespace iLgs.Controllers
     [Authorize]
     public class AuditTrailController : BaseController
     {
-        private readonly AppManEntities _db;
+        //private readonly AppManEntities _db;
         private readonly IAuditLogService _auditLogService;
 
-        public AuditTrailController(AppManEntities db, IAuditLogService auditLogService)
+        public AuditTrailController()
         {
-            _db = db;
-            _auditLogService = auditLogService;
+            //_db = db;
+            _auditLogService = new AuditLogService(_db);
         }
 
         // GET: AuditLog
