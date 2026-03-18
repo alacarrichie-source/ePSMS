@@ -84,9 +84,6 @@ namespace iLgs.Models
         public Nullable<int> OtherQty { get; set; }
         public string PpmpCode { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
-        public virtual Codextn Codextn2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
@@ -96,5 +93,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual OrderItem OrderItem { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
     }
 }

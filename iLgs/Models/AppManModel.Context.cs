@@ -47,7 +47,6 @@ namespace iLgs.Models
         public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
-        public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<CustodianDisposal> CustodianDisposals { get; set; }
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
@@ -133,5 +132,6 @@ namespace iLgs.Models
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
+        public virtual DbSet<Codextn> Codextns { get; set; }
     }
 }

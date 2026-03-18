@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="78">
+      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="65">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="5.75" PointY="2.25" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="10.75" PointY="6.75" />
@@ -30,15 +30,15 @@
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         <EntityTypeShape EntityType="AppManModel.DepartmentUser" Width="1.5" PointX="15" PointY="5.875" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_AspNetUsers" />
-        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="12.625" />
-        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
-        <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
         <EntityTypeShape EntityType="AppManModel.LocationBudget" Width="1.5" PointX="17.25" PointY="14.75" />
-        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
-        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         <EntityTypeShape EntityType="AppManModel.UserProfile" Width="1.5" PointX="3" PointY="2.625" />
         <AssociationConnector Association="AppManModel.FK_UserProfiles_AspNetUsers" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicleRepair" Width="1.5" PointX="15.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="12.75" />
+        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
+        <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
+        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
+        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />

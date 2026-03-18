@@ -42,11 +42,11 @@ namespace iLgs.Models
         public System.DateTime UpdatedDt { get; set; }
         public Nullable<bool> IsPosted { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIDepLoc> RPCIDepLocs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

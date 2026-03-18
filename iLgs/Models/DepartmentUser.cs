@@ -29,8 +29,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
-        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemTypeExclusion> ItemTypeExclusions { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

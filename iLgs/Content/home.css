@@ -1,0 +1,340 @@
+﻿/* additional site.css */
+.home-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollview-container .k-scrollview-wrap .image {
+    display: inline-block;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width: inherit;
+    height: inherit;
+    object-fit: cover;
+}
+
+.scrollview-header {
+    padding: 0px 30px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+
+.home-heading, .categories-title, .recently-viewed-title {
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 59px;
+    color: var(--eshop-black);
+    /*margin: 24px 0;*/
+}
+
+.top-picks-container {
+    /*height: 480px;*/
+    background-color: #C7E0F4;
+}
+
+.top-picks-scrollview-container .k-scrollview-wrap li.k-scrollview-page {
+    width: inherit !important;
+}
+
+/*.top-picks {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.top-pick-card {
+    background: var(--eshop-white);
+    width: 296.5px;
+    height: 320px;
+}
+
+.top-pick-heading {
+    font-weight: 600;
+    font-size: 28px;
+    padding: 12px 16px;
+    text-wrap: auto;
+}*/
+
+
+/* Container for scrollview items */
+.top-picks {
+    display: flex;
+    flex-wrap: nwrap;
+    gap: 1rem;
+    padding: 0.5rem;
+    justify-content: center;
+}
+
+/* Each card */
+.top-pick-card {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    overflow: hidden;
+    width: 270px; /* Adjust width as needed */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    /* Hover effect */
+    .top-pick-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    }
+
+    /* Make the whole card clickable */
+    .top-pick-card a {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        padding: 1rem;
+    }
+
+/* Main heading / title */
+.top-pick-heading {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 0.4rem;
+    color: #333;
+}
+
+/* Description area */
+.top-pick-description {
+    margin-top: 0.25rem;
+    color: #555;
+}
+
+    .top-pick-description p {
+        margin: 0;
+        line-height: 1.35;
+        font-size: 1.15rem;
+        /* Limit number of visible lines */
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Adjust lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+.top-pick-card {
+    height: auto; /* allow dynamic height */
+}
+
+.top-pick-description {
+    max-height: none; /* remove limits */
+    overflow: visible;
+}
+
+    .top-pick-description p {
+        white-space: normal; /* wrap text normally */
+    }
+
+
+
+/* Optional Image (if you add images later) */
+.top-pick-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 0.5rem;
+}
+
+
+/*.top-pick-image {
+    width: 100%;
+    height: 256px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    object-fit: cover;
+}*/
+
+.categories-container .categories-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+    .categories-container .categories-header .k-button {
+        height: 38px;
+        align-self: center;
+    }
+
+.categories-inner {
+    display: flex;
+    justify-content: start;
+    flex-wrap: wrap;
+    gap: 3%;
+}
+
+    .categories-inner .column {
+        flex: 30%;
+        max-width: 40%;
+    }
+
+    .categories-inner .middle-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between
+    }
+
+    .categories-inner .column .category-heading {
+        font-weight: 600;
+        font-size: 28px;
+        line-height: 39px;
+        padding: 12px 16px;
+    }
+
+    .categories-inner .column .category-heading-components {
+        font-weight: 600;
+        font-size: 28px;
+        padding: 0 16px;
+    }
+
+    .categories-inner .column .category-image {
+        width: 100%;
+        margin-top: 8px;
+        vertical-align: middle;
+    }
+
+.recently-viewed {
+    margin-top: 80px;
+}
+
+    .recently-viewed .k-listview-content {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        flex-wrap: wrap;
+        gap: 40px;
+    }
+
+        .recently-viewed .k-listview-content .k-card {
+            height: 396px;
+        }
+
+        .recently-viewed .k-listview-content .k-card-image-container {
+            height: 268px;
+        }
+
+.home-content .splitter {
+    border: 1px solid #E5E5E5;
+    height: 0px;
+    margin: 83px auto 0 auto;
+}
+
+.download-app {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 3%;
+    margin-top: 54px;
+}
+
+.download-text {
+    font-size: 28px;
+    line-height: 39px;
+    color: #605E5C;
+}
+
+.downlaod-icons {
+    display: flex;
+    flex-direction: row;
+}
+
+.download-icon-2 {
+    margin-left: 24px;
+}
+
+@media (max-width: 1500px) {
+    .recently-viewed .k-listview-content {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 1024px) {
+    .categories-inner {
+        justify-content: center;
+    }
+
+        .categories-inner .column {
+            flex: 100%;
+            max-width: 50%;
+        }
+
+            .categories-inner .column .category-heading-components {
+                padding: 12px 16px;
+            }
+
+    .recently-viewed {
+        margin-top: 40px;
+    }
+
+    .recently-viewed-title {
+        text-align: center;
+    }
+
+    .download-app {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .download-icon-2 {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-container .categories-header {
+        flex-direction: column;
+    }
+
+        .categories-container .categories-header .categories-title {
+            align-self: center;
+        }
+
+    .categories-inner {
+        margin-top: 40px;
+    }
+
+        .categories-inner .column {
+            max-width: 80%;
+        }
+
+    .recently-viewed .k-listview-content .k-card {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .recently-viewed .k-listview-content .k-card-image-container {
+        height: auto;
+    }
+
+    .download-text {
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-picks-container .k-scrollview .k-scrollview-elements {
+        display: none;
+    }
+
+    .categories-inner .column {
+        max-width: 100%;
+    }
+
+    .download-app {
+        margin: 54px auto 0 auto;
+    }
+
+    .downlaod-icons {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+}

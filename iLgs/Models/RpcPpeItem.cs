@@ -115,8 +115,6 @@ namespace iLgs.Models
         public Nullable<decimal> SetLotAmount { get; set; }
         public string SetLotRemarks { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItemBuilding> RpcPpeItemBuildings { get; set; }
@@ -124,5 +122,7 @@ namespace iLgs.Models
         public virtual ICollection<RpcPpeItemLand> RpcPpeItemLands { get; set; }
         public virtual RpcPpe RpcPpe { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
     }
 }

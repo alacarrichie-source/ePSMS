@@ -326,8 +326,8 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="MastId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="Code" Type="varchar" MaxLength="50" />
-          <Property Name="Description" Type="varchar" MaxLength="150" />
-          <Property Name="Desc2" Type="varchar" MaxLength="150" />
+          <Property Name="Description" Type="varchar" MaxLength="300" />
+          <Property Name="Desc2" Type="varchar" MaxLength="300" />
           <Property Name="Desc3" Type="varchar" MaxLength="150" />
           <Property Name="Desc4" Type="varchar" MaxLength="150" />
           <Property Name="Desc5" Type="varchar" MaxLength="150" />
@@ -5647,21 +5647,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RPCEFFOPPEItem" EntitySet="RPCEFFOPPEItems" />
           </AssociationSet>
           <EntitySet Name="RSMIs" EntityType="AppManModel.RSMI" />
-          <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
-          <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
-            <End Role="CodeMast" EntitySet="CodeMasts" />
-            <End Role="Codextn" EntitySet="Codextns" />
-          </AssociationSet>
-          <AssociationSet Name="FK_DepartmentUsers_Codextn" Association="AppManModel.FK_DepartmentUsers_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
-          </AssociationSet>
           <EntitySet Name="RPCIDepLocs" EntityType="AppManModel.RPCIDepLoc" />
           <EntitySet Name="CustodianDisposals" EntityType="AppManModel.CustodianDisposal" />
-          <AssociationSet Name="FK_CustodianDisposals_Codextn" Association="AppManModel.FK_CustodianDisposals_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianDisposal" EntitySet="CustodianDisposals" />
-          </AssociationSet>
           <EntitySet Name="CustodianDisposalItems" EntityType="AppManModel.CustodianDisposalItem" />
           <AssociationSet Name="FK_CustodianDisposalItems_CustodianDisposals" Association="AppManModel.FK_CustodianDisposalItems_CustodianDisposals">
             <End Role="CustodianDisposal" EntitySet="CustodianDisposals" />
@@ -5680,14 +5667,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="ItemTypeExclusion" EntitySet="ItemTypeExclusions" />
           </AssociationSet>
           <EntitySet Name="LocationBudgets" EntityType="AppManModel.LocationBudget" />
-          <AssociationSet Name="FK_LocationBudgets_Codextn" Association="AppManModel.FK_LocationBudgets_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="LocationBudget" EntitySet="LocationBudgets" />
-          </AssociationSet>
-          <AssociationSet Name="FK_LocationBudgets_Codextn1" Association="AppManModel.FK_LocationBudgets_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="LocationBudget" EntitySet="LocationBudgets" />
-          </AssociationSet>
           <EntitySet Name="CustodianIirupItems" EntityType="AppManModel.CustodianIirupItem" />
           <EntitySet Name="CustodianIIRUPs" EntityType="AppManModel.CustodianIIRUP" />
           <AssociationSet Name="FK_CustodianIrrupItems_CustodianDisposals" Association="AppManModel.FK_CustodianIrrupItems_CustodianDisposals">
@@ -5713,10 +5692,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="IcsPartUnitGroupDescription" EntitySet="IcsPartUnitGroupDescriptions" />
           </AssociationSet>
           <EntitySet Name="IcsPars" EntityType="AppManModel.IcsPar" />
-          <AssociationSet Name="FK_IcsPars_Codextn" Association="AppManModel.FK_IcsPars_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="IcsPar" EntitySet="IcsPars" />
-          </AssociationSet>
           <AssociationSet Name="FK_IcsParUnitGroups_IcsPars" Association="AppManModel.FK_IcsParUnitGroups_IcsPars">
             <End Role="IcsPar" EntitySet="IcsPars" />
             <End Role="IcsParUnitGroup" EntitySet="IcsParUnitGroups" />
@@ -5727,16 +5702,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="IcsParUpdate" EntitySet="IcsParUpdates" />
           </AssociationSet>
           <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
-          <AssociationSet Name="FK_RPCIItems_Codextn" Association="AppManModel.FK_RPCIItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RPCIItem" EntitySet="RPCIItems" />
-          </AssociationSet>
           <EntitySet Name="PsCardItemTransferItems" EntityType="AppManModel.PsCardItemTransferItem" />
           <EntitySet Name="RpcPpes" EntityType="AppManModel.RpcPpe" />
-          <AssociationSet Name="FK_RpcPpes_Codextn" Association="AppManModel.FK_RpcPpes_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RpcPpe" EntitySet="RpcPpes" />
-          </AssociationSet>
           <EntitySet Name="AIRItemExtns" EntityType="AppManModel.AIRItemExtn" />
           <EntitySet Name="AIRs" EntityType="AppManModel.AIR" />
           <AssociationSet Name="FK_AIRInvoices_AIRs" Association="AppManModel.FK_AIRInvoices_AIRs">
@@ -5753,19 +5720,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AIRItemExtn" EntitySet="AIRItemExtns" />
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
           </AssociationSet>
-          <AssociationSet Name="FK_PsCardItemExtns_Codextn" Association="AppManModel.FK_PsCardItemExtns_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
-          </AssociationSet>
           <AssociationSet Name="FK_PsCardItemTransferItems_PsCardItemExtns" Association="AppManModel.FK_PsCardItemTransferItems_PsCardItemExtns">
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
             <End Role="PsCardItemTransferItem" EntitySet="PsCardItemTransferItems" />
           </AssociationSet>
           <EntitySet Name="AccountableOfficers" EntityType="AppManModel.AccountableOfficer" />
-          <AssociationSet Name="FK_AccountableOfficers_Codextn" Association="AppManModel.FK_AccountableOfficers_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="AccountableOfficer" EntitySet="AccountableOfficers" />
-          </AssociationSet>
           <EntitySet Name="PsCardItemExtnAddCosts" EntityType="AppManModel.PsCardItemExtnAddCost" />
           <AssociationSet Name="FK_PsCardItemExtnAddCosts_PsCardItemExtns" Association="AppManModel.FK_PsCardItemExtnAddCosts_PsCardItemExtns">
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
@@ -5796,26 +5755,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="CustodianReportBldgItems" EntityType="AppManModel.CustodianReportBldgItem" />
           <EntitySet Name="CustodianReportItems" EntityType="AppManModel.CustodianReportItem" />
           <EntitySet Name="CustodianReportLandItems" EntityType="AppManModel.CustodianReportLandItem" />
-          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn" Association="AppManModel.FK_CustodianReportBldgItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn1" Association="AppManModel.FK_CustodianReportBldgItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportItems_Codextn" Association="AppManModel.FK_CustodianReportItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportItems_Codextn1" Association="AppManModel.FK_CustodianReportItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportLandItems_Codextn" Association="AppManModel.FK_CustodianReportLandItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_CustodianDisposalItems_CustodianReportBldgItems1" Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1">
             <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
             <End Role="CustodianDisposalItem" EntitySet="CustodianDisposalItems" />
@@ -5847,18 +5786,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <EntitySet Name="PsCardItemTransferIssuances" EntityType="AppManModel.PsCardItemTransferIssuance" />
           <EntitySet Name="PsCardItemTransfers" EntityType="AppManModel.PsCardItemTransfer" />
-          <AssociationSet Name="FK_PsCardItemTransferIssuances_Codextn" Association="AppManModel.FK_PsCardItemTransferIssuances_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItemTransferIssuance" EntitySet="PsCardItemTransferIssuances" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsCardItemTransferIssuances_Codextn1" Association="AppManModel.FK_PsCardItemTransferIssuances_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItemTransferIssuance" EntitySet="PsCardItemTransferIssuances" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsCardItemTransfers_Codextn" Association="AppManModel.FK_PsCardItemTransfers_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItemTransfer" EntitySet="PsCardItemTransfers" />
-          </AssociationSet>
           <AssociationSet Name="FK_PsCardItemTransferIssuanceItems_PsCardItemTransferIssuances" Association="AppManModel.FK_PsCardItemTransferIssuanceItems_PsCardItemTransferIssuances">
             <End Role="PsCardItemTransferIssuance" EntitySet="PsCardItemTransferIssuances" />
             <End Role="PsCardItemTransferIssuanceItem" EntitySet="PsCardItemTransferIssuanceItems" />
@@ -5873,18 +5800,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <EntitySet Name="AuditLogDetails" EntityType="AppManModel.AuditLogDetail" />
           <EntitySet Name="PsCardItems" EntityType="AppManModel.PsCardItem" />
-          <AssociationSet Name="FK_PsCardItems_Codextn" Association="AppManModel.FK_PsCardItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItem" EntitySet="PsCardItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsCardItems_Codextn1" Association="AppManModel.FK_PsCardItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItem" EntitySet="PsCardItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsCardItems_Codextn2" Association="AppManModel.FK_PsCardItems_Codextn2">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="PsCardItem" EntitySet="PsCardItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_PsCardItemExtns_PsCardItems" Association="AppManModel.FK_PsCardItemExtns_PsCardItems">
             <End Role="PsCardItem" EntitySet="PsCardItems" />
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
@@ -5906,10 +5821,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
           </AssociationSet>
           <EntitySet Name="TrackingItems" EntityType="AppManModel.TrackingItem" />
-          <AssociationSet Name="FK_TrackingItems_Codextn" Association="AppManModel.FK_TrackingItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="TrackingItem" EntitySet="TrackingItems" />
-          </AssociationSet>
           <EntitySet Name="Trackings" EntityType="AppManModel.Tracking" />
           <AssociationSet Name="FK_Trackings_CodeMast" Association="AppManModel.FK_Trackings_CodeMast">
             <End Role="CodeMast" EntitySet="CodeMasts" />
@@ -5920,10 +5831,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="TrackingItem" EntitySet="TrackingItems" />
           </AssociationSet>
           <EntitySet Name="CustodianReports" EntityType="AppManModel.CustodianReport" />
-          <AssociationSet Name="FK_CustodianReports_Codextn" Association="AppManModel.FK_CustodianReports_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReport" EntitySet="CustodianReports" />
-          </AssociationSet>
           <AssociationSet Name="FK_CustodianReportBldgItems_CustodianReports" Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports">
             <End Role="CustodianReport" EntitySet="CustodianReports" />
             <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
@@ -5937,10 +5844,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
           </AssociationSet>
           <EntitySet Name="CustodianReportSubmitForCounts" EntityType="AppManModel.CustodianReportSubmitForCount" />
-          <AssociationSet Name="FK_CustodianReportSubmitForCounts_Codextn" Association="AppManModel.FK_CustodianReportSubmitForCounts_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportSubmitForCount" EntitySet="CustodianReportSubmitForCounts" />
-          </AssociationSet>
           <AssociationSet Name="FK_CustodianReportSubmitForCounts_CustodianReports" Association="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports">
             <End Role="CustodianReport" EntitySet="CustodianReports" />
             <End Role="CustodianReportSubmitForCount" EntitySet="CustodianReportSubmitForCounts" />
@@ -5966,10 +5869,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AuditLogDetail" EntitySet="AuditLogDetails" />
           </AssociationSet>
           <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
-          <AssociationSet Name="FK_RPCIs_Codextn" Association="AppManModel.FK_RPCIs_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RPCI" EntitySet="RPCIs" />
-          </AssociationSet>
           <AssociationSet Name="FK_RPCIs_ItemTypes" Association="AppManModel.FK_RPCIs_ItemTypes">
             <End Role="ItemType" EntitySet="ItemTypes" />
             <End Role="RPCI" EntitySet="RPCIs" />
@@ -6009,14 +5908,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RpcPpeItemBuildings" EntityType="AppManModel.RpcPpeItemBuilding" />
           <EntitySet Name="RpcPpeItemLands" EntityType="AppManModel.RpcPpeItemLand" />
           <EntitySet Name="RpcPpeItems" EntityType="AppManModel.RpcPpeItem" />
-          <AssociationSet Name="FK_RpcPpeItems_Codextn" Association="AppManModel.FK_RpcPpeItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RpcPpeItems_Codextn1" Association="AppManModel.FK_RpcPpeItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_RpcPpeItems_PsCardItemExtns" Association="AppManModel.FK_RpcPpeItems_PsCardItemExtns">
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
             <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
@@ -6055,15 +5946,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RSMIRecap" EntitySet="RSMIRecaps" />
           </AssociationSet>
           <EntitySet Name="ItemCodeRequests" EntityType="AppManModel.ItemCodeRequest" />
-          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
-          </AssociationSet>
           <EntitySet Name="Procurements" EntityType="AppManModel.Procurement" />
-          <AssociationSet Name="FK_Procurements_Codextn" Association="AppManModel.FK_Procurements_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="Procurement" EntitySet="Procurements" />
-          </AssociationSet>
           <EntitySet Name="ProcurementItems" EntityType="AppManModel.ProcurementItem" />
           <EntitySet Name="ProcurementUnitGroupDescriptions" EntityType="AppManModel.ProcurementUnitGroupDescription" />
           <EntitySet Name="ProcurementUnitGroups" EntityType="AppManModel.ProcurementUnitGroup" />
@@ -6125,10 +6008,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PARItem" EntitySet="PARItems" />
           </AssociationSet>
           <EntitySet Name="Requests" EntityType="AppManModel.Request" />
-          <AssociationSet Name="FK_Requests_Codextn" Association="AppManModel.FK_Requests_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="Request" EntitySet="Requests" />
-          </AssociationSet>
           <AssociationSet Name="FK_RequestItemUnitGroups_Requests" Association="AppManModel.FK_RequestItemUnitGroups_Requests">
             <End Role="Request" EntitySet="Requests" />
             <End Role="RequestItemUnitGroup" EntitySet="RequestItemUnitGroups" />
@@ -6284,10 +6163,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RisItemUnitGroupDescriptionItem" EntitySet="RisItemUnitGroupDescriptionItems" />
           </AssociationSet>
           <EntitySet Name="RISses" EntityType="AppManModel.RISs" />
-          <AssociationSet Name="FK_RISs_Codextn" Association="AppManModel.FK_RISs_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="RISs" EntitySet="RISses" />
-          </AssociationSet>
           <AssociationSet Name="FK_RISs_Orders" Association="AppManModel.FK_RISs_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="RISs" EntitySet="RISses" />
@@ -6312,6 +6187,127 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_AIRItems_OrderItems" Association="AppManModel.FK_AIRItems_OrderItems">
             <End Role="OrderItem" EntitySet="OrderItems" />
             <End Role="AIRItem" EntitySet="AIRItems" />
+          </AssociationSet>
+          <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
+          <AssociationSet Name="FK_AccountableOfficers_Codextn" Association="AppManModel.FK_AccountableOfficers_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="AccountableOfficer" EntitySet="AccountableOfficers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
+            <End Role="CodeMast" EntitySet="CodeMasts" />
+            <End Role="Codextn" EntitySet="Codextns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianDisposals_Codextn" Association="AppManModel.FK_CustodianDisposals_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianDisposal" EntitySet="CustodianDisposals" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn" Association="AppManModel.FK_CustodianReportBldgItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn1" Association="AppManModel.FK_CustodianReportBldgItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportItems_Codextn" Association="AppManModel.FK_CustodianReportItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportItems_Codextn1" Association="AppManModel.FK_CustodianReportItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportLandItems_Codextn" Association="AppManModel.FK_CustodianReportLandItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReports_Codextn" Association="AppManModel.FK_CustodianReports_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReport" EntitySet="CustodianReports" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportSubmitForCounts_Codextn" Association="AppManModel.FK_CustodianReportSubmitForCounts_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportSubmitForCount" EntitySet="CustodianReportSubmitForCounts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DepartmentUsers_Codextn" Association="AppManModel.FK_DepartmentUsers_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_IcsPars_Codextn" Association="AppManModel.FK_IcsPars_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="IcsPar" EntitySet="IcsPars" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
+          </AssociationSet>
+          <AssociationSet Name="FK_LocationBudgets_Codextn" Association="AppManModel.FK_LocationBudgets_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="LocationBudget" EntitySet="LocationBudgets" />
+          </AssociationSet>
+          <AssociationSet Name="FK_LocationBudgets_Codextn1" Association="AppManModel.FK_LocationBudgets_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="LocationBudget" EntitySet="LocationBudgets" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Procurements_Codextn" Association="AppManModel.FK_Procurements_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="Procurement" EntitySet="Procurements" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItemExtns_Codextn" Association="AppManModel.FK_PsCardItemExtns_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItems_Codextn" Association="AppManModel.FK_PsCardItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItem" EntitySet="PsCardItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItems_Codextn1" Association="AppManModel.FK_PsCardItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItem" EntitySet="PsCardItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItemTransferIssuances_Codextn" Association="AppManModel.FK_PsCardItemTransferIssuances_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItemTransferIssuance" EntitySet="PsCardItemTransferIssuances" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItemTransferIssuances_Codextn1" Association="AppManModel.FK_PsCardItemTransferIssuances_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItemTransferIssuance" EntitySet="PsCardItemTransferIssuances" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItemTransfers_Codextn" Association="AppManModel.FK_PsCardItemTransfers_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="PsCardItemTransfer" EntitySet="PsCardItemTransfers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Requests_Codextn" Association="AppManModel.FK_Requests_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="Request" EntitySet="Requests" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RISs_Codextn" Association="AppManModel.FK_RISs_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RISs" EntitySet="RISses" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIItems_Codextn" Association="AppManModel.FK_RPCIItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RPCIItem" EntitySet="RPCIItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIs_Codextn" Association="AppManModel.FK_RPCIs_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RPCI" EntitySet="RPCIs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_Codextn" Association="AppManModel.FK_RpcPpeItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpeItems_Codextn1" Association="AppManModel.FK_RpcPpeItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RpcPpes_Codextn" Association="AppManModel.FK_RpcPpes_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="RpcPpe" EntitySet="RpcPpes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrackingItems_Codextn" Association="AppManModel.FK_TrackingItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="TrackingItem" EntitySet="TrackingItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -6570,8 +6566,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextns" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="CodeMast" ToRole="Codextn" />
           <NavigationProperty Name="Trackings" Relationship="AppManModel.FK_Trackings_CodeMast" FromRole="CodeMast" ToRole="Tracking" />
+          <NavigationProperty Name="Codextns" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="CodeMast" ToRole="Codextn" />
         </EntityType>
         <EntityType Name="MenuAccess">
           <Key>
@@ -6713,8 +6709,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_DepartmentUsers_AspNetUsers" FromRole="DepartmentUser" ToRole="AspNetUser" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="DepartmentUser" ToRole="Codextn" />
           <NavigationProperty Name="ItemTypeExclusions" Relationship="AppManModel.FK_ItemTypeExclusions_DepartmentUsers" FromRole="DepartmentUser" ToRole="ItemTypeExclusion" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="DepartmentUser" ToRole="Codextn" />
         </EntityType>
         <Association Name="FK_DepartmentUsers_AspNetUsers">
           <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
@@ -6817,78 +6813,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RSMIItems" Relationship="AppManModel.FK_RSMIItems_RSMI" FromRole="RSMI" ToRole="RSMIItem" />
           <NavigationProperty Name="RSMIRecaps" Relationship="AppManModel.FK_RSMIRecap_RSMI" FromRole="RSMI" ToRole="RSMIRecap" />
         </EntityType>
-        <EntityType Name="Codextn">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="MastId" Type="Guid" Nullable="false" />
-          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-          <Property Name="Desc2" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-          <Property Name="Desc3" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-          <Property Name="Desc4" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-          <Property Name="Desc5" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
-          <NavigationProperty Name="DepartmentUsers" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="Codextn" ToRole="DepartmentUser" />
-          <NavigationProperty Name="CustodianDisposals" Relationship="AppManModel.FK_CustodianDisposals_Codextn" FromRole="Codextn" ToRole="CustodianDisposal" />
-          <NavigationProperty Name="LocationBudgets" Relationship="AppManModel.FK_LocationBudgets_Codextn" FromRole="Codextn" ToRole="LocationBudget" />
-          <NavigationProperty Name="LocationBudgets1" Relationship="AppManModel.FK_LocationBudgets_Codextn1" FromRole="Codextn" ToRole="LocationBudget" />
-          <NavigationProperty Name="IcsPars" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="Codextn" ToRole="IcsPar" />
-          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="Codextn" ToRole="RPCIItem" />
-          <NavigationProperty Name="RpcPpes" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="Codextn" ToRole="RpcPpe" />
-          <NavigationProperty Name="PsCardItemExtns" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="Codextn" ToRole="PsCardItemExtn" />
-          <NavigationProperty Name="AccountableOfficers" Relationship="AppManModel.FK_AccountableOfficers_Codextn" FromRole="Codextn" ToRole="AccountableOfficer" />
-          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
-          <NavigationProperty Name="CustodianReportBldgItems1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
-          <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_Codextn" FromRole="Codextn" ToRole="CustodianReportItem" />
-          <NavigationProperty Name="CustodianReportItems1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportItem" />
-          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="Codextn" ToRole="CustodianReportLandItem" />
-          <NavigationProperty Name="PsCardItemTransferIssuances" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn" FromRole="Codextn" ToRole="PsCardItemTransferIssuance" />
-          <NavigationProperty Name="PsCardItemTransferIssuances1" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn1" FromRole="Codextn" ToRole="PsCardItemTransferIssuance" />
-          <NavigationProperty Name="PsCardItemTransfers" Relationship="AppManModel.FK_PsCardItemTransfers_Codextn" FromRole="Codextn" ToRole="PsCardItemTransfer" />
-          <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="Codextn" ToRole="PsCardItem" />
-          <NavigationProperty Name="PsCardItems1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="Codextn" ToRole="PsCardItem" />
-          <NavigationProperty Name="PsCardItems2" Relationship="AppManModel.FK_PsCardItems_Codextn2" FromRole="Codextn" ToRole="PsCardItem" />
-          <NavigationProperty Name="TrackingItems" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="Codextn" ToRole="TrackingItem" />
-          <NavigationProperty Name="CustodianReports" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="Codextn" ToRole="CustodianReport" />
-          <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="Codextn" ToRole="CustodianReportSubmitForCount" />
-          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
-          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
-          <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
-          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
-          <NavigationProperty Name="Procurements" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Codextn" ToRole="Procurement" />
-          <NavigationProperty Name="Requests" Relationship="AppManModel.FK_Requests_Codextn" FromRole="Codextn" ToRole="Request" />
-          <NavigationProperty Name="RISses" Relationship="AppManModel.FK_RISs_Codextn" FromRole="Codextn" ToRole="RISs" />
-          </EntityType>
-        <Association Name="FK_Codextn_Codextn">
-          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CodeMast">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Codextn">
-              <PropertyRef Name="MastId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_DepartmentUsers_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.DepartmentUser" Role="DepartmentUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="DepartmentUser">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItemExtnLand" BaseType="AppManModel.PsCardItemExtn">
           <Property Name="PIN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
@@ -6981,22 +6905,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianDisposals_Codextn" FromRole="CustodianDisposal" ToRole="Codextn" />
           <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianDisposals" FromRole="CustodianDisposal" ToRole="CustodianDisposalItem" />
           <NavigationProperty Name="CustodianIirupItems" Relationship="AppManModel.FK_CustodianIrrupItems_CustodianDisposals" FromRole="CustodianDisposal" ToRole="CustodianIirupItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianDisposals_Codextn" FromRole="CustodianDisposal" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_CustodianDisposals_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianDisposal" Role="CustodianDisposal" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianDisposal">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="CustodianDisposalItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -7164,31 +7076,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_LocationBudgets_Codextn" FromRole="LocationBudget" ToRole="Codextn" />
           <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_LocationBudgets_Codextn1" FromRole="LocationBudget" ToRole="Codextn" />
-        </EntityType>
-        <Association Name="FK_LocationBudgets_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.LocationBudget" Role="LocationBudget" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LocationBudget">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_LocationBudgets_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.LocationBudget" Role="LocationBudget" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LocationBudget">
-              <PropertyRef Name="BudgetId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
+          </EntityType>
         <EntityType Name="CustodianIirupItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -7435,23 +7323,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="IcsPar" ToRole="Codextn" />
           <NavigationProperty Name="IcsParUnitGroups" Relationship="AppManModel.FK_IcsParUnitGroups_IcsPars" FromRole="IcsPar" ToRole="IcsParUnitGroup" />
           <NavigationProperty Name="IcsParUpdates" Relationship="AppManModel.FK_IcsParUpdates_IcsPars" FromRole="IcsPar" ToRole="IcsParUpdate" />
           <NavigationProperty Name="IcsParItems" Relationship="AppManModel.FK_IcsParItems_IcsPars" FromRole="IcsPar" ToRole="IcsParItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="IcsPar" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_IcsPars_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.IcsPar" Role="IcsPar" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="IcsPar">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_IcsParUnitGroups_IcsPars">
           <End Type="AppManModel.IcsPar" Role="IcsPar" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -7538,25 +7414,13 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="RPCIItem" ToRole="Codextn" />
           <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCIItem" ToRole="RPCI" />
           <Property Name="PsCardItemTransferId" Type="Guid" />
           <NavigationProperty Name="RPCIItemExtns" Relationship="AppManModel.FK_RPCIItemExtns_RPCIItems" FromRole="RPCIItem" ToRole="RPCIItemExtn" />
           <Property Name="ItemType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="ItemCode1" Relationship="AppManModel.FK_RPCIItems_ItemCodes" FromRole="RPCIItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="RPCIItem" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_RPCIItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCIItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItemTransferItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -7596,21 +7460,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="RpcPpe" ToRole="Codextn" />
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_RpcPpes" FromRole="RpcPpe" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="RpcPpe" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_RpcPpes_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpe" Role="RpcPpe" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpe">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="AIRItemExtn">
           <Key>
             <PropertyRef Name="Id" />
@@ -7808,7 +7660,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="SubLocation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="AIRItemExtn" Relationship="AppManModel.FK_PsCardItemExtns_AIRItemExtns" FromRole="PsCardItemExtn" ToRole="AIRItemExtn" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="PsCardItemExtn" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemTransferItems" Relationship="AppManModel.FK_PsCardItemTransferItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="PsCardItemTransferItem" />
           <Property Name="AddCost" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
@@ -7818,6 +7669,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="IcsParItems" Relationship="AppManModel.FK_IcsParItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="IcsParItem" />
           <NavigationProperty Name="PsCardItem" Relationship="AppManModel.FK_PsCardItemExtns_PsCardItems" FromRole="PsCardItemExtn" ToRole="PsCardItem" />
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="PsCardItemExtn" ToRole="Codextn" />
         </EntityType>
         <Association Name="FK_PsCardItemExtns_AIRItemExtns">
           <End Type="AppManModel.AIRItemExtn" Role="AIRItemExtn" Multiplicity="0..1">
@@ -7830,18 +7682,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsCardItemExtn">
               <PropertyRef Name="AIRItemExtnId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItemExtns_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItemExtn" Role="PsCardItemExtn" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemExtn">
-              <PropertyRef Name="LocationId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -7872,20 +7712,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_AccountableOfficers_Codextn" FromRole="AccountableOfficer" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_AccountableOfficers_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.AccountableOfficer" Role="AccountableOfficer" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="AccountableOfficer">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItemExtnBuilding" BaseType="AppManModel.PsCardItemExtn">
           <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="ProjectName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
@@ -8133,13 +7959,13 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
           <Property Name="Latitude" Type="Double" />
           <Property Name="Longitude" Type="Double" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
           <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" FromRole="CustodianReportBldgItem" ToRole="CustodianDisposalItem" />
           <NavigationProperty Name="CustodianReportUpload" Relationship="AppManModel.FK_CustodianReportUploads_CustodianReportBldgItems" FromRole="CustodianReportBldgItem" ToRole="CustodianReportUpload" />
           <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportBldgItems_CustodianReports" FromRole="CustodianReportBldgItem" ToRole="CustodianReport" />
           <NavigationProperty Name="CustodianReportBldgItemPhases" Relationship="AppManModel.FK_CustodianReportBldgItemPhases_CustodianReportBldgItems" FromRole="CustodianReportBldgItem" ToRole="CustodianReportBldgItemPhas" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="CustodianReportBldgItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
         </EntityType>
         <EntityType Name="CustodianReportItem">
           <Key>
@@ -8243,13 +8069,13 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="AddCost" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="TUnitCost" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="GTotalCost" Type="Decimal" Precision="18" Scale="2" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportItems_Codextn" FromRole="CustodianReportItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="CustodianReportItem" ToRole="Codextn" />
           <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" FromRole="CustodianReportItem" ToRole="CustodianDisposalItem" />
           <NavigationProperty Name="CustodianReportItemIssuances" Relationship="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems" FromRole="CustodianReportItem" ToRole="CustodianReportItemIssuance" />
           <NavigationProperty Name="CustodianReportUpload" Relationship="AppManModel.FK_CustodianReportUploads_CustodianReportItems" FromRole="CustodianReportItem" ToRole="CustodianReportUpload" />
           <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportItems_CustodianReports" FromRole="CustodianReportItem" ToRole="CustodianReport" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportItems_ItemCodes" FromRole="CustodianReportItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportItems_Codextn" FromRole="CustodianReportItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="CustodianReportItem" ToRole="Codextn" />
         </EntityType>
         <EntityType Name="CustodianReportLandItem">
           <Key>
@@ -8347,72 +8173,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="CustodianReportLandItem" ToRole="Codextn" />
           <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" FromRole="CustodianReportLandItem" ToRole="CustodianDisposalItem" />
           <NavigationProperty Name="CustodianReportUpload" Relationship="AppManModel.FK_CustodianReportUploads_CustodianReportLandItems" FromRole="CustodianReportLandItem" ToRole="CustodianReportUpload" />
           <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportLandItems_CustodianReports" FromRole="CustodianReportLandItem" ToRole="CustodianReport" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="CustodianReportLandItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="CustodianReportLandItem" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_CustodianReportBldgItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportBldgItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportItem" Role="CustodianReportItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportItem" Role="CustodianReportItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportLandItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportLandItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_CustodianDisposalItems_CustodianReportBldgItems1">
           <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="0..1" />
           <End Type="AppManModel.CustodianDisposalItem" Role="CustodianDisposalItem" Multiplicity="*" />
@@ -8542,10 +8308,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn" FromRole="PsCardItemTransferIssuance" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn1" FromRole="PsCardItemTransferIssuance" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemTransferIssuanceItems" Relationship="AppManModel.FK_PsCardItemTransferIssuanceItems_PsCardItemTransferIssuances" FromRole="PsCardItemTransferIssuance" ToRole="PsCardItemTransferIssuanceItem" />
           <NavigationProperty Name="PsCardItemTransfer" Relationship="AppManModel.FK_PsCardItemTransferIssuances_PsCardItemTransfers" FromRole="PsCardItemTransferIssuance" ToRole="PsCardItemTransfer" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn" FromRole="PsCardItemTransferIssuance" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn1" FromRole="PsCardItemTransferIssuance" ToRole="Codextn" />
         </EntityType>
         <EntityType Name="PsCardItemTransfer">
           <Key>
@@ -8567,48 +8333,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemTransfers_Codextn" FromRole="PsCardItemTransfer" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemTransferIssuances" Relationship="AppManModel.FK_PsCardItemTransferIssuances_PsCardItemTransfers" FromRole="PsCardItemTransfer" ToRole="PsCardItemTransferIssuance" />
           <NavigationProperty Name="PsCardItemTransferItems" Relationship="AppManModel.FK_PsCardItemTransferItems_PsCardItemTransfers" FromRole="PsCardItemTransfer" ToRole="PsCardItemTransferItem" />
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_PsCardItemTransfers" FromRole="PsCardItemTransfer" ToRole="PsCardItem" />
           <NavigationProperty Name="PsCardItem" Relationship="AppManModel.FK_PsCardItemTransfers_PsCardItems" FromRole="PsCardItemTransfer" ToRole="PsCardItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItemTransfers_Codextn" FromRole="PsCardItemTransfer" ToRole="Codextn" />
           </EntityType>
-        <Association Name="FK_PsCardItemTransferIssuances_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItemTransferIssuance" Role="PsCardItemTransferIssuance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemTransferIssuance">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItemTransferIssuances_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItemTransferIssuance" Role="PsCardItemTransferIssuance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemTransferIssuance">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItemTransfers_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItemTransfer" Role="PsCardItemTransfer" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemTransfer">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PsCardItemTransferIssuanceItems_PsCardItemTransferIssuances">
           <End Type="AppManModel.PsCardItemTransferIssuance" Role="PsCardItemTransferIssuance" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -8726,9 +8456,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
           <Property Name="ProRatedCost" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="OtherQty" Type="Int32" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="PsCardItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="PsCardItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn2" Relationship="AppManModel.FK_PsCardItems_Codextn2" FromRole="PsCardItem" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemExtns" Relationship="AppManModel.FK_PsCardItemExtns_PsCardItems" FromRole="PsCardItem" ToRole="PsCardItemExtn" />
           <NavigationProperty Name="PsCardItemTransfer" Relationship="AppManModel.FK_PsCardItems_PsCardItemTransfers" FromRole="PsCardItem" ToRole="PsCardItemTransfer" />
           <NavigationProperty Name="PsCard" Relationship="AppManModel.FK_PsCardItems_PsCards" FromRole="PsCardItem" ToRole="PsCard" />
@@ -8736,43 +8463,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="PsCardItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" FromRole="PsCardItem" ToRole="PsCardItemUnitGroupDescriptionItem" />
           <Property Name="PpmpCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsCardItems_OrderItems" FromRole="PsCardItem" ToRole="OrderItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="PsCardItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="PsCardItem" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_PsCardItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItems_Codextn2">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PsCardItemExtns_PsCardItems">
           <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -8852,21 +8545,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="CheckOutBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="ReturnDt" Type="DateTime" Precision="3" />
           <Property Name="ReturnBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="TrackingItem" ToRole="Codextn" />
           <NavigationProperty Name="Tracking" Relationship="AppManModel.FK_TrackingItems_Trackings" FromRole="TrackingItem" ToRole="Tracking" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="TrackingItem" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_TrackingItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.TrackingItem" Role="TrackingItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TrackingItem">
-              <PropertyRef Name="StatusId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Tracking">
           <Key>
             <PropertyRef Name="Id" />
@@ -8929,24 +8610,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="CustodianReport" ToRole="Codextn" />
           <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportItem" />
           <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportLandItem" />
           <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportSubmitForCount" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="CustodianReport" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_CustodianReports_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReport">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_CustodianReportBldgItems_CustodianReports">
           <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -9001,21 +8670,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="CustodianReportSubmitForCount" ToRole="Codextn" />
           <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports" FromRole="CustodianReportSubmitForCount" ToRole="CustodianReport" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="CustodianReportSubmitForCount" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_CustodianReportSubmitForCounts_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportSubmitForCount" Role="CustodianReportSubmitForCount" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportSubmitForCount">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_CustodianReportSubmitForCounts_CustodianReports">
           <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1" />
           <End Type="AppManModel.CustodianReportSubmitForCount" Role="CustodianReportSubmitForCount" Multiplicity="*" />
@@ -9160,23 +8817,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="IsPosted" Type="Boolean" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="RPCI" ToRole="Codextn" />
           <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="RPCI" ToRole="ItemType" />
           <NavigationProperty Name="RPCIDepLocs" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCI" ToRole="RPCIDepLoc" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCI" ToRole="RPCIItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="RPCI" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_RPCIs_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCI">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RPCIs_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
           <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
@@ -9545,38 +9190,14 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="SetLotAmount" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="SetLotRemarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="RpcPpeItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="RpcPpeItem" ToRole="Codextn" />
           <NavigationProperty Name="PsCardItemExtn" Relationship="AppManModel.FK_RpcPpeItems_PsCardItemExtns" FromRole="RpcPpeItem" ToRole="PsCardItemExtn" />
           <NavigationProperty Name="RpcPpeItemBuildings" Relationship="AppManModel.FK_RpcPpeItemBuildings_RpcPpeItems" FromRole="RpcPpeItem" ToRole="RpcPpeItemBuilding" />
           <NavigationProperty Name="RpcPpeItemLands" Relationship="AppManModel.FK_RpcPpeItemLands_RpcPpeItems" FromRole="RpcPpeItem" ToRole="RpcPpeItemLand" />
           <NavigationProperty Name="RpcPpe" Relationship="AppManModel.FK_RpcPpeItems_RpcPpes" FromRole="RpcPpeItem" ToRole="RpcPpe" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="RpcPpeItem" ToRole="ItemCode" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="RpcPpeItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="RpcPpeItem" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_RpcPpeItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RpcPpeItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RpcPpeItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RpcPpeItems_PsCardItemExtns">
           <End Type="AppManModel.PsCardItemExtn" Role="PsCardItemExtn" Multiplicity="0..1" />
           <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
@@ -9824,18 +9445,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="ItemCodeRequest" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_ItemCodeRequests_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ItemCodeRequest">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Procurement">
           <Key>
             <PropertyRef Name="Id" />
@@ -9855,22 +9464,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Procurement" ToRole="Codextn" />
           <NavigationProperty Name="ProcurementItems" Relationship="AppManModel.FK_ProcurementItems_Procurements" FromRole="Procurement" ToRole="ProcurementItem" />
           <NavigationProperty Name="ProcurementUnitGroups" Relationship="AppManModel.FK_ProcurementUnitGroups_Procurements" FromRole="Procurement" ToRole="ProcurementUnitGroup" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Procurement" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_Procurements_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Procurement">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="ProcurementItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -10321,7 +9918,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Requests_Codextn" FromRole="Request" ToRole="Codextn" />
           <NavigationProperty Name="RequestItemUnitGroups" Relationship="AppManModel.FK_RequestItemUnitGroups_Requests" FromRole="Request" ToRole="RequestItemUnitGroup" />
           <Property Name="CtrlNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
           <Property Name="FundSpecific" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -10329,19 +9925,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Orders" Relationship="AppManModel.FK_Orders_Requests" FromRole="Request" ToRole="Order" />
           <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="Request" ToRole="RequestItem" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Requests_Codextn" FromRole="Request" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_Requests_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.Request" Role="Request" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Request">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RequestItemUnitGroups_Requests">
           <End Type="AppManModel.Request" Role="Request" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -11086,23 +10671,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RISs_Codextn" FromRole="RISs" ToRole="Codextn" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_RISs_Orders" FromRole="RISs" ToRole="Order" />
           <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_RISs" FromRole="RISs" ToRole="RisItem" />
           <NavigationProperty Name="RisItemUnitGroups" Relationship="AppManModel.FK_RisItemUnitGroups_RISs" FromRole="RISs" ToRole="RisItemUnitGroup" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RISs_Codextn" FromRole="RISs" ToRole="Codextn" />
         </EntityType>
-        <Association Name="FK_RISs_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.RISs" Role="RISs" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RISs">
-              <PropertyRef Name="OfficeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RISs_Orders">
           <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
           <End Type="AppManModel.RISs" Role="RISs" Multiplicity="*" />
@@ -11205,6 +10778,415 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="AIRItem">
               <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Codextn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="MastId" Type="Guid" Nullable="false" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="Desc2" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="Desc3" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Desc4" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Desc5" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AccountableOfficers" Relationship="AppManModel.FK_AccountableOfficers_Codextn" FromRole="Codextn" ToRole="AccountableOfficer" />
+          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
+          <NavigationProperty Name="CustodianDisposals" Relationship="AppManModel.FK_CustodianDisposals_Codextn" FromRole="Codextn" ToRole="CustodianDisposal" />
+          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
+          <NavigationProperty Name="CustodianReportBldgItems1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
+          <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_Codextn" FromRole="Codextn" ToRole="CustodianReportItem" />
+          <NavigationProperty Name="CustodianReportItems1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportItem" />
+          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="Codextn" ToRole="CustodianReportLandItem" />
+          <NavigationProperty Name="CustodianReports" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="Codextn" ToRole="CustodianReport" />
+          <NavigationProperty Name="CustodianReportSubmitForCounts" Relationship="AppManModel.FK_CustodianReportSubmitForCounts_Codextn" FromRole="Codextn" ToRole="CustodianReportSubmitForCount" />
+          <NavigationProperty Name="DepartmentUsers" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="Codextn" ToRole="DepartmentUser" />
+          <NavigationProperty Name="IcsPars" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="Codextn" ToRole="IcsPar" />
+          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
+          <NavigationProperty Name="LocationBudgets" Relationship="AppManModel.FK_LocationBudgets_Codextn" FromRole="Codextn" ToRole="LocationBudget" />
+          <NavigationProperty Name="LocationBudgets1" Relationship="AppManModel.FK_LocationBudgets_Codextn1" FromRole="Codextn" ToRole="LocationBudget" />
+          <NavigationProperty Name="Procurements" Relationship="AppManModel.FK_Procurements_Codextn" FromRole="Codextn" ToRole="Procurement" />
+          <NavigationProperty Name="PsCardItemExtns" Relationship="AppManModel.FK_PsCardItemExtns_Codextn" FromRole="Codextn" ToRole="PsCardItemExtn" />
+          <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="Codextn" ToRole="PsCardItem" />
+          <NavigationProperty Name="PsCardItems1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="Codextn" ToRole="PsCardItem" />
+          <NavigationProperty Name="PsCardItemTransferIssuances" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn" FromRole="Codextn" ToRole="PsCardItemTransferIssuance" />
+          <NavigationProperty Name="PsCardItemTransferIssuances1" Relationship="AppManModel.FK_PsCardItemTransferIssuances_Codextn1" FromRole="Codextn" ToRole="PsCardItemTransferIssuance" />
+          <NavigationProperty Name="PsCardItemTransfers" Relationship="AppManModel.FK_PsCardItemTransfers_Codextn" FromRole="Codextn" ToRole="PsCardItemTransfer" />
+          <NavigationProperty Name="Requests" Relationship="AppManModel.FK_Requests_Codextn" FromRole="Codextn" ToRole="Request" />
+          <NavigationProperty Name="RISses" Relationship="AppManModel.FK_RISs_Codextn" FromRole="Codextn" ToRole="RISs" />
+          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="Codextn" ToRole="RPCIItem" />
+          <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="Codextn" ToRole="RPCI" />
+          <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_Codextn" FromRole="Codextn" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="RpcPpeItems1" Relationship="AppManModel.FK_RpcPpeItems_Codextn1" FromRole="Codextn" ToRole="RpcPpeItem" />
+          <NavigationProperty Name="RpcPpes" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="Codextn" ToRole="RpcPpe" />
+          <NavigationProperty Name="TrackingItems" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="Codextn" ToRole="TrackingItem" />
+        </EntityType>
+        <Association Name="FK_AccountableOfficers_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AccountableOfficer" Role="AccountableOfficer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AccountableOfficer">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Codextn_Codextn">
+          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Codextn">
+              <PropertyRef Name="MastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianDisposals_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianDisposal" Role="CustodianDisposal" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianDisposal">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportBldgItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportBldgItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportItem" Role="CustodianReportItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportItem" Role="CustodianReportItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportLandItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportLandItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReports_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReport">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportSubmitForCounts_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportSubmitForCount" Role="CustodianReportSubmitForCount" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportSubmitForCount">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DepartmentUsers_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.DepartmentUser" Role="DepartmentUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DepartmentUser">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_IcsPars_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.IcsPar" Role="IcsPar" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="IcsPar">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ItemCodeRequests_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemCodeRequest">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_LocationBudgets_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.LocationBudget" Role="LocationBudget" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LocationBudget">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_LocationBudgets_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.LocationBudget" Role="LocationBudget" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LocationBudget">
+              <PropertyRef Name="BudgetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Procurements_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.Procurement" Role="Procurement" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Procurement">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItemExtns_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItemExtn" Role="PsCardItemExtn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemExtn">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItemTransferIssuances_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItemTransferIssuance" Role="PsCardItemTransferIssuance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemTransferIssuance">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItemTransferIssuances_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItemTransferIssuance" Role="PsCardItemTransferIssuance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemTransferIssuance">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItemTransfers_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItemTransfer" Role="PsCardItemTransfer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemTransfer">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Requests_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.Request" Role="Request" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Request">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RISs_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RISs" Role="RISs" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RISs">
+              <PropertyRef Name="OfficeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RPCIItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RPCIs_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCI">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpeItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpeItem" Role="RpcPpeItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpeItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RpcPpes_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.RpcPpe" Role="RpcPpe" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RpcPpe">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TrackingItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.TrackingItem" Role="TrackingItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrackingItem">
+              <PropertyRef Name="StatusId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11555,24 +11537,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Fund" ColumnName="Fund" />
                 <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
                 <ScalarProperty Name="Date" ColumnName="Date" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Codextns">
-            <EntityTypeMapping TypeName="AppManModel.Codextn">
-              <MappingFragment StoreEntitySet="Codextn">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Desc5" ColumnName="Desc5" />
-                <ScalarProperty Name="Desc4" ColumnName="Desc4" />
-                <ScalarProperty Name="Desc3" ColumnName="Desc3" />
-                <ScalarProperty Name="Desc2" ColumnName="Desc2" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Code" ColumnName="Code" />
-                <ScalarProperty Name="MastId" ColumnName="MastId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -13932,6 +13896,24 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Qty" ColumnName="Qty" />
                 <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
                 <ScalarProperty Name="AirId" ColumnName="AirId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Codextns">
+            <EntityTypeMapping TypeName="AppManModel.Codextn">
+              <MappingFragment StoreEntitySet="Codextn">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Desc5" ColumnName="Desc5" />
+                <ScalarProperty Name="Desc4" ColumnName="Desc4" />
+                <ScalarProperty Name="Desc3" ColumnName="Desc3" />
+                <ScalarProperty Name="Desc2" ColumnName="Desc2" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="MastId" ColumnName="MastId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

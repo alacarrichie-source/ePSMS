@@ -1,4 +1,194 @@
-﻿@using Kendo.Mvc.UI.Fluent
+﻿@*
+@using Kendo.Mvc.UI.Fluent
+@model IQueryable<iLgs.Models.Menubase>
+@{
+    ViewBag.Title = "Home Page";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="home-content">
+    <div class="scrollview-container">
+        @(Html.Kendo().ScrollView()
+            .Name("scrollView")
+            .ContentHeight("100%")
+            .Items(x =>
+            {
+                x.Add().Content("<div class='image image1'></div>");
+                x.Add().Content("<div class='image image2'></div>");
+                x.Add().Content("<div class='image image3'></div>");
+                x.Add().Content("<div class='image image4'></div>");
+                x.Add().Content("<div class='image image5'></div>");
+            })
+            .HtmlAttributes(new { style = "width:100vw; max-width: 100%; margin: auto; height: 64.14vh;" })
+        )
+    </div>
+
+    <div id="top-picks" class="top-picks-container">
+        @(Html.Kendo().ScrollView()
+            .Name("topPicks")
+            .EnablePager(false)
+            .ContentHeight("100%")
+            .TemplateId("topPicks-template")
+            .DataSource(dataSource => dataSource
+            .Custom()
+            .Type("aspnetmvc-ajax")
+            .Transport(transport => transport.Read(read => read.Action("GetHomePages", "Home", new { count = 12 })))
+            .Schema(s => s.Data("Data").Total("Total"))
+            .Sort(s => s.Add("Code"))
+            .ServerPaging(false)
+            .PageSize(3)
+        )
+        .HtmlAttributes(new { style = "max-width: 100%; height: 20em; margin: auto; background: none;" })
+        )
+    </div>
+    
+</div>
+
+<script id="topPicks-template-x" type="text/html">
+    <div class="top-picks">
+        # for (var i = 0; i < data.length; i++) { #
+        <div class="top-pick-card">
+
+            <div class="top-pick-heading">#= data[i].Description #</div>
+            <!-- chart container -->
+            <div id="chart_#=data[i].Code#"
+                 class="chart-holder"
+                 data-code="#=data[i].Code#"
+                 style="width:100%; height:250px;">
+            </div>
+        </div>
+        # } #
+    </div>
+</script>
+
+<script id="topPicks-template" type="text/html">
+    <div class="top-picks">
+        # for (var i = 0; i < data.length; i++) { #
+        <div class="top-pick-card">
+            <a href="#= data[i].Url #">
+                <div class="top-pick-heading">#= data[i].Description #</div>
+                <div class="top-pick-description">
+                    <p>#= data[i].Desc2 #</p>
+                </div>
+            </a>
+        </div>
+        # } #
+    </div>
+</script>
+
+
+<style>
+    .top-pick-heading {
+        text-align: center;
+    }
+
+    .top-pick-card {
+        width: 90%;        /* width of each item relative to ScrollView */
+        max-width: 600px;  /* optional max width */
+        height: 100%;      /* fill the ScrollView height */
+        margin: auto;      /* center horizontally */
+        box-sizing: border-box;
+    }
+
+	.image1 {
+		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+	}
+	.image2 {
+		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+	}
+	.image3 {
+		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+	}
+	.image4 {
+		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+	}
+	.image5 {
+		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+	}
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Wait a tiny moment to ensure ScrollView template is rendered
+        setTimeout(function () {
+            initChart2();
+        }, 100); // small delay ensures template HTML is present
+    });
+
+    function onTopPicksChange(e) {
+        initChart2(); // only initialize charts in visible page
+    }
+
+    function initCharts() {
+        $(".chart-holder").each(function () {
+            var $holder = $(this);
+            var code = $holder.data("code");
+
+            if (!code || $holder.data("kendoChart")) return; // skip if already initialized
+
+            $holder.kendoChart({
+                title: { text: "Applicants Per Year (Approved vs Denied)" },
+                legend: { position: "top" },
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/Dashboard/GetTransactionStatusPerYear",
+                            data: { tranCode: code },
+                            dataType: "json"
+                        }
+                    }
+                },
+                series: [
+                    { field: "Approved", name: "Approved", type: "column", stack: true },
+                    { field: "Denied", name: "Denied", type: "column", stack: true }
+                ],
+                seriesColors: ["#4CAF50", "#F44336"],
+                categoryAxis: { field: "Year", title: { text: "Year" } },
+                valueAxis: { title: { text: "Number of Applicants" } },
+                tooltip: { visible: true, template: "#= series.name #: #= value #" }
+            });
+        });
+    }
+
+    function initChart2() {
+        $(".chart-holder").each(function () {
+            var $holder = $(this);
+            var code = $holder.data("code");
+
+            if (!code || $holder.data("kendoChart")) return; // skip if already initialized
+
+            $holder.kendoChart({
+                title: { text: "Applicants Per Year" },
+                legend: { position: "top" },
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/Dashboard/GetTransactionStatusPerYear",
+                            data: { tranCode: code },
+                            dataType: "json"
+                        }
+                    }
+                },
+                series: [
+                    //{ field: "Applied", name: "Applied", type: "column", stack: true },
+                    { field: "Pending", name: "Pending", type: "column", stack: true },
+                    { field: "Approved", name: "Approved", type: "column", stack: true },
+                    { field: "Denied", name: "Denied", type: "column", stack: true }
+                ],
+                //seriesColors: ["#2196F3", "#FFC107", "#4CAF50", "#F44336"], // Blue, Amber, Green, Red
+                seriesColors: ["#FFC107", "#4CAF50", "#F44336"], // Blue, Amber, Green, Red
+                categoryAxis: { field: "Year", title: { text: "Year" } },
+                valueAxis: { title: { text: "Number of Applicants" } },
+                tooltip: { visible: true, template: "#= series.name #: #= value #" }
+            });
+        });
+
+    }
+
+</script>*@
+
+
+@using Kendo.Mvc.UI.Fluent
 @model IQueryable<iLgs.Models.Menubase>
 @{
     ViewBag.Title = "Home Page";

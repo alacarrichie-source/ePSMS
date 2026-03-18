@@ -17,36 +17,35 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Codextn()
         {
-            this.DepartmentUsers = new HashSet<DepartmentUser>();
-            this.CustodianDisposals = new HashSet<CustodianDisposal>();
-            this.LocationBudgets = new HashSet<LocationBudget>();
-            this.LocationBudgets1 = new HashSet<LocationBudget>();
-            this.IcsPars = new HashSet<IcsPar>();
-            this.RPCIItems = new HashSet<RPCIItem>();
-            this.RpcPpes = new HashSet<RpcPpe>();
-            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.AccountableOfficers = new HashSet<AccountableOfficer>();
+            this.CustodianDisposals = new HashSet<CustodianDisposal>();
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportBldgItems1 = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
             this.CustodianReportItems1 = new HashSet<CustodianReportItem>();
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
+            this.CustodianReports = new HashSet<CustodianReport>();
+            this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
+            this.DepartmentUsers = new HashSet<DepartmentUser>();
+            this.IcsPars = new HashSet<IcsPar>();
+            this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
+            this.LocationBudgets = new HashSet<LocationBudget>();
+            this.LocationBudgets1 = new HashSet<LocationBudget>();
+            this.Procurements = new HashSet<Procurement>();
+            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
+            this.PsCardItems = new HashSet<PsCardItem>();
+            this.PsCardItems1 = new HashSet<PsCardItem>();
             this.PsCardItemTransferIssuances = new HashSet<PsCardItemTransferIssuance>();
             this.PsCardItemTransferIssuances1 = new HashSet<PsCardItemTransferIssuance>();
             this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
-            this.PsCardItems = new HashSet<PsCardItem>();
-            this.PsCardItems1 = new HashSet<PsCardItem>();
-            this.PsCardItems2 = new HashSet<PsCardItem>();
-            this.TrackingItems = new HashSet<TrackingItem>();
-            this.CustodianReports = new HashSet<CustodianReport>();
-            this.CustodianReportSubmitForCounts = new HashSet<CustodianReportSubmitForCount>();
+            this.Requests = new HashSet<Request>();
+            this.RISses = new HashSet<RISs>();
+            this.RPCIItems = new HashSet<RPCIItem>();
             this.RPCIs = new HashSet<RPCI>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
             this.RpcPpeItems1 = new HashSet<RpcPpeItem>();
-            this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
-            this.Procurements = new HashSet<Procurement>();
-            this.Requests = new HashSet<Request>();
-            this.RISses = new HashSet<RISs>();
+            this.RpcPpes = new HashSet<RpcPpe>();
+            this.TrackingItems = new HashSet<TrackingItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -62,25 +61,11 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual CodeMast CodeMast { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CustodianDisposal> CustodianDisposals { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<LocationBudget> LocationBudgets { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<LocationBudget> LocationBudgets1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IcsPar> IcsPars { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RPCIItem> RPCIItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RpcPpe> RpcPpes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AccountableOfficer> AccountableOfficers { get; set; }
+        public virtual CodeMast CodeMast { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianDisposal> CustodianDisposals { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -92,23 +77,39 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReport> CustodianReports { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsPar> IcsPars { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<LocationBudget> LocationBudgets { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<LocationBudget> LocationBudgets1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Procurement> Procurements { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferIssuance> PsCardItemTransferIssuances1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        public virtual ICollection<Request> Requests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
+        public virtual ICollection<RISs> RISses { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems2 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TrackingItem> TrackingItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CustodianReport> CustodianReports { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CustodianReportSubmitForCount> CustodianReportSubmitForCounts { get; set; }
+        public virtual ICollection<RPCIItem> RPCIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCI> RPCIs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -116,12 +117,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
+        public virtual ICollection<RpcPpe> RpcPpes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Procurement> Procurements { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Request> Requests { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RISs> RISses { get; set; }
+        public virtual ICollection<TrackingItem> TrackingItems { get; set; }
     }
 }

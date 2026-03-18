@@ -48,12 +48,12 @@ namespace iLgs.Models
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Order> Orders { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

@@ -51,10 +51,14 @@ namespace iLgs
             ConfigureServices();
         }
 
+        private void ConfigureServicesNew()
+        {
+            
+        }
+
         private void ConfigureServices()
         {
-            var services = new ServiceCollection();
-
+            var services = new ServiceCollection();            
             // Register your DbContext (EF6)
             services.AddScoped<AppManEntities>();
             services.AddScoped<IAppManEntitiesFactory, AppManEntitiesFactory>();

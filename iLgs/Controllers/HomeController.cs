@@ -13,6 +13,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using iLgs.Utilities;
 using System.Data.SqlClient;
+using Kendo.Mvc.UI;
+using iLgs.Services.Codes;
+using Kendo.Mvc.Extensions;
+using System.Data.Entity;
 
 namespace iLgs.Controllers
 {
@@ -109,95 +113,38 @@ namespace iLgs.Controllers
         //    return model;
         //}
 
-
-        public async Task<ActionResult> Index()
+        private readonly ICodextnService _codextnService;
+        public HomeController()
         {
-            //try
-            //{
-            //    ViewBag.Message = "iLGS";
-            //    string userId = User.Identity.GetUserId();
-            //    ViewBag.ShowMenu = false;
-            //    ViewBag.IsAdmin = false;
-            //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-            //    if (userId != null)
-            //    {                 
-            //        ViewBag.ShowMenu = true;
-            //        if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
-            //        {
-            //            ViewBag.IsAdmin = true;
-            //            if (await GetUserInRole(userId, "admin"))
-            //            {
-            //                model = await GetAdminMenu();
-            //            }
-            //            else
-            //            {
-            //                model = await GetAdminMenu2(userId);
-            //            }
-            //        }
-            //        else
-            //        {
-            //            model = await GetUserMenu(userId);
-            //        }
-            //    }
-            //    return View(model);
-            //}
-            //catch (Exception e)
-            //{
-            //    ViewBag.Error = "CANNOT CONNECT TO WEB API.";
-            //    return View("Error");
-            //}
+            _codextnService = new CodextnService(_db);
+        }
+
+
+        public ActionResult Index()
+        {            
 
             return View();
         }
 
-        //public async Task<Access> Access(string userId, string menuId)
-        //{
-        //    if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
-        //    {
-        //        return new Access()
-        //        {
-        //            IsAdmin = true,
-        //            IsAllowed = true,
-        //            AllowAdd = true,
-        //            AllowEdit = true,
-        //            AllowDelete = true,
-        //            AllowPost = true,
-        //            AllowUnpost = true,
-        //            AllowPrint = true,
-        //            Actions = new List<MenuAccessAction>()
-        //        };
-        //    }
-        //    else
-        //    {
-        //        HttpResponseMessage responseMessage = client.GetAsync("menubases_/menuAccessRights/" + userId + "/" + menuId + "/" + sysCode).Result;
-        //        if (responseMessage.IsSuccessStatusCode)
-        //        {
-        //            var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-        //            Access model = JsonConvert.DeserializeObject<Access>(responseData);
+        public async Task<ActionResult> GetHomePages([DataSourceRequest] DataSourceRequest request, int count)
+        {
+            var homePages = await _codextnService
+                .GetByMastCode("HOME-PAGES")
+                .Where(w => w.Desc5 != "N")
+                .OrderBy(o => o.Code)
+                .Take(count)
+                .ToListAsync(); // 🔥 Force execution here
 
-        //            return model;
-        //        }
-        //        else
-        //        {
-        //            return new Access();
-        //        }
-        //    }
-        //}
+            var data = homePages.Select(item => new {
+                item.Description,
+                item.Desc2,
+                item.Desc3, // Action
+                item.Desc4, // Controller
+                Url = Url.Action(item.Desc3, item.Desc4)
+            });
 
-        //public async Task<UserProfile> GetUserProfile(string id)
-        //{
-        //    HttpResponseMessage responseMessage = client.GetAsync("Users_/Profile/" + id).Result;
-        //    if (responseMessage.IsSuccessStatusCode)
-        //    {
-        //        var responseData = await responseMessage.Content.ReadAsStringAsync();
-        //        UserProfile model = JsonConvert.DeserializeObject<UserProfile>(responseData);
-        //        return model;
-        //    }
-        //    else
-        //    {
-        //        return new UserProfile();
-        //    }
-        //}
+            return Json(await data.ToDataSourceResultAsync(request));
+        }
 
 
         public ActionResult About()

@@ -39,8 +39,8 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

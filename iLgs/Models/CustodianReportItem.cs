@@ -120,8 +120,6 @@ namespace iLgs.Models
         public Nullable<decimal> TUnitCost { get; set; }
         public Nullable<decimal> GTotalCost { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -129,5 +127,7 @@ namespace iLgs.Models
         public virtual CustodianReportUpload CustodianReportUpload { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
     }
 }

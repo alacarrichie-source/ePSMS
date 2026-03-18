@@ -17,8 +17,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public CodeMast()
         {
-            this.Codextns = new HashSet<Codextn>();
             this.Trackings = new HashSet<Tracking>();
+            this.Codextns = new HashSet<Codextn>();
         }
     
         public System.Guid Id { get; set; }
@@ -36,8 +36,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Codextn> Codextns { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Tracking> Trackings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Codextn> Codextns { get; set; }
     }
 }

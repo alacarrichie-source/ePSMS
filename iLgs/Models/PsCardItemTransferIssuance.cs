@@ -34,10 +34,10 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
     }
 }

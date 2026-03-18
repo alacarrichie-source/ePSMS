@@ -5,7 +5,7 @@ namespace iLgs.Utilities
 {
     public static class FileNameValidator
     {
-        private static readonly char[] _blockedChars = { '#', ',' };
+        private static readonly char[] _blockedChars = { '#' };
 
         public static void Validate(string fileName)
         {
@@ -20,7 +20,7 @@ namespace iLgs.Utilities
 
             // Custom blocked characters
             if (name.IndexOfAny(_blockedChars) >= 0)
-                throw new InvalidValueException($"Filename '{name}' cannot contain '#' or ','.");
+                throw new InvalidValueException($"Filename '{name}' cannot contain '#'.");
         }
     }
 }

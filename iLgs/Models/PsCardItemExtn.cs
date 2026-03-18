@@ -53,7 +53,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AcqDate { get; set; }
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
-        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -63,5 +62,6 @@ namespace iLgs.Models
         public virtual PsCardItem PsCardItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

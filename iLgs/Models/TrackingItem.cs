@@ -24,7 +24,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> ReturnDt { get; set; }
         public string ReturnBy { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         public virtual Tracking Tracking { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

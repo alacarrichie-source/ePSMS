@@ -26,6 +26,7 @@ namespace iLgs
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css",
+                      "~/Content/home.css",
                       "~/Content/ListView.css"));
 
             bundles.Add(new ScriptBundle("~/bundles/kendo").Include(
