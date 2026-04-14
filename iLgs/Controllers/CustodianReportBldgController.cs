@@ -88,7 +88,7 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
-
+            ViewBag.IsAdmin = isAdmin;
             return View();
         }
 
@@ -110,6 +110,7 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+            ViewBag.IsAdmin = isAdmin;
             return View();
         }
 
@@ -124,7 +125,7 @@ namespace iLgs.Controllers
             //string userName = ControllerContext.HttpContext.User.Identity.Name;
             //var isAdmin = _userService.IsUserNameAdmin(userName);
             //ViewBag.IsAdmin = isAdmin;
-
+            ViewBag.IsAdmin = false;
             return View();
         }
 
@@ -135,6 +136,7 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = true;
             ViewBag.IsView = false;
+            ViewBag.IsAdmin = false;
             return View("Index");
         }
 

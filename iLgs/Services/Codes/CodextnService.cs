@@ -68,7 +68,6 @@ namespace iLgs.Services.Codes
         {
             var IsAdmin = await _userService.IsAdminAsync(userId);
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS"
-                //&& w.Desc3 != "N"
                 && w.Code.Substring(w.Code.Length - 2) == "00"
                 && (IsAdmin 
                         || w.DepartmentUsers.Any(a => a.UserId == userId)

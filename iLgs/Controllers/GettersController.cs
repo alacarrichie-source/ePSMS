@@ -1283,6 +1283,19 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GePoYear(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "PO-YEAR").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Description), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetNumericOperators()
         {
             var operators = new[]

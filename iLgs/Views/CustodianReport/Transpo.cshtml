@@ -159,8 +159,12 @@
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
-            col.Bound(c => c.ItemSerialNo).Width(70);
+            col.Bound(c => c.PlateNo).Width(50);
+            col.Bound(c => c.ConductionNo).Width(50);
+            col.Bound(c => c.BodyNo).Width(50);
             col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(50);
             col.Bound(c => c.UpdatedBy).Width(50);
@@ -168,7 +172,7 @@
             col.Bound(c => c.IsPosted).Width(30);
             if (ViewBag.IsDemand || ViewBag.IsView)
             {
-                col.Bound(c => c.Remarks).Width(70);
+                //col.Bound(c => c.Remarks).Width(70);
                 col.Command(command =>
                 {
                     command.Edit();
@@ -212,6 +216,10 @@
                     t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
                 }
                 t.Custom().Text("Export to Excel - No Annex").IconClass("k-icon k-i-excel").Name("btnExportX").HtmlAttributes(new { @class = "k-button", href = "" });
+                if (ViewBag.IsAdmin)
+                {
+                    t.Custom().Text("Export GRID to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
+                }
                 t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
                 t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
                 //t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
@@ -225,6 +233,12 @@
             }
             t.Search();
         })
+        .Excel(excel => excel
+            .FileName("GridExportVehicles.xlsx")
+            .Filterable(true)
+            .AllPages(true)
+            .ProxyURL(Url.Action("Excel_Export_Save", "CustodianReport"))
+        )
         .Search(s =>
         {
             s.Field(o => o.CustodianItemNo, "contains");
@@ -235,6 +249,9 @@
             s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.PlateNo, "contains");
+            s.Field(o => o.ConductionNo, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_VehicleItemTemplate").Window(w => w.Width("80%").Title("Vehicle Item")))
         .Pageable(pager => pager
@@ -402,6 +419,11 @@
 </script>
 
 <script type="text/javascript">
+    $("#exportGrid").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").saveAsExcel();
+    });
+
     function IsNotPosted(dataItem) {
         return !dataItem.PostedBy;
     }

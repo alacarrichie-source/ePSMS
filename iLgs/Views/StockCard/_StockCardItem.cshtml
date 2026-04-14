@@ -111,7 +111,10 @@
                 commands.Custom("Unpost").IconClass("k-icon k-i-unlock").SendDataKeys(true).Click("onClickBtnUnPostItem").Visible("IsPosted");
                 commands.Custom("Print PO - Original").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPo");
                 commands.Custom("Print PO - Update").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPoUpdate");
-                commands.Custom("Transfer").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickTransfer").Visible("IsNotPosted");
+                if (ViewBag.IsAdmin)
+                {
+                    commands.Custom("Transfer").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickTransfer").Visible("IsNotPosted");
+                }
             }).Width(150);
         })
         //.ToolBar(t =>

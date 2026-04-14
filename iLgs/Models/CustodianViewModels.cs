@@ -508,6 +508,7 @@ namespace iLgs.Models
             public Nullable<bool> FromDonation { get; set; }
             public string Account { get; set; }
 
+            [Required]
             [Display(Name = "Article")]
             public Nullable<System.Guid> ItemCodeId { get; set; }
 
@@ -515,6 +516,7 @@ namespace iLgs.Models
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
+            [Required]
             [Display(Name = "Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
@@ -784,6 +786,7 @@ namespace iLgs.Models
             public Nullable<bool> FromDonation { get; set; }
             public string Account { get; set; }
 
+            [Required]
             [Display(Name = "Article")]
             public Nullable<System.Guid> ItemCodeId { get; set; }
 
@@ -807,6 +810,7 @@ namespace iLgs.Models
             public Nullable<System.Guid> DeptId { get; set; }
             public string Department { get; set; }
 
+            [Required]
             [Display(Name = "Location Code")]
             public Nullable<System.Guid> LocationId { get; set; }
 
@@ -1209,5 +1213,39 @@ namespace iLgs.Models
         public string Equipment { get; set; }
         public string Supplies { get; set; }
         public string Vehicle { get; set; }        
+    }
+
+    public class CustodianReportSummaryVM
+    {
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "Group Order")]
+        public int? OrderNo { get; set; }
+
+        [Display(Name = "Account Group")]
+        public string GroupName { get; set; }
+
+        [Display(Name = "Item No. Index")]
+        public string ItemNoIndex { get; set; }
+
+        public string Account { get; set; }
+
+        [Display(Name = "Sub-Account")]
+        public string SubAccount1 { get; set; }
+
+        [Display(Name = "Annex-A")]
+        public Nullable<decimal> AnnexACost { get; set; }
+
+        [Display(Name = "Annex-B")]
+        public Nullable<decimal> AnnexBCost { get; set; }
+
+        [Display(Name = "Annex-C")]
+        public Nullable<decimal> AnnexCCost { get; set; }
+
+        [Display(Name = "No Annex")]
+        public Nullable<decimal> AnnexXCost { get; set; }
+
+        [Display(Name = "Total RPCPPE")]
+        public Nullable<decimal> TotalCost { get; set; }
     }
 }

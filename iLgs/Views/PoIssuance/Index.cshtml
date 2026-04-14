@@ -10,7 +10,7 @@
     {
         columns.Bound(f => f.Fund).Width(40);
         columns.Bound(f => f.Account).Width(70);
-        columns.Bound(f => f.Article).Width(100).Title("Sub-Accounts/Articles");
+        columns.Bound(f => f.Article).Width(70).Title("Sub-Accounts/Articles");
         columns.Bound(f => f.StockNo).Width(70);
         columns.Bound(f => f.Description).Width(70).Title("Item<br>Description");
         columns.Group(group => group.Title("Reference")
@@ -38,7 +38,7 @@
                     .Columns(info =>
                     {
                         info.Bound(f => f.DeptCode).Width(50).Title("Code");
-                        info.Bound(f => f.Department).Width(70).Title("PO Owner");                        
+                        info.Bound(f => f.Department).Width(70).Title("PO Owner");
                         info.Bound(f => f.Qty)
                           .Width(50).Title("In")
                           .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -82,11 +82,20 @@
             .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
             .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Group(group => group.Title("Issuance Date")
+            .Columns(info =>
+            {
+                info.Bound(f => f.IssuedStartDate)
+                    .Width(50).Title("Start");
+                info.Bound(f => f.IssuedLastDate)
+                    .Width(50).Title("Latest");
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
         columns.Bound(f => f.InvDistDesc).Width(50).Title("Inventory / <br>For Distribution");
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
+        //t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
         t.Search();
     })
     .Search(s =>

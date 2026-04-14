@@ -322,13 +322,14 @@ namespace iLgs.Controllers
             return Json(new { Description = description, StockNo = stockNo, Id = id, IsDuplicateStockNo = isDuplicateStockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _StockCardItem(Guid cardId, string category)
+        public ActionResult _StockCardItem(Guid cardId, string category, bool? isAdmin)
         {
             ViewBag.FieldSw = _stockCardService.GetFieldSw(category);
 
             ViewData["partialView"] = _stockCardService.GetItemFieldsPartialView(category);
             ViewData["cardId"] = cardId;
             ViewData["category"] = category;
+            ViewBag.IsAdmin = isAdmin;
 
             return PartialView();
         }

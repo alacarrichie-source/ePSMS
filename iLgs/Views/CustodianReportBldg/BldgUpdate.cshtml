@@ -176,6 +176,8 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.PsNo).Width(70);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             //col.Bound(c => c.ProjectName).Width(150);
             col.Bound(c => c.BldgItem).Width(100);
             //col.Bound(c => c.BuildingType).Width(100);
@@ -201,6 +203,7 @@
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
             s.Field(o => o.Annex, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_BldgItemTemplate").Window(w => w.Width(1000).Title("Structure Item")))
         .Pageable(pager => pager

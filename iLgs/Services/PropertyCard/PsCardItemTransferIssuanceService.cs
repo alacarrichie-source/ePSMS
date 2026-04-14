@@ -105,14 +105,14 @@ namespace iLgs.Services.PropertyCard
         });
 
         public ValueTask<PsCardItemTransferIssuanceVM> CreateAsync(PsCardItemTransferIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-        {
-            await ValidateFieldsAsync(model, Mode.ADD);
-
+        {            
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+
+            await ValidateFieldsAsync(model, Mode.ADD);
 
             if (model.SelectedIds != null)
             {
@@ -174,10 +174,18 @@ namespace iLgs.Services.PropertyCard
             var entity = await _db.PsCardItemTransferIssuances.Include(i => i.PsCardItemTransfer).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             ValidateRecord(entity, model.Id);
 
-            if (await _db.RSMIs.AnyAsync(a => a.Date == entity.IssuedDate))
+            //if (await _db.RSMIs.AnyAsync(a => a.Date == entity.IssuedDate))
+            //{
+            //    throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {entity.IssuedDate.Value.ToShortDateString()}, cannot update!");
+            //}
+
+            if (await _db.RSMIs.AnyAsync(a => a.Date == model.IssuedDate))
             {
-                throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {entity.IssuedDate.Value.ToShortDateString()}, cannot update!");
+                throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {model.IssuedDate.Value.ToShortDateString()}, cannot update!");
             }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
             await ValidateFieldsAsync(model, Mode.EDIT);
 
@@ -185,10 +193,7 @@ namespace iLgs.Services.PropertyCard
             if (model.Qty > qtyBalance)
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+            }            
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
@@ -230,6 +235,48 @@ namespace iLgs.Services.PropertyCard
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+
+            var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
+            if (issuanceYears.Any())
+            {
+                var minYear = int.Parse(issuanceYears.Min(m => m.Description));
+                var maxYear = int.Parse(issuanceYears.Max(m => m.Description));
+
+                if (model.UpdatedDt.Value.Year < minYear)
+                {
+                    if (minYear == maxYear)
+                    {
+                        throw new InvalidValueException($"Update for this year is not allowed.");
+                    }
+                    else
+                    {
+                        throw new InvalidValueException($"Update for this year is not allowed.");
+                    }
+                }
+
+                var issuedYear = model.IssuedDate.Value.Year.ToString().Trim();
+                //var year = model.UpdatedDt.Value.Year.ToString().Trim();
+                var issuanceYear = issuanceYears.FirstOrDefault(f => f.Description == issuedYear);
+                if (issuanceYear == null)
+                {
+                    throw new InvalidValueException($"Update for this year is not allowed.");
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
+                    {
+                        var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
+                        if (date.Date > cutOffDate.Date)
+                        {
+                            throw new InvalidValueException($"Update for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidValueException($"Issuance year setup is not a available.");
+            }
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -401,7 +448,7 @@ namespace iLgs.Services.PropertyCard
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Date issued must be on or after the {refName} date for this item, {refDate.Value.ToShortDateString()}");
                     }
-                    var issuanceYears = _codextnService.GetIssuanceYears();
+                    var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y")); ;
                     if (issuanceYears.Any())
                     {
                         var minYear = int.Parse(issuanceYears.Min(m => m.Description));
@@ -430,7 +477,8 @@ namespace iLgs.Services.PropertyCard
                             if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
                             {
                                 var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
-                                if (model.IssuedDate.Value.Date > cutOffDate)
+                                //if (model.IssuedDate.Value.Date > cutOffDate)
+                                if (model.UpdatedDt.Value.Date > cutOffDate.Date)
                                 {
                                     _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance for this year is only valid until {cutOffDate.ToShortDateString()}.");
                                 }

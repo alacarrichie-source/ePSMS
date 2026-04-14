@@ -1835,7 +1835,8 @@
             url: '@Url.Action("_StockCardItemAddEdit", "StockCard")',
             data: {
                 cardId: selectedId,
-                cardrItemId: recId
+                cardrItemId: recId,
+                isAdmin: '@ViewBag.IsAdmin'
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {

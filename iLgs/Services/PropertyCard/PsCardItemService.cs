@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Utilities;
 using System;
@@ -55,6 +56,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IUserService _userService;
         private readonly IPsCardItemExtnService _psCardItemExtnService;
         private readonly IPsCardItemTransferService _psCardItemTransferService;
+        private readonly ICodextnService _codextnService;
 
         public PsCardItemService(AppManEntities db)
         {
@@ -67,6 +69,7 @@ namespace iLgs.Services.PropertyCard
             _userService = new UserService(_db);
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _psCardItemTransferService = new PsCardItemTransferService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
 
@@ -250,7 +253,8 @@ namespace iLgs.Services.PropertyCard
                 TransferIn = s.TransferIn,
                 TransferOut = s.TransferOut,
                 TranType = s.TranType,
-                TransDate = s.TransDate,
+                //TransDate = s.TransDate,
+                TransDate = s.ParentId == null ? null: s.TransDate,
                 Days = s.PsCardItem.Days,
                 Unit = s.PsCardItem.Unit,
                 UnitCost = s.PsCardItem.UnitCost,
@@ -361,6 +365,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedDt = date;
 
             _psCardItemValidator.ValidateOnCreate(model);
+            ValidatePoDate(model.PoDate);
 
             model.Id = Guid.NewGuid();
             model.TransferId = Guid.NewGuid();
@@ -381,10 +386,10 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            _psCardItemValidator.ValidateOnUpdate(model);
+            _psCardItemValidator.ValidateOnUpdate(model);            
 
             var psCardItemEntity = await _db.PsCardItems.FindAsync(model.Id);
-            
+
             ValidateUser(psCardItemEntity, model);
 
             var isAdmin = await _userService.IsUserNameAdminAsync(user);
@@ -392,6 +397,7 @@ namespace iLgs.Services.PropertyCard
                 .FirstOrDefaultAsync(f => f.Id == model.TransferId);
             if (entity == null)
             {
+                //ValidateIssuance(model.PoDate, date);
                 model.TransferId = Guid.NewGuid();
                 var psCardItemTransfer = new PsCardItemTransfer()
                 {
@@ -483,6 +489,9 @@ namespace iLgs.Services.PropertyCard
             }
             else
             {
+                ValidatePoDate(entity.TransDate);
+                ValidatePoDate(model.PoDate);
+                
                 entity.PsCardItem.PoDate = model.PoDate;
                 entity.PsCardItem.PoNo = model.PoNo.Trim();
                 entity.PsCardItem.AirDate = model.AirDate;
@@ -528,10 +537,12 @@ namespace iLgs.Services.PropertyCard
                     entity.PsCardItem.TransferOut = model.TransferOut;
                     entity.PsCardItem.Amount = model.UnitCost * model.QtyBal;
                     entity.PsCardItem.GTotalCost = model.TUnitCost * model.QtyBal;
+                    entity.TransDate = model.PoDate;
                 }
                 else
                 {
                     entity.PsCardItem.Qty = 0;
+                    entity.TransDate = model.TransDate;
                 }
 
                 if (isAdmin)
@@ -556,7 +567,7 @@ namespace iLgs.Services.PropertyCard
                     //}
                 }
 
-                entity.TransDate = model.TransDate;
+                //entity.TransDate = model.TransDate;
                 entity.Qty = model.Qty;
                 entity.QtyIss = model.QtyIss;
                 entity.QtyBal = model.QtyBal;
@@ -686,14 +697,18 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            _psCardItemValidator.ValidateOnDelete(model);
-
+            _psCardItemValidator.ValidateOnDelete(model);            
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
             ValidateUser(entity, model);
             ValidateRelationship(model);
+
+            var transferItem = await _db.PsCardItemTransfers.Include(i => i.PsCardItem)
+                .FirstOrDefaultAsync(f => f.Id == model.TransferId);
+
+            ValidatePoDate(transferItem.TransDate);
 
             await _psCardItemTransferService.DeleteAsync(model.TransferId, user, date);
 
@@ -861,6 +876,58 @@ namespace iLgs.Services.PropertyCard
 
             return entity;
         });
+
+        private void ValidatePoDate(DateTime? poItemTransDate)
+        {
+            //var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
+            //if (issuanceYears.Any())
+            //{
+            //    var minYear = int.Parse(issuanceYears.Min(m => m.Description));
+            //    var maxYear = int.Parse(issuanceYears.Max(m => m.Description));
+
+            //    if (poItemTransDate.Value.Year < minYear)
+            //    {
+            //        if (minYear == maxYear)
+            //        {
+            //            throw new InvalidValueException($"Update for this year is not allowed.");
+            //        }
+            //        else
+            //        {
+            //            throw new InvalidValueException($"Update for this year is not allowed.");
+            //        }
+            //    }
+
+            //    var year = poItemTransDate.Value.Year.ToString().Trim();
+            //    var issuanceYear = issuanceYears.FirstOrDefault(f => f.Description == year);
+            //    if (issuanceYear == null)
+            //    {
+            //        throw new InvalidValueException($"Update for this year is not allowed.");
+            //    }
+            //    else
+            //    {
+            //        if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
+            //        {
+            //            var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
+            //            if (updatedDt > cutOffDate)
+            //            {
+            //                throw new InvalidValueException($"Update for this year is only valid until {cutOffDate.ToShortDateString()}.");
+            //            }
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    throw new InvalidValueException($"Issuance year setup is not a available.");
+            //}
+
+            var poYears = _codextnService.GetPoYears();
+            var poYear = poItemTransDate.Value.Year.ToString().Trim();
+            poYears = poYears.Where(w => w.Description == poYear && w.Desc2 != "Y");
+            if (!poYears.Any())
+            {
+                throw new InvalidValueException($"Update for this year is not allowed.");
+            }
+        }
 
         private void ValidateRecord(PsCardItem entity)
         {

@@ -367,6 +367,14 @@ namespace iLgs.Models
 
         // Extras
         public bool? IsAdmin { get; set; }
+
+        [Display(Name = "Issuance Start Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> IssuedStartDate { get; set; }
+
+        [Display(Name = "Issuance Latest Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> IssuedLastDate { get; set; }
     }
 
     public class PsCardItemIssuanceVM

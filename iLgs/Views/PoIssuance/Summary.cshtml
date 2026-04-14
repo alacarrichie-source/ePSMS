@@ -3,6 +3,32 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("PO Year", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-3">
+            @(Html.Kendo().DropDownList()
+                .Name("forYear")
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GePoYear", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Events(e => e.Change("onChangeForYear"))
+            )
+        </div>
+    </div>
+</div>
+
+
 @(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
     .Name("grid")
     //.HtmlAttributes(new { @class = "max-grid" })
@@ -110,7 +136,7 @@
             s.Add(a => a.Department);
             s.Add(a => a.InsertedDt);
         })
-        .Read(read => read.Action("SummaryRead", "PoIssuance"))
+        .Read(read => read.Action("SummaryRead", "PoIssuance").Data("DataGrid"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -186,7 +212,7 @@
 
     #grid .k-grid-content {
         overflow-x: auto;
-        height: calc(90vh - 180px) !important;
+        height: calc(80vh - 180px) !important;
     }
 </style>
 
@@ -209,6 +235,11 @@
 
 
 <script type="text/javascript">
+    function onChangeForYear(e) {
+        //var numeric = $("#forYear").data("kendoDropDownList");
+        $("#grid").data("kendoGrid").dataSource.read();        
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -288,7 +319,7 @@
         selectedUnitCost = selectedData.UnitCost;
         selectedItemId = null;
         selectedDepartment = selectedData.Department;
-        postedBy = null;        
+        postedBy = null;
     }
 
     function onDataBoundGrid(e) {
@@ -309,7 +340,7 @@
             //    // Select the expanded master row
             //    this.select(e.masterRow);
             //});
-        }        
+        }
     }
 
     function onRequestEnd(e) {
@@ -319,6 +350,12 @@
                 selectedGrid.dataSource.read();
             }
         }
+    }
+
+    function DataGrid() {
+        return {
+            forYear: $("#forYear").val()
+        };
     }
 
     function resizeWindow() {
@@ -331,7 +368,7 @@
             mywindow.center(); // Optional: Center the window after resizing
         }
     }
-        
+
 </script>
 
 

@@ -278,10 +278,24 @@
             col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.OldAmount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.PhaseAmountCo).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.PhaseAmountMooe).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.PhaseCount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
             col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);
             //col.Bound(c => c.IsPosted).Width(30);
@@ -298,7 +312,10 @@
                 t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
             }
             t.Custom().Text("Export to Excel - No Annex").IconClass("k-icon k-i-excel").Name("btnExportX").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Export GRID to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });            
+            if (ViewBag.IsAdmin == true)
+            {
+                t.Custom().Text("Export GRID to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
+            }
             t.Search();
         })
          .Excel(excel => excel
@@ -319,6 +336,7 @@
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
             s.Field(o => o.InsertedBy, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Pageable(pager => pager
             .Input(false)
@@ -349,6 +367,10 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.AcqCost).Sum();
+                a.Add(p => p.OldAmount).Sum();
+                a.Add(p => p.PhaseAmountCo).Sum();
+                a.Add(p => p.PhaseAmountMooe).Sum();
+                a.Add(p => p.PhaseCount).Sum();
             })
             //.Sort(s =>
             //{

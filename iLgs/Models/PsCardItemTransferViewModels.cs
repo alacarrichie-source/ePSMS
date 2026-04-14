@@ -114,6 +114,8 @@ namespace iLgs.Models
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }

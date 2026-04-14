@@ -1850,6 +1850,7 @@
     <Content Include="App_Data\CustodianSuppliesTemplate.xlsx" />
     <Content Include="App_Data\CustodianVehiclesAnnexTemplate.xlsx" />
     <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
+    <Content Include="App_Data\CustodianSummary.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -4759,6 +4760,7 @@
     <Content Include="Views\ParSetOrder\_PoItems.cshtml" />
     <Content Include="Views\ParSetOrder\_Upload.cshtml" />
     <Content Include="Views\ParSetOrder\EditorTemplates\_IsForICSTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\Summary.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4925,7 +4927,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

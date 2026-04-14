@@ -287,6 +287,8 @@
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);
             col.Bound(c => c.UpdatedBy).Width(50);
@@ -327,6 +329,7 @@
             s.Field(o => o.InsertedBy, "contains");
             s.Field(o => o.DRPNo, "contains");
             s.Field(o => o.PIN, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Pageable(pager => pager
             .Input(false)

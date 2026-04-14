@@ -169,7 +169,12 @@
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(70);
+            col.Bound(c => c.PlateNo).Width(50);
+            col.Bound(c => c.ConductionNo).Width(50);
+            col.Bound(c => c.BodyNo).Width(50);
             col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(50);
             col.Bound(c => c.UpdatedBy).Width(50);
@@ -193,6 +198,9 @@
             s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.PlateNo, "contains");
+            s.Field(o => o.ConductionNo, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_VehicleItemTemplate").Window(w => w.Width("80%").Title("Vehicle Item")))
         .Pageable(pager => pager

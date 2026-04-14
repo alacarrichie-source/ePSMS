@@ -324,7 +324,7 @@ namespace iLgs.Controllers
         {
             if (disposing)
             {
-                _db?.Dispose();
+                //_db?.Dispose(); problem in crystal report if disposed.
                 client.Dispose();
             }
             base.Dispose(disposing);

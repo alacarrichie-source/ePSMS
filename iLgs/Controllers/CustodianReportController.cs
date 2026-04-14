@@ -560,6 +560,28 @@ namespace iLgs.Controllers
             return result;
         }
 
+        public ActionResult Summary()
+        {
+            ViewBag.Title = "Custodian Report - Summary";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+
+            return View();
+        }
+
+        public ActionResult SummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? locationId, DateTime? asOf, DateTime? insertedAsOf)
+        {
+            var data = _custodianReportService.GetSummary(forYear, deptId, locationId, asOf, insertedAsOf);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
         #region CUSTODIAN REPORT
         // GET: Index
         public ActionResult Index()
@@ -3710,6 +3732,28 @@ namespace iLgs.Controllers
             }
         }
 
+        public async Task<ActionResult> ExcelExportSummary(int? forYear, Guid? deptId, Guid? locationId, DateTime? asOf, DateTime? insertedAsOf)
+        {
+            try
+            {
+                var templateFilePath = Server.MapPath($"~/App_Data/CustodianSummary.xlsx");
+                var stream = _custodianReportService.ProcessExcelFileSummary(forYear, deptId, locationId, asOf, insertedAsOf, templateFilePath);
+
+                var locationCode = "ALL";
+                if (deptId != null && deptId != Guid.Empty)
+                {
+                    locationCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+                }
+
+                string fileName = $"Summary_{forYear}_{locationCode}_{DateTime.Now.ToShortDateString()}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);                
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
+        }
+
 
         //public ActionResult ExcelExportAnnex(Guid? reportId, int? accountGroup, string annex)
         //{
@@ -4157,11 +4201,15 @@ namespace iLgs.Controllers
                 {
                     if (validPriceCap.Category == "Property")
                     {
-                        error = $"The acquisition cost or set amount of this item is below ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                        //error = $"The acquisition cost or set amount of this item is below ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                        //error = $"The acquisition cost is below P{validPriceCap.PriceCap:n0}, typically for the Supplies Module. The Equipment or Vehicle Module is for costs of P{validPriceCap.PriceCap:n0} and above. Do you want to continue?";
+                        error = $"The acquisition cost is below P{validPriceCap.PriceCap:n0}, typically indicating a classification for the Supplies Module. The Equipment or Vehicle Module is for costs of P{validPriceCap.PriceCap:n0} and above.Do you want to continue?";
                     }
                     else
                     {
-                        error = $"The acquisition cost or set amount of this item has reached ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                        //error = $"The acquisition cost or set amount of this item has reached ₱{validPriceCap.PriceCap:n0}. Are you sure you want to continue?";
+                        //error = $"The acquisition cost is at least ₱{validPriceCap.PriceCap:n0}, typically for the Equipment or Vehicle Module. The Supplies Module is for costs below ₱{validPriceCap.PriceCap:n0}. Do you want to continue?";
+                        error = $"The acquisition cost is at least ₱{validPriceCap.PriceCap:n0}, typically indicating a classification for the Equipment or Vehicle Module. The Supplies Module is for costs below ₱{validPriceCap.PriceCap:n0}.Do you want to continue?";
                     }
                 }
             }

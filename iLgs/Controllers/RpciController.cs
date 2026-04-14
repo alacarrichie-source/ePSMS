@@ -475,7 +475,7 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@dAsOf", null);
             rpt.SetParameterValue("@uRpciId", id.ToString());
             rpt.SetParameterValue("@cType", type == "A" ? "" : type);
-            if (type == "A") // ALL
+            if (string.IsNullOrWhiteSpace(type) || type == "A") // ALL
             {
                 rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
             }

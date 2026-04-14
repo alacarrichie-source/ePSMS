@@ -695,6 +695,7 @@ namespace iLgs.Services.CustodianReports
                 string itemTypeIndex = "";
                 string itemCodeIndex = "";
                 string account = "";
+                string subAccountX = "";
                 string department = "";
                 string locationCode = "";
                 decimal? tAcqCost = 0;
@@ -773,11 +774,13 @@ namespace iLgs.Services.CustodianReports
 
                 foreach (var reportItem in reportItems)
                 {
+                    var raItemCodeIndex0 = reportItem.ItemCodeIndex.Split('-')[0];
                     if (sw == 1)
                     {
                         itemTypeIndex = reportItem.ItemTypeIndex;
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
+                        subAccountX = raItemCodeIndex0;
                         //department = reportItem.Department;
                         department = reportItem.MainDeptName;
                         locationCode = reportItem.LocationCode;
@@ -794,11 +797,14 @@ namespace iLgs.Services.CustodianReports
 
                     //if (reportItem.ItemCode != null && (itemTypeIndex != reportItem.ItemCode.ItemType.Code + reportItem.ItemCode.ItemType.GroupCode || department != reportItem.CustodianReport.Department))
                     //if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.Department)
-                    if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.MainDeptName || locationCode != reportItem.LocationCode)
+                    //if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.MainDeptName || locationCode != reportItem.LocationCode)                    
+                    if (itemTypeIndex != reportItem.ItemTypeIndex || department != reportItem.MainDeptName || subAccountX != raItemCodeIndex0)
                     {
                         itemTypeIndex = reportItem.ItemTypeIndex;
                         itemCodeIndex = reportItem.ItemCodeIndex;
                         account = reportItem.Account;
+                        //subAccountX = reportItem.SubAccount; // cannot be use, this contains the concatinated subaccounts
+                        subAccountX = raItemCodeIndex0;
                         //department = reportItem.Department;
                         department = reportItem.MainDeptName;
                         locationCode = reportItem.LocationCode;

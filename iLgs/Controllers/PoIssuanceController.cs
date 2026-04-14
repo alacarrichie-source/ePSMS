@@ -558,9 +558,9 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult SummaryRead([DataSourceRequest] DataSourceRequest request)
+        public ActionResult SummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear)
         {
-            var data = _poIssuanceService.GetSummary();
+            var data = _poIssuanceService.GetSummary(forYear);
 
             var result = new JsonNetResult
             {

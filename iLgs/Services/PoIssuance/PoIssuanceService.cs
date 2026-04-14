@@ -19,6 +19,7 @@ namespace iLgs.Services.PoIssuance
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
         IQueryable<PsCardItemVM> GetById(Guid? id);
         IQueryable<PsCardItemVM> GetSummary();
+        IQueryable<PsCardItemVM> GetSummary(int? forYear);
         IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? transferId);
         //ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         //ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
@@ -36,6 +37,7 @@ namespace iLgs.Services.PoIssuance
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardService _psCardService;
         private readonly IPriceCapService _priceCapService;
+        private readonly ICodextnService _codextnService;
 
         public PoIssuanceService(AppManEntities db)
         {
@@ -47,6 +49,7 @@ namespace iLgs.Services.PoIssuance
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _psCardService = new PsCardService(_db);
             _priceCapService = new PriceCapService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         //public PoIssuanceService(AppManEntities db,
@@ -138,6 +141,12 @@ namespace iLgs.Services.PoIssuance
             return data;
         }
 
+        public IQueryable<PsCardItemVM> GetSummary(int? forYear)
+        {
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_Summary {0}", forYear).AsQueryable();
+            return data;
+        }
+
         //public async ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
         //{
         //    var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
@@ -226,7 +235,61 @@ namespace iLgs.Services.PoIssuance
             List<PsCardItemExtnTransitVM> selectedItems = null;
             var psCardItemTransferSource = await _psCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(model.Id);
 
-            if (!model.TransDate.HasValue)
+            //if (!model.TransDate.HasValue)
+            //{
+            //    throw new InvalidValueException("Transit date is required!");
+            //}
+
+            if (model.TransDate.HasValue)
+            {
+                if (psCardItemTransferSource.TransDate > model.TransDate)
+                {
+                    throw new InvalidValueException($"Transit Date must be on or after the date for this item.");
+                }
+
+                var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
+                if (issuanceYears.Any())
+                {
+                    var minYear = int.Parse(issuanceYears.Min(m => m.Description));
+                    var maxYear = int.Parse(issuanceYears.Max(m => m.Description));
+
+                    if (model.TransDate.Value.Year < minYear)
+                    {
+                        if (minYear == maxYear)
+                        {
+                            throw new InvalidValueException($"Year of date issued must be for year {minYear}.");
+                        }
+                        else
+                        {
+                            throw new InvalidValueException($"Year of date issued must be from {minYear} to {maxYear}.");
+                        }
+                    }
+
+                    var year = model.TransDate.Value.Year.ToString().Trim();
+                    var issuanceYear = issuanceYears.FirstOrDefault(f => f.Description == year);
+                    if (issuanceYear == null)
+                    {
+                        throw new InvalidValueException($"Transit for this year is not allowed.");
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
+                        {
+                            var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
+                            //if (model.TransDate.Value.Date > cutOffDate)
+                            if (date.Date > cutOffDate.Date)
+                            {
+                                throw new InvalidValueException($"Transit for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new InvalidValueException($"Issuance year setup is not a available.");
+                }
+            }
+            else
             {
                 throw new InvalidValueException("Transit date is required!");
             }

@@ -414,6 +414,8 @@
             col.Bound(c => c.OtherQty).Width(50);
             col.Bound(c => c.ItemSerialNo).Width(70);
             col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.Condition).Width(70);
+            col.Bound(c => c.Remarks).Width(100);
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);
             col.Bound(c => c.IsPosted).Width(30);
@@ -452,6 +454,7 @@
             s.Field(o => o.PsNo, "contains");
             s.Field(o => o.InsertedBy, "contains");
             s.Field(o => o.SetLotNo, "contains");
+            s.Field(o => o.Condition, "contains");
         })
         .Pageable(pager => pager
             .Input(false)

@@ -47,7 +47,7 @@ namespace iLgs.Services.PropertyCard
         {
             ValidateCard(cardItem);
             ValidateIfPosted(cardItem.PsCardId);
-            ValidateFieldsOnCreateUpdate(cardItem, Mode.ADD);
+            ValidateFieldsOnCreateUpdate(cardItem, Mode.ADD);            
         }
 
         public void ValidateOnUpdate(PsCardItemVM cardItem)
@@ -236,7 +236,7 @@ namespace iLgs.Services.PropertyCard
                 }
             }
 
-            if (model.TransDate.HasValue)
+            if (model.TransDate.HasValue && model.ParentId != null) // transit records
             {
                 if (model.TransDate.Value < model.PoDate)
                 {
@@ -285,7 +285,7 @@ namespace iLgs.Services.PropertyCard
             }
 
             ex.ThrowIfContainsErrors();
-        }
+        }        
 
         private void ValidateRecord(PsCardItem entity, Guid id)
         {

@@ -102,6 +102,16 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> PoYear()
+        {
+            var code = "PO-YEAR";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "PO-Encoding Year";
+
+            return View("Codextn", codeMast);
+        }
+
         public async Task<ActionResult> ReportingYearEnd()
         {
             var code = "REPORT-YEAR-END";
