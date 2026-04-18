@@ -91,6 +91,15 @@
                     .Width(50).Title("Latest");
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
         );
+        columns.Group(group => group.Title("Update Date")
+            .Columns(info =>
+            {
+                info.Bound(f => f.UpdateStartDate)
+                    .Width(50).Title("Start");
+                info.Bound(f => f.UpdateLastDate)
+                    .Width(50).Title("Latest");
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
         columns.Bound(f => f.InvDistDesc).Width(50).Title("Inventory / <br>For Distribution");
     })
     .ToolBar(t =>

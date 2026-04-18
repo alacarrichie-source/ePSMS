@@ -428,7 +428,7 @@ namespace iLgs.Services.PropertyCard
             }
             else
             {
-                var cardItem = await _db.PsCardItems.Where(w => w.PsCardItemTransfers.Any(a => a.Id == model.PsCardItemTransferId)).FirstOrDefaultAsync();
+                var cardItem = await _db.PsCardItems.Include(i => i.PsCardItemTransfer).Where(w => w.PsCardItemTransfers.Any(a => a.Id == model.PsCardItemTransferId)).FirstOrDefaultAsync();
                 DateTime? refDate = null;
                 string refName = "";
                 if (cardItem.AirDate.HasValue)
@@ -438,8 +438,16 @@ namespace iLgs.Services.PropertyCard
                 }
                 else
                 {
-                    refDate = cardItem.PoDate;
-                    refName = "PO";
+                    if (cardItem.PsCardItemTransfer.ParentId == null)
+                    {
+                        refDate = cardItem.PoDate;
+                        refName = "PO";
+                    }
+                    else
+                    {
+                        refDate = cardItem.PsCardItemTransfer.TransDate;
+                        refName = "Transit";
+                    }
                 }
 
                 if (refDate.HasValue)

@@ -375,6 +375,14 @@ namespace iLgs.Models
         [Display(Name = "Issuance Latest Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedLastDate { get; set; }
+
+        [Display(Name = "Update Start Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> UpdateStartDate { get; set; }
+
+        [Display(Name = "Update Latest Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> UpdateLastDate { get; set; }
     }
 
     public class PsCardItemIssuanceVM
