@@ -1,0 +1,177 @@
+﻿@model iLgs.Models.PoTransferVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.PoNo)
+    @Html.HiddenFor(model => model.PoDate)
+    @Html.HiddenFor(model => model.Fund)
+    
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(model => model.NewFund, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.NewFund)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Fund")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.NewFund)
+                </div>
+            </div>
+        </div>        
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.Label("")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().CheckBoxFor(m => m.FromDonation)))
+                    @Html.ValidationMessageFor(m => m.FromDonation)
+                </div>
+            </div>
+        </div>                
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.InvDist, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select..")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetinvDistList", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Description").Title("Description").Width("100%");
+                        })
+                        .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.InvDist)
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            setTimeout(function () {
+                var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+                var data = $("#form").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Transfer", "PoTransfer")',
+                    data: data,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($("#form"), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($("#form"), false);
+                        if (!result.Errors) {
+                            alert("PO records were successfully transferred");
+                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        }
+                        else {
+                            //// Clear previous error messages
+                            $('#ErrorContent .errors').empty();
+
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message; // Use Message from the JSON
+
+                                // Check if messages exists and is an array
+                                if (Array.isArray(messages)) {
+                                    // Create the field name list item
+                                    var errorListItem = $('<li></li>').text(key);
+
+                                    // Create a nested unordered list for the messages
+                                    var messageList = $('<ul></ul>');
+
+                                    // Loop through each message and append it to the messageList
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
+
+                                    // Append the message list to the error list item
+                                    errorListItem.append(messageList);
+
+                                    // Append the error list item to the .errors container
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                } else {
+                                    console.error(`Expected messages to be an array for field ${key}`);
+                                }
+                            });
+                            // Show the error content
+                            $('#ErrorContent').removeClass('hidden');
+
+                        }
+                        selectedId = result.Id;
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        }
+                    });
+                    disabled.attr('disabled', 'disabled');
+            }, 500);
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>

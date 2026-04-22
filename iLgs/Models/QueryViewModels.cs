@@ -12,6 +12,9 @@ namespace iLgs.Models
 
         [Display(Name = "PO Status")]
         public Nullable<int> PoStatus { get; set; }
+
+        [Display(Name = "PO Number")]
+        public string PoNo { get; set; }
     }
 
     public class QueryOrderItemsVM

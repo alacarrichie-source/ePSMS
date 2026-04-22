@@ -78,51 +78,94 @@ namespace iLgs.Services.PoIssuance
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
-        private Expression<Func<PsCardItem, PsCardItemVM>> GetPsCardItemProjection(AppManEntities _db)
+        private Expression<Func<PsCardItemTransfer, PsCardItemVM>> GetPsCardItemProjection()
         {
             return s => new PsCardItemVM
             {
-                Id = s.Id,
-                GroupId = s.GroupId,
-                PsCardId = s.PsCardId,
-                OrderItemId = s.OrderItemId,
-                TransferRefId = s.TransferRefId,
-                PoNo = s.PoNo,
-                PoDate = s.PoDate,
-                AirDate = s.AirDate,
-                AirNo = s.AirNo,
-                AirIssueDate = s.AirIssueDate,
+                Id = s.PsCardItem.Id,
+                GroupId = s.PsCardItem.GroupId,
+                PsCardId = s.PsCardItem.PsCardId,
+                OrderItemId = s.PsCardItem.OrderItemId,
+                TransferRefId = s.PsCardItem.TransferRefId,
+                TransferId = s.Id,
+                ParentId = s.ParentId,
+                Fund = s.PsCardItem.PsCard.Fund,
+                PoNo = s.PsCardItem.PoNo,
+                PoDate = s.PsCardItem.PoDate,
+                AirDate = s.PsCardItem.AirDate,
+                AirNo = s.PsCardItem.AirNo,
+                AirIssueDate = s.PsCardItem.AirIssueDate,
                 Qty = s.Qty,
                 QtyIss = s.QtyIss,
                 QtyBal = s.QtyBal,
                 TransferIn = s.TransferIn,
                 TransferOut = s.TransferOut,
                 TranType = s.TranType,
-                Unit = s.Unit,
-                UnitCost = s.UnitCost,
+                TransDate = s.TransDate,
+                Unit = s.PsCardItem.Unit,
+                UnitCost = s.PsCardItem.UnitCost,
                 Amount = s.Amount,
-                Days = s.Days,
-                Remarks = s.Remarks,
-                InsertedDt = s.InsertedDt,
-                DeptId = s.DeptId,
+                Days = s.PsCardItem.Days,
+                Remarks = s.PsCardItem.Remarks,
+                InsertedDt = s.PsCardItem.InsertedDt,
+                DeptId = s.PsCardItem.DeptId,
                 LocationId = s.LocationId,
-                Article = _db.ItemCodes.FirstOrDefault(f => f.Code == s.PsCard.SubAccountCode).Description + "/" +
-                s.PsCard.ItemCode.Description,
-                Description = s.Description,
-                DeptDisplay = s.DeptDisplay,
-                StockNo = s.PsCard.PsNo,
-                ParBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                IcsBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                Article = _db.SubAccountViews.Where(f => f.Id == s.PsCardItem.PsCard.ItemCodeId).Select(sel => sel.SubAccount + "/" + sel.Description).FirstOrDefault(),
+                Account = s.PsCardItem.PsCard.ItemCode.ItemType.Description,
+                Description = s.PsCardItem.Description,
+                DeptDisplay = s.PsCardItem.DeptDisplay,
+                StockNo = s.PsCardItem.PsCard.PsNo,
+                ParBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                IcsBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                 RemBalance = (int?)s.QtyBal,
-                Department = s.Codextn.Description,
-                Location = s.Codextn1.Description,
-                LocCode = s.Codextn1.Code,
-                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).FirstOrDefault() == null ? "" :
-                    _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).FirstOrDefault().Description
+                Department = s.PsCardItem.Codextn.Description,
+                Location = s.Codextn.Description,
+                LocCode = s.Codextn.Code,
+                //LocDeptId = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && w.Code.Substring(0, 2) == s.Codextn.Code.Substring(0, 2) && w.Code.TrimEnd().EndsWith("00")).Select(x => x.Id).FirstOrDefault(),
+                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(x => x.Description).FirstOrDefault(),
+                IssuedStartDate = s.PsCardItemTransferIssuances.Min(m => m.IssuedDate),
+                IssuedLastDate = s.PsCardItemTransferIssuances.Max(m => m.IssuedDate),
+                UpdateStartDate = s.PsCardItemTransferIssuances.Min(m => m.InsertedDt),
+                UpdateLastDate = s.PsCardItemTransferIssuances.Max(m => m.UpdatedDt)
             };
         }
 
         public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)
+        {
+            var isAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<PsCardItemVM> data;
+            if (isAdmin)
+            {
+                data = _db.PsCardItemTransfers.Select(GetPsCardItemProjection()).AsQueryable();
+            }
+            else
+            {
+                data = _db.PsCardItemTransfers.Where(w => w.PsCardItem.Codextn.DepartmentUsers
+                    .Any(a => a.UserId == userId &&
+                            //(
+                            //    (w.Codextn.Id == w.LocationId && w.LocationId != null)
+                            //    ||
+                            //    (w.Codextn.Id == w.PsCardItem.DeptId && w.LocationId == null)
+                            //    ||
+                            //    //(w.Codextn.Id == w.location)                                
+                            //)
+                            (
+                                (a.Codextn.Id == w.LocationId && w.LocationId != null)
+                                ||
+                                (a.Codextn.Id == w.PsCardItem.DeptId && w.LocationId == null)
+                                ||
+                                (_db.Codextns.Where(w2 => w2.CodeMast.Code == "LOCATIONS" 
+                                    && w2.Code.Substring(0, 2) == a.Codextn.Code.Substring(0, 2) 
+                                    && w2.Code.TrimEnd().EndsWith("00")).Any()
+                                )
+                            )
+                        )
+                    ).Select(GetPsCardItemProjection()).AsQueryable();
+            }
+            return data;
+        }
+
+        public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsyncOld(string userId)
         {
             var IsAdmin = await _userService.IsAdminAsync(userId);
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).AsQueryable();

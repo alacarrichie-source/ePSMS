@@ -31,13 +31,16 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string AccountCode { get; set; }
+        public string Account { get; set; }
+        public string SubAccount { get; set; }
+        public string Article { get; set; }
         public string ItemType { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RSMI RSMI { get; set; }
         public virtual ItemCode ItemCode1 { get; set; }
+        public virtual RSMI RSMI { get; set; }
     }
 }

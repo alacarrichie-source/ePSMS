@@ -12,6 +12,8 @@ namespace iLgs.Models
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.Core.Objects;
+    using System.Linq;
     
     public partial class AppManEntities : DbContext
     {
@@ -103,7 +105,6 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
         public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
-        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<Procurement> Procurements { get; set; }
@@ -133,5 +134,22 @@ namespace iLgs.Models
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
+        public virtual DbSet<SubAccountView> SubAccountViews { get; set; }
+        public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
+        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
+    
+        [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
+        public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)
+        {
+            var cCategoryParameter = cCategory != null ?
+                new ObjectParameter("cCategory", cCategory) :
+                new ObjectParameter("cCategory", typeof(string));
+    
+            var cUserIdParameter = cUserId != null ?
+                new ObjectParameter("cUserId", cUserId) :
+                new ObjectParameter("cUserId", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fn_ItemCodes_GetPreview_Result>("[AppManEntities].[fn_ItemCodes_GetPreview](@cCategory, @cUserId)", cCategoryParameter, cUserIdParameter);
+        }
     }
 }

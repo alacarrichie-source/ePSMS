@@ -61,6 +61,9 @@
     <Reference Include="CrystalDecisions.Shared">
       <HintPath>..\..\..\..\program files (x86)\sap businessobjects\crystal reports for .net framework 4.0\common\sap businessobjects enterprise xi 4.0\win32_x86\dotnet\CrystalDecisions.Shared.dll</HintPath>
     </Reference>
+    <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.2.1.72\lib\net461\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="DocumentFormat.OpenXml, Version=2.16.0.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.2.16.0\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
@@ -104,8 +107,8 @@
     <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.4.3\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.1\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
@@ -343,6 +346,8 @@
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\ParSetOrderController.cs" />
+    <Compile Include="Controllers\PoAdjustmentController.cs" />
+    <Compile Include="Controllers\PoTransferController.cs" />
     <Compile Include="Controllers\ProcurementOrderController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
@@ -478,6 +483,9 @@
     </Compile>
     <Compile Include="Models\ErrorLogViewModels.cs" />
     <Compile Include="Models\FilterGroupViewModels.cs" />
+    <Compile Include="Models\fn_ItemCodes_GetPreview_Result.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\IcsPar.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -560,6 +568,10 @@
     <Compile Include="Models\PARItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PoAdjustment.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PoAdjustmentViewModels.cs" />
     <Compile Include="Models\Procurement.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -717,6 +729,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\StockCardViewModels.cs" />
+    <Compile Include="Models\SubAccountView.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Supplier.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -1009,6 +1024,7 @@
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\Logs\LoggingService.cs" />
     <Compile Include="Services\ParIcs\IcsSharedService.cs" />
+    <Compile Include="Services\PoAdjustments_\PoAdjustmentService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
     <Compile Include="Services\Procurement_\ProcurementOrderService.cs" />
     <Compile Include="Services\Procurement_\ProcurementCommonService.cs" />
@@ -4761,6 +4777,12 @@
     <Content Include="Views\ParSetOrder\_Upload.cshtml" />
     <Content Include="Views\ParSetOrder\EditorTemplates\_IsForICSTemplate.cshtml" />
     <Content Include="Views\CustodianReport\Summary.cshtml" />
+    <Content Include="Views\PoAdjustment\Index.cshtml" />
+    <Content Include="Views\PoAdjustment\EditorTemplates\_PoAdjustmentTemplate.cshtml" />
+    <Content Include="Views\PoTransfer\Index.cshtml" />
+    <Content Include="Views\PoTransfer\_Transfer.cshtml" />
+    <Content Include="Views\PoTransfer\_PoTransfer.cshtml" />
+    <Content Include="Views\PoTransfer\EditorTemplates\_PoAdjustmentTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

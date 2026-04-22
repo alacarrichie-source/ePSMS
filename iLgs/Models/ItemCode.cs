@@ -24,10 +24,10 @@ namespace iLgs.Models
             this.PsCards = new HashSet<PsCard>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
-            this.RSMIItems = new HashSet<RSMIItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
             this.OrderItems = new HashSet<OrderItem>();
             this.RisItems = new HashSet<RisItem>();
+            this.RSMIItems = new HashSet<RSMIItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -63,12 +63,12 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RSMIItem> RSMIItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItem> RisItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RSMIItem> RSMIItems { get; set; }
     }
 }

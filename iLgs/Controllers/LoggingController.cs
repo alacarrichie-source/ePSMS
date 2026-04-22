@@ -73,7 +73,7 @@ public class LoggingController : BaseController
         var data = await Task.Run(() =>
                 _db.ErrorLogs
                    .OrderByDescending(l => l.InsertedDt)
-                   .ToList()
+                   .AsQueryable()
             );
 
         var result = new JsonNetResult

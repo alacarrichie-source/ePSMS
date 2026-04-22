@@ -23,8 +23,8 @@ namespace iLgs.Services.ParIcsFromPo
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
 
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate);
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, decimal? priceCap);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, decimal? priceCap);
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate);
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, decimal? priceCap);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
@@ -175,16 +175,16 @@ namespace iLgs.Services.ParIcsFromPo
             return data;
         }
         
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate)
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate)
         {
             var priceCap = GetPriceCap(poDate);
-            var data = await GetItemsByPoNoAsync(poNo, priceCap);
+            var data = GetItemsByPoNo(poNo, priceCap);
             return data;
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, decimal? priceCap)
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, decimal? priceCap)
         {
-            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, NULL", poNo, priceCap).ToListAsync();
+            var data = _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, NULL", poNo, priceCap).AsQueryable();
             return data;
         }        
 

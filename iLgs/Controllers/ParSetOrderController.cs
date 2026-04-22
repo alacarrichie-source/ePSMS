@@ -68,9 +68,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
         {
-            var data = (await _icsParService.ParService.GetItemsByPoNoAsync(poNo, poDate)).OrderBy(o => o.ItemNoIndex);
+            var data = (_icsParService.ParService.GetItemsByPoNo(poNo, poDate)).OrderBy(o => o.ItemNoIndex);
 
             var result = new JsonNetResult
             {

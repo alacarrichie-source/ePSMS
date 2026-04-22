@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using Dapper;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Utilities;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -67,10 +69,10 @@ namespace iLgs.Services.Items
         private readonly IExceptionService<ItemCode> _exceptionService;
 
         public ItemCodeService(AppManEntities db)
-            //,
-            //IAppManEntitiesFactory appManEntitiesFactory,
-            //IExceptionService<ItemCodeVM> vmExceptionService,
-            //IExceptionService<ItemCode> exceptionService)
+        //,
+        //IAppManEntitiesFactory appManEntitiesFactory,
+        //IExceptionService<ItemCodeVM> vmExceptionService,
+        //IExceptionService<ItemCode> exceptionService)
         {
             _db = db;
             //_contextFactory = appManEntitiesFactory;
@@ -102,14 +104,51 @@ namespace iLgs.Services.Items
             return data;
         }
 
+        private static Expression<Func<ItemCode, ItemCodeVM>> Projection(AppManEntities db)
+        {
+            return a => new ItemCodeVM
+            {
+                Id = a.Id,
+                ItemTypeId = a.ItemTypeId,
+                ItemNoIndex = a.ItemNoIndex,
+                ItemNo = a.ItemNo,
+                Code = a.Code,
+                Description = a.Description,
+                ItemSw = a.ItemSw,
+                IsConsumable = a.IsConsumable,
+                IsIncorporated = a.IsIncorporated,
+                ForDistribution = a.ForDistribution,
+                PartialPage = a.PartialPage,
+                AccountCode = a.AccountCode,
+                InsertedDt = a.InsertedDt,
+
+                // 2. This maps to the OUTER APPLY / Subquery
+                RequiredFields = db.CodeMasts
+                .Where(x => x.Code == "REQUIRED-FIELDS")
+                .Join(db.Codextns,
+                      x => x.Id,
+                      y => y.MastId,
+                      (x, y) => new { x, y })
+                .Where(z => z.y.Desc2 == a.PartialPage)
+                .Select(z => z.y.Description)
+                .FirstOrDefault(),
+
+                // 3. This maps to your Padding calculation
+                // EF will translate LEN and REPLACE to the equivalent SQL functions
+                Padding = (a.ItemNo.Length - a.ItemNo.Replace(".", "").Length) * 30
+            };
+        }
+
         public IQueryable<ItemCodeVM> GetAll()
         {
-            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get").AsQueryable();
+            //var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get").AsQueryable();
+            //var data = _db.Database.Connection.Query<ItemCodeVM>("Exec ItemCodes_Get").AsQueryable();
+            var data = _db.ItemCodes.Select(Projection(_db)).AsQueryable();
             return data;
         }
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeIdOld(Guid? itemTypeId)
-        {                            
+        {
             var data = _db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
@@ -134,7 +173,8 @@ namespace iLgs.Services.Items
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {
-            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();
+            //var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();
+            var data = _db.Database.Connection.Query<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();
             return data;
         }
 
@@ -161,7 +201,8 @@ namespace iLgs.Services.Items
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable().AsNoTracking();
+            //var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable().AsNoTracking();
+            var data = _db.Database.Connection.Query<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
             return data;
         });
 
@@ -342,8 +383,8 @@ namespace iLgs.Services.Items
             else if (isConsumable?.ToUpper() == "N")
             {
                 return false;
-            }            
-            return null;            
+            }
+            return null;
         }
 
         public async Task<string> GetPartialViewAsync(Guid? id)
@@ -402,8 +443,35 @@ namespace iLgs.Services.Items
                 category = "";
             }
 
-            var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable().AsNoTracking();
+            var data = _db.Database.SqlQuery<ItemCodePreviewVM>("exec itemcodes_getpreview {0}", category).AsQueryable();
             return data;
+
+            //var data = _db.fn_ItemCodes_GetPreview(category, string.Empty);
+
+            //return data.Select(x => new ItemCodePreviewVM
+            //{
+            //    Id = (Guid)x.Id,
+            //    GroupCode = x.GroupCode,
+            //    Category = x.Category,
+            //    ItemNoIndex = x.ItemNoIndex,
+            //    Code = x.Code,
+            //    Account = x.Account,
+            //    SubAccount1 = x.SubAccount1,
+            //    SubAccount2 = x.SubAccount2,
+            //    SubAccount3 = x.SubAccount3,
+            //    SubAccount4 = x.SubAccount4
+            //});
+        }
+
+        public IQueryable<ItemCodePreviewVM> GetItemCodePreviewOld(string category)
+        {
+            if (category == "ALL")
+            {
+                category = "";
+            }
+
+            var data = _db.Database.SqlQuery<ItemCodePreviewVM>("exec itemcodes_getpreview {0}", category).AsQueryable();
+            return data;            
         }
 
         public IQueryable<ItemCodePreviewVM> GetItemCodePreviewByUser(string category, string userId)
@@ -415,6 +483,22 @@ namespace iLgs.Services.Items
 
             var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}, {1}", category, userId).AsQueryable().AsNoTracking();
             return data;
+
+            //var data = _db.fn_ItemCodes_GetPreview(category, userId);
+
+            //return data.Select(x => new ItemCodePreviewVM
+            //{
+            //    Id = (Guid)x.Id,
+            //    GroupCode = x.GroupCode,
+            //    Category = x.Category,
+            //    ItemNoIndex = x.ItemNoIndex,
+            //    Code = x.Code,
+            //    Account = x.Account,
+            //    SubAccount1 = x.SubAccount1,
+            //    SubAccount2 = x.SubAccount2,
+            //    SubAccount3 = x.SubAccount3,
+            //    SubAccount4 = x.SubAccount4
+            //});
         }
 
         public bool IsProperty(Guid? id)
@@ -511,32 +595,32 @@ namespace iLgs.Services.Items
 
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                model.Id = Guid.NewGuid();
-                model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
-                model.ItemNoIndex = ItemNoIndex(model.ItemNo);
-                
-                ItemCode entity = new ItemCode()
-                {
-                    Id = model.Id,
-                    ItemTypeId = model.ItemTypeId,
-                    ItemNo = model.ItemNo.Trim(),
-                    ItemNoIndex = model.ItemNoIndex,
-                    Code = model.Code,
-                    Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
-                    ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.Trim().ToUpper(),
-                    IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper(),
-                    IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
-                    ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
-                    AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
-                    PartialPage = model.PartialPage,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
+            model.Id = Guid.NewGuid();
+            model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
+            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
-                _db.ItemCodes.Add(entity);
-                await _db.SaveChangesAsync();
+            ItemCode entity = new ItemCode()
+            {
+                Id = model.Id,
+                ItemTypeId = model.ItemTypeId,
+                ItemNo = model.ItemNo.Trim(),
+                ItemNoIndex = model.ItemNoIndex,
+                Code = model.Code,
+                Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
+                ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.Trim().ToUpper(),
+                IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper(),
+                IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
+                ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
+                AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
+                PartialPage = model.PartialPage,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            _db.ItemCodes.Add(entity);
+            await _db.SaveChangesAsync();
             //}
 
             return model;
@@ -553,28 +637,28 @@ namespace iLgs.Services.Items
 
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
-                ValidateRecord(entity, model.Id);
+            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
 
-                model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
-                model.ItemNoIndex = ItemNoIndex(model.ItemNo);
+            model.Code = GetItemCode(_db, model.ItemTypeId, model.ItemNo, model.Description);
+            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
-                entity.ItemTypeId = model.ItemTypeId;
-                entity.ItemNo = model.ItemNo.Trim();
-                entity.ItemNoIndex = model.ItemNoIndex;
-                entity.Code = model.Code;
-                entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
-                entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim().Trim();
-                entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper();
-                entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
-                entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
-                entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
-                entity.PartialPage = model.PartialPage;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            entity.ItemTypeId = model.ItemTypeId;
+            entity.ItemNo = model.ItemNo.Trim();
+            entity.ItemNoIndex = model.ItemNoIndex;
+            entity.Code = model.Code;
+            entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
+            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim().Trim();
+            entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper();
+            entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
+            entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
+            entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
+            entity.PartialPage = model.PartialPage;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                
-                await _db.SaveChangesAsync();
+
+            await _db.SaveChangesAsync();
             //}
 
             return model;
@@ -588,17 +672,17 @@ namespace iLgs.Services.Items
 
             //using (var ctx = await _contextFactory.CreateContextAsync())
             //{
-                ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
-                ValidateRecord(entity, model.Id);
-                ValidateRelationship(model.Id);
+            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+            ValidateRelationship(model.Id);
 
-                entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
-                
-                await _db.SaveChangesAsync();
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
 
-                _db.ItemCodes.Remove(entity);
-                await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+
+            _db.ItemCodes.Remove(entity);
+            await _db.SaveChangesAsync();
             //}
 
             return model;

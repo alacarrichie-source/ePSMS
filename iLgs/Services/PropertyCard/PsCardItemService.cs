@@ -104,6 +104,7 @@ namespace iLgs.Services.PropertyCard
             return s => new PsCardItemVM
             {
                 Id = s.Id,
+                Fund = s.PsCard.Fund,
                 GroupId = s.GroupId,
                 PsCardId = s.PsCardId,
                 OrderItemId = s.OrderItemId,
@@ -170,7 +171,7 @@ namespace iLgs.Services.PropertyCard
                 IsWithItemExtn = s.PsCardItemExtns.Any()
             };
         }
-
+        
         public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
         {
             var data = await _db.PsCardItems
@@ -325,9 +326,104 @@ namespace iLgs.Services.PropertyCard
             return data;
         });
 
+
+        private Expression<Func<PsCardItem, PsCardItemVM>> GetAllProjectionX()
+        {
+            return s => new PsCardItemVM
+            {
+                Id = s.Id,
+                TransferId = s.PsCardItemTransfer.Id,
+                Fund = s.PsCard.Fund,
+                ItemCodeId = s.PsCard.ItemCodeId,
+                Account = s.PsCard.ItemCode.ItemType.Description,
+                StockNo = s.PsCard.PsNo,
+                SubAccount = _db.SubAccountViews.Where(f => f.Id == s.PsCard.ItemCodeId).Select(sel => sel.SubAccount).FirstOrDefault(),
+                Article = s.PsCard.ItemCode.Description,
+                PoDate = s.PoDate,
+                PoNo = s.PoNo,
+                AirDate = s.AirDate,
+                AirNo = s.AirNo,
+                AirIssueDate = s.AirIssueDate,
+                Qty = s.PsCardItemTransfer.Qty,
+                QtyIss = s.PsCardItemTransfer.QtyIss,
+                QtyBal = s.PsCardItemTransfer.QtyBal,                
+                TransferIn = s.PsCardItemTransfer.TransferIn,
+                TransferOut = s.PsCardItemTransfer.TransferOut,
+                TranType = s.PsCardItemTransfer.TranType,
+                Days = s.Days,
+                Unit = s.Unit,
+                UnitCost = s.UnitCost,
+                Amount = s.UnitCost * s.PsCardItemTransfer.QtyBal,
+                IssueAmount = s.UnitCost * s.PsCardItemTransfer.QtyIss,
+                BalanceAmount = s.UnitCost * s.PsCardItemTransfer.QtyBal,
+                PriceRate = s.PriceRate,
+                AddCost = s.AddCost,
+                GTotalCost = s.GTotalCost,
+                Remarks = s.Remarks,
+                DeptId = s.DeptId,
+                LocationId = s.PsCardItemTransfer.LocationId,
+                DeptDisplay = s.DeptDisplay,
+                Description = s.Description,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                UpdatedBy = s.UpdatedBy,
+                UpdatedDt = s.UpdatedDt,
+                Department = s.Codextn.Description,
+                Location = s.Codextn1.Description,
+                LocCode = s.Codextn1.Code                
+            };
+        }
+
+        private Expression<Func<PsCardItemTransfer, PsCardItemVM>> GetAllProjection()
+        {
+            return s => new PsCardItemVM
+            {
+                Id = s.PsCardItem.Id,
+                TransferId = s.Id,
+                Fund = s.PsCardItem.PsCard.Fund,
+                ItemCodeId = s.PsCardItem.PsCard.ItemCodeId,
+                Account = s.PsCardItem.PsCard.ItemCode.ItemType.Description,
+                StockNo = s.PsCardItem.PsCard.PsNo,
+                SubAccount = _db.SubAccountViews.Where(f => f.Id == s.PsCardItem.PsCard.ItemCodeId).Select(sel => sel.SubAccount).FirstOrDefault(),
+                Article = s.PsCardItem.PsCard.ItemCode.Description,
+                PoDate = s.PsCardItem.PoDate,
+                PoNo = s.PsCardItem.PoNo,
+                AirDate = s.PsCardItem.AirDate,
+                AirNo = s.PsCardItem.AirNo,
+                AirIssueDate = s.PsCardItem.AirIssueDate,
+                Qty = s.Qty,
+                QtyIss = s.QtyIss,
+                QtyBal = s.QtyBal,
+                TransferIn = s.TransferIn,
+                TransferOut = s.TransferOut,
+                TranType = s.TranType,
+                Days = s.PsCardItem.Days,
+                Unit = s.PsCardItem.Unit,
+                UnitCost = s.PsCardItem.UnitCost,
+                Amount = s.PsCardItem.UnitCost * s.QtyBal,
+                IssueAmount = s.PsCardItem.UnitCost * s.QtyIss,
+                BalanceAmount = s.PsCardItem.UnitCost * s.QtyBal,
+                PriceRate = s.PsCardItem.PriceRate,
+                AddCost = s.PsCardItem.AddCost,
+                GTotalCost = s.PsCardItem.GTotalCost,
+                Remarks = s.PsCardItem.Remarks,
+                DeptId = s.PsCardItem.DeptId,
+                LocationId = s.LocationId,
+                DeptDisplay = s.PsCardItem.DeptDisplay,
+                Description = s.PsCardItem.Description,
+                InsertedBy = s.PsCardItem.InsertedBy,
+                InsertedDt = s.PsCardItem.InsertedDt,
+                UpdatedBy = s.PsCardItem.UpdatedBy,
+                UpdatedDt = s.PsCardItem.UpdatedDt,
+                Department = s.PsCardItem.Codextn.Description,
+                Location = s.Codextn.Description,
+                LocCode = s.Codextn.Code
+            };
+        }
+
         public IQueryable<PsCardItemVM> GetAllStocks() => _vmExceptionService.TryCatch(() =>
         {
-            return GetAll("S");
+            return GetAll("S");                        
         });
 
         public IQueryable<PsCardItemVM> GetAllProperties() => _vmExceptionService.TryCatch(() =>
@@ -336,6 +432,13 @@ namespace iLgs.Services.PropertyCard
         });
 
         private IQueryable<PsCardItemVM> GetAll(string category)
+        {
+            //var data = _db.PsCardItems.Include(i => i.PsCardItemTransfer).Where(w => w.PsCard.CardCategory == category).Select(GetAllProjection());
+            var data = _db.PsCardItemTransfers.Where(w => w.PsCardItem.PsCard.CardCategory == category).Select(GetAllProjection());
+            return data;
+        }
+
+        private IQueryable<PsCardItemVM> GetAllOld(string category)
         {
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetQueryRecords {0}", category).AsQueryable();
             return data;

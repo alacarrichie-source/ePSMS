@@ -428,24 +428,45 @@ namespace iLgs.Services.PropertyCard
             }
             else
             {
-                var cardItem = await _db.PsCardItems.Include(i => i.PsCardItemTransfer).Where(w => w.PsCardItemTransfers.Any(a => a.Id == model.PsCardItemTransferId)).FirstOrDefaultAsync();
                 DateTime? refDate = null;
                 string refName = "";
-                if (cardItem.AirDate.HasValue)
+
+                //var cardItem = await _db.PsCardItems.Include(i => i.PsCardItemTransfer).Where(w => w.PsCardItemTransfers.Any(a => a.Id == model.PsCardItemTransferId)).FirstOrDefaultAsync();                
+                //if (cardItem.AirDate.HasValue)
+                //{
+                //    refDate = cardItem.AirDate;
+                //    refName = "AIR";
+                //}
+                //else
+                //{
+                //    if (cardItem.PsCardItemTransfer.ParentId == null)
+                //    {
+                //        refDate = cardItem.PoDate;
+                //        refName = "PO";
+                //    }
+                //    else
+                //    {
+                //        refDate = cardItem.PsCardItemTransfer.TransDate;
+                //        refName = "Transit";
+                //    }
+                //}
+
+                var cardItem = await _db.PsCardItemTransfers.Include(t => t.PsCardItem).FirstOrDefaultAsync(t => t.Id == model.PsCardItemTransferId);
+                if (cardItem.PsCardItem.AirDate.HasValue)
                 {
-                    refDate = cardItem.AirDate;
+                    refDate = cardItem.PsCardItem.AirDate;
                     refName = "AIR";
                 }
                 else
                 {
-                    if (cardItem.PsCardItemTransfer.ParentId == null)
+                    if (cardItem.ParentId == null)
                     {
-                        refDate = cardItem.PoDate;
+                        refDate = cardItem.PsCardItem.PoDate;
                         refName = "PO";
                     }
                     else
                     {
-                        refDate = cardItem.PsCardItemTransfer.TransDate;
+                        refDate = cardItem.TransDate;
                         refName = "Transit";
                     }
                 }

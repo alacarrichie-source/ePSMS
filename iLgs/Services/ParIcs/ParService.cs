@@ -23,8 +23,8 @@ namespace iLgs.Services.ParIcs
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
 
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo);
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo);
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
@@ -199,26 +199,25 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo)
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo)
         {
-            return await GetItemsByPoNoAsync(poNo, null, null);
+            return GetItemsByPoNo(poNo, null, null);
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
+        //public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
+        //{
+        //    var priceCap = GetPriceCap();
+
+        //    var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
+
+        //    return data;
+        //}
+
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
 
-            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetParPoItems {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
-
-            return data;
-        }
-
-        //public IQueryable<ParIcsItemVm> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
-        {
-            var priceCap = GetPriceCap();
-
-            var data = await _db.PsCardItems.Include(i => i.PsCard.ItemCode)
+            var data = _db.PsCardItems.Include(i => i.PsCard.ItemCode)
                 .AsNoTracking()
                 .Where(w =>
                     w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
@@ -249,7 +248,7 @@ namespace iLgs.Services.ParIcs
                     ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
                     ParPostedBy = s.ParPostedBy,
                     ParPostedDt = s.ParPostedDt
-                }).ToListAsync();
+                }).AsQueryable();
             return data;
         }
 

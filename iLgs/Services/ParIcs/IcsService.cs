@@ -23,10 +23,10 @@ namespace iLgs.Services.ParIcs
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
         ValueTask<ParIcsItemVm> GetItemByIdAsync(Guid? psCardItemId);
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo);
-        Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
-        Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo);
-        Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
+        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo);
+        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
@@ -223,22 +223,22 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo)
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo)
         {
-            return await GetItemsByPoNoAsync(poNo, null, null);
+            return GetItemsByPoNo(poNo, null, null);
         }
 
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
-        {
-            var priceCap = GetPriceCap();
-            var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetIcsPoItems_Old {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
-            return data;
-        }
+        //public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
+        //{
+        //    var priceCap = GetPriceCap();
+        //    var data = await _db.Database.SqlQuery<ParIcsItemVm>("Exec ParIcs_GetIcsPoItems_Old {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
+        //    return data;
+        //}
         
-        public async Task<IList<ParIcsItemVm>> GetItemsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
-            var data = await _db.PsCardItems.AsNoTracking()
+            var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
                     && w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
@@ -275,27 +275,26 @@ namespace iLgs.Services.ParIcs
                     ParPostedDt = s.ParPostedDt
                     //SetLotNo = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
                     //SetLotDesc = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId)).FirstOrDefault().Description ?? ""
-                }).ToListAsync();
+                }).AsQueryable();
             return data;
         }        
 
-        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo)
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo)
         {
-            return await GetItemSetsByPoNoAsync(poNo, null, null);
+            return GetItemSetsByPoNo(poNo, null, null);
         }
 
-        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
-        {
-            var priceCap = GetPriceCap();
-            var data = await _db.Database.SqlQuery<ParIcsItemSetVm>("Exec ParIcs_GetIcsSetPoItems_Old {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
-            return data;
-        }
+        //public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsyncNew(string poNo, DateTime? poDate, Guid? deptId)
+        //{
+        //    var priceCap = GetPriceCap();
+        //    var data = await _db.Database.SqlQuery<ParIcsItemSetVm>("Exec ParIcs_GetIcsSetPoItems_Old {0}, {1}, {2}, {3}", poNo, poDate, deptId, priceCap).ToListAsync();
+        //    return data;
+        //}
 
-        //public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNoOld(string poNo, DateTime? poDate, Guid? deptId)
-        public async Task<IList<ParIcsItemSetVm>> GetItemSetsByPoNoAsync(string poNo, DateTime? poDate, Guid? deptId)
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
             var priceCap = GetPriceCap();
-            var data = await _db.PsCardItemUnitGroups
+            var data = _db.PsCardItemUnitGroups
                 .AsNoTracking()
                 .Where(w => w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems
                     .Any(b => b.PsCardItem.TransferRefId == null
@@ -321,7 +320,7 @@ namespace iLgs.Services.ParIcs
                     UnitGroupDescriptions = s.PsCardItemUnitGroupDescriptions,
                     SetPostedBy = s.PostedBy,
                     SetPostedDt = s.PostedDt
-                }).ToListAsync();
+                }).AsQueryable();
             return data;
         }
 
@@ -810,14 +809,14 @@ namespace iLgs.Services.ParIcs
 
             // Get all PO Items, For ICS (Cost < 50k) without ICS            
             var priceCap = GetPriceCap();
-            var cardPoItems = await GetItemsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);
+            var cardPoItems = await GetItemsByPoNo(model.PoNo, model.PoDate, model.DeptId).ToListAsync();
             cardPoItems = cardPoItems.Where(w => w.InvDist == "I"
                 && w.IsConsumable != true
                 && w.IsIncorporated != true
                 && w.IsOthers != true
                 && _db.PsCardItemExtns.Any(a => a.PsCardItemId == w.Id && a.AcqCost < priceCap && !a.IcsParItems.Any())).ToList();
 
-            var unitGroups = await GetItemSetsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);                
+            var unitGroups = await GetItemSetsByPoNo(model.PoNo, model.PoDate, model.DeptId).ToListAsync();                
             unitGroups = unitGroups.Where(w => w.UnitCost < priceCap && _db.PsCardItemUnitGroupDescriptionItems
                     .Any(a => a.PsCardItemUnitGroupDescription.UnitGroupId == w.Id &&
                         a.PsCardItem.PsCardItemExtns.Any(b => !b.IcsParItems.Any()))).ToList();
@@ -1071,7 +1070,7 @@ namespace iLgs.Services.ParIcs
 
             // Check if any Item for ICS
             // Get Non Set Items
-            var cardItems = await GetItemsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);           
+            var cardItems = await GetItemsByPoNo(model.PoNo, model.PoDate, model.DeptId).ToListAsync();           
             cardItems = cardItems.Where(w => w.InvDist == "I"
                     && w.IsConsumable != true
                     && w.IsIncorporated != true
@@ -1091,7 +1090,7 @@ namespace iLgs.Services.ParIcs
                 }
             }
 
-            var unitGroups = await GetItemSetsByPoNoAsync(model.PoNo, model.PoDate, model.DeptId);
+            var unitGroups = await GetItemSetsByPoNo(model.PoNo, model.PoDate, model.DeptId).ToListAsync();
             if (!any)
             {
                 // Get Set Items                
@@ -1353,7 +1352,7 @@ namespace iLgs.Services.ParIcs
         /*
          * Insert all selectedIds to a List with corresponding IcsValue
          */
-        public async ValueTask<List<IcsValueVM>> SetIcsValueAsync(string[] selectedItemExtnIds)
+        private async ValueTask<List<IcsValueVM>> SetIcsValueAsync(string[] selectedItemExtnIds)
         {
             var icsValueList = new List<IcsValueVM>();
             foreach (var selectedItemExtnId in selectedItemExtnIds)
@@ -1376,7 +1375,7 @@ namespace iLgs.Services.ParIcs
         /*
          * Insert all Set Ids of selectedIds to a List with corresponding IcsValue
          */
-        public async ValueTask<List<IcsValueVM>> SetIcsValueSetAsync(string[] selectedItemExtnIds)
+        private async ValueTask<List<IcsValueVM>> SetIcsValueSetAsync(string[] selectedItemExtnIds)
         {
             var icsValueList = new List<IcsValueVM>();
             foreach (var selectedItemExtnId in selectedItemExtnIds)

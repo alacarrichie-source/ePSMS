@@ -33,7 +33,7 @@ namespace iLgs.Models
         [Display(Name = "Property/Stock Card No.")]
         [Required]
         public string PsNo { get; set; }
-        
+
         [Display(Name = "Property/Stock Name")]
         public string PsName { get; set; }
 
@@ -128,8 +128,8 @@ namespace iLgs.Models
         public string SemiExpendable { get; set; }
     }
 
-    public class PsCardItemVM 
-    {        
+    public class PsCardItemVM
+    {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public Nullable<System.Guid> GroupId { get; set; }
@@ -204,7 +204,7 @@ namespace iLgs.Models
         public Nullable<decimal> PriceRate { get; set; }
 
         [Display(Name = "Pro-rated Cost")]
-        public Nullable<decimal> ProRatedCost{ get; set; }
+        public Nullable<decimal> ProRatedCost { get; set; }
 
         [Display(Name = "Additional Cost")]
         public Nullable<decimal> AddCost { get; set; }
@@ -263,7 +263,7 @@ namespace iLgs.Models
         [Required]
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
-        
+
         [Display(Name = "Mode of Acquisition")]
         public string AcqMode { get; set; }
 
@@ -324,6 +324,7 @@ namespace iLgs.Models
 
         [Display(Name = "Location")]
         public string LocCode { get; set; }
+        public Nullable<System.Guid> LocDeptId { get; set; }
         //public string LocCode { get { return _Location?.Code; } }
 
         [Display(Name = "Location")]
@@ -382,24 +383,24 @@ namespace iLgs.Models
 
         [Display(Name = "Update Latest Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> UpdateLastDate { get; set; }
+        public Nullable<System.DateTime> UpdateLastDate { get; set; }        
     }
 
     public class PsCardItemIssuanceVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
-        
+
         [Display(Name = "Department")]
         public Nullable<System.Guid> DeptId { get; set; }
 
         [Required]
-        [Display(Name = "Issuance To")]        
+        [Display(Name = "Issuance To")]
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
-        
+
         [Display(Name = "Issued Date")]
         [Required]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -430,7 +431,7 @@ namespace iLgs.Models
 
         [Display(Name = "\"Issuance To\" Reference")]
         public string Location { get; set; }
-                
+
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public int? IssuedToSw { get; set; }
@@ -476,8 +477,26 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-    
+
         public PsCardItemExtn PsCardItemExtn { get; set; }
         //public PsCardItemIssuance PsCardItemIssuance { get; set; }
+    }
+
+    public class PoTransferVM
+    {
+        public string Fund { get; set; }
+        public string PoNo { get; set; }
+        public DateTime? PoDate { get; set; }
+
+        [Required]
+        [Display(Name = "New Fund")]
+        public string NewFund { get; set; }
+
+        [Display(Name = "From Donation")]
+        public bool? FromDonation { get; set; }
+
+        [Required]
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDist { get; set; }
     }
 }

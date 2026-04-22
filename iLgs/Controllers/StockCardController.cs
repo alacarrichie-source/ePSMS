@@ -1474,6 +1474,5 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
-
     }
 }

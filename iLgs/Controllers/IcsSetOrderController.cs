@@ -68,9 +68,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
         {
-            var data = (await _icsParService.IcsService.GetItemsByPoNoAsync(poNo, poDate)).OrderBy(o => o.ItemNoIndex);
+            var data = (_icsParService.IcsService.GetItemsByPoNo(poNo, poDate)).OrderBy(o => o.ItemNoIndex);
 
             var result = new JsonNetResult
             {
@@ -121,9 +121,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
+        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate)
         {
-            var data = await _icsParService.IcsService.GetItemSetsByPoNoAsync(poNo, poDate);
+            var data = _icsParService.IcsService.GetItemSetsByPoNo(poNo, poDate);
 
             var result = new JsonNetResult
             {

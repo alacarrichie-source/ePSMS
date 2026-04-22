@@ -1,12 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
-using iLgs.Utilities;
 using System;
 using System.Data.Entity;
-using System.Data.Entity.SqlServer;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -20,6 +17,8 @@ namespace iLgs.Services.StockCards
         ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);
+
+        ValueTask TransferAsync(PoTransferVM model, string user, DateTime date);
     }
     public class StockCardService : PsCardService, IStockCardService
     {
@@ -324,6 +323,121 @@ namespace iLgs.Services.StockCards
 
             return model;
         });
+
+        public async ValueTask TransferAsync(PoTransferVM model, string user, DateTime date)
+        {
+            var fund = model.Fund;
+            var poNo = model.PoNo;
+            var poDate = model.PoDate;
+            var newFund = model.NewFund;
+            var fromDonation = model.FromDonation;
+            var psCardItems = await _db.PsCardItems.Include(i => i.PsCard.AllField).Where(w => w.PsCard.Fund == fund && w.PoNo == poNo && w.PoDate == poDate).ToListAsync();
+            foreach(var psCardItem in psCardItems)
+            {
+                /*
+                 * Check if new card, if eof() > create one, transfer old items to new card
+                 */
+                var newPsNo = psCardItem.PsCard.PsNo;
+
+                if (fromDonation.Value == true)
+                {
+                    //if (!psCardItem.PsCard.FromDonation.HasValue || (psCardItem.PsCard.FromDonation.HasValue && psCardItem.PsCard.FromDonation.Value != true))
+                    //{
+                    //    newPsNo = $"FD{newPsNo}";
+                    //}
+                    if (newPsNo.Substring(0, 2) != "FD")
+                    {
+                        newPsNo = $"FD{newPsNo}";
+                    }
+                }
+                else
+                {
+                    //if (psCardItem.PsCard.FromDonation.HasValue && psCardItem.PsCard.FromDonation.Value == true)
+                    //{
+                    //    newPsNo = newPsNo.Substring(2);
+                    //}
+                    if (newPsNo.Substring(0, 2) == "FD")
+                    {
+                        newPsNo = newPsNo.Substring(2);
+                    }
+                }
+
+                //var newPsCard = await _db.PsCards.Where(w => w.PsNo == psCardItem.PsCard.PsNo && w.Fund == newFund && (w.FromDonation == fromDonation || (w.FromDonation == null && fromDonation == false))).SingleOrDefaultAsync();
+                var newPsCard = await _db.PsCards.Where(w => w.PsNo == newPsNo && w.Fund == newFund).SingleOrDefaultAsync();
+
+                if (newPsCard == null)
+                {                    
+                    newPsCard = new PsCard()
+                    {
+                        Id = Guid.NewGuid(),
+                        ItemCodeId = psCardItem.PsCard.ItemCodeId,
+                        SubAccountCode = psCardItem.PsCard.SubAccountCode,
+                        Fund = newFund,
+                        Description = psCardItem.PsCard.Description,
+                        PsNo = newPsNo,
+                        CardCategory = psCardItem.PsCard.CardCategory,
+                        FromDonation = fromDonation,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    var af = psCardItem.PsCard.AllField;
+                    var newAllField = new AllField()
+                    {
+                        Id = newPsCard.Id,
+                        AcqMode = af.AcqMode,
+                        InvDist = af.InvDist,
+                        GenericName = af.GenericName,
+                        DosageStrength = af.DosageStrength,
+                        DosageForm = af.DosageForm,
+                        DosageVolume = af.DosageVolume,
+                        Others = af.Others,
+                        Brand = af.Brand,
+                        Multipliers = af.Multipliers,
+                        Model_ = af.Model_,
+                        Area = af.Area,
+                        Barangay = af.Barangay,
+                        DateSale = af.DateSale,
+                        DateDonation = af.DateDonation,
+                        DateAcquisition = af.DateAcquisition,
+                        DateConstruction = af.DateConstruction,
+                        AreaSoldDonated = af.AreaSoldDonated,
+                        PricePerSqm = af.PricePerSqm,
+                        AcqCost = af.AcqCost,
+                        VendorDonor = af.VendorDonor,
+                        Type = af.Type,
+                        Dimension = af.Dimension,
+                        Size = af.Size,
+                        Weight = af.Weight,
+                        Materials = af.Materials,
+                        Capacity = af.Capacity,
+                        Color = af.Color,
+                        SerialNo = af.SerialNo,
+                        PropNo = af.PropNo,
+                        PlateNo = af.PlateNo,
+                        BodyNo = af.BodyNo,
+                        MVFileNo = af.MVFileNo,
+                        InsertedBy = af.InsertedBy,
+                        InsertedDt = af.InsertedDt,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                                                                    
+                    newPsCard.AllField = newAllField;
+
+                    _db.PsCards.Add(newPsCard);
+                    await _db.SaveChangesAsync();
+                }
+
+                psCardItem.UpdatedBy = user;
+                psCardItem.UpdatedDt = date;
+                psCardItem.PsCardId = newPsCard.Id;
+                psCardItem.InvDist = model.InvDist;
+                await _db.SaveChangesAsync();
+            }
+        }
 
         private void ValidateUser(PsCard entity, StockCardVM model)
         {
