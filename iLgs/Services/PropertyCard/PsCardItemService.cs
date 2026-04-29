@@ -417,7 +417,8 @@ namespace iLgs.Services.PropertyCard
                 UpdatedDt = s.PsCardItem.UpdatedDt,
                 Department = s.PsCardItem.Codextn.Description,
                 Location = s.Codextn.Description,
-                LocCode = s.Codextn.Code
+                LocCode = s.Codextn.Code,
+                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(sel => sel.Description).FirstOrDefault()
             };
         }
 

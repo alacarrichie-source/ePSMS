@@ -6,45 +6,45 @@
 
 <br />
 @*<div class="row k-mb-2">
-    <div class="col-md-3">
-        <div class="col-md-5">
-            @Html.DisplayFor(m => m.PoNo, "Label")
+        <div class="col-md-3">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.PoNo, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
+                        .PromptChar(" ")
+                        .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("onChangePoNo"))
+                        )
+                @Html.ValidationMessageFor(m => m.PoNo)
+            </div>
         </div>
-        <div class="col-md-7">
-            @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
-                    .PromptChar(" ")
-                    .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                    .Events(e => e.Change("onChangePoNo"))
-                    )
-            @Html.ValidationMessageFor(m => m.PoNo)
-        </div>
-    </div>
-</div>*@
+    </div>*@
 
 @(Html.Kendo().PanelBar()
 .Name("panelbar")
 .ExpandMode(PanelBarExpandMode.Multiple)
 .Items(panelbar =>
-    {
-    panelbar.Add().Text("Purchase Orders")
-            //.HtmlAttributes(new { style = "height: calc(30vh); overflow-y: auto;" })
-            .Expanded(true)
-            .Selected(true)
-            .Content(@<text>
-                @RenderOrders()
-            </text>);
-    panelbar.Add().Text("Card Items")
-            //.HtmlAttributes(new { style = "height: calc(70vh); overflow-y: auto;" })
-            .Expanded(true)
-            .Content(@<text>
-                @RenderOrderItems()
-            </text>);
-    })
+{
+panelbar.Add().Text("Purchase Orders")
+        //.HtmlAttributes(new { style = "height: calc(30vh); overflow-y: auto;" })
+        .Expanded(true)
+        .Selected(true)
+        .Content(@<text>
+            @RenderOrders()
+        </text>);
+panelbar.Add().Text("Card Items")
+        //.HtmlAttributes(new { style = "height: calc(70vh); overflow-y: auto;" })
+        .Expanded(true)
+        .Content(@<text>
+            @RenderOrderItems()
+        </text>);
+})
 )
 
 @helper RenderOrders()
 {
-@(Html.Kendo().Grid<iLgs.Models.PoAdjustmentVM>()
+    @(Html.Kendo().Grid<iLgs.Models.PoAdjustmentVM>()
         .Name("gridPo")
         .HtmlAttributes(new { @class = "grid-1" })
         .Columns(col =>
@@ -107,12 +107,12 @@
             .Edit("onEditGridPo")
             .DataBound("onDataBoundGridPo")
             ).AutoBind(true)
-)
+    )
 }
 
 @helper RenderOrderItems()
 {
-@(Html.Kendo().Grid<iLgs.Models.QueryPoVM>()
+    @(Html.Kendo().Grid<iLgs.Models.QueryPoVM>()
         .HtmlAttributes(new { @class = "grid-2" })
         .Name("grid")
         .Columns(col =>
@@ -195,6 +195,8 @@
             //t.Custom().Text("Print - Update").IconClass("k-icon k-i-print").Name("btnPrintCardUpdate").HtmlAttributes(new { @class = "k-button", href = "" });
             //t.Search();
             t.Custom().Text("Transfer Fund").IconClass("k-icon k-i-export").Name("btnTransferCard").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Transfer Department").IconClass("k-icon k-i-export").Name("btnTransferDept").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Transfer PO Number").IconClass("k-icon k-i-export").Name("btnTransferPoNo").HtmlAttributes(new { @class = "k-button", href = "" });
         })
         //.Search(s =>
         //{
@@ -248,7 +250,7 @@
             .Change("onChangeGrid")
             .DataBound("onDataBoundGrid")
         ).AutoBind(false)
-)
+    )
 }
 
 <script id="DetailTemplate" type="text/kendo-tmpl">
@@ -256,8 +258,9 @@
     .Name("gridItem_#=Id#")
     .Columns(col =>
     {
+        col.Bound(c => c.Consumable).Width(50);
         col.Bound(c => c.StockNo).Width(100);
-        col.Bound(c => c.Account).Width(100).Title("Main Account");        
+        col.Bound(c => c.Account).Width(100).Title("Main Account");
         col.Bound(c => c.Description).Width(150);
         col.Bound(c => c.Unit).Width(50);
         col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -272,10 +275,11 @@
         col.Bound(c => c.UpdatedBy).Width(70);
         col.Bound(c => c.UpdatedDt).Width(100);
         col.Command(commands =>
-            {                
-                commands.Custom("Transfer Account").IconClass("k-icon k-i-export").SendDataKeys(true).Click("onClickTransfer");                
-            }).Width(100);
+        {
+            commands.Custom("Transfer Account").IconClass("k-icon k-i-export").SendDataKeys(true).Click("onClickTransfer");
+        }).Width(100);
     })
+    .Filterable()
     .Sortable()
     .NoRecords()
     .DataSource(dataSource => dataSource
@@ -294,13 +298,14 @@
         //.Read(read => read.Action("PoItemRead", "PoTransfer", new { fund = "#=Fund#",  poNo = "#=PoNo#", poDate = "#= kendo.toString(PoDate, 'yyyy-MM-dd') #"}))
         .Read(read => read.Action("PoItemRead", "PoTransfer")
             .Data(@<text>
-                function() {
-                    return {
-                        fund: "#=Fund#",
-                        poNo: "#=PoNo#",
-                        poDate: kendo.toString(new Date("#=PoDate#"), "yyyy-MM-dd")
-                    };
-                }
+            function() {
+                return {
+                    fund: "#=Fund#",
+                    poNo: "#=PoNo#",
+                    poDate: kendo.toString(new Date("#=PoDate#"), "yyyy-MM-dd"),
+                    deptId: "#=DeptId#"
+                };
+            }
             </text>)
             )
     )
@@ -427,6 +432,8 @@
         selectedPoNo = null;
         selectedPoDate = null;
         selectedPoFund = null;
+        selectedDeptId = null;
+        selectedDepartment = null;
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
@@ -456,10 +463,9 @@
             //e.model.set("ForYear", $("#forYear").val());
         } else {
             selectedIdPo = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedId);
+            var rowitem = selectedGrid.dataSource.get(selectedIdPo);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
-
     }
 
     function onGridDeleteClickPo(e) {
@@ -478,6 +484,8 @@
         selectedPoNo = null;
         selectedPoDate = null;
         selectedPoFund = null;
+        selectedDeptId = null;
+        selectedDepartment = null;
         $("#grid").data("kendoGrid").dataSource.read();
     }
 
@@ -517,6 +525,8 @@
     var selectedPoNo = null;
     var selectedPoDate = null;
     var selectedPoFund = null;
+    var selectedDeptId = null;
+    var selectedDepartment = null
 
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
@@ -562,12 +572,12 @@
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 selectedGrid.dataSource.read();
             }
-            if (e.type == "create")
-            {
-                var responseData = e.response;
-                var newRecord = responseData.Data[0];
-                selectedId = newRecord.Id;
-            }
+            //if (e.type == "create")
+            //{
+            //    var responseData = e.response;
+            //    var newRecord = responseData.Data[0];
+            //    selectedId = newRecord.Id;
+            //}
         }
     }
 
@@ -578,6 +588,8 @@
         selectedPoNo = selectedData.PoNo;
         selectedPoDate = selectedData.PoDate;
         selectedPoFund = selectedData.Fund;
+        selectedDeptId = selectedData.DeptId;
+        selectedDepartment = selectedData.Department;
     }
 
     function onDataBoundGrid(e) {
@@ -593,20 +605,12 @@
             var firstRow = this.tbody.find("tr.k-master-row").first();
             this.expandRow(firstRow);
 
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
+            //// Attach a handler to the "detailExpand" event
+            //this.bind("detailExpand", function (e) {
+            //    // Select the expanded master row
+            //    this.select(e.masterRow);
+            //});
         }
-
-        //var grid = $("#grid");
-        //if (this.dataSource.data().length == 0) {
-        //    $(".k-grid-btnPrintCard", grid).hide();
-        //}
-        //else {
-        //    $(".k-grid-btnPrintCard", grid).show();
-        //}
     }
 
 
@@ -642,17 +646,17 @@
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
         } else {
-            //var row = e.sender.tbody.find("tr:first");
-            //this.select(row);
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
 
-            var firstRow = this.tbody.find("tr.k-master-row").first();
-            this.expandRow(firstRow);
+            //var firstRow = this.tbody.find("tr.k-master-row").first();
+            //this.expandRow(firstRow);
 
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
+            //// Attach a handler to the "detailExpand" event
+            //this.bind("detailExpand", function (e) {
+            //    // Select the expanded master row
+            //    this.select(e.masterRow);
+            //});
         }
     }
 
@@ -684,7 +688,98 @@
             data: {
                 poNo: selectedPoNo,
                 poDate: kendo.toString(new Date(selectedPoDate), "yyyy-MM-dd"),
-                fund: selectedPoFund
+                fund: selectedPoFund,
+                deptId: selectedDeptId,
+                department: selectedDepartment
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    });
+
+
+    $(".k-grid-btnTransferDept").click(function (e) {
+        e.preventDefault();
+        var myTitle = "PO Transfer to other Department";
+        var width = 500;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_TransferDept", "PoTransfer")',
+            data: {
+                poNo: selectedPoNo,
+                poDate: kendo.toString(new Date(selectedPoDate), "yyyy-MM-dd"),
+                fund: selectedPoFund,
+                deptId: selectedDeptId,
+                department: selectedDepartment
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    });
+
+    $(".k-grid-btnTransferPoNo").click(function (e) {
+        e.preventDefault();
+        var myTitle = "PO Transfer to other PO Number";
+        var width = 500;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_TransferPoNo", "PoTransfer")',
+            data: {
+                poNo: selectedPoNo,
+                poDate: kendo.toString(new Date(selectedPoDate), "yyyy-MM-dd"),
+                fund: selectedPoFund,
+                deptId: selectedDeptId,
+                department: selectedDepartment
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -769,6 +864,18 @@
             $("#SubAccount4").val(dataItem.SubAccount4).trigger("change");
             $("#Article").val(dataItem.Article).trigger("change");
         }
+    }
+
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#DeptDisplay").val(dataItem.Description).trigger("change");
+    }
+
+    function onSelectNewDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#NewDeptDisplay").val(dataItem.Description).trigger("change");
     }
 </script>
 

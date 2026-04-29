@@ -147,7 +147,7 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public IQueryable<ItemCodeVM> GetAllByItemTypeIdOld(Guid? itemTypeId)
+        public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {
             var data = _db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
@@ -171,7 +171,7 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
+        public IQueryable<ItemCodeVM> GetAllByItemTypeIdX(Guid? itemTypeId)
         {
             //var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();
             var data = _db.Database.Connection.Query<ItemCodeVM>("Exec ItemCodes_Get {0}", itemTypeId).AsQueryable();

@@ -11,7 +11,7 @@ namespace iLgs.Models
         [Display(Name = "For Year")]
         public Nullable<int> ForYear { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 

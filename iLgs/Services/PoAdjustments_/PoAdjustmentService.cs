@@ -168,27 +168,42 @@ namespace iLgs.Services.PoAdjustments_
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.ForYear)), "Field is required.");
             //}
 
-            if (string.IsNullOrWhiteSpace(model.PoNo))
+            //if (string.IsNullOrWhiteSpace(model.PoNo))
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (mode == Mode.ADD)
+            //    {
+            //        //if (_db.PoAdjustments.Where(w => w.ForYear == model.ForYear && w.PoNo == model.PoNo).Any())
+            //        if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo).Any())
+            //        {
+            //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
+            //        }
+            //    }
+            //    else if (mode == Mode.EDIT)
+            //    {
+            //        //if (_db.PoAdjustments.Where(w => w.ForYear == model.ForYear && w.PoNo == model.PoNo && w.Id != model.Id).Any())
+            //        if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo && w.Id != model.Id).Any())
+            //        {
+            //            _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
+            //        }
+            //    }
+            //}
+
+            if (mode == Mode.ADD)
             {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
-            }
-            else
-            {
-                if (mode == Mode.ADD)
+                if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo).Any())
                 {
-                    //if (_db.PoAdjustments.Where(w => w.ForYear == model.ForYear && w.PoNo == model.PoNo).Any())
-                    if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo).Any())
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
-                    }
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
                 }
-                else if (mode == Mode.EDIT)
+            }
+            else if (mode == Mode.EDIT)
+            {
+                if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo && w.Id != model.Id).Any())
                 {
-                    //if (_db.PoAdjustments.Where(w => w.ForYear == model.ForYear && w.PoNo == model.PoNo && w.Id != model.Id).Any())
-                    if (_db.PoAdjustments.Where(w => w.PoNo == model.PoNo && w.Id != model.Id).Any())
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
-                    }
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Already Exists.");
                 }
             }
 

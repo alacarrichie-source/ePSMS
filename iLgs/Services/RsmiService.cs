@@ -1,8 +1,10 @@
-﻿using iLgs.Exceptions;
+﻿using Dapper;
+using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +14,10 @@ namespace iLgs.Services
     public interface IRsmiService
     {
         IQueryable<RsmiVM> GetAll();
+        IQueryable<RSMITotalVM> GetTotal(string type, DateTime? startDate, DateTime? endDate);
+        Task<IEnumerable<RSMITotalVM>> GetTotalAsync(string type, DateTime? startDate, DateTime? endDate);
+        IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, Guid? deptId);
+
         ValueTask<RSMIProcessVM> GenerateAsync(RSMIProcessVM model, string user, DateTime date);
         ValueTask<RsmiVM> UpdateAsync(RsmiVM model, string user, DateTime date);
         ValueTask<RsmiVM> DeleteAsync(RsmiVM model, string user, DateTime date);
@@ -103,6 +109,43 @@ namespace iLgs.Services
                 });
             return data;
         });
+
+        public IQueryable<RSMITotalVM> GetTotal(string type, DateTime? startDate, DateTime? endDate)
+        {
+            var spvh = _semiExpendableService.GetSPHV(startDate);
+            var data = _db.Database.SqlQuery<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal {0}, {1}, {2}, {3}"
+                , string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type
+                , startDate
+                , endDate
+                , spvh).AsQueryable();
+            return data;
+        }
+
+        public async Task<IEnumerable<RSMITotalVM>> GetTotalAsync(string type, DateTime? startDate, DateTime? endDate)
+        {
+            var spvh = _semiExpendableService.GetSPHV(startDate);
+            var data = await _db.Database.SqlQuery<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal {0}, {1}, {2}, {3}"
+                , string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type
+                , startDate
+                , endDate
+                , spvh).ToListAsync();
+            return data;
+        }
+
+        public IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, Guid? deptId)
+        {
+            var spvh = _semiExpendableService.GetSPHV(startDate);
+            var data = _db.Database.Connection.Query<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal @p0, @p1, @p2, @p3, @p4"
+                , new
+                {
+                    p0 = string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type,
+                    p1 = startDate,
+                    p2 = endDate,
+                    p3 = spvh,                    
+                    p4 = deptId == Guid.Empty ? null : deptId
+                }).ToList();
+            return data;
+        }
 
         public ValueTask<RSMIProcessVM> GenerateAsyncOld(RSMIProcessVM model, string user, DateTime date) =>
         _processExceptionService.TryCatch(async () =>

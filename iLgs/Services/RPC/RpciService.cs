@@ -1,9 +1,11 @@
-﻿using iLgs.Exceptions;
+﻿using Dapper;
+using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.PurchaseOrder;
 using iLgs.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +17,11 @@ namespace iLgs.Services.RPC
         IQueryable<RPCI_VM> GetAll();
         IQueryable<RPCI_VM> GetAll(bool? isPosted, string type);
         IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id);
+
+        IQueryable<RPCITotalVM> GetTotal(string type, DateTime? asOf, string fund, string fromDonation, string invDist);
+
+        List<RPCITotalVM> GetTotalList(string type, DateTime? asOf, string fund, string fromDonation, string invDist, Guid? deptId);
+
         ValueTask<RPCI> GetByIdAsync(Guid? id);
         ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
         ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date);
@@ -86,6 +93,35 @@ namespace iLgs.Services.RPC
             var data = await _db.RPCIs.FindAsync(id);
             return data;
         });
+
+        public IQueryable<RPCITotalVM> GetTotal(string type, DateTime? asOf, string fund, string fromDonation, string invDist)
+        {
+            var spvh = _semiExpendableService.GetSPHV(asOf);
+            var data = _db.Database.SqlQuery<RPCITotalVM>("Exec REPORTS_Rpci_GetTotal {0}, {1}, {2}, {3}, {4}, {5}"
+                , string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type
+                , asOf
+                , string.IsNullOrWhiteSpace(fund) || fund == "ALL" ? null : fund
+                , string.IsNullOrWhiteSpace(fromDonation) || fromDonation == "ALL" ? (bool?)null : (fromDonation == "D")
+                , string.IsNullOrWhiteSpace(invDist) || invDist == "ALL" ? null : invDist
+                , spvh).AsQueryable();
+            return data;
+        }
+
+        public List<RPCITotalVM> GetTotalList(string type, DateTime? asOf, string fund, string fromDonation, string invDist, Guid? deptId)
+        {
+            var spvh = _semiExpendableService.GetSPHV(asOf);
+            var data = _db.Database.Connection.Query<RPCITotalVM>("Exec REPORTS_Rpci_GetTotal @p1, @p2, @p3, @p4, @p5, @p6, @p7",
+                new {
+                    p1 = string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type
+                    , p2 = asOf
+                    , p3 = string.IsNullOrWhiteSpace(fund) || fund == "ALL" ? null : fund
+                    , p4 = string.IsNullOrWhiteSpace(fromDonation) || fromDonation == "ALL" ? (bool?)null : (fromDonation == "D")
+                    , p5 = string.IsNullOrWhiteSpace(invDist) || invDist == "ALL" ? null : invDist
+                    , p6 = spvh
+                    , p7 = deptId == Guid.Empty ? null: deptId
+                }).ToList();
+            return data;
+        }
 
         public IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id)
         {

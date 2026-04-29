@@ -216,4 +216,24 @@ namespace iLgs.Models
             }
         }
     }
+
+    public class RSMITotalVM
+    {
+        public Guid? Id { get; set; }
+        public string ItemType { get; set; }
+        public string Account { get; set; }
+        public string SubAccount { get; set; }
+        public int? PoQty { get; set; }
+        public int? QtyIssPast { get; set; }
+        public int? QtyIss { get; set; }
+        public int? QtyBalancePast { get; set; }
+        public int? QtyBalance { get; set; }
+        public Nullable<decimal> PoAmount { get; set; }
+        public Nullable<decimal> IssPastAmount { get; set; }
+        public Nullable<decimal> BalancePastAmount { get; set; }
+        public Nullable<decimal> IssAmount { get; set; }
+        public Nullable<decimal> BalanceAmount { get; set; }
+        public int? QtyIssTotal { get; set; }
+        public Nullable<decimal> IssTotalAmount { get; set; }
+    }
 }

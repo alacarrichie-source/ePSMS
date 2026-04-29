@@ -1,0 +1,516 @@
+﻿@{
+    ViewBag.Title = "RPCI - Running Total";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("As of", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().DatePicker().Name("asOf")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
+            )            
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("type")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Placeholder("Select")
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)                
+                //.Value("ALL")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "ITEM-TYPE", addAll = true });
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Select("blankGrid"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("fund")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    //.Placeholder("Select Fund")
+                    .DataTextField("Description")
+                    .DataValueField("Code")
+                    .Filter(FilterType.Contains)
+                    //.Value("ALL")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = true });
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Events(e => e.Select("blankGrid"))
+                    .Suggest(true)
+            )            
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        <div class="col-md-2">
+            @Html.Label("Acquisition Mode")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("fromDonation")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Placeholder("Select")
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                //.Value("ALL")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "ACQ-MODE", addAll = true });
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Select("blankGrid"))
+                .Suggest(true)
+            )
+        </div>
+
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Inventory/For Distribution", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("invDist")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Placeholder("Select")
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                //.Value("ALL")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = true });
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Select("blankGrid"))
+                .Suggest(true)
+            )            
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox()
+                    .Name("deptId")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Department")
+                    .DataTextField("Description")
+                    .DataValueField("Id")
+                    .ValuePrimitive(true)
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetDepartmentAll", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Events(e => e.Select("blankGrid"))
+                    .Suggest(true)
+            )            
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        <div class="col-md-2">
+            &nbsp;
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().Button().Name("btnSubmit").Content("Submit").ThemeColor(ThemeColor.Primary)
+            .Events(e => e.Click("refreshGrid")))
+        </div>
+    </div>
+</div>
+
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.RPCITotalVM>()
+    .Name("grid")
+    //.HtmlAttributes(new { @class = "max-grid" })
+    .Columns(columns =>
+    {
+        columns.Bound(f => f.ItemType).Width(50);
+        columns.Bound(f => f.Account).Width(50);
+        columns.Bound(f => f.SubAccount).Width(50);
+        columns.Bound(f => f.Qty).Width(50).Title("Quantity")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.QtyIss).Width(50).Title("Quantity<br>Issue")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.TotalBalance).Width(50).Title("Quantity<br>Balance")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.AcqCost).Width(50).Title("Acquisition<br>Cost")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.ItemType, "contains");
+        s.Field(o => o.Account, "contains");
+        s.Field(o => o.SubAccount, "contains");
+    })
+    .Pageable(pager => pager
+        //.Input(false)
+        //.Numeric(true)
+        //.Info(true)
+        //.PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+    //.ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(100000)
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.Qty).Sum();
+            a.Add(p => p.QtyIss).Sum();
+            a.Add(p => p.TotalBalance).Sum();
+            a.Add(p => p.AcqCost).Sum();
+        })
+        .Group(x =>
+        {
+            x.Add(y => y.ItemType);
+            x.Add(y => y.Account);
+
+        })
+        .Sort(s =>
+        {
+            s.Add(a => a.ItemType);
+            s.Add(a => a.Account);
+            s.Add(a => a.SubAccount);
+        })
+        .Read(read => read.Action("RunningTotalRead", "Rpci").Data("DataGrid"))
+    ).AutoBind(false)
+    //.Events(events => events
+    //    .Change("onChangeGrid")
+    //    .DataBound("onDataBoundGrid")
+    //    )
+)
+
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
+)
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
+        width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    #grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(65vh - 180px) !important;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    @*<li>
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    var type = null;
+    var asOf = null;
+    var fund = null;
+    var fromDonation = null;
+    var invDist = null;
+    var deptId = null;
+    //function refreshGrid(e) {
+    //    $("#grid").data("kendoGrid").dataSource.read();
+    //}
+
+    function blankGrid(e) {
+        $("#grid").data("kendoGrid").dataSource.data([]);
+    }
+
+    let timer;
+    function refreshGrid() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            $("#grid").data("kendoGrid").dataSource.read();
+        }, 100);
+    }
+
+    //$(document).ready(function () {
+    //    refreshGrid();
+    //});
+
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+            //var subGridName = $(e.sender).closest(".k-grid").attr("id");
+            //$("#" + subGridName).data("kendoGrid").dataSource.read();
+        }
+    }
+    //$(window).on("resize", function () {
+    //    var gridElement = $("#grid"),
+    //        dataArea = gridElement.find(".k-grid-content"),
+    //        gridHeight = gridElement.innerHeight(),
+    //        otherElements = gridElement.children().not(".k-grid-content"),
+    //        otherElementsHeight = 0;
+    //        otherElements.each(function () {
+    //            otherElementsHeight += $(this).outerHeight();
+    //        });
+    //    dataArea.height(gridHeight - otherElementsHeight);
+    //});
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    //var selectedItemId = null;
+    //var selectedUnitCost = null;
+    //var selectedDepartment = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        var grid = $("#grid");
+
+        selectedId = selectedData.Id;
+        //selectedUnitCost = selectedData.UnitCost;
+        //selectedItemId = null;
+        //selectedDepartment = selectedData.Department;
+        //postedBy = null;
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            //var firstRow = this.tbody.find("tr.k-master-row").first();
+            //this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            //this.bind("detailExpand", function (e) {
+            //    // Select the expanded master row
+            //    this.select(e.masterRow);
+            //});
+        }
+    }
+
+    function onRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                selectedGrid.dataSource.read();
+            }
+        }
+    }
+
+    function DataGrid() {
+        type = $("#type").data("kendoMultiColumnComboBox").value();
+        asOf = $("#asOf").data("kendoDatePicker").value();
+        fund = $("#fund").data("kendoMultiColumnComboBox").value();
+        fromDonation = $("#fromDonation").data("kendoMultiColumnComboBox").value();
+        invDist = $("#invDist").data("kendoMultiColumnComboBox").value();
+        deptId = $("#deptId").data("kendoMultiColumnComboBox").value();
+        return {
+            type: type,
+            asOf: asOf,
+            fund: fund,
+            fromDonation: fromDonation,
+            invDist: invDist,
+            deptId: deptId
+        };
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }
+
+</script>
+
+
+

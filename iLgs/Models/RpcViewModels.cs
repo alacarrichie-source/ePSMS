@@ -7,7 +7,7 @@ using System.Web;
 namespace iLgs.Models
 {
     public class RPCI_VM
-    {        
+    {
         public System.Guid Id { get; set; }
 
         public string Type { get; set; }
@@ -65,7 +65,7 @@ namespace iLgs.Models
         [Display(Name = "Inventory/For distribution")]
         //public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
         public string InvDistDesc { get; set; }
-   
+
         [Display(Name = "Acquisition Mode")]
         //public string AcqMode { get { return this.FromDonation == true ? "From Donation" : "Purchase"; } }
         public string AcqMode { get; set; }
@@ -98,14 +98,14 @@ namespace iLgs.Models
         public int? QtySE { get; set; }
 
         [Display(Name = "Total Semi-Expendable Amount")]
-        public decimal? AmountSE { get; set; }        
+        public decimal? AmountSE { get; set; }
     }
 
     public class RPCIItemVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
-        
+
         [Display(Name = "Article")]
         public Nullable<System.Guid> ItemCodeId { get; set; }
 
@@ -206,7 +206,7 @@ namespace iLgs.Models
         {
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> RpciId { get; set; }
-            
+
             [Display(Name = "Article")]
             public Nullable<System.Guid> ItemCodeId { get; set; }
 
@@ -294,7 +294,7 @@ namespace iLgs.Models
     public class RPCEFFOPPE_VM
     {
         public System.Guid Id { get; set; }
-        
+
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "As At")]
         public Nullable<System.DateTime> AsAt { get; set; }
@@ -358,7 +358,7 @@ namespace iLgs.Models
 
         [Display(Name = "Property No.")]
         public string PropertyNo { get; set; }
-        
+
         [Display(Name = "Cost")]
         public Nullable<decimal> Cost { get; set; }
 
@@ -372,7 +372,7 @@ namespace iLgs.Models
     }
 
     public class RpcPpeVM
-    {        
+    {
         public System.Guid Id { get; set; }
         [Display(Name = "As Of Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -404,7 +404,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-     
+
     }
 
     public class RpcPpeItemVM
@@ -463,6 +463,35 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    }
+   
+    public class RPCITotalVM
+    {
+        public Guid Id { get; set; }
+
+        [Display(Name = "Item Type")]
+        public string ItemType { get; set; }
+        public string Account { get; set; }
+
+        [Display(Name = "Sub-Account")]
+        public string SubAccount { get; set; }
+
+        public int? Qty { get; set; }
+
+        [Display(Name = "Qty Issued")]
+        public int? QtyIss { get; set; }
+
+        [Display(Name = "Qty-In Balance")]
+        public int? QtyInBalance { get; set; }
+
+        [Display(Name = "Transfer-In Balance")]
+        public int? TransferInBalance { get; set; }
+
+        [Display(Name = "Total Balance")]
+        public int? TotalBalance { get; set; }
+
+        [Display(Name = "Acquisition Cost")]
+        public decimal? AcqCost { get; set; }
     }
 }

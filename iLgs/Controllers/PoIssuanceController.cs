@@ -28,6 +28,7 @@ namespace iLgs.Controllers
         private readonly IIcsParItemService _icsParItemService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
+        //private readonly string[] _menuId = { "issuance", "issuance_query" };
 
         public PoIssuanceController()
         {
@@ -53,13 +54,20 @@ namespace iLgs.Controllers
         // GET: PoIssuance
         public ActionResult Index()
         {
+            ViewBag.IsViewOnly = false;
             return View();
         }
 
-        public async Task<ActionResult> IssuanceRead([DataSourceRequest] DataSourceRequest request)
+        public ActionResult Query()
+        {
+            ViewBag.IsViewOnly = true;
+            return View("Index");
+        }
+
+        public async Task<ActionResult> IssuanceRead([DataSourceRequest] DataSourceRequest request, bool? isViewOnly)
         {
             var userId = User.Identity.GetUserId();
-            var data = await _poIssuanceService.GetAllAsync(userId);
+            var data = await _poIssuanceService.GetAllListAsync(userId, isViewOnly);
 
             var result = new JsonNetResult
             {
@@ -70,7 +78,7 @@ namespace iLgs.Controllers
             return result;
         }
         
-        public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId, Guid? locationId)
+        public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId, Guid? locationId, bool? isViewOnly)
         {
             var model = await  _psCardService.PsCardItem.GetByTransferIdAsync(transferId);
 
@@ -82,6 +90,7 @@ namespace iLgs.Controllers
             ViewData["ItemExtnName"] = _psCardService.GetItemExtnName(cardItemId);
             ViewData["DefaultLocation"] = locationId ?? deptId;
             ViewBag.DefaultLocation = locationId ?? deptId;
+            ViewData["IsViewOnly"] = isViewOnly; // viewbag not working in key "if condiction"
             return PartialView();
         }
         
@@ -561,6 +570,24 @@ namespace iLgs.Controllers
         public ActionResult SummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear)
         {
             var data = _poIssuanceService.GetSummary(forYear);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public ActionResult PoSummary()
+        {
+            return View();
+        }
+
+        public ActionResult PoSummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear)
+        {
+            var data = _poIssuanceService.GetSummaryByPo(forYear);
 
             var result = new JsonNetResult
             {

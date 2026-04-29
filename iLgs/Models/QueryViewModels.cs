@@ -57,6 +57,8 @@ namespace iLgs.Models
         [Display(Name = "User Name")]
         public string UserName { get; set; }
 
+        public Guid? DeptId { get; set; }
+
         [Display(Name = "Dept. Code")]
         public string DeptCode { get; set; }
 

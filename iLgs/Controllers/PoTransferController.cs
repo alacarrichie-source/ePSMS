@@ -176,6 +176,7 @@ namespace iLgs.Controllers
 
         public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string poNo)
         {
+            poNo = string.IsNullOrWhiteSpace(poNo) ? "NO P.O. Reference" : poNo;
             var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers '', 3, {0}", poNo).AsQueryable();
             //var data = _db.PsCardItems.Where(w => w.PoNo == poNo)
             //    .Select(s => new PsCardItemVM {
@@ -199,13 +200,14 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult PoItemRead([DataSourceRequest] DataSourceRequest request, string fund, string poNo, DateTime? poDate )
+        public ActionResult PoItemRead([DataSourceRequest] DataSourceRequest request, string fund, string poNo, DateTime? poDate, Guid? deptId)
         {
             var data = _db.PsCardItems
                 .Include(i => i.PsCard.ItemCode.ItemType.Description)
                 .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo))) 
                     && w.PoDate == poDate
                     && w.PsCard.Fund == fund
+                    && w.DeptId == deptId
                 ).AsNoTracking()
                 .Select(s => new PsCardItemVM
                 {
@@ -221,7 +223,8 @@ namespace iLgs.Controllers
                     InsertedBy = s.InsertedBy,
                     InsertedDt = s.InsertedDt,
                     UpdatedBy = s.UpdatedBy,
-                    UpdatedDt = s.UpdatedDt
+                    UpdatedDt = s.UpdatedDt,
+                    Consumable = s.IsConsumable.HasValue ? (s.IsConsumable == true ? "Y" :  "N") : s.PsCard.ItemCode.IsConsumable
                 })
                 .AsQueryable();
             var result = new JsonNetResult
@@ -233,14 +236,16 @@ namespace iLgs.Controllers
 
             return result;
         }
-
-        public ActionResult _Transfer(string fund, string poNo, DateTime? poDate)
+        
+        public ActionResult _Transfer(string fund, string poNo, DateTime? poDate, Guid? deptId, string department)
         {
             var data = new PoTransferVM()
             {
                 Fund = fund,
                 PoNo = poNo,
-                PoDate = poDate
+                PoDate = poDate,
+                DeptId = deptId,
+                DeptDisplay = department
             };
 
             return PartialView(data);
@@ -265,6 +270,140 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     await _stockCardService.TransferAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _TransferDept(string fund, string poNo, DateTime? poDate, Guid? deptId, string department)
+        {
+            var data = new PoTransferVM()
+            {
+                Fund = fund,
+                PoNo = poNo,
+                PoDate = poDate,
+                DeptId = deptId,
+                DeptDisplay = department,
+                NewDeptId = deptId
+            };
+
+            return PartialView(data);
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> TransferDept(PoTransferVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "po_transfer");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+                else
+                {
+                    ModelState.Clear();
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.TransferDeptAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _TransferPoNo(string fund, string poNo, DateTime? poDate, Guid? deptId, string department)
+        {
+            var data = new PoTransferPOVM()
+            {
+                Fund = fund,
+                PoNo = poNo,
+                PoDate = poDate,
+                DeptId = deptId,
+                DeptDisplay = department,
+                NewPoDate = poDate,
+            };
+
+            return PartialView(data);
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> TransferPoNo(PoTransferPOVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "po_transfer");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+                else
+                {
+                    ModelState.Clear();
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.TransferPoNoAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

@@ -81,6 +81,32 @@ namespace iLgs.Controllers
             return result;
         }
 
+        public ActionResult RunningTotal()
+        {
+            ViewBag.AsOf = new DateTime(DateTime.Now.Year-1, 12, 31);
+            ViewBag.Type = "ALL";
+            ViewBag.Fund = "ALL";
+            ViewBag.FromDonation = "ALL";
+            ViewBag.InvDist = "ALL";
+            ViewBag.DeptId = Guid.Empty;
+            return View();
+        }
+
+        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? asOf, string fund, string fromDonation, string invDist, Guid? deptId)
+        {
+            var data = _rpciService.GetTotalList(type, asOf, fund, fromDonation, invDist, deptId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> RpciCreate([DataSourceRequest] DataSourceRequest request, RPCI_VM model)
         {

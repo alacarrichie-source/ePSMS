@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using Dapper;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
@@ -17,9 +18,11 @@ namespace iLgs.Services.PoIssuance
     public interface IPoIssuanceService
     {
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
+        Task<IList<PsCardItemVM>> GetAllListAsync(string userId, bool? isViewOnly);
         IQueryable<PsCardItemVM> GetById(Guid? id);
         IQueryable<PsCardItemVM> GetSummary();
         IQueryable<PsCardItemVM> GetSummary(int? forYear);
+        IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear);
         IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? transferId);
         //ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         //ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
@@ -38,6 +41,7 @@ namespace iLgs.Services.PoIssuance
         private readonly IPsCardService _psCardService;
         private readonly IPriceCapService _priceCapService;
         private readonly ICodextnService _codextnService;
+        private int _issuanceYear;
 
         public PoIssuanceService(AppManEntities db)
         {
@@ -50,6 +54,7 @@ namespace iLgs.Services.PoIssuance
             _psCardService = new PsCardService(_db);
             _priceCapService = new PriceCapService(_db);
             _codextnService = new CodextnService(_db);
+            _issuanceYear = int.Parse(_codextnService.GetIssuanceYears().OrderByDescending(o => o.Description).FirstOrDefault().Description);
         }
 
         //public PoIssuanceService(AppManEntities db,
@@ -77,6 +82,11 @@ namespace iLgs.Services.PoIssuance
         {
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
+
+        //private int? GetIssuanceYear()
+        //{
+        //    return _issuanceYear ?? (_issuanceYear = int.Parse(_codextnService.GetIssuanceYears().FirstOrDefault().Description)).Value;
+        //}
 
         private Expression<Func<PsCardItemTransfer, PsCardItemVM>> GetPsCardItemProjection()
         {
@@ -115,22 +125,155 @@ namespace iLgs.Services.PoIssuance
                 Description = s.PsCardItem.Description,
                 DeptDisplay = s.PsCardItem.DeptDisplay,
                 StockNo = s.PsCardItem.PsCard.PsNo,
-                ParBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                IcsBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                //ParBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                //IcsBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.PsCardItem.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                 RemBalance = (int?)s.QtyBal,
+                BalanceAmount = (decimal?)(s.QtyBal * s.PsCardItem.UnitCost),
                 Department = s.PsCardItem.Codextn.Description,
                 Location = s.Codextn.Description,
                 LocCode = s.Codextn.Code,
-                //LocDeptId = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && w.Code.Substring(0, 2) == s.Codextn.Code.Substring(0, 2) && w.Code.TrimEnd().EndsWith("00")).Select(x => x.Id).FirstOrDefault(),
                 InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(x => x.Description).FirstOrDefault(),
                 IssuedStartDate = s.PsCardItemTransferIssuances.Min(m => m.IssuedDate),
                 IssuedLastDate = s.PsCardItemTransferIssuances.Max(m => m.IssuedDate),
                 UpdateStartDate = s.PsCardItemTransferIssuances.Min(m => m.InsertedDt),
-                UpdateLastDate = s.PsCardItemTransferIssuances.Max(m => m.UpdatedDt)
+                UpdateLastDate = s.PsCardItemTransferIssuances.Max(m => m.UpdatedDt),
+                QtyIssPrior = (int?)s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => (int?)x.Qty),
+                QtyIssCurrent = (int?)s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year == _issuanceYear).Sum(x => x.Qty),
+                QtyIssTotal = (int?)s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year <= _issuanceYear).Sum(x => x.Qty) ?? 0,
+                AmountIssPrior = s.PsCardItem.UnitCost * s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => x.Qty),
+                AmountIssCurrent = s.PsCardItem.UnitCost * s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year == _issuanceYear).Sum(x => x.Qty),
+                AmountIssTotal = s.PsCardItem.UnitCost * (s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year <= _issuanceYear).Sum(x => x.Qty) ?? 0),
+                QtyBalPrior = (int?)(s.Qty - (s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => x.Qty) ?? 0)),
+                QtyBalCurrent = (int?)(
+                    (s.Qty - (s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => x.Qty) ?? 0))
+                    - ((s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year == _issuanceYear).Sum(x => x.Qty)) ?? 0)
+                ),
+                AmountBalPrior = s.PsCardItem.UnitCost * (s.Qty - (s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => x.Qty) ?? 0)),
+                AmountBalCurrent = s.PsCardItem.UnitCost * (
+                    (s.Qty - (s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year < _issuanceYear).Sum(x => x.Qty) ?? 0))
+                    - ((s.PsCardItemTransferIssuances.Where(w => w.IssuedDate.Value.Year == _issuanceYear).Sum(x => x.Qty) ?? 0))
+                )
             };
         }
 
         public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)
+        {
+            var isAdmin = await _userService.IsAdminAsync(userId);
+            var issuanceYear = _issuanceYear; // Local variable for closure
+
+            var filteredQuery = _db.PsCardItemTransfers.AsQueryable();
+            if (!isAdmin)
+            {
+                filteredQuery = _db.PsCardItemTransfers.Where(w =>
+                    w.PsCardItem.Codextn.DepartmentUsers.Any(a =>
+                        a.UserId == userId && (
+                            // Condition 1: Direct Location Match
+                            (w.LocationId != null && a.Codextn.Id == w.LocationId) ||
+                            // Condition 2: Fallback to Dept Match if Location is null
+                            (w.LocationId == null && a.Codextn.Id == w.PsCardItem.DeptId) ||
+                            // Condition 3: Hierarchy/Parent Location Logic (SubAccount matching)
+                            (_db.Codextns.Any(w2 =>
+                                w2.CodeMast.Code == "LOCATIONS" &&
+                                w2.Code.Substring(0, 2) == a.Codextn.Code.Substring(0, 2) &&
+                                w2.Code.Trim().EndsWith("00")
+                            ))
+                        )
+                    )
+                );
+            }
+
+            var data = filteredQuery.Select(a => new
+            {
+                // 1. Capture the main entities
+                Source = a,
+                Item = a.PsCardItem,
+                Card = a.PsCardItem.PsCard,
+
+                // 2. Pre-calculate the sums ONCE
+                // We use (int?) to handle empty collections safely in EF6
+                SumPrior = a.PsCardItemTransferIssuances
+                            .Where(w => w.IssuedDate.Value.Year < issuanceYear)
+                            .Sum(x => (int?)x.Qty) ?? 0,
+
+                SumCurrent = a.PsCardItemTransferIssuances
+                            .Where(w => w.IssuedDate.Value.Year == issuanceYear)
+                            .Sum(x => (int?)x.Qty) ?? 0
+            })
+            .Select(s => new PsCardItemVM
+            {
+                // Standard Mappings
+                Id = s.Item.Id,
+                GroupId = s.Item.GroupId,
+                PsCardId = s.Item.PsCardId,
+                OrderItemId = s.Item.OrderItemId,
+                TransferRefId = s.Item.TransferRefId,
+                TransferId = s.Source.Id,
+                ParentId = s.Source.ParentId,
+                Fund = s.Card.Fund,
+                PoNo = s.Item.PoNo,
+                PoDate = s.Item.PoDate,
+                AirDate = s.Item.AirDate,
+                AirNo = s.Item.AirNo,
+                AirIssueDate = s.Item.AirIssueDate,
+                Qty = s.Source.Qty,
+                QtyIss = s.Source.QtyIss,
+                QtyBal = s.Source.QtyBal,
+                TransferIn = s.Source.TransferIn,
+                TransferOut = s.Source.TransferOut,
+                TranType = s.Source.TranType,
+                TransDate = s.Source.TransDate,
+                Unit = s.Item.Unit,
+                UnitCost = s.Item.UnitCost,
+                Amount = s.Source.Amount,
+                Days = s.Item.Days,
+                Remarks = s.Item.Remarks,
+                InsertedDt = s.Item.InsertedDt,
+                DeptId = s.Item.DeptId,
+                LocationId = s.Source.LocationId,
+                Article = _db.SubAccountViews.Where(f => f.Id == s.Card.ItemCodeId).Select(sel => sel.SubAccount + "/" + sel.Description).FirstOrDefault(),
+                Account = s.Card.ItemCode.ItemType.Description,
+                Description = s.Item.Description,
+                DeptDisplay = s.Item.DeptDisplay,
+                StockNo = s.Card.PsNo,
+
+                RemBalance = (int?)s.Source.QtyBal,
+                BalanceAmount = (decimal?)(s.Source.QtyBal * s.Item.UnitCost),
+                Department = s.Item.Codextn.Description,
+                Location = s.Source.Codextn.Description,
+                LocCode = s.Source.Codextn.Code,
+                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.Item.InvDist).Select(x => x.Description).FirstOrDefault(),
+
+                // Aggregates (Dates)
+                IssuedStartDate = s.Source.PsCardItemTransferIssuances.Min(m => m.IssuedDate),
+                IssuedLastDate = s.Source.PsCardItemTransferIssuances.Max(m => m.IssuedDate),
+                UpdateStartDate = s.Source.PsCardItemTransferIssuances.Min(m => m.InsertedDt),
+                UpdateLastDate = s.Source.PsCardItemTransferIssuances.Max(m => m.UpdatedDt),
+
+                // Use the pre-calculated sums to do math
+                // This is much faster as it doesn't create 10+ subqueries
+                QtyIssPrior = s.SumPrior,
+                QtyIssCurrent = s.SumCurrent,
+                QtyIssTotal = s.SumPrior + s.SumCurrent,
+
+                AmountIssPrior = s.Item.UnitCost * s.SumPrior,
+                AmountIssCurrent = s.Item.UnitCost * s.SumCurrent,
+                AmountIssTotal = s.Item.UnitCost * (s.SumPrior + s.SumCurrent),
+
+                // Balance calculations
+                //QtyBalPrior = (int?)((s.Source.Qty ?? 0 + s.Source.TransferIn ?? 0 - s.Source.TransferOut ?? 0) - s.SumPrior),
+                //QtyBalCurrent = (int?)((s.Source.Qty ?? 0 + s.Source.TransferIn ?? 0 - s.Source.TransferOut ?? 0) - (s.SumPrior + s.SumCurrent)),
+                //AmountBalPrior = s.Item.UnitCost * ((s.Source.Qty ?? 0 + s.Source.TransferIn ?? 0 - s.Source.TransferOut ?? 0) - s.SumPrior),
+                //AmountBalCurrent = s.Item.UnitCost * ((s.Source.Qty ?? 0 + s.Source.TransferIn ?? 0 - s.Source.TransferOut ?? 0) - (s.SumPrior + s.SumCurrent))
+                QtyBalPrior = (int?)((s.Source.Qty) - s.SumPrior),
+                QtyBalCurrent = (int?)((s.Source.Qty) - (s.SumPrior + s.SumCurrent)),
+                AmountBalPrior = s.Item.UnitCost * ((s.Source.Qty) - s.SumPrior),
+                AmountBalCurrent = s.Item.UnitCost * ((s.Source.Qty) - (s.SumPrior + s.SumCurrent))
+            });
+
+            return data;
+        }
+
+        public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsyncOld(string userId)
         {
             var isAdmin = await _userService.IsAdminAsync(userId);
             IQueryable<PsCardItemVM> data;
@@ -154,8 +297,8 @@ namespace iLgs.Services.PoIssuance
                                 ||
                                 (a.Codextn.Id == w.PsCardItem.DeptId && w.LocationId == null)
                                 ||
-                                (_db.Codextns.Where(w2 => w2.CodeMast.Code == "LOCATIONS" 
-                                    && w2.Code.Substring(0, 2) == a.Codextn.Code.Substring(0, 2) 
+                                (_db.Codextns.Where(w2 => w2.CodeMast.Code == "LOCATIONS"
+                                    && w2.Code.Substring(0, 2) == a.Codextn.Code.Substring(0, 2)
                                     && w2.Code.TrimEnd().EndsWith("00")).Any()
                                 )
                             )
@@ -165,11 +308,19 @@ namespace iLgs.Services.PoIssuance
             return data;
         }
 
-        public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsyncOld(string userId)
+        public async Task<IList<PsCardItemVM>> GetAllListAsync(string userId, bool? isViewOnly)
         {
-            var IsAdmin = await _userService.IsAdminAsync(userId);
-            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).AsQueryable();
-            return data;
+            if (isViewOnly.HasValue && isViewOnly.Value == true)
+            {
+                var data = _db.Database.Connection.Query<PsCardItemVM>("Exec PoIssuance_GetRecords @p0, @p1", new { p0 = true, p1 = userId }).ToList();
+                return data;
+            }
+            else
+            {
+                var IsAdmin = await _userService.IsAdminAsync(userId);
+                var data = _db.Database.Connection.Query<PsCardItemVM>("Exec PoIssuance_GetRecords @p0, @p1", new { p0 = IsAdmin, p1 = userId }).ToList();
+                return data;
+            }
         }
 
         public IQueryable<PsCardItemVM> GetById(Guid? id)
@@ -187,6 +338,12 @@ namespace iLgs.Services.PoIssuance
         public IQueryable<PsCardItemVM> GetSummary(int? forYear)
         {
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_Summary {0}", forYear).AsQueryable();
+            return data;
+        }
+
+        public IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear)
+        {
+            var data = _db.Database.Connection.Query<PoIssuancePoSumVM>("Exec PoIssuance_SummaryByPo @p0", new { p0 = forYear }).ToList();
             return data;
         }
 
@@ -554,7 +711,7 @@ namespace iLgs.Services.PoIssuance
             targetPsCardItem.InsertedBy = user;
             targetPsCardItem.InsertedDt = date;
             targetPsCardItem.UpdatedBy = user;
-            targetPsCardItem.UpdatedDt = date;            
+            targetPsCardItem.UpdatedDt = date;
 
             _db.PsCardItems.Add(targetPsCardItem);
             await _db.SaveChangesAsync();

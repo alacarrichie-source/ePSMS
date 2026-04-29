@@ -248,6 +248,7 @@ namespace iLgs.Models
 
         [Display(Name = "Consumable")]
         public Nullable<bool> IsConsumable { get; set; }
+        public string Consumable { get; set; }
 
         [Display(Name = "Incorporated")]
         public Nullable<bool> IsIncorporated { get; set; }
@@ -383,7 +384,22 @@ namespace iLgs.Models
 
         [Display(Name = "Update Latest Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> UpdateLastDate { get; set; }        
+        public Nullable<System.DateTime> UpdateLastDate { get; set; }
+
+
+        public Nullable<int> QtyIssPrior { get; set; }
+        public Nullable<int> QtyIssCurrent { get; set; }
+        public Nullable<int> QtyIssTotal { get; set; }
+
+        public Nullable<Decimal> AmountIssPrior { get; set; }
+        public Nullable<Decimal> AmountIssCurrent { get; set; }
+        public Nullable<Decimal> AmountIssTotal { get; set; }
+
+        public Nullable<int> QtyBalPrior { get; set; }
+        public Nullable<int> QtyBalCurrent { get; set; }
+
+        public Nullable<Decimal> AmountBalPrior { get; set; }
+        public Nullable<Decimal> AmountBalCurrent { get; set; }
     }
 
     public class PsCardItemIssuanceVM
@@ -486,6 +502,7 @@ namespace iLgs.Models
     {
         public string Fund { get; set; }
         public string PoNo { get; set; }
+
         public DateTime? PoDate { get; set; }
 
         [Required]
@@ -498,5 +515,65 @@ namespace iLgs.Models
         [Required]
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
+
+        [Display(Name = "Department")]
+        public Guid? DeptId { get; set; }
+
+        public string DeptDisplay { get; set; }
+
+        [Display(Name = "New Department")]
+        public Guid? NewDeptId { get; set; }
+        public string NewDeptDisplay { get; set; }
+    }
+
+    public class PoTransferPOVM
+    {
+        public string Fund { get; set; }
+        public string PoNo { get; set; }
+        public DateTime? PoDate { get; set; }
+
+        [Display(Name = "Department")]
+        public Guid? DeptId { get; set; }
+
+        public string DeptDisplay { get; set; }
+
+        [Required]
+        [Display(Name = "New PO No.")]
+        public string NewPoNo { get; set; }
+
+        [Required]
+        [Display(Name = "New PO Date")]
+        public DateTime? NewPoDate { get; set; }       
+    }
+
+    public class PoIssuancePoSumVM
+    {
+        public Guid Id { get; set; }
+        public string Fund { get; set; }
+        public string InvDist { get; set; }
+        public string PoNo { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public DateTime? PoDate { get; set; }
+        public string DeptCode { get; set; }
+        public string Department { get; set; }
+        public string Account { get; set; }
+        public string SubAccount { get; set; }
+        public string ItemType { get; set; }
+        public Decimal? UnitCost { get; set; }
+        public Decimal? Qty { get; set; }
+        public Decimal? Total { get; set; }
+        public Decimal? IssQtyCur { get; set; }
+        public Decimal? IssQtyPrev1 { get; set; }
+        public Decimal? IssQtyPrev2 { get; set; }
+        public Decimal? IssQtyPrev3 { get; set; }
+        public Decimal? IssQtyTotal { get; set; }
+        public Decimal? IssAmtCur { get; set; }
+        public Decimal? IssAmtPrev1 { get; set; }
+        public Decimal? IssAmtPrev2 { get; set; }
+        public Decimal? IssAmtPrev3 { get; set; }
+        public Decimal? IssAmtTotal { get; set; }
+        public Decimal? IssQtyBalance { get; set; }
+        public Decimal? IssAmtBalance { get; set; }
+
     }
 }

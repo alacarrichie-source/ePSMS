@@ -2,6 +2,8 @@
 using iLgs.Models;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -19,21 +21,27 @@ namespace iLgs.Services.StockCards
         ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);
 
         ValueTask TransferAsync(PoTransferVM model, string user, DateTime date);
+        ValueTask TransferDeptAsync(PoTransferVM model, string user, DateTime date);
+        ValueTask<PoTransferPOVM> TransferPoNoAsync(PoTransferPOVM model, string user, DateTime date);
     }
     public class StockCardService : PsCardService, IStockCardService
     {
         private readonly IExceptionService<StockCardVM> _stockExceptionService;
+        private readonly IExceptionService<PoTransferPOVM> _transferPoNoExceptionService;
         private readonly IStockCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
+        private readonly GetDisplayNameDelegate _getPoTransferDisplayName;
 
         public StockCardService(AppManEntities db)
             : base(db)
         {
-            _stockExceptionService = new ExceptionService<StockCardVM>();
             _validator = new StockCardValidator(_db);
             _itemCodeService = new ItemCodeService(_db);
             _userService = new UserService(_db);
+            _stockExceptionService = new ExceptionService<StockCardVM>();
+            _transferPoNoExceptionService = new ExceptionService<PoTransferPOVM>();
+            _getPoTransferDisplayName = Utility.GetDisplayName<PoTransferPOVM>;
         }
 
         //public StockCardService(AppManEntities db,
@@ -219,7 +227,7 @@ namespace iLgs.Services.StockCards
         public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             var stockNo = await GetStockNoAsync(model);
-            model.PsNo = stockNo;            
+            model.PsNo = stockNo;
             await _validator.ValidateOnCreateAsync(model);
 
             model.Description = "Please see attachment.";
@@ -329,10 +337,12 @@ namespace iLgs.Services.StockCards
             var fund = model.Fund;
             var poNo = model.PoNo;
             var poDate = model.PoDate;
+            var deptId = model.DeptId;
             var newFund = model.NewFund;
             var fromDonation = model.FromDonation;
-            var psCardItems = await _db.PsCardItems.Include(i => i.PsCard.AllField).Where(w => w.PsCard.Fund == fund && w.PoNo == poNo && w.PoDate == poDate).ToListAsync();
-            foreach(var psCardItem in psCardItems)
+            var psCardItems = await _db.PsCardItems.Include(i => i.PsCard.AllField)
+                .Where(w => w.PsCard.Fund == fund && w.PoNo == poNo && w.PoDate == poDate && w.DeptId == deptId).ToListAsync();
+            foreach (var psCardItem in psCardItems)
             {
                 /*
                  * Check if new card, if eof() > create one, transfer old items to new card
@@ -366,7 +376,7 @@ namespace iLgs.Services.StockCards
                 var newPsCard = await _db.PsCards.Where(w => w.PsNo == newPsNo && w.Fund == newFund).SingleOrDefaultAsync();
 
                 if (newPsCard == null)
-                {                    
+                {
                     newPsCard = new PsCard()
                     {
                         Id = Guid.NewGuid(),
@@ -424,7 +434,7 @@ namespace iLgs.Services.StockCards
                         UpdatedBy = user,
                         UpdatedDt = date
                     };
-                                                                    
+
                     newPsCard.AllField = newAllField;
 
                     _db.PsCards.Add(newPsCard);
@@ -438,6 +448,91 @@ namespace iLgs.Services.StockCards
                 await _db.SaveChangesAsync();
             }
         }
+
+        public async ValueTask TransferDeptAsync(PoTransferVM model, string user, DateTime date)
+        {
+            var fund = model.Fund;
+            var poNo = model.PoNo;
+            var poDate = model.PoDate;
+            var deptId = model.DeptId;
+            var psCardItems = await _db.PsCardItems.Where(w => w.PsCard.Fund == fund && w.PoNo == poNo && w.PoDate == poDate && w.DeptId == deptId).ToListAsync();
+            foreach (var psCardItem in psCardItems)
+            {
+                psCardItem.UpdatedBy = user;
+                psCardItem.UpdatedDt = date;
+                psCardItem.DeptId = model.NewDeptId;
+                psCardItem.DeptDisplay = model.NewDeptDisplay;
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public ValueTask<PoTransferPOVM> TransferPoNoAsync(PoTransferPOVM model, string user, DateTime date) => _transferPoNoExceptionService.TryCatch(async () =>
+        {
+            var ex = new InvalidValueException();
+            if (string.IsNullOrWhiteSpace(model.NewPoNo))
+            {
+                ex.UpsertDataList(_getPoTransferDisplayName(nameof(model.NewPoNo)), "Field is required.");
+            }
+            else
+            {
+                if (model.PoNo.Trim().Length != 12 || model.PoNo.Split('-')[2] == "0000")
+                {
+                    ex.UpsertDataList(_getPoTransferDisplayName(nameof(model.NewPoNo)), "Invalid value.");
+                }                
+            }
+
+            if (!model.NewPoDate.HasValue)
+            {
+                ex.UpsertDataList(_getPoTransferDisplayName(nameof(model.NewPoDate)), "Field is required.");
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(model.NewPoNo) && model.NewPoDate.HasValue)
+                {
+                    var refNoParts = model.NewPoNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.NewPoDate.Value.Year || refNoMonth != model.NewPoDate.Value.Month)
+                    {
+                        ex.UpsertDataList(_getPoTransferDisplayName(nameof(model.NewPoNo)), "Series Year and month must be same as the year and month of the New PO date.");
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.NewPoNo) && model.NewPoDate.HasValue)
+            {
+                if (await _db.PsCardItems.AnyAsync(w => w.PoNo == model.NewPoNo && w.PoDate == model.NewPoDate))
+                {
+                    ex.UpsertDataList(_getPoTransferDisplayName(nameof(model.NewPoNo)), "Already Exists.");
+                }
+            }
+
+            ex.ThrowIfContainsErrors();
+
+            var poNo = model.PoNo;
+            var poDate = model.PoDate;
+            var fund = model.Fund;
+            var deptId = model.DeptId;
+            var psCardItems = await _db.PsCardItems.Include(i => i.PsCardItemTransfers).Where(w => w.PoNo == poNo && w.PoDate == poDate && w.PsCard.Fund == fund && w.DeptId == deptId).ToListAsync();
+            foreach (var psCardItem in psCardItems)
+            {
+                psCardItem.UpdatedBy = user;
+                psCardItem.UpdatedDt = date;
+                psCardItem.PoNo = model.NewPoNo;
+                psCardItem.PoDate = model.NewPoDate;
+
+                var psCardItemTransfers = psCardItem.PsCardItemTransfers.Where(w => w.ParentId == null).ToList();
+                foreach (var psCardItemTransfer in psCardItemTransfers)
+                {
+                    psCardItemTransfer.TransDate = model.NewPoDate;
+                    psCardItemTransfer.UpdatedBy = user;
+                    psCardItemTransfer.UpdatedDt = date;
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            return model;
+        });
 
         private void ValidateUser(PsCard entity, StockCardVM model)
         {

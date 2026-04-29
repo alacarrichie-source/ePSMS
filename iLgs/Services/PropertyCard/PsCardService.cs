@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Data.Entity;
@@ -43,7 +44,7 @@ namespace iLgs.Services.PropertyCard
 
     }
 
-    public class PsCardService : IPsCardService
+    public class PsCardService : BaseValidator, IPsCardService
     {
         protected readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;

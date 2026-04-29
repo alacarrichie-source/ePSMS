@@ -9,6 +9,7 @@
     .Columns(columns =>
     {
         columns.Bound(c => c.Fund).Width(40);
+        columns.Bound(c => c.InvDistDesc).Width(70);
         columns.Bound(c => c.Account).Width(100);
         columns.Bound(c => c.SubAccount).Width(100);
         columns.Bound(c => c.Article).Width(100).Title("Articles");

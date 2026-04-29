@@ -1,4 +1,5 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
+using Dapper;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using Kendo.Mvc.Extensions;
@@ -36,7 +37,7 @@ namespace iLgs.Controllers
 
         public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string userName, int? poStatus)
         {
-            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}, {1}", userName, poStatus).AsQueryable();
+            var data = _db.Database.Connection.Query<QueryPoVM>("Exec Card_GetPoNumbers @p0, @p1", new { p0 = userName, p1 = poStatus });
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

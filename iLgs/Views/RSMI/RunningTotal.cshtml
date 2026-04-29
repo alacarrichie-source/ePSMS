@@ -1,0 +1,513 @@
+﻿@{
+    ViewBag.Title = "RSMI - Running Total";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Issued From", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().DatePicker().Name("startDate")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Issued To", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().DatePicker().Name("endDate")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("type")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Placeholder("Select")
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                //.Value("ALL")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "ITEM-TYPE", addAll = true });
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Change("blankGrid"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox()
+                    .Name("deptId")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Department")
+                    .DataTextField("Description")
+                    .DataValueField("Id")
+                    .ValuePrimitive(true)
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetDepartmentAll", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Events(e => e.Select("blankGrid"))
+                    .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        <div class="col-md-2">
+            &nbsp;
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().Button().Name("btnSubmit").Content("Submit").ThemeColor(ThemeColor.Primary)
+            .Events(e => e.Click("refreshGrid")))
+        </div>
+    </div>
+</div>
+
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.RSMITotalVM>()
+    .Name("grid")
+    //.HtmlAttributes(new { @class = "max-grid" })
+    .Columns(columns =>
+    {
+        columns.Bound(f => f.ItemType).Width(50);
+        columns.Bound(f => f.Account).Width(50);
+        columns.Bound(f => f.SubAccount).Width(50);
+        columns.Bound(f => f.PoQty).Width(50).Title("Quantity")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.PoAmount).Width(50).Title("Amount")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Group(group => group.Title("Released")
+            .Columns(info =>
+            {
+                info.Group(g =>
+                {
+                    g.Title("Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(i =>
+                    {
+                        i.Bound(f => f.QtyIssPast).Width(50).Title("Past Years")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.QtyIss).Width(50).Title("Present")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.QtyIssTotal)
+                            .Width(50).Title("Total")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+                info.Group(g =>
+                {
+                    g.Title("Amount").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(i =>
+                    {
+                        i.Bound(f => f.IssPastAmount).Width(50).Title("Past Years")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n2}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.IssAmount).Width(50).Title("Present")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n2}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.IssTotalAmount)
+                            .Width(50).Title("Total")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n2}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        columns.Group(group => group.Title("Balance")
+            .Columns(info =>
+            {
+                info.Group(g =>
+                {
+                    g.Title("Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(i =>
+                    {
+                        i.Bound(f => f.QtyBalancePast).Width(50).Title("Past Years")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.QtyBalance).Width(50).Title("Present")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+                info.Group(g =>
+                {
+                    g.Title("Amount").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(i =>
+                    {
+                        i.Bound(f => f.BalancePastAmount).Width(50).Title("Past Years")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n2}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        i.Bound(f => f.BalanceAmount).Width(50).Title("Present")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                            .ClientFooterTemplate("#=kendo.format('{0:n2}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.ItemType, "contains");
+        s.Field(o => o.Account, "contains");
+        s.Field(o => o.SubAccount, "contains");
+    })
+    .Pageable(pager => pager
+        //.Input(false)
+        //.Numeric(true)
+        //.Info(true)
+        //.PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        //.ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(100000)
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.PoQty).Sum();
+            a.Add(p => p.PoAmount).Sum();
+            a.Add(p => p.QtyIssPast).Sum();
+            a.Add(p => p.QtyIss).Sum();
+            a.Add(p => p.IssPastAmount).Sum();
+            a.Add(p => p.QtyBalancePast).Sum();
+            a.Add(p => p.BalancePastAmount).Sum();
+            a.Add(p => p.IssAmount).Sum();
+            a.Add(p => p.QtyBalance).Sum();
+            a.Add(p => p.BalanceAmount).Sum();
+            a.Add(p => p.QtyIssTotal).Sum();
+            a.Add(p => p.QtyIss).Sum();
+            a.Add(p => p.IssTotalAmount).Sum();
+        })
+        .Group(x =>
+        {
+            x.Add(y => y.ItemType);
+            x.Add(y => y.Account);
+
+        })
+        .Sort(s =>
+        {
+            s.Add(a => a.ItemType);
+            s.Add(a => a.Account);
+            s.Add(a => a.SubAccount);
+        })
+        .Read(read => read.Action("RunningTotalRead", "RSMI").Data("DataGrid"))
+    ).AutoBind(false)
+//.Events(events => events
+//    .Change("onChangeGrid")
+//    .DataBound("onDataBoundGrid")
+//    )
+)
+
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
+)
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
+        width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    #grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(70vh - 180px) !important;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    @*<li>
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    var type = null;
+    var startDate = null;
+    var endDate = null;    
+    var deptId = null;
+    //function refreshGrid(e) {
+    //    $("#grid").data("kendoGrid").dataSource.read();
+    //}
+
+    function blankGrid(e) {
+        $("#grid").data("kendoGrid").dataSource.data([]);        
+    }
+
+    let timer;
+    function refreshGrid() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            $("#grid").data("kendoGrid").dataSource.read();
+        }, 100);
+    }
+
+    //$(document).ready(function () {
+    //    refreshGrid();
+    //});
+
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+            //var subGridName = $(e.sender).closest(".k-grid").attr("id");
+            //$("#" + subGridName).data("kendoGrid").dataSource.read();
+        }
+    }
+    //$(window).on("resize", function () {
+    //    var gridElement = $("#grid"),
+    //        dataArea = gridElement.find(".k-grid-content"),
+    //        gridHeight = gridElement.innerHeight(),
+    //        otherElements = gridElement.children().not(".k-grid-content"),
+    //        otherElementsHeight = 0;
+    //        otherElements.each(function () {
+    //            otherElementsHeight += $(this).outerHeight();
+    //        });
+    //    dataArea.height(gridHeight - otherElementsHeight);
+    //});
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    //var selectedItemId = null;
+    //var selectedUnitCost = null;
+    //var selectedDepartment = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        var grid = $("#grid");
+
+        selectedId = selectedData.Id;
+        //selectedUnitCost = selectedData.UnitCost;
+        //selectedItemId = null;
+        //selectedDepartment = selectedData.Department;
+        //postedBy = null;
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            //var firstRow = this.tbody.find("tr.k-master-row").first();
+            //this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            //this.bind("detailExpand", function (e) {
+            //    // Select the expanded master row
+            //    this.select(e.masterRow);
+            //});
+        }
+    }
+
+    function onRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                selectedGrid.dataSource.read();
+            }
+        }
+    }
+
+    function DataGrid() {
+        type = $("#type").data("kendoMultiColumnComboBox").value();
+        startDate = $("#startDate").data("kendoDatePicker").value();
+        endDate = $("#endDate").data("kendoDatePicker").value();
+        deptId = $("#deptId").data("kendoMultiColumnComboBox").value();
+        return {
+            type: type,
+            startDate: startDate,
+            endDate: endDate,
+            deptId: deptId
+        };
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }
+
+</script>
+
+
+
+

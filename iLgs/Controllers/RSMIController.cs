@@ -46,11 +46,33 @@ namespace iLgs.Controllers
         public ActionResult Index()
         {
             return View();
-        }
+        }        
 
         public ActionResult RSMIRead([DataSourceRequest] DataSourceRequest request)
         {
             var data = _rsmiService.GetAll();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        public ActionResult RunningTotal()
+        {
+            ViewBag.StartDate = new DateTime(DateTime.Now.Year-1, 1, 1);
+            ViewBag.EndDate = new DateTime(DateTime.Now.Year-1, 12, 31);
+            ViewBag.Type = "ALL";
+            ViewBag.DeptId = Guid.Empty;
+            return View();
+        }
+
+        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? startDate, DateTime? endDate, Guid? deptId)
+        {
+            var data = _rsmiService.GetTotalList(type, startDate, endDate, deptId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
