@@ -22,7 +22,7 @@ namespace iLgs.Services.PoIssuance
         IQueryable<PsCardItemVM> GetById(Guid? id);
         IQueryable<PsCardItemVM> GetSummary();
         IQueryable<PsCardItemVM> GetSummary(int? forYear);
-        IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear);
+        IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear, Guid? deptId);
         IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? transferId);
         //ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         //ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
@@ -341,9 +341,11 @@ namespace iLgs.Services.PoIssuance
             return data;
         }
 
-        public IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear)
+        public IList<PoIssuancePoSumVM> GetSummaryByPo(int? forYear, Guid? deptId)
         {
-            var data = _db.Database.Connection.Query<PoIssuancePoSumVM>("Exec PoIssuance_SummaryByPo @p0", new { p0 = forYear }).ToList();
+            string poNo = null;
+            deptId = deptId == Guid.Empty ? null : deptId;
+            var data = _db.Database.Connection.Query<PoIssuancePoSumVM>("Exec PoIssuance_SummaryByPo @p0, @p1, @p2", new { p0 = forYear, @p1 = poNo, @p2 = deptId }).ToList();
             return data;
         }
 

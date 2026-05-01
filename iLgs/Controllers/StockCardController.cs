@@ -1067,7 +1067,7 @@ namespace iLgs.Controllers
             var isConsumableYN = await _db.PsCards.Where(f => f.Id == psCardId).Select(s => s.ItemCode.IsConsumable).FirstOrDefaultAsync();
             var isConsumableTF = _itemCodeService.GetIsConsumable(isConsumableYN);
 
-            return Json(new { Errors = "", IsConsumable = isConsumableTF }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", IsConsumable = isConsumableTF, Consumable = isConsumableYN }, JsonRequestBehavior.AllowGet);
 
         }
 

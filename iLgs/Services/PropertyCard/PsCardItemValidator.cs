@@ -244,6 +244,14 @@ namespace iLgs.Services.PropertyCard
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(model.Consumable))
+            {
+                if (model.Consumable.ToUpper() != "Y" && model.Consumable.ToUpper() != "N")
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.Consumable)), $"Valid value is Y or N.");
+                }
+            }
+
 
             if (mode == Mode.EDIT && model.ParentId != null)
             {

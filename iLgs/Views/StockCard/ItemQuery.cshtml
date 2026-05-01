@@ -8,6 +8,8 @@
     .Name("grid")
     .Columns(columns =>
     {
+        columns.Bound(c => c.SemiExpendable).Width(50);
+        columns.Bound(c => c.EncodedSemiExpendable).Width(50);
         columns.Bound(c => c.Fund).Width(40);
         columns.Bound(c => c.InvDistDesc).Width(70);
         columns.Bound(c => c.Account).Width(100);

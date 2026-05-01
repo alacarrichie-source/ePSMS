@@ -1,5 +1,5 @@
-﻿@*
-@using Kendo.Mvc.UI.Fluent
+﻿
+@*@using Kendo.Mvc.UI.Fluent
 @model IQueryable<iLgs.Models.Menubase>
 @{
     ViewBag.Title = "Home Page";
@@ -24,60 +24,36 @@
     </div>
 
     <div id="top-picks" class="top-picks-container">
-        @(Html.Kendo().ScrollView()
-            .Name("topPicks")
-            .EnablePager(false)
-            .ContentHeight("100%")
-            .TemplateId("topPicks-template")
-            .DataSource(dataSource => dataSource
-            .Custom()
-            .Type("aspnetmvc-ajax")
-            .Transport(transport => transport.Read(read => read.Action("GetHomePages", "Home", new { count = 12 })))
-            .Schema(s => s.Data("Data").Total("Total"))
-            .Sort(s => s.Add("Code"))
-            .ServerPaging(false)
-            .PageSize(3)
-        )
-        .HtmlAttributes(new { style = "max-width: 100%; height: 20em; margin: auto; background: none;" })
-        )
-    </div>
-    
-</div>
-
-<script id="topPicks-template-x" type="text/html">
-    <div class="top-picks">
-        # for (var i = 0; i < data.length; i++) { #
-        <div class="top-pick-card">
-
-            <div class="top-pick-heading">#= data[i].Description #</div>
-            <!-- chart container -->
-            <div id="chart_#=data[i].Code#"
-                 class="chart-holder"
-                 data-code="#=data[i].Code#"
-                 style="width:100%; height:250px;">
+        <div class="top-picks">
+            <div class="top-pick-card" style="width:100%; height:250px;">>
+                <a href="@Url.Action("Index","StockCard")">
+                    <div class="category-heading">Stock Card</div>
+                    <img src="@Url.Content("~/Assets/stock-card.jpg")" class="category-image" />
+                </a>
+            </div>
+            <div class="top-pick-card" style="width:100%; height:250px;">>
+                <a href="@Url.Action("Index","PoIssuance")">
+                    <div class="category-heading">PO Issuance</div>
+                    <img src="@Url.Content("~/Assets/issuance.jpg")" class="category-image" />
+                </a>
+            </div>
+            <div class="top-pick-card" style="width:100%; height:250px;">>
+                <a href="@Url.Action("RunningTotal","RSMI")">
+                    <div class="category-heading-components">RSMI</div>
+                    <img src="@Url.Content("~/Assets/rsmi.jpg")" class="category-image" />
+                </a>
+            </div>
+            <div class="top-pick-card" style="width:100%; height:250px;">>
+                <a href="@Url.Action("RunningTotal","Rpci")">
+                    <div class="category-heading">RPCI</div>
+                    <img src="@Url.Content("~/Assets/rpci.jpg")" class="category-image" />
+                </a>
             </div>
         </div>
-        # } #
-    </div>
-</script>
+    </div>    
+</div>*@
 
-<script id="topPicks-template" type="text/html">
-    <div class="top-picks">
-        # for (var i = 0; i < data.length; i++) { #
-        <div class="top-pick-card">
-            <a href="#= data[i].Url #">
-                <div class="top-pick-heading">#= data[i].Description #</div>
-                <div class="top-pick-description">
-                    <p>#= data[i].Desc2 #</p>
-                </div>
-            </a>
-        </div>
-        # } #
-    </div>
-</script>
-
-
-<style>
+@*<style>
     .top-pick-heading {
         text-align: center;
     }
@@ -105,15 +81,15 @@
 	.image5 {
 		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
 	}
-</style>
+</style>*@
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        // Wait a tiny moment to ensure ScrollView template is rendered
-        setTimeout(function () {
-            initChart2();
-        }, 100); // small delay ensures template HTML is present
-    });
+@*<script type="text/javascript">
+    //$(document).ready(function () {
+    //    // Wait a tiny moment to ensure ScrollView template is rendered
+    //    setTimeout(function () {
+    //        initChart2();
+    //    }, 100); // small delay ensures template HTML is present
+    //});
 
     function onTopPicksChange(e) {
         initChart2(); // only initialize charts in visible page
@@ -189,59 +165,59 @@
 
 
 @using Kendo.Mvc.UI.Fluent
-@model IQueryable<iLgs.Models.Menubase>
-@{
-    ViewBag.Title = "Home Page";
-    Layout = "~/Views/Shared/_AppLayout.cshtml";
-}
+    @model IQueryable<iLgs.Models.Menubase>
+    @{
+        ViewBag.Title = "Home Page";
+        Layout = "~/Views/Shared/_AppLayout.cshtml";
+    }
 
-    <div class="jumbotron">
-        <div class="logo-container">
-            <div class="logo-row">
-                <img src='@Url.Content("~/Assets/Logo.png")' alt="ePSMS logo" class="logo" />
-                <div class="text-block">
-                    <div class="description">
-                        eProperty and Supplies Management System<br />
-                        Las Pinas City
+        <div class="jumbotron">
+            <div class="logo-container">
+                <div class="logo-row">
+                    <img src='@Url.Content("~/Assets/Logo.png")' alt="ePSMS logo" class="logo" />
+                    <div class="text-block">
+                        <div class="description">
+                            eProperty and Supplies Management System<br />
+                            Las Pinas City
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
-<style>
-    body {
-        background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }
+    <style>
+        body {
+            background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
 
-    .body-opaque {
-        opacity: 0.85;
-    }
+        .body-opaque {
+            opacity: 0.85;
+        }
 
-    .logo-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start; /* aligns logo and text to the left */
-    }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* aligns logo and text to the left */
+        }
 
-    .logo {
-        height: 300px; /* adjust as needed */
-    }
+        .logo {
+            height: 300px; /* adjust as needed */
+        }
 
-    .text-block {
-        margin-top: -180px; /* adjust as needed to reduce space between logo and text */
-        padding-left: 300px; /* slight indent so it aligns under the "e" of the logo */
-    }
+        .text-block {
+            margin-top: -180px; /* adjust as needed to reduce space between logo and text */
+            padding-left: 300px; /* slight indent so it aligns under the "e" of the logo */
+        }
 
-    .description {
-        font-family: Arial, sans-serif;
-        font-size: 16px;
-        line-height: 1.4;
-    }
-</style>
+        .description {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+    </style>
 

@@ -248,6 +248,8 @@ namespace iLgs.Models
 
         [Display(Name = "Consumable")]
         public Nullable<bool> IsConsumable { get; set; }
+
+        [Display(Name = "Consumable (Y/N)")]
         public string Consumable { get; set; }
 
         [Display(Name = "Incorporated")]
@@ -400,6 +402,11 @@ namespace iLgs.Models
 
         public Nullable<Decimal> AmountBalPrior { get; set; }
         public Nullable<Decimal> AmountBalCurrent { get; set; }
+
+        [Display(Name = "Semi-Expendable")]
+        public string SemiExpendable { get; set; }
+        [Display(Name = "Encoded Semi-Expendable")]
+        public string EncodedSemiExpendable { get; set; }
     }
 
     public class PsCardItemIssuanceVM

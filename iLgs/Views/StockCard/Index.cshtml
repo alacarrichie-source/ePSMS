@@ -1470,7 +1470,8 @@
         }
 
         var isAdmin = @(ViewBag.IsAdmin.ToString().ToLower());
-        var switchWidget = $("#IsConsumable").data("kendoSwitch");
+        //var switchWidget = $("#IsConsumable").data("kendoSwitch");
+        var switchWidget = $("#Consumable").data("kendoMaskedTextBox");
         switchWidget.enable(isAdmin);
 
         trackingId = selectedTransferId;
@@ -1491,7 +1492,8 @@
 
     function setIsConsumable(psCardId)
     {
-        var switchWidget = $("#IsConsumable").data("kendoSwitch");
+        //var switchWidget = $("#IsConsumable").data("kendoSwitch");
+        var switchWidget = $("#Consumable").data("kendoMaskedTextBox");
 
          $.ajax({
             type: "POST",
@@ -1506,8 +1508,11 @@
             success: function (result) {
                 window.kendo.ui.progress($(document.body), false);
                 if (result.Errors == "") {
-                    switchWidget.check(result.IsConsumable);
+                    switchWidget.value(result.Consumable);
                     switchWidget.trigger("change");                    
+                    //switchWidget.check(result.Consumable);
+                    //switchWidget.trigger("change");                    
+                    //$("#Consumable").val(result.Consumable).trigger("change");
                 } else {
                     alert(result.Errors);
                     return false;

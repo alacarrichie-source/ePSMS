@@ -298,7 +298,8 @@ namespace iLgs.Services.PropertyCard
                 SetLotRemarks = s.PsCardItem.SetLotRemarks,
                 PostedBy = s.PsCardItem.PostedBy,
                 PostedDt = s.PsCardItem.PostedDt,
-                IsWithItemExtn = s.PsCardItem.PsCardItemExtns.Any()
+                IsWithItemExtn = s.PsCardItem.PsCardItemExtns.Any(),
+                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : ""
             };
         }
 
@@ -418,7 +419,11 @@ namespace iLgs.Services.PropertyCard
                 Department = s.PsCardItem.Codextn.Description,
                 Location = s.Codextn.Description,
                 LocCode = s.Codextn.Code,
-                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(sel => sel.Description).FirstOrDefault()
+                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(sel => sel.Description).FirstOrDefault(),
+                SemiExpendable = (s.PsCardItem.PsCard.ItemCode.ItemType.Code == "S" || s.PsCardItem.PsCard.ItemCode.ItemType.Code == "J") ? "Y" :
+                    s.PsCardItem.PsCard.ItemCode.IsConsumable == "Y" ? "N" : s.PsCardItem.PsCard.ItemCode.IsConsumable == "N" ? "Y" : "",
+                EncodedSemiExpendable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "N" : "Y") : "",
+                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : ""
             };
         }
 
@@ -568,25 +573,17 @@ namespace iLgs.Services.PropertyCard
 
                 if (isAdmin)
                 {
-                    psCardItemEntity.IsConsumable = model.IsConsumable;
+                    if (string.IsNullOrWhiteSpace(model.Consumable))
+                    {
+                        psCardItemEntity.IsConsumable = null;
+                    }
+                    else
+                    {
+                        model.Consumable = model.Consumable.ToUpper();
+                        psCardItemEntity.IsConsumable = model.Consumable == "Y" ? true : false;
+                    }
                 }
-                //else
-                //{
-                //    var  psCard = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(f => f.Id == model.PsCardId);
-                //    if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
-                //    {
-                //        psCardItemEntity.IsConsumable = true;
-                //    }
-                //    else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
-                //    {
-                //        psCardItemEntity.IsConsumable = false;
-                //    }
-                //    else
-                //    {
-                //        psCardItemEntity.IsConsumable = null;
-                //    }
-                //}
-
+                
                 psCardItemEntity.PsCardItemTransfers.Add(psCardItemTransfer);
                 //_db.PsCardItems.Attach(psCardItemEntity);
                 //_db.Entry(psCardItemEntity).State = EntityState.Modified;                    
@@ -651,27 +648,24 @@ namespace iLgs.Services.PropertyCard
 
                 if (isAdmin)
                 {
-                    entity.PsCardItem.IsConsumable = model.IsConsumable;
+                    //entity.PsCardItem.IsConsumable = model.IsConsumable;
+                    if (string.IsNullOrWhiteSpace(model.Consumable))
+                    {
+                        entity.PsCardItem.IsConsumable = null;
+                    }
+                    else
+                    {
+                        model.Consumable = model.Consumable.ToUpper();
+                        entity.PsCardItem.IsConsumable = model.Consumable == "Y" ? true : false;
+                    }
                 }
-                else
-                {
-                    var psCard = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(f => f.Id == model.PsCardId);
-                    psCardItemEntity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);
-                    //if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
-                    //{
-                    //    psCardItemEntity.IsConsumable = true;
-                    //}
-                    //else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
-                    //{
-                    //    psCardItemEntity.IsConsumable = false;
-                    //}
-                    //else
-                    //{
-                    //    psCardItemEntity.IsConsumable = null;
-                    //}
-                }
-
-                //entity.TransDate = model.TransDate;
+                // edit not allowed for users 
+                //else
+                //{
+                //    var psCard = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(f => f.Id == model.PsCardId);
+                //    psCardItemEntity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);                    
+                //}
+                
                 entity.Qty = model.Qty;
                 entity.QtyIss = model.QtyIss;
                 entity.QtyBal = model.QtyBal;
@@ -904,27 +898,25 @@ namespace iLgs.Services.PropertyCard
             entity.GTotalCost = model.TUnitCost * model.QtyBal;
 
             if (isAdmin)
-            {
-                entity.IsConsumable = model.IsConsumable;
+            {                
+                if (string.IsNullOrWhiteSpace(model.Consumable))
+                {
+                    entity.IsConsumable = null;
+                }
+                else
+                {
+                    model.Consumable = model.Consumable.ToUpper();
+                    entity.IsConsumable = model.Consumable == "Y" ? true : false;
+                }
             }
             else
             {
-                var psCard = _db.PsCards.Include(i => i.ItemCode).FirstOrDefault(f => f.Id == model.PsCardId);
-                entity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);
-
-                //var psCard = _db.PsCards.Include(i => i.ItemCode).FirstOrDefault(f => f.Id == model.PsCardId);
-                //if (psCard.ItemCode.IsConsumable?.ToUpper() == "Y")
-                //{
-                //    entity.IsConsumable = true;
-                //}
-                //else if (psCard.ItemCode.IsConsumable?.ToUpper() == "N")
-                //{
-                //    entity.IsConsumable = false;
-                //}
-                //else
-                //{
-                //    entity.IsConsumable = null;
-                //}
+                if (mode == Mode.ADD)
+                {
+                    var psCard = _db.PsCards.Include(i => i.ItemCode).FirstOrDefault(f => f.Id == model.PsCardId);
+                    entity.IsConsumable = _itemCodeService.GetIsConsumable(psCard.ItemCode.IsConsumable);
+                    model.Consumable = entity.IsConsumable.HasValue ? (entity.IsConsumable == true ? "Y" : "N") : "";
+                }
             }
 
             var psCardItemTransfer = new PsCardItemTransfer()

@@ -183,9 +183,16 @@
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
+        //t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
         t.Search();
     })
+    .Excel(excel => excel
+        .FileName("PoIssuance.xlsx")
+        .Filterable(true)
+        .AllPages(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "PoIssuance"))
+    )
     .Search(s =>
     {
         s.Field(o => o.Fund, "contains");
@@ -343,6 +350,11 @@
 
 
 <script type="text/javascript">
+    $("#exportGrid").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").saveAsExcel();
+    });
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }

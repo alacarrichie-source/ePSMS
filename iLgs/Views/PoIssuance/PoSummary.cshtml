@@ -6,7 +6,7 @@
 <div class="row k-mb-2">
     <div class="col-md-5">
         @Html.Label("Issuance Year", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-3">
+        <div class="col-md-6">
             @(Html.Kendo().DropDownList()
                 .Name("forYear")
                 .DataTextField("Description")
@@ -28,17 +28,38 @@
     </div>
 </div>
 
-@*<div class="row k-mb-2">
+<div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("PO Number", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-9">
-            @(Html.Kendo().MaskedTextBox().Mask("0000-00-0000").Name("poNo")
-                    .PromptChar(" ")
-                    .Events(e => e.Change("blankGrid"))
-                    .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))            
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-6">
+            @(Html.Kendo().MultiColumnComboBox()
+                .Name("deptId")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Department")
+                .DataTextField("Description")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetUserDepartmentsWithAllAsync", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                //.Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
+                .Events(e => e.Change("blankGrid"))
+                .Suggest(true)
+            )
         </div>
     </div>
-</div>*@
+</div>
 
 <div class="row k-mb-2">
     <div class="col-md-5">
@@ -62,6 +83,7 @@
         columns.Bound(f => f.ItemType).Width(30).Title("Item Type");
         columns.Bound(f => f.Fund).Width(30);
         columns.Bound(f => f.InvDist).Width(50).Title("Inventory / <br>For Distribution");
+        columns.Bound(f => f.Department).Width(70);
         columns.Bound(f => f.Account).Width(70);
         columns.Bound(f => f.SubAccount).Width(70).Title("Sub-Account");
         columns.Group(group => group.Title("Reference")
@@ -175,8 +197,14 @@
     })
     .ToolBar(t =>
     {
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
         t.Search();
     })
+    .Excel(excel => excel
+        .FileName("PoIssuanceSummaryByPo.xlsx")
+        .AllPages(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "PoIssuance"))
+    )
     .Search(s =>
     {
         s.Field(o => o.Department, "contains");
@@ -229,6 +257,7 @@
         })
         .Group(x =>
         {
+            x.Add(y => y.Department);
             x.Add(y => y.PoNo);
             //x.Add(y => y.PoDate);
             //x.Add(y => y.Account);
@@ -242,10 +271,10 @@
         .ServerOperation(true)
         .Read(read => read.Action("PoSummaryRead", "PoIssuance").Data("DataGrid"))
     ).AutoBind(false)
-    //.Events(events => events
-    //    .Change("onChangeGrid")
-    //    .DataBound("onDataBoundGrid")
-    //    )
+//.Events(events => events
+//    .Change("onChangeGrid")
+//    .DataBound("onDataBoundGrid")
+//    )
 )
 
 <script id="Details" type="text/kendo-tmpl">
@@ -316,7 +345,7 @@
 
     #grid .k-grid-content {
         overflow-x: auto;
-        height: calc(80vh - 200px) !important;
+        height: calc(80vh - 250px) !important;
     }
 </style>
 
@@ -339,16 +368,25 @@
 
 
 <script type="text/javascript">
+    $("#exportGrid").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").saveAsExcel();
+    });
+
     function blankGrid(e) {
         $("#grid").data("kendoGrid").dataSource.data([]);
     }
 
     let timer;
     function refreshGrid() {
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-            $("#grid").data("kendoGrid").dataSource.read();
-        }, 100);
+        if (!$("#deptId").val()) {
+            alert("Department is Required!")
+        } else {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                $("#grid").data("kendoGrid").dataSource.read();
+            }, 100);
+        }
     }
 
     function onChangeForYear(e) {
@@ -470,7 +508,8 @@
 
     function DataGrid() {
         return {
-            forYear: $("#forYear").data("kendoDropDownList").value()
+            forYear: $("#forYear").data("kendoDropDownList").value(),
+            deptId: $("#deptId").data("kendoMultiColumnComboBox").value()
         };
     }
 

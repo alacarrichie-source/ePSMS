@@ -1,4 +1,5 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
+using Dapper;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
@@ -12,6 +13,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
 using System.Data.SqlClient;
@@ -177,26 +179,14 @@ namespace iLgs.Controllers
         public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string poNo)
         {
             poNo = string.IsNullOrWhiteSpace(poNo) ? "NO P.O. Reference" : poNo;
-            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers '', 3, {0}", poNo).AsQueryable();
-            //var data = _db.PsCardItems.Where(w => w.PoNo == poNo)
-            //    .Select(s => new PsCardItemVM {
-            //        Id = s.Id,
-            //        Fund = s.PsCard.Fund,
-            //        PoNo = s.PoNo,
-            //        PoDate = s.PoDate,
-            //        DeptDisplay = s.DeptDisplay,
-            //        Unit = s.Unit,
-            //        UnitCost = s.UnitCost,
-            //        Qty = s.Qty,
-            //        Amount = s.Amount
-            //    });
+            IEnumerable<QueryPoVM> data = _db.Database.Connection.Query<QueryPoVM>("Exec Card_GetPoNumbers '', 3, @p0", new { p0 = poNo }).ToList();            
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-
+            
             return result;
         }
 

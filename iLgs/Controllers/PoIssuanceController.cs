@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PoIssuance;
 using iLgs.Services.PropertyCard;
@@ -28,6 +29,7 @@ namespace iLgs.Controllers
         private readonly IIcsParItemService _icsParItemService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
+        private readonly IUserService _userService;
         //private readonly string[] _menuId = { "issuance", "issuance_query" };
 
         public PoIssuanceController()
@@ -38,6 +40,7 @@ namespace iLgs.Controllers
             _icsParItemService = new IcsParItemService(_db);
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _uploadService = new PoIssuanceUploadService(_db);
+            _userService = new UserService(_db);
         }
 
         //public PoIssuanceController(IPoIssuanceService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
@@ -580,14 +583,19 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult PoSummary()
+        public async Task<ActionResult> PoSummary()
         {
+            var userId = User.Identity.GetUserId();
+            if (await _userService.IsAdminAsync(userId))
+            {
+                ViewBag.DeptId = Guid.Empty;
+            }
             return View();
         }
 
-        public ActionResult PoSummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear)
+        public ActionResult PoSummaryRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId)
         {
-            var data = _poIssuanceService.GetSummaryByPo(forYear);
+            var data = _poIssuanceService.GetSummaryByPo(forYear, deptId);
 
             var result = new JsonNetResult
             {
@@ -792,5 +800,13 @@ namespace iLgs.Controllers
             }
         }
         #endregion
+
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
+        {
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
+        }
     }
 }

@@ -227,7 +227,10 @@ namespace iLgs.Controllers
             }
 
             retModel = model.ToList();
-            retModel.Insert(0, new Codextn { Id = Guid.Empty, Code = "ALL", Description = "ALL" });
+            if (await _userService.IsAdminAsync(userId))
+            {
+                retModel.Insert(0, new Codextn { Id = Guid.Empty, Code = "ALL", Description = "ALL" });
+            }
 
             return Json(retModel.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
 
