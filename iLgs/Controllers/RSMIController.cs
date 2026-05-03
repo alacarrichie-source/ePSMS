@@ -66,13 +66,14 @@ namespace iLgs.Controllers
             ViewBag.StartDate = new DateTime(DateTime.Now.Year-1, 1, 1);
             ViewBag.EndDate = new DateTime(DateTime.Now.Year-1, 12, 31);
             ViewBag.Type = "ALL";
+            ViewBag.Fund = "ALL";
             ViewBag.DeptId = Guid.Empty;
             return View();
         }
 
-        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? startDate, DateTime? endDate, Guid? deptId)
+        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId)
         {
-            var data = _rsmiService.GetTotalList(type, startDate, endDate, deptId);
+            var data = _rsmiService.GetTotalList(type, startDate, endDate, fund, deptId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -584,5 +585,13 @@ namespace iLgs.Controllers
             }
         }
         #endregion        
+
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
+        {
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
+        }
     }
 }

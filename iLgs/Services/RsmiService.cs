@@ -16,7 +16,7 @@ namespace iLgs.Services
         IQueryable<RsmiVM> GetAll();
         IQueryable<RSMITotalVM> GetTotal(string type, DateTime? startDate, DateTime? endDate);
         Task<IEnumerable<RSMITotalVM>> GetTotalAsync(string type, DateTime? startDate, DateTime? endDate);
-        IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, Guid? deptId);
+        IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId);
 
         ValueTask<RSMIProcessVM> GenerateAsync(RSMIProcessVM model, string user, DateTime date);
         ValueTask<RsmiVM> UpdateAsync(RsmiVM model, string user, DateTime date);
@@ -132,17 +132,18 @@ namespace iLgs.Services
             return data;
         }
 
-        public IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, Guid? deptId)
+        public IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId)
         {
             var spvh = _semiExpendableService.GetSPHV(startDate);
-            var data = _db.Database.Connection.Query<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal @p0, @p1, @p2, @p3, @p4"
+            var data = _db.Database.Connection.Query<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal @p0, @p1, @p2, @p3, @p4, @p5"
                 , new
                 {
                     p0 = string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type,
                     p1 = startDate,
                     p2 = endDate,
-                    p3 = spvh,                    
-                    p4 = deptId == Guid.Empty ? null : deptId
+                    p3 = string.IsNullOrWhiteSpace(fund) || fund == "ALL" ? null : fund,
+                    p4 = spvh,                    
+                    p5 = deptId == Guid.Empty ? null : deptId
                 }).ToList();
             return data;
         }

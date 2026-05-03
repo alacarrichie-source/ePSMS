@@ -221,8 +221,14 @@
     })
     .ToolBar(t =>
     {
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
         t.Search();
     })
+    .Excel(excel => excel
+        .FileName("RpciRunningTotal.xlsx")
+        .AllPages(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "Rpci"))
+    )
     .Search(s =>
     {
         s.Field(o => o.ItemType, "contains");
@@ -344,6 +350,11 @@
 
 
 <script type="text/javascript">
+    $("#exportGrid").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").saveAsExcel();
+    });
+
     var type = null;
     var asOf = null;
     var fund = null;

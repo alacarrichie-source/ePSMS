@@ -59,6 +59,38 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
+        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox().Name("fund")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    //.Placeholder("Select Fund")
+                    .DataTextField("Description")
+                    .DataValueField("Code")
+                    .Filter(FilterType.Contains)
+                    //.Value("ALL")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = true });
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Events(e => e.Select("blankGrid"))
+                    .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().MultiColumnComboBox()
@@ -214,8 +246,14 @@
     })
     .ToolBar(t =>
     {
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExportGrid").HtmlAttributes(new { @class = "k-button", href = "", id = "exportGrid" });
         t.Search();
     })
+    .Excel(excel => excel
+        .FileName("RsmiRunningTotal.xlsx")
+        .AllPages(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "RSMI"))
+    )
     .Search(s =>
     {
         s.Field(o => o.ItemType, "contains");
@@ -346,6 +384,11 @@
 
 
 <script type="text/javascript">
+    $("#exportGrid").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").saveAsExcel();
+    });
+
     var type = null;
     var startDate = null;
     var endDate = null;    
@@ -484,13 +527,15 @@
 
     function DataGrid() {
         type = $("#type").data("kendoMultiColumnComboBox").value();
+        fund = $("#fund").data("kendoMultiColumnComboBox").value();
         startDate = $("#startDate").data("kendoDatePicker").value();
         endDate = $("#endDate").data("kendoDatePicker").value();
         deptId = $("#deptId").data("kendoMultiColumnComboBox").value();
         return {
-            type: type,
+            type: type,            
             startDate: startDate,
             endDate: endDate,
+            fund: fund,
             deptId: deptId
         };
     }
