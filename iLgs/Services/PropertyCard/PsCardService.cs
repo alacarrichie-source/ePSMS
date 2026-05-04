@@ -41,6 +41,7 @@ namespace iLgs.Services.PropertyCard
         IPsCardItemService PsCardItem { get; }
 
         ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date);
+        ValueTask<PsCard> TransferPoBatch(string selectedIds, Guid? transferToPsCardId, string user, DateTime date);
 
     }
 
@@ -358,7 +359,6 @@ namespace iLgs.Services.PropertyCard
             return entity;
         });
 
-
         public virtual ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
@@ -394,6 +394,54 @@ namespace iLgs.Services.PropertyCard
 
             return targetEntity;
         });
+
+        public virtual ValueTask<PsCard> TransferPoBatch(string selectedIds, Guid? transferToPsCardId, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var selectedIdList = selectedIds.Split(',').ToList();
+            if (selectedIdList.Count() == 0)
+            {
+                throw new RecordNotFoundException("No Items to process");
+            }
+
+            var targetEntity = await _db.PsCards.Include(i => i.ItemCode).FirstOrDefaultAsync(p => p.Id == transferToPsCardId);
+            ValidateRecord(targetEntity);
+
+            foreach (var selectedId in selectedIdList)
+            {
+                var psCardItemId = Guid.Parse(selectedId);
+
+                // load source
+                var psCardItemSource = await _db.PsCardItems.FindAsync(psCardItemId);
+                if (psCardItemSource == null)
+                {
+                    throw new NotFoundException((Guid)psCardItemId);
+                }
+
+                // transfer source to target card
+                psCardItemSource.PsCardId = targetEntity.Id;
+                psCardItemSource.UpdatedBy = user;
+                psCardItemSource.UpdatedDt = date;
+
+                if (targetEntity.ItemCode.IsConsumable?.ToUpper() == "Y")
+                {
+                    psCardItemSource.IsConsumable = true;
+                }
+                else if (targetEntity.ItemCode.IsConsumable?.ToUpper() == "N")
+                {
+                    psCardItemSource.IsConsumable = false;
+                }
+                else
+                {
+                    psCardItemSource.IsConsumable = null;
+                }
+
+                await _db.SaveChangesAsync();
+            }
+
+            return targetEntity;
+        });
+
         public bool IsPosted(Guid psCardId)
         {
             var entity = _db.PsCards.Find(psCardId);

@@ -197,6 +197,7 @@ panelbar.Add().Text("Card Items")
             t.Custom().Text("Transfer Fund").IconClass("k-icon k-i-export").Name("btnTransferCard").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Transfer Department").IconClass("k-icon k-i-export").Name("btnTransferDept").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Transfer PO Number").IconClass("k-icon k-i-export").Name("btnTransferPoNo").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Transfer accounts of selected items").Name("btnUpdate").HtmlAttributes(new { @class = "k-button", href = "" });            
         })
         //.Search(s =>
         //{
@@ -258,9 +259,12 @@ panelbar.Add().Text("Card Items")
     .Name("gridItem_#=Id#")
     .Columns(col =>
     {
+        col.Select().Width(30);
         col.Bound(c => c.Consumable).Width(50);
         col.Bound(c => c.StockNo).Width(100);
         col.Bound(c => c.Account).Width(100).Title("Main Account");
+        col.Bound(c => c.SubAccount).Width(100);
+        col.Bound(c => c.Article).Width(100);
         col.Bound(c => c.Description).Width(150);
         col.Bound(c => c.Unit).Width(50);
         col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -277,13 +281,25 @@ panelbar.Add().Text("Card Items")
         col.Command(commands =>
         {
             commands.Custom("Transfer Account").IconClass("k-icon k-i-export").SendDataKeys(true).Click("onClickTransfer");
+            //commands.Custom("Transfer Same Account").IconClass("k-icon k-i-export").SendDataKeys(true).Click("onClickTransferSame");
         }).Width(100);
     })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Multiple))
     .Filterable()
     .Sortable()
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
+        .PageSize(40)
         .Events(events => events.Error("GridError"))
         .Model(model =>
         {
@@ -312,8 +328,7 @@ panelbar.Add().Text("Card Items")
     .Events(events => events
         .Change("onChangeGridItems")
         .DataBound("onDataBoundGridItems")
-    )
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    )    
     .ToClientTemplate())
 </script>
 
@@ -636,7 +651,36 @@ panelbar.Add().Text("Card Items")
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Id;
+        //selectedItemId = selectedData.Id;
+
+        var selectedRows = this.select();
+        var totalSelectedRow = this.selectedKeyNames().length;
+        if (totalSelectedRow == 0) {
+            $(".k-grid-btnUpdate").text("Transfer accounts of selected items");
+        } else {
+            $(".k-grid-btnUpdate").text("Transfer " + totalSelectedRow + " account(s)");
+        }
+
+        if (totalSelectedRow == 1) {
+            seleselectedItemIdctedId = selectedData.Id;
+        }
+        else {
+            selectedItemId = null;
+        }
+        //trackingId = selectedItemId;
+
+        if (totalSelectedRow != 0) {
+            $(".k-grid-btnUpdate")
+                .removeClass("k-disabled")
+                .removeAttr("disabled");
+        }
+        else {
+            $(".k-grid-btnUpdate")
+                .addClass("k-disabled")
+                .attr("disabled", "disabled");
+        }
+
+        ///$("#btnUpdate").data('kendoButton').enable(totalSelectedRow != 0);
     }
 
     function onDataBoundGridItems(e) {
@@ -645,9 +689,10 @@ panelbar.Add().Text("Card Items")
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
+        }
+        else {
+            //var row = e.sender.tbody.find("tr:first");
+            //this.select(row);
 
             //var firstRow = this.tbody.find("tr.k-master-row").first();
             //this.expandRow(firstRow);
@@ -657,7 +702,8 @@ panelbar.Add().Text("Card Items")
             //    // Select the expanded master row
             //    this.select(e.masterRow);
             //});
-        }
+            this.clearSelection();
+        }        
     }
 
     $(".k-grid-btnTransferCard").click(function (e) {
@@ -835,7 +881,8 @@ panelbar.Add().Text("Card Items")
         mywindow.refresh({
             url: '@Url.Action("_PoTransfer", "PoTransfer")',
             data: {
-                psCardItemId: selectedItemId
+                psCardItemId: selectedItemId,
+                selectedIds: null
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -846,6 +893,73 @@ panelbar.Add().Text("Card Items")
         });
         mywindow.open();
     }
+
+    $(".k-grid-btnUpdate").click(function (e) {
+        e.preventDefault();
+
+        ////the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+
+        //parentGrid.select(parentRow);
+
+        // the current row for this detail
+        //selectedGrid = this;
+        //var tr = $(e.currentTarget).closest("tr");
+        //var dataItem = selectedGrid.dataItem(tr);
+        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //selectedItemId = dataItem.Id;
+
+        var grid = $("#gridItem_" + selectedId).data("kendoGrid");
+        // Get selected rows
+        var sel = $("input:checked", grid.tbody).closest("tr");
+        // Get data item for each
+        var selectedIds = grid.selectedKeyNames().join(",");
+
+        var totalSelectedRow = grid.selectedKeyNames().length;
+        if (totalSelectedRow == 0) {
+            alert("No records were selected.");
+            return;
+        }
+
+        var myTitle = "Transfer " + totalSelectedRow + " Selected PO Items to another Stock/Property Card";
+        var width = 1000;
+        $("#windowcontainer").append("<div id='windowCard'></div>");
+        var mywindow = $("#windowCard")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    $("#gridItem_" + selectedId).data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_PoTransfer", "PoTransfer")',
+            data: {
+                psCardItemId: null,
+                selectedIds: selectedIds
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+    });
 
     function onSelectPsNo(e) {
         if (!e.item) {

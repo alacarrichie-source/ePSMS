@@ -4,6 +4,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
 using iLgs.Services.PoAdjustments_;
 using iLgs.Services.PropertyCard;
 using iLgs.Services.StockCards;
@@ -31,6 +32,7 @@ namespace iLgs.Controllers
         private readonly IStockCardService _stockCardService;
         private readonly IPsCardItemService _psCardItemService;
         private readonly IPoAdjustmentService _poAdjustmentService;
+        private readonly IItemCodeService _itemCodeService;
 
         public PoTransferController()
         {
@@ -38,6 +40,7 @@ namespace iLgs.Controllers
             _stockCardService = new StockCardService(_db);
             _psCardItemService = new PsCardItemService(_db);
             _poAdjustmentService = new PoAdjustmentService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public ActionResult Index()
@@ -179,44 +182,76 @@ namespace iLgs.Controllers
         public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string poNo)
         {
             poNo = string.IsNullOrWhiteSpace(poNo) ? "NO P.O. Reference" : poNo;
-            IEnumerable<QueryPoVM> data = _db.Database.Connection.Query<QueryPoVM>("Exec Card_GetPoNumbers '', 3, @p0", new { p0 = poNo }).ToList();            
+            IEnumerable<QueryPoVM> data = _db.Database.Connection.Query<QueryPoVM>("Exec Card_GetPoNumbers '', 3, @p0", new { p0 = poNo }).ToList();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-            
+
             return result;
         }
 
         public ActionResult PoItemRead([DataSourceRequest] DataSourceRequest request, string fund, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _db.PsCardItems
-                .Include(i => i.PsCard.ItemCode.ItemType.Description)
-                .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo))) 
+            var rawData = _db.PsCardItems
+                .Include(i => i.PsCard.ItemCode.ItemType)
+                .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo)))
                     && w.PoDate == poDate
                     && w.PsCard.Fund == fund
                     && w.DeptId == deptId
-                ).AsNoTracking()
-                .Select(s => new PsCardItemVM
-                {
-                    Id = s.Id,
-                    Account = s.PsCard.ItemCode.ItemType.Description,
-                    StockNo = s.PsCard.PsNo,
-                    Description = s.Description,
-                    Unit = s.Unit,
-                    Qty = s.Qty,
-                    Amount = s.Amount,
-                    InvDist = s.InvDist,
-                    InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).Select(x => x.Description).FirstOrDefault(),
-                    InsertedBy = s.InsertedBy,
-                    InsertedDt = s.InsertedDt,
-                    UpdatedBy = s.UpdatedBy,
-                    UpdatedDt = s.UpdatedDt,
-                    Consumable = s.IsConsumable.HasValue ? (s.IsConsumable == true ? "Y" :  "N") : s.PsCard.ItemCode.IsConsumable
-                })
-                .AsQueryable();
+                )
+                .AsNoTracking()
+                .ToList();
+
+            var data = rawData.Select(s => new PsCardItemVM
+            {
+                Id = s.Id,
+                Account = s.PsCard.ItemCode.ItemType.Description,
+                SubAccount = _itemCodeService.GetSubAccounts(s.PsCard.ItemCodeId),
+                Article = s.PsCard.ItemCode.Description,
+                StockNo = s.PsCard.PsNo,
+                Description = s.Description,
+                Unit = s.Unit,
+                Qty = s.Qty,
+                Amount = s.Amount,
+                InvDist = s.InvDist,
+                InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).Select(x => x.Description).FirstOrDefault(),
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                UpdatedBy = s.UpdatedBy,
+                UpdatedDt = s.UpdatedDt,
+                Consumable = s.IsConsumable.HasValue? (s.IsConsumable == true ? "Y" : "N") : s.PsCard.ItemCode.IsConsumable
+            }).ToList();
+
+            //var data = _db.PsCardItems
+            //    .Include(i => i.PsCard.ItemCode.ItemType.Description)
+            //    .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo)))
+            //        && w.PoDate == poDate
+            //        && w.PsCard.Fund == fund
+            //        && w.DeptId == deptId
+            //    ).AsNoTracking()
+            //    .Select(s => new PsCardItemVM
+            //    {
+            //        Id = s.Id,
+            //        Account = s.PsCard.ItemCode.ItemType.Description,
+            //        SubAccount = _itemCodeService.GetSubAccounts(s.PsCard.ItemCodeId), // Call the service on the in-memory data
+            //        Article = s.PsCard.ItemCode.Description,
+            //        StockNo = s.PsCard.PsNo,
+            //        Description = s.Description,
+            //        Unit = s.Unit,
+            //        Qty = s.Qty,
+            //        Amount = s.Amount,
+            //        InvDist = s.InvDist,
+            //        InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).Select(x => x.Description).FirstOrDefault(),
+            //        InsertedBy = s.InsertedBy,
+            //        InsertedDt = s.InsertedDt,
+            //        UpdatedBy = s.UpdatedBy,
+            //        UpdatedDt = s.UpdatedDt,
+            //        Consumable = s.IsConsumable.HasValue ? (s.IsConsumable == true ? "Y" : "N") : s.PsCard.ItemCode.IsConsumable
+            //    }).ToList();
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -226,7 +261,7 @@ namespace iLgs.Controllers
 
             return result;
         }
-        
+
         public ActionResult _Transfer(string fund, string poNo, DateTime? poDate, Guid? deptId, string department)
         {
             var data = new PoTransferVM()
@@ -467,11 +502,12 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
 
-        public ActionResult _PoTransfer(Guid psCardItemId)
+        public ActionResult _PoTransfer(Guid? psCardItemId, string selectedIds)
         {
             var model = new GetPsNoVM()
             {
-                PsCardItemId = psCardItemId
+                PsCardItemId = psCardItemId,
+                SelectedIds = selectedIds
             };
 
             return PartialView(model);
@@ -495,7 +531,14 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _stockCardService.TransferPo(model.PsCardItemId, model.Id, user, date);
+                    if (string.IsNullOrWhiteSpace(model.SelectedIds))
+                    {
+                        await _stockCardService.TransferPo(model.PsCardItemId, model.Id, user, date);
+                    }
+                    else
+                    {
+                        await _stockCardService.TransferPoBatch(model.SelectedIds, model.Id, user, date);
+                    }
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

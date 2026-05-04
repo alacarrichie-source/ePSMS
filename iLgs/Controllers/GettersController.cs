@@ -1345,6 +1345,8 @@ namespace iLgs.Controllers
         [Display(Name = "Sub-Account 4")]
         public string SubAccount4 { get; set; }
         public string Article { get; set; }
+        public string SelectedIds { get; set; }
+        public List<string> SelectedIdList { get; set; }
     }
 
     public class GetSysCodeVM
