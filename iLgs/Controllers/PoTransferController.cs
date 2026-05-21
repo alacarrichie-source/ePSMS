@@ -193,6 +193,39 @@ namespace iLgs.Controllers
             return result;
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PoDestroy([DataSourceRequest]DataSourceRequest request, QueryPoVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "po_transfer");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _poAdjustmentService.PoDeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
         public ActionResult PoItemRead([DataSourceRequest] DataSourceRequest request, string fund, string poNo, DateTime? poDate, Guid? deptId)
         {
             var rawData = _db.PsCardItems
@@ -223,34 +256,7 @@ namespace iLgs.Controllers
                 UpdatedBy = s.UpdatedBy,
                 UpdatedDt = s.UpdatedDt,
                 Consumable = s.IsConsumable.HasValue? (s.IsConsumable == true ? "Y" : "N") : s.PsCard.ItemCode.IsConsumable
-            }).ToList();
-
-            //var data = _db.PsCardItems
-            //    .Include(i => i.PsCard.ItemCode.ItemType.Description)
-            //    .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo)))
-            //        && w.PoDate == poDate
-            //        && w.PsCard.Fund == fund
-            //        && w.DeptId == deptId
-            //    ).AsNoTracking()
-            //    .Select(s => new PsCardItemVM
-            //    {
-            //        Id = s.Id,
-            //        Account = s.PsCard.ItemCode.ItemType.Description,
-            //        SubAccount = _itemCodeService.GetSubAccounts(s.PsCard.ItemCodeId), // Call the service on the in-memory data
-            //        Article = s.PsCard.ItemCode.Description,
-            //        StockNo = s.PsCard.PsNo,
-            //        Description = s.Description,
-            //        Unit = s.Unit,
-            //        Qty = s.Qty,
-            //        Amount = s.Amount,
-            //        InvDist = s.InvDist,
-            //        InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.InvDist).Select(x => x.Description).FirstOrDefault(),
-            //        InsertedBy = s.InsertedBy,
-            //        InsertedDt = s.InsertedDt,
-            //        UpdatedBy = s.UpdatedBy,
-            //        UpdatedDt = s.UpdatedDt,
-            //        Consumable = s.IsConsumable.HasValue ? (s.IsConsumable == true ? "Y" : "N") : s.PsCard.ItemCode.IsConsumable
-            //    }).ToList();
+            }).ToList();            
 
             var result = new JsonNetResult
             {
@@ -589,6 +595,19 @@ namespace iLgs.Controllers
             }
 
             return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<JsonResult> IsWithIssuance(string fund, string poNo, DateTime? poDate, Guid? deptId)
+        {
+            try
+            {
+                await _poAdjustmentService.GetValidatePoListAsync(fund, poNo, poDate, deptId, true);
+            }
+            catch (Exception e)
+            {
+                return Json(new { Errors = e.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
     }
 }

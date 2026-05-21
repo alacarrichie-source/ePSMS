@@ -30,7 +30,8 @@ namespace iLgs.Controllers
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
         private readonly IUserService _userService;
-        //private readonly string[] _menuId = { "issuance", "issuance_query" };
+        private string _menuId = string.Empty;
+        //private readonly string[] _menuId = { _menuId, "issuance_query" };
 
         public PoIssuanceController()
         {
@@ -55,14 +56,32 @@ namespace iLgs.Controllers
         //}
 
         // GET: PoIssuance
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "issuance";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["po_issuance"] = _menuId;
             ViewBag.IsViewOnly = false;
             return View();
         }
 
-        public ActionResult Query()
+        public async Task<ActionResult> Query()
         {
+            _menuId = "issuance_query";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["po_issuance"] = _menuId;
             ViewBag.IsViewOnly = true;
             return View("Index");
         }
@@ -93,6 +112,7 @@ namespace iLgs.Controllers
             ViewData["ItemExtnName"] = _psCardService.GetItemExtnName(cardItemId);
             ViewData["DefaultLocation"] = locationId ?? deptId;
             ViewBag.DefaultLocation = locationId ?? deptId;
+            //ViewBag.LocationId = locationId ?? deptId;
             ViewData["IsViewOnly"] = isViewOnly; // viewbag not working in key "if condiction"
             return PartialView();
         }
@@ -115,7 +135,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -155,7 +177,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -195,7 +219,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -318,7 +344,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -369,7 +397,7 @@ namespace iLgs.Controllers
         //{
         //    try
         //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
         //        Access access = await accessTask;
         //        if (!access.AllowPost)
         //        {
@@ -420,7 +448,7 @@ namespace iLgs.Controllers
         //{
         //    try
         //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
         //        Access access = await accessTask;
         //        if (!access.AllowUnpost)
         //        {
@@ -610,7 +638,7 @@ namespace iLgs.Controllers
         public async Task<JsonResult> IsSelected(Guid? psCardItemExtnId, Guid? refId)
         {
 
-            var isSelected = await _psCardItemTransactionService.IsSelectedIssuanceAsync(psCardItemExtnId, refId, "ISSUANCE");
+            var isSelected = await _psCardItemTransactionService.IsSelectedIssuanceAsync(psCardItemExtnId, refId, _menuId);
             return Json(new { Errors = "", IsSelected = isSelected }, JsonRequestBehavior.AllowGet);
         }
 
@@ -648,7 +676,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -680,7 +710,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -720,7 +752,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                _menuId = TempData["po_issuance"]?.ToString();
+                TempData.Keep("po_issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {

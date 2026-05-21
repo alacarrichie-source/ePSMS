@@ -9,7 +9,6 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +25,7 @@ namespace iLgs.Controllers
         private IDepartmentUserService _departmentUserService;
         private IAccountableOfficerService _accountableOfficerService;
         private ApplicationUserManager _userManager;
+        private string _menuId = string.Empty;
         
         public CodesController()
         {
@@ -61,13 +61,31 @@ namespace iLgs.Controllers
         }
 
         // GET: Codes
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "codes";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             return View();
         }
 
         public async Task<ActionResult> PriceCap()
         {
+            _menuId = "codes_price_cap";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "PRICE-CAP";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -77,6 +95,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> SemiExpendable()
         {
+            _menuId = "codes_semi_expendable";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "SPHV";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -88,6 +115,15 @@ namespace iLgs.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<ActionResult> Issuance(string pin)
         {
+            _menuId = "codes_issuance";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var userId = User.Identity.GetUserId();
             var key = $"{userId}_Issuances";
             var code = "ISSUANCE-YEAR";
@@ -95,15 +131,22 @@ namespace iLgs.Controllers
             ViewData["code"] = code;
             ViewData["title"] = "PO Issuance Year";
             ViewBag.IsValid = false;
-            ViewBag.UseOtp = false;
-
-            
+            ViewBag.UseOtp = false;            
                         
             return View("Codextn", codeMast);
         }
 
         public async Task<ActionResult> PoYear()
         {
+            _menuId = "codes_po_year";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "PO-YEAR";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -114,6 +157,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ReportingYearEnd()
         {
+            _menuId = "codes_reporting_year_end";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "REPORT-YEAR-END";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -124,6 +176,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Series()
         {
+            _menuId = "codes_series";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "SERIES";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -133,6 +194,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Unit()
         {
+            _menuId = "codes_unit";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "Unit";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -142,6 +212,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> UnitGroup()
         {
+            _menuId = "codes_unit_group";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "UNIT-GROUP";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -151,6 +230,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Department()
         {
+            _menuId = "codes_department";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "Departments";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -160,6 +248,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Location()
         {
+            _menuId = "codes_location";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "Locations";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -169,6 +266,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> IssuedBy()
         {
+            _menuId = "codes_issued_by";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "ISSUED-BY";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -178,6 +284,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> RequestedBy()
         {
+            _menuId = "codes_requested_by";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "REQUEST-BY";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -187,6 +302,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ApprovedBy()
         {
+            _menuId = "codes_approved_by";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "APPROVED-BY";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -196,6 +320,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> CashAvailability()
         {
+            _menuId = "codes_cash_availability";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "CASH-AVAILABLE";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -205,6 +338,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> PsFields()
         {
+            _menuId = "codes_ps_fields";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "PS-FIELDS";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -214,6 +356,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Custodians()
         {
+            _menuId = "codes_custodians";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "CUSTODIANS";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -223,6 +374,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> AirOfficers()
         {
+            _menuId = "codes_air_officers";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "OFFICERS";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -232,6 +392,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> AirCustodians()
         {
+            _menuId = "codes_air_custodians";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "AIR-CUSTODIANS";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -241,6 +410,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> ParIssuedBy()
         {
+            _menuId = "codes_par_issued_by";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "PAR-ISSUED-BY";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -250,6 +428,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> IcsReceivedFrom()
         {
+            _menuId = "codes_ics_received_from";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["codes"] = _menuId;
             var code = "ICS-RECEIVED-FROM";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
@@ -279,7 +466,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -325,7 +514,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -376,7 +567,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -420,7 +613,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -472,7 +667,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -523,7 +720,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -572,7 +771,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -617,7 +818,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -661,7 +864,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -711,7 +916,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -756,7 +963,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -800,7 +1009,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                _menuId = TempData["codes"]?.ToString();
+                TempData.Keep("codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {

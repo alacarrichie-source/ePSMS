@@ -4,12 +4,12 @@ using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PoAdjustments_
@@ -22,6 +22,9 @@ namespace iLgs.Services.PoAdjustments_
         ValueTask<PoAdjustmentVM> CreateAsync(PoAdjustmentVM model, string user, DateTime date);
         ValueTask<PoAdjustmentVM> UpdateAsync(PoAdjustmentVM model, string user, DateTime date);
         ValueTask<PoAdjustmentVM> DeleteAsync(PoAdjustmentVM model, string user, DateTime date);
+
+        ValueTask<QueryPoVM> PoDeleteAsync(QueryPoVM model, string user, DateTime date);
+        Task<IEnumerable<PsCardItem>> GetValidatePoListAsync(string fund, string poNo, DateTime? poDate, Guid? deptId, bool isValidate);
     }
 
     public class PoAdjustmentService : BaseValidator, IPoAdjustmentService
@@ -29,6 +32,7 @@ namespace iLgs.Services.PoAdjustments_
         private readonly AppManEntities _db;        
         private readonly IExceptionService<Supplier> _exceptionService;
         private readonly IExceptionService<PoAdjustmentVM> _vmExceptionService;
+        private readonly IExceptionService<QueryPoVM> _poExceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public PoAdjustmentService(AppManEntities db)
@@ -36,6 +40,7 @@ namespace iLgs.Services.PoAdjustments_
             _db = db;
             _exceptionService = new ExceptionService<Supplier>();
             _vmExceptionService = new ExceptionService<PoAdjustmentVM>();
+            _poExceptionService = new ExceptionService<QueryPoVM>();
             _getDisplayName = Utility.GetDisplayName<Supplier>;
         }
 
@@ -141,7 +146,46 @@ namespace iLgs.Services.PoAdjustments_
             entity.UpdatedBy = model.UpdatedBy;
 
             model.IsOkay = entity.IsOk.Value == true ? "Y" : "N";
-        }        
+        }
+
+        public async Task<IEnumerable<PsCardItem>> GetValidatePoListAsync(string fund, string poNo, DateTime? poDate, Guid? deptId, bool isValidate)
+        {
+            var poList = await _db.PsCardItems.Include(i => i.PsCard).Where(w => w.PsCard.Fund == fund && w.PoNo == poNo && w.PoDate == poDate && w.DeptId == deptId).ToListAsync();
+            if (isValidate)
+            {
+                foreach (var po in poList)
+                {
+                    if (await _db.PsCardItemTransfers.Where(w => w.PsCardItem.PoNo == po.PoNo && w.PsCardItem.PoDate == po.PoDate && w.PsCardItem.DeptId == po.DeptId && w.PsCardItem.PsCard.Fund == po.PsCard.Fund).AnyAsync())
+                    {
+                        throw new RecordRelationshipException("Record has issuance records.");
+                    }
+                }
+            }
+
+            return poList;
+        }
+
+        public ValueTask<QueryPoVM> PoDeleteAsync(QueryPoVM model, string user, DateTime date) => _poExceptionService.TryCatch(async () =>
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+
+            var poList = await GetValidatePoListAsync(model.Fund, model.PoNo, model.PoDate, model.DeptId, false);
+
+            foreach (var po in poList)
+            {
+                po.UpdatedBy = user;
+                po.UpdatedDt = date;
+            }
+            await _db.SaveChangesAsync();
+
+            _db.PsCardItems.RemoveRange(poList);
+            await _db.SaveChangesAsync();
+            
+            return model;
+        });
 
         private void ValidateIfNull(PoAdjustmentVM model)
         {

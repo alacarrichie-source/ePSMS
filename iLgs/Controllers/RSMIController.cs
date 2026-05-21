@@ -27,6 +27,7 @@ namespace iLgs.Controllers
         //private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly IRsmiService _rsmiService;
+        private string _menuId = string.Empty;
 
         public RSMIController()
         {
@@ -43,8 +44,17 @@ namespace iLgs.Controllers
         //}
 
         // GET: RSMI
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "rsmi";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rsmi"] = _menuId;
             return View();
         }        
 
@@ -61,8 +71,17 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult RunningTotal()
+        public async Task<ActionResult> RunningTotal()
         {
+            _menuId = "rsmi_running_total";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rsmi"] = _menuId;
             ViewBag.StartDate = new DateTime(DateTime.Now.Year-1, 1, 1);
             ViewBag.EndDate = new DateTime(DateTime.Now.Year-1, 12, 31);
             ViewBag.Type = "ALL";
@@ -100,7 +119,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -142,7 +163,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -190,7 +213,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -228,7 +253,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -277,7 +304,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rsmi");
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {

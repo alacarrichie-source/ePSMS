@@ -33,7 +33,8 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IOrderService _orderService;        
         private readonly IAirUploadService _uploadService;
-        private readonly string[] _menuId = { "airs_inspection", "airs_acceptance" };
+        //private readonly string[] _menuId = { "airs_inspection", "airs_acceptance" };
+        private string _menuId = string.Empty;
 
         public AIRsController()
         {
@@ -61,15 +62,33 @@ namespace iLgs.Controllers
         //    _uploadService = airUploadService;
         //}
 
-        public ActionResult Admin()
+        public async Task<ActionResult> Admin()
         {
+            _menuId = "airs_admin";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["airs"] = _menuId;
             TempData["AllowIndexAccess"] = true;
             ViewBag.AirGroup = (int)AirGroup.ADMIN;
             return View("Index");
         }
 
-        public ActionResult Custodian()
+        public async Task<ActionResult> Custodian()
         {
+            _menuId = "airs_custodian";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["airs"] = _menuId;
             TempData["AllowIndexAccess"] = true;
             ViewBag.AirGroup = (int)AirGroup.SERIAL;
             return View("Index");
@@ -77,14 +96,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Acceptance()
         {
-            Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs_acceptance");
-            Access access = await accessTask;
+            _menuId = "airs_acceptance";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
             if (!access.IsAllowed)
             {
                 ViewBag.Error = "Access Denied!";
                 return View("Error");
             }
 
+            TempData["airs"] = _menuId;
             TempData["AllowIndexAccess"] = true;
             ViewBag.AirGroup = (int)AirGroup.ACCEPTANCE;
             return View("Index");
@@ -92,14 +112,15 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Inspection()
         {
-            Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs_inspection");
-            Access access = await accessTask;
+            _menuId = "airs_inspection";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
             if (!access.IsAllowed)
             {
                 ViewBag.Error = "Access Denied!";
                 return View("Error");
             }
 
+            TempData["airs"] = _menuId;
             TempData["AllowIndexAccess"] = true; 
             ViewBag.AirGroup = (int)AirGroup.INSPECTION;
             return View("Index");
@@ -113,6 +134,8 @@ namespace iLgs.Controllers
                 ViewBag.Error = "Access Denied!";
                 return View("Error"); // Or some other handling
             }
+
+            TempData["airs"] = _menuId;
             return View();
         }
 
@@ -135,6 +158,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -199,6 +224,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -264,6 +291,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -313,6 +342,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
 
@@ -408,6 +439,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -448,6 +481,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -488,6 +523,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -546,6 +583,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -627,6 +666,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -667,6 +708,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -707,6 +750,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -745,6 +790,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -784,6 +831,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -824,6 +873,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -865,6 +916,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -905,6 +958,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -945,6 +1000,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -976,6 +1033,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -1026,6 +1085,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -1076,7 +1137,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_air");
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -1167,7 +1230,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_air");
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -1259,6 +1324,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
@@ -1309,6 +1376,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
@@ -1403,6 +1472,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -1542,6 +1613,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -1574,6 +1647,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -1614,7 +1689,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                _menuId = TempData["airs"]?.ToString();
+                TempData.Keep("airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {

@@ -114,6 +114,8 @@ namespace iLgs.Services.PropertyCard
 
             await ValidateFieldsAsync(model, Mode.ADD);
 
+            ValidateIssuanceDate((DateTime)model.IssuedDate);
+
             if (model.SelectedIds != null)
             {
                 string[] selectedIds = model.SelectedIds.Split(',');
@@ -184,6 +186,9 @@ namespace iLgs.Services.PropertyCard
                 throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {model.IssuedDate.Value.ToShortDateString()}, cannot update!");
             }
 
+            ValidateIssuanceDate((DateTime)model.IssuedDate);
+            ValidateIssuanceDate((DateTime)entity.IssuedDate);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -236,6 +241,9 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            ValidateIssuanceDate((DateTime)model.IssuedDate);
+
+            //var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
             var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
             if (issuanceYears.Any())
             {
@@ -323,6 +331,33 @@ namespace iLgs.Services.PropertyCard
                     return GetCardItemExtnForIssuance<PsCardItemExtnVehicle>(transferId);
                 default:
                     return GetCardItemExtnForIssuance<PsCardItemExtnOther>(transferId);
+            }
+        }
+
+        private void ValidateIssuanceDate(DateTime issuanceDate)
+        {
+            int year = issuanceDate.Year;
+            var issuanceYear = _codextnService.GetIssuanceYears().Where(w => w.Description.Trim() == year.ToString().Trim()).FirstOrDefault();
+            if (issuanceYear == null) {
+                throw new InvalidValueException($"Issuance year setup for {year} is not a available.");                
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(issuanceYear.Desc3) && issuanceYear.Desc3.ToUpper() == "Y")
+                {
+                    throw new InvalidValueException($"Issuance for {year} is already locked.");
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
+                    {
+                        var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
+                        if (issuanceDate.Date > cutOffDate.Date)
+                        {
+                            throw new InvalidValueException($"Update for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                        }
+                    }
+                }
             }
         }
 

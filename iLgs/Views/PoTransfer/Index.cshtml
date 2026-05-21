@@ -50,11 +50,11 @@ panelbar.Add().Text("Card Items")
         .Columns(col =>
         {
             col.Bound(c => c.PoNo).Width(50);
-            col.Bound(c => c.Remarks).Width(200);
+            col.Bound(c => c.Remarks).Width(300);
             //col.Bound(c => c.IsOkay).Width(50);
-            col.Bound(c => c.InsertedBy).Width(70);
+            col.Bound(c => c.InsertedBy).Width(50);
             col.Bound(c => c.InsertedDt).Width(70);
-            col.Bound(c => c.UpdatedBy).Width(70);
+            col.Bound(c => c.UpdatedBy).Width(50);
             col.Bound(c => c.UpdatedDt).Width(70);
             col.Command(command =>
             {
@@ -117,7 +117,6 @@ panelbar.Add().Text("Card Items")
         .Name("grid")
         .Columns(col =>
         {
-            //col.Bound(c => c.Id).Hidden();
             col.Bound(c => c.Fund).Width(40);
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);
@@ -125,26 +124,18 @@ panelbar.Add().Text("Card Items")
             col.Bound(c => c.Department).Width(100);
             col.Bound(c => c.ItemCount).Width(50)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
-                //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Group(group => group.Title("PO Amounts")
                 .Columns(info =>
                 {
                     info.Bound(f => f.Amount).Width(70).Title("Original<br>PO")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.IssueAmount).Width(70).Title("Issued")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.BalanceAmount).Width(70).Title("Balance")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
@@ -153,18 +144,12 @@ panelbar.Add().Text("Card Items")
                 {
                     info.Bound(f => f.PastTransAmount).Width(70).Title("Past<br>Year/s")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.CurTransAmount).Width(70).Title("Current<br>Year")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.FutureTransAmount).Width(70).Title("Future<br>Year/s")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
@@ -173,37 +158,27 @@ panelbar.Add().Text("Card Items")
                 {
                     info.Bound(f => f.PastAmount).Width(70).Title("Past<br>Year/s")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.CurAmount).Width(70).Title("Current<br>Year")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.FutureAmount).Width(70).Title("Future<br>Year/s")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        //.ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        //.ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
+            col.Command(command =>
+            {
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            }).Width(50);
         })
         .ToolBar(t =>
         {
-            //t.Custom().Text("Print - Original").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
-            //t.Custom().Text("Print - Update").IconClass("k-icon k-i-print").Name("btnPrintCardUpdate").HtmlAttributes(new { @class = "k-button", href = "" });
-            //t.Search();
-            t.Custom().Text("Transfer Fund").IconClass("k-icon k-i-export").Name("btnTransferCard").HtmlAttributes(new { @class = "k-button", href = "" });
+           t.Custom().Text("Transfer Fund").IconClass("k-icon k-i-export").Name("btnTransferCard").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Transfer Department").IconClass("k-icon k-i-export").Name("btnTransferDept").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Transfer PO Number").IconClass("k-icon k-i-export").Name("btnTransferPoNo").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Transfer accounts of selected items").Name("btnUpdate").HtmlAttributes(new { @class = "k-button", href = "" });            
         })
-        //.Search(s =>
-        //{
-        //    s.Field(o => o.Fund, "contains");
-        //    s.Field(o => o.PoNo, "contains");
-        //})
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -230,22 +205,9 @@ panelbar.Add().Text("Card Items")
             {
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-            })
-            //.Aggregates(a =>
-            //{
-            //    a.Add(p => p.ItemCount).Sum();
-            //    a.Add(p => p.Amount).Sum();
-            //    a.Add(p => p.BalanceAmount).Sum();
-            //    a.Add(p => p.IssueAmount).Sum();
-            //    a.Add(p => p.PastAmount).Sum();
-            //    a.Add(p => p.CurAmount).Sum();
-            //    a.Add(p => p.FutureAmount).Sum();
-            //    a.Add(p => p.PastTransAmount).Sum();
-            //    a.Add(p => p.CurTransAmount).Sum();
-            //    a.Add(p => p.FutureTransAmount).Sum();
-            //})
-            //.Sort(s => s.Add(a => a.PoNo).Descending())
+            })            
             .Read(read => read.Action("PoRead", "PoTransfer").Data("DataStockCard"))
+            .Destroy(destroy => destroy.Action("PoDestroy", "PoTransfer"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -596,6 +558,67 @@ panelbar.Add().Text("Card Items")
         }
     }
 
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+
+        // 1. Ensure we have the grid instance
+        // 'this' works if called via .Click(), otherwise use $("#GridID").data("kendoGrid")
+        const grid = $(e.delegateTarget).data("kendoGrid") || this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = grid.dataItem(tr);
+
+        if (!dataItem) return;
+
+        const hasIssuance = (dataItem.PastAmount > 0) ||
+            (dataItem.CurAmount > 0) ||
+            (dataItem.FutureAmount > 0);
+
+        if (hasIssuance) {
+            if (!confirm("Issuances were found for this PO, do you want to continue?")) {
+                return;
+            }
+        }
+        else {
+            if (!confirm("Are you sure you want to delete this PO?")) {
+                return;
+            }
+        }
+
+        // 2. Remove the row directly using the row element
+        // Kendo handles the dataSource sync and UI removal automatically
+        grid.removeRow(tr);
+        grid.dataSource.sync();
+    }
+
+    function onGridDeleteClickXXX(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = selectedGrid.dataItem(tr);
+
+        const hasIssuance =
+            (dataItem.PastAmount > 0) ||
+            (dataItem.CurAmount > 0) ||
+            (dataItem.FutureAmount > 0);
+
+        if (hasIssuance) {
+            if (!confirm("Issuances were found for this PO, do you want to continue?")) {
+                return;
+            }
+        }
+
+        const rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGrid.removeRow(tr);
+
+        //const uid = tr.data("uid");
+        //const row = selectedGrid.tbody.find("tr[data-uid='" + uid + "']");
+        //selectedGrid.removeRow(row);
+        //if (selectedGrid.dataSource.options.batch) {
+        //    selectedGrid.dataSource.sync();
+        //}
+    }
+
     function onChangeGrid(e) {
         selectedGrid = this;
         var selectedData = this.dataItem(this.select());
@@ -703,7 +726,7 @@ panelbar.Add().Text("Card Items")
             //    this.select(e.masterRow);
             //});
             this.clearSelection();
-        }        
+        }
     }
 
     $(".k-grid-btnTransferCard").click(function (e) {

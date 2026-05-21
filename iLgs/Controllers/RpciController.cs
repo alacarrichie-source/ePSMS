@@ -1,5 +1,4 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
@@ -27,6 +26,7 @@ namespace iLgs.Controllers
         private readonly IRpciService _rpciService;
         private readonly IRpciItemService _rpciItemService;
         private readonly ICodextnService _codextnService;
+        private string _menuId = string.Empty;
 
         public RpciController()
         {
@@ -36,8 +36,17 @@ namespace iLgs.Controllers
             _codextnService = new CodextnService(_db);
         }
 
-        public ActionResult SemiExpendable()
+        public async Task<ActionResult> SemiExpendable()
         {
+            _menuId = "rpci_semi_expendable";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rpci"] = _menuId;
             ViewData["Type"] = "SE";
             ViewData["IsPosted"] = true;
             ViewBag.Title = "Semi-Expendable";
@@ -46,24 +55,42 @@ namespace iLgs.Controllers
             return View("Index");
         }
 
-        public ActionResult NotPosted()
+        public async Task<ActionResult> NotPosted()
         {
+            _menuId = "rpci_not_posted";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rpci"] = _menuId;
             ViewBag.Type = "C";
             ViewData["IsPosted"] = false;
             ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Not Posted Records";
-            ViewBag.Header = "RPCI";
+            ViewBag.Header = _menuId;
 
             return View("Index");
         }        
 
 
         // GET: Rpci
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "rpci";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rpci"] = _menuId;
             ViewData["Type"] = "C";
             ViewData["IsPosted"] = true;
             ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Posted Records";
-            ViewBag.Header = "RPCI";
+            ViewBag.Header = _menuId;
 
             return View();
         }
@@ -81,8 +108,17 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult RunningTotal()
+        public async Task<ActionResult> RunningTotal()
         {
+            _menuId = "rpci_running_total";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["rpci"] = _menuId;
             ViewBag.AsOf = new DateTime(DateTime.Now.Year-1, 12, 31);
             ViewBag.Type = "ALL";
             ViewBag.Fund = "ALL";
@@ -105,14 +141,14 @@ namespace iLgs.Controllers
             return result;
         }
 
-
-
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> RpciCreate([DataSourceRequest] DataSourceRequest request, RPCI_VM model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -153,7 +189,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -193,7 +231,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -224,7 +264,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -273,7 +315,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -357,7 +401,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -397,7 +443,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -437,7 +485,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
+                _menuId = TempData["rpci"]?.ToString();
+                TempData.Keep("rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

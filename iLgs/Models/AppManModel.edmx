@@ -1284,7 +1284,7 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ForYear" Type="int" />
           <Property Name="PoNo" Type="varchar" MaxLength="50" />
-          <Property Name="Remarks" Type="varchar" MaxLength="900" />
+          <Property Name="Remarks" Type="varchar" MaxLength="2000" />
           <Property Name="IsOk" Type="bit" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
@@ -6366,7 +6366,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <Parameter Name="cUserId" Mode="In" Type="String" />
           </FunctionImport>
           <EntitySet Name="SubAccountViews" EntityType="AppManModel.SubAccountView" />
-          <EntitySet Name="PoAdjustments" EntityType="AppManModel.PoAdjustment" />
           <EntitySet Name="RSMIItems" EntityType="AppManModel.RSMIItem" />
           <AssociationSet Name="FK_RSMIItems_ItemCodes" Association="AppManModel.FK_RSMIItems_ItemCodes">
             <End Role="ItemCode" EntitySet="ItemCodes" />
@@ -6376,6 +6375,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RSMI" EntitySet="RSMIs" />
             <End Role="RSMIItem" EntitySet="RSMIItems" />
           </AssociationSet>
+          <EntitySet Name="PoAdjustments" EntityType="AppManModel.PoAdjustment" />
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -11225,20 +11225,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
         </EntityType>
-        <EntityType Name="PoAdjustment">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ForYear" Type="Int32" />
-          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="900" FixedLength="false" Unicode="false" />
-          <Property Name="IsOk" Type="Boolean" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-        </EntityType>
         <EntityType Name="RSMIItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -11297,6 +11283,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="PoAdjustment">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ForYear" Type="Int32" />
+          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="IsOk" Type="Boolean" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -14025,21 +14025,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="PoAdjustments">
-            <EntityTypeMapping TypeName="AppManModel.PoAdjustment">
-              <MappingFragment StoreEntitySet="PoAdjustments">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="IsOk" ColumnName="IsOk" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
-                <ScalarProperty Name="ForYear" ColumnName="ForYear" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="RSMIItems">
             <EntityTypeMapping TypeName="AppManModel.RSMIItem">
               <MappingFragment StoreEntitySet="RSMIItems">
@@ -14067,6 +14052,21 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="RisNo" ColumnName="RisNo" />
                 <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
                 <ScalarProperty Name="RsmiId" ColumnName="RsmiId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PoAdjustments">
+            <EntityTypeMapping TypeName="AppManModel.PoAdjustment">
+              <MappingFragment StoreEntitySet="PoAdjustments">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="IsOk" ColumnName="IsOk" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
+                <ScalarProperty Name="ForYear" ColumnName="ForYear" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

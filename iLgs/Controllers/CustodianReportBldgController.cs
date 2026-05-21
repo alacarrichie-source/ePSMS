@@ -34,13 +34,14 @@ namespace iLgs.Controllers
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IAnnexDService _annexDService;
-        private readonly string[] _bldgId = new string[] {
-            "custodian_report_bldg",
-            "custodian_report_bldg_inquiry",
-            "custodian_report_bldg_demand",
-            "custodian_report_bldg_update",
-            "custodian_report_bldg_multiple"
-        };
+        private string _menuId = string.Empty;
+        //private readonly string[] _menuId = new string[] {
+        //    "custodian_report_bldg",
+        //    "custodian_report_bldg_inquiry",
+        //    "custodian_report_bldg_demand",
+        //    "custodian_report_bldg_update",
+        //    "custodian_report_bldg_multiple"
+        //};
 
         public CustodianReportBldgController()
         {
@@ -71,8 +72,17 @@ namespace iLgs.Controllers
         //    _itemCodeService = itemCodeService;
         //}
 
-        public ActionResult BldgQuery()
+        public async Task<ActionResult> BldgQuery()
         {
+            _menuId = "custodian_report_bldg_inquiry";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_bldg"] = _menuId;
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure - Query";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
@@ -92,8 +102,17 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "custodian_report_bldg";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_bldg"] = _menuId;
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
@@ -114,8 +133,17 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult BldgUpdate()
+        public async Task<ActionResult> BldgUpdate()
         {
+            _menuId = "custodian_report_bldg_update";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_bldg"] = _menuId;
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure - Update Item Code";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
@@ -129,8 +157,17 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult BldgDemand()
+        public async Task<ActionResult> BldgDemand()
         {
+            _menuId = "custodian_report_bldg_demand";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_bldg"] = _menuId;
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure";
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
@@ -158,7 +195,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -198,7 +237,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -237,7 +278,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -268,7 +311,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -318,7 +363,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -367,7 +414,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 //Access access = await accessTask;
                 //if (!access.AllowPost)
                 //{
@@ -422,7 +469,7 @@ namespace iLgs.Controllers
         {
             try
             {                
-                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 //Access access = await accessTask;
                 //if (!access.AllowUnpost)
                 //{
@@ -507,7 +554,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -566,7 +615,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -606,7 +657,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -646,7 +699,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -679,7 +734,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
 
                 var entity = await _custodianReportBldgItemService.GetByIdAsync(model.Id);
@@ -756,7 +813,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -796,7 +855,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -836,7 +897,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -901,7 +964,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -937,7 +1002,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -981,7 +1048,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -1075,8 +1144,10 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Download(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
-            {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+            {
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {
@@ -1127,8 +1198,10 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Upload(int? forYear, Guid? deptId, int? accountGroup)
         {
             try
-            {                
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _bldgId);
+            {
+                _menuId = TempData["custodian_report_bldg"]?.ToString();
+                TempData.Keep("custodian_report_bldg");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
                 if (!access.AllowDownload)
                 {

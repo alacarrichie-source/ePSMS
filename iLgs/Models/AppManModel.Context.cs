@@ -135,8 +135,8 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<SubAccountView> SubAccountViews { get; set; }
-        public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
+        public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

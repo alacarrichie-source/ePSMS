@@ -4,8 +4,10 @@ using iLgs.Services.CustodianReports;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -16,6 +18,7 @@ namespace iLgs.Controllers
         //private readonly AppManEntities _db;
         private readonly ICustodianReportSubmitForCountService _custodianReportSubmitForCountService;
         private readonly IUserService _userService;
+        private string _menuId = string.Empty;
         
         public CustodianReportCountController()
         {
@@ -25,14 +28,32 @@ namespace iLgs.Controllers
         }
 
         // GET: Index
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            _menuId = "custodian_report_count";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_count"] = _menuId;
             ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
-        public ActionResult Department()
+        public async Task<ActionResult> Department()
         {
+            _menuId = "custodian_report_count_department";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report_count"] = _menuId;
             ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
