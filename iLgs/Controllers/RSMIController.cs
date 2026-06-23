@@ -12,7 +12,6 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Configuration;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -86,13 +85,15 @@ namespace iLgs.Controllers
             ViewBag.EndDate = new DateTime(DateTime.Now.Year-1, 12, 31);
             ViewBag.Type = "ALL";
             ViewBag.Fund = "ALL";
+            ViewBag.FromDonation = "ALL";
+            ViewBag.InvDist = "ALL";
             ViewBag.DeptId = Guid.Empty;
             return View();
         }
 
-        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId)
+        public ActionResult RunningTotalRead([DataSourceRequest] DataSourceRequest request, string type, DateTime? startDate, DateTime? endDate, string fund, string fromDonation, string invDist, Guid? deptId)
         {
-            var data = _rsmiService.GetTotalList(type, startDate, endDate, fund, deptId);
+            var data = _rsmiService.GetTotalList(type, startDate, endDate, fund, fromDonation, invDist, deptId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -135,9 +136,7 @@ namespace iLgs.Controllers
 
                     model = await _rsmiService.GenerateAsync(model, user, date);
                 }
-
             }                     
-
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
@@ -248,8 +247,187 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        public ActionResult _RSMIDelete()
+        {
+
+            RSMIProcessVM model = new RSMIProcessVM()
+            {
+                DateFrom = DateTime.Now,
+                DateTo = DateTime.Now
+            };
+            return PartialView(model);
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RsmiPost(Guid? id)
+        public async Task<ActionResult> RSMIDelete([DataSourceRequest] DataSourceRequest request, RSMIProcessVM model)
+        {
+            try
+            {
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rsmiService.DeleteRangeAsync(model, user, date);
+                }
+            }
+
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        }
+
+        public ActionResult _RSMIPostBatch()
+        {
+
+            RSMIProcessVM model = new RSMIProcessVM()
+            {
+                DateFrom = DateTime.Now,
+                DateTo = DateTime.Now
+            };
+            return PartialView(model);
+        }
+
+        public ActionResult _RSMIUnpostBatch()
+        {
+
+            RSMIProcessVM model = new RSMIProcessVM()
+            {
+                DateFrom = DateTime.Now,
+                DateTo = DateTime.Now
+            };
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> RSMIPostBatch(RSMIProcessVM model)
+        {
+            try
+            {
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rsmiService.PostBatchAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> RSMIUnpostBatch(RSMIProcessVM model)
+        {
+            try
+            {
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rsmiService.UnpostBatchAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> RSMIPost(Guid? id)
         {
             try
             {
@@ -300,7 +478,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RsmiUnPost(Guid? id)
+        public async Task<ActionResult> RsmiUnpost(Guid? id)
         {
             try
             {
@@ -317,7 +495,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _rsmiService.UnPostAsync(id, user, date);
+                    await _rsmiService.UnpostAsync(id, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -488,6 +666,22 @@ namespace iLgs.Controllers
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);
             crReportDocument.SetParameterValue("@cType", model.RpciType == "A" ? "" : model.RpciType);
 
+            var group = string.Empty;
+            if (model.RpciType == "A")
+            {
+                group = "RSMI RSPI";
+            }
+            else if (model.RpciType == "C")
+            {
+                group = "RSMI";
+            }
+            else 
+            {
+                group = "RSPI";
+            }
+
+            var fileName = $"{model.DateFrom.Value.Year} {group}_{model.Fund}";
+
             if (model.SavePrints)
             {
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
@@ -500,6 +694,7 @@ namespace iLgs.Controllers
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
                 crReportDocument.Close();
                 crReportDocument.Dispose();
+                Response.AppendHeader("Content-Disposition", $"inline; filename={fileName}.pdf");
                 return File(stream, "application/pdf");                
             }
         }
@@ -598,6 +793,24 @@ namespace iLgs.Controllers
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);
             crReportDocument.SetParameterValue("@cType", model.RpciType == "A" ? "" : model.RpciType);
 
+            var group = string.Empty;
+            if (model.RpciType == "A")
+            {
+                group = "RSMI RSPI";
+            }
+            else if (model.RpciType == "C")
+            {
+                group = "RSMI";
+            }
+            else 
+            {
+                group = "RSPI";
+            }
+
+            var type = model.Type == "1" ? "by Account" : "by PO";
+
+            var fileName = $"{model.DateFrom.Value.Year} {group}_{model.Fund} {type}";
+
             if (model.SavePrints)
             {
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
@@ -610,6 +823,8 @@ namespace iLgs.Controllers
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
                 crReportDocument.Close();
                 crReportDocument.Dispose();
+
+                Response.AppendHeader("Content-Disposition", $"inline; filename={fileName}.pdf");
                 return File(stream, "application/pdf");
             }
         }

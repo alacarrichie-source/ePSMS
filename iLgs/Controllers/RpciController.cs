@@ -11,6 +11,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -361,6 +362,128 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult _PostBatch()
+        {
+
+            RPCIProcessVM model = new RPCIProcessVM()
+            {
+                AsOf = DateTime.Now
+            };
+            return PartialView(model);
+        }
+
+        public ActionResult _UnpostBatch()
+        {
+
+            RPCIProcessVM model = new RPCIProcessVM()
+            {
+                AsOf = DateTime.Now                
+            };
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostBatch(RPCIProcessVM model)
+        {
+            try
+            {
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rpciService.PostBatchAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnpostBatch(RPCIProcessVM model)
+        {
+            try
+            {
+                _menuId = TempData["rsmi"]?.ToString();
+                TempData.Keep("rsmi");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rpciService.UnpostBatchAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult _RpciItem(Guid rpciId)
         {
             ViewData["rpciId"] = rpciId;
@@ -551,24 +674,50 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@dAsOf", null);
             rpt.SetParameterValue("@uRpciId", id.ToString());
             rpt.SetParameterValue("@cType", type == "A" ? "" : type);
+
+            var group = string.Empty;
             if (string.IsNullOrWhiteSpace(type) || type == "A") // ALL
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+                group = "RPCI RPCSP";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES AND SEMI-EXPENDABLE PROPERTY");
             }
             if (type == "C") // consumables
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES - CONSUMABLES");
+                group = "RPCI";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES (RPCI)");
             }
             else if (type == "SE")
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY");
+                group = "RPCSP";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY (RPCSP)");
             }
 
-            if (save == 0)
+            var rpci = _db.RPCIs.FirstOrDefault(f => f.Id == id);
+            var fromDonation = rpci.FromDonation == true ? "From Donation" : "Purchase";
+            var invDist = rpci.InvDist == "I" ? "Inventory" : "For Distribution";
+            var sNull = string.Empty;
+            if (group == "RPCSP")
             {
+                if (rpci.InvDist == "D")
+                {
+                    sNull = " (NA)";
+                }
+            }
+            else
+            {
+                if (rpci.FromDonation == true)
+                {
+                    sNull = " (NULL)";
+                }
+            }
+            var fileName = $"{rpci.AsOf.Value.Year} {group}_{rpci.Fund} {fromDonation}_{invDist}{sNull}";
+
+            if (save == 0)
+            {                
                 Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
                 rpt.Close();
                 rpt.Dispose();
+                Response.AppendHeader("Content-Disposition", $"inline; filename={fileName}.pdf");
                 return File(stream, "application/pdf");
             }
             else
@@ -576,7 +725,7 @@ namespace iLgs.Controllers
                 Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);                
                 rpt.Close();
                 rpt.Dispose();
-                return File(stream, "application/xlsx", $"rpci.xls");
+                return File(stream, "application/xlsx", $"{fileName}.xls");
             }
         }
 
@@ -644,31 +793,40 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@cFund", model.Fund);
             rpt.SetParameterValue("@dAsOfDate", model.DateFrom);
             rpt.SetParameterValue("@bIsPosted", model.IsPosted);
-            if (type == "A")
+
+            var group = string.Empty;
+            if (string.IsNullOrWhiteSpace(type) || type == "A") // ALL
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES");
+                group = "RPCI RPCSP";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES AND SEMI-EXPENDABLE PROPERTY");
             }
-            else if (type == "C")
+            if (type == "C") // consumables
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES - CONSUMABLES");
+                group = "RPCI";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF INVENTORIES (RPCI)");
             }
             else if (type == "SE")
             {
-                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY");
+                group = "RPCSP";
+                rpt.SetParameterValue("TITLE", "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY (RPCSP)");
             }
+
+            var typeDesc = type == "A" ? "by Account" : "by PO";
+            var fileName = $"{model.DateFrom.Value.Year} {group}_{model.Fund} {typeDesc}";
 
             if (model.SavePrints)
             {
                 Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
                 rpt.Close();
                 rpt.Dispose();
-                return File(stream, "application/xlsx", $"RpciSumRpt.xls");
+                return File(stream, "application/xlsx", $"{fileName}.xls");
             }
             else
             {
                 Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
                 rpt.Close();
                 rpt.Dispose();
+                Response.AppendHeader("Content-Disposition", $"inline; filename={fileName}.pdf");
                 return File(stream, "application/pdf");
             }
         }

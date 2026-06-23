@@ -1,0 +1,81 @@
+﻿@model iLgs.Models.RPCIProcessVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.AsOf, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.AsOf).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.AsOf)
+                </div>
+            </div>
+        </div>        
+    </fieldset>
+
+    <br />
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <span id="span_">
+                @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Submit").Name("btnSave"))
+                @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+            </span>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+
+
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        if (confirm("Are you sure you want to post the RPCI for this date?")) {
+            //var overwrite = $("#Overwrite").is(":checked");
+            data = $("#form").serialize();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PostBatch", "RPCI")',
+                data: data,
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                }
+            }).done(function (result) {
+                window.kendo.ui.progress($("#form"), false);
+                if (result.Errors != "") {
+                    alert(result.Errors);
+                } else {
+                    $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                }
+            }).fail(function (req, status, errorObj) {
+                alert(req.responseText);
+                window.kendo.ui.progress($("#form"), false);
+            });
+        }
+    });
+
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+
+</script>
+
+
+
+
+

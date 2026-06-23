@@ -71,29 +71,32 @@
         var type = $("#RpciType").data("kendoRadioGroup").value();
         var url = '@Url.Action("RpciRpt", "Rpci")?id=' + id + "&type=" + type + "&save=0";
 
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
+        window.open(url, '_blank');
+        window.kendo.ui.progress($(document.body), false);
+
+        //$("#windowcontainer").append("<div id='windowPrint'></div>");
+        //var mywindow = $("#windowPrint")
+        //        .kendoWindow({
+        //            actions: ["Maximize", "Minimize", "Close"],
+        //            resizable: true,
+        //            draggable: true,
+        //            modal: true,
+        //            visible: false,
+        //            iframe: true,
+        //            deactivate: function () {
+        //                this.destroy();
+        //            }
+        //        }).data("kendoWindow");
+        //mywindow.setOptions({
+        //    title: "Preview",
+        //    width: 1200,
+        //    height: 700
+        //});
+        //mywindow.refresh({
+        //    url: url
+        //});
+        //mywindow.center();
+        //mywindow.open();
     }
 
     function Export() {

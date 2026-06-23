@@ -137,6 +137,8 @@
         t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Batch Post").IconClass("k-icon k-i-lock").Name("btnPostBatch").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Batch Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostBatch").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(500).Title(@ViewBag.Header)))
@@ -377,6 +379,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+                trackingId = selectedId;
             }
         }
     }
@@ -386,6 +389,7 @@
     var selectedAsOf = null;
     var selecteItemId = null;
     var postedBy = null;
+    var trackingId = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -395,6 +399,7 @@
         selectedAsOf = selectedData.AsOf;
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
+        trackingId = selectedId;
 
         if (postedBy) {
             $(".k-grid-btnUnpostPO", grid).show();
@@ -430,10 +435,14 @@
             $(".k-grid-btnPrintPOSum", grid).hide();
             $(".k-grid-btnPostPO", grid).hide();
             $(".k-grid-btnUnpostPO", grid).hide();
+            $(".k-grid-btnPostBatch", grid).hide();
+            $(".k-grid-btnUnpostBatch", grid).hide();
         }
         else {
             $(".k-grid-btnPrintPO", grid).show();
             $(".k-grid-btnPrintPOSum", grid).show();
+            $(".k-grid-btnPostBatch", grid).show();
+            $(".k-grid-btnUnpostBatch", grid).show();
             //$(".k-grid-btnPostPO", grid).show();
         }
     }
@@ -445,7 +454,7 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
-            selectedAsOf = null;
+            selectedAsOf = null;            
             e.container.find("[id=EditDiv]").toggle(false);
             e.model.set("IsPosted", '@ViewData["IsPosted"]');
             e.model.set("Type", '@ViewData["Type"]');
@@ -474,6 +483,7 @@
             $("#ItemTypeId").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
         }
+        trackingId = selectedId;
     }
 
     function onGridDeleteClick(e) {
@@ -674,6 +684,70 @@
         }
     });
 
+    $(".k-grid-btnPostBatch").click(function (e) {
+        e.preventDefault()
+        window.kendo.ui.progress($("#grid"), true);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RPCI Batch Post",
+            width: 400,
+            height: 170
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_PostBatch", "RPCI")',
+        });
+        mywindow.center().open();
+    });
+
+    $(".k-grid-btnUnpostBatch").click(function (e) {
+        e.preventDefault()
+        window.kendo.ui.progress($("#grid"), true);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RPCI Batch Unpost",
+            width: 400,
+            height: 170
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_UnpostBatch", "RPCI")',
+        });
+        mywindow.center().open();
+    });
+
     $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
@@ -718,7 +792,7 @@
         mywindow.refresh({
             url: '@Url.Action("_PrintList", "Rpci")?id=' + selectedId
         });
-        mywindow.center().open();        
+        mywindow.center().open();
     });
 
     $(".k-grid-btnPrintPOSum").click(function (e) {

@@ -27,6 +27,10 @@ namespace iLgs.Services.RPC
         ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI> PostAsync(Guid? id, string user, DateTime date);
         ValueTask<RPCI> UnPostAsync(Guid? id, string user, DateTime date);
+
+        ValueTask<RPCIProcessVM> PostBatchAsync(RPCIProcessVM model, string user, DateTime date);
+        ValueTask<RPCIProcessVM> UnpostBatchAsync(RPCIProcessVM model, string user, DateTime date);
+
         ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> DeleteAsync(RPCI_VM model, string user, DateTime date);
@@ -38,6 +42,7 @@ namespace iLgs.Services.RPC
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<RPCI_VM> _vmExceptionService;
         private readonly IExceptionService<RPCI> _exceptionService;
+        private readonly IExceptionService<RPCIProcessVM> _processExceptionService;
         private readonly IOrderService _orderService;
         private readonly IPriceCapService _priceCapService;
         private readonly ISemiExpendableService _semiExpendableService;
@@ -51,6 +56,7 @@ namespace iLgs.Services.RPC
             _db.Database.CommandTimeout = 3000;
             _exceptions = new CreateAndLogExceptions();
             _vmExceptionService = new ExceptionService<RPCI_VM>();
+            _processExceptionService = new ExceptionService<RPCIProcessVM>();
             _exceptionService = new ExceptionService<RPCI>();
             _orderService = new OrderService(_db);
             _priceCapService = new PriceCapService(_db);
@@ -300,6 +306,64 @@ namespace iLgs.Services.RPC
             await _db.SaveChangesAsync();
 
             return entity;
+        });
+
+        public ValueTask<RPCIProcessVM> PostBatchAsync(RPCIProcessVM model, string user, DateTime date) =>
+        _processExceptionService.TryCatch(async () =>
+        {
+            if (!model.AsOf.HasValue)
+            {
+                throw new InvalidValueException("As of date is required.");
+            }
+
+            var rpciList = await _db.RPCIs.Where(w => w.AsOf == model.AsOf && w.PostedDt == null).ToListAsync();
+
+            if (!rpciList.Any())
+            {
+                throw new InvalidValueException("No Posted RPCI where found for the date entered.");
+            }
+
+
+            foreach (var rpci in rpciList)
+            {
+                rpci.PostedBy = user;
+                rpci.PostedDt = date;
+                rpci.UpdatedBy = user;
+                rpci.UpdatedDt = date;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+        public ValueTask<RPCIProcessVM> UnpostBatchAsync(RPCIProcessVM model, string user, DateTime date) =>
+        _processExceptionService.TryCatch(async () =>
+        {
+            if (!model.AsOf.HasValue)
+            {
+                throw new InvalidValueException("As of date is required.");
+            }            
+
+            var rpciList = await _db.RPCIs.Where(w => w.AsOf == model.AsOf && w.PostedDt != null).ToListAsync();
+
+            if (!rpciList.Any())
+            {
+                throw new InvalidValueException("No Posted RPCI where found for the date entered.");
+            }
+
+
+            foreach (var rpci in rpciList)
+            {
+                rpci.PostedBy = null;
+                rpci.PostedDt = null;
+                rpci.UpdatedBy = user;
+                rpci.UpdatedDt = date;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return model;
         });
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>

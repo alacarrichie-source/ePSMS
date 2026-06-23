@@ -4793,6 +4793,11 @@
     <Content Include="Views\RSMI\RunningTotal.cshtml" />
     <Content Include="Views\PoTransfer\_TransferPoNo.cshtml" />
     <Content Include="Views\PoIssuance\PoSummary.cshtml" />
+    <Content Include="Views\RSMI\_RSMIDelete.cshtml" />
+    <Content Include="Views\RSMI\_RSMIPostBatch.cshtml" />
+    <Content Include="Views\RSMI\_RSMIUnpostBatch.cshtml" />
+    <Content Include="Views\Rpci\_PostBatch.cshtml" />
+    <Content Include="Views\Rpci\_UnpostBatch.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

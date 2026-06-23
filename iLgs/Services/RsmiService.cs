@@ -16,14 +16,18 @@ namespace iLgs.Services
         IQueryable<RsmiVM> GetAll();
         IQueryable<RSMITotalVM> GetTotal(string type, DateTime? startDate, DateTime? endDate);
         Task<IEnumerable<RSMITotalVM>> GetTotalAsync(string type, DateTime? startDate, DateTime? endDate);
-        IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId);
+        IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, string fromDonation, string invDist, Guid? deptId);
 
         ValueTask<RSMIProcessVM> GenerateAsync(RSMIProcessVM model, string user, DateTime date);
+        ValueTask<RSMIProcessVM> DeleteRangeAsync(RSMIProcessVM model, string user, DateTime date);
         ValueTask<RsmiVM> UpdateAsync(RsmiVM model, string user, DateTime date);
         ValueTask<RsmiVM> DeleteAsync(RsmiVM model, string user, DateTime date);
 
         ValueTask<RSMI> PostAsync(Guid? id, string user, DateTime date);
-        ValueTask<RSMI> UnPostAsync(Guid? id, string user, DateTime date);
+        ValueTask<RSMI> UnpostAsync(Guid? id, string user, DateTime date);
+
+        ValueTask<RSMIProcessVM> PostBatchAsync(RSMIProcessVM model, string user, DateTime date);
+        ValueTask<RSMIProcessVM> UnpostBatchAsync(RSMIProcessVM model, string user, DateTime date);
     }
 
     public class RsmiService : IRsmiService
@@ -132,18 +136,20 @@ namespace iLgs.Services
             return data;
         }
 
-        public IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, Guid? deptId)
+        public IList<RSMITotalVM> GetTotalList(string type, DateTime? startDate, DateTime? endDate, string fund, string fromDonation, string invDist, Guid? deptId)
         {
             var spvh = _semiExpendableService.GetSPHV(startDate);
-            var data = _db.Database.Connection.Query<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal @p0, @p1, @p2, @p3, @p4, @p5"
+            var data = _db.Database.Connection.Query<RSMITotalVM>("Exec REPORTS_RSMI_GetTotal @p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7"
                 , new
                 {
                     p0 = string.IsNullOrWhiteSpace(type) || type == "ALL" ? null : type,
                     p1 = startDate,
                     p2 = endDate,
                     p3 = string.IsNullOrWhiteSpace(fund) || fund == "ALL" ? null : fund,
-                    p4 = spvh,                    
-                    p5 = deptId == Guid.Empty ? null : deptId
+                    p4 = spvh,
+                    p5 = string.IsNullOrWhiteSpace(fromDonation) || fromDonation == "ALL" ? (bool?)null : (fromDonation == "D"),
+                    p6 = string.IsNullOrWhiteSpace(invDist) || invDist == "ALL" ? null : invDist,
+                    p7 = deptId == Guid.Empty ? null : deptId                    
                 }).ToList();
             return data;
         }
@@ -312,6 +318,12 @@ namespace iLgs.Services
                 throw new InvalidValueException("Year or date range must be the same.");
             }
 
+            if (await _db.RSMIs
+                        .Where(w => w.Date >= model.DateFrom && w.Date <= model.DateTo).AnyAsync())
+            {
+                throw new InvalidValueException("Period", "RSMI already exists within the period entered.");
+            }
+
             //var priceCap = _priceCapService.GetPriceCap(model.DateFrom);
             var sphv = _semiExpendableService.GetSPHV(model.DateFrom);
 
@@ -323,6 +335,54 @@ namespace iLgs.Services
 
             await _db.Database.ExecuteSqlCommandAsync("Exec RSMI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}",
                 model.DateFrom, model.DateTo, sphv, model.Custodian, model.PostedBy, model.PostedDt, user, date);
+
+            return model;
+        });
+
+        public ValueTask<RSMIProcessVM> DeleteRangeAsync(RSMIProcessVM model, string user, DateTime date) =>
+        _processExceptionService.TryCatch(async () =>
+        {
+            if (!model.DateFrom.HasValue)
+            {
+                throw new InvalidValueException("Date From is required.");
+            }
+
+            if (!model.DateTo.HasValue)
+            {
+                throw new InvalidValueException("Date To is required.");
+            }
+
+            if (model.DateFrom > model.DateTo)
+            {
+                throw new InvalidValueException("Invalid date range.");
+            }
+
+            if (model.DateFrom.Value.Year != model.DateTo.Value.Year)
+            {
+                throw new InvalidValueException("Dates must be of the same year.");
+            }
+
+            var lastDate = await _db.RSMIs.MaxAsync(m => m.Date);
+
+            if (model.DateTo < lastDate)
+            {
+                throw new InvalidValueException($"Date To must be the last date of RSMI ({ lastDate.Value.Date.ToLongDateString() })");
+            }
+
+            var rsmiList = await _db.RSMIs.Where(w => w.Date >= model.DateFrom && w.Date <= model.DateTo).ToListAsync();
+
+            if (!rsmiList.Any())
+            {
+                throw new InvalidValueException("No RSMI where found within the period entered.");
+            }
+
+            if (rsmiList.Any(a => a.PostedDt != null))
+            {
+                throw new InvalidValueException("Posted RSMI where found within the period entered.");
+            }
+
+            _db.RSMIs.RemoveRange(rsmiList);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -366,7 +426,12 @@ namespace iLgs.Services
 
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot update!");
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot proceed.");
+            }
+
+            if (await _db.RSMIs.AnyAsync(a => a.Date > entity.Date))
+            {
+                throw new RecordAlreadyExistsException("RSMI already exists after this date, cannot proceed.");
             }
 
             model.UpdatedBy = user;
@@ -407,7 +472,7 @@ namespace iLgs.Services
             return entity;
         });
 
-        public ValueTask<RSMI> UnPostAsync(Guid? id, string user, DateTime date) =>
+        public ValueTask<RSMI> UnpostAsync(Guid? id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.RSMIs.FindAsync(id);
@@ -429,6 +494,95 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             return entity;
+        });
+
+        public ValueTask<RSMIProcessVM> PostBatchAsync(RSMIProcessVM model, string user, DateTime date) =>
+        _processExceptionService.TryCatch(async () =>
+        {
+            if (!model.DateFrom.HasValue)
+            {
+                throw new InvalidValueException("Date From is required.");
+            }
+
+            if (!model.DateTo.HasValue)
+            {
+                throw new InvalidValueException("Date To is required.");
+            }
+
+            if (model.DateFrom > model.DateTo)
+            {
+                throw new InvalidValueException("Invalid date range.");
+            }
+
+            if (model.DateFrom.Value.Year != model.DateTo.Value.Year)
+            {
+                throw new InvalidValueException("Dates must be of the same year.");
+            }
+
+            
+            var rsmiList = await _db.RSMIs.Where(w => w.Date >= model.DateFrom && w.Date <= model.DateTo && w.PostedDt == null).ToListAsync();
+
+            if (!rsmiList.Any())
+            {
+                throw new InvalidValueException("No Posted RSMI where found within the period entered.");
+            }
+
+            
+            foreach (var rsmi in rsmiList)
+            {
+                rsmi.PostedBy = user;
+                rsmi.PostedDt = date;
+                rsmi.UpdatedBy = user;
+                rsmi.UpdatedDt = date;
+            }
+            
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+        public ValueTask<RSMIProcessVM> UnpostBatchAsync(RSMIProcessVM model, string user, DateTime date) =>
+        _processExceptionService.TryCatch(async () =>
+        {
+            if (!model.DateFrom.HasValue)
+            {
+                throw new InvalidValueException("Date From is required.");
+            }
+
+            if (!model.DateTo.HasValue)
+            {
+                throw new InvalidValueException("Date To is required.");
+            }
+
+            if (model.DateFrom > model.DateTo)
+            {
+                throw new InvalidValueException("Invalid date range.");
+            }
+
+            if (model.DateFrom.Value.Year != model.DateTo.Value.Year)
+            {
+                throw new InvalidValueException("Dates must be of the same year.");
+            }
+
+            var rsmiList = await _db.RSMIs.Where(w => w.Date >= model.DateFrom && w.Date <= model.DateTo && w.PostedDt != null).ToListAsync();
+
+            if (!rsmiList.Any())
+            {
+                throw new InvalidValueException("No Posted RSMI where found within the period entered.");
+            }
+
+
+            foreach (var rsmi in rsmiList)
+            {
+                rsmi.PostedBy = null;
+                rsmi.PostedDt = null;
+                rsmi.UpdatedBy = user;
+                rsmi.UpdatedDt = date;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return model;
         });
 
         private string NextSerialNoOld(string fund, DateTime? date)

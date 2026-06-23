@@ -42,6 +42,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnService _psCardItemExtnService;
         private readonly ICodextnService _codextnService;
         private readonly IPsCardSharedService _psCardSharedService;
+        private readonly IUserService _userService;
 
         public PsCardItemTransferIssuanceService(AppManEntities db)
         {
@@ -52,6 +53,7 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _codextnService = new CodextnService(_db);
             _psCardSharedService = new PsCardSharedService(_db);
+            _userService = new UserService(_db);
         }
 
         //public PsCardItemTransferIssuanceService(AppManEntities db,
@@ -86,7 +88,8 @@ namespace iLgs.Services.PropertyCard
                 Qty = s.Qty,
                 UnitCost = s.PsCardItemTransfer.PsCardItem.TUnitCost,
                 Amount = s.Amount,
-                InsertedDt = s.InsertedDt
+                InsertedDt = s.InsertedDt,
+                InsertedBy = s.InsertedBy
             };
         }
 
@@ -114,7 +117,7 @@ namespace iLgs.Services.PropertyCard
 
             await ValidateFieldsAsync(model, Mode.ADD);
 
-            ValidateIssuanceDate((DateTime)model.IssuedDate);
+            ValidateIssuanceDate((DateTime)model.IssuedDate, user);
 
             if (model.SelectedIds != null)
             {
@@ -186,8 +189,8 @@ namespace iLgs.Services.PropertyCard
                 throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {model.IssuedDate.Value.ToShortDateString()}, cannot update!");
             }
 
-            ValidateIssuanceDate((DateTime)model.IssuedDate);
-            ValidateIssuanceDate((DateTime)entity.IssuedDate);
+            ValidateIssuanceDate((DateTime)model.IssuedDate, user);
+            ValidateIssuanceDate((DateTime)entity.IssuedDate, user);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -241,7 +244,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ValidateIssuanceDate((DateTime)model.IssuedDate);
+            ValidateIssuanceDate((DateTime)model.IssuedDate, user);
 
             //var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
             var issuanceYears = _codextnService.GetIssuanceYears().Where(w => (w.Desc3 != "Y" && w.Desc3 != "y"));
@@ -334,7 +337,7 @@ namespace iLgs.Services.PropertyCard
             }
         }
 
-        private void ValidateIssuanceDate(DateTime issuanceDate)
+        private void ValidateIssuanceDate(DateTime issuanceDate, string user)
         {
             int year = issuanceDate.Year;
             var issuanceYear = _codextnService.GetIssuanceYears().Where(w => w.Description.Trim() == year.ToString().Trim()).FirstOrDefault();
@@ -355,6 +358,14 @@ namespace iLgs.Services.PropertyCard
                         if (issuanceDate.Date > cutOffDate.Date)
                         {
                             throw new InvalidValueException($"Update for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                        }
+                    }
+
+                    if (issuanceYear.Desc4?.ToUpper() == "Y")
+                    {
+                        if (!_userService.IsUserNameAdmin(user))
+                        {
+                            throw new InvalidValueException($"Issuance for this year is only allowed for Admins.");
                         }
                     }
                 }

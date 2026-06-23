@@ -478,10 +478,17 @@ namespace iLgs.Services.PoIssuance
                         if (!string.IsNullOrWhiteSpace(issuanceYear.Desc2))
                         {
                             var cutOffDate = DateTime.Parse(issuanceYear.Desc2);
-                            //if (model.TransDate.Value.Date > cutOffDate)
                             if (date.Date > cutOffDate.Date)
                             {
                                 throw new InvalidValueException($"Transit for this year is only valid until {cutOffDate.ToShortDateString()}.");
+                            }                            
+                        }
+
+                        if (issuanceYear.Desc4?.ToUpper() == "Y")
+                        {
+                            if (!(await _userService.IsUserNameAdminAsync(user)))
+                            {
+                                throw new InvalidValueException($"Transit for this year is only allowed for Admins.");
                             }
                         }
                     }

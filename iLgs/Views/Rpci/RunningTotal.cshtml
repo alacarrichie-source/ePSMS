@@ -5,8 +5,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("As of", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("As of", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().DatePicker().Name("asOf")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
             )            
@@ -16,8 +16,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("type")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 //.Placeholder("Select")
@@ -48,8 +48,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("fund")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     //.Placeholder("Select Fund")
@@ -79,10 +79,10 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        <div class="col-md-2">
+        <div class="col-md-3">
             @Html.Label("Acquisition Mode")
         </div>
-        <div class="col-md-10">
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("fromDonation")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 //.Placeholder("Select")
@@ -108,14 +108,13 @@
                 .Suggest(true)
             )
         </div>
-
     </div>
 </div>
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Inventory/For Distribution", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Inventory/For Distribution", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("invDist")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 //.Placeholder("Select")
@@ -146,8 +145,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                     .Name("deptId")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -178,7 +177,7 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        <div class="col-md-2">
+        <div class="col-md-3">
             &nbsp;
         </div>
         <div class="col-md-3">

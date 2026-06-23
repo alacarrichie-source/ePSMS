@@ -5,8 +5,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Issued From", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Issued From", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().DatePicker().Name("startDate")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
             )
@@ -16,8 +16,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Issued To", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Issued To", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().DatePicker().Name("endDate")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("blankGrid"))
             )
@@ -27,8 +27,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Item Type", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("type")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 //.Placeholder("Select")
@@ -59,8 +59,8 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("Fund", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox().Name("fund")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     //.Placeholder("Select Fund")
@@ -88,11 +88,73 @@
     </div>
 </div>
 
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        <div class="col-md-3">
+            @Html.Label("Acquisition Mode")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().MultiColumnComboBox().Name("fromDonation")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Placeholder("Select")
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                //.Value("ALL")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "ACQ-MODE", addAll = true });
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Select("blankGrid"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-10">
+        @Html.Label("For Inventory/Distribution", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().MultiColumnComboBox().Name("invDist")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .DataTextField("Description")
+                    .DataValueField("Code")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = true });
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Events(e => e.Select("blankGrid"))
+                    .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-5">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBox()
                     .Name("deptId")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -123,7 +185,7 @@
 
 <div class="row k-mb-2">
     <div class="col-md-5">
-        <div class="col-md-2">
+        <div class="col-md-3">
             &nbsp;
         </div>
         <div class="col-md-3">
@@ -361,7 +423,7 @@
 
     #grid .k-grid-content {
         overflow-x: auto;
-        height: calc(70vh - 180px) !important;
+        height: calc(60vh - 180px) !important;
     }
 </style>
 
@@ -393,6 +455,8 @@
     var startDate = null;
     var endDate = null;    
     var deptId = null;
+    var invDist = null;
+    var fromDonation = null;
     //function refreshGrid(e) {
     //    $("#grid").data("kendoGrid").dataSource.read();
     //}
@@ -531,11 +595,15 @@
         startDate = $("#startDate").data("kendoDatePicker").value();
         endDate = $("#endDate").data("kendoDatePicker").value();
         deptId = $("#deptId").data("kendoMultiColumnComboBox").value();
+        invDist = $("#invDist").data("kendoMultiColumnComboBox").value();
+        fromDonation = $("#fromDonation").data("kendoMultiColumnComboBox").value();
         return {
             type: type,            
             startDate: startDate,
             endDate: endDate,
             fund: fund,
+            fromDonation: fromDonation,
+            invDist: invDist,
             deptId: deptId
         };
     }

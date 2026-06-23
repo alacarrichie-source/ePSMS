@@ -120,10 +120,13 @@
         .ToolBar(t =>
         {
             t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAdd").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Delete Record").IconClass("k-icon k-i-close").Name("btnDelete").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Print RSMI").IconClass("k-icon k-i-print").Name("btnPrint").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Print Summary").IconClass("k-icon k-i-print").Name("btnPrintSum").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Batch Post").IconClass("k-icon k-i-lock").Name("btnPostBatch").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Batch Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostBatch").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
         })
         .Search(s =>
@@ -256,7 +259,7 @@
                                 a.Add(p => p.Qty).Sum();
                                 a.Add(p => p.Amount).Sum();
                             })
-                            .Events(events => events.Error("GridError"))
+                            .Events(events => events.Error("GridItemError"))
                             .Read("RSMIItemRead", "RSMI", new { rsmiId = "#=Id#" })
                         )
                             //.Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
@@ -299,7 +302,7 @@
                                 a.Add(p => p.Qty).Sum();
                                 a.Add(p => p.TotalCost).Sum();
                             })
-                            .Events(events => events.Error("GridError"))
+                            .Events(events => events.Error("GridItemError"))
                             .Read("RSMIRecapRead", "RSMI", new { rsmiId = "#=Id#" })
                         )
                 //.Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
@@ -370,6 +373,34 @@
     function GridError(args) {
         if (args.errors) {
             var validationError = true;
+            var selectedGrid = $("#grid").data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function GridItemError(args) {
+        if (args.errors) {
+            var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
                     alert(this.errors);
@@ -397,6 +428,7 @@
     var selectedGrid = null;
     var selectedId = null;
     var selecteItemId = null;
+    var trackingId = null;
 
     // MAIN GRID
 
@@ -432,6 +464,102 @@
         mywindow.center().open();
     });
 
+    $(".k-grid-btnDelete").click(function (e) {
+        e.preventDefault()
+        window.kendo.ui.progress($("#grid"), true);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RSMI Delete",
+            width: 400,
+            height: 220
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_RSMIDelete", "RSMI")',
+        });
+        mywindow.center().open();
+    });
+
+    $(".k-grid-btnPostBatch").click(function (e) {
+        e.preventDefault()
+        window.kendo.ui.progress($("#grid"), true);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RSMI Batch Post",
+            width: 400,
+            height: 220
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_RSMIPostBatch", "RSMI")',
+        });
+        mywindow.center().open();
+    });
+
+    $(".k-grid-btnUnpostBatch").click(function (e) {
+        e.preventDefault()
+        window.kendo.ui.progress($("#grid"), true);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($("#grid"), false);
+                },
+                close: function () {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RSMI Batch Unpost",
+            width: 400,
+            height: 220
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_RSMIUnpostBatch", "RSMI")',
+        });
+        mywindow.center().open();
+    });
+
 
     function onRequestEnd(e) {
         e.preventDefault();
@@ -443,6 +571,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+                trackingId = selectedId;
             }
         }
     }
@@ -452,13 +581,14 @@
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
         selectedItemId = null;
+        trackingId = selectedId;
 
         var grid = $("#grid");
         postedBy = selectedData.PostedBy;
 
         if (postedBy) {
             $(".k-grid-btnUnpost", grid).show();
-            $(".k-grid-btnPost", grid).hide();
+            $(".k-grid-btnPost", grid).hide();            
         } else {
             $(".k-grid-btnUnpost", grid).hide();
             $(".k-grid-btnPost", grid).show();
@@ -490,14 +620,20 @@
         //$("#btnPrintSum").data('kendoButton').enable(records > 0);
         var grid = $("#grid");
         if (records == 0) {
+            $(".k-grid-btnDelete", grid).hide();
             $(".k-grid-btnPrint", grid).hide();
             $(".k-grid-btnPrintSum", grid).hide();
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
+            $(".k-grid-btnPostBatch", grid).hide();
+            $(".k-grid-btnUnpostBatch", grid).hide();
         }
         else {
+            $(".k-grid-btnDelete", grid).show();
             $(".k-grid-btnPrint", grid).show();
             $(".k-grid-btnPrintSum", grid).show();
+            $(".k-grid-btnPostBatch", grid).show();
+            $(".k-grid-btnUnpostBatch", grid).show();
         }
     }
 
@@ -514,6 +650,7 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+        trackingId = selectedId;
     }
 
     function onGridDeleteClick(e) {

@@ -494,4 +494,25 @@ namespace iLgs.Models
         [Display(Name = "Acquisition Cost")]
         public decimal? AcqCost { get; set; }
     }
+
+    public class RPCIProcessVM /*: IValidatableObject*/
+    {
+        [Display(Name = "As of Date")]
+        [Required]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AsOf { get; set; }
+
+        //[Display(Name = "Period To")]
+        //[Required]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //public Nullable<System.DateTime> DateTo { get; set; }
+        
+        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        //{
+        //    if (DateTo < DateFrom)
+        //    {
+        //        yield return new ValidationResult(string.Format("Period to {0} must be greater than or equal to Period From {1}", DateTo.Value.ToShortDateString(), DateFrom.Value.ToShortDateString()), new[] { "Period" });
+        //    }
+        //}
+    }
 }
