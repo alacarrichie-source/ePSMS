@@ -184,13 +184,17 @@ namespace iLgs.Controllers
 
         public ActionResult _ItemCodes(Guid itemTypeId)
         {
-            ViewData["itemTypeId"] = itemTypeId;
+            ViewData["itemTypeId"] = itemTypeId;            
             return PartialView();
         }
 
-        public ActionResult ItemCodeRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
+        public ActionResult ItemCodeRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId, int? showArchive, string article)
         {
-            var data = _itemCodeService.GetAllByItemTypeId(itemTypeId);
+            var data = _itemCodeService.GetAllByItemTypeId(itemTypeId, showArchive);
+            if (!string.IsNullOrWhiteSpace(article))
+            {
+                data = data.Where(w => w.ItemSw == article);
+            }
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

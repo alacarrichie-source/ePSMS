@@ -182,10 +182,10 @@
         <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroup" Width="1.5" PointX="1.75" PointY="2.625" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescription" Width="1.5" PointX="4" PointY="3.25" />
+        <EntityTypeShape EntityType="AppManModel.PoAdjustment" Width="1.5" PointX="0.75" PointY="7.75" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescription" Width="1.5" PointX="4" PointY="3.375" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" />
-        <EntityTypeShape EntityType="AppManModel.PoAdjustment" Width="1.5" PointX="0.75" PointY="7.75" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" ZoomLevel="89" >
         <EntityTypeShape EntityType="AppManModel.RisItemUnitGroupDescriptionItem" Width="1.5" PointX="7.5" PointY="4.75" />
@@ -312,22 +312,6 @@
         <EntityTypeShape EntityType="AppManModel.Chat" Width="1.5" PointX="0.75" PointY="0.75" />
       </Diagram>
       <Diagram DiagramId="26ae87dd114c4660b373ae478e7ff582" Name="Procurements" >
-        <EntityTypeShape EntityType="AppManModel.Procurement" Width="1.5" PointX="6.125" PointY="0.875" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementItem" Width="1.5" PointX="6.125" PointY="10.375" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementOrder" Width="1.5" PointX="1.125" PointY="6.125" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementRequest" Width="1.5" PointX="3.875" PointY="6.125" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroupDescription" Width="1.5" PointX="8.375" PointY="6.5" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroup" Width="1.5" PointX="6.125" PointY="6.125" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementItems_Procurements" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroups_Procurements" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptions_ProcurementUnitGroups" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementRISs" Width="1.5" PointX="13.375" PointY="6.125" />
-        <InheritanceConnector EntityType="AppManModel.ProcurementRISs" />
-        <InheritanceConnector EntityType="AppManModel.ProcurementRequest" />
-        <InheritanceConnector EntityType="AppManModel.ProcurementOrder" />
-        <EntityTypeShape EntityType="AppManModel.ProcurementUnitGroupDescriptionItem" Width="1.5" PointX="10.625" PointY="9.875" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementItems" />
-        <AssociationConnector Association="AppManModel.FK_ProcurementUnitGroupDescriptinItems_ProcurementUnitGroupDescriptions" />
       </Diagram>
       <Diagram DiagramId="5bb8de07fc114f91ab0c0a7d29502ecb" Name="PAR?" >
         <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="0.75" PointY="0.75" />

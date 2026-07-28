@@ -572,30 +572,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PoAdjustmentViewModels.cs" />
-    <Compile Include="Models\Procurement.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementOrder.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementRequest.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementRISs.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ProcurementUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\ProcurementViewModels.cs" />
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
@@ -4964,7 +4940,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -17,6 +17,7 @@ namespace iLgs.Services.Items
     {
         IQueryable<ItemCodeVM> GetAll();
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
+        IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId, int? showArchive);
         ItemCode GetById(Guid? id);
         Task<ItemCode> GetByIdAsync(Guid? id);
 
@@ -168,6 +169,18 @@ namespace iLgs.Services.Items
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 }).AsQueryable();
+            return data;
+        }
+
+        public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId, int? showArchive)
+        {
+            var data = GetAllByItemTypeId(itemTypeId);
+
+            if (showArchive == 0)
+            {
+                data = data.Where(w => w.ItemSw != "A");
+            }
+
             return data;
         }
 

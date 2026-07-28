@@ -1,5 +1,13 @@
-﻿@(Html.Kendo().Grid<iLgs.Models.ItemCodeVM>()
+﻿@{
+    var functionName = "DataGridItem_" + ViewData["itemTypeId"].ToString().Replace("-", "_");
+}
+
+@(Html.Kendo().Grid<iLgs.Models.ItemCodeVM>()
         .Name("gridItems_" + @ViewData["itemTypeId"])
+        //.HtmlAttributes(new
+        //{
+        //    data_itemtypeid = @ViewData["itemTypeId"]
+        //})
         .Columns(col =>
         {
             col.Bound(c => c.ItemNoIndex).Hidden();
@@ -31,12 +39,15 @@
         toolbar.Create();
         //toolbar.Custom()
         //    .Text("Show Archive")
-        //    .Name("chkShow_" + @ViewData["itemTypeId"])
+        //    .Name("btnArchiveToggle_" + @ViewData["itemTypeId"])
         //    .HtmlAttributes(new
         //    {
         //        id = "btnArchiveToggle_" + @ViewData["itemTypeId"],
-        //        href = "javascript:void(0);",
-        //        @class = "k-button"
+        //        //href = "javascript:void(0);",
+        //        //@class = "k-button"
+        //        @class = "archive-toggle k-button",
+        //        data_itemtype = ViewData["itemTypeId"],
+        //        data_showarchive = "0"
         //    });
             @*toolbar.Template(@<text>
                     @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
@@ -72,7 +83,8 @@
             {
                 s.Add(a => a.ItemNoIndex);
             })
-            .Read(read => read.Action("ItemCodeRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
+            //.Read(read => read.Action("ItemCodeRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
+            .Read(read => read.Action("ItemCodeRead", "Items").Data("DataGridItem"))            
             .Create(create => create.Action("ItemCodeCreate", "Items"))
             .Update(update => update.Action("ItemCodeUpdate", "Items"))
             .Destroy(destroy => destroy.Action("ItemCodeDestroy", "Items"))
@@ -85,4 +97,3 @@
         )
         .AutoBind(true)
 )
-

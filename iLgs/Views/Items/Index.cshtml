@@ -3,9 +3,34 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
+<br />
+
+<div class="row k-mb-2">
+    <div class="col-md-3">
+        <div class="col-md-3">
+            @Html.Label("ARTICLES")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().DropDownList()
+                .Name("article")
+                .BindTo(new[] {
+                    new { Text = "ALL", Value = "" },
+                    new { Text = "YES", Value = "Y" },
+                    new { Text = "NO", Value = "N" },
+                    new { Text = "ARCHIVE", Value = "A" }
+                })
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" })
+                .Events(e => e.Change("onSelectArticle"))
+                )
+        </div>
+    </div>
+</div><br />
+
 @(Html.Kendo().Grid<iLgs.Models.ItemTypeVM>()
     .Name("grid")
-    .HtmlAttributes(new { @class = "max-grid" })
+    .HtmlAttributes(new { @class = "custom-max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.Category).Width(50).EditorTemplateName("_CategoryTemplate");
@@ -23,6 +48,17 @@
     {
         t.Create().Text("Add Record");
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom()
+            .Text("Show Archive")
+            .Name("btnArchiveToggle")
+            .HtmlAttributes(new
+            {
+                id = "btnArchiveToggle",
+                //href = "javascript:void(0);",
+                //@class = "k-button"
+                @class = "archive-toggle k-button",
+                data_showarchive = "0"
+            });
         t.Search();
     })
     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PARTemplate").Window(w => w.Width(800).Title("Property Acknowledgment Receipt")))
@@ -173,6 +209,11 @@
         overflow: hidden;
     }
 
+    .custom-max-grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(68vh) !important;
+    }
+
     /*.k-grid td {
         white-space: pre-wrap; 
     }*/
@@ -193,7 +234,7 @@
 
 
 <script type="text/javascript">
-    $("#btnArchiveToggle_@ViewData["itemTypeId"]").on("click", function (e) {
+    @*$("#btnArchiveToggle_@ViewData["itemTypeId"]").on("click", function (e) {
      e.preventDefault(); // BLOCK any navigation
         e.stopPropagation();
 
@@ -206,8 +247,55 @@
             $btn.text("Show Archive");
             // your logic here
         }
+    });*@
+
+
+    $(document).on("click", ".archive-toggle", function (e) {
+        e.preventDefault();
+
+        //var itemTypeId = $(this).data("itemtype");
+        //var grid = $("#gridItems_" + itemTypeId).data("kendoGrid");
+
+        //console.log(itemTypeId);
+
+        var itemTypeId = selectedId;
+        var grid = $("#gridItems_" + itemTypeId).data("kendoGrid");
+
+        var $btn = $(this);
+
+        if ($btn.text().trim() === "Show Archive") {
+            $btn.text("Hide Archive");
+            $btn.data("showarchive", 1);
+            $btn.attr("data-showarchive", "1");   // Keep the HTML attribute in sync
+        } else {
+            $btn.text("Show Archive");
+            $btn.data("showarchive", 0);
+            $btn.attr("data-showarchive", "0");   // Keep the HTML attribute in sync
+        }
+
+        if (grid) {
+            grid.dataSource.read();
+        }
     });
 
+    function onSelectArticle(e) {
+        var itemTypeId = selectedId;
+        var grid = $("#gridItems_" + itemTypeId).data("kendoGrid");
+        if (grid) {
+            grid.dataSource.read();
+        }
+    }
+
+    function DataGridItem(e) {
+        var grid = $("#gridItems_" + selectedId).data("kendoGrid");;
+        var $btn = $("#btnArchiveToggle");
+
+        return {
+            itemTypeId: selectedId,
+            showArchive: $btn.data("showarchive"),
+            article: $("#article").val()
+        };
+    }
 
     function onShowNotification(e) {
         if (e.sender.getNotifications().length == 1) {

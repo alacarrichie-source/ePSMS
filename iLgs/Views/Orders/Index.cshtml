@@ -536,16 +536,22 @@
         postedBy = selectedData.PostedBy;
         selectedPoNo = selectedData.PoNo;
 
-        if (postedBy) {
-            if (selectedData.IsLocked) {
-                $(".k-grid-btnUnpostPO", grid).hide();
+        if (selectedData.PoNo) {
+            if (postedBy) {
+                if (selectedData.IsLocked) {
+                    $(".k-grid-btnUnpostPO", grid).hide();
+                } else {
+                    $(".k-grid-btnUnpostPO", grid).show();
+                }
+                $(".k-grid-btnPostPO", grid).hide();
             } else {
-                $(".k-grid-btnUnpostPO", grid).show();
+                $(".k-grid-btnUnpostPO", grid).hide();
+                $(".k-grid-btnPostPO", grid).show();
             }
-            $(".k-grid-btnPostPO", grid).hide();
-        } else {
+        }
+        else {
             $(".k-grid-btnUnpostPO", grid).hide();
-            $(".k-grid-btnPostPO", grid).show();
+            $(".k-grid-btnPostPO", grid).hide();
         }
 
         refreshTabstrip();

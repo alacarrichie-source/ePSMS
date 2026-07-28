@@ -1,527 +1,527 @@
-﻿using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Models;
-using iLgs.Services.Codes;
-using iLgs.Services.Items;
-using iLgs.Services.PurchaseOrder;
-using iLgs.Services.Validators;
-using iLgs.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static iLgs.Models.Enums;
+﻿//using iLgs.Exceptions;
+//using iLgs.Exceptions.Service;
+//using iLgs.Models;
+//using iLgs.Services.Codes;
+//using iLgs.Services.Items;
+//using iLgs.Services.PurchaseOrder;
+//using iLgs.Services.Validators;
+//using iLgs.Utilities;
+//using System;
+//using System.Collections.Generic;
+//using System.Data.Entity;
+//using System.Linq;
+//using System.Linq.Expressions;
+//using System.Text.RegularExpressions;
+//using System.Threading.Tasks;
+//using static iLgs.Models.Enums;
 
-namespace iLgs.Services.Procurement_
-{
-    public interface IProcurementOrderService
-    {
-        IQueryable<ProcurementOrderVM> GetAll();
-        Task<ProcurementOrderVM> GetByIdAsync(Guid? id);        
+//namespace iLgs.Services.Procurement_
+//{
+//    public interface IProcurementOrderService
+//    {
+//        IQueryable<ProcurementOrderVM> GetAll();
+//        Task<ProcurementOrderVM> GetByIdAsync(Guid? id);        
 
-        ValueTask<ProcurementOrderVM> CreateAsync(ProcurementOrderVM model, string user, DateTime date);
-        ValueTask<ProcurementOrderVM> UpdateAsync(ProcurementOrderVM model, string user, DateTime date);
-        ValueTask<ProcurementOrderVM> DeleteAsync(ProcurementOrderVM model, string user, DateTime date);
-        ValueTask<ProcurementOrderVM> PostAsync(Guid orderId, string user, DateTime date);
-        ValueTask<ProcurementOrderVM> UnpostAsync(Guid orderId, string user, DateTime date);
+//        ValueTask<ProcurementOrderVM> CreateAsync(ProcurementOrderVM model, string user, DateTime date);
+//        ValueTask<ProcurementOrderVM> UpdateAsync(ProcurementOrderVM model, string user, DateTime date);
+//        ValueTask<ProcurementOrderVM> DeleteAsync(ProcurementOrderVM model, string user, DateTime date);
+//        ValueTask<ProcurementOrderVM> PostAsync(Guid orderId, string user, DateTime date);
+//        ValueTask<ProcurementOrderVM> UnpostAsync(Guid orderId, string user, DateTime date);
 
-        IProcurementCommonService CommonService { get; }
-        IProcurementUnitGroupService UnitGroupService { get; }
-    }
+//        IProcurementCommonService CommonService { get; }
+//        IProcurementUnitGroupService UnitGroupService { get; }
+//    }
 
-    public class ProcurementOrderService : BaseValidator, IProcurementOrderService
-    {
-        private readonly AppManEntities _db;
-        private readonly IProcurementCommonService _procurementCommonService;
-        private readonly ICodextnService _codextnService;
-        private readonly ILocationBudgetService _locationBudgetService;
-        private readonly IExceptionService<ProcurementOrderVM> _exceptionService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IPriceCapService _priceCapService;
-        private readonly IItemCodeService _itemCodeService;
-        private readonly IOrderUploadService _uploadPoService;
-        private readonly IOrderUploadService _uploadCafoaService;
+//    public class ProcurementOrderService : BaseValidator, IProcurementOrderService
+//    {
+//        private readonly AppManEntities _db;
+//        private readonly IProcurementCommonService _procurementCommonService;
+//        private readonly ICodextnService _codextnService;
+//        private readonly ILocationBudgetService _locationBudgetService;
+//        private readonly IExceptionService<ProcurementOrderVM> _exceptionService;
+//        private readonly GetDisplayNameDelegate _getDisplayName;
+//        private readonly IPriceCapService _priceCapService;
+//        private readonly IItemCodeService _itemCodeService;
+//        private readonly IOrderUploadService _uploadPoService;
+//        private readonly IOrderUploadService _uploadCafoaService;
 
-        private IProcurementCommonService _commonService;
-        private IProcurementUnitGroupService _unitGroupService;
+//        private IProcurementCommonService _commonService;
+//        private IProcurementUnitGroupService _unitGroupService;
 
-        private readonly string _refType = "PO";
-        private readonly decimal? _priceCap;
+//        private readonly string _refType = "PO";
+//        private readonly decimal? _priceCap;
 
-        public ProcurementOrderService(AppManEntities db,
-            ICodextnService codextnService,
-            ILocationBudgetService locationBudgetService,
-            IExceptionService<ProcurementOrderVM> exceptionService,
-            IPriceCapService priceCapService,
-            IItemCodeService itemCodeService,
-            IOrderUploadService uploadService
-            )
-        {
-            _db = db;
-            _codextnService = codextnService;
-            _locationBudgetService = locationBudgetService;
-            _exceptionService = exceptionService;
-            _priceCapService = priceCapService;
-            _itemCodeService = itemCodeService;
-            _uploadPoService = uploadService;
-            _uploadCafoaService = uploadService.Create("CAFOA");
+//        public ProcurementOrderService(AppManEntities db,
+//            ICodextnService codextnService,
+//            ILocationBudgetService locationBudgetService,
+//            IExceptionService<ProcurementOrderVM> exceptionService,
+//            IPriceCapService priceCapService,
+//            IItemCodeService itemCodeService,
+//            IOrderUploadService uploadService
+//            )
+//        {
+//            _db = db;
+//            _codextnService = codextnService;
+//            _locationBudgetService = locationBudgetService;
+//            _exceptionService = exceptionService;
+//            _priceCapService = priceCapService;
+//            _itemCodeService = itemCodeService;
+//            _uploadPoService = uploadService;
+//            _uploadCafoaService = uploadService.Create("CAFOA");
 
-            _getDisplayName = Utility.GetDisplayName<ProcurementOrderVM>;
-            _priceCap = _priceCapService.GetPriceCap();
-        }
+//            _getDisplayName = Utility.GetDisplayName<ProcurementOrderVM>;
+//            _priceCap = _priceCapService.GetPriceCap();
+//        }
 
-        public IProcurementCommonService CommonService { get { return _commonService = _commonService ?? new ProcurementCommonService(_db); } }
-        public IProcurementUnitGroupService UnitGroupService { get { return _unitGroupService = _unitGroupService ?? new ProcurementUnitGroupService(_db); } }
+//        public IProcurementCommonService CommonService { get { return _commonService = _commonService ?? new ProcurementCommonService(_db); } }
+//        public IProcurementUnitGroupService UnitGroupService { get { return _unitGroupService = _unitGroupService ?? new ProcurementUnitGroupService(_db); } }
 
-        private Expression<Func<ProcurementOrder, ProcurementOrderVM>> GetProjection()
-        {
-            return s => new ProcurementOrderVM
-            {
-                Id = s.Id,
-                RefType = s.RefType,
-                RefValue = s.RefValue,
-                RefDate = s.RefDate,
-                Fund = s.Fund,
-                DepartmentId = s.DepartmentId,
-                Department = s.Department,
-                Division = s.Division,
-                FPP = s.FPP,
-                PostedBy = s.PostedBy,
-                PostedDt = s.PostedDt,
-                InsertedBy = s.InsertedBy,
-                InsertedDt = s.InsertedDt,
-                UpdatedBy = s.UpdatedBy,
-                UpdatedDt = s.UpdatedDt,
-                // Orders
-                SupplierId = s.SupplierId,
-                SupName = s.SupName,
-                SupBusiness = s.SupBusiness,
-                SupAddress = s.SupAddress,
-                SupTIN = s.SupTIN,
-                SupEmail = s.SupEmail,
-                SupZipCode = s.SupZipCode,
-                SupContactNo = s.SupContactNo,
-                DeliveryPlace = s.DeliveryPlace,
-                DeliveryDate = s.DeliveryDate,
-                TermDelivery = s.TermDelivery,
-                TermPayment = s.TermPayment,
-                SignedBySuppName = s.SignedBySuppName,
-                SignedBySuppDate = s.SignedBySuppDate,
-                SignedByAuthName = s.SignedByAuthName,
-                SignedByAuthDesignation = s.SignedByAuthDesignation,
-                ResoNo = s.ResoNo,
-                CertifiedCorrectBy = s.CertifiedCorrectBy,
-                CertifiedCorredtDate = s.CertifiedCorredtDate
-            };
-        }
+//        private Expression<Func<ProcurementOrder, ProcurementOrderVM>> GetProjection()
+//        {
+//            return s => new ProcurementOrderVM
+//            {
+//                Id = s.Id,
+//                RefType = s.RefType,
+//                RefValue = s.RefValue,
+//                RefDate = s.RefDate,
+//                Fund = s.Fund,
+//                DepartmentId = s.DepartmentId,
+//                Department = s.Department,
+//                Division = s.Division,
+//                FPP = s.FPP,
+//                PostedBy = s.PostedBy,
+//                PostedDt = s.PostedDt,
+//                InsertedBy = s.InsertedBy,
+//                InsertedDt = s.InsertedDt,
+//                UpdatedBy = s.UpdatedBy,
+//                UpdatedDt = s.UpdatedDt,
+//                // Orders
+//                SupplierId = s.SupplierId,
+//                SupName = s.SupName,
+//                SupBusiness = s.SupBusiness,
+//                SupAddress = s.SupAddress,
+//                SupTIN = s.SupTIN,
+//                SupEmail = s.SupEmail,
+//                SupZipCode = s.SupZipCode,
+//                SupContactNo = s.SupContactNo,
+//                DeliveryPlace = s.DeliveryPlace,
+//                DeliveryDate = s.DeliveryDate,
+//                TermDelivery = s.TermDelivery,
+//                TermPayment = s.TermPayment,
+//                SignedBySuppName = s.SignedBySuppName,
+//                SignedBySuppDate = s.SignedBySuppDate,
+//                SignedByAuthName = s.SignedByAuthName,
+//                SignedByAuthDesignation = s.SignedByAuthDesignation,
+//                ResoNo = s.ResoNo,
+//                CertifiedCorrectBy = s.CertifiedCorrectBy,
+//                CertifiedCorredtDate = s.CertifiedCorredtDate
+//            };
+//        }
 
-        public IQueryable<ProcurementOrderVM> GetAll()
-        {
-            var data = _db.Procurements.OfType<ProcurementOrder>().AsNoTracking()
-                .Select(GetProjection());
-            return data;
-        }
+//        public IQueryable<ProcurementOrderVM> GetAll()
+//        {
+//            var data = _db.Procurements.OfType<ProcurementOrder>().AsNoTracking()
+//                .Select(GetProjection());
+//            return data;
+//        }
 
-        public Task<ProcurementOrderVM> GetByIdAsync(Guid? id)
-        {
-            return _db.Procurements.OfType<ProcurementOrder>().AsNoTracking()
-                .Where(w => w.Id == id)
-                .Select(GetProjection()).FirstOrDefaultAsync();
-        }
+//        public Task<ProcurementOrderVM> GetByIdAsync(Guid? id)
+//        {
+//            return _db.Procurements.OfType<ProcurementOrder>().AsNoTracking()
+//                .Where(w => w.Id == id)
+//                .Select(GetProjection()).FirstOrDefaultAsync();
+//        }
 
-        public ValueTask<ProcurementOrderVM> CreateAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
+//        public ValueTask<ProcurementOrderVM> CreateAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+//        {
 
-            model.Id = Guid.NewGuid();
-            model.InsertedBy = user;
-            model.UpdatedBy = user;
-            model.InsertedDt = date;
-            model.UpdatedDt = date;
+//            model.Id = Guid.NewGuid();
+//            model.InsertedBy = user;
+//            model.UpdatedBy = user;
+//            model.InsertedDt = date;
+//            model.UpdatedDt = date;
 
-            var entity = new ProcurementOrder();
-            MapModelToEntityFields(entity, model, Mode.ADD);
+//            var entity = new ProcurementOrder();
+//            MapModelToEntityFields(entity, model, Mode.ADD);
 
-            _db.Procurements.Add(entity);
-            await _db.SaveChangesAsync();
+//            _db.Procurements.Add(entity);
+//            await _db.SaveChangesAsync();
 
-            return model;
-        });
+//            return model;
+//        });
 
-        public ValueTask<ProcurementOrderVM> UpdateAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+//        public ValueTask<ProcurementOrderVM> UpdateAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+//        {
+//            model.UpdatedBy = user;
+//            model.UpdatedDt = date;
 
-            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == model.Id);
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+//            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == model.Id);
+//            MapModelToEntityFields(entity, model, Mode.EDIT);
 
-            await _db.SaveChangesAsync();
+//            await _db.SaveChangesAsync();
 
-            return model;
-        });
+//            return model;
+//        });
 
-        public void MapModelToEntityFields(ProcurementOrder entity, ProcurementOrderVM model, Mode mode)
-        {
-            _procurementCommonService.MapModelToEntityFields(entity, model, mode);
+//        public void MapModelToEntityFields(ProcurementOrder entity, ProcurementOrderVM model, Mode mode)
+//        {
+//            _procurementCommonService.MapModelToEntityFields(entity, model, mode);
 
-            // extn
-            entity.SupplierId = model.SupplierId;
-            entity.SupName = model.SupName;
-            entity.SupBusiness = model.SupBusiness;
-            entity.SupAddress = model.SupAddress;
-            entity.SupTIN = model.SupTIN;
-            entity.SupEmail = model.SupEmail;
-            entity.SupZipCode = model.SupZipCode;
-            entity.SupContactNo = model.SupContactNo;
-            entity.DeliveryPlace = model.DeliveryPlace;
-            entity.DeliveryDate = model.DeliveryDate;
-            entity.TermDelivery = model.TermDelivery;
-            entity.TermPayment = model.TermPayment;
-            entity.SignedBySuppName = model.SignedBySuppName;
-            entity.SignedBySuppDate = model.SignedBySuppDate;
-            entity.SignedByAuthName = model.SignedByAuthName;
-            entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
-            entity.ResoNo = model.ResoNo;
-            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
-            entity.CertifiedCorredtDate = model.CertifiedCorredtDate;
-        }
+//            // extn
+//            entity.SupplierId = model.SupplierId;
+//            entity.SupName = model.SupName;
+//            entity.SupBusiness = model.SupBusiness;
+//            entity.SupAddress = model.SupAddress;
+//            entity.SupTIN = model.SupTIN;
+//            entity.SupEmail = model.SupEmail;
+//            entity.SupZipCode = model.SupZipCode;
+//            entity.SupContactNo = model.SupContactNo;
+//            entity.DeliveryPlace = model.DeliveryPlace;
+//            entity.DeliveryDate = model.DeliveryDate;
+//            entity.TermDelivery = model.TermDelivery;
+//            entity.TermPayment = model.TermPayment;
+//            entity.SignedBySuppName = model.SignedBySuppName;
+//            entity.SignedBySuppDate = model.SignedBySuppDate;
+//            entity.SignedByAuthName = model.SignedByAuthName;
+//            entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
+//            entity.ResoNo = model.ResoNo;
+//            entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+//            entity.CertifiedCorredtDate = model.CertifiedCorredtDate;
+//        }
 
-        public ValueTask<ProcurementOrderVM> DeleteAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+//        public ValueTask<ProcurementOrderVM> DeleteAsync(ProcurementOrderVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+//        {
+//            model.UpdatedBy = user;
+//            model.UpdatedDt = date;
 
-            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == model.Id);
+//            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+//            entity.UpdatedBy = model.UpdatedBy;
+//            entity.UpdatedDt = model.UpdatedDt;
 
-            await _db.SaveChangesAsync();
+//            await _db.SaveChangesAsync();
 
-            _db.Procurements.Remove(entity);
-            await _db.SaveChangesAsync();
+//            _db.Procurements.Remove(entity);
+//            await _db.SaveChangesAsync();
 
-            return model;
-        });
+//            return model;
+//        });
 
-        public virtual ValueTask<ProcurementOrderVM> PostAsync(Guid id, string user, DateTime date) =>
-        _exceptionService.TryCatch(async () =>
-        {
-            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
+//        public virtual ValueTask<ProcurementOrderVM> PostAsync(Guid id, string user, DateTime date) =>
+//        _exceptionService.TryCatch(async () =>
+//        {
+//            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
 
-            await ValidateOnPost(entity);
-            await ValidateUploadAsync(id, entity.RefValue);
+//            await ValidateOnPost(entity);
+//            await ValidateUploadAsync(id, entity.RefValue);
 
-            entity.PostedBy = user;
-            entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+//            entity.PostedBy = user;
+//            entity.PostedDt = date;
+//            entity.UpdatedBy = user;
+//            entity.UpdatedDt = date;
 
-            await _db.SaveChangesAsync();
-            return await GetByIdAsync(id);
-        });
+//            await _db.SaveChangesAsync();
+//            return await GetByIdAsync(id);
+//        });
 
-        public virtual ValueTask<ProcurementOrderVM> UnpostAsync(Guid id, string user, DateTime date) =>
-        _exceptionService.TryCatch(async () =>
-        {
-            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
-            ValidateRecord(entity, id);
-            ValidateIfNotPosted(entity);
+//        public virtual ValueTask<ProcurementOrderVM> UnpostAsync(Guid id, string user, DateTime date) =>
+//        _exceptionService.TryCatch(async () =>
+//        {
+//            var entity = await _db.Procurements.OfType<ProcurementOrder>().FirstOrDefaultAsync(f => f.Id == id);
+//            ValidateRecord(entity, id);
+//            ValidateIfNotPosted(entity);
 
-            entity.PostedBy = "";
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+//            entity.PostedBy = "";
+//            entity.PostedDt = null;
+//            entity.UpdatedBy = user;
+//            entity.UpdatedDt = date;
 
-            await _db.SaveChangesAsync();
-            return await GetByIdAsync(id);
-        });
+//            await _db.SaveChangesAsync();
+//            return await GetByIdAsync(id);
+//        });
 
-        private void ValidateIfNull(ProcurementOrderVM model)
-        {
-            if (model is null)
-            {
-                throw new NullException();
-            }
-        }
+//        private void ValidateIfNull(ProcurementOrderVM model)
+//        {
+//            if (model is null)
+//            {
+//                throw new NullException();
+//            }
+//        }
 
-        private void ValidateRecord(ProcurementOrder entity, Guid id)
-        {
-            if (entity == null)
-            {
-                throw new NotFoundException(id);
-            }
-        }
+//        private void ValidateRecord(ProcurementOrder entity, Guid id)
+//        {
+//            if (entity == null)
+//            {
+//                throw new NotFoundException(id);
+//            }
+//        }
 
-        private void ValidateIfPosted(ProcurementOrder entity)
-        {
-            if (entity.PostedDt != null)
-            {
-                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
-                throw new RecordAlreadyPostedException(msg);
-            }
-        }
+//        private void ValidateIfPosted(ProcurementOrder entity)
+//        {
+//            if (entity.PostedDt != null)
+//            {
+//                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+//                throw new RecordAlreadyPostedException(msg);
+//            }
+//        }
 
-        private void ValidateIfNotPosted(ProcurementOrder entity)
-        {
-            if (entity.PostedDt == null)
-            {
-                throw new RecordNotYetPostedException($"Record is not yet posted!");
-            }
-        }
+//        private void ValidateIfNotPosted(ProcurementOrder entity)
+//        {
+//            if (entity.PostedDt == null)
+//            {
+//                throw new RecordNotYetPostedException($"Record is not yet posted!");
+//            }
+//        }
 
-        private void ValidateFieldsOnCreateUpdate(ProcurementOrderVM model, Mode mode)
-        {
-            _imex = new InvalidModelException();
+//        private void ValidateFieldsOnCreateUpdate(ProcurementOrderVM model, Mode mode)
+//        {
+//            _imex = new InvalidModelException();
 
-            if (string.IsNullOrWhiteSpace(model.RefValue))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Field is required.");
-            }
-            else
-            {
-                if (model.RefValue.Trim().Length != 12)
-                {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Invalid value.");
-                }
-                else
-                {
-                    var refNoParts = model.RefValue.Split('-');
-                    var refNoYear = int.Parse(refNoParts[0]);
-                    var refNoMonth = int.Parse(refNoParts[1]);
-                    if (refNoYear != model.RefDate.Value.Year || refNoMonth != model.RefDate.Value.Month)
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Series Year and month must be same as the year and month of the PO date.");
-                    }
-                    else
-                    {
-                        var maxNo = _db.Procurements.Where(w => DbFunctions.TruncateTime(w.RefDate) < DbFunctions.TruncateTime(model.RefDate)).Max(m => m.RefValue);
-                        if (!string.IsNullOrWhiteSpace(maxNo))
-                        {
-                            var refNoSeq = int.Parse(refNoParts[2]);
-                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            if (refNoSeq <= maxSeq)
-                            {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), $"Serial No. must be greater than {maxSeq}");
-                            }
-                        }
-                    }
-                }
-            }
+//            if (string.IsNullOrWhiteSpace(model.RefValue))
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Field is required.");
+//            }
+//            else
+//            {
+//                if (model.RefValue.Trim().Length != 12)
+//                {
+//                    _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Invalid value.");
+//                }
+//                else
+//                {
+//                    var refNoParts = model.RefValue.Split('-');
+//                    var refNoYear = int.Parse(refNoParts[0]);
+//                    var refNoMonth = int.Parse(refNoParts[1]);
+//                    if (refNoYear != model.RefDate.Value.Year || refNoMonth != model.RefDate.Value.Month)
+//                    {
+//                        _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), "Series Year and month must be same as the year and month of the PO date.");
+//                    }
+//                    else
+//                    {
+//                        var maxNo = _db.Procurements.Where(w => DbFunctions.TruncateTime(w.RefDate) < DbFunctions.TruncateTime(model.RefDate)).Max(m => m.RefValue);
+//                        if (!string.IsNullOrWhiteSpace(maxNo))
+//                        {
+//                            var refNoSeq = int.Parse(refNoParts[2]);
+//                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
+//                            if (refNoSeq <= maxSeq)
+//                            {
+//                                _imex.UpsertDataList(_getDisplayName(nameof(model.RefValue)), $"Serial No. must be greater than {maxSeq}");
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
-            if (model.RefDate == null)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.RefDate)), "Field is required.");
-            }
+//            if (model.RefDate == null)
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.RefDate)), "Field is required.");
+//            }
 
-            if (!string.IsNullOrWhiteSpace(model.PrNo))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Field is required.");
-            }            
+//            if (!string.IsNullOrWhiteSpace(model.PrNo))
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Field is required.");
+//            }            
 
-            if (model.PrDate == null)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "Field is required.");
-            }
+//            if (model.PrDate == null)
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "Field is required.");
+//            }
 
-            if (model.DepartmentId.HasValue)
-            {
-                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.DepartmentId))
-                {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.DepartmentId)), "Invalid value");
-                }
-            }
-            else
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.DepartmentId)), "Field is required.");
-            }
+//            if (model.DepartmentId.HasValue)
+//            {
+//                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.DepartmentId))
+//                {
+//                    _imex.UpsertDataList(_getDisplayName(nameof(model.DepartmentId)), "Invalid value");
+//                }
+//            }
+//            else
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.DepartmentId)), "Field is required.");
+//            }
 
-            if (string.IsNullOrWhiteSpace(model.Fund))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeCode("FUND", model.Fund))
-                {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Invalid value");
-                }
-            }
+//            if (string.IsNullOrWhiteSpace(model.Fund))
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Field is required.");
+//            }
+//            else
+//            {
+//                if (!_codextnService.IsValidMastCodeCode("FUND", model.Fund))
+//                {
+//                    _imex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Invalid value");
+//                }
+//            }
             
-            if (string.IsNullOrWhiteSpace(model.FPP))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Field is required.");
-            }
-            else
-            {
-                if (!_locationBudgetService.IsValidBudgetCode(model.DepartmentId, model.FPP))
-                {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
-                }
-            }
+//            if (string.IsNullOrWhiteSpace(model.FPP))
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Field is required.");
+//            }
+//            else
+//            {
+//                if (!_locationBudgetService.IsValidBudgetCode(model.DepartmentId, model.FPP))
+//                {
+//                    _imex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
+//                }
+//            }
 
-            if (model.SupplierId == null)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.SupplierId)), "Field is required.");
-            }
-            else
-            {
-                var supplier = _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll '', {0}", model.SupplierId).ToList().FirstOrDefault();
-                if (supplier == null)
-                {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.SupplierId)), "Invalid Value");
-                }
-            }
+//            if (model.SupplierId == null)
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.SupplierId)), "Field is required.");
+//            }
+//            else
+//            {
+//                var supplier = _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll '', {0}", model.SupplierId).ToList().FirstOrDefault();
+//                if (supplier == null)
+//                {
+//                    _imex.UpsertDataList(_getDisplayName(nameof(model.SupplierId)), "Invalid Value");
+//                }
+//            }
 
-            if (model.RefDate != null && model.PrDate != null && model.RefDate < model.PrDate)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.RefDate)), "Must be greater or equal to PR date.");
-            }
+//            if (model.RefDate != null && model.PrDate != null && model.RefDate < model.PrDate)
+//            {
+//                _imex.UpsertDataList(_getDisplayName(nameof(model.RefDate)), "Must be greater or equal to PR date.");
+//            }
             
 
-            _imex.ThrowIfContainsErrors();
-        }
+//            _imex.ThrowIfContainsErrors();
+//        }
 
-        private async ValueTask ValidateOnPost(ProcurementOrder entity)
-        {
-            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
-                throw new RecordAlreadyPostedException(msg);
-            }
+//        private async ValueTask ValidateOnPost(ProcurementOrder entity)
+//        {
+//            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+//            {
+//                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+//                throw new RecordAlreadyPostedException(msg);
+//            }
             
-            var unitGroupItems = await _db.ProcurementUnitGroupDescriptionItems.Include(i => i.ProcurementItem)
-                .Where(w => w.ProcurementUnitGroupDescription.ProcurementUnitGroup.ProcId == entity.Id).ToListAsync();
-            if (unitGroupItems.Any())
-            {
-                var rate = unitGroupItems.Sum(s => s.ProcurementItem.PriceRate) ?? 0;
-                if (rate != 100)
-                {
-                    throw new InvalidValueException("Price rate must be 100%");
-                }
-            }
+//            var unitGroupItems = await _db.ProcurementUnitGroupDescriptionItems.Include(i => i.ProcurementItem)
+//                .Where(w => w.ProcurementUnitGroupDescription.ProcurementUnitGroup.ProcId == entity.Id).ToListAsync();
+//            if (unitGroupItems.Any())
+//            {
+//                var rate = unitGroupItems.Sum(s => s.ProcurementItem.PriceRate) ?? 0;
+//                if (rate != 100)
+//                {
+//                    throw new InvalidValueException("Price rate must be 100%");
+//                }
+//            }
 
-            string brandMsg = "";
-            var orderItems = await _db.ProcurementItems
-                .Include(i => i.ItemCode.ItemType)
-                .Include(i => i.AllField)
-                .Where(w => w.ProcId == entity.Id).ToListAsync();
-            foreach (var orderItem in orderItems)
-            {                
-                if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
-                {
-                    var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
-                    if (allfield == null)
-                    {
-                        throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
-                    }
-                    {
-                        if (string.IsNullOrWhiteSpace(allfield.Brand))
-                        {
-                            brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
-                        }
-                    }
-                }
+//            string brandMsg = "";
+//            var orderItems = await _db.ProcurementItems
+//                .Include(i => i.ItemCode.ItemType)
+//                .Include(i => i.AllField)
+//                .Where(w => w.ProcId == entity.Id).ToListAsync();
+//            foreach (var orderItem in orderItems)
+//            {                
+//                if (orderItem.ItemCode.ItemType.PartialPage.Contains("Brand") || orderItem.ItemCode.ItemType.PartialPage.Contains("Drugs"))
+//                {
+//                    var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+//                    if (allfield == null)
+//                    {
+//                        throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+//                    }
+//                    {
+//                        if (string.IsNullOrWhiteSpace(allfield.Brand))
+//                        {
+//                            brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+//                        }
+//                    }
+//                }
 
-                if (string.IsNullOrWhiteSpace(orderItem.PsNo))
-                {
-                    throw new InvalidValueException("All items must have a valid Property/Stock No.");
-                }
+//                if (string.IsNullOrWhiteSpace(orderItem.PsNo))
+//                {
+//                    throw new InvalidValueException("All items must have a valid Property/Stock No.");
+//                }
 
-                // validate unit cost
-                if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)
-                {
-                    throw new InvalidValueException("All items must unit cost.");
-                }
+//                // validate unit cost
+//                if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)
+//                {
+//                    throw new InvalidValueException("All items must unit cost.");
+//                }
 
-                decimal? unitCost = 0;
-                var unitGroup = await _db.ProcurementUnitGroups.Where(w => w.ProcurementUnitGroupDescriptions.Any(a => a.ProcurementUnitGroupDescriptionItems.Any(b => b.ProcItemId == orderItem.Id))).FirstOrDefaultAsync();
-                if (unitGroup != null)
-                {
-                    unitCost = unitGroup.UnitCost;
-                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
-                    {
-                        if (unitCost < _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
-                        }
-                    }
-                    else
-                    {
-                        if (unitCost >= _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
-                        }
-                    }
-                }
-                else
-                {
-                    unitCost = orderItem.UnitCost;
-                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
-                    {
-                        if (unitCost < _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
-                        }
-                    }
-                    else
-                    {
-                        if (unitCost >= _priceCap)
-                        {
-                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
-                        }
-                    }
-                }
-            }
+//                decimal? unitCost = 0;
+//                var unitGroup = await _db.ProcurementUnitGroups.Where(w => w.ProcurementUnitGroupDescriptions.Any(a => a.ProcurementUnitGroupDescriptionItems.Any(b => b.ProcItemId == orderItem.Id))).FirstOrDefaultAsync();
+//                if (unitGroup != null)
+//                {
+//                    unitCost = unitGroup.UnitCost;
+//                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+//                    {
+//                        if (unitCost < _priceCap)
+//                        {
+//                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (unitCost >= _priceCap)
+//                        {
+//                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
+//                        }
+//                    }
+//                }
+//                else
+//                {
+//                    unitCost = orderItem.UnitCost;
+//                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+//                    {
+//                        if (unitCost < _priceCap)
+//                        {
+//                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (unitCost >= _priceCap)
+//                        {
+//                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
+//                        }
+//                    }
+//                }
+//            }
 
-            if (!string.IsNullOrWhiteSpace(brandMsg))
-            {
-                throw new InvalidValueException($"Brand is required for {brandMsg}.");
-            }
-        }
+//            if (!string.IsNullOrWhiteSpace(brandMsg))
+//            {
+//                throw new InvalidValueException($"Brand is required for {brandMsg}.");
+//            }
+//        }
 
-        private async ValueTask ValidateOnUnpost(ProcurementOrder entity)
-        {
-            if (string.IsNullOrWhiteSpace(entity.PostedBy))
-            {
-                throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.RefValue));
-            }
+//        private async ValueTask ValidateOnUnpost(ProcurementOrder entity)
+//        {
+//            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+//            {
+//                throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.RefValue));
+//            }
 
-            var airs = await _db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+//            var airs = await _db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
 
-            foreach (var air in airs)
-            {
-                throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
-            }
-        }
+//            foreach (var air in airs)
+//            {
+//                throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
+//            }
+//        }
         
-        private async Task<bool> IsWithPoUploadAsync(Guid? id)
-        {
-            var result = await _uploadPoService.GetAllByImageId(id).AnyAsync();
-            return result;
-        }
+//        private async Task<bool> IsWithPoUploadAsync(Guid? id)
+//        {
+//            var result = await _uploadPoService.GetAllByImageId(id).AnyAsync();
+//            return result;
+//        }
 
-        private async Task<bool> IsWithCafoaUploadAsync(Guid? id)
-        {
-            var result = await _uploadCafoaService.GetAllByImageId(id).AnyAsync();
-            return result;
-        }
+//        private async Task<bool> IsWithCafoaUploadAsync(Guid? id)
+//        {
+//            var result = await _uploadCafoaService.GetAllByImageId(id).AnyAsync();
+//            return result;
+//        }
 
-        private async Task ValidateUploadAsync(Guid? id, string poNo)
-        {
-            if (!await IsWithPoUploadAsync(id))
-            {
-                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}, cannot post!");
-            }
+//        private async Task ValidateUploadAsync(Guid? id, string poNo)
+//        {
+//            if (!await IsWithPoUploadAsync(id))
+//            {
+//                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}, cannot post!");
+//            }
 
-            if (!await IsWithCafoaUploadAsync(id))
-            {
-                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}, cannot post!");
-            }
-        }
+//            if (!await IsWithCafoaUploadAsync(id))
+//            {
+//                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}, cannot post!");
+//            }
+//        }
 
-    }
-}
+//    }
+//}

@@ -53,8 +53,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual PsCard PsCard { get; set; }
-        public virtual Procurement Procurement { get; set; }
-        public virtual ProcurementItem ProcurementItem { get; set; }
         public virtual OrderItem OrderItem { get; set; }
         public virtual RisItem RisItem { get; set; }
     }

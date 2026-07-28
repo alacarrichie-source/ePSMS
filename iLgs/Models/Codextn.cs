@@ -31,7 +31,6 @@ namespace iLgs.Models
             this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
             this.LocationBudgets = new HashSet<LocationBudget>();
             this.LocationBudgets1 = new HashSet<LocationBudget>();
-            this.Procurements = new HashSet<Procurement>();
             this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.PsCardItems = new HashSet<PsCardItem>();
             this.PsCardItems1 = new HashSet<PsCardItem>();
@@ -90,8 +89,6 @@ namespace iLgs.Models
         public virtual ICollection<LocationBudget> LocationBudgets { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<LocationBudget> LocationBudgets1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Procurement> Procurements { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
