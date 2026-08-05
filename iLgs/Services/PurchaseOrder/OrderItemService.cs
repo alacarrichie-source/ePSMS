@@ -86,7 +86,7 @@ namespace iLgs.Services.PurchaseOrder
             {
                 Id = s.Id,
                 OrderId = s.OrderId,
-                RequestItemId = s.RequestItemId,
+                //RequestItemId = s.RequestItemId,
                 ItemNo = s.ItemNo,
                 ItemNoIndex = s.ItemNoIndex,
                 ItemCodeId = s.ItemCodeId,
@@ -114,15 +114,17 @@ namespace iLgs.Services.PurchaseOrder
                 InsertedDt = s.InsertedDt,
                 SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo ?? "",
                 SetUnitCost = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost ?? 0,
-                UnitGroupDescriptionId = _db.OrderItemUnitGroupDescriptions.FirstOrDefault(f =>                     
+                UnitGroupDescriptionId = _db.OrderItemUnitGroupDescriptions.FirstOrDefault(f =>
                     f.OrderItemUnitGroup.OrderId == s.OrderId &&
-                    f.OrderItemUnitGroup.SetLotNo == s.ItemNo && 
+                    f.OrderItemUnitGroup.SetLotNo == s.ItemNo &&
                     f.Description == s.Description).Id,
                 PpmpCode = s.PpmpCode,
                 Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20,
                 IsSetLot = s.Unit == "set" || s.Unit == "lot" ? true : false,
+                IsSetLotItem = s.ItemNo.Contains("."),
                 OriginalDescription = s.Description,
-                OriginalOtherDesc = s.OtherDesc
+                OriginalOtherDesc = s.OtherDesc,
+                ParentItemNo = s.ItemNo.Contains(".") ? s.ItemNo.Substring(0, s.ItemNo.IndexOf(".")) : s.ItemNo
             };
         }
 
@@ -162,7 +164,7 @@ namespace iLgs.Services.PurchaseOrder
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Decimal places are not allowed for Set/Lot.");
                     }
-                }                                
+                }
             }
             else
             {
@@ -181,14 +183,14 @@ namespace iLgs.Services.PurchaseOrder
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), "Invalid Value.");
                     }
-                }                
+                }
             }
 
             if (string.IsNullOrWhiteSpace(model.Unit))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
             }
-            else 
+            else
             {
                 if (model.IsSetLot)
                 {
@@ -211,7 +213,7 @@ namespace iLgs.Services.PurchaseOrder
                 if (!model.UnitCost.HasValue || model.UnitCost == 0)
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
-                }                
+                }
             }
 
             //if (Enum.TryParse(model.PsType, out Category c))
@@ -251,7 +253,7 @@ namespace iLgs.Services.PurchaseOrder
                     model.ItemNo = await NextItemNoAsync(model.OrderId);
                 }
             }
-            
+
             if (await _db.OrderItems.AnyAsync(a => a.OrderId == model.OrderId && a.ItemNo == model.ItemNo))
             {
                 _imex = new InvalidModelException();
@@ -293,26 +295,26 @@ namespace iLgs.Services.PurchaseOrder
                     UpdatedDt = date
                 };
 
-                //var setItemContents = requestItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
-                //    && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).ToList();
-                //foreach (var setItemContent in setItemContents)
-                //{
-                //    var orderItemId = entity.OrderItems.First(f => f.RequestItemId == setItemContent.Id).Id;
-                //    var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
-                //        OrderItemId = orderItemId,
-                //        InsertedBy = user,
-                //        InsertedDt = date,
-                //        UpdatedBy = user,
-                //        UpdatedDt = date
-                //    };
-                //    unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
-                //}
-                //unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
+            //var setItemContents = requestItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
+            //    && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).ToList();
+            //foreach (var setItemContent in setItemContents)
+            //{
+            //    var orderItemId = entity.OrderItems.First(f => f.RequestItemId == setItemContent.Id).Id;
+            //    var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
+            //        OrderItemId = orderItemId,
+            //        InsertedBy = user,
+            //        InsertedDt = date,
+            //        UpdatedBy = user,
+            //        UpdatedDt = date
+            //    };
+            //    unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
+            //}
+            //unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
 
-                var order = await _db.Orders.FindAsync(model.OrderId);
+            var order = await _db.Orders.FindAsync(model.OrderId);
                 order.OrderItems.Add(entity);
                 order.OrderItemUnitGroups.Add(unitGroup);
             }
@@ -321,11 +323,11 @@ namespace iLgs.Services.PurchaseOrder
                 if (model.ItemNo.Contains("."))
                 {
                     var setGroup = model.ItemNoIndex.Substring(0, 3);
-                    /*
-                     * Get Parent Set/Lot in OrderIteem
-                     * Locate in UnitGroup
-                     * Add to Unit Group Item
-                     */
+                /*
+                 * Get Parent Set/Lot in OrderIteem
+                 * Locate in UnitGroup
+                 * Add to Unit Group Item
+                 */
                     var parentOrderItem = await _db.OrderItems.FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.ItemNoIndex == setGroup);
                     if (parentOrderItem == null)
                     {
@@ -336,8 +338,8 @@ namespace iLgs.Services.PurchaseOrder
                     var unitGroupDescription = await _db.OrderItemUnitGroupDescriptions
                         .Include(i => i.OrderItemUnitGroupDescriptionItems)
                         .Where(w => w.OrderItemUnitGroup.OrderId == model.OrderId
-                        && w.OrderItemUnitGroup.SetLotNo == itemNo 
-                        && w.Description == description 
+                        && w.OrderItemUnitGroup.SetLotNo == itemNo
+                        && w.Description == description
                         && !w.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemId == entity.Id)).FirstOrDefaultAsync();
                     if (unitGroupDescription != null)
                     {
@@ -355,7 +357,7 @@ namespace iLgs.Services.PurchaseOrder
                     }
                 }
                 _db.OrderItems.Add(entity);
-            }            
+            }
 
             await _db.SaveChangesAsync();
             await _orderItemUnitGroupService.DistributeSetAmountAsync(model.OrderId, model.ItemNo);
@@ -369,19 +371,19 @@ namespace iLgs.Services.PurchaseOrder
             await ValidateFieldsAsync(model);
             await _orderSharedService.ValidateStatusAsync((Guid)model.OrderId);
 
-            //var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
-            //if (requestItemId == null)
-            //{
-            //    throw new RecordRelationshipException("Could not find request item this record!");
-            //}
+        //var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+        //if (requestItemId == null)
+        //{
+        //    throw new RecordRelationshipException("Could not find request item this record!");
+        //}
 
-            //var risItemId = _db.RisItems.FindAsync(requestItemId).Result?.Id;
-            //if (risItemId == null)
-            //{
-            //    throw new RecordRelationshipException("Cound not find RIS item for this record!");
-            //}
+        //var risItemId = _db.RisItems.FindAsync(requestItemId).Result?.Id;
+        //if (risItemId == null)
+        //{
+        //    throw new RecordRelationshipException("Cound not find RIS item for this record!");
+        //}
 
-            model.UpdatedBy = user;
+        model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             if (string.IsNullOrWhiteSpace(model.ItemNo))
@@ -406,12 +408,12 @@ namespace iLgs.Services.PurchaseOrder
 
             if (model.IsSetLot)
             {
-                /* Validate unit group record
-                 * Locate in UnitGroup
-                 * Update info
-                 * Update Description
-                 * Distribute Amount
-                 */
+            /* Validate unit group record
+             * Locate in UnitGroup
+             * Update info
+             * Update Description
+             * Distribute Amount
+             */
                 if (await _db.OrderItemUnitGroupDescriptions.AsNoTracking()
                    .AnyAsync(f => f.OrderItemUnitGroup.OrderId == model.OrderId
                        && f.OrderItemUnitGroup.SetLotNo == model.ItemNo
@@ -447,7 +449,7 @@ namespace iLgs.Services.PurchaseOrder
             await _orderItemUnitGroupService.DistributeSetAmountAsync(model.OrderId, model.ItemNo);
 
             return model;
-        });        
+        });
 
         public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
@@ -455,18 +457,18 @@ namespace iLgs.Services.PurchaseOrder
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            
+
             var entity = await _db.OrderItems.FirstOrDefaultAsync(f => f.Id == model.Id);
             ValidateRecord(entity, model.Id);
             await _orderSharedService.ValidateStatusAsync((Guid)entity.OrderId);
 
             if (model.IsSetLot)
             {
-                /* Locate in UnitGroupDescription
-                 * Delete if without UnitGroupDescriptionItem
-                 * Delete (Main)UnitGroup if no more UnitGroupDescription 
-                 */
-                
+            /* Locate in UnitGroupDescription
+             * Delete if without UnitGroupDescriptionItem
+             * Delete (Main)UnitGroup if no more UnitGroupDescription 
+             */
+
                 var unitGroup = await _db.OrderItemUnitGroups.Include(i => i.OrderItemUnitGroupDescriptions)
                     .FirstOrDefaultAsync(f => f.OrderId == model.OrderId && f.SetLotNo == model.ItemNo);
                 var unitGroupDescriptionCount = unitGroup.OrderItemUnitGroupDescriptions.Count();
@@ -489,7 +491,7 @@ namespace iLgs.Services.PurchaseOrder
                     await _db.SaveChangesAsync();
                     _db.OrderItemUnitGroups.Remove(unitGroup);
                     await _db.SaveChangesAsync();
-                }                
+                }
             }
             else
             {
@@ -541,7 +543,7 @@ namespace iLgs.Services.PurchaseOrder
             entity.ItemNo = model.ItemNo;
             entity.ItemNoIndex = model.ItemNoIndex;
             entity.OrderId = model.OrderId;
-            entity.RequestItemId = model.RequestItemId;
+            //entity.RequestItemId = model.RequestItemId;
             entity.ItemCodeId = model.ItemCodeId;
             entity.PsNo = model.PsNo;
             entity.PsNoDisplay = model.PsNoDisplay;
@@ -568,7 +570,7 @@ namespace iLgs.Services.PurchaseOrder
         }
 
         private async Task<string> NextItemNoAsync(Guid? orderId)
-        {            
+        {
             var itemNos = await _db.OrderItems
                 .Where(w => w.OrderId == orderId)
                 .Select(i => i.ItemNo)

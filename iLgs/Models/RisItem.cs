@@ -42,9 +42,9 @@ namespace iLgs.Models
     
         public virtual AllField AllField { get; set; }
         public virtual ItemCode ItemCode { get; set; }
-        public virtual OrderItem OrderItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual RISs RISs { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
     }
 }

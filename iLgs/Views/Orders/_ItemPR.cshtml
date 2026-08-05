@@ -1,0 +1,82 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.PrItemSelectionVM>()
+        .Name("gridItemPR")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Request.PrNo).Width(50).Title("PR No");
+            columns.Bound(o => o.Request.Department).Width(50);
+            columns.Bound(o => o.ItemNo).Width(50);
+            columns.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
+                                                                       "<div>" +
+                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
+                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
+                                                                           "# } else { #" +
+                                                                               "#= kendo.htmlEncode(Description) #" +
+                                                                           "# } #" +
+                                                                       "</div>" +
+                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
+                                                                   "</div>");
+            columns.Bound(o => o.Unit).Width(30);
+            columns.Bound(o => o.Qty).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.UnitCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.TotalCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //columns.Bound(o => o.IsSelected).Width(30).Title("Selected").ClientTemplate(
+            //    "<div style='text-align:center;'>" +
+            //    "<input type='checkbox' #= IsSelected ? 'checked=\"checked\"' : '' # onclick='onIsSelectedClick(this)' />" +
+            //    "</div>"
+            //).HtmlAttributes(new { style = "text-align:center;" })
+            //.HeaderHtmlAttributes(new { style = "text-align:center;" });
+
+        })
+        //.ToolBar(t =>
+        //{
+        //    t.Search();
+        //})
+        .Pageable(pager => pager
+            //.Input(false)
+            //.Numeric(true)
+            .Info(true)
+            //.PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+        //.ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(300))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(9000)
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            //.Group(g => g.Add(a => a.Request.PrNo))
+            .Sort(s =>
+            {
+                s.Add(a => a.Request.PrNo); s.Add(a => a.ItemNoIndex);
+            })
+            //.Aggregates(a =>
+            //{
+            //    a.Add(p => p.TotalCost).Sum();
+            //})
+            .Read(read => read.Action("_ItemPRRead", "Orders", new { orderItemId = @ViewData["orderItemId"] }))
+        )
+        //.Events(events => events
+        //    .Change("onChangeItemSelection")
+        //    .Edit("onEditGridItems")
+        //    .DataBound("onDataBoundItemSelection")
+        //)
+        .AutoBind(true)
+)

@@ -1275,7 +1275,8 @@
             url: '@Url.Action("_PropertyCardAddEdit", "PropertyCard")',
             data: {
                 cardId: recId,
-                mode: mode
+                mode: mode,
+                isAdmin: '@ViewBag.IsAdmin'
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {

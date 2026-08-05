@@ -40,17 +40,7 @@ namespace iLgs.Controllers
             _propertyCardValidator = new PropertyCardValidator(_db);
         }
 
-        //public PropertyCardController(AppManEntities db,
-        //    ICodextnService codextnService, IPropertyCardService propertyCardService, IItemCodeService itemCodeService,
-        //    IPropertyCardValidator propertyCardValidator)
-        //{
-        //    _db = db;
-        //    _codextnService = codextnService;
-        //    _propertyCardService = propertyCardService;
-        //    _itemCodeService = itemCodeService;
-        //    _propertyCardValidator = propertyCardValidator;
-        //}
-
+        
         // GET: Index
         public ActionResult Index()
         {
@@ -182,7 +172,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _PropertyCardAddEdit(Guid cardId, string mode)
+        public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId, string mode, bool? isAdmin)
         {
             var data = await _propertyCardService.GetByIdAsync(cardId);
             if (data == null)
@@ -194,6 +184,7 @@ namespace iLgs.Controllers
             }
             
             data.Mode = mode;
+            ViewBag.IsAdmin = isAdmin;
 
             return PartialView(data);
         }

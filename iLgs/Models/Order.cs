@@ -20,11 +20,14 @@ namespace iLgs.Models
             this.AIRs = new HashSet<AIR>();
             this.OrderItems = new HashSet<OrderItem>();
             this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
+            this.OrderRequests = new HashSet<OrderRequest>();
             this.PARs = new HashSet<PAR>();
             this.RISses = new HashSet<RISs>();
         }
     
         public System.Guid Id { get; set; }
+        public string Department { get; set; }
+        public string Fund { get; set; }
         public string CtrlNo { get; set; }
         public Nullable<System.Guid> SupplierId { get; set; }
         public string SupName { get; set; }
@@ -37,7 +40,7 @@ namespace iLgs.Models
         public string PoNo { get; set; }
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }
-        public Nullable<System.Guid> PrId { get; set; }
+        public string PrNo { get; set; }
         public string DeliveryPlace { get; set; }
         public string DeliveryDate { get; set; }
         public string TermDelivery { get; set; }
@@ -62,10 +65,11 @@ namespace iLgs.Models
         public virtual ICollection<OrderItem> OrderItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
-        public virtual Request Request { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderRequest> OrderRequests { get; set; }
+        public virtual Supplier Supplier { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PAR> PARs { get; set; }
-        public virtual Supplier Supplier { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RISs> RISses { get; set; }
     }

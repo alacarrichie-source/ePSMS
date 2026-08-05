@@ -119,12 +119,9 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<bool> GetAnyOrderAsync(Guid id)
         {
-            return await _db.Orders.AnyAsync(a => a.PrId == id);
-        }
+            //return await _db.Orders.AnyAsync(a => a.PrId == id);
 
-        //public async Task<bool> GetAnyParsAsync(Guid id)
-        //{
-        //    return await _db.PARs.AnyAsync(a => a.PrId == id);
-        //}
+            return await _db.OrderItemRequests.AnyAsync(a => a.RequestItem.PrId == id);
+        }        
     }
 }

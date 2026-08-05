@@ -334,7 +334,7 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _StockCardItemAddEdit(Guid cardId, Guid? cardItemId)
+        public async Task<ActionResult> _StockCardItemAddEdit(Guid cardId, Guid? cardItemId, bool? isAdmin)
         {
             var data = await _stockCardService.PsCardItem.GetByIdAsync(cardItemId);
             if (data == null)
@@ -345,6 +345,7 @@ namespace iLgs.Controllers
                     PsCardId = cardId
                 };
             }
+            ViewBag.IsAdmin = isAdmin;
             ViewData["cardItemId"] = cardItemId;
             return PartialView(data);
         }

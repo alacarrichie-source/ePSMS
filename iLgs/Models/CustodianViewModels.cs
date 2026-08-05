@@ -97,6 +97,9 @@ namespace iLgs.Models
         public string MrIssuedsTo { get; set; }
         public string RpcPpeIssuedsTo { get; set; }
 
+        [Display(Name = "Accountable Officers (PAR/ICS/ARE/MR/RPCPPE)")]
+        public string AccountableOfficers { get; set; }
+
         public int? ForYear { get; set; }
 
         [Display(Name = "Posted")]

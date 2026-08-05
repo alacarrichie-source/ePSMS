@@ -180,8 +180,8 @@ namespace iLgs.Services.CustodianReports
 
             entity.PostedBy = user;
             entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            //entity.UpdatedBy = user;
+            //entity.UpdatedDt = date;
 
             await _db.SaveChangesAsync();
             return entity;
@@ -205,8 +205,8 @@ namespace iLgs.Services.CustodianReports
 
             entity.PostedBy = "";
             entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            //entity.UpdatedBy = user;
+            //entity.UpdatedDt = date;
 
             await _db.SaveChangesAsync();
             return entity;

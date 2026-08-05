@@ -40,18 +40,22 @@
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         </Diagram>
-      <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
-        <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="5.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="10" />
-        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="5.25" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="10.25" />
-        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
-        <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
-        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="3" PointY="3.875" />
-        <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
+      <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="94" >
+        <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="7.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="7.75" PointY="3.75" />
+        <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="3" PointY="12.25" />
+        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="5.25" PointY="15" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
-        <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="7.375" PointY="5" />
+        <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="0.75" PointY="4.625" />
+        <EntityTypeShape EntityType="AppManModel.OrderItemRequest" Width="1.5" PointX="7.5" PointY="8.875" />
+        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="5.25" PointY="6.625" />
+        <AssociationConnector Association="AppManModel.FK_OrderItemRequests_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_OrderItemRequests_RequestItems" />
+        <EntityTypeShape EntityType="AppManModel.OrderRequest" Width="1.5" PointX="5.25" PointY="2.5" />
+        <AssociationConnector Association="AppManModel.FK_OrderRequests_Requests" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="2.625" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
+        <AssociationConnector Association="AppManModel.FK_OrderRequests_Orders" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >
@@ -240,7 +244,7 @@
         <AssociationConnector Association="AppManModel.FK_AIRItemExtns_AIRItems" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
         </Diagram>
-      <Diagram DiagramId="612c7e6c53344422a811e5e97ae783b1" Name="Custodians" ZoomLevel="120" >
+      <Diagram DiagramId="612c7e6c53344422a811e5e97ae783b1" Name="Custodians" ZoomLevel="94" >
         <EntityTypeShape EntityType="AppManModel.CustodianDisposal" Width="1.5" PointX="3" PointY="55" />
         <EntityTypeShape EntityType="AppManModel.CustodianDisposalItem" Width="1.5" PointX="5.25" PointY="22.875" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianDisposals" />
@@ -251,7 +255,7 @@
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianDisposals" />
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianIRRUPs" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItem" Width="1.5" PointX="3" PointY="64.75" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="3" PointY="79.875" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="2.875" PointX="3" PointY="79.875" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportLandItem" Width="1.5" PointX="3" PointY="33.375" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" />
@@ -267,7 +271,7 @@
         <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportSubmitForCount" Width="1.5" PointX="3" PointY="102.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportSubmitForCounts_CustodianReports" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItemPhas" Width="1.5" PointX="5.25" PointY="71.375" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItemPhas" Width="2" PointX="5.25" PointY="71.375" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItemPhases_CustodianReportBldgItems" />
         </Diagram>
       <Diagram DiagramId="6ed46f20c55b4c3f89ae9de029a504b5" Name="Item Codes" >
@@ -315,6 +319,11 @@
       </Diagram>
       <Diagram DiagramId="5bb8de07fc114f91ab0c0a7d29502ecb" Name="PAR?" >
         <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="0.75" PointY="0.75" />
+      </Diagram>
+      <Diagram DiagramId="cfe861939bb1474eac1e8d8edebc536e" Name="PPMP" >
+        <EntityTypeShape EntityType="AppManModel.PPMP" Width="1.5" PointX="0.75" PointY="3.125" />
+        <EntityTypeShape EntityType="AppManModel.PPMPItem" Width="1.5" PointX="3" PointY="1.125" />
+        <AssociationConnector Association="AppManModel.FK_PPMPItems_PPMPs" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

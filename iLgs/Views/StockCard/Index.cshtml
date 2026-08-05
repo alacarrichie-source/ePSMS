@@ -1213,7 +1213,8 @@
             url: '@Url.Action("_StockCardAddEdit", "StockCard")',
             data: {
                 cardId: recId,
-                mode: mode
+                mode: mode,
+                isAdmin: '@ViewBag.IsAdmin'
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -1509,9 +1510,9 @@
                 window.kendo.ui.progress($(document.body), false);
                 if (result.Errors == "") {
                     switchWidget.value(result.Consumable);
-                    switchWidget.trigger("change");                    
+                    switchWidget.trigger("change");
                     //switchWidget.check(result.Consumable);
-                    //switchWidget.trigger("change");                    
+                    //switchWidget.trigger("change");
                     //$("#Consumable").val(result.Consumable).trigger("change");
                 } else {
                     alert(result.Errors);

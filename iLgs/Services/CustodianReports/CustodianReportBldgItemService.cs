@@ -459,8 +459,8 @@ namespace iLgs.Services.CustodianReports
 
             entity.PostedBy = user;
             entity.PostedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            //entity.UpdatedBy = user;
+            //entity.UpdatedDt = date;
 
             //_db.CustodianReportBldgItems.Attach(entity);
             //_db.Entry(entity).State = EntityState.Modified;
@@ -478,8 +478,8 @@ namespace iLgs.Services.CustodianReports
 
             entity.PostedBy = "";
             entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            //entity.UpdatedBy = user;
+            //entity.UpdatedDt = date;
 
             //_db.CustodianReportBldgItems.Attach(entity);
             //_db.Entry(entity).State = EntityState.Modified;

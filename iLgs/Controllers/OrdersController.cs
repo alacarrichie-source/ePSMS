@@ -1648,5 +1648,113 @@ namespace iLgs.Controllers
             
             return Json(new { Error = error }, JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult _ItemSelection(Guid? orderId, string postedBy)
+        {
+            ViewData["orderId"] = orderId;
+            ViewData["postedBy"] = postedBy;
+            return PartialView();
+        }
+
+        public ActionResult _ItemSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
+        {
+            var data = _orderService.GetPrItemSelection(orderId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemSelectionSave(Guid? orderId, string selectedIds)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+                    await _orderService.ItemSelectionSaveAsync(orderId, selectedIds, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = orderId }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _ItemPR(Guid? orderItemId)
+        {
+            ViewData["orderItemId"] = orderItemId;            
+            return PartialView();
+        }
+
+        public ActionResult _ItemPRRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId)
+        {
+            var data = _orderService.GetItemPR(orderItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
     }
 }

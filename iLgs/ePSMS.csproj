@@ -553,6 +553,9 @@
     <Compile Include="Models\OrderItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\OrderItemRequest.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\OrderItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -560,6 +563,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderRequest.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PAR.cs">
@@ -572,6 +578,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PoAdjustmentViewModels.cs" />
+    <Compile Include="Models\PPMP.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PPMPItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ProcurementViewModels.cs" />
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
@@ -4774,6 +4786,8 @@
     <Content Include="Views\RSMI\_RSMIUnpostBatch.cshtml" />
     <Content Include="Views\Rpci\_PostBatch.cshtml" />
     <Content Include="Views\Rpci\_UnpostBatch.cshtml" />
+    <Content Include="Views\Orders\_ItemSelection.cshtml" />
+    <Content Include="Views\Orders\_ItemPR.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

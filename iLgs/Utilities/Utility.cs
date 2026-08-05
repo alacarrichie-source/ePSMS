@@ -180,6 +180,11 @@ namespace iLgs.Utilities
             return Utility.ToProperCase(model).Replace(" ", "");
         }
 
+        public static string GetItemNoIndex(decimal itemNo)
+        {
+            return GetItemNoIndex(itemNo.ToString());
+        }
+
         public static string GetItemNoIndex(string itemNo)
         {
             return string.Join(".", itemNo.Split('.').Select(x => int.TryParse(x, out var n) ? n.ToString("D3") : "000"));
@@ -263,5 +268,16 @@ namespace iLgs.Utilities
 
             return query.Where(lambda);
         }
+
+        //public static string PadNumber(object value)
+        //{
+        //    if (value == null)
+        //        return string.Empty;
+
+        //    return string.Join("-",
+        //        value.ToString()
+        //             .Split('.')
+        //             .Select(part => int.Parse(part).ToString("D3")));
+        //}
     }
 }

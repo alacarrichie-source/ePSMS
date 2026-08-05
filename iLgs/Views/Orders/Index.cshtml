@@ -56,13 +56,12 @@
         col.Bound(c => c.PoDate).Width(70);
         col.Bound(c => c.PrNo).Width(70);
         col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.SupName).Width(100);        
+        col.Bound(c => c.SupName).Width(100);
         col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
-            //command.Custom("Post").IconClass("k-icon k-i-lock").Click("onGridPostClick").SendDataKeys(true);
             command.Custom("PO").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
             command.Custom("CAFOA").IconClass("k-icon k-i-upload").Click("onClickUploadsCafoa").SendDataKeys(true);
         }).Width(170);
@@ -75,7 +74,7 @@
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderTemplate").Window(w => w.Width("70%").Title("Purchase Order")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderTemplate").Window(w => w.Width("70%").Title("Purchase Order")))    
     .Search(s =>
     {
         s.Field(o => o.PoNo, "contains");
@@ -101,7 +100,6 @@
     .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    //.ClientDetailTemplateId("Details")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
@@ -137,7 +135,7 @@
             col.Bound(c => c.Category).Width(50);
             col.Bound(c => c.PsNo).Width(70);            
             col.Bound(c => c.ItemName).Width(70);
-            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.Unit).Width(50);            
             col.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
                                                                        "<div>" +
                                                                            "# if (Unit == 'set' || Unit == 'lot') { #" +
@@ -162,7 +160,8 @@
             col.Command(command =>
             {
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditOrderItem");
-                command.Destroy();
+                command.Custom("PR Info").IconClass("k-icon k-i-info").SendDataKeys(true).Click("onClickBtnItemPR");
+                //command.Destroy();
                 command.Custom("Items").IconClass("k-icon k-i-list-ordered").SendDataKeys(true).Click("onClickBtnUnitGroupDescriptionItem").Visible("IsSetLot");
             }).Width(100);
         })
@@ -174,9 +173,9 @@
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderItemTemplate").Window(w => w.Width("70%").Title("Order Item")))
         .ToolBar(toolbar =>
         {
-        toolbar.Template(@<text>
-            @(Html.Kendo().Button().Name("btnAddItem").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItem")))
-            @(Html.Kendo().Button().Name("btnAddItemSet").Content("Add Set/Lot").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItemSet")))
+            toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAddItem").Content("PR Item Selection").Icon("k-icon k-i-check").Events(e => e.Click("onClickBtnItemSelection")))
+                @*@(Html.Kendo().Button().Name("btnAddItemSet").Content("Add Set/Lot").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItemSet")))*@
             </text>);
         })
         .Pageable(pager => pager
@@ -211,7 +210,7 @@
             .Read(read => read.Action("_OrderItemRead", "Orders").Data("DataGridItem"))
             //.Create(create => create.Action("_OrderItemCreate", "Orders"))
             //.Update(update => update.Action("_OrderItemUpdate", "Orders"))
-            .Destroy(destroy => destroy.Action("_OrderItemDestroy", "Orders"))
+            //.Destroy(destroy => destroy.Action("_OrderItemDestroy", "Orders"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
@@ -558,23 +557,23 @@
     }
 
 
-    function onDataChange(e) {
-        var selectedData = this.dataItem(this.select());
+    //function onDataChange(e) {
+    //    var selectedData = this.dataItem(this.select());
 
-        selectedMainItem = selectedData.RecId;
+    //    selectedMainItem = selectedData.RecId;
 
-        $('#SalaryGrade').val(selectedData.SalaryGrade).trigger("change");
+    //    $('#SalaryGrade').val(selectedData.SalaryGrade).trigger("change");
 
 
-        var tab = $("#TabStrip").data("kendoTabStrip");
-        var index = $("#TabStrip").data("kendoTabStrip").select().index();
-        var value = $("#TabStrip").data("kendoTabStrip").value();
+    //    var tab = $("#TabStrip").data("kendoTabStrip");
+    //    var index = $("#TabStrip").data("kendoTabStrip").select().index();
+    //    var value = $("#TabStrip").data("kendoTabStrip").value();
 
-        Var_MainRecId = selectedMainItem;
-        if (index == 0) {
-            $("#gridEmpExtn").data("kendoGrid").dataSource.read();
-        }
-    }
+    //    Var_MainRecId = selectedMainItem;
+    //    if (index == 0) {
+    //        $("#gridEmpExtn").data("kendoGrid").dataSource.read();
+    //    }
+    //}
 
 
     function onDataBoundGrid(e) {
@@ -608,41 +607,29 @@
         }
     }
 
+    var gridModel = null;
     function onEditGrid(e) {
         e.preventDefault();
+        gridModel = e.model;
         selectedGrid = e.sender;
-        selectedId = null;
         if (e.model.isNew()) {
+            selectedId = null;
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            @*var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("GetCurrentDate", "Getters")',
-                success: function (result) {
-                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
-                    var datePicker = $("#PoDate").data("kendoDatePicker");
-                    datePicker.value(date);
-                    datePicker.trigger("change");
-                    disabled.attr('disabled', 'disabled')
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                }
-            });*@
-
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
 
-            var combo = $("#PrId").data("kendoMultiColumnComboBox");
-            if (combo) {
-                combo.enable(false);
-            }
-
-            // Refresh PR Nos, without this the DataPrId returns Guid.Empty and not actual value of the Id
-            $("#PrId").data("kendoMultiColumnComboBox").dataSource.read(DataPrId());
+        var combo = $("#PrNoList").data("kendoMultiSelect");
+        if (combo) {
+            //combo.enable(false);
+            // Refresh PR Nos, without this the DataPrNoList returns Empty and not actual value
+            //combo.dataSource.read(DataPrNoList());
+            combo.dataSource.read(DataPrNoList()).then(function () {
+                combo.value(e.model.PrNoList);
+            });
         }
     }
 
@@ -750,9 +737,40 @@
         };
     }
 
-    function onClickBtnAddOrderItem(e) {
+    function onClickBtnItemSelection(e) {
         e.preventDefault();
-        OrderItem("A", null, false);
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        $("#gridItems").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "PR Item selection",
+            width: "80%",
+            height: "520"
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_ItemSelection", "Orders")',
+            data: {
+                orderId: selectedId
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
     }
 
     function onClickBtnAddOrderItemSet(e) {
@@ -823,6 +841,53 @@
             });
             mywindow.center(); // Optional: Center the window after resizing
         }
+    }
+
+    function onClickBtnItemPR(e) {
+        e.preventDefault();
+
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));                
+
+        var myTitle = "PR Info";
+        var width = "80%";
+        var height = 200;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    //close: function () {
+                    //    $("#gridItems").data("kendoGrid").dataSource.read();
+                    //},
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_ItemPR", "Orders")',
+            data: {
+                orderItemId: dataItem.Id      
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+        //setTimeout(mywindow.center(), 200);
     }
 
     function onChangeGridItems(e) {
@@ -902,14 +967,9 @@
         }
     }
 
-    function DataPrId() {
-        var text = $("#PrId").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#PrId").data("kendoMultiColumnComboBox").value();
-        }
+    function DataPrNoList() {
         return {
-            orderId: $("#Id").val(), // set grid's default value to guid.empty
-            text: text
+            orderId: gridModel ? gridModel.Id : null
         };
     }
 
@@ -2058,6 +2118,82 @@
             });
         }
     }
+
+    // GridItemSelection
+    var selectedItemSelectionId = null;
+    function onChangeItemSelection() {
+        var selectedData = this.dataItem(this.select());
+        selectedItemSelectionId = selectedData.Id;
+    }
+
+    function onDataBoundItemSelection(e) {
+        var grid = this;
+        //var row = e.sender.tbody.find("tr:first");
+        //grid.select(row);
+
+        //var data = grid.dataSource.data();
+
+        grid.tbody.find(">tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem.IsSelected) {
+                $(this).css("font-style", "italic");
+                $(this).css("font-weight", "normal");
+                //$(this).find('.k-grid-Include').text('Include');
+            } else {
+                $(this).css("font-weight", "bold");
+                //$(this).find('.k-grid-Include').text('Exclude');
+                //grid.select(this);
+            }
+        });
+
+        if (selectedItemSelectionId) {
+            var dataItem = this.dataSource.get(selectedItemSelectionId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        //var count = grid.dataSource.total();
+        //$("#btnCopy").data('kendoButton').enable(count != 0);
+    }
+
+    //function onIsSelectedClick(chk) {
+    //    var grid = $("#gridItemSelection").data("kendoGrid");
+    //    var dataItem = grid.dataItem($(chk).closest("tr"));
+
+    //    dataItem.set("IsSelected", chk.checked);
+
+    //}
+
+    function onIsSelectedClick(chk) {
+
+        var grid = $("#gridItemSelection").data("kendoGrid");
+        var row = $(chk).closest("tr");
+        var item = grid.dataItem(row);
+        var checked = chk.checked;
+
+        item.set("IsSelected", checked);
+
+        updateChildren(item.Request.PrNo, item.ItemNo, checked);
+        
+        function updateChildren(parentPrNo, parentItemNo, checked) {
+
+            grid.dataSource.data().forEach(function (child) {
+
+                if (child.Request.PrNo === parentPrNo && child.IsSetLotItem === true && child.ParentItemNo === parentItemNo) {
+
+                    child.set("IsSelected", checked);
+
+                    updateChildren(child.Request.PrNo, child.ItemNo, checked);
+                }
+            });
+        }        
+    }
+    // End GridItemSelection
+
 </script>
 
 

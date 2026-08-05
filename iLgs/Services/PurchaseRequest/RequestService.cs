@@ -111,7 +111,8 @@ namespace iLgs.Services.PurchaseRequest
             SubmittedDt = s.SubmittedDt,
             PostedBy = s.PostedBy,
             PostedDt = s.PostedDt,
-            IsWithPO = s.Orders.Any(),
+            //IsWithPO = s.Orders.Any(),
+            IsWithPO = s.RequestItems.Any(a => a.OrderItemRequests.Any()),
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt
         };

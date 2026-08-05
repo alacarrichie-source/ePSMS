@@ -409,7 +409,8 @@
             col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(70);
+            //col.Bound(c => c.Description).Width(70);
+            col.Bound(c => c.AccountableOfficers).Width(100);
             col.Bound(c => c.OtherQty).Width(50);
             col.Bound(c => c.ItemSerialNo).Width(70);
             col.Bound(c => c.Annex).Width(50);

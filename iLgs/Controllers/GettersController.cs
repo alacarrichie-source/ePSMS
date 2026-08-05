@@ -3,6 +3,7 @@ using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.Supplier_;
+using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -474,8 +475,9 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.Department }), JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<JsonResult> GetPrNoWithRemainingItems(Guid? orderId, string text)
+        public async Task<JsonResult> GetPrNoWithRemainingItems([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
+            var text = Request.QueryString["filter[filters][0][value]"];
             orderId = orderId ?? Guid.Empty;
             var userId = User.Identity.GetUserId();
             var IsAdmin = await _userService.IsAdminAsync(userId);
@@ -491,11 +493,15 @@ namespace iLgs.Controllers
 
             if (orderId == Guid.Empty)
             {
-                model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
+                model = model.Where(w => w.RequestItems.Any(a => !a.OrderItemRequests.Any()));
             }
             else
             {
-                model = model.Where(w => w.Orders.Any(a => a.Id == orderId) || (!w.Orders.Any(a => a.Id != orderId && w.RequestItems.Any(a2 => !a2.OrderItems.Any()))));
+                model = model.Where(w => w.OrderRequests.Any(a => a.OrderId == orderId)
+                    //|| (!w.OrderRequests.Any(a => a.Id != orderId && w.RequestItems.Any(a2 => !a2.OrderItemRequests.Any())))
+                    // PR Item not in any OrderItemRequest
+                       || w.RequestItems.Any(a => !a.OrderItemRequests.Any())
+                    );
             }
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -666,14 +672,14 @@ namespace iLgs.Controllers
 
         public JsonResult GetPoNos(string text)
         {
-            var model = _db.Orders.Include(i => i.Request).AsNoTracking().AsQueryable();
+            var model = _db.Orders.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public async Task<JsonResult> GetPoNosWithoutPr(Guid? airId, string text)
@@ -684,11 +690,14 @@ namespace iLgs.Controllers
             IQueryable<Order> model;
             if (IsAdmin)
             {
-                model = _db.Orders.Include(i => i.Request).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
             }
             else
             {
-                model = _db.Orders.Include(i => i.Request).Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+                model = _db.Orders.Where(w => w.OrderItems.Any(a => 
+                    a.OrderItemRequests.Any(b => 
+                        b.RequestItem.Request.Codextn.DepartmentUsers.Any(c => 
+                            c.UserId == userId))) && w.PostedBy != null).AsNoTracking().AsQueryable();
             }
 
             if (airId == Guid.Empty)
@@ -705,7 +714,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public async Task<JsonResult> GetPoNosWithoutRis(Guid? risId, string text)
@@ -713,14 +722,20 @@ namespace iLgs.Controllers
             risId = risId ?? Guid.Empty;
             var userId = User.Identity.GetUserId();
             var IsAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<Order> model;
             // get all orders with air
-            var model = _db.Orders
-                    .Include(i => i.Request)
-                    .Include(i => i.RISses)
-                    .Where(w => w.PostedBy != null && w.AIRs.Any(a => a.OrderId == w.Id && a.PostedBy != null)).AsNoTracking().AsQueryable();
-            if (!IsAdmin)
+            if (IsAdmin)
             {
-                model = model.Where(w => w.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
+                model = _db.Orders.Include(i => i.RISses).Where(w => w.PostedBy != null 
+                    && w.AIRs.Any(a => a.OrderId == w.Id && a.PostedBy != null)).AsNoTracking().AsQueryable();
+            }
+            else
+            {
+                model = _db.Orders.Include(i => i.RISses).Where(w => w.PostedBy != null 
+                    && w.OrderItems.Any(a =>
+                        a.OrderItemRequests.Any(b =>
+                            b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
+                                c.UserId == userId)))).AsNoTracking().AsQueryable();                                    
             }
 
             if (risId == Guid.Empty)
@@ -742,13 +757,14 @@ namespace iLgs.Controllers
                 Id = c.Id,
                 PoNo = c.PoNo,
                 PoDate = c.PoDate,
-                DeptId = c.Request.DeptId,
-                DeptDesc = c.Request.Codextn.Description,
-                Department = c.Request.Department,
-                Section = c.Request.Section,
-                FPP = c.Request.FPP,
-                Fund = c.Request.Fund,
-                Purpose = c.Request.Purpose
+                //DeptId = c.DeptId,
+                //DeptDesc = c.Codextn.Description,
+                Department = c.Department,
+                Fund = c.Fund,
+                //Section = c.Request.Section,
+                //FPP = c.Request.FPP,
+                //Fund = c.Request.Fund,
+                //Purpose = c.Request.Purpose
             }).OrderBy(o => o.PoNo), JsonRequestBehavior.AllowGet);
         }
 
@@ -762,7 +778,16 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Division = c.Request.Section, Fund = c.Request.Fund, FPP = c.Request.FPP }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                PoNo = c.PoNo,
+                PoDate = c.PoDate,
+                Department = c.Department,
+                Fund = c.Fund,
+                //Division = c.Request.Section,                
+                //FPP = c.Request.FPP
+            }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetPoItems(Guid orderId, string text)
@@ -1229,7 +1254,7 @@ namespace iLgs.Controllers
                 query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
             }
 
-            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex,  Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
+            return Json(query.Select(c => new { ItemNoIndex = c.ItemNoIndex, Category = c.Category, Code = c.Code, Description = c.Article }).OrderBy(o => o.ItemNoIndex), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCustodianSubAccount3(int? accountGroup, string subAccountCode, string text)
@@ -1321,7 +1346,7 @@ namespace iLgs.Controllers
             var operators = new[]
             {
                 new { Text = "And", Value = "and" },
-                new { Text = "Or", Value = "or" }                
+                new { Text = "Or", Value = "or" }
             };
 
             return Json(operators, JsonRequestBehavior.AllowGet);

@@ -171,7 +171,7 @@
                         {
                             command.Edit().Visible("IsNoGenerated");
                             //command.Custom("Uploads").Click("onClickUploads");
-                            command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickPars");
+                            command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickSetPars");
                         }).Width(100);
                     })
                     .ToolBar(t =>
@@ -2193,7 +2193,8 @@
         var button = e.sender.element; // Use the sender's element;
         // Retrieve the grid name from the data attribute
         var imageId = $(button).data("imageid");
-        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId;
+        var description = $(button).data("description");
+        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId + '&description=' + description;
         var myTitle = "Upload Images/Documents";
         var width = 800;
         var height = 650;
@@ -2467,7 +2468,8 @@
             url: '@Url.Action("_Images", "ParIcsUpload")',
             data: {
                 imageId: imageId,
-                postedBy: postedBy
+                postedBy: postedBy,
+                description: "PAR"
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {

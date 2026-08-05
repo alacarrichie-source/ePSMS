@@ -12,26 +12,18 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class OrderItemUnitGroupDescriptionItem
+    public partial class OrderItemRequest
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public OrderItemUnitGroupDescriptionItem()
-        {
-            this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
-        }
-    
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> OrderItemUnitGroupDescriptionId { get; set; }
-        public Nullable<System.Guid> RequestItemUnitGroupDescriptionItemId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
+        public Nullable<int> QtyApplied { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItemUnitGroupDescription OrderItemUnitGroupDescription { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual OrderItem OrderItem { get; set; }
+        public virtual RequestItem RequestItem { get; set; }
     }
 }

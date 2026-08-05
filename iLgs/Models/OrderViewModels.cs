@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
 namespace iLgs.Models
 {
@@ -18,20 +16,24 @@ namespace iLgs.Models
         //[Display(Name = "Specific")]
         //public string FundSpecific { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "PR No.")]
         public string PrNo { get; set; }
+
+        [Display(Name = "PR No.")]
+        public List<string> PrNoList { get; set; }
 
         //[Required]
         [Display(Name = "PR Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? PrDate { get; set; }
 
+
         //[Required]
         //[Display(Name = "Department")]
         //public Nullable<System.Guid> DeptId { get; set; }
 
-        [Display(Name = "Department")]
+        [Display(Name = "Department Display")]
         public string Department { get; set; }
 
         //public string Section { get; set; }
@@ -75,9 +77,9 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
-        [Required]
-        [Display(Name = "PR No.")]
-        public Nullable<System.Guid> PrId { get; set; }
+        //[Required]
+        //[Display(Name = "PR No.")]
+        //public Nullable<System.Guid> PrId { get; set; }
 
         [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -160,7 +162,7 @@ namespace iLgs.Models
 
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
-        public Nullable<System.Guid> RequestItemId { get; set; }
+        //public Nullable<System.Guid> RequestItemId { get; set; }
 
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
@@ -248,10 +250,13 @@ namespace iLgs.Models
         public int? Padding { get; set; }
 
         public bool IsSetLot { get; set; } // Sw, to hold to determine the unit. If set/lot, only set/lot unit is allowed.
+        public bool IsSetLotItem { get; set; } // Sw, to hold to determine the item is a member of set/lot.
         public string OriginalDescription { get; set; }
         public string OriginalOtherDesc { get; set; }
 
         public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
+
+        public string ParentItemNo { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -516,5 +521,78 @@ namespace iLgs.Models
         public Nullable<int> QtyRequest { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
-    }    
+    }
+
+    public class OrderItemRquestVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
+
+        public RequestItem RequestItem { get; }
+               
+        [Required]
+        [Display(Name = "Order Qty")]
+        public Nullable<decimal> QtyApplied { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    }
+
+    public class PrItemSelectionVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PrId { get; set; }
+
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
+
+        public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherDesc { get; set; }
+
+        public string Remarks { get; set; }
+
+        public Nullable<decimal> Qty { get; set; }
+
+        public string Unit { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TotalCost { get; set; }
+
+        [Display(Name = "Price Rate")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "PPMP Code")]
+        public string PpmpCode { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+
+        public string SetLotNo { get; set; }
+        public string ItemNoIndex { get; set; }
+
+        public int? Padding { get; set; }
+
+        public Request Request { get; set; }
+        public bool? IsSelected { get; set; }
+        public bool IsSetLotItem { get; set; }
+        public bool IsAvailable { get; set; }
+        public string ParentItemNo { get; set; }
+
+        [Display(Name = "PO Ctrl. No.")]
+        public string PoCtrlNo { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+    }
 }

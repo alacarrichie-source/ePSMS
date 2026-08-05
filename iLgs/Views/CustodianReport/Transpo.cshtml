@@ -158,7 +158,8 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(70);
+            //col.Bound(c => c.Description).Width(70);
+            col.Bound(c => c.AccountableOfficers).Width(100);
             col.Bound(c => c.PlateNo).Width(50);
             col.Bound(c => c.ConductionNo).Width(50);
             col.Bound(c => c.BodyNo).Width(50);

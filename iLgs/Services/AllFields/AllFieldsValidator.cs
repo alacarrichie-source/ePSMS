@@ -154,7 +154,8 @@ namespace iLgs.Services.AllFields
                 {
                     if (string.IsNullOrWhiteSpace(af.Brand))
                     {
-                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                        //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Enter a single dash(-) when the \"Brand\" field is blank.");
                     }
                 }
 
@@ -189,7 +190,8 @@ namespace iLgs.Services.AllFields
                 {
                     if (string.IsNullOrWhiteSpace(af.Model_))
                     {
-                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                        //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Enter a single dash(-) when the \"Model\" field is blank.");
                     }
                     else
                     {
@@ -308,20 +310,20 @@ namespace iLgs.Services.AllFields
             else if (partialView == "_FieldMultiple_A")
             {
                 ValidateMultiples(af, partialView, ex, module);
-                ValidateBrand(af, partialView, ex, module);
+                //ValidateBrand(af, partialView, ex, module);
             }
             else if (partialView == "_FieldSerial")
             {
                 ValidateSerial(af, partialView, ex, module);
                 ValidateMultiples(af, partialView, ex, module);
-                ValidateBrand(af, partialView, ex, module);
+                //ValidateBrand(af, partialView, ex, module);
                 ValidateModel(af, partialView, ex, module);
             }
             else if (partialView == "_FieldSerial_A")
             {
                 ValidatePlate(af, partialView, ex, module);
                 ValidateMultiples(af, partialView, ex, module);
-                ValidateBrand(af, partialView, ex, module);
+                //ValidateBrand(af, partialView, ex, module);
                 ValidateModel(af, partialView, ex, module);
             }
             else if (partialView == "_FieldSerial_B")
@@ -354,8 +356,10 @@ namespace iLgs.Services.AllFields
                 {
                     ValidateMultiples(af, partialView, ex, module);
                 }
-
-                ValidateBrand(af, partialView, ex, module);
+                else
+                {
+                    ValidateBrand(af, partialView, ex, module);
+                }
 
                 if (partialView == "_FieldBrand_B") // vehicles
                 {
@@ -425,7 +429,8 @@ namespace iLgs.Services.AllFields
             {
                 if (string.IsNullOrWhiteSpace(af.Brand))
                 {
-                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Enter a single dash(-) when the \"Brand\" field is blank.");
                 }
             }
         }
@@ -436,7 +441,8 @@ namespace iLgs.Services.AllFields
             {
                 if (string.IsNullOrWhiteSpace(af.Brand))
                 {
-                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Enter a single dash(-) when the \"Brand\" field is blank.");                    
                 }
             }
         }
@@ -445,7 +451,8 @@ namespace iLgs.Services.AllFields
         {
             if (string.IsNullOrWhiteSpace(af.Model_))
             {
-                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Enter a single dash(-) when the \"Model\" field is blank.");
             }
             else
             {
@@ -513,7 +520,8 @@ namespace iLgs.Services.AllFields
         {
             if (string.IsNullOrWhiteSpace(af.Model_))
             {
-                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                //ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Enter a single dash(-) when the \"Model\" field is blank.");
             }
             else
             {

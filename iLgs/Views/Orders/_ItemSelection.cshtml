@@ -1,0 +1,181 @@
+﻿<div id="ErrorContent" class="hidden x-bootstrap-content">
+    <div class="alert alert-danger x-popup-alert">
+        <ul class="errors"></ul>
+    </div>
+</div>
+
+
+    @(Html.Kendo().Grid<iLgs.Models.PrItemSelectionVM>()
+        .Name("gridItemSelection")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Request.PrNo).Width(50).Title("PR No");
+            columns.Bound(o => o.Request.Department).Width(50);
+            columns.Bound(o => o.ItemNo).Width(50);
+            columns.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
+                                                                       "<div>" +
+                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
+                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
+                                                                           "# } else { #" +
+                                                                               "#= kendo.htmlEncode(Description) #" +
+                                                                           "# } #" +
+                                                                       "</div>" +
+                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
+                                                                   "</div>");
+            columns.Bound(o => o.Unit).Width(30);
+            columns.Bound(o => o.Qty).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.UnitCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.TotalCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.PoCtrlNo).Width(50);
+            columns.Bound(o => o.PoNo).Width(50);
+            columns.Bound(o => o.IsSelected).Width(30).Title("Selected")
+                 .ClientTemplate(
+                    "<div style='text-align:center;'>" +
+                    "<input type='checkbox' " +
+                        "#= IsSelected ? 'checked=\"checked\"' : '' # " +
+                        "#= (IsSetLotItem || !IsAvailable)  ? 'disabled=\"disabled\"' : '' # " +
+                        "onclick='onIsSelectedClick(this)' />" +
+                    "</div>"
+                )
+                .HtmlAttributes(new { style = "text-align:center;" }).HeaderHtmlAttributes(new { style = "text-align:center;" });            
+        })
+        .ToolBar(t =>
+        {
+            t.Search();
+        })
+        .Pageable(pager => pager
+            //.Input(false)
+            //.Numeric(true)
+            .Info(true)
+            //.PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+        //.ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(300))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(9000)
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            //.Group(g => g.Add(a => a.Request.PrNo))
+            .Sort(s =>
+            {
+                s.Add(a => a.Request.PrNo); s.Add(a => a.ItemNoIndex);
+            })
+            //.Aggregates(a =>
+            //{
+            //    a.Add(p => p.TotalCost).Sum();
+            //})
+            .Read(read => read.Action("_ItemSelectionRead", "Orders", new { orderId = @ViewData["orderId"] }))
+        )
+        .Events(events => events
+            .Change("onChangeItemSelection")
+            //.Edit("onEditGridItems")
+            .DataBound("onDataBoundItemSelection")
+        )
+        .AutoBind(true)
+    )
+
+
+<br />
+<div class="row k-mb-2">
+    <div class="col-md-12">
+        <span id="span_">
+            @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+            @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+        </span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var grid = $("#gridItemSelection").data("kendoGrid");
+
+        var selectedIds = grid.dataSource.data()
+            .filter(function (item) {
+                return item.IsSelected;
+            })
+            .map(function (item) {
+                return item.Id;
+            }).join(",");        
+
+            setTimeout(function () {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_ItemSelectionSave", "Orders")',
+                    data: {orderId: '@ViewData["orderId"]', selectedIds: selectedIds},
+                    beforeSend: function () {
+                        window.kendo.ui.progress($("#window"), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($("#window"), false);
+                        if (result.Errors == "") {
+                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        }
+                        else {
+                            // Clear previous error messages
+                            $('#ErrorContent .errors').empty();
+
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message; // Use Message from the JSON
+
+                                // Check if messages exists and is an array
+                                if (Array.isArray(messages)) {
+                                    // Create the field name list item
+                                    var errorListItem = $('<li></li>').text(key);
+
+                                    // Create a nested unordered list for the messages
+                                    var messageList = $('<ul></ul>');
+
+                                    // Loop through each message and append it to the messageList
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
+
+                                    // Append the message list to the error list item
+                                    errorListItem.append(messageList);
+
+                                    // Append the error list item to the .errors container
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                } else {
+                                    console.error(`Expected messages to be an array for field ${key}`);
+                                }
+                            });
+
+                            // Show the error content
+                            $('#ErrorContent').removeClass('hidden');
+                        }
+                        selectedId = result.Id;
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        }
+                    });
+                //disabled.attr('disabled', 'disabled');
+                }, 500);
+    });
+
+    $("#btnCancel").click(function (e) {
+            e.preventDefault();
+            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
