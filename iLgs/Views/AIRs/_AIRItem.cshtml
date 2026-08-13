@@ -26,14 +26,19 @@
         {
             col.Command(command =>
             {
-                command.Edit().Visible("IsNotSet");
+                //command.Edit().Visible("IsNotSet");
+                //command.Destroy();
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem").Visible("IsNotSet");
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true).Visible("IsNotSetItem");
             }).Width(100);
         }
     })
-    //.ToolBar(t =>
-    //{
-    //    t.Create().Text("Add Item");
-    //})
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+        @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["airId"]).Content("Add AIR Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))        
+        </text>);
+    })
     .Pageable(pager => pager
         .Input(false)
         .Numeric(true)
@@ -52,7 +57,7 @@
     //.Scrollable(s => s.Height(180))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection Item")))
+    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection Item")))
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
@@ -67,9 +72,9 @@
         //})
         .Sort(s => s.Add(a => a.ItemNoIndex))
         .Read(read => read.Action("_AIRItemRead", "AIRs", new { airId = @ViewData["airId"] }))
-    //.Create(create => create.Action("_AIRItemCreate", "AIRs"))
-    .Update(update => update.Action("_AIRItemUpdate", "AIRs"))
-    //.Destroy(destroy => destroy.Action("_AIRItemDestroy", "AIRs"))
+        //.Create(create => create.Action("_AIRItemCreate", "AIRs"))
+        //.Update(update => update.Action("_AIRItemUpdate", "AIRs"))
+        .Destroy(destroy => destroy.Action("_AIRItemDestroy", "AIRs"))
     )
     .Events(events => events
         .Change("onChangeGridItems")

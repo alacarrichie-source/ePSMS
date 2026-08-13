@@ -39,6 +39,7 @@
         {
             toolbar.Template(@<text>                
                 @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRequestItem")))                    
+            @(Html.Kendo().Button().Name("btnAddPpmpItem_" + ViewData["requestId"]).Content("Add from PPMP").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddPpmpItem")))                    
             </text>);            
         })
         .Pageable(pager => pager

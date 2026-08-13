@@ -52,6 +52,37 @@ namespace iLgs.Controllers
             }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetPpmpItemAccounts(string text, string ppmpCode, DateTime refDate)
+        {
+            IQueryable<ItemCodeVM> model = _itemCodeService.GetPpmpItemAccounts(text, ppmpCode, refDate).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+
+            //if (string.IsNullOrWhiteSpace(text))
+            //{
+            //    model = model.Take(1);
+            //}
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetPropertyItemAccounts(string text)
         {
             var model = _itemCodeService.GetItemAccountsByCategory("P", text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);

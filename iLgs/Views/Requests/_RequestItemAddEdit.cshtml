@@ -7,6 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PrId)
+    @Html.HiddenFor(model => model.PpmpItemId)
     @*@Html.HiddenFor(model => model.PsNo)
     @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.GridRequestItemExtns)*@
@@ -63,7 +64,7 @@
                         @Html.DisplayFor(m => m.PpmpCode, "Label")
                     </div>
                     <div class="col-md-10">
-                        @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(Model.PpmpItemId == null).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     </div>
                 </div>
             </div>

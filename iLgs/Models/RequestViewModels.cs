@@ -137,6 +137,8 @@ namespace iLgs.Models
         [Display(Name = "Price Rate")]
         public Nullable<decimal> PriceRate { get; set; }
 
+        public Nullable<System.Guid> PpmpItemId { get; set; }
+
         [Display(Name = "PPMP Code")]
         public string PpmpCode { get; set; }
         public string InsertedBy { get; set; }

@@ -3,7 +3,6 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Items;
-using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -491,14 +490,14 @@ namespace iLgs.Services.CustodianReports
                     custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PoNo == cri.PoNo && f.PoDate == cri.PoDate && f.Description == cri.Description);
                 }
                 else
                 {
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
                 }
@@ -957,7 +956,7 @@ namespace iLgs.Services.CustodianReports
                     custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PoNo == cri.PoNo && f.PoDate == cri.PoDate
                             && f.Description == cri.Description);
@@ -965,7 +964,7 @@ namespace iLgs.Services.CustodianReports
                 else
                 {
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
                 }
@@ -1285,7 +1284,7 @@ namespace iLgs.Services.CustodianReports
                     custodianReportUpload = await CreateCustodianReportAsync(cri.Id, psCardId, user, date);
 
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.PsCardId == psCard.Id && f.PsCardItemExtns.Any(a => a.PropNo == cri.PropNo)
                             && f.Description == cri.Description);
@@ -1293,7 +1292,7 @@ namespace iLgs.Services.CustodianReports
                 else
                 {
                     psCardItem = await _db.PsCardItems
-                        .Include(i => i.PsCardItemTransfer.PsCardItemTransferItems)
+                        .Include(i => i.PsCardItemTransfers)
                         .Include(i => i.PsCardItemExtns)
                         .FirstOrDefaultAsync(f => f.Id == cri.CustodianReportUpload.PsCardItemId);
                 }

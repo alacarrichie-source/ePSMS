@@ -71,7 +71,7 @@ namespace iLgs.Services.AIRs_
             }
 
             var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
-            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
+            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemRequest.OrderItemId))).FirstOrDefault();
             var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
             var airItemQty = (int)_db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
             var airItemExtnCount = _db.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == model.AIRItemId).Count();
@@ -196,7 +196,7 @@ namespace iLgs.Services.AIRs_
             var orderItem = await _db.OrderItems
                 .Include(i => i.Order.OrderItemUnitGroups)
                 .Include(i => i.ItemCode.ItemType)
-                .Where(w => w.Id == airItem.OrderItemId).FirstOrDefaultAsync();
+                .Where(w => w.Id == airItem.OrderItemRequestId).FirstOrDefaultAsync();
 
             var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
             if (isWithParIcs != true)
@@ -236,7 +236,7 @@ namespace iLgs.Services.AIRs_
             var orderItem = await _db.OrderItems
                 .Include(i => i.Order.OrderItemUnitGroups)
                 .Include(i => i.ItemCode.ItemType)
-                .Where(w => w.Id == entity.AIRItem.OrderItemId).FirstOrDefaultAsync();
+                .Where(w => w.Id == entity.AIRItem.OrderItemRequestId).FirstOrDefaultAsync();
 
             var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
             if (isWithParIcs != true)
@@ -245,7 +245,7 @@ namespace iLgs.Services.AIRs_
             }
 
             var airItemExtns = await _db.AIRItemExtns
-                .Include(i => i.AIRItem.OrderItem.Order)
+                .Include(i => i.AIRItem.OrderItemRequest.OrderItem.Order)
                 .OfType<AIRItemExtnOther>().Where(w => w.Id == airItemExtnId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();
 
             if (airItemExtns.Count() == 0)
@@ -255,7 +255,7 @@ namespace iLgs.Services.AIRs_
 
             foreach (var airItemExtn in airItemExtns)
             {
-                var serialNo = airItemExtn.AIRItem.OrderItem.Order.PoNo.Trim() + "-" + airItemExtn.AIRItem.OrderItem.PsNo.Trim() + "-" +
+                var serialNo = airItemExtn.AIRItem.OrderItemRequest.OrderItem.Order.PoNo.Trim() + "-" + airItemExtn.AIRItem.OrderItemRequest.OrderItem.PsNo.Trim() + "-" +
                     (string.IsNullOrWhiteSpace(airItemExtn.SetLotNo) ? "0" : airItemExtn.SetLotNo.Trim()) + "-" +
                     (!airItemExtn.SetLotQtyNo.HasValue ? "0" : airItemExtn.SetLotQtyNo.ToString().Trim()) + "-" + airItemExtn.ContentNo.ToString().Trim();
 

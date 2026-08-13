@@ -125,14 +125,14 @@ namespace iLgs.Services.ParIcsFromPo
             var priceCap = GetPriceCap(DateTime.Now);
             var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
-                    && !w.OrderItem.OrderItemUnitGroupDescriptionItems
+                    && !w.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems
                         .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= priceCap)
                     && w.UnitCost < priceCap)
                 .Select(s => new IcsVM
                 {
                     Id = s.Id,
                     PsCardId = s.PsCardId,
-                    OrderItemId = s.OrderItemId,
+                    OrderItemId = s.OrderItemRequest.OrderItemId,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
@@ -156,7 +156,7 @@ namespace iLgs.Services.ParIcsFromPo
                     //IcsBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
                     //    (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     IcsBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                    OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId)
+                    OrderItemUnitGroupDescriptionItem = s.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemRequest.OrderItemId)
                 }).AsQueryable();
             //var data = _db.Database.SqlQuery<ParVM>("Exec PARS_GetAll {0}", "").AsQueryable();
 

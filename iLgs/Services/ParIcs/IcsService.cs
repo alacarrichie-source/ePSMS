@@ -125,14 +125,14 @@ namespace iLgs.Services.ParIcs
             var priceCap = GetPriceCap();
             var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
-                    && !w.OrderItem.OrderItemUnitGroupDescriptionItems
+                    && !w.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems
                         .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= priceCap)
                     && w.UnitCost < priceCap)
                 .Select(s => new IcsVM
                 {
                     Id = s.Id,
                     PsCardId = s.PsCardId,
-                    OrderItemId = s.OrderItemId,
+                    OrderItemId = s.OrderItemRequest.OrderItemId,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
@@ -156,7 +156,7 @@ namespace iLgs.Services.ParIcs
                     //IcsBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
                     //    (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     IcsBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                    OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId)
+                    OrderItemUnitGroupDescriptionItem = s.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemRequest.OrderItemId)
                 }).AsQueryable();
             //var data = _db.Database.SqlQuery<ParVM>("Exec PARS_GetAll {0}", "").AsQueryable();
 
@@ -380,7 +380,7 @@ namespace iLgs.Services.ParIcs
                     Id = s.Id,
                     GroupId = s.GroupId,
                     PsCardId = s.PsCardId,
-                    OrderItemId = s.OrderItemId,
+                    OrderItemId = s.OrderItemRequest.OrderItemId,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
@@ -401,7 +401,7 @@ namespace iLgs.Services.ParIcs
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
                     IcsBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                    OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId),
+                    OrderItemUnitGroupDescriptionItem = s.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemRequest.OrderItemId),
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,

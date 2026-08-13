@@ -22,7 +22,7 @@ namespace iLgs.Services.AIRs_
 
         public string GetItemExtnName(Guid? id)
         {
-            var category = _db.AIRItems.Where(w => w.Id == id).Select(s => s.OrderItem.ItemCode.ItemType.Code).FirstOrDefault();
+            var category = _db.AIRItems.Where(w => w.Id == id).Select(s => s.OrderItemRequest.OrderItem.ItemCode.ItemType.Code).FirstOrDefault();
             return GetItemExtnNameByCategory(category);
         }
 

@@ -214,6 +214,8 @@ namespace iLgs.Models
         public Nullable<decimal> GTotalCost { get; set; }
         public Nullable<decimal> SetUnitCost { get; set; }
 
+        public Nullable<System.Guid> PpmpItemId { get; set; }
+
         [Display(Name = "PPMP Code")]
         public string PpmpCode { get; set; }
 
@@ -256,7 +258,7 @@ namespace iLgs.Models
 
         public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
 
-        public string ParentItemNo { get; set; }
+        public string ParentItemNo { get; set; }        
     }
 
     public class OrderItemGroupVM

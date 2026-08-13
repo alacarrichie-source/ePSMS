@@ -118,6 +118,7 @@ namespace iLgs.Services.PurchaseOrder
                     f.OrderItemUnitGroup.OrderId == s.OrderId &&
                     f.OrderItemUnitGroup.SetLotNo == s.ItemNo &&
                     f.Description == s.Description).Id,
+                PpmpItemId = s.PpmpItemId,
                 PpmpCode = s.PpmpCode,
                 Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20,
                 IsSetLot = s.Unit == "set" || s.Unit == "lot" ? true : false,
@@ -556,6 +557,7 @@ namespace iLgs.Services.PurchaseOrder
             entity.UnitCost = model.UnitCost;
             entity.Amount = model.Amount;
             entity.PriceRate = model.PriceRate;
+            entity.PpmpItemId = model.PpmpItemId;
             entity.PpmpCode = model.PpmpCode;
 
             entity.UpdatedBy = model.UpdatedBy;

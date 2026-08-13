@@ -107,28 +107,25 @@ namespace iLgs.Services.PropertyCard
                 Fund = s.PsCard.Fund,
                 GroupId = s.GroupId,
                 PsCardId = s.PsCardId,
-                OrderItemId = s.OrderItemId,
+                OrderItemRequestId = s.OrderItemRequestId,
                 TransferRefId = s.TransferRefId,
                 PoDate = s.PoDate,
                 PoNo = s.PoNo,
                 AirDate = s.AirDate,
                 AirNo = s.AirNo,
                 AirIssueDate = s.AirIssueDate,
-                TransferId = s.PsCardItemTransfer.Id,
-                ParentId = s.PsCardItemTransfer.ParentId,
-                Qty = s.PsCardItemTransfer.Qty,
-                QtyIss = s.PsCardItemTransfer.QtyIss,
-                QtyBal = s.PsCardItemTransfer.QtyBal,
-                TransferIn = s.PsCardItemTransfer.TransferIn,
-                TransferOut = s.PsCardItemTransfer.TransferOut,
-                TranType = s.PsCardItemTransfer.TranType,
+                TransferId = s.PsCardItemTransfers.FirstOrDefault().Id,
+                ParentId = s.PsCardItemTransfers.FirstOrDefault().ParentId,
+                Qty = s.PsCardItemTransfers.FirstOrDefault().Qty,
+                QtyIss = s.PsCardItemTransfers.FirstOrDefault().QtyIss,
+                QtyBal = s.PsCardItemTransfers.FirstOrDefault().QtyBal,
+                TransferIn = s.PsCardItemTransfers.FirstOrDefault().TransferIn,
+                TransferOut = s.PsCardItemTransfers.FirstOrDefault().TransferOut,
+                TranType = s.PsCardItemTransfers.FirstOrDefault().TranType,
                 Days = s.Days,
                 Unit = s.Unit,
                 UnitCost = s.UnitCost,
-                //Amount = s.Amount,
-                Amount = s.UnitCost * s.PsCardItemTransfer.Qty,
-                //IssueAmount = (s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost,
-                //BalanceAmount = (s.UnitCost * s.PsCardItemTransfer.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
+                Amount = s.UnitCost * s.PsCardItemTransfers.FirstOrDefault().Qty,
                 IssueAmount = (s.PsCardItemTransfers.FirstOrDefault().PsCardItemTransferIssuances.Sum(t => t.Amount) ?? 0),
                 BalanceAmount = (s.PsCardItemTransfers.Sum(t => t.Amount) ?? 0),
                 PriceRate = s.PriceRate,
@@ -137,7 +134,7 @@ namespace iLgs.Services.PropertyCard
                 GTotalCost = s.GTotalCost,
                 Remarks = s.Remarks,
                 DeptId = s.DeptId,
-                LocationId = s.PsCardItemTransfer.LocationId,
+                LocationId = s.PsCardItemTransfers.FirstOrDefault().LocationId,
                 DeptDisplay = s.DeptDisplay,
                 Description = s.Description,
                 OtherDesc = s.OtherDesc,
@@ -159,16 +156,17 @@ namespace iLgs.Services.PropertyCard
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 Department = s.Codextn.Description,
-                Location = s.PsCardItemTransfer.Codextn.Description,
-                LocCode = s.PsCardItemTransfer.Codextn.Code,
+                Location = s.PsCardItemTransfers.FirstOrDefault().Codextn.Description,
+                LocCode = s.PsCardItemTransfers.FirstOrDefault().Codextn.Code,
                 PrevPsNo = s.PrevPsNo,
                 SetLotNo = s.SetLotNo,
                 SetLotAmount = s.SetLotAmount,
                 SetLotRemarks = s.SetLotRemarks,
                 PostedBy = s.PostedBy,
                 PostedDt = s.PostedDt,
-                //IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
-                IsWithItemExtn = s.PsCardItemExtns.Any()
+                IsWithItemExtn = s.PsCardItemExtns.Any(),
+                PpmpItemId = s.PpmpItemId,
+                PpmpCode = s.PpmpCode
             };
         }
         
@@ -239,7 +237,7 @@ namespace iLgs.Services.PropertyCard
                 Id = s.PsCardItem.Id,
                 GroupId = s.PsCardItem.GroupId,
                 PsCardId = s.PsCardItem.PsCardId,
-                OrderItemId = s.PsCardItem.OrderItemId,
+                OrderItemRequestId = s.PsCardItem.OrderItemRequestId,
                 TransferRefId = s.PsCardItem.TransferRefId, // retained, but not used anymore.
                 PoDate = s.PsCardItem.PoDate,
                 PoNo = s.PsCardItem.PoNo,
@@ -254,7 +252,6 @@ namespace iLgs.Services.PropertyCard
                 TransferIn = s.TransferIn,
                 TransferOut = s.TransferOut,
                 TranType = s.TranType,
-                //TransDate = s.TransDate,
                 TransDate = s.ParentId == null ? null: s.TransDate,
                 Days = s.PsCardItem.Days,
                 Unit = s.PsCardItem.Unit,
@@ -299,7 +296,9 @@ namespace iLgs.Services.PropertyCard
                 PostedBy = s.PsCardItem.PostedBy,
                 PostedDt = s.PsCardItem.PostedDt,
                 IsWithItemExtn = s.PsCardItem.PsCardItemExtns.Any(),
-                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : ""
+                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : "",
+                PpmpCode = s.PsCardItem.PpmpCode,
+                PpmpItemId = s.PsCardItem.PpmpItemId
             };
         }
 
@@ -333,7 +332,7 @@ namespace iLgs.Services.PropertyCard
             return s => new PsCardItemVM
             {
                 Id = s.Id,
-                TransferId = s.PsCardItemTransfer.Id,
+                TransferId = s.PsCardItemTransfers.FirstOrDefault().Id,
                 Fund = s.PsCard.Fund,
                 ItemCodeId = s.PsCard.ItemCodeId,
                 Account = s.PsCard.ItemCode.ItemType.Description,
@@ -345,24 +344,24 @@ namespace iLgs.Services.PropertyCard
                 AirDate = s.AirDate,
                 AirNo = s.AirNo,
                 AirIssueDate = s.AirIssueDate,
-                Qty = s.PsCardItemTransfer.Qty,
-                QtyIss = s.PsCardItemTransfer.QtyIss,
-                QtyBal = s.PsCardItemTransfer.QtyBal,                
-                TransferIn = s.PsCardItemTransfer.TransferIn,
-                TransferOut = s.PsCardItemTransfer.TransferOut,
-                TranType = s.PsCardItemTransfer.TranType,
+                Qty = s.PsCardItemTransfers.FirstOrDefault().Qty,
+                QtyIss = s.PsCardItemTransfers.FirstOrDefault().QtyIss,
+                QtyBal = s.PsCardItemTransfers.FirstOrDefault().QtyBal,                
+                TransferIn = s.PsCardItemTransfers.FirstOrDefault().TransferIn,
+                TransferOut = s.PsCardItemTransfers.FirstOrDefault().TransferOut,
+                TranType = s.PsCardItemTransfers.FirstOrDefault().TranType,
                 Days = s.Days,
                 Unit = s.Unit,
                 UnitCost = s.UnitCost,
-                Amount = s.UnitCost * s.PsCardItemTransfer.QtyBal,
-                IssueAmount = s.UnitCost * s.PsCardItemTransfer.QtyIss,
-                BalanceAmount = s.UnitCost * s.PsCardItemTransfer.QtyBal,
+                Amount = s.UnitCost * s.PsCardItemTransfers.FirstOrDefault().QtyBal,
+                IssueAmount = s.UnitCost * s.PsCardItemTransfers.FirstOrDefault().QtyIss,
+                BalanceAmount = s.UnitCost * s.PsCardItemTransfers.FirstOrDefault().QtyBal,
                 PriceRate = s.PriceRate,
                 AddCost = s.AddCost,
                 GTotalCost = s.GTotalCost,
                 Remarks = s.Remarks,
                 DeptId = s.DeptId,
-                LocationId = s.PsCardItemTransfer.LocationId,
+                LocationId = s.PsCardItemTransfers.FirstOrDefault().LocationId,
                 DeptDisplay = s.DeptDisplay,
                 Description = s.Description,
                 InsertedBy = s.InsertedBy,
@@ -371,7 +370,9 @@ namespace iLgs.Services.PropertyCard
                 UpdatedDt = s.UpdatedDt,
                 Department = s.Codextn.Description,
                 Location = s.Codextn1.Description,
-                LocCode = s.Codextn1.Code                
+                LocCode = s.Codextn1.Code,
+                PpmpCode = s.PpmpCode,
+                PpmpItemId = s.PpmpItemId
             };
         }
 
@@ -423,7 +424,9 @@ namespace iLgs.Services.PropertyCard
                 SemiExpendable = (s.PsCardItem.PsCard.ItemCode.ItemType.Code == "S" || s.PsCardItem.PsCard.ItemCode.ItemType.Code == "J") ? "Y" :
                     s.PsCardItem.PsCard.ItemCode.IsConsumable == "Y" ? "N" : s.PsCardItem.PsCard.ItemCode.IsConsumable == "N" ? "Y" : "",
                 EncodedSemiExpendable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "N" : "Y") : "",
-                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : ""
+                Consumable = s.PsCardItem.IsConsumable.HasValue ? (s.PsCardItem.IsConsumable == true ? "Y" : "N") : "",
+                PpmpCode = s.PsCardItem.PpmpCode,
+                PpmpItemId = s.PsCardItem.PpmpItemId
             };
         }
 
@@ -571,6 +574,9 @@ namespace iLgs.Services.PropertyCard
                 psCardItemEntity.Amount = model.UnitCost * model.QtyBal;
                 psCardItemEntity.GTotalCost = model.TUnitCost * model.QtyBal;
 
+                psCardItemEntity.PpmpCode = model.PpmpCode;
+                psCardItemEntity.PpmpItemId = model.PpmpItemId;
+
                 if (isAdmin)
                 {
                     if (string.IsNullOrWhiteSpace(model.Consumable))
@@ -629,6 +635,9 @@ namespace iLgs.Services.PropertyCard
                 entity.PsCardItem.PriceRate = model.PriceRate;
                 entity.PsCardItem.FPP = model.FPP;
 
+                entity.PsCardItem.PpmpCode = model.PpmpCode;
+                entity.PsCardItem.PpmpItemId = model.PpmpItemId;
+
                 if (model.ParentId == null) // original record
                 {
                     entity.PsCardItem.Qty = model.Qty;
@@ -675,7 +684,7 @@ namespace iLgs.Services.PropertyCard
                 entity.LocationId = model.LocationId;
                 entity.TranType = model.TranType;
                 entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;
+                entity.UpdatedDt = model.UpdatedDt;                
 
                 await _db.SaveChangesAsync();
                 await _psCardItemTransferService.UpdatePsCardItemTransfer(model.TransferId, user, date);
@@ -815,7 +824,7 @@ namespace iLgs.Services.PropertyCard
             //_db.PsCardItemTransactions.RemoveRange(psCardItemTransactions);
             //await _db.SaveChangesAsync();
 
-            if (model.ParentId == null && model.OrderItemId == null) // manual records
+            if (model.ParentId == null && model.OrderItemRequestId == null) // manual records
             {
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
@@ -852,7 +861,7 @@ namespace iLgs.Services.PropertyCard
             }
 
             entity.PsCardId = model.PsCardId;
-            entity.OrderItemId = model.OrderItemId;
+            entity.OrderItemRequestId = model.OrderItemRequestId;
             entity.PoDate = model.PoDate;
             entity.PoNo = model.PoNo.Trim();
             entity.AirDate = model.AirDate;
@@ -896,6 +905,9 @@ namespace iLgs.Services.PropertyCard
             entity.AddCost = model.AddCost;
             entity.TUnitCost = model.TUnitCost;
             entity.GTotalCost = model.TUnitCost * model.QtyBal;
+
+            entity.PpmpCode = model.PpmpCode;
+            entity.PpmpItemId = model.PpmpItemId;
 
             if (isAdmin)
             {                
@@ -1108,7 +1120,7 @@ namespace iLgs.Services.PropertyCard
 
         private void ValidateRelationship(PsCardItemVM model)
         {
-            if (model.OrderItemId != null && model.ParentId == null)
+            if (model.OrderItemRequestId != null && model.ParentId == null)
             {
                 throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
             }

@@ -74,8 +74,8 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    ItemNo = s.OrderItem.ItemNo,
-                    ItemNoIndex = s.OrderItem.ItemNoIndex,
+                    ItemNo = s.OrderItemRequest.OrderItem.ItemNo,
+                    ItemNoIndex = s.OrderItemRequest.OrderItem.ItemNoIndex,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,                    
                     ItemType = s.ItemCode.Description,
@@ -138,7 +138,7 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    ItemNo = s.OrderItem.ItemNo,
+                    ItemNo = s.OrderItemRequest.OrderItem.ItemNo,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.Description,
@@ -209,7 +209,7 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    ItemNo = s.OrderItem.ItemNo,
+                    ItemNo = s.OrderItemRequest.OrderItem.ItemNo,
                     ItemCodeId = s.ItemCodeId,
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.Description,
@@ -232,7 +232,7 @@ namespace iLgs.Services.Requisition
                     AllField = s.AllField,
                     SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
                     PpmpCode = s.PpmpCode,
-                    ItemNoIndex = s.OrderItem.ItemNoIndex
+                    ItemNoIndex = s.OrderItemRequest.OrderItem.ItemNoIndex
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -294,7 +294,7 @@ namespace iLgs.Services.Requisition
             {
                 Id = model.Id,
                 RisId = model.RisId,
-                OrderItemId = model.OrderItemId,
+                OrderItemRequestId = model.OrderItemRequestId,
                 ItemCodeId = model.ItemCodeId,
                 SubAccountCode = model.SubAccountCode,
                 PsNo = model.PsNo,

@@ -1,6 +1,5 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
-using iLgs.Agents.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
@@ -601,8 +600,14 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.UpdateAsync(model, user, date);
-                    
+                    if (model.Mode == "A")
+                    {
+                        model = await _airService.AirItem.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _airService.AirItem.UpdateAsync(model, user, date);
+                    }
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

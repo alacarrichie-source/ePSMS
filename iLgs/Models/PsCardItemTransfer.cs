@@ -19,7 +19,6 @@ namespace iLgs.Models
         {
             this.PsCardItemTransferIssuances = new HashSet<PsCardItemTransferIssuance>();
             this.PsCardItemTransferItems = new HashSet<PsCardItemTransferItem>();
-            this.PsCardItems = new HashSet<PsCardItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,9 +42,7 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
-        public virtual PsCardItem PsCardItem { get; set; }
         public virtual Codextn Codextn { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
     }
 }

@@ -1,0 +1,339 @@
+﻿@model iLgs.Models.PPMPUploadVM
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    @Html.HiddenFor(m => m.PpmpId)
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Delete, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Delete)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Delete)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.StartRow, "LabelInt")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.StartRow)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.StartRow)
+            </div>
+        </div>
+    </div>
+
+    @*<div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.EndRow, "LabelInt")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.EndRow)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.EndRow)
+            </div>
+        </div>
+    </div>*@
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                <label>Specify Data Columns:</label>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Code, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Code)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Code)
+            </div>
+        </div>
+    </div>
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Description, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Description)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Description)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Qty, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Qty)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Qty)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Size, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Size)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Size)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Budget, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Budget)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Budget)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Mode, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Mode)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Mode)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Jan, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Jan)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Jan)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Feb, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Feb)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Feb)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Mar, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Mar)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Mar)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Apr, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Apr)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Apr)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.May, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.May)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.May)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Jun, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Jun)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Jun)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Jul, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Jul)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Jul)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Aug, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Aug)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Aug)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Sep, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Sep)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Sep)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Oct, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Oct)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Oct)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Nov, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Nov)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Nov)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="col-md-5">
+                @Html.DisplayFor(m => m.Dec, "Label")
+            </div>
+            <div class="col-md-7">
+                @(Html.Kendo().TextBoxFor(m => m.Dec)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%; text-transform: uppercase;", oninput = "this.value = this.value.toUpperCase()" }))
+                @Html.ValidationMessageFor(m => m.Dec)
+            </div>
+        </div>
+    </div>
+
+
+    <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @(Html.Kendo().Upload()
+            .Name("files")
+            .Async(a => a
+                .Save("UploadExcel", "Ppmp")
+                .AutoUpload(false)
+            )
+            .Multiple(false)
+            .Events(e => e.Upload("onUpload")
+            .Success("onUploadSuccess")
+            .Error("onUploadError"))
+                )
+            </div>
+
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+}
+
+<script type="text/javascript">    
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
+
+
+
+
+
+
+

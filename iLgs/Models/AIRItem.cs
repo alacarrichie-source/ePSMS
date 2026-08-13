@@ -22,7 +22,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> AirId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public string Remarks { get; set; }
         public Nullable<decimal> AreaSoldDonated { get; set; }
@@ -41,6 +41,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual AIR AIR { get; set; }
-        public virtual OrderItem OrderItem { get; set; }
+        public virtual OrderItemRequest OrderItemRequest { get; set; }
     }
 }

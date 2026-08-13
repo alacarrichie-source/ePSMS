@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="dashboard-container">
+@*<div class="dashboard-container">
     <main class="dashboard-main">
         <div class="content-wrapper">
             @(Html.Kendo().TabStrip()
@@ -32,22 +32,44 @@
                         .Text("<i class='k-icon k-i-file-txt'></i> Items")
                         .Encoded(false)
                         .Selected(true)
-                        .Content(@<text>@RenderItem()</text>);
-                    @*items.Add()
-                        .Text("<i class='k-icon k-i-add-outline'></i> Groups")
-                        .Encoded(false)
-                        .Content(@<text>@RenderUnitGroup()</text>);*@
+                        .Content(@<text>@RenderItem()</text>);                    
                 })
 )
         </div>
     </main>
-</div>
+</div>*@
+
+@(Html.Kendo().PanelBar()
+    .Name("panelbar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text("Orders")
+            .Expanded(true)
+            .Selected(true)
+            .Content(@<text>
+                <div class="div-render">
+                    @RenderMaster()
+                </div>
+            </text>);
+        panelbar.Add().Text("Items")
+            .Expanded(true)
+            .Content(@<text>
+                <div class="div-render">
+                    @RenderItems()
+                </div>
+            </text>);
+    })
+)
+
+
+
 
 @helper RenderMaster()
 {
     @(Html.Kendo().Grid<iLgs.Models.OrderVM>()
     .Name("grid")
-    .HtmlAttributes(new { style = "height: 100%" })
+    .HtmlAttributes(new { style = "height: calc(25vh);" })
     .Columns(col =>
     {
         col.Bound(c => c.CtrlNo).Width(50);
@@ -123,11 +145,11 @@
     )
 }
 
-@helper  RenderItem()
+@helper  RenderItems()
 {
     @(Html.Kendo().Grid<iLgs.Models.OrderItemVM>()
         .Name("gridItems")
-        .HtmlAttributes(new { style = "height: 100%" })
+        .HtmlAttributes(new { style = "height: calc(51vh);" })
         .Columns(col =>
         {            
             //col.Bound(c => c.UnitGroupDescriptionId).Width(50);
@@ -315,7 +337,7 @@
 
 <div id="windowcontainer"></div>
 
-<style>
+@*<style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
     }
@@ -345,6 +367,94 @@
         padding: 0; /* Remove padding */
         text-indent: -9999px; /* Move the text outside the visible area */
         overflow: hidden; /* Hide any overflow */
+    }
+</style>*@
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form, .k-window-content, .k-content {
+        width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
+        overflow: hidden;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    .profile-info p {
+        font-size: 15px;
+        margin: 6px 0;
+    }
+
+    .div-render {
+        padding: 0 10px 10px;
+    }
+
+    .disabled-row {
+        background-color: #f0f0f0; /* Light gray background */
+        /*color: #a0a0a0;*/ /* Gray text */
+        /*color: red;*/
+        opacity: 0.9;
+        /*pointer-events: none;*/ /* Prevent clicking */
+    }
+
+    /* Default style for PanelBar header */
+    #panelbar .k-link {
+        background-color: #f8f9fa; /* Default color for header */
+        color: #333; /* Default text color for header */
+    }
+
+    /* Style for the PanelBar header when hovered */
+    #panelbar .k-item:hover > .k-link {
+        background-color: #0056b3 !important; /* Desired hover color for the header */
+        color: white !important; /* Text color change for header */
+    }
+
+    /* Active state style for selected PanelBar item */
+    #panelbar > .k-item.k-state-active > .k-link {
+        background-color: rgba(13, 110, 253, .25); /* Active color for header */
+        color: black;
+    }
+
+    /* Prevent hover color from affecting div-render content */
+    .div-render {
+        background-color: transparent; /* Ensure no background color for content */
+    }
+
+    /* Kendo Grid styles should not change */
+    /*.k-grid, .k-grid-header, .k-grid-content {
+        background-color: inherit !important;
+        color: inherit !important;
+    }*/
+
+    /* Specific styles for Kendo Grid headers to avoid hover interference */
+    /*.k-grid-header th {
+        background-color: inherit !important;
+        color: inherit !important;
+    }*/
+
+    .text-success {
+        color: green;
+    }
+
+    .text-danger {
+        color: red;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
     }
 </style>
 
@@ -553,7 +663,8 @@
             $(".k-grid-btnPostPO", grid).hide();
         }
 
-        refreshTabstrip();
+        //refreshTabstrip();
+        $("#gridItems").data("kendoGrid").dataSource.read();
     }
 
 
@@ -850,7 +961,7 @@
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));                
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var myTitle = "PR Info";
         var width = "80%";
@@ -878,7 +989,7 @@
         mywindow.refresh({
             url: '@Url.Action("_ItemPR", "Orders")',
             data: {
-                orderItemId: dataItem.Id      
+                orderItemId: dataItem.Id
             },
             complete: function () {
                 // Resize the window to fit its content
@@ -1058,10 +1169,28 @@
         //disabled.attr('disabled', 'disabled')
     }
 
+    function DataItemCode() {
+        var grid = $("#grid").data("kendoGrid");
+        var refDate;
+        grid.select().each(function () {
+            var dataItems = grid.dataItem($(this));
+            refDate = dataItems.InsertedDt;
+        });
+        var text = $("#ItemCodeId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#ItemCodeId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            text: text,
+            ppmpCode: $("#PpmpCode").val(),
+            refDate: kendo.toString(kendo.parseDate(refDate), 'MM/dd/yyyy')
+        };
+    }
+
     function onSelectItemCode(e) {
         //var dataItem = this.dataItem(e.item.index());
         var dataItem;
-
+        //alert('x');
         if (e.item) {
             // select event
             dataItem = this.dataItem(e.item);
@@ -1074,6 +1203,27 @@
             return; // user typed invalid value
         }
 
+        //$("#ItemCodeId").val(dataItem.Id).trigger("change");
+        //$("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        //$("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+
+        //$("#ItemCode").val(dataItem.Code).trigger("change");
+        //$("#PsType").val(dataItem.Type).trigger("change");
+        //$("#ItemType").val(dataItem.Article).trigger("change");
+        //$("#ItemName").val(dataItem.Article).trigger("change");
+        //$("#Category").val(dataItem.Category).trigger("change");
+
+        //RefreshDivs();
+
+        //setTimeout(UpdateDescription, 500);
+        processItemCode(dataItem);
+    }
+
+    function processItemCode(dataItem) {
+        if (!dataItem) {
+            return;
+        }
+
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
@@ -1084,12 +1234,12 @@
         $("#ItemName").val(dataItem.Article).trigger("change");
         $("#Category").val(dataItem.Category).trigger("change");
 
-        RefreshDivs(dataItem);
+        RefreshDivs();
 
         setTimeout(UpdateDescription, 500);
     }
 
-    function RefreshDivs(dataItem) {
+    function RefreshDivs() {
         var fieldsContainer = $('#DIV_ALLFIELDS');
 
         fieldsContainer.removeClass('hidden');
@@ -1137,7 +1287,7 @@
         });
     }
 
-    function onDataBoundItemCode(e) {
+    function onDataBoundItemCodeOld(e) {
         var comboBox = this;
         var selectedValue = comboBox.value();
 
@@ -1147,13 +1297,73 @@
                 $("#SubAccount").val(dataItem.MainDesc).trigger("change");
                 $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
                 $("#Category").val(dataItem.Category).trigger("change");
-                RefreshDivs(dataItem);
+                RefreshDivs();
             }
             //var psNo = $("#PsNo").val();
             //if (!psNo) {
             //    setTimeout(UpdateDescription, 500);
             //}
         }
+    }
+
+    function onDataBoundItemCodeX(e) {
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+        var dataItem;
+        //alert('y');
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue !== "") {
+            // Existing selected value
+            dataItem = comboBox.dataItem();
+            processItemCode(dataItem);
+            if (dataItem) {
+                $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+                $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+                $("#Category").val(dataItem.Category).trigger("change");
+
+                RefreshDivs()
+                //setTimeout(RefreshDivs(), 3500);
+            }
+
+        }
+        //else {
+        //    // No selected value - use the first item
+        //    dataItem = comboBox.dataSource.view()[0];
+
+        //    if (dataItem) {
+        //        comboBox.value(dataItem.Code);
+        //    }
+        //}
+
+        //  LoadField error when autoselecting the first item.
+        //if (dataItem) {
+        //    $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        //    $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+        //    $("#Category").val(dataItem.Category).trigger("change");
+
+        //    setTimeout(RefreshDivs(), 500);
+        //}
+    }
+
+    function onDataBoundItemCode(e) {
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+        var dataItem;
+        //alert('Z');
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue !== "") {
+            // Existing selected value
+            dataItem = comboBox.dataItem();            
+
+        }
+        else {
+            // No selected value - use the first item
+            dataItem = comboBox.dataSource.view()[0];
+
+            if (dataItem) {
+                comboBox.value(dataItem.Article);
+            }
+        }
+
+        processItemCode(dataItem);            
     }
 
     function changeAmount(e) {
@@ -2178,7 +2388,7 @@
         item.set("IsSelected", checked);
 
         updateChildren(item.Request.PrNo, item.ItemNo, checked);
-        
+
         function updateChildren(parentPrNo, parentItemNo, checked) {
 
             grid.dataSource.data().forEach(function (child) {
@@ -2190,7 +2400,7 @@
                     updateChildren(child.Request.PrNo, child.ItemNo, checked);
                 }
             });
-        }        
+        }
     }
     // End GridItemSelection
 

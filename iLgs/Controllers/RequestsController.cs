@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
+using iLgs.Services.PPMP_;
 using iLgs.Services.PurchaseOrder;
 using iLgs.Services.PurchaseRequest;
 using iLgs.Utilities;
@@ -24,46 +25,21 @@ namespace iLgs.Controllers
     [AppAuthorize("REQUESTS")]
     public class RequestsController : BaseController
     {
-        //private readonly AppManEntities _db;
         private readonly IOrderService _orderService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
-        private string _menuId = string.Empty;
-        //private readonly IRequestItemUnitGroupService _unitGroupService;
-        //private readonly IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
-        //private readonly IRequestItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
+        private readonly IPPMPService _ppmpService;
 
+        private string _menuId = string.Empty;
+                
         public RequestsController()
         {
-            //_db = new AppManEntities();
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);
-            //_unitGroupService = requestItemUnitGroupService;
-            //_unitGroupDescriptionService = requestItemUnitGroupDescriptionService;
-            //_unitGroupDescriptionItemService = requestItemUnitGroupDescriptionItemService;
+            _ppmpService = new PPMPService(_db);            
         }
-
-
-        //public RequestsController(AppManEntities db,
-        //    IOrderService orderService, 
-        //    IRequestService requestService, 
-        //    IRequestItemService requestItemService,
-        //    ICodextnService codextnService, 
-        //    IRequestItemUnitGroupService requestItemUnitGroupService, 
-        //    IRequestItemUnitGroupDescriptionService requestItemUnitGroupDescriptionService,
-        //    IRequestItemUnitGroupDescriptionItemService requestItemUnitGroupDescriptionItemService)
-        //{
-        //    _db = db;
-        //    _orderService = orderService;
-        //    _requestService = requestService;
-        //    _requestService.RequestItem = requestItemService;
-        //    _codextnService = codextnService;
-        //    _unitGroupService = requestItemUnitGroupService;
-        //    _unitGroupDescriptionService = requestItemUnitGroupDescriptionService;
-        //    _unitGroupDescriptionItemService = requestItemUnitGroupDescriptionItemService;
-        //}
-
+        
         // GET: Requests
         public async Task<ActionResult> Index()
         {
@@ -839,5 +815,73 @@ namespace iLgs.Controllers
 
             return Json(new { model }, JsonRequestBehavior.AllowGet);
         }
+
+        #region PPMP ITEMS
+        public async Task<ActionResult> _PpmpItems(Guid prId)
+        {
+            var data = await _requestService.GetByIdAsync(prId);
+            
+            ViewData["prId"] = prId;            
+            return PartialView(data);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> _PpmpItemSelectionSave(Guid? prId, string selectedIds)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+                else
+                {
+                    ModelState.Clear();
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _requestService.RequestItem.CreateFromPpmpItemAsync(prId, selectedIds, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _PpmpItemRead([DataSourceRequest] DataSourceRequest request, Guid? prId)
+        {
+            var data = _ppmpService.PPMPItem.GetAvailableByRequestId(prId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+        #endregion PPMP ITEMS
     }
 }

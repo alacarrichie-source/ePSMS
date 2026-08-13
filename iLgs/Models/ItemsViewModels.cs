@@ -119,9 +119,15 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
     }
 
+    public class ItemTypeAccountVM : ItemTypeVM
+    {
+        public Nullable<System.Guid> AccountCodeId { get; set; } // FK, AccountCode.Id
+        public string AccountItemCode { get; set; } // AccountCodeItem.Code
+    }
+
     public class ItemTypeVM
     {     
-        public Nullable<System.Guid> Id { get; set; }
+        public Nullable<System.Guid> Id { get; set; } // FK, ItemType.Id
         [Display(Name = "Type Code")]
         public string Code { get; set; }
         public string Description { get; set; }

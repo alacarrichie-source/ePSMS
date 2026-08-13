@@ -517,7 +517,7 @@ namespace iLgs.Controllers
                 Department = c.Department,
                 ApprovedBy = c.ApprovedBy,
                 ApprovedDesig = c.ApprovedDesig
-            }), JsonRequestBehavior.AllowGet);
+            }).OrderBy(o => o.PrNo), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetFpp(string department, string text)
@@ -682,17 +682,13 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<JsonResult> GetPoNosWithoutPr(Guid? airId, string text)
+        public async Task<JsonResult> GetPoNosForAir(Guid? airId, string text)
         {
             airId = airId ?? Guid.Empty;
             var userId = User.Identity.GetUserId();
-            var IsAdmin = await _userService.IsAdminAsync(userId);
-            IQueryable<Order> model;
-            if (IsAdmin)
-            {
-                model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
-            }
-            else
+            var isAdmin = await _userService.IsAdminAsync(userId);
+            var model = _db.Orders.Include(i => i.OrderItems).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            if (!isAdmin)            
             {
                 model = _db.Orders.Where(w => w.OrderItems.Any(a => 
                     a.OrderItemRequests.Any(b => 
@@ -706,7 +702,48 @@ namespace iLgs.Controllers
             }
             else
             {
-                model = model.Where(w => w.AIRs.Any(a => a.Id == airId) || !w.AIRs.Any(a => a.Id != airId));
+                model = model.Where(w => 
+                    w.AIRs.Any(a => a.Id == airId) 
+                    || 
+                    !w.AIRs.Any(a => a.Id != airId)
+                    ||
+                    w.OrderItems.Any(a => (a.OrderItemRequests.Any(b => (b.AIRItems.Sum(s => s.Qty) ?? 0) < b.QtyApplied))) // items not in air, or airtem is incomplete               
+                    );
+            }
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<JsonResult> GetPoNosWithoutPar(Guid? parId, string text)
+        {
+            parId = parId ?? Guid.Empty;
+            var userId = User.Identity.GetUserId();
+            var isAdmin = await _userService.IsAdminAsync(userId);
+            var model = _db.Orders.Include(i => i.OrderItems).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            if (!isAdmin)
+            {
+                model = _db.Orders.Where(w => w.OrderItems.Any(a =>
+                    a.OrderItemRequests.Any(b =>
+                        b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
+                            c.UserId == userId))) && w.PostedBy != null).AsNoTracking().AsQueryable();
+            }
+
+            if (parId == Guid.Empty)
+            {
+                model = model.Where(w => !w.PARs.Any());
+            }
+            else
+            {
+                model = model.Where(w =>
+                    w.PARs.Any(a => a.Id == parId)
+                    ||
+                    !w.PARs.Any(a => a.Id != parId)                    
+                    );
             }
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -794,6 +831,91 @@ namespace iLgs.Controllers
         {
 
             var model = _db.OrderItems.Where(w => w.OrderId == orderId).AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text 
+                    || p.ItemName.Contains(text)
+                    || p.Description.Contains(text) || p.PsNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.PsNo,
+                Name = c.ItemName,
+                Description = c.Description,
+                Unit = c.Unit,
+                Type = c.ItemCode.ItemType.Code,
+                Qty = c.Qty,
+                UnitCost = c.UnitCost,
+                Amount = c.Amount
+            })
+            , JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPoItemRequests(Guid orderId, string text)
+        {
+            var model = _db.OrderItemRequests.Where(w => w.OrderItem.OrderId == orderId).AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text
+                    || p.OrderItem.ItemName.Contains(text)
+                    || p.OrderItem.Description.Contains(text) || p.OrderItem.PsNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.OrderItem.PsNo,
+                Name = c.OrderItem.ItemName,
+                Description = c.OrderItem.Description,
+                Unit = c.OrderItem.Unit,
+                Type = c.OrderItem.ItemCode.ItemType.Code,
+                Qty = c.OrderItem.Qty,
+                UnitCost = c.OrderItem.UnitCost,
+                Amount = c.OrderItem.Amount
+            })
+            , JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPoItemRequestsWithBalance(Guid orderId, string text)
+        {
+            var model = _db.OrderItemRequests.Where(w => w.OrderItem.OrderId == orderId
+                    && (w.AIRItems.Sum(s => s.Qty) ?? 0) < w.QtyApplied
+                    && !w.OrderItem.ItemNo.Contains(".")
+                    && !(w.OrderItem.Unit == "set" || w.OrderItem.Unit == "lot")
+                    ).AsNoTracking().AsQueryable();                 
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text 
+                    || p.OrderItem.ItemName.Contains(text)
+                    || p.OrderItem.Description.Contains(text) 
+                    || p.OrderItem.PsNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.OrderItem.PsNo,
+                Name = c.OrderItem.ItemName,
+                Description = c.OrderItem.Description,
+                Unit = c.OrderItem.Unit,
+                Type = c.OrderItem.ItemCode.ItemType.Code,
+                Qty = c.OrderItem.Qty,
+                UnitCost = c.OrderItem.UnitCost,
+                Amount = c.OrderItem.Amount
+            })
+            , JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPoItemsWithBalance(Guid orderId, string text)
+        {
+
+            var model = _db.OrderItems.Where(w => w.OrderId == orderId 
+                && w.OrderItemRequests.Any(a => (a.AIRItems.Sum(s => s.Qty) ?? 0) < w.Qty)).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {

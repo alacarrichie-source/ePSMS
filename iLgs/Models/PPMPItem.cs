@@ -17,13 +17,14 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PPMPItem()
         {
-            this.OrderItems = new HashSet<OrderItem>();
-            this.PsCardItems = new HashSet<PsCardItem>();
             this.RequestItems = new HashSet<RequestItem>();
+            this.PsCardItems = new HashSet<PsCardItem>();
+            this.OrderItems = new HashSet<OrderItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PpmpId { get; set; }
+        public Nullable<int> RecNo { get; set; }
         public string Type { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
@@ -49,12 +50,12 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual PPMP PPMP { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItem> RequestItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItem> RequestItems { get; set; }
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

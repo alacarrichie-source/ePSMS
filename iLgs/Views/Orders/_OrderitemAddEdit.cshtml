@@ -66,7 +66,7 @@
                     {
                         source.Read(read =>
                         {
-                            read.Action("GetItemAccounts", "ItemHelper");
+                            read.Action("GetPpmpItemAccounts", "ItemHelper").Data("DataItemCode");
                         })
                         .ServerFiltering(true);
                     })
@@ -96,7 +96,7 @@
                             @Html.DisplayFor(m => m.PpmpCode, "Label")
                         </div>
                         <div class="col-md-10">
-                            @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @(Html.Kendo().TextBoxFor(m => m.PpmpCode).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         </div>
                     </div>
                 </div>

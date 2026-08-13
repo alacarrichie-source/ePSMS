@@ -10,7 +10,7 @@ namespace iLgs.Services.AIRs_
     public interface IAirItemExtnService : IAirItemExtnAbstractService
     {
         IQueryable<T> GetAirItemExtnByItemId<T>(Guid? airItemId) where T : AIRItemExtn;
-        IQueryable<T> GetAirItemExtnByOrderItemId<T>(Guid? orderItemId) where T : AIRItemExtn;
+        IQueryable<T> GetAirItemExtnByOrderItemRequestId<T>(Guid? orderItemRequestId) where T : AIRItemExtn;
 
         IAirItemExtnVehicleService AirItemExtnVehicle { get; }
         IAirItemExtnOtherService AirItemExtnOther { get; }
@@ -61,16 +61,16 @@ namespace iLgs.Services.AIRs_
 
         public IQueryable<T> GetAirItemExtnByItemId<T>(Guid? airItemId) where T : AIRItemExtn
         {
-            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItem).OfType<T>().AsNoTracking()
+            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItemRequest.OrderItem).OfType<T>().AsNoTracking()
                         .Where(w => w.AIRItemId == airItemId)
                         .AsQueryable();
             return data;
         }
 
-        public IQueryable<T> GetAirItemExtnByOrderItemId<T>(Guid? orderItemId) where T : AIRItemExtn
+        public IQueryable<T> GetAirItemExtnByOrderItemRequestId<T>(Guid? orderItemRequestId) where T : AIRItemExtn
         {
-            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItem).OfType<T>().AsNoTracking()
-                        .Where(w => w.AIRItem.OrderItemId == orderItemId)
+            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItemRequest.OrderItem).OfType<T>().AsNoTracking()
+                        .Where(w => w.AIRItem.OrderItemRequestId == orderItemRequestId)
                         .AsQueryable();
             return data;
         }        

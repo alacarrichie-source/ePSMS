@@ -101,7 +101,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> AirId { get; set; }
 
         [Display(Name = "Stock/Property No.")]
-        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
 
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
@@ -145,7 +145,7 @@ namespace iLgs.Models
         [Display(Name = "Construction Year")]
         public Nullable<int> ConstructionYear { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
 
@@ -172,6 +172,11 @@ namespace iLgs.Models
 
         public string ItemNoIndex { get; set; }
         public int? Padding { get; set; }
+
+        public OrderItemRequest OrderItemRequest { get; set; }
+        public AIR AIR { get; set; }
+        public bool IsSetLot { get; set; } // Sw, to hold to determine the unit. If set/lot, only set/lot unit is allowed.
+        public bool IsSetLotItem { get; set; } // Sw, to hold to determine the item is a member of set/lot.
     }
 
     public class AIRInvoiceVM

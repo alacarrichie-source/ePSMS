@@ -22,6 +22,8 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date);
         ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date);
         ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date);
+
+        ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date);
     }
 
     internal class RequestItemService : BaseValidator, IRequestItemService
@@ -55,6 +57,7 @@ namespace iLgs.Services.PurchaseRequest
                 UnitCost = s.UnitCost,
                 TotalCost = s.TotalCost,
                 PriceRate = s.PriceRate,
+                PpmpItemId = s.PpmpItemId,
                 PpmpCode = s.PpmpCode,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
@@ -191,10 +194,57 @@ namespace iLgs.Services.PurchaseRequest
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.TotalCost;
             entity.PriceRate = model.PriceRate;
+            entity.PpmpItemId = model.PpmpItemId;
             entity.PpmpCode = model.PpmpCode?.Trim();
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
         }
+
+        public ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
+        {
+            var selectedIdList = selectedIds.Split(',').ToList();
+            if (selectedIdList.Count() == 0)
+            {
+                throw new RecordNotFoundException("No Items to process.");
+            }
+
+            await _requestSharedService.ValidateStatusAsync((Guid)prId);
+
+            var count = 0;
+            var ctrlNo = await _db.RequestItems.Where(w => w.PrId == prId && !w.ItemNo.Contains(".")).MaxAsync(m => m.ItemNo);
+            if (!string.IsNullOrWhiteSpace(ctrlNo))
+            {
+                count = int.Parse(ctrlNo);
+            }
+
+            foreach (var selectedId in selectedIdList)
+            {
+                var ppmpItemId = Guid.Parse(selectedId);
+                if (!(await _db.RequestItems.AsNoTracking().AnyAsync(a => a.PrId == prId && a.PpmpItemId == ppmpItemId)))
+                {
+                    count++;
+
+                    var ppmpItem = await _db.PPMPItems.FindAsync(ppmpItemId);
+
+                    var requestItem = new RequestItemVM()
+                    {
+                        PrId = prId,
+                        ItemNo = count.ToString(),
+                        Description = ppmpItem.Description,
+                        PpmpCode = ppmpItem.Code,
+                        PpmpItemId = ppmpItem.Id,
+                        Qty = ppmpItem.Qty,
+                        Unit = ppmpItem.Unit,
+                        UnitCost = ppmpItem.UnitCost,
+                        TotalCost = ppmpItem.Qty * ppmpItem.UnitCost,
+                    };
+                    await CreateAsync(requestItem, user, date);
+                }
+            }
+
+            return new RequestItemVM();
+        });
 
         private async Task<string> NextItemNoAsync(Guid? prId)
         {

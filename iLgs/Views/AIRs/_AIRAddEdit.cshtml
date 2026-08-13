@@ -51,7 +51,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNosWithoutPr", "Getters").Data("DataOrderId");
+                                    read.Action("GetPoNosForAir", "Getters").Data("DataOrderId");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -113,14 +113,14 @@
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Complete"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Events(e => e.Change("onChangeIsComplete")).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Complete"))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(false).Label("Partial (pls. specify)"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Events(e => e.Change("onChangeIsPartial")).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Partial (pls. specify)"))
                                 </div>
                             </div>
                         </div>
@@ -130,7 +130,7 @@
                                     &nbsp;
                                 </div>
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>

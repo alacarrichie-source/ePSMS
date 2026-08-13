@@ -25,6 +25,7 @@ namespace iLgs.Services.Items
         Task<ItemCode> GetByCodeAsync(string code);
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
+        IQueryable<ItemCodeVM> GetPpmpItemAccounts(string item, string ppmpCode, DateTime refDate);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
         ValueTask<List<SubAccountTreeVM>> GetSubAccountTreeAsync(string itemCode);
         string GetSubAccounts(Guid? id);
@@ -288,6 +289,12 @@ namespace iLgs.Services.Items
         public IQueryable<ItemCodeVM> GetItemAccounts(string item) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetPpmpItemAccounts(string item, string ppmpCode, DateTime refDate) => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}, {1}, {2}", item, ppmpCode, refDate).AsQueryable().AsNoTracking();
             return data;
         });
 

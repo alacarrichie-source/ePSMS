@@ -49,14 +49,14 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNosWithoutPr", "Getters").Data("DataOrderId");
+                                    read.Action("GetPoNosForAir", "Getters").Data("DataOrderId");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
                                 c.Add().Field("PoNo").Title("PO No.").Width("30%");
-                                c.Add().Template("#= kendo.toString(new Date(parseInt(PoDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");  
+                                c.Add().Template("#= kendo.toString(new Date(parseInt(PoDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
                             .Events(e => { e.Select("onSelectOrderId"); })
@@ -93,21 +93,21 @@
         </div>
 
         @*<div class="row k-mb-2">
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.InvoiceNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.InvoiceNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
-                    @Html.ValidationMessageFor(model => model.InvoiceNo)
+                <div class="col-md-6">
+                    @Html.LabelFor(model => model.InvoiceNo, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(model => model.InvoiceNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                        @Html.ValidationMessageFor(model => model.InvoiceNo)
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.InvoiceDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.InvoiceDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.InvoiceDate)
+                <div class="col-md-6">
+                    @Html.LabelFor(model => model.InvoiceDate, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().DatePickerFor(model => model.InvoiceDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.InvoiceDate)
+                    </div>
                 </div>
-            </div>
-        </div>*@
+            </div>*@
 
         <br />
 
@@ -148,7 +148,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Custodian, htmlAttributes: new { @class = "col-md-3" })
@@ -172,12 +172,13 @@
                                             c.Add().Field("Description").Title("Name").Width("60%");
                                             c.Add().Field("Desc2").Title("Designation").Width("40%");
                                         })
-                                        .Suggest(true)                                        
+                                        .Suggest(true)
                                     )
                                     @Html.ValidationMessageFor(model => model.Custodian)
                                 </div>
                             </div>
                         </div>
+                    </div>
                 </section>
             </div>
 
@@ -200,7 +201,7 @@
                                 </div>
                             </div>
                         </div>
-                        <br />                        
+                        <br />
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
@@ -230,7 +231,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </section>
             </div>
@@ -260,7 +260,7 @@
                             {
                                 c.Add().Field("Description").Title("Description").Width("100%");
                             })
-                            //.Suggest(true)
+                //.Suggest(true)
                 )
                 @Html.ValidationMessageFor(m => m.InvDist)
             </div>

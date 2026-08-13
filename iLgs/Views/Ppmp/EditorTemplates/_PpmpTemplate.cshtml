@@ -1,0 +1,65 @@
+﻿@model iLgs.Models.PPMPVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.DeptId)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <div class="form-group">
+                @Html.DisplayFor(m => m.ForYear, "Label")
+                @(Html.Kendo().TextBoxFor(m => m.ForYear)
+                .HtmlAttributes(new { style = "width:100%;" }))
+                @Html.ValidationMessageFor(m => m.ForYear)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="form-group">
+                    @Html.DisplayFor(m => m.Department, "Label")
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Department")
+                        .DataTextField("Description")
+                        .DataValueField("Description")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserDepartmentsAsync", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("30%");
+                            c.Add().Field("Description").Title("Description").Width("70%");
+                        })
+                        .Events(e => e.Select("onSelectDepartment"))
+                        .Suggest(true)
+                    )
+                </div>
+            </div>
+        </div>
+}
+
+
+
+
+
+
+

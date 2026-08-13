@@ -294,7 +294,7 @@
             $(".k-grid-btnPostPR", grid).hide();
             $(".k-grid-btnSubmitPR", grid).hide();
             $(".k-grid-btnUnsubmitPR", grid).hide();
-        } else {            
+        } else {
             if (submittedBy) {
                 $(".k-grid-btnUnsubmitPR", grid).show();
                 $(".k-grid-btnSubmitPR", grid).hide();
@@ -356,7 +356,7 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            
+
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
@@ -432,7 +432,8 @@
                         }
                     });
 
-                    RequestItem("A", null, null);
+                    //RequestItem("A", null, null);
+                    PpeItems();
                 }
             }
         }
@@ -880,7 +881,7 @@
             var dataItems = grid.dataItem($(this));
             selectedCtrlNo = dataItems.CtrlNo;
         });
-        
+
         var url = '@Url.Action("PurchaseRequestRpt", "Requests")?ctrlNo=' + selectedCtrlNo + '#toolbar=' + toolbar;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
@@ -1027,7 +1028,56 @@
         });
         //mywindow.center();
         mywindow.open();
+    }
 
+    function onClickBtnAddPpmpItem(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        parentGrid.select(parentRow);
+
+        PpeItems();
+    }
+
+    function PpeItems()
+    {
+        var myTitle = "PPMP Items";
+        var width = "80%";
+        //var height = 570;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: "auto"
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_PpmpItems", "Requests")',
+            data: {
+                prId: selectedId
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
     }
 
     function resizeWindow() {

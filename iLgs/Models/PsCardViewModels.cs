@@ -134,7 +134,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
         public Nullable<System.Guid> TransferId { get; set; }
         public Nullable<System.Guid> ParentId { get; set; }
@@ -364,6 +364,8 @@ namespace iLgs.Models
         public string SubAccount { get; set; }
         public string Account { get; set; }
         public string Fund { get; set; }
+
+        public Nullable<System.Guid> PpmpItemId { get; set; }
 
         [Display(Name = "PPMP Code")]
         public string PpmpCode { get; set; }

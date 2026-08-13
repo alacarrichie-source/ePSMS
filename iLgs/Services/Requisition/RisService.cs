@@ -341,42 +341,43 @@ namespace iLgs.Services.Requisition
             MapModelToEntityFields(entity, model, Mode.ADD);
 
             var order = await _db.Orders
+                .Include("OrderItems.OrderItemRequests")
                 .Include("OrderItems.AllField")
                 .Include("OrderItemUnitGroups.OrderItemUnitGroupDescriptions.OrderItemUnitGroupDescriptionItems")
                 .AsNoTracking().FirstOrDefaultAsync(p => p.Id == model.OrderId);
             foreach (var orderItem in order.OrderItems)
             {
-                var risItem = new RisItem()
+                foreach (var orderItemRequest in orderItem.OrderItemRequests)
                 {
-                    Id = Guid.NewGuid(),
-                    RisId = model.Id,
-                    OrderItemId = orderItem.Id,
-                    ItemCodeId = orderItem.ItemCodeId,
-                    //SubAccountCode = model.SubAccountCode,
-                    PsNo = orderItem.PsNo,
-                    PsNoDisplay = orderItem.PsNoDisplay,
-                    ItemName = orderItem.ItemName,
-                    Description = orderItem.Description,
-                    OtherDesc = orderItem.OtherDesc,
-                    Unit = orderItem.Unit,
-                    QtyRequest = orderItem.Qty,
-                    QtyIssue = orderItem.Qty,
-                    //Remarks = model.Remarks ?? "",
-                    PpmpCode = orderItem.PpmpCode,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date,
-                };
+                    var risItem = new RisItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        RisId = model.Id,
+                        OrderItemRequestId = orderItemRequest.Id,
+                        ItemCodeId = orderItem.ItemCodeId,
+                        PsNo = orderItem.PsNo,
+                        PsNoDisplay = orderItem.PsNoDisplay,
+                        ItemName = orderItem.ItemName,
+                        Description = orderItem.Description,
+                        OtherDesc = orderItem.OtherDesc,
+                        Unit = orderItem.Unit,
+                        QtyRequest = orderItemRequest.QtyApplied,
+                        QtyIssue = orderItemRequest.QtyApplied,
+                        PpmpCode = orderItem.PpmpCode,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date,
+                    };
 
-                var allfield = AllFieldsUtil.NewAllField(orderItem.AllField);
-                allfield.Id = risItem.Id;
-                risItem.AllField = allfield;
+                    var allfield = AllFieldsUtil.NewAllField(orderItem.AllField);
+                    allfield.Id = risItem.Id;
+                    risItem.AllField = allfield;
 
-                entity.RisItems.Add(risItem);                
+                    entity.RisItems.Add(risItem);
+                }
             }
             
-
             foreach (var unitGroup in order.OrderItemUnitGroups)
             {
                 var risItemUnitGroup = new RisItemUnitGroup()
@@ -409,7 +410,7 @@ namespace iLgs.Services.Requisition
                     
                     foreach (var unitGroupDescriptionItem in unitGroupDescription.OrderItemUnitGroupDescriptionItems)
                     {
-                        var risItemId = entity.RisItems.FirstOrDefault(p => p.OrderItemId == unitGroupDescriptionItem.OrderItemId).Id;
+                        var risItemId = entity.RisItems.FirstOrDefault(p => p.OrderItemRequest.OrderItemId == unitGroupDescriptionItem.OrderItemId).Id;
                         var risItemUnitGroupDescriptionItem = new RisItemUnitGroupDescriptionItem()
                         {
                             Id = Guid.NewGuid(),

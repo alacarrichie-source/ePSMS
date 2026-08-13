@@ -318,6 +318,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\AccountCodeController.cs" />
     <Compile Include="Controllers\AnnexDController.cs" />
     <Compile Include="Controllers\AuditTrailController.cs" />
     <Compile Include="Controllers\BudgetController.cs" />
@@ -348,6 +349,7 @@
     <Compile Include="Controllers\ParSetOrderController.cs" />
     <Compile Include="Controllers\PoAdjustmentController.cs" />
     <Compile Include="Controllers\PoTransferController.cs" />
+    <Compile Include="Controllers\PpmpController.cs" />
     <Compile Include="Controllers\ProcurementOrderController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
@@ -369,6 +371,13 @@
     <Compile Include="Models\AccountableOfficer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AccountCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AccountCodeItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AccountCodeViewModels.cs" />
     <Compile Include="Models\AIR.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -584,7 +593,11 @@
     <Compile Include="Models\PPMPItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PPMPViewModels.cs" />
     <Compile Include="Models\ProcurementViewModels.cs" />
+    <Compile Include="Models\PropertyCardItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsCard.cs">
@@ -940,6 +953,8 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
+    <Compile Include="Services\AccountCode_\AccountCodeItemService.cs" />
+    <Compile Include="Services\AccountCode_\AccountCodeService.cs" />
     <Compile Include="Services\AIRs_\AirAbstractService.cs" />
     <Compile Include="Services\AIRs_\AirItemAbstractService.cs" />
     <Compile Include="Services\AIRs_\AirItemExtnAbstractService.cs" />
@@ -1014,6 +1029,9 @@
     <Compile Include="Services\ParIcs\IcsSharedService.cs" />
     <Compile Include="Services\PoAdjustments_\PoAdjustmentService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
+    <Compile Include="Services\PPMP_\PPMPItemService.cs" />
+    <Compile Include="Services\PPMP_\PPMPService.cs" />
+    <Compile Include="Services\PPMP_\PPMPSharedService.cs" />
     <Compile Include="Services\Procurement_\ProcurementOrderService.cs" />
     <Compile Include="Services\Procurement_\ProcurementCommonService.cs" />
     <Compile Include="Services\Procurement_\ProcurementUnitGroupDescriptionItemService.cs" />
@@ -4394,7 +4412,7 @@
     <Content Include="Views\Requests\_RequestFromRisTemplate.cshtml" />
     <Content Include="Views\RIS\Requisition.cshtml" />
     <Content Include="Views\RIS\Cart.cshtml" />
-    <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
+    <Content Include="Views\AIRs\_AIRItemAddEdit_Old.cshtml" />
     <Content Include="Views\AIRs\_AIRItem.cshtml" />
     <Content Include="Views\Shared\_AppLayout.cshtml" />
     <Content Include="Views\PARs\Index.cshtml" />
@@ -4788,6 +4806,13 @@
     <Content Include="Views\Rpci\_UnpostBatch.cshtml" />
     <Content Include="Views\Orders\_ItemSelection.cshtml" />
     <Content Include="Views\Orders\_ItemPR.cshtml" />
+    <Content Include="Views\Ppmp\_UploadRecords.cshtml" />
+    <Content Include="Views\Ppmp\Index.cshtml" />
+    <Content Include="Views\Ppmp\EditorTemplates\_PpmpTemplate.cshtml" />
+    <Content Include="Views\Requests\_PpmpItems.cshtml" />
+    <Content Include="Views\AccountCode\Index.cshtml" />
+    <Content Include="Views\AccountCode\EditorTemplates\_AccountCodeTemplate.cshtml" />
+    <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4954,7 +4979,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

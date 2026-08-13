@@ -277,7 +277,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
 
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
@@ -450,7 +450,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisItemId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
 
         [Display(Name = "Location")]
         [Required]

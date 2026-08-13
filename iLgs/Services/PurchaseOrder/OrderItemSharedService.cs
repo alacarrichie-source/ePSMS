@@ -86,7 +86,15 @@ namespace iLgs.Services.PurchaseOrder
 
         public async Task<bool> GetAnyAirItemsAsync(Guid id)
         {
-            return await _db.AIRItems.AnyAsync(a => a.OrderItemId == id);
+            var orderItemRequests = await _db.OrderItemRequests.Where(w => w.OrderItemId == id).ToListAsync();
+            foreach (var orderItemRequest in orderItemRequests)
+            {
+                if (await _db.AIRItems.AnyAsync(a => a.OrderItemRequestId == orderItemRequest.Id))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
