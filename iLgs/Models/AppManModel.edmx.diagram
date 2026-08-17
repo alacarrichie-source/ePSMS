@@ -329,6 +329,8 @@
         <EntityTypeShape EntityType="AppManModel.PPMP" Width="1.5" PointX="0.75" PointY="3" />
         <EntityTypeShape EntityType="AppManModel.PPMPItem" Width="1.5" PointX="3" PointY="1.125" />
         <AssociationConnector Association="AppManModel.FK_PPMPItems_PPMPs" />
+        <EntityTypeShape EntityType="AppManModel.PPMPItemUsage" Width="1.5" PointX="5.25" PointY="3" />
+        <AssociationConnector Association="AppManModel.FK_PPMPItemUsages_PPMPItems" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

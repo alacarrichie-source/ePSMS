@@ -1377,6 +1377,21 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="date" />
         </EntityType>
+        <EntityType Name="PPMPItemUsages">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="PpmpItemId" Type="uniqueidentifier" />
+          <Property Name="PrId" Type="uniqueidentifier" />
+          <Property Name="Type" Type="varchar" MaxLength="50" />
+          <Property Name="Reference" Type="varchar" MaxLength="50" />
+          <Property Name="Qty" Type="int" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="PPMPs">
           <Key>
             <PropertyRef Name="Id" />
@@ -3788,6 +3803,32 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PPMPItemUsages_PPMPItems">
+          <End Role="PPMPItems" Type="Self.PPMPItems" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="PPMPItemUsages" Type="Self.PPMPItemUsages" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PPMPItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PPMPItemUsages">
+              <PropertyRef Name="PpmpItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PPMPItemUsages_Requests">
+          <End Role="Requests" Type="Self.Requests" Multiplicity="0..1" />
+          <End Role="PPMPItemUsages" Type="Self.PPMPItemUsages" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Requests">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PPMPItemUsages">
+              <PropertyRef Name="PrId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PPMPs_Codextn">
           <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
           <End Role="PPMPs" Type="Self.PPMPs" Multiplicity="*" />
@@ -4810,6 +4851,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="PARs" EntityType="Self.PARs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PoAdjustments" EntityType="Self.PoAdjustments" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PPMPItems" EntityType="Self.PPMPItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PPMPItemUsages" EntityType="Self.PPMPItemUsages" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PPMPs" EntityType="Self.PPMPs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PropertyCardItems" EntityType="Self.PropertyCardItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemExtnAddCosts" EntityType="Self.PsCardItemExtnAddCosts" Schema="dbo" store:Type="Tables" />
@@ -5278,6 +5320,14 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PPMPItems_PPMPs" Association="Self.FK_PPMPItems_PPMPs">
             <End Role="PPMPs" EntitySet="PPMPs" />
             <End Role="PPMPItems" EntitySet="PPMPItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PPMPItemUsages_PPMPItems" Association="Self.FK_PPMPItemUsages_PPMPItems">
+            <End Role="PPMPItems" EntitySet="PPMPItems" />
+            <End Role="PPMPItemUsages" EntitySet="PPMPItemUsages" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PPMPItemUsages_Requests" Association="Self.FK_PPMPItemUsages_Requests">
+            <End Role="Requests" EntitySet="Requests" />
+            <End Role="PPMPItemUsages" EntitySet="PPMPItemUsages" />
           </AssociationSet>
           <AssociationSet Name="FK_PPMPs_Codextn" Association="Self.FK_PPMPs_Codextn">
             <End Role="Codextn" EntitySet="Codextn" />
@@ -6315,6 +6365,15 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
             <End Role="OrderItem" EntitySet="OrderItems" />
             <End Role="PARItem" EntitySet="PARItems" />
+          </AssociationSet>
+          <EntitySet Name="PPMPItemUsages" EntityType="AppManModel.PPMPItemUsage" />
+          <AssociationSet Name="FK_PPMPItemUsages_PPMPItems" Association="AppManModel.FK_PPMPItemUsages_PPMPItems">
+            <End Role="PPMPItem" EntitySet="PPMPItems" />
+            <End Role="PPMPItemUsage" EntitySet="PPMPItemUsages" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PPMPItemUsages_Requests" Association="AppManModel.FK_PPMPItemUsages_Requests">
+            <End Role="Request" EntitySet="Requests" />
+            <End Role="PPMPItemUsage" EntitySet="PPMPItemUsages" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -9506,6 +9565,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="Request" ToRole="RequestItem" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_Requests_Codextn" FromRole="Request" ToRole="Codextn" />
           <NavigationProperty Name="OrderRequests" Relationship="AppManModel.FK_OrderRequests_Requests" FromRole="Request" ToRole="OrderRequest" />
+          <NavigationProperty Name="PPMPItemUsages" Relationship="AppManModel.FK_PPMPItemUsages_Requests" FromRole="Request" ToRole="PPMPItemUsage" />
         </EntityType>
         <Association Name="FK_RequestItemUnitGroups_Requests">
           <End Type="AppManModel.Request" Role="Request" Multiplicity="0..1">
@@ -10644,6 +10704,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_PPMPItems" FromRole="PPMPItem" ToRole="RequestItem" />
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_PPMPItems" FromRole="PPMPItem" ToRole="PsCardItem" />
           <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_PPMPItems" FromRole="PPMPItem" ToRole="OrderItem" />
+          <NavigationProperty Name="PPMPItemUsages" Relationship="AppManModel.FK_PPMPItemUsages_PPMPItems" FromRole="PPMPItem" ToRole="PPMPItemUsage" />
         </EntityType>
         <Association Name="FK_PPMPItems_PPMPs">
           <End Type="AppManModel.PPMP" Role="PPMP" Multiplicity="0..1">
@@ -11226,6 +11287,49 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PARItem">
               <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PPMPItemUsage">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="PpmpItemId" Type="Guid" />
+          <Property Name="PrId" Type="Guid" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Reference" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="PPMPItem" Relationship="AppManModel.FK_PPMPItemUsages_PPMPItems" FromRole="PPMPItemUsage" ToRole="PPMPItem" />
+          <NavigationProperty Name="Request" Relationship="AppManModel.FK_PPMPItemUsages_Requests" FromRole="PPMPItemUsage" ToRole="Request" />
+        </EntityType>
+        <Association Name="FK_PPMPItemUsages_PPMPItems">
+          <End Type="AppManModel.PPMPItem" Role="PPMPItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.PPMPItemUsage" Role="PPMPItemUsage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PPMPItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PPMPItemUsage">
+              <PropertyRef Name="PpmpItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PPMPItemUsages_Requests">
+          <End Type="AppManModel.Request" Role="Request" Multiplicity="0..1" />
+          <End Type="AppManModel.PPMPItemUsage" Role="PPMPItemUsage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Request">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PPMPItemUsage">
+              <PropertyRef Name="PrId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -13971,6 +14075,22 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="ItemNoIndex" ColumnName="ItemNoIndex" />
                 <ScalarProperty Name="ItemNo" ColumnName="ItemNo" />
                 <ScalarProperty Name="OrderId" ColumnName="OrderId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PPMPItemUsages">
+            <EntityTypeMapping TypeName="AppManModel.PPMPItemUsage">
+              <MappingFragment StoreEntitySet="PPMPItemUsages">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="Reference" ColumnName="Reference" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="PrId" ColumnName="PrId" />
+                <ScalarProperty Name="PpmpItemId" ColumnName="PpmpItemId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

@@ -214,6 +214,15 @@ namespace iLgs.Services.AIRs_
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
+            var orderItemRequest = await _db.OrderItemRequests.AsNoTracking()
+                .Include(i => i.OrderItem.Order)
+                .Include(i => i.OrderItem.ItemCode.ItemType)
+                .Where(w => w.Id == model.OrderItemRequestId).FirstOrDefaultAsync();
+            if (orderItemRequest.OrderItem.ItemCodeId.HasValue)
+            {
+                await _airItemExtnService.CreateAirItemExtnAsync(entity, orderItemRequest.OrderItem, user, date);
+            }
+
             await _db.SaveChangesAsync();
 
             return model;
@@ -287,7 +296,7 @@ namespace iLgs.Services.AIRs_
             var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItemId))).FirstOrDefault();
             var groupQty = orderItemUnitGroup != null ? orderItemUnitGroup.Qty : 1;
             var itemExtnName = GetItemExtnName(airItemId);
-            var ctrlNo = _db.AIRs.FirstOrDefault(f => f.AIRItems.Any(a => a.Id == airItemId)).CtrlNo;
+            var ctrlNo = _db.AIRs.Where(w => w.AIRItems.Any(a => a.Id == airItemId)).OrderBy(o => o.CtrlNo).FirstOrDefault().CtrlNo;
             if (itemExtnName == "ItemExtnVehicle")
             {
                 if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty * groupQty))

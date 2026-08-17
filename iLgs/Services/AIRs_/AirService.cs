@@ -200,18 +200,8 @@ namespace iLgs.Services.AIRs_
                 throw new RecordAlreadyPostedException();
             }
 
-            var orderItemRequests = await _db.OrderItemRequests
-                .Include(i => i.OrderItem.Order)
-                .Where(w => w.OrderItem.OrderId == entity.OrderId).AsNoTracking().ToListAsync();
-
-            foreach(var orderItemRequest in orderItemRequests)
-            {
-                var airQty = _db.AIRItems.Include(i => i.AIR.AIRInvoices).Where(w => w.OrderItemRequestId == orderItemRequest.Id).Sum(s => s.Qty) ?? 0;
-                if (airQty < orderItemRequest.QtyApplied)
-                {
-                    throw new InvalidValueException($"The total quantity for {orderItemRequest.OrderItem.Description} must be {orderItemRequest.QtyApplied}.");
-                }                
-            }
+            await ValidateCompleteAsync(entity.OrderId);
+            await ValidateQtyAsync(entity.OrderId);
 
             var airs = await _db.AIRs
                 .Include(i => i.Order)
@@ -1013,6 +1003,46 @@ namespace iLgs.Services.AIRs_
             return entity;
         });
 
+
+        private async Task ValidateCompletePartialAsync(AIR_VM model)
+        {
+            if (model.AirGroup == (int)AirGroup.ACCEPTANCE)
+            {
+                if (model.IsComplete.Value == true)
+                {
+                    var airNo = (await _db.AIRs.FirstOrDefaultAsync(a => a.OrderId == model.OrderId && a.Id != model.Id && a.IsComplete.Value == true))?.AIRNo;
+                    if (!string.IsNullOrWhiteSpace(airNo)) {
+                        throw new InvalidValueException($"An exissting AIR No. {airNo} has already been marked complete for this PO No.");
+                    }
+                    await ValidateQtyAsync(model.OrderId);
+                }
+            }
+        }
+
+        private async Task ValidateCompleteAsync(Guid? orderId)
+        {
+            if (!(await _db.AIRs.AnyAsync(a => a.OrderId == orderId && a.IsComplete.Value == true)))
+            {                
+                throw new InvalidValueException($"No AIR Number has been marked complete for this PO No.");                
+            }
+        }
+
+        private async Task ValidateQtyAsync(Guid? orderId)
+        {
+            var orderItemRequests = await _db.OrderItemRequests
+                .Include(i => i.OrderItem.Order)
+                .Where(w => w.OrderItem.OrderId == orderId).AsNoTracking().ToListAsync();
+
+            foreach(var orderItemRequest in orderItemRequests)
+            {
+                var airQty = _db.AIRItems.Include(i => i.AIR.AIRInvoices).Where(w => w.OrderItemRequestId == orderItemRequest.Id).Sum(s => s.Qty) ?? 0;
+                if (airQty < orderItemRequest.QtyApplied)
+                {
+                    throw new InvalidValueException($"The total quantity for {orderItemRequest.OrderItem.Description} must be {orderItemRequest.QtyApplied}.");
+                }                
+            }
+        }
+
         private async Task<bool> IsWwithUploadAsync(Guid? id)
         {
             var result = await _uploadService.GetAllByImageId(id).AnyAsync();
@@ -1277,25 +1307,34 @@ namespace iLgs.Services.AIRs_
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.AIRs.FindAsync(model.Id);
-
-            // if there's a change of Order item
-            if (entity.OrderId != model.OrderId)
-            {
-                var airItems = _db.AIRItems.Where(w => w.AirId == model.Id);
-                await airItems.ForEachAsync(f =>
-                {
-                    f.UpdatedBy = model.UpdatedBy;
-                    f.UpdatedDt = model.UpdatedDt;
-                });
-                await _db.SaveChangesAsync();
-
-                _db.AIRItems.RemoveRange(airItems);
-                await _db.SaveChangesAsync();                
-            }
+            var entity = await _db.AIRs.FindAsync(model.Id);            
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
-            await SetAirItemsAsync(entity, model, user, date);
+
+            if (model.AirGroup == (int)AirGroup.ACCEPTANCE)
+            {
+                await ValidateCompletePartialAsync(model);
+            }
+
+            if (model.AirGroup == (int)AirGroup.INSPECTION)
+            {
+                // if there's a change of Order item
+                if (entity.OrderId != model.OrderId)
+                {
+                    var airItems = _db.AIRItems.Where(w => w.AirId == model.Id);
+                    await airItems.ForEachAsync(f =>
+                    {
+                        f.UpdatedBy = model.UpdatedBy;
+                        f.UpdatedDt = model.UpdatedDt;
+                    });
+                    await _db.SaveChangesAsync();
+
+                    _db.AIRItems.RemoveRange(airItems);
+                    await _db.SaveChangesAsync();
+                }
+
+                await SetAirItemsAsync(entity, model, user, date);
+            }            
 
             await _db.SaveChangesAsync();
 

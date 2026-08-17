@@ -14,6 +14,7 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.Mode)
     @Html.HiddenFor(model => model.CtrlNo)
+    @Html.HiddenFor(model => model.AirGroup)
 
     <fieldset>
         <div class="row k-mb-2">
@@ -62,6 +63,7 @@
                                 c.Add().Template("#= kendo.toString(kendo.parseDate(PoDate), 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
+                            .Enable(Model.AirGroup == 1)
                             .Events(e => { e.Select("onSelectOrderId"); })
                             .Suggest(true)
                     )

@@ -99,6 +99,11 @@ namespace iLgs.Services.ParIcs
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
+        private decimal GetPriceCap(int? forYear)
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap(forYear)).Value;
+        }
+
         public IQueryable<ParVM> GetAll()
         {
             var priceCap = GetPriceCap();
@@ -156,7 +161,7 @@ namespace iLgs.Services.ParIcs
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo(int? forYear)
         {
-            var priceCap = GetPriceCap();
+            var priceCap = GetPriceCap(forYear);
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'P', {0}, {1}", priceCap, forYear).AsQueryable();
             return data;
         }

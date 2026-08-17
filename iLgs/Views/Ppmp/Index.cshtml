@@ -103,46 +103,71 @@
         .HtmlAttributes(new { style = "height: calc(51vh);" })
         .Columns(col =>
         {
-            col.Bound(c => c.RecNo).Width(30);
-            col.Bound(c => c.Code).Width(50);
-            col.Bound(c => c.Description).Width(100);
-            col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //col.Bound(c => c.RecNo).Width(20).Filterable(false);
+            col.Bound(c => c.Code).Width(40);
+            col.Bound(c => c.Description).Width(70);
+            col.Bound(c => c.Qty).Width(20)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Unit).Width(30);
-            col.Bound(c => c.EstBudget).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.EstBudget).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.ProcMode).Width(50);
-            col.Bound(c => c.Jan).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Jan).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Feb).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Feb).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Mar).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Mar).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Apr).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Apr).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.May).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.May).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Jun).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Jun).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Jul).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Jul).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Aug).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Aug).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Sep).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Sep).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Oct).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Oct).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Nov).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Nov).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Dec).Width(20).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Dec).Width(20).Filterable(false)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.UnitCost).Width(30)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Command(command =>
-            //{
-            //    //command.Edit();
-            //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
-            //}).Width(100);
+            col.Bound(c => c.QtyUsed).Width(30)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.QtyBal).Width(30)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Command(command =>
+            {
+                //command.Edit();
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
+                command.Custom("Usage").IconClass("k-icon k-i-chart-line").Click("onGridUsageClick").SendDataKeys(true).Visible("IsNotMain");
+            }).Width(30);
         })
         .ToolBar(t =>
         {
@@ -189,6 +214,12 @@
             {
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.QtyBal).Sum();
+                a.Add(p => p.QtyUsed).Sum();
             })
             .Sort(s => { s.Add(a => a.RecNo);  })
             .Read(read => read.Action("ItemRead", "Ppmp").Data("DataGridItems"))
@@ -317,6 +348,10 @@
 
     function IsNotPosted(dataItem) {
         return !postedBy && dataItem.Claimed != "Y";
+    }
+
+    function IsNotMain(dataItem) {
+        return dataItem.Type == "S";
     }
 
     function onChangeBirthday(e) {
@@ -465,6 +500,34 @@
         if (args.errors) {
             var validationError = true;
             var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function GridItemUsageError(args) {
+        if (args.errors) {
+            var validationError = true;
+            var selectedGrid = $("#gridItemUsages_" + selectedItemId).data("kendoGrid");
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
                     alert(this.errors);
@@ -699,7 +762,7 @@
             var dataItem = grid.dataItem(this);
             if (dataItem.Type == "M") {
                 $(this).css("font-weight", "bold");
-            } else {                
+            } else {
                 //$(this).css("font-style", "italic");
                 $(this).css("font-weight", "normal");
             }
@@ -721,6 +784,51 @@
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+    }
+
+    function onGridUsageClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedItemId = dataItem.Id;
+
+        var myTitle = "Item Usage";
+        var width = "70%";
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    $("#gridItems").data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_ItemUsage", "Ppmp")',
+            data: {
+                ppmpItemId: selectedItemId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
     }
 
     $(".k-grid-btnUpload").click(function (e) {
@@ -797,7 +905,46 @@
     }
     // END PPMP TEMPLATE
 
+    // GRID ITEM USAGE
+    var selectedItemUsageId = null;
+    function onChangeGridItemUsages(e) {
+        var selectedData = this.dataItem(this.select());
 
+        selectedItemUsageId = selectedData.Id;
+    }
+
+    function onDataBoundGridItemUsages(e) {
+        var grid = this;
+        if (selectedItemUsageId) {
+            var dataItem = grid.dataSource.get(selectedItemUsageId);
+            if (dataItem) {
+                grid.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        }
+
+
+        //if (postedBy) {
+        //    $(".k-grid-btnUpload").hide();
+        //} else {
+        //    $(".k-grid-btnUpload").show();
+        //}
+    }
+
+    function onEditGridItemUsages(e) {
+        e.preventDefault();
+        var selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedItemUsageId = null;
+            e.model.set("PpmpItemId", selectedItemId);
+        } else {
+            selectedItemUsageId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemUsageId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+    // END GRID ITEM USAGE
 </script>
 
 

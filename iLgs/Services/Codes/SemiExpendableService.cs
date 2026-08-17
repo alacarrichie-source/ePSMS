@@ -16,6 +16,7 @@ namespace iLgs.Services.Codes
         IQueryable<SemiExpendableVM> GetAll();
         decimal? GetSPHV();
         decimal? GetSPHV(DateTime? asOfDate);
+        decimal? GetSPHV(int? forYear);
         ValueTask<SemiExpendableVM> GetByIdAsync(Guid id);
         ValueTask<SemiExpendableVM> CreateAsync(SemiExpendableVM model, string user, DateTime date);
         ValueTask<SemiExpendableVM> UpdateAsync(SemiExpendableVM model, string user, DateTime date);
@@ -73,11 +74,10 @@ namespace iLgs.Services.Codes
             return GetSPHV(DateTime.Now);
         }
 
-        public decimal? GetSPHVOld(DateTime? asOfDate)
+        public decimal? GetSPHV(int? forYear)
         {
-            var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
-                "Where MastId in (Select Id From CodeMast Where Code = 'SPHV') " +
-                "and convert(varchar(10), convert(datetime, Code), 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
+            var asOfDate = new DateTime((int)forYear, 12, 31);
+            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_SPHV({0})", asOfDate).FirstOrDefault();
             return data ?? 5000;
         }
 

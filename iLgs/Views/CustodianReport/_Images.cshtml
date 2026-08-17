@@ -13,6 +13,8 @@
                     .Width(30);
         col.Bound(p => p.Description).Width(100);
         col.Bound(p => p.FileName).Width(100);
+        col.Bound(p => p.UpdatedBy).Width(50);
+        col.Bound(p => p.UpdatedDt).Width(50);
         col.Command(command =>
         {
             if (ViewBag.IsView != true) {

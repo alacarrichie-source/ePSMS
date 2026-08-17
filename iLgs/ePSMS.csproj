@@ -593,6 +593,9 @@
     <Compile Include="Models\PPMPItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PPMPItemUsage.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PPMPViewModels.cs" />
     <Compile Include="Models\ProcurementViewModels.cs" />
     <Compile Include="Models\PropertyCardItem.cs">
@@ -1030,6 +1033,7 @@
     <Compile Include="Services\PoAdjustments_\PoAdjustmentService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
     <Compile Include="Services\PPMP_\PPMPItemService.cs" />
+    <Compile Include="Services\PPMP_\PPMPItemUsageService.cs" />
     <Compile Include="Services\PPMP_\PPMPService.cs" />
     <Compile Include="Services\PPMP_\PPMPSharedService.cs" />
     <Compile Include="Services\Procurement_\ProcurementOrderService.cs" />
@@ -4813,6 +4817,8 @@
     <Content Include="Views\AccountCode\Index.cshtml" />
     <Content Include="Views\AccountCode\EditorTemplates\_AccountCodeTemplate.cshtml" />
     <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
+    <Content Include="Views\Ppmp\_ItemUsage.cshtml" />
+    <Content Include="Views\Ppmp\EditorTemplates\_ItemUsageTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

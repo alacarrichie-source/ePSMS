@@ -1,7 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -14,8 +13,9 @@ namespace iLgs.Services.Codes
     public interface IPriceCapService
     {
         IQueryable<PriceCapVM> GetAll();
-        decimal? GetPriceCap(); // cannot make async, because it async is not allowed in the contructor.
+        decimal? GetPriceCap(); // cannot make async, because async is not allowed in the contructor.
         decimal? GetPriceCap(DateTime? asOfDate);
+        decimal? GetPriceCap(int? forYear);
         ValueTask<PriceCapVM> GetByIdAsync(Guid id);
         ValueTask<PriceCapVM> CreateAsync(PriceCapVM model, string user, DateTime date);
         ValueTask<PriceCapVM> UpdateAsync(PriceCapVM model, string user, DateTime date);
@@ -73,11 +73,10 @@ namespace iLgs.Services.Codes
             return GetPriceCap(DateTime.Now);
         }
 
-        public decimal? GetPriceCapOld(DateTime? asOfDate)
+        public decimal? GetPriceCap(int? forYear)
         {
-            var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
-                "Where MastId in (Select Id From CodeMast Where Code = 'PRICE-CAP') " +
-                "and convert(varchar(10), Description, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
+            var asOfDate = new DateTime((int)forYear, 12, 31);
+            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_PriceCap({0})", asOfDate).FirstOrDefault();
             return data ?? 50000;
         }
 

@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.RequestItemUnitGroups = new HashSet<RequestItemUnitGroup>();
             this.RequestItems = new HashSet<RequestItem>();
             this.OrderRequests = new HashSet<OrderRequest>();
+            this.PPMPItemUsages = new HashSet<PPMPItemUsage>();
         }
     
         public System.Guid Id { get; set; }
@@ -55,5 +56,7 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderRequest> OrderRequests { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PPMPItemUsage> PPMPItemUsages { get; set; }
     }
 }

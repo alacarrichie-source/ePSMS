@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.PPMP_;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -32,6 +33,7 @@ namespace iLgs.Services.PurchaseRequest
         private readonly IRequestSharedService _requestSharedService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IExceptionService<RequestItemVM> _vmExceptionService;
+        private readonly IPPMPItemService _ppmpItemService;
 
         public RequestItemService(AppManEntities db)
         {
@@ -39,6 +41,7 @@ namespace iLgs.Services.PurchaseRequest
             _requestSharedService = new RequestSharedService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestItemVM>(propertyName);
             _vmExceptionService = new ExceptionService<RequestItemVM>();
+            _ppmpItemService = new PPMPItemService(_db);
         }
 
         private Expression<Func<RequestItem, RequestItemVM>> Projection()
@@ -102,7 +105,7 @@ namespace iLgs.Services.PurchaseRequest
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
-            model.UpdatedDt = date;            
+            model.UpdatedDt = date;
 
             if (await _db.RequestItems.AnyAsync(a => a.PrId == model.PrId && a.ItemNo == model.ItemNo))
             {
@@ -116,9 +119,72 @@ namespace iLgs.Services.PurchaseRequest
 
             _db.RequestItems.Add(entity);
             await _db.SaveChangesAsync();
+            await SavePpmpItemUsageAsync(model, user, date);
 
             return model;
         });
+
+        public ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
+        {
+            ValidateIfNull(model);
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            if (string.IsNullOrWhiteSpace(model.ItemNo))
+            {
+                model.ItemNo = await NextItemNoAsync(model.PrId);
+            }
+
+            if (await _db.RequestItems.AnyAsync(a => a.PrId == model.PrId && a.ItemNo == model.ItemNo && a.Id != model.Id))
+            {
+                _imex = new InvalidModelException();
+                _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), $"Already Exits.");
+                _imex.ThrowIfContainsErrors();
+            }
+
+            var entity = await _db.RequestItems.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId);
+            await ValidateFieldsAsync(model);
+
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            await _db.SaveChangesAsync();
+            await SavePpmpItemUsageAsync(model, user, date);
+
+            return model;
+        });
+
+        private async Task SavePpmpItemUsageAsync(RequestItemVM model, string user, DateTime date)
+        {
+            var prNo = (await _db.Requests.FirstOrDefaultAsync(f => f.Id == model.PrId)).PrNo;
+            var ppmpItemUsage = await _ppmpItemService.PPMPItemUsage.GetAsync(model.PpmpItemId, model.PrId);
+            if (ppmpItemUsage == null)
+            {                
+                ppmpItemUsage = new PPMPItemUsageVM()
+                {
+                    Id = Guid.NewGuid(),
+                    PpmpItemId = model.PpmpItemId,
+                    PrId = model.PrId,
+                    Type = "PR",
+                    Reference = prNo,
+                    Qty = (int?)model.Qty,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };                
+            }
+            else
+            {
+                ppmpItemUsage.Reference = prNo;
+                ppmpItemUsage.UpdatedBy = user;
+                ppmpItemUsage.UpdatedDt = date;
+            }
+
+            await _ppmpItemService.PPMPItemUsage.SaveAsync(ppmpItemUsage, user, date);
+        }
 
         public ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
@@ -142,37 +208,7 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             return model;
-        });
-
-        public ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatch(async () =>
-        {
-            ValidateIfNull(model);
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            if (string.IsNullOrWhiteSpace(model.ItemNo))
-            {
-                model.ItemNo = await NextItemNoAsync(model.PrId);
-            }            
-
-            if (await _db.RequestItems.AnyAsync(a => a.PrId == model.PrId && a.ItemNo == model.ItemNo && a.Id != model.Id))
-            {
-                _imex = new InvalidModelException();
-                _imex.UpsertDataList(_getDisplayName(nameof(model.ItemNo)), $"Already Exits.");
-                _imex.ThrowIfContainsErrors();
-            }
-
-            var entity = await _db.RequestItems.FindAsync(model.Id);
-            ValidateRecord(entity, model.Id);
-            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId);
-            await ValidateFieldsAsync(model);
-
-            MapModelToEntityFields(entity, model, Mode.EDIT);
-
-            await _db.SaveChangesAsync();
-            return model;
-        });
+        });        
 
         private void MapModelToEntityFields(RequestItem entity, RequestItemVM model, Mode mode)
         {
@@ -225,7 +261,7 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     count++;
 
-                    var ppmpItem = await _db.PPMPItems.FindAsync(ppmpItemId);
+                    var ppmpItem = await _ppmpItemService.GetByIdAsync(ppmpItemId);
 
                     var requestItem = new RequestItemVM()
                     {
@@ -234,12 +270,12 @@ namespace iLgs.Services.PurchaseRequest
                         Description = ppmpItem.Description,
                         PpmpCode = ppmpItem.Code,
                         PpmpItemId = ppmpItem.Id,
-                        Qty = ppmpItem.Qty,
+                        Qty = ppmpItem.QtyBal,
                         Unit = ppmpItem.Unit,
                         UnitCost = ppmpItem.UnitCost,
-                        TotalCost = ppmpItem.Qty * ppmpItem.UnitCost,
+                        TotalCost = ppmpItem.QtyBal * ppmpItem.UnitCost,
                     };
-                    await CreateAsync(requestItem, user, date);
+                    await CreateAsync(requestItem, user, date); // PPMPItemUsage creation is included inside                    
                 }
             }
 

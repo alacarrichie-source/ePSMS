@@ -533,11 +533,12 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "AIR No.")]
-        public string AirNo { get; set; }
+        public string AirNo { get; set; } // concat value due to 1 PO is to many AIRs
 
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "AIR Date")]
-        public Nullable<System.DateTime> AirDate { get; set; }
+        //public Nullable<System.DateTime> AirDate { get; set; }
+        public string AirDate { get; set; } // concat value due to 1 PO is to many AIRs
 
         public Nullable<System.Guid> DeptId { get; set; }
 

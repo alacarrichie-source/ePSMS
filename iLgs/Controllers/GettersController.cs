@@ -716,7 +716,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }).OrderBy(o => o.PoNo), JsonRequestBehavior.AllowGet);
         }
 
         public async Task<JsonResult> GetPoNosWithoutPar(Guid? parId, string text)

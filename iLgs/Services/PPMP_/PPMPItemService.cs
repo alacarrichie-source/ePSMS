@@ -27,6 +27,8 @@ namespace iLgs.Services.PPMP_
 
         ValueTask<PPMPUploadVM> SaveExcelAsync(IEnumerable<HttpPostedFileBase> files, PPMPUploadVM model, string user, DateTime date);
 
+        IPPMPItemUsageService PPMPItemUsage { get; }
+
     }
 
     internal class PPMPItemService : BaseValidator, IPPMPItemService
@@ -38,6 +40,8 @@ namespace iLgs.Services.PPMP_
         private readonly IPPMPSharedService _ppmpSharedService;
         private readonly IExceptionService<PPMPUploadVM> _uploadExceptionService = new ExceptionService<PPMPUploadVM>();
 
+        private readonly IPPMPItemUsageService _ppmpItemUsageService;
+
         public PPMPItemService(AppManEntities db)
         {
             _db = db;
@@ -45,7 +49,10 @@ namespace iLgs.Services.PPMP_
             _codextnService = new CodextnService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<PPMPItemVM>(propertyName);
             _ppmpSharedService = new PPMPSharedService(_db);
+            _ppmpItemUsageService = new PPMPItemUsageService(_db);
         }
+
+        public IPPMPItemUsageService PPMPItemUsage => _ppmpItemUsageService;
 
         private Expression<Func<PPMPItem, PPMPItemVM>> Projection()
         {
@@ -77,7 +84,9 @@ namespace iLgs.Services.PPMP_
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 UpdatedBy = s.UpdatedBy,
-                UpdatedDt = s.UpdatedDt
+                UpdatedDt = s.UpdatedDt,
+                QtyUsed = s.PPMPItemUsages.Sum(x => x.Qty),
+                QtyBal = s.Qty - (s.PPMPItemUsages.Sum(x => x.Qty) ?? 0)
             };
         }
 
@@ -105,7 +114,7 @@ namespace iLgs.Services.PPMP_
 
             var data = _db.PPMPItems.AsNoTracking().Where(w => w.PPMP.ForYear == request.InsertedDt.Value.Year 
                 && w.PPMP.DeptId == request.DeptId && w.Type == "S" && !w.RequestItems.Any())
-                .Select(Projection());
+                .Select(Projection()).Where(w => w.QtyBal > 0);
             return data;
         });
 

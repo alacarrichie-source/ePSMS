@@ -1,6 +1,8 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using System;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace iLgs.Services.PPMP_
@@ -9,6 +11,7 @@ namespace iLgs.Services.PPMP_
     {
         Task<bool> IsPostedAsync(PPMP ppmp);
         Task<bool> IsPostedAsync(PPMPItem ppmpItem);
+        Task<bool> IsPostedAsync(PPMPItemUsage ppmpItemUsage);
         Task<bool> IsPostedAsync(Guid ppmpId);
         //Task<bool> GetAnyRequestItemAsync(Guid id);
         //Task<bool> GetAnyPpmpItemAsync(Guid id);
@@ -40,6 +43,12 @@ namespace iLgs.Services.PPMP_
         {
             var ppmpId = (Guid)ppmpItem.PpmpId;
             return await IsPostedAsync(ppmpId);
+        }
+
+        public async Task<bool> IsPostedAsync(PPMPItemUsage ppmpItemUsage)
+        {            
+            var ppmpId = await _db.PPMPItemUsages.Where(w => w.Id == ppmpItemUsage.Id).Select(s => s.PPMPItem.PpmpId).FirstOrDefaultAsync();
+            return await IsPostedAsync((Guid)ppmpId);
         }
 
         public async Task ValidateStatusAsync(Guid ppmpId)

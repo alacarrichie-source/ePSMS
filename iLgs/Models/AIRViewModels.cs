@@ -93,6 +93,7 @@ namespace iLgs.Models
         public string Department { get; set; }
 
         public string Mode { get; set; }
+        public int AirGroup { get; set; }
     }
 
     public class AIRItemVM

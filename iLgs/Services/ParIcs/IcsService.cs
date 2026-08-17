@@ -115,9 +115,19 @@ namespace iLgs.Services.ParIcs
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
+        private decimal GetPriceCap(int? forYear)
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap(forYear)).Value;
+        }
+
         private decimal GetSPHV()
         {
             return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV()).Value;
+        }
+
+        private decimal GetSPHV(int? forYear)
+        {
+            return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV(forYear)).Value;
         }
 
         public IQueryable<IcsVM> GetAll()
@@ -166,16 +176,16 @@ namespace iLgs.Services.ParIcs
         public IQueryable<ParIcsPOGroupVM> GetAllPo()
         {
             var priceCap = GetPriceCap();
-            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo_Old 'I', {0}", priceCap).AsQueryable();
-
+            //var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo_Old 'I', {0}", priceCap).AsQueryable();
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'I', {0}", priceCap).AsQueryable();
             return data;
         }
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo(int? forYear)
         {
-            var priceCap = GetPriceCap();
-            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo_Old 'I', {0}, {1}", priceCap, forYear).AsQueryable();
-
+            var priceCap = GetPriceCap(forYear);
+            //var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo_Old 'I', {0}, {1}", priceCap, forYear).AsQueryable();
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'I', {0}, {1}", priceCap, forYear).AsQueryable();
             return data;
         }
 

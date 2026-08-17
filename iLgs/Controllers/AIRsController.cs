@@ -323,7 +323,7 @@ namespace iLgs.Controllers
             if (airId != null)
             {
                 model = await _airService.GetVmByIdAsync((Guid)airId);
-                model.Mode = "E";
+                model.Mode = "E";                
             }
             else
             {
@@ -331,6 +331,7 @@ namespace iLgs.Controllers
                 model.Id = Guid.NewGuid();
                 //model.AIRDate = DateTime.Now;
             }
+            model.AirGroup = airGroup;
             ViewData["airId"] = airId;
             ViewBag.AirGroup = airGroup;
             return PartialView(model);
