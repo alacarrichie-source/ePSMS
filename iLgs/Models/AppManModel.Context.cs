@@ -121,13 +121,11 @@ namespace iLgs.Models
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
-        public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<SubAccountView> SubAccountViews { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<OrderItemRequest> OrderItemRequests { get; set; }
         public virtual DbSet<OrderRequest> OrderRequests { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<PPMP> PPMPs { get; set; }
@@ -137,9 +135,11 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<PPMPItemUsage> PPMPItemUsages { get; set; }
+        public virtual DbSet<RISs> RISses { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<OrderItemRequest> OrderItemRequests { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

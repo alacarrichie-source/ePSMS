@@ -1171,7 +1171,7 @@ namespace iLgs.Services.PurchaseOrder
                 throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
             }
 
-            var riss = await _db.RISses.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+            var riss = await _db.RISses.Where(w => w.OrderRequest.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
             foreach (var ris in riss)
             {
                 throw new RecordRelationshipException(string.Format("RIS Number {0} of this PO is already posted.", ris.RisNo));

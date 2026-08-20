@@ -36,7 +36,6 @@ namespace iLgs.Models
             this.PsCardItemTransferIssuances1 = new HashSet<PsCardItemTransferIssuance>();
             this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
             this.Requests = new HashSet<Request>();
-            this.RISses = new HashSet<RISs>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.RPCIs = new HashSet<RPCI>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
@@ -100,8 +99,6 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Request> Requests { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RISs> RISses { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

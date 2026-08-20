@@ -19,16 +19,16 @@ namespace iLgs.Services.AllFields
         ValueTask<AllField> GetByIdAsync(Guid id);
         ValueTask<AllField> GetByItemExtnIdAsync(Guid id);
         ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
-        ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
+        //ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
-        ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
+        //ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
 
         Task<string> GetDescriptionAsync(AllField model, Guid? itemCodeId);
-        Task<string> GetRisDescriptionAsync(RisItemEntryVM model);
+        //Task<string> GetRisDescriptionAsync(RisItemEntryVM model);
         Task<string> GetCardStockNoAsync(PsCardVM model);
-        Task<string> GetRisStockNoAsync(RisItemEntryVM model);
+        //Task<string> GetRisStockNoAsync(RisItemEntryVM model);
         Task<string> GetOrderStockNoAsync(OrderItemVM model);
         string GetCustodianStockNo(CustodianReportItem model);
         Task<string> GetCustodianStockNoAsync(CustodianReportItem model);
@@ -37,7 +37,7 @@ namespace iLgs.Services.AllFields
         string GetOrderPsNoDisplay(OrderItemVM model);
         Task ValidateStockCardAllFieldAsync(StockCardVM model);
         Task ValidatePropertyCardAllFieldAsync(PropertyCardVM model);
-        Task ValidateRisAllFieldAsync(RisItemEntryVM model);
+        //Task ValidateRisAllFieldAsync(RisItemEntryVM model);
         string GetStockNo(AllField af, string itemTypeCode, string itemCode);
         bool IsBrandRequired(Category c);
         //bool IsNoIcs(Guid? itemCodeId);
@@ -138,17 +138,17 @@ namespace iLgs.Services.AllFields
             ex.ThrowIfContainsErrors();
         }
 
-        public async Task ValidateRisAllFieldAsync(RisItemEntryVM model)
-        {
-            var ex = new InvalidModelException();
-            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+        //public async Task ValidateRisAllFieldAsync(RisItemEntryVM model)
+        //{
+        //    var ex = new InvalidModelException();
+        //    //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+        //    //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+        //    string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
-            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+        //    _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
             
-            ex.ThrowIfContainsErrors();
-        }
+        //    ex.ThrowIfContainsErrors();
+        //}
 
         public async Task ValidateOrderAllFieldAsync(OrderItemVM model)
         {
@@ -174,18 +174,18 @@ namespace iLgs.Services.AllFields
             return model.AllField;
         });
 
-        public ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            if (_db.AllFields.Any(a => a.Id == model.Id))
-            {
-                throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
-            }
+        //public ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        //{
+        //    if (_db.AllFields.Any(a => a.Id == model.Id))
+        //    {
+        //        throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
+        //    }
 
-            await ValidateRisAllFieldAsync(model);
-            await CreateAsync(model.AllField, user, date);
+        //    await ValidateRisAllFieldAsync(model);
+        //    await CreateAsync(model.AllField, user, date);
 
-            return model.AllField;
-        });
+        //    return model.AllField;
+        //});
 
         private async ValueTask CreateAsync(AllField model, string user, DateTime date)
         {
@@ -252,12 +252,12 @@ namespace iLgs.Services.AllFields
             return model.AllField;
         });
 
-        public ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            await ValidateRisAllFieldAsync(model);
-            await UpdateAsync(model.AllField, user, date);
-            return model.AllField;
-        });
+        //public ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        //{
+        //    await ValidateRisAllFieldAsync(model);
+        //    await UpdateAsync(model.AllField, user, date);
+        //    return model.AllField;
+        //});
 
         public ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
@@ -516,168 +516,168 @@ namespace iLgs.Services.AllFields
             return string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
         }
 
-        public async Task<string> GetRisDescriptionAsync(RisItemEntryVM model)
-        {
-            string description = "";
-            var af = model.AllField;
-            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+        //public async Task<string> GetRisDescriptionAsync(RisItemEntryVM model)
+        //{
+        //    string description = "";
+        //    var af = model.AllField;
+        //    //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+        //    //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+        //    string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
-            if (partialView == "_FieldLand")
-            {
-                description += af.Area.ToString() + "sqm";
-            }
-            else if (partialView.Contains("FieldBrand"))
-            {
-                if (partialView == "_FieldBrand")
-                {
-                    description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "") +
-                        (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
-                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
-                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
-                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
-                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
-                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
-                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");                        
-                }
-                else if (partialView == "_FieldBrand_A")
-                {
-                    description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
-                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
-                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
-                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
-                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
-                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
-                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");                        
-                }
-                else if (partialView == "_FieldBrand_B")
-                {
-                    description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
-                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
-                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");
-                }
-            }
-            else if (partialView == "_FieldDrugs")
-            {
-                description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
-                                (!af.DosageStrength.IsNullOrWhiteSpaceX() ? $" {af.DosageStrength}" : "") +
-                                (!af.DosageForm.IsNullOrWhiteSpaceX() ? $" {af.DosageForm}" : "") +
-                                (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
-                                (!af.Others.IsNullOrWhiteSpaceX() ? $" {af.Others}" : "") +
-                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
-            }
-            else if (partialView == "_FieldAlcohol")
-            {
-                description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
-                                (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
-                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
-            }
-            else if (partialView == "_FieldMultiple")
-            {
-                description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
-            }
-            else if (partialView == "_FieldMultiple_A")
-            {
-                description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
-            }
-            else if (partialView == "_FieldSerial")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
-                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
-                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "") +
-                                (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
-                        (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
-                        (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
-                        (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
-                        (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
-                        (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
-                        (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "") +
-                        (!af.Type.IsNullOrWhiteSpaceX() ? $" {af.Type}" : "");
-            }
-            else if (partialView == "_FieldSerial_A")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "");                               
-            }
-            else if (partialView == "_FieldSerial_B")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
-                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
-                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");                                
-            }
-            else if (partialView == "_FieldSerial_C")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
-                               (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
-                                (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "") +
-                                (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");                                                       
-            }
-            else if (partialView == "_FieldSerial_D")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
-                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
-                               (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "");                                
-            }
-            else if (partialView == "_FieldSerial_E")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
-                               (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
-                                (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "");                                
-            }
-            else if (partialView == "_FieldSerial_F")
-            {
-                description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
-                               (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "");                               
-            }
+        //    if (partialView == "_FieldLand")
+        //    {
+        //        description += af.Area.ToString() + "sqm";
+        //    }
+        //    else if (partialView.Contains("FieldBrand"))
+        //    {
+        //        if (partialView == "_FieldBrand")
+        //        {
+        //            description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "") +
+        //                (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
+        //                (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+        //                (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+        //                (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+        //                (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+        //                (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+        //                (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");                        
+        //        }
+        //        else if (partialView == "_FieldBrand_A")
+        //        {
+        //            description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
+        //                (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+        //                (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+        //                (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+        //                (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+        //                (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+        //                (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");                        
+        //        }
+        //        else if (partialView == "_FieldBrand_B")
+        //        {
+        //            description = (!af.Model_.IsNullOrWhiteSpaceX() ? $"{af.Model_}" : "") +
+        //                (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+        //                (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "");
+        //        }
+        //    }
+        //    else if (partialView == "_FieldDrugs")
+        //    {
+        //        description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
+        //                        (!af.DosageStrength.IsNullOrWhiteSpaceX() ? $" {af.DosageStrength}" : "") +
+        //                        (!af.DosageForm.IsNullOrWhiteSpaceX() ? $" {af.DosageForm}" : "") +
+        //                        (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
+        //                        (!af.Others.IsNullOrWhiteSpaceX() ? $" {af.Others}" : "") +
+        //                        (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+        //    }
+        //    else if (partialView == "_FieldAlcohol")
+        //    {
+        //        description = (!af.GenericName.IsNullOrWhiteSpaceX() ? $"{af.GenericName}" : "") +
+        //                        (!af.DosageVolume.IsNullOrWhiteSpaceX() ? $" {af.DosageVolume}" : "") +
+        //                        (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+        //    }
+        //    else if (partialView == "_FieldMultiple")
+        //    {
+        //        description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
+        //    }
+        //    else if (partialView == "_FieldMultiple_A")
+        //    {
+        //        description = (!af.Multipliers.HasValue ? $"{af.Multipliers}'s" : "");
+        //    }
+        //    else if (partialView == "_FieldSerial")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+        //                       (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+        //                        (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "") +
+        //                        (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "") +
+        //                (!af.Dimension.IsNullOrWhiteSpaceX() ? $" {af.Dimension}" : "") +
+        //                (!af.Size.IsNullOrWhiteSpaceX() ? $" {af.Size}" : "") +
+        //                (!af.Weight.IsNullOrWhiteSpaceX() ? $" {af.Weight}" : "") +
+        //                (!af.Materials.IsNullOrWhiteSpaceX() ? $" {af.Materials}" : "") +
+        //                (!af.Capacity.IsNullOrWhiteSpaceX() ? $" {af.Capacity}" : "") +
+        //                (!af.Color.IsNullOrWhiteSpaceX() ? $" {af.Color}" : "") +
+        //                (!af.Type.IsNullOrWhiteSpaceX() ? $" {af.Type}" : "");
+        //    }
+        //    else if (partialView == "_FieldSerial_A")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "");                               
+        //    }
+        //    else if (partialView == "_FieldSerial_B")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+        //                       (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+        //                        (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");                                
+        //    }
+        //    else if (partialView == "_FieldSerial_C")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
+        //                       (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
+        //                        (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "") +
+        //                        (!af.Multipliers.HasValue ? $" {af.Multipliers}'s" : "");                                                       
+        //    }
+        //    else if (partialView == "_FieldSerial_D")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+        //                       (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "") +
+        //                       (!af.Model_.IsNullOrWhiteSpaceX() ? $" {af.Model_}" : "");                                
+        //    }
+        //    else if (partialView == "_FieldSerial_E")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.PlateNo}" : "") +
+        //                       (!af.BodyNo.IsNullOrWhiteSpaceX() ? $" {af.BodyNo}" : "") +
+        //                        (!af.MVFileNo.IsNullOrWhiteSpaceX() ? $" {af.MVFileNo}" : "");                                
+        //    }
+        //    else if (partialView == "_FieldSerial_F")
+        //    {
+        //        description = (!af.SerialNo.IsNullOrWhiteSpaceX() ? $"{af.SerialNo}" : "") +
+        //                       (!af.PropNo.IsNullOrWhiteSpaceX() ? $" {af.PropNo}" : "");                               
+        //    }
 
-            return string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
-        }
+        //    return string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
+        //}
 
-        public string GetRisDescriptionOld(RisItemEntryVM model)
-        {
-            string description = "";
-            var af = model.AllField;
-            var group = AllFieldsUtil.GetCategoryGroup(model.PsType, model.ItemCode);
-            if (group == CategoryGroup.LAND)
-            {
-                description += af.Area.ToString() + "sqm";
-            }
-            else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            }
-            else if (group == CategoryGroup.DRUGS)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
-                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
-            }
-            else if (group == CategoryGroup.SERIAL
-                || group == CategoryGroup.SERIAL_A
-                || group == CategoryGroup.SERIAL_B
-                || group == CategoryGroup.SERIAL_C
-                || group == CategoryGroup.SERIAL_D)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            }
+        //public string GetRisDescriptionOld(RisItemEntryVM model)
+        //{
+        //    string description = "";
+        //    var af = model.AllField;
+        //    var group = AllFieldsUtil.GetCategoryGroup(model.PsType, model.ItemCode);
+        //    if (group == CategoryGroup.LAND)
+        //    {
+        //        description += af.Area.ToString() + "sqm";
+        //    }
+        //    else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
+        //    {
+        //        description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
+        //    }
+        //    else if (group == CategoryGroup.DRUGS)
+        //    {
+        //        description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
+        //                        (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
+        //                        (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
+        //                        (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
+        //                        (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
+        //                        (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+        //    }
+        //    else if (group == CategoryGroup.SERIAL
+        //        || group == CategoryGroup.SERIAL_A
+        //        || group == CategoryGroup.SERIAL_B
+        //        || group == CategoryGroup.SERIAL_C
+        //        || group == CategoryGroup.SERIAL_D)
+        //    {
+        //        description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
+        //                       (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
+        //    }
 
-            return description ?? "";
-        }
+        //    return description ?? "";
+        //}
 
         public bool IsNoIcs(Guid? itemCodeId)
         {
@@ -685,19 +685,19 @@ namespace iLgs.Services.AllFields
             //return _db.ItemCodes.Where(w => w.Id == itemCodeId && (w.IsConsumable == "Y" || w.IsIncorporated == "Y" || w.ForDistribution == "Y")).Any();
         }
 
-        public async Task<string> GetRisStockNoAsync(RisItemEntryVM model)
-        {
-            model.AllField = ChangeAllFieldCase(model.AllField);
-            string stockNo = model.ItemCode.Trim();
+        //public async Task<string> GetRisStockNoAsync(RisItemEntryVM model)
+        //{
+        //    model.AllField = ChangeAllFieldCase(model.AllField);
+        //    string stockNo = model.ItemCode.Trim();
 
-            //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
-            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+        //    //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+        //    //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+        //    string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
-            stockNo += GetPartialViewStockNo(model.AllField, partialView);
+        //    stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
-            return stockNo ?? "";
-        }
+        //    return stockNo ?? "";
+        //}
 
         public async Task<string> GetOrderStockNoAsync(OrderItemVM model)
         {

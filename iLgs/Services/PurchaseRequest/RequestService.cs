@@ -340,6 +340,12 @@ namespace iLgs.Services.PurchaseRequest
                     throw new InvalidValueException("Approved by is Required.");
                 }
 
+                var ppmpItemUsages = await _db.PPMPItemUsages.Where(w => w.PrId == requestId && w.Type != "PR").ToListAsync();
+                foreach(var ppmpItemUsage in ppmpItemUsages)
+                {
+                    ppmpItemUsage.Type = "PR";
+                    ppmpItemUsage.Reference = entity.PrNo;                    
+                }
 
                 //var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems
                 //    .AsNoTracking()
@@ -408,8 +414,8 @@ namespace iLgs.Services.PurchaseRequest
 
                 entity.PostedBy = user;
                 entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+                //entity.UpdatedBy = user;
+                //entity.UpdatedDt = date;
 
                 await _db.SaveChangesAsync();
             }
@@ -427,8 +433,8 @@ namespace iLgs.Services.PurchaseRequest
 
                 entity.PostedBy = null;
                 entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+                //entity.UpdatedBy = user;
+                //entity.UpdatedDt = date;
 
                 await _db.SaveChangesAsync();
             }
@@ -456,8 +462,8 @@ namespace iLgs.Services.PurchaseRequest
 
                 entity.SubmittedBy = user;
                 entity.SubmittedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+                //entity.UpdatedBy = user;
+                //entity.UpdatedDt = date;
 
                 await _db.SaveChangesAsync();
             }
@@ -475,8 +481,8 @@ namespace iLgs.Services.PurchaseRequest
 
                 entity.SubmittedBy = null;
                 entity.SubmittedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+                //entity.UpdatedBy = user;
+                //entity.UpdatedDt = date;
 
                 await _db.SaveChangesAsync();
             }

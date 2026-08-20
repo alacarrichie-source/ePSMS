@@ -34,7 +34,7 @@ namespace iLgs.Services.PoIssuance
         private decimal? _priceCap;
         private readonly AppManEntities _db;
         private readonly IUserService _userService;
-        private readonly IExceptionService<RisIssuedVM> _vmExceptionService;
+        //private readonly IExceptionService<RisIssuedVM> _vmExceptionService;
         private readonly IExceptionService<PsCardItemVM> _psCardItemVMExceptionService;
         private readonly IExceptionService<PsCardItemTransferVM> _psCardItemTransferVMExceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
@@ -47,7 +47,7 @@ namespace iLgs.Services.PoIssuance
         {
             _db = db;
             _userService = new UserService(_db);
-            _vmExceptionService = new ExceptionService<RisIssuedVM>();
+            //_vmExceptionService = new ExceptionService<RisIssuedVM>();
             _psCardItemVMExceptionService = new ExceptionService<PsCardItemVM>();
             _psCardItemTransferVMExceptionService = new ExceptionService<PsCardItemTransferVM>();
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);

@@ -16,9 +16,9 @@ namespace iLgs.Services.Validators
 {
     public interface IRisItemValidator
     {
-        Task ValidateOnCreateAsync(RisItemEntryVM model);
-        Task ValidateOnUpdateAsync(RisItemEntryVM model);
-        Task ValidateOnDeleteAsync(RisItemEntryVM model);        
+        Task ValidateOnCreateAsync(RisItemVM model);
+        Task ValidateOnUpdateAsync(RisItemVM model);
+        Task ValidateOnDeleteAsync(RisItemVM model);        
     }
 
     public class RisItemValidator: BaseValidator, IRisItemValidator
@@ -33,7 +33,7 @@ namespace iLgs.Services.Validators
         public RisItemValidator(AppManEntities db)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
+            _getDisplayName = propertyName => Utility.GetDisplayName<RisItemVM>(propertyName);
             _codextnService = new CodextnService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _risSharedService = new RisSharedService(_db);
@@ -47,21 +47,21 @@ namespace iLgs.Services.Validators
         //    IAllFieldsValidator allFieldsValidator)
         //{
         //    _db = db;
-        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
+        //    _getDisplayName = propertyName => Utility.GetDisplayName<RisItemVM>(propertyName);
         //    _codextnService = codextnService;
         //    _itemCodeService = itemCodeService;
         //    _risService = risService;
         //    _allFieldsValidator = allFieldsValidator;
         //}
 
-        public async Task ValidateOnCreateAsync(RisItemEntryVM model)
+        public async Task ValidateOnCreateAsync(RisItemVM model)
         {
             ValidateModel(model);
             ValidateIfPosted((Guid)model.RisId, Mode.ADD);
             await ValidateFieldsOnCreateUpdateAsync(model);
         }
 
-        public async Task ValidateOnUpdateAsync(RisItemEntryVM model)
+        public async Task ValidateOnUpdateAsync(RisItemVM model)
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
@@ -69,7 +69,7 @@ namespace iLgs.Services.Validators
             await ValidateFieldsOnCreateUpdateAsync(model);
         }
 
-        public async Task ValidateOnDeleteAsync(RisItemEntryVM model)
+        public async Task ValidateOnDeleteAsync(RisItemVM model)
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
@@ -87,13 +87,13 @@ namespace iLgs.Services.Validators
             }
         }
 
-        public async Task ValidateFieldsOnCreateUpdateAsync(RisItemEntryVM model)
+        public async Task ValidateFieldsOnCreateUpdateAsync(RisItemVM model)
         {
             var ex = new InvalidModelException();
             //var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             //string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
-            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+            //_allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
 
             //_allFieldsValidator.ValidateAllFields(model.AllField, model.PsType, model.ItemCode, ex);
             if (!model.QtyRequest.HasValue || model.QtyRequest == 0)
@@ -101,17 +101,17 @@ namespace iLgs.Services.Validators
                 ex.UpsertDataList(_getDisplayName(nameof(model.QtyRequest)), "Field is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(model.Unit))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
-                }
-            }
+            //if (string.IsNullOrWhiteSpace(model.Unit))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
+            //    }
+            //}
             
             ex.ThrowIfContainsErrors();
         }        
@@ -124,7 +124,7 @@ namespace iLgs.Services.Validators
             }
         }
 
-        private static void ValidateModel(RisItemEntryVM model)
+        private static void ValidateModel(RisItemVM model)
         {
             if (model is null)
             {

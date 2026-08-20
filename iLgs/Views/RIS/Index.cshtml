@@ -14,6 +14,7 @@
         col.Bound(c => c.RisDate).Width(50);
         col.Bound(c => c.PoNo).Width(70);
         col.Bound(c => c.PoDate).Width(50);
+        col.Bound(c => c.PrNo).Width(70);
         col.Bound(c => c.Office).Width(70);
         //col.Bound(c => c.FPP).Width(70);
         col.Bound(c => c.RequestedBy).Width(70);
@@ -420,7 +421,7 @@
         if (e.model.isNew()) {
             selectedId = null;
             var row = e.sender.tbody.find("tr:first");
-            this.select(row);            
+            this.select(row);
 
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
@@ -447,10 +448,20 @@
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            var combo = $("#OrderId").data("kendoMultiColumnComboBox");
-            if (combo) {
-                combo.enable(false);
-            }   
+            //var combo = $("#OrderId").data("kendoMultiColumnComboBox");
+            //if (combo) {
+            //    combo.enable(false);
+            //}
+        }
+
+        var combo = $("#OrderRequestId").data("kendoMultiColumnComboBox");
+        if (combo) {
+            //combo.enable(false);
+            // Refresh PR Nos, without this the DataPrNoList returns Empty and not actual value
+            //combo.dataSource.read(DataOrderRequestId());
+            combo.dataSource.read(DataOrderRequestId()).then(function () {
+                combo.value(e.model.PoNo);
+            });
         }
     }
 
@@ -469,7 +480,7 @@
         selectedGrid.editRow(dataItem);
     }
 
-    function onGridDeleteClick(e) {
+    function onGridDeleteClickOld(e) {
         e.preventDefault();
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
@@ -477,10 +488,35 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         selectedGrid.removeRow(tr);
+        //selectedGrid.dataSource.sync();
     }
 
-    function onRequestEnd(e) {
+    function onGridDeleteClick(e) {
         e.preventDefault();
+
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+
+        // Select the row first
+        selectedGrid.select(tr);
+
+        // Allow Kendo/browser to visually update the selection
+        setTimeout(function () {
+
+            if (!confirm("Are you sure you want to delete this record?")) {
+                return;
+            }
+
+            selectedGrid.dataSource.remove(dataItem);
+            selectedGrid.dataSource.sync();
+
+        }, 0);        
+    }
+
+    function onRequestEndOld(e) {
+        //e.preventDefault();
+        alert(e.type);
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 selectedGrid.dataSource.read();
@@ -507,10 +543,39 @@
                             grid.expandRow(row);
                         }
                     });
-
-                    //RisItem("A", null, null);
                 }
             }
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.response && e.response.Errors) {
+            return;
+        }
+
+        if (e.type === "create") {
+
+            var responseData = e.response;
+            var newRecord = responseData.Data[0];
+            selectedId = newRecord.Id;
+
+            var grid = $("#grid").data("kendoGrid");
+
+            grid.dataSource.read().then(function () {
+
+                var dataItem = grid.dataSource.get(selectedId);
+
+                if (dataItem) {
+                    var row = grid.tbody.find(
+                        "tr[data-uid='" + dataItem.uid + "']"
+                    );
+
+                    grid.expandRow(row);
+                }
+            });
+        }
+        else if (e.type === "destroy" || e.type === "update") {
+            selectedGrid.dataSource.read();
         }
     }
 
@@ -631,10 +696,10 @@
         }
     }
 
-    function DataOrderId() {
-        var text = $("#OrderId").data("kendoMultiColumnComboBox").text();
+    function DataOrderRequestId() {
+        var text = $("#OrderRequestId").data("kendoMultiColumnComboBox").text();
         if (text == null || text == "") {
-            text = $("#OrderId").data("kendoMultiColumnComboBox").value();
+            text = $("#OrderRequestId").data("kendoMultiColumnComboBox").value();
         }
         return {
             risId: selectedId,
@@ -642,32 +707,37 @@
         };
     }
 
-    function onSelectOrderId(e) {
+    function onSelectOrderRequestId(e) {
         var dataItem = this.dataItem(e.item.index());
-        var poDate = kendo.parseDate(dataItem.PoDate);
+        //var poDate = kendo.parseDate(dataItem.PoDate);
+        var poDate = kendo.toString(kendo.parseDate(dataItem.PoDate), 'MM/dd/yyyy')
 
-        $("#PoNo").val(dataItem.PoNo).trigger("change");
+        //$("#PoNo").val(dataItem.PoNo).trigger("change");
         $("#PoDate").val(poDate).trigger("change");
         $("#Fund").val(dataItem.Fund).trigger("change");
         $("#FPP").val(dataItem.FPP).trigger("change");
-        $("#OfficeId").val(dataItem.DeptId);
-        $("#OfficeDesc").val(dataItem.DeptDesc).trigger("change");
+        //$("#OfficeId").val(dataItem.DeptId);
+        //$("#OfficeDesc").val(dataItem.DeptDesc).trigger("change");
         $("#Office").val(dataItem.Department).trigger("change");
-        $("#Section").val(dataItem.Section).trigger("change");
+        $("#PrNo").val(dataItem.PrNo).trigger("change");
         $("#Purpose").val(dataItem.Purpose).trigger("change");
-        //$("#RequestedBy").val(dataItem.ApprovedBy).trigger("change");
-        //$("#RequestedDesig").val(dataItem.ApprovedByDesignation).trigger("change");
 
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set("PoDate", poDate);
-        model.set("PoNo", dataItem.PoNo);
-        model.set("Fund", dataItem.Fund);
-        model.set("FPP", dataItem.FPP);
-        model.set("OfficeId", dataItem.DeptId);
-        model.set("OfficeDesc", dataItem.DeptDesc);
-        model.set("Office", dataItem.Department);
-        model.set("Section", dataItem.Section);
-        model.set("Purpose", dataItem.Purpose);
+
+        $("#RequestedBy").val(dataItem.RequestedBy).trigger("change");
+        $("#RequestedByDesignation").val(dataItem.RequestedDesig).trigger("change");
+        $("#ApprovedBy").val(dataItem.ApprovedBy).trigger("change");
+        $("#ApprovedByDesignation").val(dataItem.ApprovedDesig).trigger("change");
+
+        //var model = $("#grid").data().kendoGrid.editable.options.model;
+        //model.set("PoDate", poDate);
+        //model.set("PoNo", dataItem.PoNo);
+        //model.set("Fund", dataItem.Fund);
+        //model.set("FPP", dataItem.FPP);
+        //model.set("OfficeId", dataItem.DeptId);
+        //model.set("OfficeDesc", dataItem.DeptDesc);
+        //model.set("Office", dataItem.Department);
+        //model.set("Section", dataItem.Section);
+        //model.set("Purpose", dataItem.Purpose);
     }
 
     function DataPsCodeId() {

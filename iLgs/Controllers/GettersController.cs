@@ -549,7 +549,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisNos(string text)
         {
 
-            var model = _db.RISses.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            var model = _db.RISses.Include(i => i.OrderRequest.Request).Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -561,11 +561,11 @@ namespace iLgs.Controllers
                 Id = c.Id,
                 RisNo = c.RisNo,
                 RisDate = c.RisDate,
-                Department = c.Office,
-                Section = c.Division,
-                Fund = c.Fund,
-                Purpose = c.Purpose,
-                FPP = c.FPP,
+                Department = c.OrderRequest.Request.Department,
+                //Section = c.Division,
+                Fund = c.OrderRequest.Request.Fund,
+                Purpose = c.OrderRequest.Request.Purpose,
+                FPP = c.OrderRequest.Request.FPP,
                 ApprovedBy = c.ApprovedBy,
                 ApprovedByDesignation = c.ApprovedByDesignation
             }), JsonRequestBehavior.AllowGet);
@@ -754,7 +754,7 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Department, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<JsonResult> GetPoNosWithoutRis(Guid? risId, string text)
+        public async Task<JsonResult> GetPoNosWithoutRisOld(Guid? risId, string text)
         {
             risId = risId ?? Guid.Empty;
             var userId = User.Identity.GetUserId();
@@ -763,12 +763,12 @@ namespace iLgs.Controllers
             // get all orders with air
             if (IsAdmin)
             {
-                model = _db.Orders.Include(i => i.RISses).Where(w => w.PostedBy != null 
+                model = _db.Orders.Where(w => w.PostedBy != null 
                     && w.AIRs.Any(a => a.OrderId == w.Id && a.PostedBy != null)).AsNoTracking().AsQueryable();
             }
             else
             {
-                model = _db.Orders.Include(i => i.RISses).Where(w => w.PostedBy != null 
+                model = _db.Orders.Where(w => w.PostedBy != null 
                     && w.OrderItems.Any(a =>
                         a.OrderItemRequests.Any(b =>
                             b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
@@ -777,11 +777,11 @@ namespace iLgs.Controllers
 
             if (risId == Guid.Empty)
             {
-                model = model.Where(w => !w.RISses.Any());
+                model = model.Where(w => w.OrderRequests.Any(a => !a.RISses.Any()));
             }
             else
             {
-                model = model.Where(w => w.RISses.Any(a => a.Id == risId) || !w.RISses.Any(a => a.Id != risId));
+                model = model.Where(w => w.OrderRequests.Any(a => a.RISses.Any(b => b.Id == risId)) || !w.OrderRequests.Any(a => a.RISses.Any(b => a.Id != risId)));
             }
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -802,6 +802,61 @@ namespace iLgs.Controllers
                 //FPP = c.Request.FPP,
                 //Fund = c.Request.Fund,
                 //Purpose = c.Request.Purpose
+            }).OrderBy(o => o.PoNo), JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<JsonResult> GetPoNosWithoutRis(Guid? risId, string text)
+        {
+            risId = risId ?? Guid.Empty;
+            var userId = User.Identity.GetUserId();
+            var isAdmin = await _userService.IsAdminAsync(userId);            
+            var model = _db.OrderRequests.Where(w => w.Order.PostedDt != null
+                && w.Order.AIRs.Any(a => a.OrderId == a.OrderId && a.PostedDt != null)).AsNoTracking(); // also with posted air
+            if (!isAdmin)
+            {
+                model = model.Where(a => a.Order.OrderItems.Any(b => b.OrderItemRequests.Any(c =>
+                    c.RequestItem.Request.Codextn.DepartmentUsers.Any(d => d.UserId == userId))));
+                    //_db.Orders.Where(w => w.PostedBy != null
+                    //&& w.OrderItems.Any(a =>
+                    //    a.OrderItemRequests.Any(b =>
+                    //        b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
+                    //            c.UserId == userId)))).AsNoTracking().AsQueryable();
+            }
+
+            if (risId == Guid.Empty)
+            {
+                model = model.Where(w => !w.RISses.Any());
+            }
+            else
+            {
+                model = model.Where(w => w.RISses.Any(b => b.Id == risId) || !w.RISses.Any(b => b.Id != risId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Order.PoNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                PoNo = c.Order.PoNo,
+                PoDate = c.Order.PoDate,
+                //DeptId = c.DeptId,
+                //DeptDesc = c.Codextn.Description,
+                Department = c.Request.Department,
+                PrNo = c.Request.PrNo,
+                Fund = c.Request.Fund,
+                //Section = c.Request.Section,
+                FPP = c.Request.FPP,
+                //Fund = c.Request.Fund,
+                Purpose = c.Request.Purpose,
+                RequestedBy = c.Request.RequestedBy,
+                RequestedDesig = c.Request.RequestedDesig,
+                PrDate = c.Request.PrDate,
+                ApprovedBy = c.Request.ApprovedBy,
+                ApprovedDesig = c.Request.ApprovedDesig
+                
             }).OrderBy(o => o.PoNo), JsonRequestBehavior.AllowGet);
         }
 

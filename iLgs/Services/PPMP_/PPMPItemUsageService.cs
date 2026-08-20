@@ -93,7 +93,7 @@ namespace iLgs.Services.PPMP_
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Type)), "Field is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(model.Reference))
+            if ((model.PpmpItemId == null || model.PpmpItemId == Guid.Empty) && string.IsNullOrWhiteSpace(model.Reference))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Reference)), "Field is required.");
             }
@@ -105,11 +105,11 @@ namespace iLgs.Services.PPMP_
             else
             {
                 var itemQty = (await _db.PPMPItems.FindAsync(model.PpmpItemId)).Qty;
-                var itemUsed = _db.PPMPItemUsages.Where(w => w.PpmpItemId == model.PpmpItemId).Sum(x => x.Qty) ?? 0;
+                var itemUsed = _db.PPMPItemUsages.Where(w => w.PpmpItemId == model.PpmpItemId && w.PrId != model.PrId).Sum(x => x.Qty) ?? 0;
                 var bal = itemQty - itemUsed;
                 if (model.Qty > bal)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), $"Quantity must not exceed the quantity balance of {bal}.");
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), $"Quantity must not exceed the PPMP quantity balance of {bal}.");
                 }
             }
 
@@ -157,6 +157,7 @@ namespace iLgs.Services.PPMP_
             ValidateRecord(entity, model.Id);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -186,6 +187,7 @@ namespace iLgs.Services.PPMP_
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
                 entity.PpmpItemId = model.PpmpItemId;
+                entity.PrId = model.PrId;
             }
 
             entity.Type = model.Type.ToUpper().Trim();

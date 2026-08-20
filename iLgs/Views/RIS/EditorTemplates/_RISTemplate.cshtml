@@ -7,8 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.IssuanceSw)
-    @Html.HiddenFor(model => model.OfficeId)
-
+    
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -42,9 +41,9 @@
 
             <div class="row k-mb-2">
                 <div class="col-md-6">
-                    @Html.DisplayFor(model => model.OrderId, "LabelGuid")
+                    @Html.DisplayFor(model => model.OrderRequestId, "LabelGuid")
                     <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderId)
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderRequestId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select PO No.")
                             .DataTextField("PoNo")
@@ -55,20 +54,21 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNosWithoutRis", "Getters").Data("DataOrderId");
+                                    read.Action("GetPoNosWithoutRis", "Getters").Data("DataOrderRequestId");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("PoNo").Title("PO No.").Width("30%");
-                                c.Add().Template("#= kendo.toString(kendo.parseDate(PoDate), 'MM/dd/yyyy') #").Title("Date").Width("30%");
-                                c.Add().Field("Department").Title("Department").Width("40%");
+                                c.Add().Field("PoNo").Title("PO No.").Width("25%");
+                                c.Add().Template("#= kendo.toString(kendo.parseDate(PoDate), 'MM/dd/yyyy') #").Title("Date").Width("20%");
+                                c.Add().Field("PrNo").Title("PR No.").Width("25%");
+                                c.Add().Field("Department").Title("Department").Width("30%");
                             })
-                            .Events(e => { e.Select("onSelectOrderId"); })
+                            .Events(e => { e.Select("onSelectOrderRequestId"); })
                     //.Suggest(true)
                         )
-                        @Html.ValidationMessageFor(model => model.OrderId)
+                        @Html.ValidationMessageFor(model => model.OrderRequestId)
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -82,10 +82,10 @@
 
             <div class="row k-mb-2">
                 <div class="col-md-6">
-                    @Html.DisplayFor(model => model.OfficeDesc, "Label")
+                    @Html.DisplayFor(model => model.PrNo, "Label")
                     <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.OfficeDesc).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.OfficeDesc)                        
+                        @(Html.Kendo().TextBoxFor(model => model.PrNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.PrNo)                        
                     </div>                    
                 </div>
 

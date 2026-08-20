@@ -18,7 +18,7 @@ namespace iLgs.Services.Requisition
         Task<RIS_VM> GetByIdAsync(Guid id);
         Task<RIS_VM> GetByRisNoAsync(string risNo);
         //Task<RIS_VM> GetByOrderIdAsync(Guid orderId);
-        Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);        
+        Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);
 
         ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date);
         ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date);
@@ -28,7 +28,7 @@ namespace iLgs.Services.Requisition
         ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);
 
         IRisItemService RisItem { get; }
-        IRisItemUnitGroupService UnitGroup { get; }
+        //IRisItemUnitGroupService UnitGroup { get; }
     }
 
     public class RisService : BaseValidator, IRisService
@@ -43,7 +43,7 @@ namespace iLgs.Services.Requisition
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         private IRisItemService _risItemService;
-        private IRisItemUnitGroupService _risItemUnitGroupService;
+        //private IRisItemUnitGroupService _risItemUnitGroupService;
 
         public RisService(AppManEntities db)
         {
@@ -57,7 +57,7 @@ namespace iLgs.Services.Requisition
             _getDisplayName = Utility.GetDisplayName<RIS_VM>;
 
             _risItemService = new RisItemService(_db);
-            _risItemUnitGroupService = new RisItemUnitGroupService(_db);
+            //_risItemUnitGroupService = new RisItemUnitGroupService(_db);
         }
 
         //public RisService(AppManEntities db,
@@ -76,20 +76,15 @@ namespace iLgs.Services.Requisition
         //}        
 
         public IRisItemService RisItem => _risItemService;
-        public IRisItemUnitGroupService UnitGroup => _risItemUnitGroupService;
+        //public IRisItemUnitGroupService UnitGroup => _risItemUnitGroupService;
 
         private static Expression<Func<RISs, RIS_VM>> Projection
         = s => new RIS_VM
         {
             Id = s.Id,
+            OrderRequestId = s.OrderRequestId,
             CtrlNo = s.CtrlNo,
-            Fund = s.Fund,
-            Division = s.Division,
-            OfficeId = s.OfficeId,
-            OfficeDesc = s.Codextn.Description,
-            Office = s.Office,
-            OrderId = s.OrderId,
-            FPP = s.FPP,
+            //Division = s.Division,
             RisNo = s.RisNo,
             RisDate = s.RisDate,
             Purpose = s.Purpose,
@@ -112,10 +107,14 @@ namespace iLgs.Services.Requisition
             PostedBy = s.PostedBy,
             PostedDt = s.PostedDt,
             // Transients
+            Fund = s.OrderRequest.Request.Fund,
+            Office = s.OrderRequest.Request.Department,
+            FPP = s.OrderRequest.Request.FPP,
             IsPosted = s.PostedDt != null,
             IssuanceSw = false,
-            PoNo = s.Order.PoNo,
-            PoDate = s.Order.PoDate
+            PoNo = s.OrderRequest.Order.PoNo,
+            PoDate = s.OrderRequest.Order.PoDate,
+            PrNo = s.OrderRequest.Request.PrNo,
         };
 
         public async ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId)
@@ -124,13 +123,13 @@ namespace iLgs.Services.Requisition
             if (await _userService.IsAdminAsync(userId))
             {
                 data = _db.RISses.AsNoTracking()
-                    .Select(Projection).OrderByDescending(o => o.RisNo);
+                    .Select(Projection);
             }
             else
             {
                 data = _db.RISses.AsNoTracking()
-                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
-                    .Select(Projection).OrderByDescending(o => o.RisNo);
+                    .Where(w => w.OrderRequest.Request.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Select(Projection);
             }
             return data;
         }
@@ -156,13 +155,13 @@ namespace iLgs.Services.Requisition
         {
             return _db.RISses.Where(w => w.RisNo == risNo).Select(Projection).FirstOrDefaultAsync();
         }
-        
+
         public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
-            _validator.ValidateOnPost(risId);            
+            _validator.ValidateOnPost(risId);
 
-            var entity = await _db.RISses.FindAsync(risId);
+            var entity = await _db.RISses.AsNoTracking().Include(i => i.OrderRequest.Order).FirstOrDefaultAsync(f => f.Id == risId);
 
             if (string.IsNullOrWhiteSpace(entity.RisNo))
             {
@@ -174,7 +173,7 @@ namespace iLgs.Services.Requisition
                 throw new InvalidValueException("RIS Date is required when posting.");
             }
 
-            var order = await _db.Orders.FindAsync(entity.OrderId);
+            var order = await _db.Orders.FindAsync(entity.OrderRequest.OrderId);
             if (order == null)
             {
                 throw new RecordRelationshipException("Purchase Order not found.");
@@ -243,7 +242,7 @@ namespace iLgs.Services.Requisition
             if (string.IsNullOrWhiteSpace(entity.IssuedByDesignation))
             {
                 throw new InvalidValueException("Designation of Isseud by is required.");
-            }            
+            }
 
             if (string.IsNullOrWhiteSpace(entity.ReceivedBy))
             {
@@ -254,7 +253,7 @@ namespace iLgs.Services.Requisition
             {
                 throw new InvalidValueException("Designation of Received by is required.");
             }
-            
+
             ///await ValidateUploadAsync(airId, entity.AIRNo);
 
             entity.PostedBy = user;
@@ -321,14 +320,12 @@ namespace iLgs.Services.Requisition
 
         public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
-        {
-            _validator.ValidateOnCreate(model);
-
+        {            
             model.Id = Guid.NewGuid();
-            //if (string.IsNullOrWhiteSpace(model.RisNo))
-            //{
-            //    model.RisNo = NextRisNo((DateTime)model.RisDate);
-            //}
+            if (string.IsNullOrWhiteSpace(model.RisNo))
+            {
+                model.RisNo = NextRisNo((DateTime)model.RisDate);
+            }
 
             model.CtrlNo = NextCtrlNo(date);
             model.InsertedBy = user;
@@ -336,98 +333,89 @@ namespace iLgs.Services.Requisition
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            _validator.ValidateOnCreate(model);
+
             var entity = new RISs();
 
             MapModelToEntityFields(entity, model, Mode.ADD);
 
-            var order = await _db.Orders
-                .Include("OrderItems.OrderItemRequests")
-                .Include("OrderItems.AllField")
-                .Include("OrderItemUnitGroups.OrderItemUnitGroupDescriptions.OrderItemUnitGroupDescriptionItems")
-                .AsNoTracking().FirstOrDefaultAsync(p => p.Id == model.OrderId);
-            foreach (var orderItem in order.OrderItems)
-            {
-                foreach (var orderItemRequest in orderItem.OrderItemRequests)
-                {
-                    var risItem = new RisItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        RisId = model.Id,
-                        OrderItemRequestId = orderItemRequest.Id,
-                        ItemCodeId = orderItem.ItemCodeId,
-                        PsNo = orderItem.PsNo,
-                        PsNoDisplay = orderItem.PsNoDisplay,
-                        ItemName = orderItem.ItemName,
-                        Description = orderItem.Description,
-                        OtherDesc = orderItem.OtherDesc,
-                        Unit = orderItem.Unit,
-                        QtyRequest = orderItemRequest.QtyApplied,
-                        QtyIssue = orderItemRequest.QtyApplied,
-                        PpmpCode = orderItem.PpmpCode,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date,
-                    };
+            // Get all the contents of the RequestItems (Purchased Request Items) under OrderRequestId (Purchase Request)
 
-                    var allfield = AllFieldsUtil.NewAllField(orderItem.AllField);
-                    allfield.Id = risItem.Id;
-                    risItem.AllField = allfield;
-
-                    entity.RisItems.Add(risItem);
-                }
-            }
-            
-            foreach (var unitGroup in order.OrderItemUnitGroups)
+            var orderItemRequests = await _db.OrderItemRequests.AsNoTracking()
+                .Where(w => w.OrderItem.Order.OrderRequests
+                    .Any(a => a.Id == model.OrderRequestId // OrderItemRequest coming from model.OrderRequestId
+                        && a.Request.RequestItems.Any(b => b.Id == w.RequestItemId) // and RequestItem must come from this OrderItemRequests.RequestItemId
+                    )
+                ).ToListAsync();
+            foreach (var orderItemRequest in orderItemRequests)
             {
-                var risItemUnitGroup = new RisItemUnitGroup()
+                var risItem = new RisItem()
                 {
                     Id = Guid.NewGuid(),
                     RisId = model.Id,
-                    OrderItemUnitGroupId = unitGroup.Id,
-                    SetLotNo = unitGroup.SetLotNo,
-                    Qty = unitGroup.Qty,
-                    Unit = unitGroup.Unit,
+                    OrderItemRequestId = orderItemRequest.Id,                    
+                    QtyRequest = orderItemRequest.QtyApplied,
+                    QtyIssue = orderItemRequest.QtyApplied,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
-                    UpdatedDt = date
+                    UpdatedDt = date,
                 };
 
-                foreach (var unitGroupDescription in unitGroup.OrderItemUnitGroupDescriptions)
-                {
-                    var risItemUnitGroupDescription = new RisItemUnitGroupDescription()
-                    {
-                        Id = Guid.NewGuid(),
-                        UnitGroupId = risItemUnitGroup.Id,
-                        OrderItemUnitGroupDescriptionId = unitGroupDescription.Id,
-                        Description = unitGroupDescription.Description,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-                    
-                    foreach (var unitGroupDescriptionItem in unitGroupDescription.OrderItemUnitGroupDescriptionItems)
-                    {
-                        var risItemId = entity.RisItems.FirstOrDefault(p => p.OrderItemRequest.OrderItemId == unitGroupDescriptionItem.OrderItemId).Id;
-                        var risItemUnitGroupDescriptionItem = new RisItemUnitGroupDescriptionItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            UnitGroupDescriptionId = risItemUnitGroupDescription.Id,
-                            OrderItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
-                            RisItemId = risItemId,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        risItemUnitGroupDescription.RisItemUnitGroupDescriptionItems.Add(risItemUnitGroupDescriptionItem);
-                    }
-                    risItemUnitGroup.RisItemUnitGroupDescriptions.Add(risItemUnitGroupDescription);
-                }
-                entity.RisItemUnitGroups.Add(risItemUnitGroup);
+                entity.RisItems.Add(risItem);
             }
+
+
+            //foreach (var unitGroup in order.OrderItemUnitGroups)
+            //{
+            //    var risItemUnitGroup = new RisItemUnitGroup()
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        RisId = model.Id,
+            //        OrderItemUnitGroupId = unitGroup.Id,
+            //        SetLotNo = unitGroup.SetLotNo,
+            //        Qty = unitGroup.Qty,
+            //        Unit = unitGroup.Unit,
+            //        InsertedBy = user,
+            //        InsertedDt = date,
+            //        UpdatedBy = user,
+            //        UpdatedDt = date
+            //    };
+
+            //    foreach (var unitGroupDescription in unitGroup.OrderItemUnitGroupDescriptions)
+            //    {
+            //        var risItemUnitGroupDescription = new RisItemUnitGroupDescription()
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            UnitGroupId = risItemUnitGroup.Id,
+            //            OrderItemUnitGroupDescriptionId = unitGroupDescription.Id,
+            //            Description = unitGroupDescription.Description,
+            //            InsertedBy = user,
+            //            InsertedDt = date,
+            //            UpdatedBy = user,
+            //            UpdatedDt = date
+            //        };
+
+            //        foreach (var unitGroupDescriptionItem in unitGroupDescription.OrderItemUnitGroupDescriptionItems)
+            //        {
+            //            var risItemId = entity.RisItems.FirstOrDefault(p => p.OrderItemRequest.OrderItemId == unitGroupDescriptionItem.OrderItemId).Id;
+            //            var risItemUnitGroupDescriptionItem = new RisItemUnitGroupDescriptionItem()
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                UnitGroupDescriptionId = risItemUnitGroupDescription.Id,
+            //                OrderItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+            //                RisItemId = risItemId,
+            //                InsertedBy = user,
+            //                InsertedDt = date,
+            //                UpdatedBy = user,
+            //                UpdatedDt = date
+            //            };
+            //            risItemUnitGroupDescription.RisItemUnitGroupDescriptionItems.Add(risItemUnitGroupDescriptionItem);
+            //        }
+            //        risItemUnitGroup.RisItemUnitGroupDescriptions.Add(risItemUnitGroupDescription);
+            //    }
+            //    entity.RisItemUnitGroups.Add(risItemUnitGroup);
+            //}
 
             _db.RISses.Add(entity);
             await _db.SaveChangesAsync();
@@ -492,12 +480,7 @@ namespace iLgs.Services.Requisition
                 entity.InsertedDt = model.InsertedDt;
             }
 
-            entity.OrderId = model.OrderId;
-            entity.Fund = model.Fund;
-            entity.Division = model.Division?.Trim() ?? "";
-            entity.OfficeId = model.OfficeId;
-            entity.Office = model.Office?.Trim() ?? "";
-            entity.FPP = model.FPP;
+            entity.OrderRequestId = model.OrderRequestId;
             entity.RisNo = model.RisNo;
             entity.RisDate = model.RisDate;
             entity.Purpose = model.Purpose?.Trim() ?? "";

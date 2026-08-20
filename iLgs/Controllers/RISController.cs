@@ -300,19 +300,19 @@ namespace iLgs.Controllers
             ViewData["risId"] = risId;
             return PartialView();
         }
-        public ActionResult _RISItemAddEdit(Guid risId, Guid? risItemId)
-        {
-            var data = _risService.RisItem.GetEntryVmById(risItemId);
-            if (data == null)
-            {
-                data = new RisItemEntryVM()
-                {
-                    RisId = risId
-                };
-            }
-            ViewData["risItemId"] = risItemId;
-            return PartialView(data);
-        }
+        //public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
+        //{
+        //    var data = await _risService.RisItem.GetByIdAsync(risItemId);
+        //    if (data == null)
+        //    {
+        //        data = new RisItemVM()
+        //        {
+        //            RisId = risId
+        //        };
+        //    }
+        //    ViewData["risItemId"] = risItemId;
+        //    return PartialView(data);
+        //}
 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _RISItemSave(RisItemEntryVM model)
@@ -444,18 +444,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region UNIT GROUP
-        public ActionResult _RISItemUnitGroup(Guid risId)
-        {
-            ViewData["risId"] = risId;
-            return PartialView();
-        }
+        //public ActionResult _RISItemUnitGroup(Guid risId)
+        //{
+        //    ViewData["risId"] = risId;
+        //    return PartialView();
+        //}
 
-        public ActionResult _RISItemUnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
-        {
-            var data = _risService.UnitGroup.GetByRisId(risId);
+        //public ActionResult _RISItemUnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
+        //{
+        //    var data = _risService.UnitGroup.GetByRisId(risId);
 
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _RISItemUnitGroupCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupVM model)
@@ -571,18 +571,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region UNIT GROUP DESCRIPTION
-        public ActionResult _RISItemUnitGroupDescription(Guid unitGroupId)
-        {
-            ViewData["unitGroupId"] = unitGroupId;
-            return PartialView();
-        }
+        //public ActionResult _RISItemUnitGroupDescription(Guid unitGroupId)
+        //{
+        //    ViewData["unitGroupId"] = unitGroupId;
+        //    return PartialView();
+        //}
 
-        public ActionResult _RISItemUnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
-        {
-            var data = _risService.UnitGroup.UnitGroupDescription.GetByUnitGroupId(unitGroupId);
+        //public ActionResult _RISItemUnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        //{
+        //    var data = _risService.UnitGroup.UnitGroupDescription.GetByUnitGroupId(unitGroupId);
 
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _RISItemUnitGroupDescriptionCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionVM model)
@@ -698,24 +698,24 @@ namespace iLgs.Controllers
         #endregion
 
         #region UNIT GROUP DESCRIPTION ITEMS
-        public ActionResult _RISItemUnitGroupDescriptionItem(Guid unitGroupDescriptionId)
-        {
-            ViewData["unitGroupDescriptionId"] = unitGroupDescriptionId;
-            return PartialView();
-        }
+        //public ActionResult _RISItemUnitGroupDescriptionItem(Guid unitGroupDescriptionId)
+        //{
+        //    ViewData["unitGroupDescriptionId"] = unitGroupDescriptionId;
+        //    return PartialView();
+        //}
 
-        public ActionResult _RISItemUnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
-        {
-            var data = _risService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
+        //public ActionResult _RISItemUnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
+        //{
+        //    var data = _risService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
 
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
-        public ActionResult _RISItemAvailableUnitGroupItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
-        {
-            var data = _risService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetAvailableUnitGroupItem(risId);
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
+        //public ActionResult _RISItemAvailableUnitGroupItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
+        //{
+        //    var data = _risService.UnitGroup.UnitGroupDescription.UnitGroupDescriptionItem.GetAvailableUnitGroupItem(risId);
 
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _RISItemUnitGroupDescriptionItemCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionItemVM model)
@@ -830,40 +830,40 @@ namespace iLgs.Controllers
 
         #endregion
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] RisItemEntryVM model)
-        {
-            if (model.Id != Guid.Empty)
-            {
-                var allField = await _allFieldService.GetByIdAsync(model.Id);
-                if (allField != null)
-                {
-                    model.AllField = allField;
-                }
-                else
-                {
-                    model.AllField = new AllField();
-                    model.AllField.Id = model.Id;
-                    model.AllField.Multipliers = 0;
-                }
-            }    
-            else
-            {
-                model.AllField = new AllField();
-                model.AllField.Multipliers = 0;                
-            }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] RisItemEntryVM model)
+        //{
+        //    if (model.Id != Guid.Empty)
+        //    {
+        //        var allField = await _allFieldService.GetByIdAsync(model.Id);
+        //        if (allField != null)
+        //        {
+        //            model.AllField = allField;
+        //        }
+        //        else
+        //        {
+        //            model.AllField = new AllField();
+        //            model.AllField.Id = model.Id;
+        //            model.AllField.Multipliers = 0;
+        //        }
+        //    }    
+        //    else
+        //    {
+        //        model.AllField = new AllField();
+        //        model.AllField.Multipliers = 0;                
+        //    }
 
-            //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
-            //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+        //    //var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+        //    //string partialView = AllFieldsUtil.GetPartialView(itemCode);
 
-            string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
+        //    string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
 
-            if (!string.IsNullOrEmpty(partialView))
-            {
-                partialView = $"{partialView}";
-            }
-            return PartialView(partialView, model);
-        }
+        //    if (!string.IsNullOrEmpty(partialView))
+        //    {
+        //        partialView = $"{partialView}";
+        //    }
+        //    return PartialView(partialView, model);
+        //}
         
         public ActionResult _PrintRisDepartment(string ctrlNo)
         {
@@ -1072,19 +1072,19 @@ namespace iLgs.Controllers
             //var cartItems = JsonConvert.DeserializeObject<List<PsCodeVM>>(localStorage.getItem("cartItems")) ?? new List<OrderItem>();
             return View(cartItems);
         }
-        
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<JsonResult> GetDescription(RisItemEntryVM entry)
-        {
-            var description = await _risService.RisItem.GetDescriptionAsync(entry);
 
-            return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
-        }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<JsonResult> GetDescription(RisItemEntryVM entry)
+        //{
+        //    var description = await _risService.RisItem.GetDescriptionAsync(entry);
+
+        //    return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
+        //}
 
         public JsonResult GetModelDefault()
         {
             var code = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
-            
+
             var model = new RIS_VM()
             {
                 RisDate = DateTime.Now,

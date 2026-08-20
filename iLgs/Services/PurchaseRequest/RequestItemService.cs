@@ -32,16 +32,16 @@ namespace iLgs.Services.PurchaseRequest
         private readonly AppManEntities _db;
         private readonly IRequestSharedService _requestSharedService;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<RequestItemVM> _vmExceptionService;
+        private readonly IExceptionService<RequestItemVM> _vmExceptionService = new ExceptionService<RequestItemVM>();
+        private readonly IExceptionService<PPMPItemUsageVM> _ppmpExceptionService = new ExceptionService<PPMPItemUsageVM>();
         private readonly IPPMPItemService _ppmpItemService;
 
         public RequestItemService(AppManEntities db)
         {
             _db = db;
             _requestSharedService = new RequestSharedService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<RequestItemVM>(propertyName);
-            _vmExceptionService = new ExceptionService<RequestItemVM>();
             _ppmpItemService = new PPMPItemService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<RequestItemVM>(propertyName);            
         }
 
         private Expression<Func<RequestItem, RequestItemVM>> Projection()
@@ -156,35 +156,40 @@ namespace iLgs.Services.PurchaseRequest
             return model;
         });
 
-        private async Task SavePpmpItemUsageAsync(RequestItemVM model, string user, DateTime date)
+        private ValueTask<PPMPItemUsageVM> SavePpmpItemUsageAsync(RequestItemVM model, string user, DateTime date) => _ppmpExceptionService.TryCatch(async () =>
         {
             var prNo = (await _db.Requests.FirstOrDefaultAsync(f => f.Id == model.PrId)).PrNo;
+            var prCtrlNo = (await _db.Requests.FirstOrDefaultAsync(f => f.Id == model.PrId)).CtrlNo;
+            var type = prNo == null ? "PR-CN" : "PR";
+            var refNo = prNo == null ? prCtrlNo : prNo;
             var ppmpItemUsage = await _ppmpItemService.PPMPItemUsage.GetAsync(model.PpmpItemId, model.PrId);
             if (ppmpItemUsage == null)
-            {                
+            {
                 ppmpItemUsage = new PPMPItemUsageVM()
                 {
                     Id = Guid.NewGuid(),
                     PpmpItemId = model.PpmpItemId,
                     PrId = model.PrId,
-                    Type = "PR",
-                    Reference = prNo,
+                    Type = type,
+                    Reference = refNo,
                     Qty = (int?)model.Qty,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
-                };                
+                };
             }
             else
             {
-                ppmpItemUsage.Reference = prNo;
+                ppmpItemUsage.Type = type;
+                ppmpItemUsage.Reference = refNo;
+                ppmpItemUsage.Qty = (int?)model.Qty;
                 ppmpItemUsage.UpdatedBy = user;
                 ppmpItemUsage.UpdatedDt = date;
             }
 
-            await _ppmpItemService.PPMPItemUsage.SaveAsync(ppmpItemUsage, user, date);
-        }
+            return await _ppmpItemService.PPMPItemUsage.SaveAsync(ppmpItemUsage, user, date);
+        });
 
         public ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
@@ -345,6 +350,21 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid Value.");
                 }                
+            }
+
+            if (model.Qty == null || model.Qty == 0)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
+            }
+            else
+            {
+                var itemQty = (await _db.PPMPItems.FindAsync(model.PpmpItemId)).Qty;
+                var itemUsed = _db.PPMPItemUsages.Where(w => w.PpmpItemId == model.PpmpItemId && w.PrId != model.PrId).Sum(x => x.Qty) ?? 0;
+                var bal = itemQty - itemUsed;
+                if (model.Qty > bal)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), $"Quantity must not exceed the PPMP quantity balance of {bal}.");
+                }
             }
 
             //if (string.IsNullOrWhiteSpace(model.Description))

@@ -4,10 +4,7 @@ using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
@@ -50,9 +47,12 @@ namespace iLgs.Services.Validators
         public void ValidateOnCreate(RIS_VM model)
         {
             ValidateModel(model);
-            if (_db.RISses.Any(a => a.RisNo == model.RisNo))
+            if (!string.IsNullOrWhiteSpace(model.RisNo))
             {
-                throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
+                if (_db.RISses.Any(a => a.RisNo == model.RisNo))
+                {
+                    throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
+                }
             }
             ValidateFieldsOnCreateUpdate(model, Mode.ADD);
         }
@@ -164,55 +164,19 @@ namespace iLgs.Services.Validators
                 }
             }            
             
-            if (!model.OrderId.HasValue)
+            if (!model.OrderRequestId.HasValue)
             {
-                ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.OrderRequestId)), "Field is required.");
             }
             else
             {
-                var order = _db.Orders.Find(model.OrderId);
-                if (order == null)
+                var orderRequest = _db.OrderRequests.Find(model.OrderRequestId);
+                if (orderRequest == null)
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.OrderId)), "Record not found.");
+                    ex.UpsertDataList(_getDisplayName(nameof(model.OrderRequestId)), "Record not found.");
                 }                
             }
-
-            if (model.OfficeId.HasValue)
-            {
-                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.OfficeId))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Invalid value");
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(model.Fund))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeCode("FUND", model.Fund))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Invalid value");
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(model.Office))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.Office)), "Field is required.");
-            }            
-
-            if (string.IsNullOrWhiteSpace(model.FPP))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Field is required.");
-            }
-            else
-            {
-                if (!_locationBudgetService.IsValidBudgetCode(model.OfficeId, model.FPP))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
-                }
-            }
+            
             
             if (string.IsNullOrWhiteSpace(model.Purpose))
             {

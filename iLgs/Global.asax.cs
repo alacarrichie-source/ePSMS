@@ -255,9 +255,9 @@ namespace iLgs
 
             // REQUESITION
             services.AddScoped<IRisItemService, RisItemService>();
-            services.AddScoped<IRisItemUnitGroupDescriptionItemService, RisItemUnitGroupDescriptionItemService>();
-            services.AddScoped<IRisItemUnitGroupDescriptionService, RisItemUnitGroupDescriptionService>();
-            services.AddScoped<IRisItemUnitGroupService, RisItemUnitGroupService>();
+            //services.AddScoped<IRisItemUnitGroupDescriptionItemService, RisItemUnitGroupDescriptionItemService>();
+            //services.AddScoped<IRisItemUnitGroupDescriptionService, RisItemUnitGroupDescriptionService>();
+            //services.AddScoped<IRisItemUnitGroupService, RisItemUnitGroupService>();
             services.AddScoped<IRisService, RisService>();
 
             // RPC

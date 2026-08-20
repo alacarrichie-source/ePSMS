@@ -23,28 +23,17 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
         public Nullable<System.Guid> OrderItemRequestId { get; set; }
-        public Nullable<System.Guid> ItemCodeId { get; set; }
-        public string SubAccountCode { get; set; }
-        public string PsNo { get; set; }
-        public string PsNoDisplay { get; set; }
-        public string ItemName { get; set; }
-        public string Description { get; set; }
-        public string OtherDesc { get; set; }
-        public string Unit { get; set; }
         public Nullable<decimal> QtyRequest { get; set; }
         public Nullable<decimal> QtyIssue { get; set; }
         public string Remarks { get; set; }
-        public string PpmpCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual AllField AllField { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
-        public virtual OrderItemRequest OrderItemRequest { get; set; }
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual OrderItemRequest OrderItemRequest { get; set; }
     }
 }

@@ -766,11 +766,11 @@ namespace iLgs.Services.Items
                 throw new RecordRelationshipException("Item Code is in use in RPCI, cannot proceed!");
             }
 
-            var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
-            if (risItems.Any())
-            {
-                throw new RecordRelationshipException("Item Code is in use in RIS, cannot proceed!");
-            }
+            //var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
+            //if (risItems.Any())
+            //{
+            //    throw new RecordRelationshipException("Item Code is in use in RIS, cannot proceed!");
+            //}
 
             var orderItems = _db.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
             if (orderItems.Any())
