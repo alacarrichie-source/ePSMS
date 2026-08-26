@@ -350,11 +350,12 @@
     <Compile Include="Controllers\PoAdjustmentController.cs" />
     <Compile Include="Controllers\PoTransferController.cs" />
     <Compile Include="Controllers\PpmpController.cs" />
-    <Compile Include="Controllers\ProcurementOrderController.cs" />
+    <Compile Include="Controllers\ProcurementController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PsCategoryController.cs" />
     <Compile Include="Controllers\ItemCardController.cs" />
+    <Compile Include="Controllers\PurchaseOrderController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
@@ -402,6 +403,8 @@
     <Compile Include="Models\AIRItemExtnVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\GridViewModels.cs" />
+    <Compile Include="Models\PurchaseOrderWizardViewModels.cs" />
     <Compile Include="Models\AllField.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -1075,6 +1078,8 @@
     <Compile Include="Services\PropertyCard\PsCardService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderSharedService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderUploadService.cs" />
+    <Compile Include="Services\PurchaseOrder\ProcurementConsolidationService.cs" />
+    <Compile Include="Services\PurchaseOrder\PurchaseOrderService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupService.cs" />
@@ -4819,9 +4824,31 @@
     <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
     <Content Include="Views\Ppmp\_ItemUsage.cshtml" />
     <Content Include="Views\Ppmp\EditorTemplates\_ItemUsageTemplate.cshtml" />
+    <Content Include="Views\Ppmp\Annual.cshtml" />
+    <Content Include="Views\Procurement\Annual.cshtml" />
+    <Content Include="Views\Procurement\Cart.cshtml" />
+    <Content Include="Views\Procurement\Checkout.cshtml" />
+    <Content Include="Views\Orders\Create.cshtml" />
+    <Content Include="Views\PurchaseOrder\Index.cshtml" />
+    <Content Include="Views\PurchaseOrder\Create.cshtml" />
+    <Content Include="Views\PurchaseOrder\_ConsolidatePrModal.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_UnitDropdownEditor.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CatalogItemEditor.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CurrencyNumericTexBox.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_ItemPopupEditor.cshtml" />
+    <Content Include="Views\PurchaseOrder\ConsolidatedItemGrid.cshtml" />
+    <Content Include="Views\PurchaseOrder\SelectPRs.cshtml" />
+    <Content Include="Views\PurchaseOrder\_WizardStepper.cshtml" />
+    <Content Include="Views\PurchaseOrder\Details.cshtml" />
+    <Content Include="Views\PurchaseOrder\_PrItemBreakdownModal.cshtml" />
+    <Content Include="Views\PurchaseOrder\_CancelPoModal.cshtml" />
+    <Content Include="Views\PurchaseOrder\_TransmitPoModal.cshtml" />
+    <Content Include="Views\PurchaseOrder\_PoHeaderCard.cshtml" />
+    <Content Include="Views\PurchaseOrder\_PoAuditTrail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
+    <Folder Include="Models\Ai\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
     <Folder Include="Views\Card\" />
@@ -4833,7 +4860,6 @@
     <Folder Include="Views\ItemHelper\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
-    <Folder Include="Views\ProcurementOrder\" />
     <Folder Include="Views\PsCard\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>

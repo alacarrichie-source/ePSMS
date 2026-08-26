@@ -259,6 +259,9 @@ namespace iLgs.Models
         public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
 
         public string ParentItemNo { get; set; }        
+
+        [Display(Name = "Source PR")]
+        public string SourcePrs { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -597,4 +600,35 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
     }
+
+    public class CreatePurchaseOrderViewModel
+    {
+        [Display(Name = "PO Number")]
+        public string PoNumber { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "PO Date")]
+        public DateTime PoDate { get; set; }
+
+        [Required(ErrorMessage = "Supplier is required")]
+        [Display(Name = "Supplier Name")]
+        public string Supplier { get; set; }
+
+        [Display(Name = "Supplier Address & TIN")]
+        public string SupplierAddress { get; set; }
+
+        [Required]
+        [Display(Name = "Mode of Procurement")]
+        public string ModeOfProcurement { get; set; }
+
+        public List<string> SelectedPrIds { get; set; } = new List<string>();
+    }
+
+    public class PurchaseOrderDetailsViewModel : OrderVM
+    {
+        public List<OrderItemVM> Items { get; set; } = new List<OrderItemVM>();
+        public string TotalAmountInWords { get; set; }
+    }
+
 }

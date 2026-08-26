@@ -1,0 +1,30 @@
+﻿@* Model: int current step (1-5) *@
+@{
+    int current = (int)ViewData["CurrentStep"];
+    var steps = new[] { "Select PRs", "Assign Items", "Consolidate", "PO Details", "Review & Post" };
+}
+<div class="wizard-stepper">
+    @for (int i = 0; i < steps.Length; i++)
+    {
+        int stepNumber = i + 1;
+        string cls = stepNumber < current ? "done" : (stepNumber == current ? "active" : "");
+        <div class="wizard-step @cls">
+            <div class="circle">
+                @if (stepNumber < current)
+                {
+                    <span class="material-symbols-outlined" style="font-size:16px;">check</span>
+                }
+                else
+                {
+                    @stepNumber
+                }
+            </div>
+            <span class="label">@steps[i]</span>
+        </div>
+        if (stepNumber < steps.Length)
+        {
+            <div class="wizard-line @(stepNumber < current ? "done" : "")"></div>
+        }
+    }
+</div>
+

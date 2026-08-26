@@ -1,0 +1,10 @@
+﻿@* File: ~/Views/Shared/EditorTemplates/CurrencyNumericTextBox.cshtml *@
+@model decimal?
+
+@(Html.Kendo().NumericTextBoxFor(m => m)
+    .Format("c2")
+    .Min(0)
+    .Step(1.00m)
+    .Decimals(2)
+    .HtmlAttributes(new { style = "width: 100%; text-align: right;" })
+)

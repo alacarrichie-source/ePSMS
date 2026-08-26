@@ -19,6 +19,12 @@
                 .Items(items =>
                 {
                     items.Add().Template("<span id='menuIcon' href='\\#'><span class='k-icon k-i-menu' onclick='toggleDrawer()'></span></span>").Type(AppBarItemType.ContentItem);
+                    //items.Add().Template(
+                    //    "<button id='menuIcon' type='button' class='k-button k-button-flat' " +
+                    //        "aria-label='Toggle navigation'>" +
+                    //        "<span class='k-icon k-i-menu'></span>" +
+                    //    "</button>"
+                    //).Type(AppBarItemType.ContentItem);
                     items.Add().Type(AppBarItemType.Spacer).Width("16px");
                     items.Add().Template("<div class='title'>" + @ViewData["Title"] + "</div>").Type(AppBarItemType.ContentItem);
                     if (ViewData["IsAdminUser"] as bool? == true)
@@ -422,6 +428,7 @@ if (subItems != null)
 
         ////Push the main content to the other side when the HC MobileNav is toggled.
         pushContent: '#container', //true, // default false
+        //pushContent: '#main-div', //true, // default false
 
         ////Set the direction of the HC MobileNav. Possible values: 'left'(default), 'right', 'top' and 'bottom'
 
@@ -485,12 +492,21 @@ if (subItems != null)
     var Nav = $nav.data('hcOffcanvasNav');
     var sw = 0;
     var isDrawerVisible = true;
+
     function toggleDrawer(e) {
         Nav.toggle();
 
         ////resize widgets after Drawer animmation has completed
         setTimeout(resizeWidgets, 400)
     }
+
+    //$(document).on('click', '#menuIcon', function (e) {
+    //    e.preventDefault();
+
+    //    if (Nav && typeof Nav.toggle === 'function') {
+    //        Nav.toggle();
+    //    }
+    //});
 
     $(document).ready(function () {
 
@@ -519,6 +535,24 @@ if (subItems != null)
 
         // Adjust the container size
 
+        container.style.height = height + 'px';
+    }
+
+    function resizeWidgetsX() {
+        var container = document.getElementById('main-div');
+
+        if (!container) {
+            return;
+        }
+
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        if (sw === 1) {
+            width -= 280;
+        }
+
+        container.style.width = width + 'px';
         container.style.height = height + 'px';
     }
 
@@ -631,4 +665,74 @@ if (subItems != null)
             mywindow.open();
         }
     }
+
+    function updateCartBadge(count) {
+        $("#cartBadge").text(count);
+
+        if (count > 0) {
+            $("#cartBadge").show();
+        } else {
+            $("#cartBadge").hide();
+        }
+    }
+
+    $(function () {
+        if ($("#cartBadge").length) {
+            $.get('@Url.Action("CartCount", "Procurement")', function (result) {
+                updateCartBadge(result.cartCount);
+            });
+        }
+
+        $(document).on("submit", ".add-to-cart-form", function (e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var button = form.find("button[type=submit]");
+
+            button.prop("disabled", true);
+
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: form.serialize()
+            })
+            //.done(function (result) {
+            //    if (result.success) {
+            //        updateCartBadge(result.cartCount);
+            //    } else {
+            //        alert(result.message || "Unable to add the item to the cart.");
+            //    }
+            //})
+            .done(function (result) {
+                if (result.success) {
+                    updateCartBadge(result.cartCount);
+
+                    button
+                        .prop("disabled", true)
+                        .removeClass("k-primary")
+                        .addClass("disabled")
+                        .text("Already in Cart");
+
+                    return;
+                }
+
+                if (result.alreadyInCart) {
+                    button
+                        .prop("disabled", true)
+                        .removeClass("k-primary")
+                        .addClass("disabled")
+                        .text("Already in Cart");
+                }
+
+                alert(result.message || "Unable to add the item to the cart.");
+            })
+            .fail(function () {
+                alert("An error occurred while adding the item to the cart.");
+            })
+            .always(function () {
+                button.prop("disabled", false);
+            });
+        });
+    });
+
 </script>

@@ -35,6 +35,7 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date);
         ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date);
 
+        Guid CreatePurchaseOrder(OrderVM header, IEnumerable<OrderItemVM> initialItems, string user, DateTime date);
         ValueTask<OrderVM> ItemSelectionSaveAsync(Guid? orderId, string selectedIds, string user, DateTime date);
 
         IOrderItemService OrderItem { get; }
@@ -332,6 +333,79 @@ namespace iLgs.Services.PurchaseOrder
         public async ValueTask<int> GetNotPostedAsync(DateTime asOf)
         {
             return await _db.Orders.Where(w => w.PoDate <= asOf && w.PostedDt == null).CountAsync();
+        }
+
+        public Guid CreatePurchaseOrder(OrderVM header, IEnumerable<OrderItemVM> initialItems, string user, DateTime date)
+        {
+            if (header == null) throw new ArgumentNullException(nameof(header));
+
+            using (DbContextTransaction transaction = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var poEntity = new Order
+                    {
+                        Id = header.Id == null ? Guid.NewGuid() : header.Id,
+                        CtrlNo = NextCtrlNo(date),
+                        //PoNumber = header.PoNumber ?? GeneratePoNumber(),
+                        //PoDate = header.PoDate == default ? DateTime.UtcNow : header.PoDate,
+                        //Supplier = header.Supplier,
+                        //SupplierAddress = header.SupplierAddress,
+                        //ModeOfProcurement = header.ModeOfProcurement ?? "Public Bidding",
+                        //Status = "Draft",
+                        //CreatedDate = DateTime.UtcNow,
+                        //TotalAmount = 0,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    _db.Orders.Add(poEntity);
+                    _db.SaveChanges();
+
+                    int itemIdx = 1;
+                    decimal? runningTotal = 0;
+
+                    if (initialItems != null)
+                    {
+                        foreach (var itm in initialItems)
+                        {
+                            var lineEntity = new OrderItem
+                            {
+                                Id = Guid.NewGuid(),
+                                OrderId = poEntity.Id,
+                                ItemNo = (itemIdx++).ToString(),
+                                PpmpCode = itm.PpmpCode,
+                                Description = itm.Description,
+                                Unit = itm.Unit,
+                                Qty = itm.Qty,
+                                UnitCost = itm.UnitCost,
+                                //SourcePrs = itm.SourcePrs,
+                                //TechnicalSpecs = itm.TechnicalSpecs,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+                            _db.OrderItems.Add(lineEntity);
+                            runningTotal += (itm.Qty * itm.UnitCost);
+                        }
+                    }
+
+                    //poEntity.TotalAmount = runningTotal;
+                    _db.SaveChanges();
+                    transaction.Commit();
+
+                    return poEntity.Id;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    //_auditLogger.LogError("Error creating Purchase Order in EF6", ex);
+                    throw;
+                }
+            }
         }
 
         public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch((Func<ValueTask<OrderVM>>)(async () =>

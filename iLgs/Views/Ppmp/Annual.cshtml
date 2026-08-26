@@ -1,0 +1,1183 @@
+﻿@model IEnumerable<iLgs.Controllers.PpmpController.AnnualProcurementItemVM>
+
+@{
+    ViewBag.Title = "Annual Procurement";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid">       
+
+    <!-- Breadcrumb -->
+    <div class="mb-3">
+        @(Html.Kendo().Breadcrumb()
+            .Name("breadcrumb")
+            .Items(items =>
+            {
+                items.Add()
+                    .Type(BreadcrumbItemType.RootItem)
+                    .Href(Url.Action("Index", "Home"))
+                    .ShowText(false)
+                    .Icon("home")
+                    .ShowIcon(true);
+                items.Add()
+                    .Type(BreadcrumbItemType.Item)
+                    .Href(@Url.Action("Index", "PPMP"))
+                    .Text("Annual Procurement")
+                    .ShowText(true);                
+            })
+        )
+    </div>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="mb-1">Annual Procurement</h2>
+
+        <p class="text-muted">
+            Select items from the approved annual procurement plan
+            to create a Purchase Request.
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-3">
+
+                    <label>Fiscal Year</label>
+
+                    @(Html.Kendo().DropDownList()
+                        .Name("FiscalYear")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(new[]
+                        {
+                            new SelectListItem { Text = "2026", Value = "2026" },
+                            new SelectListItem { Text = "2025", Value = "2025" },
+                            new SelectListItem { Text = "2024", Value = "2024" }
+                        })
+                        .Value("2026")
+                        .Events(e => e.Change("annualProcurementFilterChanged"))
+                    )
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label>Department</label>
+
+                    @(Html.Kendo().DropDownList()
+                        .Name("Department")
+                        .OptionLabel("All Departments")
+                        .DataTextField("Department")
+                        .DataValueField("Id")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserDepartmentsAsync", "Getters");
+                            });
+                        })
+                        .Events(e => e.Change("annualProcurementFilterChanged"))
+                    )
+
+                </div>
+
+                @*<div class="col-md-3">
+
+                    <label>Category</label>
+
+                    @(Html.Kendo().DropDownList()
+                        .Name("Category")
+                        .OptionLabel("All Categories")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCategories", "Procurement");
+                            });
+                        })
+                        .Events(e => e.Change("annualProcurementFilterChanged"))
+                    )
+
+                </div>*@
+
+            </div>
+
+            <div class="row mt-3">
+
+                <div class="col-md-12">
+
+                    @(Html.Kendo().TextBox()
+                        .Name("Search")
+                        .Placeholder("Search procurement items...")
+                        .HtmlAttributes(new
+                        {
+                            style = "width:100%;"
+                        })
+                    )
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Procurement Items -->
+
+    @*@(Html.Kendo().ListView<iLgs.Controllers.PpmpController.AnnualProcurementItemVM>()
+        .Name("annualProcurementList")
+        .TagName("div")
+        .ClientTemplateId("annualProcurementTemplate")
+        .DataSource(dataSource =>
+        {
+            dataSource
+                .Ajax()
+                .Read(read => read.Action(
+                    "GetAnnualProcurementItems",
+                    "PPMP"
+                ))
+                .PageSize(12);
+        })
+        .Pageable()
+    )*@
+
+    @(Html.Kendo().ListView<iLgs.Controllers.PpmpController.AnnualProcurementItemVM>()
+        .Name("annualProcurementList")
+        .TagName("div")
+        .ClientTemplateId("annualProcurementTemplate")
+        .DataSource(dataSource => dataSource
+            .Read(read => read.Action(
+                "GetAnnualProcurementItems",
+                "PPMP"
+            ))
+            .PageSize(12)
+        )
+        .Pageable()
+    )
+
+</div>
+
+
+<script type="text/x-kendo-template" id="annualProcurementTemplate">
+    <div class="procurement-card">
+        <div class="procurement-card-body">
+            <div class="procurement-card-header">
+                <div class="procurement-icon">
+                    <span class="k-icon k-i-file-txt"></span>
+                </div>
+                <span class="item-code">
+                    #: ItemCode #
+                </span>
+            </div>
+
+            <h3>
+                #: ItemName #
+            </h3>
+
+            <div class="item-unit">
+                #: Unit #
+            </div>
+
+            <!-- Quantity Summary -->
+
+            <div class="quantity-summary">
+
+                <div>
+                    <span>Planned</span>
+                    <strong>
+                        #: kendo.toString(PlannedQty, "n0") #
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Req.</span>
+                    <strong>
+                        #: kendo.toString(RequestedQty, "n0") #
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Rem.</span>
+
+                    # if (RemainingQty > 0) { #
+
+                    <strong class="remaining">
+                        #: kendo.toString(RemainingQty, "n0") #
+                    </strong>
+
+                    # } else { #
+
+                    <strong class="fully-requested">
+                        0
+                    </strong>
+
+                    # } #
+
+                </div>
+
+            </div>
+
+            <!-- Cost -->
+
+            <div class="procurement-cost">
+
+                <span>Est. Unit Cost</span>
+
+                <strong>
+                    ₱#: kendo.toString(EstimatedUnitCost, "n2") #
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- Action -->
+
+        <div class="procurement-card-footer">
+
+            # if (RemainingQty > 0) { #
+
+            <button type="button"
+                    class="k-button k-button-solid-primary w-100"
+                    onclick="addToCart('#: Id #')">
+
+                <span class="k-icon k-i-plus"></span>
+
+                Add to Cart
+
+            </button>
+
+            # } else { #
+
+            <button type="button"
+                    class="k-button"
+                    disabled>
+
+                <span class="k-icon k-i-cancel"></span>
+
+                Fully Requested
+
+            </button>
+
+            # } #
+
+        </div>
+
+    </div>
+
+</script>
+
+<style>
+    .procurement-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        margin-bottom: 24px;
+        transition: box-shadow .2s;
+    }
+
+        .procurement-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,.10);
+        }
+
+    .procurement-card-body {
+        padding: 20px;
+        flex: 1;
+    }
+
+    .procurement-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .procurement-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0038a8;
+    }
+
+    .item-code {
+        background: #e9ecef;
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .procurement-card h3 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .item-unit {
+        color: #777;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+
+    .quantity-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: #f7f8fa;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 18px;
+    }
+
+        .quantity-summary > div {
+            text-align: center;
+        }
+
+            .quantity-summary > div:not(:last-child) {
+                border-right: 1px solid #ddd;
+            }
+
+        .quantity-summary span {
+            display: block;
+            font-size: 11px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .quantity-summary strong {
+            font-size: 14px;
+        }
+
+        .quantity-summary .remaining {
+            color: #0038a8;
+        }
+
+        .quantity-summary .fully-requested {
+            color: #ba1a1a;
+        }
+
+    .procurement-cost {
+        border-top: 1px solid #eee;
+        padding-top: 14px;
+    }
+
+        .procurement-cost span {
+            display: block;
+            color: #777;
+            font-size: 11px;
+        }
+
+        .procurement-cost strong {
+            font-size: 16px;
+        }
+
+    .procurement-card-footer {
+        padding: 12px;
+        background: #f5f6f7;
+        border-top: 1px solid #ddd;
+    }
+
+    
+
+        #annualProcurementList .k-listview-content {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        #annualProcurementList .k-listview-item {
+            width: auto;
+        }
+</style>
+
+<script type="text/javascript">
+    var annualProcurement = (function () {
+
+    var config = {
+        listView: "#annualProcurementList",
+        fiscalYear: "#FiscalYear",
+        department: "#Department",
+        category: "#Category",
+        search: "#Search",
+        cartCount: "#cartCount",
+        cartButton: "#cartButton"
+    };
+
+
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+
+    function init() {
+        bindEvents();
+        updateCartCount();
+    }
+
+
+    /* =========================================================
+       EVENTS
+       ========================================================= */
+    function bindEvents() {
+        // Search when ENTER is pressed
+        $(document).on("keydown", config.search, function (e) {
+
+            if (e.key === "Enter") {
+                e.preventDefault();
+                loadItems();
+            }
+        });
+
+        // Search when user leaves the search box
+        $(document).on("change", config.search, function () {
+            loadItems();
+        });
+
+
+        // Cart button
+        $(document).on("click", config.cartButton, function () {
+            goToCart();
+
+       });
+    }
+
+    /* =========================================================
+       FILTERS
+       ========================================================= */
+    function filterData() {
+        return {
+            fiscalYear: getFiscalYear(),
+            deptId: getDepartment(),
+            category: getCategory(),
+            search: getSearch()
+        };
+    }
+
+
+    function getFiscalYear() {
+        var control =
+            $(config.fiscalYear)
+                .data("kendoDropDownList");
+        if (!control) {
+            return null;
+        }
+
+        return control.value();
+    }
+
+
+    function getDepartment() {
+        var control =
+            $(config.department)
+                .data("kendoDropDownList");
+
+        if (!control) {
+            return null;
+        }
+
+        return control.value();
+    }
+
+
+    function getCategory() {
+        var control =
+            $(config.category)
+                .data("kendoDropDownList");
+        if (!control) {
+            return null;
+        }
+        return control.value();
+    }
+
+
+    function getSearch() {
+        var control =
+            $(config.search)
+                .data("kendoTextBox");
+
+        if (control) {
+            return $.trim(control.value());
+        }
+
+        return $.trim(
+            $(config.search).val()
+        );
+    }
+
+
+    /* =========================================================
+       LOAD PROCUREMENT ITEMS
+       ========================================================= */
+    function loadItems() {
+        var listView = $(config.listView).data("kendoListView");
+
+        if (!listView) {
+            console.error(
+                "Annual Procurement ListView was not found."
+            );
+            return;
+        }
+
+        var dataSource = listView.dataSource;
+
+        // Reset to first page
+        dataSource.page(1);
+
+        // Apply filtering through transport data
+        dataSource.transport.options.read.data = filterData();
+
+        dataSource.read();
+    }
+
+    /* =========================================================
+       FILTER CHANGE
+       ========================================================= */
+    window.annualProcurementFilterChanged =
+        function () {
+            loadItems();
+        };
+
+    /* =========================================================
+       ADD TO CART
+       ========================================================= */
+    window.addToCart = function (id) {
+        if (!id) {
+            kendo.alert(
+                "Invalid procurement item."
+            );
+            return;
+        }
+
+        var button =
+            $(
+                '[onclick="addToCart(\'' +
+                id +
+                '\')"]'
+            );
+
+        // Prevent double-click
+        if (button.data("processing")) {
+            return;        
+        }
+
+        button.data("processing", true);
+
+        var originalHtml = button.html();
+
+        button.prop("disabled", true);
+        button.html(
+            '<span class="k-icon k-i-loading"></span> ' +
+            'Adding...'
+        );
+
+        showLoading();
+
+        $.ajax({
+            url: '@Url.Action("AddToCart", "PPMP")',
+            type: "POST",
+            data: {
+                annualProcurementItemId: id
+            },
+
+            success: function (result) {
+                if (!result) {
+                    showError(
+                        "No response was returned from the server."
+                    );
+                    return;
+                }
+
+                if (!result.success) {
+                    showError(
+                        result.message ||
+                        "Unable to add the item to the cart."
+                    );
+                    return;
+                }
+
+                // Update cart count
+                updateCartCount();
+
+                // Refresh procurement items
+                refreshListView();
+
+                // Optional notification
+                showSuccess(
+                    result.message ||
+                    "Item added to cart."
+                );
+            },
+
+
+            error: function (xhr) {
+                console.error(
+                    "AddToCart error:",
+                    xhr
+                );
+
+                var message = "Unable to add the item to the cart.";
+
+                if (
+                    xhr.responseJSON &&
+                    xhr.responseJSON.message
+                ) {
+                    message = xhr.responseJSON.message;
+                }
+                showError(message);
+            },           
+            complete: function () {
+                hideLoading();
+                button.data(
+                    "processing",
+                    false
+                );
+                button.prop(
+                    "disabled",
+                    false
+                );
+                button.html(
+                    originalHtml
+                );
+            }
+        });
+    };
+
+
+    /* =========================================================
+       REFRESH LISTVIEW
+       ========================================================= */
+
+    function refreshListView() {
+
+        var listView =
+            $(config.listView)
+                .data("kendoListView");
+
+
+        if (!listView) {
+            return;
+        }
+
+
+        listView.dataSource.read();
+
+    }
+
+
+    /* =========================================================
+       CART COUNT
+       ========================================================= */
+    function updateCartCount() {
+        $.ajax({
+            url: '@Url.Action("GetCartCount", "PPMP")',
+            type: "GET",
+            cache: false,
+            success: function (result) {
+                var count = 0;
+                if (result) {
+                    if (typeof result ==="number") {
+                        count = result;
+                    }
+                    else if (result.count !== undefined) {
+                        count = result.count;
+                    }
+                }
+                updateCartDisplay(count);
+            },
+
+            error: function (xhr) {
+                console.error(
+                    "Unable to retrieve cart count.",
+                    xhr
+                );
+            }
+        });
+    }
+
+
+    function updateCartDisplay(count) {
+        count = parseInt(count || 0, 10);
+
+        if (count < 0) {
+            count = 0;
+        }
+        $(config.cartCount).text(count);
+
+        // Example:
+        // My Cart (3)
+        var cartText = $(".cart-count-text");
+        if (cartText.length) {
+            cartText.text("My Cart (" + count +")");
+        }
+
+        // Show/hide badge
+        var badge = $(".cart-badge");    
+        if (badge.length) {
+            badge.text(count);
+            if (count > 0) {
+                badge.removeClass("d-none");
+            }
+            else {
+                badge.addClass("d-none");
+            }
+        }
+    }
+
+    /* =========================================================
+       GO TO CART
+       ========================================================= */
+
+    function goToCart() {
+
+        var count =
+            parseInt(
+                $(config.cartCount).text() ||
+                0,
+                10
+            );
+
+
+        if (count <= 0) {
+
+            kendo.alert(
+                "Your cart is empty."
+            );
+
+            return;
+
+        }
+
+
+        window.location.href =
+            '@Url.Action("Cart", "PPMP")';
+
+    }
+
+
+    /* =========================================================
+       CHECKOUT
+       ========================================================= */
+
+    window.goToCheckout = function () {
+
+        var count =
+            parseInt(
+                $(config.cartCount).text() ||
+                0,
+                10
+            );
+
+
+        if (count <= 0) {
+
+            kendo.alert(
+                "Your cart is empty."
+            );
+
+            return;
+
+        }
+
+
+        window.location.href =
+            '@Url.Action("Checkout", "PPMP")';
+
+    };
+
+
+    /* =========================================================
+       REMOVE FROM CART
+       ========================================================= */
+
+    window.removeFromCart = function (id) {
+
+        if (!id) {
+
+            return;
+
+        }
+
+
+        kendo.confirm(
+            "Remove this item from your cart?"
+        )
+        .done(function () {
+
+            showLoading();
+
+
+            $.ajax({
+
+                url:
+                    '@Url.Action("RemoveFromCart", "PPMP")',
+
+                type: "POST",
+
+                data: {
+
+                    annualProcurementItemId: id
+
+                },
+
+
+                success: function (result) {
+
+                    if (
+                        result &&
+                        result.success
+                    ) {
+
+                        updateCartCount();
+
+                        refreshListView();
+
+                        showSuccess(
+                            "Item removed from cart."
+                        );
+
+                    }
+                    else {
+
+                        showError(
+                            result &&
+                            result.message
+                                ? result.message
+                                : "Unable to remove item."
+                        );
+
+                    }
+
+                },
+
+
+                error: function (xhr) {
+
+                    console.error(
+                        "RemoveFromCart error:",
+                        xhr
+                    );
+
+
+                    showError(
+                        "Unable to remove item from cart."
+                    );
+
+                },
+
+
+                complete: function () {
+
+                    hideLoading();
+
+                }
+
+            });
+
+        });
+
+    };
+
+
+    /* =========================================================
+       CLEAR CART
+       ========================================================= */
+
+    window.clearCart = function () {
+
+        kendo.confirm(
+            "Are you sure you want to remove all items from your cart?"
+        )
+        .done(function () {
+
+            showLoading();
+
+
+            $.ajax({
+
+                url:
+                    '@Url.Action("ClearCart", "PPMP")',
+
+                type: "POST",
+
+
+                success: function (result) {
+
+                    if (
+                        result &&
+                        result.success
+                    ) {
+
+                        updateCartCount();
+
+                        refreshListView();
+
+                        showSuccess(
+                            "Cart has been cleared."
+                        );
+
+                    }
+                    else {
+
+                        showError(
+                            result &&
+                            result.message
+                                ? result.message
+                                : "Unable to clear cart."
+                        );
+
+                    }
+
+                },
+
+
+                error: function () {
+
+                    showError(
+                        "Unable to clear cart."
+                    );
+
+                },
+
+
+                complete: function () {
+
+                    hideLoading();
+
+                }
+
+            });
+
+        });
+
+    };
+
+
+    /* =========================================================
+       LOADING INDICATOR
+       ========================================================= */
+
+    function showLoading() {
+
+        var target =
+            $(config.listView);
+
+
+        if (target.length) {
+
+            kendo.ui.progress(
+                target,
+                true
+            );
+
+        }
+
+    }
+
+
+    function hideLoading() {
+
+        var target =
+            $(config.listView);
+
+
+        if (target.length) {
+
+            kendo.ui.progress(
+                target,
+                false
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       NOTIFICATIONS
+       ========================================================= */
+
+    function showSuccess(message) {
+
+        if (
+            window.procurementNotification
+        ) {
+
+            window.procurementNotification.show(
+                message,
+                "success"
+            );
+
+            return;
+        }
+
+
+        // Fallback
+        console.log(
+            "SUCCESS:",
+            message
+        );
+
+    }
+
+
+    function showError(message) {
+
+        if (
+            window.procurementNotification
+        ) {
+
+            window.procurementNotification.show(
+                message,
+                "error"
+            );
+
+            return;
+        }
+
+
+        kendo.alert(
+            message
+        );
+
+    }
+
+
+    /* =========================================================
+       SEARCH CLEAR
+       ========================================================= */
+
+    window.clearProcurementSearch =
+        function () {
+
+            var control =
+                $(config.search)
+                    .data("kendoTextBox");
+
+
+            if (control) {
+
+                control.value("");
+
+            }
+            else {
+
+                $(config.search).val("");
+
+            }
+
+
+            loadItems();
+
+        };
+
+
+    /* =========================================================
+       RESET FILTERS
+       ========================================================= */
+
+    window.resetProcurementFilters =
+        function () {
+
+            var fiscalYear =
+                $(config.fiscalYear)
+                    .data("kendoDropDownList");
+
+
+            var department =
+                $(config.department)
+                    .data("kendoDropDownList");
+
+
+            var category =
+                $(config.category)
+                    .data("kendoDropDownList");
+
+
+            if (fiscalYear) {
+
+                fiscalYear.value("");
+
+            }
+
+
+            if (department) {
+
+                department.value("");
+
+            }
+
+
+            if (category) {
+
+                category.value("");
+
+            }
+
+
+            var search =
+                $(config.search)
+                    .data("kendoTextBox");
+
+
+            if (search) {
+
+                search.value("");
+
+            }
+            else {
+
+                $(config.search).val("");
+
+            }
+
+
+            loadItems();
+
+        };
+
+
+    /* =========================================================
+       PUBLIC API
+       ========================================================= */
+
+    return {
+
+        init: init,
+
+        loadItems: loadItems,
+
+        refresh: refreshListView,
+
+        updateCartCount: updateCartCount,
+
+        goToCart: goToCart
+
+    };
+
+})();
+
+
+/* =============================================================
+   DOCUMENT READY
+   ============================================================= */
+
+$(document).ready(function () {
+
+    annualProcurement.init();
+
+});
+</script>

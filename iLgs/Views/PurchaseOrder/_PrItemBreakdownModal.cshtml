@@ -1,0 +1,99 @@
+﻿@* File: ~/Views/PurchaseOrder/_PrItemBreakdownModal.cshtml *@
+@using Kendo.Mvc.UI
+
+<div class="modal fade" id="prItemBreakdownModal" tabindex="-1" role="dialog" aria-labelledby="modalPrBreakdownTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 850px;">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
+            <div class="modal-header" style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; padding: 12px 20px;">
+                <h5 class="modal-title" id="modalPrBreakdownTitle" style="font-size: 14px; font-weight: 700; color: #002576;">
+                    <i class="fa fa-list-alt mr-2"></i> Purchase Request Item Breakdown: <span id="prBreakdownTitlePrNo" style="font-family: monospace;"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 16px 20px; background-color: #ffffff;">
+                <div id="prBreakdownMeta" style="margin-bottom: 12px; font-size: 12px; color: #475569; display: flex; gap: 20px;">
+                    <div>Department: <strong id="prBreakdownDept" style="color: #0f172a;"></strong></div>
+                    <div>Purpose: <strong id="prBreakdownPurpose" style="color: #0f172a;"></strong></div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="prBreakdownTable" style="font-size: 12px; margin-bottom: 0;">
+                        <thead style="background-color: #f8fafc; color: #002576;">
+                            <tr>
+                                <th style="width: 40px; text-align: center;">#</th>
+                                <th style="width: 120px;">Catalog Code</th>
+                                <th>Item Description</th>
+                                <th style="width: 70px; text-align: center;">Unit</th>
+                                <th style="width: 80px; text-align: right;">Qty</th>
+                                <th style="width: 120px; text-align: right;">Est. Unit Cost</th>
+                                <th style="width: 130px; text-align: right;">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prBreakdownTableBody">
+                            <!-- Populated dynamically via AJAX -->
+                        </tbody>
+                        <tfoot style="background-color: #f8fafc; font-weight: bold;">
+                            <tr>
+                                <td colspan="6" style="text-align: right; color: #002576;">Total Requested Amount:</td>
+                                <td style="text-align: right; color: #002576; font-family: monospace;" id="prBreakdownGrandTotal">₱0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 20px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openPrItemBreakdownModal(prId, prNumber) {
+        $('#prBreakdownTitlePrNo').text(prNumber);
+        $('#prBreakdownTableBody').html('<tr><td colspan="7" class="text-center text-muted p-3"><i class="fa fa-spinner fa-spin mr-1"></i> Loading PR items...</td></tr>');
+        $('#prItemBreakdownModal').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("GetPrDetails", "PurchaseOrder")',
+            type: 'GET',
+            data: { prId: prId },
+            success: function (data) {
+                if (data) {
+                    $('#prBreakdownDept').text(data.Department || '-');
+                    $('#prBreakdownPurpose').text(data.Purpose || '-');
+
+                    var rowsHtml = '';
+                    var total = 0;
+                    if (data.Items && data.Items.length > 0) {
+                        $.each(data.Items, function (idx, item) {
+                            var itemTotal = (item.Quantity || 0) * (item.EstimatedUnitCost || 0);
+                            total += itemTotal;
+                            rowsHtml += '<tr>' +
+                                '<td class="text-center">' + (idx + 1) + '</td>' +
+                                '<td><span class="font-monospace font-weight-bold" style="color: #002576;">' + (item.CatalogCode || '-') + '</span></td>' +
+                                '<td>' + (item.Description || '-') + '</td>' +
+                                '<td class="text-center">' + (item.Unit || '-') + '</td>' +
+                                '<td class="text-right font-monospace">' + (item.Quantity || 0) + '</td>' +
+                                '<td class="text-right font-monospace">₱' + kendo.toString(item.EstimatedUnitCost || 0, 'n2') + '</td>' +
+                                '<td class="text-right font-monospace font-weight-bold">₱' + kendo.toString(itemTotal, 'n2') + '</td>' +
+                                '</tr>';
+                        });
+                    } else {
+                        rowsHtml = '<tr><td colspan="7" class="text-center text-muted p-3">No line items found for this PR.</td></tr>';
+                    }
+
+                    $('#prBreakdownTableBody').html(rowsHtml);
+                    $('#prBreakdownGrandTotal').text('₱' + kendo.toString(data.TotalAmount || total, 'n2'));
+                }
+            },
+            error: function () {
+                $('#prBreakdownTableBody').html('<tr><td colspan="7" class="text-center text-danger p-3">Failed to load PR details.</td></tr>');
+            }
+        });
+    }
+</script>

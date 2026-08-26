@@ -1,0 +1,827 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Models
+
+@model iLgs.Models.PurchaseOrderDetailsViewModel
+
+@{
+    ViewBag.Title = "Create Purchase Order";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="po-wizard-page">
+
+    <!-- Page Header -->
+    <div class="po-page-header">
+        <div>
+            <h1 class="po-page-title">Create Purchase Order</h1>
+            <div class="po-breadcrumb">
+                <span>Home</span>
+                <span>/</span>
+                <span>Procurement</span>
+                <span>/</span>
+                <strong>Purchase Orders</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wizard Steps -->
+    <div class="po-stepper">
+
+        <div class="po-step po-step-active">
+            <div class="po-step-number">1</div>
+            <div class="po-step-label">Select PRs</div>
+        </div>
+
+        <div class="po-step-line"></div>
+
+        <div class="po-step po-step-disabled">
+            <div class="po-step-number">2</div>
+            <div class="po-step-label">Assign Items</div>
+        </div>
+
+        <div class="po-step-line"></div>
+
+        <div class="po-step po-step-disabled">
+            <div class="po-step-number">3</div>
+            <div class="po-step-label">Vendor</div>
+        </div>
+
+        <div class="po-step-line"></div>
+
+        <div class="po-step po-step-disabled">
+            <div class="po-step-number">4</div>
+            <div class="po-step-label">Details</div>
+        </div>
+
+        <div class="po-step-line"></div>
+
+        <div class="po-step po-step-disabled">
+            <div class="po-step-number">5</div>
+            <div class="po-step-label">Review</div>
+        </div>
+
+    </div>
+
+
+    <!-- Step Header -->
+    <div class="po-step-header">
+        <div>
+            <h2>Step 1: Select Approved Purchase Requests</h2>
+            <span class="po-step-description">
+                Select one or more approved purchase requests for this purchase order.
+            </span>
+        </div>
+
+        @*<div class="po-approved-count">
+            Showing <strong>@Model.ApprovedPRs.Count()</strong> Approved PRs
+        </div>*@
+    </div>
+
+
+    <!-- Main Workspace -->
+    <div class="po-workspace">
+
+        <!-- LEFT SIDE -->
+        <div class="po-main-panel">
+
+            <!-- Filter Panel -->
+            <div class="po-filter-card">
+
+                <div class="po-filter-item">
+                    <label for="PrNoFilter">PR Number</label>
+
+                    @(Html.Kendo().TextBox()
+                        .Name("PrNoFilter")
+                        .Placeholder("e.g. PR-2026-001")
+                    )
+                </div>
+
+
+                <div class="po-filter-item">
+                    <label for="DepartmentFilter">Department</label>
+
+                    @(Html.Kendo().DropDownList()
+                        .Name("DepartmentFilter")
+                        .OptionLabel("All Departments")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(new[]
+                        {
+                            new SelectListItem
+                            {
+                                Text = "Information Technology",
+                                Value = "Information Technology"
+                            },
+                            new SelectListItem
+                            {
+                                Text = "Facilities Management",
+                                Value = "Facilities Management"
+                            },
+                            new SelectListItem
+                            {
+                                Text = "Human Resources",
+                                Value = "Human Resources"
+                            },
+                            new SelectListItem
+                            {
+                                Text = "Logistics",
+                                Value = "Logistics"
+                            }
+                        })
+                        .HtmlAttributes(new { style = "width:100%;" })
+                    )
+                    }
+
+
+                    <div class="po-filter-item">
+                        <label for="FundFilter">Fund Cluster</label>
+
+                        @(Html.Kendo().DropDownList()
+                        .Name("FundFilter")
+                        .OptionLabel("All Funds")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(new[]
+                        {
+                            new SelectListItem
+                            {
+                                Text = "01 - Regular Agency Fund",
+                                Value = "01"
+                            },
+                            new SelectListItem
+                            {
+                                Text = "05 - Internally Generated",
+                                Value = "05"
+                            }
+                        })
+                        .HtmlAttributes(new { style = "width:100%;" })
+                        )
+                        }
+
+
+                        <div class="po-filter-date-group">
+
+                            <div class="po-filter-item">
+                                <label for="DateFrom">Date From</label>
+
+                                @(Html.Kendo().DatePicker()
+                            .Name("DateFrom")
+                            .Format("yyyy-MM-dd")
+                            .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+
+                            <div class="po-filter-item">
+                                <label for="DateTo">Date To</label>
+
+                                @(Html.Kendo().DatePicker()
+                            .Name("DateTo")
+                            .Format("yyyy-MM-dd")
+                            .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+
+                            <div class="po-filter-button-container">
+                                @(Html.Kendo().Button()
+                            .Name("FilterButton")
+                            .Content("Filter")
+                            .HtmlAttributes(new
+                            {
+                                type = "button",
+                                @class = "po-filter-button"
+                            })
+                            .Events(e => e.Click("filterPurchaseRequests"))
+                                )
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PR Grid -->
+                    <div class="po-grid-card">
+
+                        @(Html.Kendo().Grid(Model.ApprovedPRs)
+                    .Name("approvedPrGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Select()
+                            .Width(45)
+                            .HtmlAttributes(new { @class = "po-grid-select" })
+                            .HeaderHtmlAttributes(new { @class = "po-grid-select" });
+
+                        columns.Bound(x => x.PrNo)
+                            .Title("PR No.")
+                            .Width(140)
+                            .HtmlAttributes(new { @class = "po-pr-number" });
+
+                        columns.Bound(x => x.PrDate)
+                            .Title("PR Date")
+                            .Width(110)
+                            .Format("{0:yyyy-MM-dd}");
+
+                        columns.Bound(x => x.Department)
+                            .Title("Department")
+                            .Width(180);
+
+                        columns.Bound(x => x.Purpose)
+                            .Title("Purpose")
+                            .Width(250)
+                            .ClientTemplate(
+                                "<span class='po-purpose' title='#= Purpose #'>#= Purpose #</span>"
+                            );
+
+                        columns.Bound(x => x.Fund)
+                            .Title("Fund")
+                            .Width(140);
+
+                        columns.Bound(x => x.TotalAmount)
+                            .Title("Total Amount (₱)")
+                            .Width(160)
+                            .Format("{0:n2}")
+                            .HtmlAttributes(new { @class = "po-amount-cell" })
+                            .HeaderHtmlAttributes(new { @class = "po-amount-header" });
+
+                        columns.Bound(x => x.Status)
+                            .Title("Status")
+                            .Width(100)
+                            .ClientTemplate(
+                                "<span class='po-status-approved'>#= Status #</span>"
+                            )
+                            .HtmlAttributes(new { @class = "po-status-cell" });
+                    })
+                    .Pageable(pageable =>
+                    {
+                        pageable.Refresh(true);
+                        pageable.PageSizes(new[] { 5, 10, 20, 50 });
+                        pageable.ButtonCount(5);
+                    })
+                    .Sortable()
+                    .Scrollable(scrollable => scrollable.Height(430))
+                    .Filterable(filterable => filterable.Enabled(false))
+                    .Selectable(selectable =>
+                    {
+                        selectable.Mode(GridSelectionMode.Multiple);
+                        selectable.Type(GridSelectionType.Row);
+                    })
+                    .Events(events =>
+                    {
+                        events.Change("onPurchaseRequestSelectionChange");
+                        events.DataBound("onPurchaseRequestGridDataBound");
+                    })
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(5)
+                    )
+                        )
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT SIDE -->
+                <div class="po-summary-panel">
+
+                    <div class="po-summary-card">
+
+                        <div class="po-summary-header">
+                            <div>
+                                <h3>Selected PRs</h3>
+                                <span class="po-summary-subtitle">
+                                    Purchase requests selected for this PO
+                                </span>
+                            </div>
+
+                            <span id="selectedPrCount" class="po-selected-count">
+                                0 Items
+                            </span>
+                        </div>
+
+
+                        <div id="selectedPrList" class="po-selected-list">
+
+                            <div id="noSelectedPrs" class="po-no-selection">
+                                <div class="po-no-selection-title">
+                                    No PRs selected
+                                </div>
+
+                                <div class="po-no-selection-text">
+                                    Select one or more approved PRs from the grid.
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="po-summary-footer">
+
+                            <div class="po-total-row">
+                                <span>Total Estimated Cost</span>
+
+                                <strong id="selectedPrTotal">
+                                    ₱0.00
+                                </strong>
+                            </div>
+
+                            <p>
+                                Ensure the selected PR items belong to the same
+                                procurement category before proceeding.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Bottom Navigation -->
+            <div class="po-wizard-actions">
+
+                <div>
+                    @(Html.Kendo().Button()
+                .Name("BackButton")
+                .Content("Back")
+                .Enable(false)
+                .HtmlAttributes(new
+                {
+                    type = "button",
+                    @class = "po-button po-button-disabled"
+                })
+                    )
+                </div>
+
+
+                <div class="po-action-right">
+
+                    @(Html.Kendo().Button()
+                .Name("SaveDraftButton")
+                .Content("Save Draft")
+                .HtmlAttributes(new
+                {
+                    type = "button",
+                    @class = "po-button po-button-outline"
+                })
+                .Events(e => e.Click("savePurchaseOrderDraft"))
+                    )
+
+
+                    @(Html.Kendo().Button()
+                .Name("NextButton")
+                .Content("Next: Assign Items")
+                .HtmlAttributes(new
+                {
+                    type = "button",
+                    @class = "po-button po-button-primary"
+                })
+                .Events(e => e.Click("goToAssignItems"))
+                    )
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        @section scripts {
+
+            <script>
+
+    var selectedPurchaseRequests = {};
+
+    $(document).ready(function () {
+
+        updateSelectedSummary();
+
+        $("#PrNoFilter").on("keyup", function (e) {
+
+            if (e.keyCode === 13) {
+                filterPurchaseRequests();
+            }
+
+        });
+
+    });
+
+
+    function onPurchaseRequestGridDataBound(e) {
+
+        var grid = e.sender;
+
+        grid.tbody.find("tr").each(function () {
+
+            var dataItem = grid.dataItem(this);
+
+            if (!dataItem) {
+                return;
+            }
+
+            var id = dataItem.Id;
+
+            if (selectedPurchaseRequests[id]) {
+                $(this).addClass("po-row-selected");
+            }
+
+        });
+
+        updateSelectedSummary();
+    }
+
+
+    function onPurchaseRequestSelectionChange(e) {
+
+        var grid = e.sender;
+
+        var selectedRows = grid.select();
+
+        selectedRows.each(function () {
+
+            var dataItem = grid.dataItem(this);
+
+            if (!dataItem) {
+                return;
+            }
+
+            selectedPurchaseRequests[dataItem.Id] = {
+                Id: dataItem.Id,
+                PrNo: dataItem.PrNo,
+                PrDate: dataItem.PrDate,
+                Department: dataItem.Department,
+                Purpose: dataItem.Purpose,
+                Fund: dataItem.Fund,
+                TotalAmount: dataItem.TotalAmount,
+                Status: dataItem.Status
+            };
+
+        });
+
+
+        /*
+         * Remove items that are no longer selected on the current page.
+         *
+         * This is deliberately based on the visible page so selections
+         * from other pages remain available.
+         */
+        grid.dataSource.view().forEach(function (dataItem) {
+
+            var row = grid.tbody.find(
+                "tr[data-uid='" + dataItem.uid + "']"
+            );
+
+            if (!row.hasClass("k-state-selected")) {
+
+                if (selectedPurchaseRequests[dataItem.Id]) {
+                    delete selectedPurchaseRequests[dataItem.Id];
+                }
+
+            }
+
+        });
+
+
+        updateSelectedSummary();
+
+    }
+
+
+    function removeSelectedPurchaseRequest(id) {
+
+        if (selectedPurchaseRequests[id]) {
+            delete selectedPurchaseRequests[id];
+        }
+
+        var grid = $("#approvedPrGrid").data("kendoGrid");
+
+        if (grid) {
+
+            grid.tbody.find("tr").each(function () {
+
+                var dataItem = grid.dataItem(this);
+
+                if (dataItem && dataItem.Id == id) {
+
+                    $(this).removeClass("k-state-selected");
+                    $(this).removeClass("po-row-selected");
+
+                }
+
+            });
+
+        }
+
+        updateSelectedSummary();
+
+    }
+
+
+    function updateSelectedSummary() {
+
+        var list = $("#selectedPrList");
+
+        list.empty();
+
+        var selected = Object.keys(selectedPurchaseRequests)
+            .map(function (key) {
+                return selectedPurchaseRequests[key];
+            });
+
+
+        $("#selectedPrCount").text(
+            selected.length + (selected.length === 1 ? " Item" : " Items")
+        );
+
+
+        if (selected.length === 0) {
+
+            list.html(
+                "<div id='noSelectedPrs' class='po-no-selection'>" +
+                    "<div class='po-no-selection-title'>" +
+                        "No PRs selected" +
+                    "</div>" +
+                    "<div class='po-no-selection-text'>" +
+                        "Select one or more approved PRs from the grid." +
+                    "</div>" +
+                "</div>"
+            );
+
+            $("#selectedPrTotal").text("₱0.00");
+
+            return;
+        }
+
+
+        var total = 0;
+
+
+        selected.forEach(function (item) {
+
+            total += parseFloat(item.TotalAmount || 0);
+
+
+            var html =
+                "<div class='po-selected-pr' data-pr-id='" + item.Id + "'>" +
+
+                    "<div class='po-selected-pr-info'>" +
+
+                        "<strong>" +
+                            kendo.htmlEncode(item.PrNo) +
+                        "</strong>" +
+
+                        "<span>" +
+                            kendo.htmlEncode(item.Department || "") +
+                        "</span>" +
+
+                    "</div>" +
+
+                    "<div class='po-selected-pr-value'>" +
+
+                        "<strong>" +
+                            formatCurrency(item.TotalAmount) +
+                        "</strong>" +
+
+                        "<button " +
+                            "type='button' " +
+                            "class='po-remove-pr' " +
+                            "onclick='removeSelectedPurchaseRequest(\"" +
+                                item.Id +
+                            "\")'>" +
+                            "Remove" +
+                        "</button>" +
+
+                    "</div>" +
+
+                "</div>";
+
+
+            list.append(html);
+
+        });
+
+
+        $("#selectedPrTotal").text(
+            formatCurrency(total)
+        );
+
+    }
+
+
+    function formatCurrency(value) {
+
+        value = parseFloat(value || 0);
+
+        return "₱" + value.toLocaleString(
+            "en-PH",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+    }
+
+
+    function filterPurchaseRequests() {
+
+        var grid = $("#approvedPrGrid").data("kendoGrid");
+
+        if (!grid) {
+            return;
+        }
+
+
+        var filters = [];
+
+
+        var prNo = $("#PrNoFilter")
+            .val()
+            .trim();
+
+
+        var department = $("#DepartmentFilter")
+            .data("kendoDropDownList")
+            .value();
+
+
+        var fund = $("#FundFilter")
+            .data("kendoDropDownList")
+            .value();
+
+
+        var dateFrom = $("#DateFrom")
+            .data("kendoDatePicker")
+            .value();
+
+
+        var dateTo = $("#DateTo")
+            .data("kendoDatePicker")
+            .value();
+
+
+        if (prNo) {
+
+            filters.push({
+                field: "PrNo",
+                operator: "contains",
+                value: prNo
+            });
+
+        }
+
+
+        if (department) {
+
+            filters.push({
+                field: "Department",
+                operator: "eq",
+                value: department
+            });
+
+        }
+
+
+        if (fund) {
+
+            filters.push({
+                field: "Fund",
+                operator: "contains",
+                value: fund
+            });
+
+        }
+
+
+        if (dateFrom) {
+
+            filters.push({
+                field: "PrDate",
+                operator: "gte",
+                value: dateFrom
+            });
+
+        }
+
+
+        if (dateTo) {
+
+            var endDate = new Date(dateTo);
+
+            endDate.setHours(23, 59, 59, 999);
+
+            filters.push({
+                field: "PrDate",
+                operator: "lte",
+                value: endDate
+            });
+
+        }
+
+
+        grid.dataSource.filter({
+            logic: "and",
+            filters: filters
+        });
+
+    }
+
+
+    function savePurchaseOrderDraft() {
+
+        var selected = Object.keys(selectedPurchaseRequests)
+            .map(function (key) {
+                return selectedPurchaseRequests[key];
+            });
+
+
+        if (selected.length === 0) {
+
+            alert("Please select at least one approved Purchase Request.");
+
+            return;
+        }
+
+
+        /*
+         * Replace this with your actual Save Draft action.
+         */
+        $.ajax({
+
+            url: '@Url.Action("SaveDraft", "PurchaseOrder")',
+
+            type: "POST",
+
+            contentType: "application/json; charset=utf-8",
+
+            data: JSON.stringify({
+                PurchaseRequestIds: selected.map(function (item) {
+                    return item.Id;
+                })
+            }),
+
+            success: function (response) {
+
+                if (response && response.success === false) {
+
+                    alert(response.message || "Unable to save the draft.");
+
+                    return;
+                }
+
+                alert("Purchase Order draft saved.");
+
+            },
+
+            error: function () {
+
+                alert("An error occurred while saving the Purchase Order draft.");
+
+            }
+
+        });
+
+    }
+
+
+    function goToAssignItems() {
+
+        var selected = Object.keys(selectedPurchaseRequests)
+            .map(function (key) {
+                return selectedPurchaseRequests[key];
+            });
+
+
+        if (selected.length === 0) {
+
+            alert("Please select at least one approved Purchase Request.");
+
+            return;
+        }
+
+
+        var ids = selected.map(function (item) {
+            return item.Id;
+        });
+
+
+        /*
+         * Replace the action name if your controller uses
+         * a different action for Step 2.
+         */
+        var url =
+            '@Url.Action("AssignItems", "PurchaseOrder")' +
+            '?prIds=' +
+            encodeURIComponent(ids.join(","));
+
+
+        window.location.href = url;
+
+    }
+
+            </script>
+
+        }

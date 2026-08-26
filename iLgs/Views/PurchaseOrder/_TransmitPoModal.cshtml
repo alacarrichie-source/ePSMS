@@ -1,0 +1,68 @@
+﻿@* File: ~/Views/PurchaseOrder/_TransmitPoModal.cshtml *@
+<div class="modal fade" id="transmitPoModal" tabindex="-1" role="dialog" aria-labelledby="modalTransmitPoTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 520px;">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden; border: 1px solid #002576;">
+            <div class="modal-header" style="background-color: #002576; color: #ffffff; padding: 12px 18px;">
+                <h5 class="modal-title" id="modalTransmitPoTitle" style="font-size: 14px; font-weight: 700; margin: 0;">
+                    <i class="fa fa-paper-plane mr-2"></i> Transmit Purchase Order to Supplier
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #ffffff; opacity: 0.85;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 18px 20px; background-color: #f8fafc;">
+                <p style="font-size: 13px; color: #334155; margin-bottom: 12px;">
+                    Transmit Purchase Order <strong id="transmitPoNumberDisplay" style="font-family: monospace; color: #002576;"></strong> to supplier <strong id="transmitSupplierDisplay"></strong>?
+                </p>
+
+                <div class="epsms-notice" style="font-size: 12px; margin-bottom: 12px;">
+                    <strong>Next Milestone:</strong> Transmitting will notify the supplier, freeze line items against further edits, and start the delivery countdown.
+                </div>
+
+                <input type="hidden" id="transmitPoTargetId" />
+            </div>
+
+            <div class="modal-footer" style="background-color: #ffffff; border-top: 1px solid #e2e8f0; padding: 10px 18px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-procurement-primary" onclick="executePoTransmittal()" style="font-size: 12px; padding: 6px 14px;">
+                    <i class="fa fa-check mr-1"></i> Confirm &amp; Mark as Transmitted
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openTransmitPoModal(poId, poNumber, supplier) {
+        $('#transmitPoTargetId').val(poId);
+        $('#transmitPoNumberDisplay').text(poNumber);
+        $('#transmitSupplierDisplay').text(supplier || 'Awarded Supplier');
+        $('#transmitPoModal').modal('show');
+    }
+
+    function executePoTransmittal() {
+        var id = $('#transmitPoTargetId').val();
+
+        $.ajax({
+            url: '@Url.Action("Transmit", "PurchaseOrder")',
+            type: 'POST',
+            data: { id: id },
+            success: function (result) {
+                $('#transmitPoModal').modal('hide');
+                if (result.success) {
+                    if ($("#PurchaseOrdersMasterGrid").length > 0) {
+                        $("#PurchaseOrdersMasterGrid").data("kendoGrid").dataSource.read();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Transmission failed: ' + result.message);
+                }
+            },
+            error: function () {
+                alert('An error occurred while communicating with the server.');
+            }
+        });
+    }
+</script>

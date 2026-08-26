@@ -1,0 +1,44 @@
+﻿@* File: ~/Views/PurchaseOrder/_PoHeaderCard.cshtml *@
+@using iLgs.Models
+@model iLgs.Models.PurchaseOrderViewModel
+
+<div class="data-card" style="margin-bottom: 20px; border-top: 3px solid #002576;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h2 style="color: #002576; margin: 0; font-size: 20px; font-family: monospace;">@Model.PoNumber</h2>
+                @Html.Partial("_PoStatusBadge", Model.Status)
+            </div>
+            <p style="font-size: 13px; color: #475569; margin: 0;">
+                Awarded to <strong style="color: #0f172a;">@Model.Supplier</strong> &bull;
+                Mode: <span class="source-pr-pill">@Model.ModeOfProcurement</span>
+            </p>
+        </div>
+
+        <div style="text-align: right;">
+            <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700;">Consolidated PO Amount</div>
+            <div style="font-size: 24px; font-weight: 700; color: #002576; font-family: monospace;">
+                ₱@Model.TotalAmount.ToString("N2")
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 12px;">
+        <div>
+            <span style="color: #64748b;">PO Date:</span>
+            <strong>@Model.PoDate.Value.ToString("MMMM dd, yyyy")</strong>
+        </div>
+        <div>
+            <span style="color: #64748b;">Delivery Period:</span>
+            <strong>@(Model.DeliveryPeriod ?? "30 Calendar Days")</strong>
+        </div>
+        <div>
+            <span style="color: #64748b;">Place of Delivery:</span>
+            <strong>@(Model.PlaceOfDelivery ?? "Regional Office / Port Area")</strong>
+        </div>
+        <div>
+            <span style="color: #64748b;">Source PR(s):</span>
+            <span class="source-pr-pill">@Model.SourcePrSummary</span>
+        </div>
+    </div>
+</div>

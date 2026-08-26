@@ -1,0 +1,19 @@
+﻿@* File: ~/Views/Shared/EditorTemplates/UnitDropdownEditor.cshtml *@
+@model string
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .BindTo(new List<string>() {
+        "Ream",
+        "Box",
+        "Unit",
+        "Bottle",
+        "Pad",
+        "Piece",
+        "Pack",
+        "Roll",
+        "Can",
+        "Set"
+    })
+    .OptionLabel("Select Unit...")
+    .HtmlAttributes(new { style = "width: 100%" })
+)

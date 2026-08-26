@@ -1,0 +1,55 @@
+﻿@* File: ~/Views/PurchaseOrder/_PoAuditTrail.cshtml *@
+@using iLgs.Models
+@model iLgs.Models.PurchaseOrderViewModel
+
+@{
+    var isDraft = Model.Status == "Draft";
+    var isApproved = Model.Status == "Approved";
+    var isTransmitted = Model.Status == "Transmitted";
+    var isPosted = Model.Status == "Posted";
+    var isCancelled = Model.Status == "Cancelled";
+}
+
+<div class="data-card" style="margin-bottom: 20px; padding: 16px 20px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #002576; text-transform: uppercase; margin-bottom: 14px;">
+        <i class="fa fa-history mr-1"></i> Procurement Lifecycle &amp; Approval Timeline
+    </h4>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; position: relative;">
+        @* Step 1: Draft Created *@
+        <div style="padding: 10px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #cbd5e1; border-top: 3px solid #002576;">
+            <div style="font-weight: 700; font-size: 12px; color: #002576;">1. Draft Consolidated</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">@Model.PoDate.Value.ToString("MMM dd, yyyy")</div>
+            <div style="font-size: 10px; color: #15803d; margin-top: 2px;"><i class="fa fa-check-circle"></i> Aggregated</div>
+        </div>
+
+        @* Step 2: HoPE Approved *@
+        <div style="padding: 10px; background-color: @(isApproved || isTransmitted || isPosted ? "#f0fdf4" : "#f8fafc"); border-radius: 6px; border: 1px solid @(isApproved || isTransmitted || isPosted ? "#86efac" : "#e2e8f0"); border-top: 3px solid @(isApproved || isTransmitted || isPosted ? "#15803d" : "#94a3b8");">
+            <div style="font-weight: 700; font-size: 12px; color: @(isApproved || isTransmitted || isPosted ? "#15803d" : "#64748b");">2. HoPE Approved</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Atty. Ricardo Santos</div>
+            <div style="font-size: 10px; color: @(isApproved || isTransmitted || isPosted ? "#15803d" : "#94a3b8"); margin-top: 2px;">
+                @(isApproved || isTransmitted || isPosted ? "Approved" : "Pending Signature")
+            </div>
+        </div>
+
+        @* Step 3: Supplier Transmitted *@
+        <div style="padding: 10px; background-color: @(isTransmitted || isPosted ? "#eff6ff" : "#f8fafc"); border-radius: 6px; border: 1px solid @(isTransmitted || isPosted ? "#93c5fd" : "#e2e8f0"); border-top: 3px solid @(isTransmitted || isPosted ? "#002576" : "#94a3b8");">
+            <div style="font-weight: 700; font-size: 12px; color: @(isTransmitted || isPosted ? "#002576" : "#64748b");">3. Transmitted</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">@Model.Supplier</div>
+            <div style="font-size: 10px; color: @(isTransmitted || isPosted ? "#002576" : "#94a3b8"); margin-top: 2px;">
+                @(isTransmitted || isPosted ? "Transmitted" : "Awaiting Dispatch")
+            </div>
+        </div>
+
+        @* Step 4: Posted to Accounting *@
+        <div style="padding: 10px; background-color: @(isPosted ? "#f0fdf4" : isCancelled ? "#fef2f2" : "#f8fafc"); border-radius: 6px; border: 1px solid @(isPosted ? "#86efac" : isCancelled ? "#fca5a5" : "#e2e8f0"); border-top: 3px solid @(isPosted ? "#15803d" : isCancelled ? "#b91c1c" : "#94a3b8");">
+            <div style="font-weight: 700; font-size: 12px; color: @(isPosted ? "#15803d" : isCancelled ? "#b91c1c" : "#64748b");">
+                @(isCancelled ? "4. Cancelled" : "4. Obligation Posted")
+            </div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">ORS/BURS Registered</div>
+            <div style="font-size: 10px; color: @(isPosted ? "#15803d" : isCancelled ? "#b91c1c" : "#94a3b8"); margin-top: 2px;">
+                @(isPosted ? "Posted to Ledger" : isCancelled ? "Allocations Released" : "Pending Obligation")
+            </div>
+        </div>
+    </div>
+</div>

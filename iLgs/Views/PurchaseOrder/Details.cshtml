@@ -1,0 +1,189 @@
+﻿@* File: ~/Views/PurchaseOrder/Details.cshtml *@
+@using iLgs.Models
+@model iLgs.Models.PurchaseOrderViewModel
+
+@{
+    Layout = null; // Standalone printable COA document
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order @Model.PoNumber - Republic of the Philippines</title>
+    <link rel="stylesheet" href="~/Content/procurement-print.css" />
+    <style>
+        .no-print-bar {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .btn-print {
+            background-color: #002576;
+            color: #ffffff;
+            border: 1px solid #002576;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-close {
+            background-color: #ffffff;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="po-print-preview">
+
+    <div class="no-print-bar no-print">
+        <div>
+            <strong>ePSMS Procurement System</strong> &bull; Purchase Order Voucher Preview (@Model.PoNumber)
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-print" onclick="window.print();">
+                &#128438; Print / Save PDF
+            </button>
+            <button type="button" class="btn-close" onclick="window.close();">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <div class="po-voucher-sheet">
+        <div class="po-header-title">PURCHASE ORDER</div>
+        <div class="po-header-sub">
+            Republic of the Philippines<br />
+            <strong>DEPARTMENT OF PUBLIC WORKS AND HIGHWAYS / LOCAL GOVERNMENT UNIT</strong><br />
+            Regional Office No. NCR, Port Area, Manila
+        </div>
+
+        <table class="po-table">
+            <tr>
+                <td width="55%">
+                    <strong>Supplier:</strong> @Model.Supplier<br />
+                    <strong>Address:</strong> @Model.SupplierAddress<br />
+                    <strong>TIN:</strong> 004-892-120-000-VAT
+                </td>
+                <td width="45%">
+                    <strong>P.O. No.:</strong> <span style="font-family: monospace; font-weight: bold; font-size: 11pt;">@Model.PoNumber</span><br />
+                    <strong>Date:</strong> @Model.PoDate.Value.ToString("MMMM dd, yyyy")<br />
+                    <strong>Mode of Procurement:</strong> @Model.ModeOfProcurement<br />
+                    <strong>Source PR(s):</strong> @Model.SourcePrSummary
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="font-size: 9.5pt;">
+                    <strong>Gentlemen:</strong> Please furnish this Office the following articles subject to the terms and conditions contained herein:
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Place of Delivery:</strong> @Model.PlaceOfDelivery<br />
+                    <strong>Date of Delivery:</strong> Within @Model.DeliveryPeriod
+                </td>
+                <td>
+                    <strong>Delivery Term:</strong> @Model.DeliveryTerms<br />
+                    <strong>Payment Term:</strong> @Model.PaymentTerms
+                </td>
+            </tr>
+        </table>
+
+        <table class="po-table">
+            <thead>
+                <tr>
+                    <th width="8%">Stock/Property No.</th>
+                    <th width="8%">Unit</th>
+                    <th width="44%">Description &amp; Technical Specifications</th>
+                    <th width="10%">Quantity</th>
+                    <th width="15%">Unit Cost (PHP)</th>
+                    <th width="15%">Amount (PHP)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td align="center" style="font-family: monospace;">@item.CatalogCode</td>
+                        <td align="center">@item.Unit</td>
+                        <td>
+                            <strong>@item.Description</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.TechnicalSpecs))
+                            {
+                                <div style="font-size: 9pt; color: #333; margin-top: 2px;">@item.TechnicalSpecs</div>
+                            }
+                            <div style="font-size: 8.5pt; color: #555; margin-top: 2px;">Allocated: PR [@item.SourcePrs]</div>
+                        </td>
+                        <td align="right" style="font-family: monospace;">@item.Quantity</td>
+                        <td align="right" style="font-family: monospace;">@item.UnitCost.ToString("N2")</td>
+                        <td align="right" style="font-family: monospace; font-weight: bold;">@item.TotalCost.ToString("N2")</td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="5" align="right"><strong>TOTAL AMOUNT:</strong></td>
+                    <td align="right" style="font-family: monospace; font-weight: bold; font-size: 11pt;">
+                        ₱@Model.TotalAmount.ToString("N2")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="po-words-box">
+            <strong>(Total Amount in Words):</strong> @Model.TotalAmountInWords
+        </div>
+
+        <div style="font-size: 9pt; margin-bottom: 12px; line-height: 1.3;">
+            In case of failure to make the full delivery within the time specified above, a penalty of one-tenth (1/10) of one percent for every day of delay shall be imposed on the undelivered item/s.
+        </div>
+
+        <table class="po-signatory-box">
+            <tr>
+                <td width="50%">
+                    Conforme:<br /><br /><br />
+                    <div style="text-align: center;">
+                        ___________________________________________________<br />
+                        <strong>Signature over Printed Name of Supplier</strong><br />
+                        <span style="font-size: 9pt;">Date: ________________________</span>
+                    </div>
+                </td>
+                <td width="50%">
+                    Very truly yours,<br /><br /><br />
+                    <div style="text-align: center;">
+                        <strong>ATTY. RICARDO M. SANTOS, CESO III</strong><br />
+                        Regional Director / Authorized Official<br />
+                        <span style="font-size: 9pt;">(Head of Procuring Entity)</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <table class="po-table" style="margin-top: 15px;">
+            <tr>
+                <td width="50%">
+                    <strong>Fund Cluster:</strong> 01101101 (Regular Agency Fund)<br />
+                    <strong>Funds Available:</strong> ₱@Model.TotalAmount.ToString("N2")<br /><br />
+                    <div style="text-align: center; margin-top: 15px;">
+                        <strong>MARIA LOURDES B. REYES, CPA</strong><br />
+                        Chief Accountant / Head, Accounting Section
+                    </div>
+                </td>
+                <td width="50%">
+                    <strong>ORS/BURS No.:</strong> 01101101-2026-03-000418<br />
+                    <strong>Date of the ORS/BURS:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")<br />
+                    <strong>Amount:</strong> ₱@Model.TotalAmount.ToString("N2")
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

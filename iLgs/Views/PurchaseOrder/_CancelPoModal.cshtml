@@ -1,0 +1,82 @@
+﻿@* File: ~/Views/PurchaseOrder/_CancelPoModal.cshtml *@
+<div class="modal fade" id="cancelPoModal" tabindex="-1" role="dialog" aria-labelledby="modalCancelPoTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 520px;">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden; border: 1px solid #b91c1c;">
+            <div class="modal-header" style="background-color: #b91c1c; color: #ffffff; padding: 12px 18px;">
+                <h5 class="modal-title" id="modalCancelPoTitle" style="font-size: 14px; font-weight: 700; margin: 0;">
+                    <i class="fa fa-ban mr-2"></i> Cancel Purchase Order
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #ffffff; opacity: 0.85;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 18px 20px; background-color: #fef2f2;">
+                <div style="font-size: 13px; color: #7f1d1d; margin-bottom: 12px;">
+                    Are you sure you want to cancel Purchase Order <strong id="cancelPoNumberDisplay" style="font-family: monospace;"></strong>?
+                </div>
+
+                <div class="alert alert-warning" style="font-size: 12px; margin-bottom: 14px; padding: 10px 14px; background-color: #fffbeb; border: 1px solid #fef3c7; color: #92400e;">
+                    <strong>Audit Notice:</strong> Cancelling this PO will release all reserved Purchase Request allocations back to the Procurement pool.
+                </div>
+
+                <input type="hidden" id="cancelPoTargetId" />
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="cancelPoReason" style="font-size: 12px; font-weight: 700; color: #1e293b;">Reason for Cancellation (Required for COA Audit Trail):</label>
+                    <textarea id="cancelPoReason" class="form-control" rows="3" placeholder="State official justification (e.g. Failure of bidding, supplier non-conformance, project realignment)..." style="font-size: 12px;"></textarea>
+                    <div id="cancelPoError" class="text-danger small mt-1" style="display: none;">Please provide a valid cancellation reason.</div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background-color: #ffffff; border-top: 1px solid #fee2e2; padding: 10px 18px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Keep PO Active</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="executePoCancellation()">
+                    <i class="fa fa-times mr-1"></i> Confirm &amp; Cancel PO
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openCancelPoModal(poId, poNumber) {
+        $('#cancelPoTargetId').val(poId);
+        $('#cancelPoNumberDisplay').text(poNumber);
+        $('#cancelPoReason').val('');
+        $('#cancelPoError').hide();
+        $('#cancelPoModal').modal('show');
+    }
+
+    function executePoCancellation() {
+        var id = $('#cancelPoTargetId').val();
+        var reason = $.trim($('#cancelPoReason').val());
+
+        if (!reason) {
+            $('#cancelPoError').show();
+            $('#cancelPoReason').focus();
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("CancelPO", "PurchaseOrder")',
+            type: 'POST',
+            data: { id: id, reason: reason },
+            success: function (result) {
+                $('#cancelPoModal').modal('hide');
+                if (result.success) {
+                    if ($("#PurchaseOrdersMasterGrid").length > 0) {
+                        $("#PurchaseOrdersMasterGrid").data("kendoGrid").dataSource.read();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Cancellation failed: ' + result.message);
+                }
+            },
+            error: function () {
+                alert('An error occurred while communicating with the server.');
+            }
+        });
+    }
+</script>

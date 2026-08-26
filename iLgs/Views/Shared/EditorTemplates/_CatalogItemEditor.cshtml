@@ -1,0 +1,13 @@
+﻿@* File: ~/Views/Shared/EditorTemplates/CatalogItemEditor.cshtml *@
+@model string
+
+@(Html.Kendo().AutoCompleteFor(m => m)
+    .DataTextField("CatalogCode")
+    .Placeholder("Type Catalog Code...")
+    .Filter("contains")
+    .MinLength(2)
+    .DataSource(source => source
+        .Read(read => read.Action("GetCatalogCodes", "Catalog"))
+    )
+    .HtmlAttributes(new { style = "width: 100%" })
+)

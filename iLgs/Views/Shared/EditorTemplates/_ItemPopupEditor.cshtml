@@ -1,0 +1,63 @@
+﻿@* File: ~/Views/Shared/EditorTemplates/ItemPopupEditor.cshtml *@
+@model iLgs.Models.PurchaseOrderItemViewModel
+
+<div class="container-fluid p-2">
+    <div class="form-group row">
+        @Html.LabelFor(m => m.CatalogCode, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.EditorFor(m => m.CatalogCode, "CatalogItemEditor")
+            @Html.ValidationMessageFor(m => m.CatalogCode, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.Description, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.TextBoxFor(m => m.Description, new { @class = "form-control form-control-sm" })
+            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.Unit, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.EditorFor(m => m.Unit, "UnitDropdownEditor")
+            @Html.ValidationMessageFor(m => m.Unit, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.Quantity, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @(Html.Kendo().NumericTextBoxFor(m => m.Quantity)
+                .Min((int)1)
+                .Format("n0")
+                .Decimals(0)
+                .HtmlAttributes(new { style = "width: 100%" })
+            )
+            @Html.ValidationMessageFor(m => m.Quantity, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.UnitCost, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.EditorFor(m => m.UnitCost, "CurrencyNumericTextBox")
+            @Html.ValidationMessageFor(m => m.UnitCost, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.SourcePrs, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.TextBoxFor(m => m.SourcePrs, new { @class = "form-control form-control-sm font-monospace" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(m => m.TechnicalSpecs, new { @class = "col-sm-4 col-form-label font-weight-bold small" })
+        <div class="col-sm-8">
+            @Html.TextAreaFor(m => m.TechnicalSpecs, new { @class = "form-control form-control-sm", rows = 3 })
+        </div>
+    </div>
+</div>

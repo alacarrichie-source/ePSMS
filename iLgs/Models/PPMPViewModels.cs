@@ -64,6 +64,9 @@ namespace iLgs.Models
 
         [Display(Name = "Qty. Balance")]
         public Nullable<int> QtyBal { get; set; }
+        public PPMP PPMP { get; set; }
+        public bool IsInCart { get; set; }
+        public string Category { get; set; }
     }
 
     public class PPMPUploadVM

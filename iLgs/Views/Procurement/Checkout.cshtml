@@ -1,0 +1,452 @@
+﻿@model iLgs.Models.PurchaseRequestViewModel
+@using System.Collections.Generic
+@using System.Globalization
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Purchase Request Checkout";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+
+    var cartItems = Model.Items ?? new List<iLgs.Models.CartItemViewModel>();    
+}
+
+<section class="epsms-procurement">
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Annual")">Annual Procurement</a>
+        <span>›</span>
+        <a href="@Url.Action("Cart")">My Cart</a>
+        <span>›</span>
+        Checkout
+    </div>
+
+    <h1>Purchase Request Checkout</h1>
+    <p class="subtitle">Review and finalize your procurement request details.</p>
+
+    @using (Html.BeginForm("Checkout", "Procurement", FormMethod.Post, new { name = "formCheckout", id = "formCheckout" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(
+            true,
+            "",
+            new { @class = "text-danger validation-summary-errors" })
+
+        @Html.HiddenFor(m => m.DeptId)
+
+        <div class="checkout-grid">
+            <section class="form-card">
+                <h2>Purchase Request Information</h2>
+
+                <div class="form-grid">                                                                      
+                    <div class="wide">
+                        <label>@Html.DisplayNameFor(m => m.Department)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.Department)
+                            .HtmlAttributes(new
+                            {
+                                style = "width:100%",
+                                @readonly = "readonly"
+                            }))
+                    </div>
+
+                    <div class="wide">
+                        <label>@Html.DisplayNameFor(m => m.Purpose)</label>
+                        @(Html.Kendo().TextAreaFor(m => m.Purpose)
+                            .Rows(4)
+                            .HtmlAttributes(new
+                            {
+                                style = "width:100%",
+                                placeholder = "Enter the purpose of this request..."
+                            }))
+                        @Html.ValidationMessageFor(
+                            m => m.Purpose,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.FPP)</label>
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.FPP)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select FPP")
+                            .DataTextField("Code")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetFpp", "Getters").Data("DataFpp");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Events(e => { e.Select("onSelectFpp"); })                    
+                        )
+                        @Html.ValidationMessageFor(m => m.FPP,"",new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.Fund)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.Fund)
+                            .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
+                        @Html.ValidationMessageFor(
+                            m => m.Fund,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        &nbsp;
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.FundSpecific)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.FundSpecific)
+                            .HtmlAttributes(new { style = "width:100%" }))
+                        @Html.ValidationMessageFor(
+                            m => m.FundSpecific,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.RequestedBy)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.RequestedBy)
+                            .HtmlAttributes(new { style = "width:100%" }))
+                        @Html.ValidationMessageFor(
+                            m => m.RequestedBy,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.RequestedDesig)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.RequestedDesig)
+                            .HtmlAttributes(new { style = "width:100%" }))
+                        @Html.ValidationMessageFor(
+                            m => m.RequestedDesig,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.Availability)</label>
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Availability)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Name")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodes", "Getters", new { mastCode = "CASH-AVAILABLE" });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Name").Width("60%");
+                                c.Add().Field("Desc2").Title("Designation").Width("40%");
+                            })
+                            .Events(e => e.Select("onSelectAvailability"))
+                        )
+                        @Html.ValidationMessageFor(m => m.Availability, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.AvaialbilityDesig)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.AvaialbilityDesig)
+                            .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
+                        @Html.ValidationMessageFor(
+                            m => m.AvaialbilityDesig,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.ApprovedBy)</label>
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.ApprovedBy)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Approved by")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetApprovedBy", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Name").Width("60%");
+                                c.Add().Field("Desc2").Title("Designation").Width("40%");
+                            })
+                            .Events(e => { e.Select("onSelectApprovedBy"); })
+                        )
+                        @Html.ValidationMessageFor(
+                            m => m.ApprovedBy,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div>
+                        <label>@Html.DisplayNameFor(m => m.ApprovedDesig)</label>
+                        @(Html.Kendo().TextBoxFor(m => m.ApprovedDesig)
+                            .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
+                        @Html.ValidationMessageFor(
+                            m => m.ApprovedDesig,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>          
+                    
+                </div>
+
+                <h2>Purchase Request Items</h2>
+
+                @(Html.Kendo().Grid<iLgs.Models.CartItemViewModel>()
+                    .Name("requestItems")
+                    .BindTo(cartItems)
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x.ItemNo)
+                            .Title("No.")
+                            .Width(65);
+
+                        columns.Bound(x => x.Code)
+                            .Title("Item Code")
+                            .Width(110);
+
+                        columns.Bound(x => x.Description)
+                            .Title("Description");
+
+                        columns.Bound(x => x.Unit)
+                            .Title("Unit")
+                            .Width(95);
+
+                        columns.Bound(x => x.Quantity)
+                            .Title("Quantity")
+                            .Width(135)
+                            .Format("{0:n0}");
+
+                        columns.Bound(x => x.UnitCost)
+                            .Title("Unit Cost")
+                            .Width(130)
+                            .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+
+                        columns.Bound(x => x.EstimatedAmount)
+                            .Title("Estimated Amount")
+                            .Width(150)
+                            .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+                    })
+                    .Sortable()
+                    .Pageable()
+                )
+            </section>
+
+            <aside class="summary-card">
+                <h2>Summary</h2>
+
+                <p>
+                    Distinct Items
+                    <strong>@cartItems.Count</strong>
+                </p>
+
+                <p>
+                    Total Quantity
+                    <strong>@cartItems.Sum(x => x.Quantity)</strong>
+                </p>
+
+                <hr />
+
+                <div class="total">
+                    Estimated Total
+                    <strong>
+                        @Model.EstimatedTotal.ToString(
+                            "C2",
+                            CultureInfo.GetCultureInfo("en-PH"))
+                    </strong>
+                </div>
+
+                @*<button type="submit" class="k-button k-primary submit">
+                    Submit for Review
+                </button>
+
+                <a href="@Url.Action("Cart")" class="k-button">
+                    Back to Cart
+                </a>*@
+
+                <div class="submit-confirmation">
+                    <label>
+                        <input type="checkbox" id="confirmCheckout" />
+                        I have reviewed the purchase request details and confirm that they are correct.
+                    </label>
+                </div>
+
+                @(Html.Kendo().Button()
+                .Name("submitForReview")
+                .Content("<span class='k-icon k-i-check'></span> Submit for Review")
+                .HtmlAttributes(new
+                {
+                    type = "submit",
+                    @class = "submit",
+                    style = "width:100%;"
+                })
+                .Enable(false))
+
+                @(Html.Kendo().Button()
+                .Name("backToCart")
+                .Content("<span class='k-icon k-i-arrow-left'></span> Back to Cart")
+                .HtmlAttributes(new
+                {
+                    type = "button",
+                    style = "width:100%; margin-top:8px;"
+                })
+                .Events(e => e.Click("onBackToCart")))
+            </aside>
+        </div>
+    }
+</section>
+
+<style>
+    .submit-confirmation {
+        margin: 15px 0;
+        padding: 12px;
+        border-radius: 4px;
+        background: #f5f5f5;
+    }
+
+    .submit-confirmation label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .submit-confirmation input[type="checkbox"] {
+        margin-top: 2px;
+        cursor: pointer;
+    }
+</style>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(document).ready(function () {
+            @*var disabled = $("#formCheckout").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetModelDefault", "Requests")',
+                success: function (result) {
+                    $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
+                    $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
+                    $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig);
+                    $("#AvaialbilityDesig").trigger("change");
+
+                    $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
+                    $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
+                    $("#ApprovedDesig").val(result.model.ApprovedDesig);
+                    $("#ApprovedDesig").trigger("change");
+
+                    disabled.attr('disabled', 'disabled');
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });*@
+
+            var disabled = $("#formCheckout").find(':input:disabled').removeAttr('disabled');
+
+            // Initially disable Submit for Review
+            var submitButton = $("#submitForReview").data("kendoButton");
+            submitButton.enable(false);
+
+            // Enable/disable Submit for Review based on confirmation checkbox
+            $("#confirmCheckout").on("change", function () {
+                submitButton.enable(this.checked);
+            });
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetModelDefault", "Requests")',
+                success: function (result) {
+                    $("#Availability")
+                        .data("kendoMultiColumnComboBox")
+                        .value(result.model.Availability);
+
+                    $("#Availability")
+                        .data("kendoMultiColumnComboBox")
+                        .trigger("change");
+
+                    $("#AvaialbilityDesig")
+                        .val(result.model.AvaialbilityDesig)
+                        .trigger("change");
+
+                    $("#ApprovedBy")
+                        .data("kendoMultiColumnComboBox")
+                        .value(result.model.ApprovedBy);
+
+                    $("#ApprovedBy")
+                        .data("kendoMultiColumnComboBox")
+                        .trigger("change");
+
+                    $("#ApprovedDesig")
+                        .val(result.model.ApprovedDesig)
+                        .trigger("change");
+
+                    disabled.attr('disabled', 'disabled');
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        });
+
+        function onBackToCart() {
+            window.location.href = '@Url.Action("Cart")';
+        }
+
+        function onDepartmentChange(e) {
+            var departmentDropDown = $("#DeptId").data("kendoDropDownList");
+
+            if (departmentDropDown) {
+                $("#Department").val(departmentDropDown.text());
+            }
+        }
+
+        function DataFpp() {
+            var text = $("#FPP").data("kendoMultiColumnComboBox").text();
+            return {
+                department: $("#Department").val(),
+                text: text
+            };
+        }
+
+        function onSelectFpp(e) {
+            var dataItem = this.dataItem(e.item.index());
+
+            $("#Fund").val(dataItem.Fund).trigger("change");
+        }
+
+        function onSelectAvailability(e) {
+            var dataItem = this.dataItem(e.item.index());
+
+            $("#AvaialbilityDesig").val(dataItem.Desc2).trigger("change");
+        }
+
+        function onSelectApprovedBy(e) {
+            var dataItem = this.dataItem(e.item.index());
+            $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
+        }
+    </script>
+}

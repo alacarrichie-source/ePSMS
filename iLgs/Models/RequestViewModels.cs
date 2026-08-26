@@ -81,7 +81,7 @@ namespace iLgs.Models
         [Display(Name = "Department")]
         public Nullable<System.Guid> DeptId { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Department Display")]
         public string Department { get; set; }
         public string Section { get; set; }
@@ -152,6 +152,8 @@ namespace iLgs.Models
         public string ItemNoIndex { get; set; }
 
         public int? Padding { get; set; }
+
+        public Request Request { get; set; }
 
         //public string GridRequestItemExtns { get; set; }
     }    

@@ -22,7 +22,7 @@ namespace iLgs.Controllers
     {
         private readonly IPPMPService _ppmpService;
         private readonly IUserService _userService;
-        private string _menuId = string.Empty;        
+        private string _menuId = string.Empty;
 
         public PpmpController()
         {
@@ -32,6 +32,21 @@ namespace iLgs.Controllers
 
         // GET: Application
         public async Task<ActionResult> Index()
+        {
+            var userId = User.Identity.GetUserId();
+            _menuId = "ppmp";
+            var access = await Access(userId, _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+            TempData["ppmp"] = _menuId;
+            ViewBag.IsAdmin = await _userService.IsAdminAsync(userId);
+            return View();
+        }
+
+        public async Task<ActionResult> Annual()
         {
             var userId = User.Identity.GetUserId();
             _menuId = "ppmp";
@@ -402,12 +417,12 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _UploadRecords(Guid? ppmpId)
         {
-            ViewData["ppmpId"] = ppmpId;            
+            ViewData["ppmpId"] = ppmpId;
             var data = new PPMPUploadVM()
-            {                
+            {
                 PpmpId = ppmpId,
                 Delete = "N",
-                StartRow = 1,               
+                StartRow = 1,
                 Code = "A",
                 Description = "B",
                 Qty = "C",
@@ -481,7 +496,7 @@ namespace iLgs.Controllers
             }
 
             return Content("");
-        }        
+        }
 
         [HttpPost]
         public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
@@ -489,6 +504,87 @@ namespace iLgs.Controllers
             var fileContents = Convert.FromBase64String(base64);
 
             return File(fileContents, contentType, fileName);
+        }
+
+        public ActionResult GetAnnualProcurementItems([DataSourceRequest] DataSourceRequest request,
+            int? fiscalYear,
+            Guid? deptId,
+            string category,
+            string search)
+        {
+            var query = _ppmpService.PPMPItem.GetAll();
+
+
+            if (deptId != null)
+            {
+                query = query.Where(x =>
+                    x.PPMP.DeptId == deptId);
+            }
+
+
+            //if (!string.IsNullOrEmpty(category))
+            //{
+            //    query = query.Where(x =>
+            //        x.Category == category);
+            //}
+
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x =>
+                    x.Description.Contains(search) ||
+                    x.Code.Contains(search));
+            }
+
+
+            var result = query.Select(x =>
+                new AnnualProcurementItemVM
+                {
+                    Id = x.Id,
+                    FiscalYear = x.PPMP.ForYear,
+                    DeptId = x.PPMP.DeptId,
+                    Department = x.PPMP.Codextn.Description,
+                    ItemCode = x.Code,
+                    ItemName = x.Description,
+                    Unit = x.Unit,
+                    //Category = x.Category,
+                    PlannedQty = x.Qty,
+                    RequestedQty = x.QtyUsed,
+                    RemainingQty = x.QtyBal,
+                    EstimatedUnitCost = x.UnitCost
+                });
+
+
+            return Json(
+                result.ToDataSourceResult(request),
+                JsonRequestBehavior.AllowGet
+            );
+        }
+
+        public class AnnualProcurementItemVM
+        {
+            public Guid Id { get; set; }
+
+            public int? FiscalYear { get; set; }
+
+            public Guid? DeptId { get; set; }
+            public string Department { get; set; }
+
+            public string ItemCode { get; set; }
+            public string ItemName { get; set; }
+            public string Unit { get; set; }
+            public string Category { get; set; }
+
+            public int? PlannedQty { get; set; }
+            public int? RequestedQty { get; set; }
+            public int? RemainingQty { get; set; }
+
+            public decimal? EstimatedUnitCost { get; set; }
+
+            public bool IsFullyRequested
+            {
+                get { return RemainingQty <= 0; }
+            }
         }
     }
 }

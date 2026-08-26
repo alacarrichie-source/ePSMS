@@ -796,4 +796,530 @@ form.x-form-custom
     margin-right: 6px;
     opacity: 0.9;
     font-size: 16px;
-}    
+}
+
+/*BEGIN CODEX CSS*/
+/* Procurement page styles only.
+   Uses the application's existing sidebar and Kendo AppBar. */
+
+.epsms-procurement {
+    max-width: 1696px;
+    padding: 32px;
+    background: #f7f9fb;
+    color: #191c1e;
+    font: 14px/1.4 'Segoe UI', Arial, sans-serif;
+}
+
+    .epsms-procurement h1 {
+        margin: 12px 0 6px;
+        font-size: 32px;
+        line-height: 1.2;
+    }
+
+    .epsms-procurement h2 {
+        font-size: 18px;
+        line-height: 1.3;
+    }
+
+    .epsms-procurement .subtitle,
+    .epsms-procurement .unit,
+    .epsms-procurement label {
+        color: #5f6470;
+    }
+
+    .epsms-procurement .breadcrumbs {
+        color: #5f6470;
+    }
+
+        .epsms-procurement .breadcrumbs a {
+            color: #002576;
+            text-decoration: none;
+        }
+
+    .epsms-procurement .filter-panel,
+    .epsms-procurement .form-card,
+    .epsms-procurement .summary-card,
+    .epsms-procurement .data-card {
+        margin: 28px 0;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e0e3e5;
+        border-radius: 8px;
+    }
+
+    .epsms-procurement .filter-row,
+    .epsms-procurement .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+
+    .epsms-procurement label {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .epsms-procurement .search {
+        grid-column: span 2;
+    }
+
+    /* Overrides site.css max-width:280px only within procurement form controls. */
+    .epsms-procurement .filter-panel input,
+    .epsms-procurement .filter-panel select,
+    .epsms-procurement .filter-panel textarea,
+    .epsms-procurement .form-card input,
+    .epsms-procurement .form-card select,
+    .epsms-procurement .form-card textarea,
+    .epsms-procurement .filter-panel .k-widget,
+    .epsms-procurement .form-card .k-widget {
+        max-width: none;
+    }
+
+        .epsms-procurement .form-card input:not(.k-input),
+        .epsms-procurement .form-card textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #c4c5d5;
+            border-radius: 4px;
+        }
+
+    .epsms-procurement .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+        gap: 24px;
+    }
+
+    .epsms-procurement .catalog-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e0e3e5;
+        border-radius: 8px;
+    }
+
+        .epsms-procurement .catalog-card h2 {
+            /*margin: 0;*/
+            /*height: 48px; 
+        margin: 8px 0;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        text-overflow: ellipsis;
+        line-height: 24px;*/
+            height: 48px;
+            margin: 8px 0;
+            line-height: 24px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+            text-overflow: ellipsis;
+        }
+
+    .epsms-procurement .item-code {
+        align-self: flex-end;
+        padding: 5px 8px;
+        background: #e6e8ea;
+        border-radius: 3px;
+        color: #444653;
+        font-size: 12px;
+    }
+
+    .epsms-procurement .catalog-card .unit {
+        height: 24px;
+        line-height: 24px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        margin-bottom: 12px;
+    }
+
+    .epsms-procurement .metrics {
+        height: 64px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 0;
+        padding: 12px 0;
+        border-top: 1px solid #e0e3e5;
+        border-bottom: 1px solid #e0e3e5;
+        text-align: center;
+    }
+
+        .epsms-procurement .metrics dt {
+            color: #5f6470;
+            font-size: 12px;
+        }
+
+        .epsms-procurement .metrics dd {
+            margin: 5px 0 0;
+            font-weight: 700;
+        }
+
+    .epsms-procurement .remaining {
+        color: #002576;
+    }
+
+    .epsms-procurement .cost {
+        margin-top: auto;
+    }
+
+        .epsms-procurement .cost span,
+        .epsms-procurement .cost strong {
+            display: block;
+        }
+
+        .epsms-procurement .cost strong {
+            margin-top: 4px;
+            font-size: 16px;
+        }
+
+    .epsms-procurement .disabled {
+        opacity: .55;
+    }
+
+    .epsms-procurement .summary-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e0e3e5;
+    }
+
+        .epsms-procurement .summary-bar strong,
+        .epsms-procurement .total strong {
+            color: #002576;
+            font-size: 22px;
+        }
+
+    .epsms-procurement .checkout-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 24px;
+    }
+
+    .epsms-procurement .form-card,
+    .epsms-procurement .summary-card {
+        margin: 0;
+    }
+
+    .epsms-procurement .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+        margin: 16px 0 28px;
+    }
+
+    .epsms-procurement .wide {
+        grid-column: span 2;
+    }
+
+    .epsms-procurement .summary-card {
+        height: max-content;
+    }
+
+        .epsms-procurement .summary-card p {
+            display: flex;
+            justify-content: space-between;
+        }
+
+    .epsms-procurement .total {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 18px 0;
+    }
+
+    .epsms-procurement .submit {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+.epsms-notice {
+    padding: 12px 16px;
+    background: #dce1ff;
+    border-radius: 4px;
+    color: #00164f;
+}
+
+@media (max-width: 800px) {
+    .epsms-procurement {
+        padding: 20px;
+    }
+
+        .epsms-procurement .filter-row,
+        .epsms-procurement .form-grid,
+        .epsms-procurement .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .epsms-procurement .search,
+        .epsms-procurement .wide {
+            grid-column: span 1;
+        }
+}
+/*END CODEX CSS*/
+
+/* ORDERS CSS */
+.epsms-shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Side nav */
+.epsms-sidenav {
+    width: 256px;
+    flex: 0 0 256px;
+    background: var(--color-surface-container-low);
+    border-right: 1px solid var(--color-outline-variant);
+    display: flex;
+    flex-direction: column;
+}
+
+    .epsms-sidenav .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--color-outline-variant);
+    }
+
+        .epsms-sidenav .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: 0;
+        }
+
+        .epsms-sidenav .brand p {
+            font-size: 11px;
+            color: var(--color-on-surface-variant);
+            margin: 0;
+        }
+
+    .epsms-sidenav nav {
+        flex: 1;
+        padding: 16px 0;
+    }
+
+    .epsms-sidenav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 24px;
+        color: var(--color-on-surface-variant);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+        .epsms-sidenav a:hover {
+            background: var(--color-surface-container-high);
+        }
+
+        .epsms-sidenav a.active {
+            color: var(--color-primary);
+            background: var(--color-secondary-container);
+            border-right: 4px solid var(--color-primary);
+        }
+
+/* Main column */
+.epsms-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.epsms-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--color-outline-variant);
+}
+
+    .epsms-topbar h2 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-primary);
+        margin: 0;
+    }
+
+.epsms-breadcrumb {
+    font-size: 11px;
+    color: var(--color-on-surface-variant);
+}
+
+.epsms-canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 16px;
+}
+
+.card {
+    background: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+/* Wizard stepper */
+.wizard-stepper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 760px;
+    margin: 8px 0 24px;
+}
+
+.wizard-step {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+    .wizard-step .circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+        background: #e0e3e5;
+        color: var(--color-on-surface-variant);
+        flex: 0 0 32px;
+    }
+
+    .wizard-step.done .circle {
+        background: var(--color-primary-container);
+        color: #fff;
+    }
+
+    .wizard-step.active .circle {
+        background: var(--color-primary-container);
+        color: #fff;
+        box-shadow: 0 0 0 4px var(--color-secondary-container) inset;
+    }
+
+    .wizard-step .label {
+        margin-left: 8px;
+        font-size: 11px;
+        color: var(--color-on-surface-variant);
+        white-space: nowrap;
+    }
+
+    .wizard-step.active .label {
+        color: var(--color-primary);
+        font-weight: 700;
+    }
+
+.wizard-line {
+    flex: 1;
+    height: 0;
+    border-top: 2px dashed var(--color-outline-variant);
+    margin: 0 8px;
+}
+
+    .wizard-line.done {
+        border-top: 2px solid var(--color-primary);
+    }
+
+.btn-epsms {
+    border-radius: var(--radius);
+    border: none;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--color-primary-container);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+}
+
+.btn-outline {
+    background: #fff;
+    border: 1px solid var(--color-outline-variant);
+    color: var(--color-on-surface);
+}
+
+.btn-epsms:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.badge-posted {
+    background: var(--color-primary-container);
+    color: #fff;
+}
+
+.badge-draft {
+    background: #e0e3e5;
+    color: var(--color-on-surface);
+}
+
+.badge-review {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+}
+
+.badge-cancelled {
+    background: var(--color-error);
+    color: #fff;
+}
+
+.k-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+    margin-bottom: 4px;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+    .filter-bar .field {
+        min-width: 180px;
+    }
+
+/* END ORDERS CSS */

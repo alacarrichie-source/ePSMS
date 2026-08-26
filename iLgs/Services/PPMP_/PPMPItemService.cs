@@ -17,6 +17,7 @@ namespace iLgs.Services.PPMP_
 {
     public interface IPPMPItemService
     {
+        IQueryable<PPMPItemVM> GetAll();
         IQueryable<PPMPItemVM> GetAll(Guid? ppmpId);
         IQueryable<PPMPItemVM> GetAvailableByRequestId(Guid? prId);
         IQueryable<PPMPItemVM> GetAllByYearDept(int? forYear, Guid? deptId);
@@ -86,20 +87,28 @@ namespace iLgs.Services.PPMP_
                 UpdatedBy = s.UpdatedBy,
                 UpdatedDt = s.UpdatedDt,
                 QtyUsed = s.PPMPItemUsages.Sum(x => x.Qty),
-                QtyBal = s.Qty - (s.PPMPItemUsages.Sum(x => x.Qty) ?? 0)
+                QtyBal = s.Qty - (s.PPMPItemUsages.Sum(x => x.Qty) ?? 0),
+                PPMP = s.PPMP
             };
         }
 
         public ValueTask<PPMPItemVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
         {
-            var data = await _db.PPMPItems.AsNoTracking().Where(w => w.Id == id)
+            var data = await _db.PPMPItems.Include(i => i.PPMP).AsNoTracking().Where(w => w.Id == id)
                 .Select(Projection()).FirstOrDefaultAsync();
+            return data;
+        });
+
+        public IQueryable<PPMPItemVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.PPMPItems.Include(i => i.PPMP).AsNoTracking()
+                .Select(Projection());
             return data;
         });
 
         public IQueryable<PPMPItemVM> GetAll(Guid? ppmpId) => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.PPMPItems.AsNoTracking().Where(w => w.PpmpId == ppmpId)
+            var data = _db.PPMPItems.Include(i => i.PPMP).AsNoTracking().Where(w => w.PpmpId == ppmpId)
                 .Select(Projection());
             return data;
         });
@@ -112,7 +121,7 @@ namespace iLgs.Services.PPMP_
                 return Enumerable.Empty<PPMPItemVM>().AsQueryable();
             }
 
-            var data = _db.PPMPItems.AsNoTracking().Where(w => w.PPMP.ForYear == request.InsertedDt.Value.Year 
+            var data = _db.PPMPItems.Include(i => i.PPMP).AsNoTracking().Where(w => w.PPMP.ForYear == request.InsertedDt.Value.Year 
                 && w.PPMP.DeptId == request.DeptId && w.Type == "S" && !w.RequestItems.Any())
                 .Select(Projection()).Where(w => w.QtyBal > 0);
             return data;
@@ -120,7 +129,7 @@ namespace iLgs.Services.PPMP_
 
         public IQueryable<PPMPItemVM> GetAllByYearDept(int? forYear, Guid? deptId) => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.PPMPItems.AsNoTracking().Where(w => w.PPMP.ForYear == forYear && w.PPMP.DeptId == deptId && w.Type == "S")
+            var data = _db.PPMPItems.Include(i => i.PPMP).AsNoTracking().Where(w => w.PPMP.ForYear == forYear && w.PPMP.DeptId == deptId && w.Type == "S")
                 .Select(Projection());
             return data;
         });

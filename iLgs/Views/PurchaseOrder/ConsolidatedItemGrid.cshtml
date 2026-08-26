@@ -1,0 +1,212 @@
+﻿@* File: ~/Views/PurchaseOrder/ConsolidatedItemsGrid.cshtml *@
+@using Kendo.Mvc.UI
+@using Kendo.Mvc.Extensions
+@using iLgs.Models
+@model iLgs.Models.PurchaseOrderViewModel
+
+@{
+    ViewBag.Title = "Consolidated Purchase Order Items - " + Model.PoNumber;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="epsms-procurement">
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <a href="@Url.Action("Index", "PurchaseOrder")">Procurement</a> &gt;
+        <a href="@Url.Action("Index", "PurchaseOrder")">Purchase Orders</a> &gt;
+        <span>Line Items</span>
+    </div>
+
+    @* Reusable Partial: PO Header Summary Card *@
+    @Html.Partial("_PoHeaderCard", Model)
+
+    @* Reusable Partial: PO Lifecycle Audit Trail *@
+    @Html.Partial("_PoAuditTrail", Model)
+
+    <div class="header-actions" style="margin-top: 10px; margin-bottom: 15px;">
+        <div>
+            <h2 style="font-size: 16px; font-weight: 700; color: #002576; margin: 0;">
+                <i class="fa fa-cubes mr-1"></i> Line Items Worksheet
+            </h2>
+        </div>
+        <div class="actions-group">
+            <a href="@Url.Action("Details", "PurchaseOrder", new { id = Model.Id })" target="_blank" class="btn-procurement-secondary">
+                <i class="fa fa-print"></i> Print Voucher (COA Form)
+            </a>
+            <a href="@Url.Action("Index", "PurchaseOrder")" class="btn-procurement-secondary">
+                <i class="fa fa-arrow-left"></i> Back to Registry
+            </a>
+        </div>
+    </div>
+
+    @* Kendo MVC Consolidated Line Items Grid *@
+    <div class="po-grid-card">
+        <div class="card-title-bar">
+            <h3><i class="fa fa-cubes" style="color: #002576; margin-right: 8px;"></i> Consolidated Items Editor (InLine Mode)</h3>
+            <div style="font-size: 12px; color: #5f6470;">
+                DataSource: <strong>Telerik Kendo UI for ASP.NET MVC</strong> (EF6 DbContext)
+            </div>
+        </div>
+
+        @(Html.Kendo().Grid<iLgs.Models.PurchaseOrderItemViewModel>()
+            .Name("ConsolidatedItemsGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.ItemNo)
+                    .Title("No.")
+                    .Width(65)
+                    .HtmlAttributes(new { @class = "text-center font-monospace" })
+                    .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" });
+
+                columns.Bound(p => p.CatalogCode)
+                    .Title("Catalog Code")
+                    .Width(140)
+                    .EditorTemplateName("CatalogItemEditor")
+                    .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: #002576;'>#= CatalogCode #</span>")
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.Description)
+                    .Title("Description & Technical Specs")
+                    .Width(300)
+                    .ClientTemplate("<div><strong>#= Description #</strong># if (TechnicalSpecs) { #<div style='font-size: 11px; color: #5f6470;'>#= TechnicalSpecs #</div># } #</div>")
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.Unit)
+                    .Title("Unit")
+                    .Width(100)
+                    .EditorTemplateName("UnitDropdownEditor")
+                    .HtmlAttributes(new { @class = "text-center" })
+                    .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" });
+
+                columns.Bound(p => p.Quantity)
+                    .Title("Quantity")
+                    .Width(110)
+                    .HtmlAttributes(new { @class = "text-right font-monospace font-weight-bold" })
+                    .HeaderHtmlAttributes(new { @class = "text-right font-weight-bold" })
+                    .ClientFooterTemplate("<div class='text-right font-monospace font-weight-bold'>Total: #= sum #</div>");
+
+                columns.Bound(p => p.UnitCost)
+                    .Title("Unit Cost (PHP)")
+                    .Width(140)
+                    .Format("{0:N2}")
+                    .EditorTemplateName("CurrencyNumericTextBox")
+                    .HtmlAttributes(new { @class = "text-right font-monospace" })
+                    .HeaderHtmlAttributes(new { @class = "text-right font-weight-bold" });
+
+                columns.Bound(p => p.TotalCost)
+                    .Title("Total Cost (PHP)")
+                    .Width(160)
+                    .Format("{0:N2}")
+                    .HtmlAttributes(new { @class = "text-right font-monospace font-weight-bold text-primary" })
+                    .HeaderHtmlAttributes(new { @class = "text-right font-weight-bold" })
+                    .ClientFooterTemplate(
+                        "<div class='text-right font-monospace font-weight-bold' " +
+                        "style='color:#002576; font-size:14px;'>" +
+                        "₱#= kendo.toString(sum, 'n2') #" +
+                        "</div>"
+                    );
+
+                columns.Bound(p => p.SourcePrs)
+                    .Title("Source PR(s)")
+                    .Width(150)
+                    .ClientTemplate("#= renderSourcePrs(SourcePrs) #")
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Command(command =>
+                {
+                    command.Edit().Text(" ").UpdateText("Save").CancelText("Cancel");
+                    command.Destroy().Text(" ");
+                })
+                .Title("Actions")
+                .Width(110)
+                .HtmlAttributes(new { @class = "text-center" })
+                .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" });
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Create().Text("Add Line Item");
+                toolbar.Custom().Text("Refresh").HtmlAttributes(new { onclick = "refreshGrid()", href = "javascript:void(0)" });
+                toolbar.Excel();
+                toolbar.Pdf();
+                toolbar.Search();
+            })
+            .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(new[] { 10, 25, 50, 100 })
+                .ButtonCount(5)
+            )
+            .Sortable(sortable => sortable
+        .AllowUnsort(true)
+        .SortMode(GridSortMode.MultipleColumn)
+    )
+            .Filterable()
+            .Scrollable(s => s.Height("auto"))
+            .Events(events => events
+                .Save("onGridSave")
+                .Edit("onGridEdit")
+                .DataBound("onGridDataBound")
+            )
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(false)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.ItemNo).Editable(false);
+                    model.Field(p => p.TotalCost).Editable(false);
+                    model.Field(p => p.SourcePrs).Editable(false);
+                    model.Field(p => p.Quantity).DefaultValue(1);
+                    model.Field(p => p.UnitCost).DefaultValue(0.00m);
+                    model.Field(p => p.Unit).DefaultValue("Piece");
+                })
+                .Aggregates(aggregates =>
+                {
+                    aggregates.Add(p => p.Quantity).Sum();
+                    aggregates.Add(p => p.TotalCost).Sum();
+                })
+                .Read(read => read.Action("ReadConsolidatedItems", "PurchaseOrder", new { poId = Model.Id }))
+                .Create(create => create.Action("CreateConsolidatedItem", "PurchaseOrder", new { poId = Model.Id }))
+                .Update(update => update.Action("UpdateConsolidatedItem", "PurchaseOrder"))
+                .Destroy(destroy => destroy.Action("DeleteConsolidatedItem", "PurchaseOrder"))
+            )
+        )
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/kendoGridExtensions.js"></script>
+    <script type="text/javascript">
+        function renderSourcePrs(prs) {
+            if (!prs) return '<span class="text-muted small">Manual</span>';
+            var items = prs.split(',');
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                html += '<span class="source-pr-pill" style="margin-right: 4px;">' + items[i].trim() + '</span>';
+            }
+            return html;
+        }
+
+        function refreshGrid() {
+            $("#ConsolidatedItemsGrid").data("kendoGrid").dataSource.read();
+        }
+
+        function onGridSave(e) {
+            if (e.values.Quantity !== undefined || e.values.UnitCost !== undefined) {
+                var qty = e.values.Quantity !== undefined ? e.values.Quantity : e.model.Quantity;
+                var cost = e.values.UnitCost !== undefined ? e.values.UnitCost : e.model.UnitCost;
+                e.model.set("TotalCost", qty * cost);
+            }
+        }
+
+        function onGridEdit(e) {
+            // Focus on first input
+            $(e.container).find("input:visible:first").focus();
+        }
+
+        function onGridDataBound(e) {
+            // Apply tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+        }
+    </script>
+}

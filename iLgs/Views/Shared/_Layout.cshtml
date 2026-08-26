@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentController = Convert.ToString(
+        ViewContext.RouteData.Values["controller"]
+    );
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -23,11 +28,7 @@
     <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jszip.min.js")"></script>
     <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.all.min.js")"></script>
     <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.aspnetmvc.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
-
-    @*<link href="@Url.Content("~/Content/Sidebar/dist/hc-offcanvas-nav.css")" rel="stylesheet" type="text/css" />*@
-    @*<script src="@Url.Content("~/Content/Sidebar/dist/hc-offcanvas-nav.js")"></script>*@
-
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>    
     <script>
         $(document).ready(function () { $('.dropdown-toggle').dropdown(); });
     </script>
@@ -46,9 +47,38 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li><a href='@Url.Action("Index", "Home")'>Home&nbsp;<span class="glyphicon glyphicon-home"></span></a></li>
+                        <li><a href='@Url.Action("Index", "Home")'>Home&nbsp;<span class="glyphicon glyphicon-home"></span></a></li>                        
                     </ul>
-                    @Html.Partial("_LoginPartial")
+                    @*@Html.Partial("_LoginPartial")         
+                    
+                    @if (string.Equals(currentController, "Procurement", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <ul class="nav navbar-nav navbar-right">
+                            <li>
+                                <a href="@Url.Action("Cart", "Procurement")">
+                                    <span class="glyphicon glyphicon-shopping-cart"></span>
+                                    My Cart
+                                </a>
+                            </li>
+                        </ul>
+                    }*@
+
+                    <div class="procurement-account-nav">
+                        @Html.Partial("_LoginPartial")
+
+                        @if (string.Equals(currentController, "Procurement", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <ul class="nav navbar-nav epsms-cart-nav">
+                                <li>
+                                    <a href="@Url.Action("Cart", "Procurement")">
+                                        <span class="glyphicon glyphicon-shopping-cart"></span>
+                                        My Cart
+                                        <span id="cartBadge" class="badge">0</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
@@ -206,5 +236,20 @@ if (menu != null)
 
     #nav li:hover > ul {
         display: block;
+    }
+
+    @@media (min-width: 768px) {
+        .procurement-account-nav {
+            float: right;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .procurement-account-nav > .navbar-nav,
+        .procurement-account-nav > .navbar-right {
+            float: none;
+            margin: 0;
+        }
     }
 </style>

@@ -1,0 +1,147 @@
+﻿@* File: ~/Views/PurchaseOrder/_ConsolidatePrModal.cshtml *@
+@using Kendo.Mvc.UI
+@using iLgs.Models
+
+<div class="modal fade" id="consolidatePrModal" tabindex="-1" role="dialog" aria-labelledby="modalConsolidateTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 920px;">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden; border: 1px solid #002576; box-shadow: 0 10px 25px rgba(0,37,118,0.15);">
+            <div class="modal-header" style="background-color: #002576; color: #ffffff; padding: 14px 20px;">
+                <h5 class="modal-title" id="modalConsolidateTitle" style="font-size: 15px; font-weight: 700; margin: 0;">
+                    <i class="fa fa-magic mr-2"></i> Quick Multi-PR Consolidation
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #ffffff; opacity: 0.85;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 20px; background-color: #f8fafc;">
+                <div class="epsms-notice" style="margin-bottom: 16px; font-size: 12.5px;">
+                    <strong><i class="fa fa-info-circle"></i> Multi-PR Consolidation Engine:</strong>
+                    Select one or more approved Purchase Requests. Line items with matching <code>Catalog Code</code> across departments will be automatically consolidated into single rows with summed quantities.
+                </div>
+
+                @(Html.Kendo().Grid<iLgs.Models.PurchaseRequestSelectionViewModel>()
+                    .Name("ModalPrSelectionGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Select().Width(45).HtmlAttributes(new { @class = "text-center" }).HeaderHtmlAttributes(new { @class = "text-center" });
+
+                        columns.Bound(p => p.PrNumber)
+                            .Title("PR No.")
+                            .Width(130)
+                            .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: #002576;'>#= PrNumber #</span>");
+
+                        columns.Bound(p => p.Department)
+                            .Title("Department")
+                            .Width(170);
+
+                        columns.Bound(p => p.Purpose)
+                            .Title("Purpose");
+
+                        columns.Bound(p => p.ItemCount)
+                            .Title("Items")
+                            .Width(70)
+                            .HtmlAttributes(new { @class = "text-center font-monospace" });
+
+                        columns.Bound(p => p.TotalAmount)
+                            .Title("Amount (PHP)")
+                            .Format("{0:N2}")
+                            .Width(130)
+                            .HtmlAttributes(new { @class = "text-right font-monospace font-weight-bold text-primary" });
+
+                        columns.Bound(x => x.Id)
+                            .Title("")
+                            .Width(80)
+                            .Filterable(false)
+                            .Sortable(false)
+                            .ClientTemplate(
+                                "<button type='button' " +
+                                "class='btn btn-xs btn-outline-secondary' " +
+                                "onclick='openPrItemBreakdownModal(\"#= Id #\", \"#= PrNumber #\")' " +
+                                "title='Preview PR Items'>" +
+                                "<i class='fa fa-eye'></i> Items" +
+                                "</button>"
+                            )
+                            .HtmlAttributes(new { @class = "text-center" });
+                    })
+                    .Pageable(p => p.PageSizes(new[] { 5, 10 }))
+                    .Sortable()
+                    .Filterable()
+                    .Selectable(s => s.Mode(GridSelectionMode.Multiple).Type(GridSelectionType.Row))
+                    .Events(e => e.Change("onModalPrSelectionChange"))
+                    .DataSource(ds => ds
+                        .Ajax()
+                        .ServerOperation(false)
+                        .Model(m => m.Id(p => p.Id))
+                        .Read(r => r.Action("ReadApprovedPurchaseRequests", "PurchaseOrder"))
+                    )
+                )
+
+                <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; background-color: #ffffff; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <div>
+                        <span style="font-size: 12px; color: #5f6470;">Selected for Consolidation:</span>
+                        <strong id="modalSelectedCount" style="color: #002576; margin-left: 6px; font-family: monospace;">0 PRs Selected</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: #5f6470;">Estimated Total:</span>
+                        <strong id="modalSelectedTotal" style="color: #002576; font-size: 14px; margin-left: 6px; font-family: monospace;">₱0.00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background-color: #ffffff; border-top: 1px solid #e2e8f0; padding: 12px 20px;">
+                <button type="button" class="btn-procurement-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" id="btnProceedConsolidation" class="btn-procurement-primary" onclick="proceedToWizardWithSelectedPrs()" disabled="disabled">
+                    <i class="fa fa-arrow-right mr-1"></i> Proceed to Consolidation Wizard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openQuickPrConsolidationModal() {
+        $('#consolidatePrModal').modal('show');
+    }
+
+    function onModalPrSelectionChange(e) {
+        var grid = e.sender;
+        var selectedRows = grid.select();
+        var totalAmount = 0;
+        var ids = [];
+
+        selectedRows.each(function () {
+            var item = grid.dataItem(this);
+            if (item) {
+                ids.push(item.Id);
+                totalAmount += item.TotalAmount;
+            }
+        });
+
+        $('#modalSelectedCount').text(ids.length + ' PRs Selected');
+        $('#modalSelectedTotal').text('₱' + kendo.toString(totalAmount, 'n2'));
+
+        if (ids.length > 0) {
+            $('#btnProceedConsolidation').prop('disabled', false).removeClass('k-state-disabled');
+        } else {
+            $('#btnProceedConsolidation').prop('disabled', true).addClass('k-state-disabled');
+        }
+    }
+
+    function proceedToWizardWithSelectedPrs() {
+        var grid = $("#ModalPrSelectionGrid").data("kendoGrid");
+        var selectedRows = grid.select();
+        var ids = [];
+        selectedRows.each(function() {
+            var dataItem = grid.dataItem(this);
+            if (dataItem) ids.push(dataItem.Id);
+        });
+
+        if (ids.length === 0) {
+            alert('Please select at least one Purchase Request.');
+            return;
+        }
+
+        window.location.href = '@Url.Action("Create", "PurchaseOrder")?prIds=' + ids.join(',');
+    }
+</script>

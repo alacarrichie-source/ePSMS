@@ -1,0 +1,263 @@
+﻿@* File: ~/Views/PurchaseOrder/Index.cshtml *@
+@using Kendo.Mvc.UI
+@using Kendo.Mvc.Extensions
+@using iLgs.Models
+@model IEnumerable<iLgs.Models.PurchaseOrderViewModel>
+
+@{
+    ViewBag.Title = "Purchase Orders Directory";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="epsms-procurement">
+    @* Breadcrumbs & Header Section *@
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <a href="@Url.Action("Index", "PurchaseOrder")">Procurement</a> &gt;
+        <span>Purchase Orders</span>
+    </div>
+
+    <div class="header-actions">
+        <div>
+            <h1>Purchase Orders</h1>
+            <p class="subtitle">Consolidated Purchase Orders generated from Department Purchase Requests (PRs)</p>
+        </div>
+        <div class="actions-group">
+            <a href="@Url.Action("Create", "PurchaseOrder")" class="btn-procurement-primary">
+                <i class="fa fa-plus-circle"></i> Create Consolidated PO
+            </a>
+            <button type="button" class="btn-procurement-secondary" onclick="openQuickPrConsolidationModal()">
+                <i class="fa fa-magic"></i> Quick Multi-PR Consolidation
+            </button>
+        </div>
+    </div>
+
+    @* Financial & Operational Summary Cards *@
+    <div class="filter-panel" style="margin-top: 10px; margin-bottom: 20px; padding: 16px 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div>
+                <span style="font-size: 11px; font-weight: 700; color: #5f6470; text-transform: uppercase;">Total Active POs</span>
+                <div style="font-size: 22px; font-weight: 700; color: #002576; margin-top: 4px;" id="metricTotalPos">@Model.Count() Orders</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; font-weight: 700; color: #5f6470; text-transform: uppercase;">Posted / Transmitted</span>
+                <div style="font-size: 22px; font-weight: 700; color: #15803d; margin-top: 4px;">
+                    @Model.Count(p => p.Status == "Posted" || p.Status == "Transmitted") Orders
+                </div>
+            </div>
+            <div>
+                <span style="font-size: 11px; font-weight: 700; color: #5f6470; text-transform: uppercase;">Draft Allocations</span>
+                <div style="font-size: 22px; font-weight: 700; color: #444653; margin-top: 4px;">
+                    @Model.Count(p => p.Status == "Draft") Pending
+                </div>
+            </div>
+            <div>
+                <span style="font-size: 11px; font-weight: 700; color: #5f6470; text-transform: uppercase;">Consolidated Commitment</span>
+                <div style="font-size: 22px; font-weight: 700; color: #002576; font-family: monospace; margin-top: 4px;">
+                    ₱@(Model.Sum(p => p.TotalAmount).ToString("N2"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Main Purchase Orders Kendo MVC Grid *@
+    <div class="po-grid-card">
+        <div class="card-title-bar">
+            <h3><i class="fa fa-table" style="color: #002576; margin-right: 8px;"></i> Master Purchase Orders Registry</h3>
+            <span style="font-size: 12px; color: #5f6470;">Bound via Telerik Kendo UI for ASP.NET MVC 5 &bull; Entity Framework 6</span>
+        </div>
+
+        @(Html.Kendo().Grid<iLgs.Models.PurchaseOrderViewModel>()
+            .Name("PurchaseOrdersMasterGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.PoNumber)
+                    .Title("PO Number")
+                    .Width(140)
+                    .ClientTemplate("<a href='" + Url.Action("ConsolidatedItemsGrid", "PurchaseOrder") + "/#= Id #' style='font-weight: 700; color: #002576; text-decoration: none; font-family: monospace;'>#= PoNumber #</a>")
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.PoDate)
+                    .Title("PO Date")
+                    .Format("{0:MMM dd, yyyy}")
+                    .Width(120)
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.Supplier)
+                    .Title("Supplier / Contractor")
+                    .Width(220)
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.ModeOfProcurement)
+                    .Title("Procurement Mode")
+                    .Width(160)
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.SourcePrSummary)
+                    .Title("Source PR(s)")
+                    .Width(160)
+                    .ClientTemplate("#= generatePrBadgeList(SourcePrSummary) #")
+                    .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
+
+                columns.Bound(p => p.ItemCount)
+                    .Title("Items")
+                    .Width(75)
+                    .HtmlAttributes(new { @class = "text-center font-monospace" })
+                    .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" })
+                    .ClientFooterTemplate("<div class='text-center font-weight-bold'>Total: #= sum #</div>");
+
+                columns.Bound(p => p.TotalAmount)
+                    .Title("Total Amount (PHP)")
+                    .Format("{0:N2}")
+                    .Width(160)
+                    .HtmlAttributes(new { @class = "text-right font-monospace font-weight-bold text-primary" })
+                    .HeaderHtmlAttributes(new { @class = "text-right font-weight-bold" })
+                    .ClientFooterTemplate("<div class='text-right font-monospace font-weight-bold' style='color: #002576;'>₱#= kendo.toString(sum, 'n2') #</div>");
+
+                columns.Bound(p => p.Status)
+                    .Title("Status")
+                    .Width(120)
+                    .ClientTemplate("#= renderStatusBadge(Status) #")
+                    .HtmlAttributes(new { @class = "text-center" })
+                    .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" });
+
+                columns.Bound(p => p.Id)
+                    .Title("Actions")
+                    .Width(140)
+                    .Filterable(false)
+                    .Sortable(false)
+                    .ClientTemplate(
+                        "<div style='display:flex; gap:4px; justify-content:center;'>" +
+                            "<a href='" + Url.Action("ConsolidatedItemsGrid", "PurchaseOrder") + "/#= Id #' " +
+                                "class='btn btn-xs btn-outline-primary' " +
+                                "title='Edit Line Items'>" +
+                                "<i class='fa fa-pencil'></i>" +
+                            "</a> " +
+
+                            "<a href='" + Url.Action("Details", "PurchaseOrder") + "/#= Id #' " +
+                                "class='btn btn-xs btn-outline-secondary' " +
+                                "target='_blank' " +
+                                "title='Print PO Voucher'>" +
+                                "<i class='fa fa-print'></i>" +
+                            "</a> " +
+
+                            "<button type='button' " +
+                                "onclick='confirmDeletePo(\"#= Id #\", \"#= PoNumber #\")' " +
+                                "class='btn btn-xs btn-outline-danger' " +
+                                "title='Delete PO'>" +
+                                "<i class='fa fa-trash'></i>" +
+                            "</button>" +
+
+                        "</div>"
+                    )
+                    .HeaderHtmlAttributes(new { @class = "text-center font-weight-bold" });
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Custom().Text("Create Consolidated PO")
+                    .HtmlAttributes(new { href = Url.Action("Create", "PurchaseOrder"), @class = "btn-procurement-primary", style = "color: white !important;" });
+                toolbar.Custom().Text("Refresh Grid")
+                    .HtmlAttributes(new { onclick = "refreshMasterPoGrid()", href = "javascript:void(0)", @class = "btn-procurement-secondary" });
+                toolbar.Excel();
+                toolbar.Pdf();
+                toolbar.Search();
+            })
+            .Pageable(pager => pager
+                .Refresh(true)
+                .PageSizes(new[] { 10, 20, 50, 100 })
+                .ButtonCount(5))
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Filterable()
+            .Groupable()
+            .Resizable(r => r.Columns(true))
+            .Reorderable(r => r.Columns(true))
+            .ColumnMenu()
+            .ClientDetailTemplateId("poItemsMasterDetailTemplate")
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(false)
+                .Model(m => m.Id(p => p.Id))
+                .Aggregates(a =>
+                {
+                    a.Add(p => p.ItemCount).Sum();
+                    a.Add(p => p.TotalAmount).Sum();
+                })
+                .Read(r => r.Action("ReadPurchaseOrders", "PurchaseOrder"))
+                .PageSize(20)
+            )
+        )
+    </div>
+</div>
+
+@* Kendo MVC Detail Hierarchy Template for Sub-Grid Line Items *@
+<script id="poItemsMasterDetailTemplate" type="text/x-kendo-template">
+    <div style="padding: 12px; background-color: \#f8fafc; border: 1px solid \#cbd5e1; border-radius: 6px; margin: 8px 0;">
+        <div style="font-weight: 700; color: \#002576; font-size: 12px; margin-bottom: 6px;">
+            <i class="fa fa-list"></i> Consolidated Line Items Breakdown for PO \#: #= PoNumber #
+        </div>
+        @(Html.Kendo().Grid<iLgs.Models.PurchaseOrderItemViewModel>()
+            .Name("PoDetailItemsGrid_#=Id#")
+            .Columns(cols =>
+            {
+                cols.Bound(i => i.ItemNo).Title("No.").Width(50);
+                cols.Bound(i => i.CatalogCode).Title("Catalog Code").Width(130);
+                cols.Bound(i => i.Description).Title("Item Description");
+                cols.Bound(i => i.Unit).Title("Unit").Width(80);
+                cols.Bound(i => i.Quantity).Title("Quantity").Width(90).HtmlAttributes(new { @class = "text-right font-monospace" });
+                cols.Bound(i => i.UnitCost).Title("Unit Cost (PHP)").Format("{0:N2}").Width(120).HtmlAttributes(new { @class = "text-right font-monospace" });
+                cols.Bound(i => i.TotalCost).Title("Total Cost (PHP)").Format("{0:N2}").Width(130).HtmlAttributes(new { @class = "text-right font-monospace font-weight-bold" });
+                cols.Bound(i => i.SourcePrs).Title("Source PR(s)").Width(150);
+            })
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .Read(r => r.Action("ReadConsolidatedItems", "PurchaseOrder", new { poId = "#=Id#" }))
+            )
+            .ToClientTemplate()
+        )
+    </div>
+</script>
+
+@Html.Partial("_ConsolidatePrModal")
+@Html.Partial("_PrItemBreakdownModal")
+@Html.Partial("_CancelPoModal")
+@Html.Partial("_TransmitPoModal")
+
+@section scripts {
+    <script src="~/Scripts/kendoGridExtensions.js"></script>
+    <script type="text/javascript">
+        function refreshMasterPoGrid() {
+            $("#PurchaseOrdersMasterGrid").data("kendoGrid").dataSource.read();
+        }
+
+        function renderStatusBadge(status) {
+            var css = 'status-draft';
+            if (status === 'Transmitted') css = 'status-transmitted';
+            else if (status === 'Approved' || status === 'Posted') css = 'status-posted';
+            else if (status === 'Cancelled') css = 'status-cancelled';
+            return '<span class="epsms-status-badge ' + css + '">' + status + '</span>';
+        }
+
+        function generatePrBadgeList(prs) {
+            if (!prs) return '<span class="text-muted">-</span>';
+            var items = prs.split(',');
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                html += '<span class="source-pr-pill" style="margin-right: 4px;">' + items[i].trim() + '</span>';
+            }
+            return html;
+        }
+
+        function confirmDeletePo(id, poNumber) {
+            if (confirm('Are you sure you want to delete Purchase Order ' + poNumber + '? All line items and allocations will be deleted.')) {
+                $.post('@Url.Action("Delete", "PurchaseOrder")', { id: id }, function (res) {
+                    if (res.success) {
+                        refreshMasterPoGrid();
+                    } else {
+                        alert(res.message || 'Error deleting PO.');
+                    }
+                });
+            }
+        }
+    </script>
+}

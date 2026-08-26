@@ -41,6 +41,8 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask SubmitAsync(Guid requestId, string user, DateTime date);
         ValueTask UnsubmitAsync(Guid requestId, string user, DateTime date);
 
+        ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
+
         IRequestItemService RequestItem { get; }
     }
 
@@ -50,7 +52,8 @@ namespace iLgs.Services.PurchaseRequest
         private readonly AppManEntities _db;
         private readonly IRequestSharedService _requestSharedService;
         private readonly IUserService _userService;
-        private readonly IExceptionService<RequestVM> _vmExceptionService;
+        private readonly IExceptionService<RequestVM> _vmExceptionService = new ExceptionService<RequestVM>();
+        private readonly IExceptionService<PurchaseRequestViewModel> _prCheckoutExceptionService = new ExceptionService<PurchaseRequestViewModel>();
         private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
@@ -61,10 +64,8 @@ namespace iLgs.Services.PurchaseRequest
             _db = db;
             _requestSharedService = new RequestSharedService(_db);
             _userService = new UserService(_db);
-            _vmExceptionService = new ExceptionService<RequestVM>();
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
             _priceCapService = new PriceCapService(_db);
-
             _requestItemService = new RequestItemService(_db);
         }
 
@@ -217,6 +218,56 @@ namespace iLgs.Services.PurchaseRequest
             return await _db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
         }
 
+        public ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date) =>
+        _prCheckoutExceptionService.TryCatch(async () =>
+        {
+            var request = new RequestVM()
+            {
+                Fund = model.Fund,
+                FundSpecific = model.FundSpecific,
+                DeptId = model.DeptId,
+                Department = model.Department,
+                //Section = model.Section,
+                //PrNo = model.PrNo,
+                //PrDate = model.PrDate,
+                FPP = model.FPP,
+                Purpose = model.Purpose,
+                RequestedBy = model.RequestedBy,
+                RequestedDesig = model.RequestedDesig,
+                Availability = model.Availability,
+                AvaialbilityDesig = model.AvaialbilityDesig,
+                ApprovedBy = model.ApprovedBy,
+                ApprovedDesig = model.ApprovedDesig,
+                SubmittedBy = user,
+                SubmittedDt = date
+            };
+            var requestVM = await CreateAsync(request, user, date);
+            model.CtrlNo = requestVM.CtrlNo;
+
+            foreach (var item in model.Items)
+            {
+                var requestItem = new RequestItemVM()
+                {
+                    PrId = requestVM.Id,
+                    ItemNo = item.ItemNo,
+                    ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo),
+                    Description = item.Description,
+                    //OtherDesc = item.OtherDesc,
+                    //Remarks = item.Remarks,
+                    Qty = item.Quantity,
+                    Unit = item.Unit,
+                    UnitCost = item.UnitCost,
+                    TotalCost = item.EstimatedAmount,
+                    //PriceRate = item.PriceRate,
+                    PpmpItemId = item.Id,
+                    PpmpCode = item.Code
+                };
+                await RequestItem.CreateAsync(requestItem, user, date);
+            }
+
+            return model;
+        });
+
         public ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
@@ -293,7 +344,7 @@ namespace iLgs.Services.PurchaseRequest
                 entity.Id = model.Id;
                 entity.CtrlNo = model.CtrlNo;
                 entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
+                entity.InsertedDt = model.InsertedDt;               
             }
 
             entity.Fund = model.Fund?.Trim().ToUpper();
@@ -313,6 +364,12 @@ namespace iLgs.Services.PurchaseRequest
             entity.ApprovedDesig = model.ApprovedDesig?.Trim() ?? "";
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+
+            if (!string.IsNullOrWhiteSpace(model.SubmittedBy))
+            {
+                entity.SubmittedBy = model.SubmittedBy;
+                entity.SubmittedDt = model.SubmittedDt;
+            }
         }
 
         public async ValueTask PostAsync(Guid requestId, string user, DateTime date)
@@ -341,10 +398,10 @@ namespace iLgs.Services.PurchaseRequest
                 }
 
                 var ppmpItemUsages = await _db.PPMPItemUsages.Where(w => w.PrId == requestId && w.Type != "PR").ToListAsync();
-                foreach(var ppmpItemUsage in ppmpItemUsages)
+                foreach (var ppmpItemUsage in ppmpItemUsages)
                 {
                     ppmpItemUsage.Type = "PR";
-                    ppmpItemUsage.Reference = entity.PrNo;                    
+                    ppmpItemUsage.Reference = entity.PrNo;
                 }
 
                 //var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems

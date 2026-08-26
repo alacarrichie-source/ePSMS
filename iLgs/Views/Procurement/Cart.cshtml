@@ -1,0 +1,180 @@
+﻿@model iLgs.Models.CartViewModel
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "My Procurement Cart";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<section class="epsms-procurement">
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Annual")">Annual Procurement</a>
+        <span>›</span>
+        My Cart
+    </div>
+
+    <h1>My Procurement Cart</h1>
+    <p class="subtitle">Review quantities before creating your purchase request.</p>
+
+    @Html.AntiForgeryToken()
+
+    @(Html.Kendo().Grid<iLgs.Models.CartItemViewModel>()
+        .Name("cartGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.ItemNo)
+                .Title("Item No.")
+                .Width(65);
+            columns.Bound(x => x.Code)
+                .Title("Item Code");
+            columns.Bound(x => x.Description);
+            columns.Bound(x => x.Unit)
+                .Width(95);
+            columns.Bound(x => x.Quantity)
+                .Width(110)
+                .Title("Quantity");
+            columns.Bound(x => x.UnitCost)
+                .Title("Unit Cost")
+                .Width(130)
+                .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+            columns.Bound(x => x.EstimatedAmount)
+                .Title("Est. Amount")
+                .Width(140)
+                .ClientTemplate("₱#= kendo.toString(EstimatedAmount, 'n2') #");
+
+            columns.Command(command =>
+            {
+                command.Edit().Text("Edit");
+                command.Destroy().Text("Remove");
+            }).Width(180);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Events(events => events.Edit("onCartGridEdit"))
+        .Pageable()
+        .Sortable()
+        .HtmlAttributes(new { @class = "data-card" })
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(10)
+            .Events(events => events.Error("onCartGridError"))
+            .Model(model =>
+            {
+                model.Id(x => x.Id);
+                model.Field(x => x.ItemNo).Editable(false);
+                model.Field(x => x.Code).Editable(false);
+                model.Field(x => x.Description).Editable(true);
+                model.Field(x => x.Unit).Editable(false);
+                model.Field(x => x.Quantity).Editable(true);
+                model.Field(x => x.UnitCost).Editable(false);
+                model.Field(x => x.EstimatedAmount).Editable(false);
+            })
+            .Read(read => read.Action("CartRead", "Procurement"))
+            .Update(update => update
+                .Action("UpdateCartItem", "Procurement")
+                .Data("addAntiForgeryToken"))
+            .Destroy(destroy => destroy
+                .Action("RemoveCartItem", "Procurement")
+                .Data("addAntiForgeryToken"))
+            .Events(events => events.RequestEnd("onCartGridRequestEnd"))
+        )
+    )
+
+    <div class="summary-bar">
+        <span>Estimated Total</span>
+        <strong id="cartEstimatedTotal">
+            @Model.EstimatedTotal.ToString("C2",
+                System.Globalization.CultureInfo.GetCultureInfo("en-PH"))
+        </strong>
+
+        @*<a class="k-button k-primary" href="@Url.Action("Checkout")">
+            Proceed to Checkout
+        </a>*@
+        @(Html.Kendo().Button()
+            .Name("proceedToCheckout")
+            .Content("<span class='k-icon k-i-arrow-right'></span> Proceed to Checkout")
+            .HtmlAttributes(new
+            {
+                type = "button",
+                @class = "k-primary",
+                style = "min-width: 180px;"
+            })
+            .Events(e => e.Click("proceedToCheckout"))
+        )
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        function onCartGridError(e) {
+            var messages = [];
+
+            if (e.errors) {
+                $.each(e.errors, function (fieldName, error) {
+                    if (error.errors) {
+                        $.each(error.errors, function () {
+                            messages.push(this);
+                        });
+                    }
+                });
+            }
+
+            if (messages.length) {
+                // Prevent the Grid from rebinding and losing the edit context.
+                var grid = $("#cartGrid").data("kendoGrid");
+
+                grid.one("dataBinding", function (event) {
+                    event.preventDefault();
+                });
+
+                alert(messages.join("\n"));
+            }
+        }
+
+        function addAntiForgeryToken(data) {
+            data.__RequestVerificationToken =
+                $("input[name='__RequestVerificationToken']").val();
+
+            return data;
+        }
+
+        function onCartGridRequestEnd(e) {
+            if (e.type !== "update" && e.type !== "destroy") {
+                return;
+            }
+
+            $.get("@Url.Action("CartSummary", "Procurement")", function (result) {
+                $("#cartEstimatedTotal").text(
+                    kendo.toString(result.estimatedTotal, "c2")
+                        .replace("$", "₱")
+                );
+
+                // Uses the badge function created earlier.
+                if (typeof updateCartBadge === "function") {
+                    updateCartBadge(result.cartCount);
+                }
+            });
+        }
+
+        function onCartGridEdit(e) {
+            var quantityInput = e.container
+                .find("input[name='Quantity']")
+                .data("kendoNumericTextBox");
+
+            if (!quantityInput) {
+                return;
+            }
+
+            var maxQuantity = Number(e.model.QtyBal);
+
+            quantityInput.min(1);
+
+            if (!isNaN(maxQuantity) && maxQuantity > 0) {
+                quantityInput.max(maxQuantity);
+            }
+        }
+
+        function proceedToCheckout(e) {
+            window.location.href = "@Url.Action("Checkout", "Procurement")";
+        }
+    </script>
+}

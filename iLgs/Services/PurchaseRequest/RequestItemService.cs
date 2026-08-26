@@ -16,6 +16,7 @@ namespace iLgs.Services.PurchaseRequest
 {
     public interface IRequestItemService
     {
+        IQueryable<RequestItemVM> GetAll();
         IQueryable<RequestItemVM> GetByPrId(Guid? prId);
         Task<RequestItemVM> GetVmByIdAsync(Guid? id);
         Task<RequestItem> GetByIdAsync(Guid? id);
@@ -64,20 +65,28 @@ namespace iLgs.Services.PurchaseRequest
                 PpmpCode = s.PpmpCode,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
-                Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20
+                Padding = (s.ItemNo.Length - s.ItemNo.Replace(".", "").Length) * 20,
+                Request = s.Request
             };
+        }
+
+        public IQueryable<RequestItemVM> GetAll()
+        {
+            var data = _db.RequestItems.Include(i => i.Request).AsNoTracking()
+                .Select(Projection());
+            return data;
         }
 
         public IQueryable<RequestItemVM> GetByPrId(Guid? prId)
         {
-            var data = _db.RequestItems.AsNoTracking().Where(w => w.PrId == prId)
+            var data = _db.RequestItems.Include(i => i.Request).AsNoTracking().Where(w => w.PrId == prId)
                 .Select(Projection());
             return data;
         }
 
         public async Task<RequestItemVM> GetVmByIdAsync(Guid? id)
         {
-            var data = await _db.RequestItems.AsNoTracking().Where(w => w.Id == id)
+            var data = await _db.RequestItems.Include(i => i.Request).AsNoTracking().Where(w => w.Id == id)
                 .Select(Projection()).FirstOrDefaultAsync();
             return data;
         }

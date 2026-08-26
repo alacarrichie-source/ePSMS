@@ -1,0 +1,2894 @@
+﻿@*@model iLgs.Models.AnnualProcurementViewModel
+
+@{
+    ViewBag.Title = "Annual Procurement";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<section class="epsms-procurement">
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Message"]
+        </div>
+    }
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span>›</span>
+        Annual Procurement
+    </div>
+
+    <!-- Page Header -->
+    <div class="procurement-header">
+        <div>
+            <h1>Annual Procurement</h1>
+
+            <p class="subtitle">
+                Select items from the approved annual procurement
+                plan to create a Purchase Request.
+            </p>
+        </div>
+
+        <!-- View Selector -->
+        <div class="view-selector-container">
+            <label>View</label>
+
+            <div id="procurementViewSelector"></div>
+        </div>
+    </div>
+
+
+    <!-- Filters -->
+    @using (Html.BeginForm(
+                        "Annual",
+                        "Procurement",
+                        FormMethod.Get,
+                        new { @class = "filter-panel" }))
+    {
+        <div class="filter-row">
+
+            <div>
+                <label>Fiscal Year</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.FiscalYear)
+                    .BindTo(Model.FiscalYears)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div>
+                <label>Department</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.Department)
+                    .DataTextField("Description")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .BindTo(Model.Departments)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div>
+                <label>Category</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.Category)
+                    .BindTo(Model.Categories)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div class="search">
+                <label>Search</label>
+
+                @(Html.Kendo().TextBoxFor(m => m.SearchText)
+                    .Placeholder("Search procurement items...")
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div class="filter-button">
+
+                @(Html.Kendo().Button()
+                    .Name("filterButton")
+                    .Content(
+                        "<span class='k-icon k-i-filter'></span> Filter"
+                    )
+                    .HtmlAttributes(new
+                    {
+                        type = "submit",
+                        @class = "k-primary"
+                    }))
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- CATALOG VIEW -->
+    <!-- ========================================================= -->
+
+    <div id="catalogView"
+         class="procurement-view">
+
+        <div class="catalog-grid"
+             id="catalogGrid">
+
+            @foreach (var item in Model.Items)
+            { 
+                <article class="catalog-card" data-item-id="@item.Id">
+                    <div class="item-code"> @item.Code </div> 
+                    <h2> @item.Description </h2> 
+                    <div class="unit"> @item.Unit </div> 
+                    <dl class="metrics"> <div> <dt>Planned</dt> <dd>@item.Qty</dd> </div> <div> <dt>Req.</dt> <dd>@item.QtyUsed</dd> </div> 
+                    <div> <dt>Rem.</dt> <dd class="remaining"> @item.QtyBal </dd> </div> </dl> 
+                    <div class="cost"> <span>Est. Unit Cost</span> <strong> @((item.UnitCost ?? 0m).ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-PH"))) </strong> </div> 
+                    @using (Html.BeginForm("AddToCart", "Procurement", FormMethod.Post, new { @class = "add-to-cart-form catalog-add-to-cart-form", data_item_id = item.Id }))
+                    { 
+                        @Html.AntiForgeryToken() 
+                        @Html.Hidden("id", item.Id) 
+                        var disabled = item.QtyBal <= 0 || item.IsInCart; 
+                        @(Html.Kendo().Button()
+                            .Name("catalogAddToCart_" + item.Id).Content(item.IsInCart ? "<span class='k-icon k-i-check'></span> Already in Cart" : item.QtyBal <= 0 ? "<span class='k-icon k-i-lock'></span> Fully Requested" : "<span class='k-icon k-i-cart'></span> Add to Cart")
+                            .Enable(!disabled)
+                            .HtmlAttributes(new { type = "submit", @class = disabled ? "add-to-cart-button disabled" : "k-primary add-to-cart-button", data_item_id = item.Id, data_view = "catalog" })
+                        ) 
+                    }
+            </article> 
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- LIST VIEW -->
+    <!-- ========================================================= -->
+
+    <div id="listView"
+         class="procurement-view"
+         style="display:none;">
+
+        <div class="procurement-list-container">
+
+            <table class="procurement-list">
+
+                <thead>
+                    <tr>
+
+                        <th class="item-column">
+                            Item
+                        </th>
+
+                        <th>
+                            Unit
+                        </th>
+
+                        <th class="number-column">
+                            Planned
+                        </th>
+
+                        <th class="number-column">
+                            Requested
+                        </th>
+
+                        <th class="number-column">
+                            Remaining
+                        </th>
+
+                        <th class="cost-column">
+                            Est. Unit Cost
+                        </th>
+
+                        <th class="action-column">
+                            Action
+                        </th>
+
+                    </tr>
+                </thead>
+
+                <tbody id="procurementListBody">
+
+                    @foreach (var item in Model.Items)
+                    {
+                    <tr class="procurement-list-item" data-item-id="@item.Id"> <!-- Item --> <td class="item-column"> <div class="list-item-info"> <div class="list-item-code"> @item.Code </div> <div class="list-item-description" title="@item.Description"> @item.Description </div> </div> </td> <!-- Unit --> <td> @item.Unit </td> <!-- Planned --> <td class="number-column"> @item.Qty </td> <!-- Requested --> <td class="number-column"> @item.QtyUsed </td> <!-- Remaining --> <td class="number-column"> <strong class="remaining"> @item.QtyBal </strong> </td> <!-- Cost --> <td class="cost-column"> <strong> @((item.UnitCost ?? 0m).ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-PH"))) </strong> </td> <!-- Action --> <td class="action-column"> @using (Html.BeginForm("AddToCart", "Procurement", FormMethod.Post, new { @class = "add-to-cart-form list-add-to-cart-form", data_item_id = item.Id }))
+                    { @Html.AntiForgeryToken() @Html.Hidden("id", item.Id) var disabled = item.QtyBal <= 0 || item.IsInCart; @(Html.Kendo().Button().Name("listAddToCart_" + item.Id).Content(item.IsInCart ? "<span class='k-icon k-i-check'></span> In Cart" : item.QtyBal <= 0 ? "<span class='k-icon k-i-lock'></span> Fully Requested" : "<span class='k-icon k-i-cart'></span> Add").Enable(!disabled).HtmlAttributes(new { type = "submit", @class = disabled ? "add-to-cart-button disabled" : "k-primary add-to-cart-button", data_item_id = item.Id, data_view = "list" })) } </td> </tr> }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PAGINATION -->
+    <!-- ========================================================= -->
+
+    <div class="catalog-pagination">
+
+        <div class="catalog-pagination-info">
+            <span id="catalogPageInfo"></span>
+        </div>
+
+        <div class="catalog-pagination-controls">
+
+            <button type="button"
+                    id="catalogPrevious"
+                    class="k-button">
+
+                <span class="k-icon k-i-arrow-w"></span>
+                Previous
+
+            </button>
+
+            <div id="catalogPageNumbers"
+                 class="catalog-page-numbers">
+            </div>
+
+            <button type="button"
+                    id="catalogNext"
+                    class="k-button">
+
+                Next
+
+                <span class="k-icon k-i-arrow-e"></span>
+
+            </button>
+
+        </div>
+
+        <div class="catalog-page-size">
+
+            <label for="catalogPageSize">
+                Items per page:
+            </label>
+
+            @(Html.Kendo().DropDownList()
+                .Name("catalogPageSize")
+                .BindTo(new[]
+                {
+                    new SelectListItem
+                    {
+                        Text = "20",
+                        Value = "20"
+                    },
+                    new SelectListItem
+                    {
+                        Text = "40",
+                        Value = "40"
+                    },
+                    new SelectListItem
+                    {
+                        Text = "60",
+                        Value = "60"
+                    }
+                })
+                .Value("20")
+                .HtmlAttributes(new
+                {
+                    style = "width:80px"
+                }))
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<style>
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .procurement-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .view-selector-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 180px;
+    }
+
+        .view-selector-container label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+
+    /* =========================================================
+       CATALOG VIEW
+       ========================================================= */
+
+    .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .catalog-card {
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        min-height: 290px;
+        box-sizing: border-box;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+        .catalog-card:hover {
+            border-color: #4b41e1;
+            box-shadow: 0 3px 10px rgba(0,0,0,.08);
+        }
+
+        .catalog-card h2 {
+            margin: 5px 0;
+            font-size: 18px;
+            line-height: 22px;
+            height: 44px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+    .item-code {
+        color: #777;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .unit {
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 0 0 15px 0;
+    }
+
+        .metrics > div {
+            text-align: center;
+            padding: 8px;
+            background: #f5f6f8;
+            border-radius: 5px;
+        }
+
+        .metrics dt {
+            color: #777;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .metrics dd {
+            margin: 0;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+    .remaining {
+        color: #173d70;
+    }
+
+    .cost {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+
+        .cost span {
+            color: #777;
+        }
+
+
+    /* =========================================================
+       LIST VIEW
+       ========================================================= */
+
+    .procurement-list-container {
+        width: 100%;
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .procurement-list {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .procurement-list th {
+            background: #f4f6f9;
+            color: #555;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .procurement-list td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .procurement-list tbody tr:hover {
+            background: #f8f9fb;
+        }
+
+        .procurement-list tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .item-column {
+        width: 34%;
+    }
+
+    .number-column {
+        width: 10%;
+        text-align: right !important;
+    }
+
+    .cost-column {
+        width: 14%;
+        text-align: right !important;
+    }
+
+    .action-column {
+        width: 15%;
+        text-align: center !important;
+    }
+
+    .list-item-info {
+        min-width: 0;
+    }
+
+    .list-item-code {
+        font-size: 11px;
+        color: #777;
+        margin-bottom: 3px;
+        font-weight: 600;
+    }
+
+    .list-item-description {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    /* =========================================================
+       ADD TO CART
+       ========================================================= */
+
+    .add-to-cart-form {
+        width: 100%;
+    }
+
+    .add-to-cart-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .list-add-to-cart-form {
+        max-width: 130px;
+        margin: auto;
+    }
+
+    .add-to-cart-button .k-icon,
+    .filter-button .k-icon {
+        margin-right: 6px;
+    }
+
+
+    /* =========================================================
+       PAGINATION
+       ========================================================= */
+
+    .catalog-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 30px;
+        padding: 15px 0;
+        flex-wrap: wrap;
+    }
+
+    .catalog-pagination-info {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .catalog-pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .catalog-page-numbers {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .catalog-page-button {
+        min-width: 36px;
+    }
+
+    .catalog-page-ellipsis {
+        padding: 0 5px;
+        color: #777;
+    }
+
+    .catalog-page-size {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .catalog-page-size label {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @@media (max-width: 1200px) {
+
+        .catalog-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .catalog-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .procurement-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 600px) {
+
+        .catalog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .procurement-list th:nth-child(3),
+        .procurement-list th:nth-child(4),
+        .procurement-list th:nth-child(5),
+        .procurement-list td:nth-child(3),
+        .procurement-list td:nth-child(4),
+        .procurement-list td:nth-child(5) {
+            display: none;
+        }
+
+        .catalog-pagination {
+            justify-content: center;
+        }
+    }
+</style>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        /* =====================================================
+           VIEW STATE
+           ===================================================== */
+
+        var currentView =
+            localStorage.getItem(
+                "epsms.annualProcurement.view"
+            ) || "catalog";
+
+
+        /* =====================================================
+           KENDO VIEW SELECTOR
+           ===================================================== */
+
+        $("#procurementViewSelector").kendoButtonGroup({
+
+            index: currentView === "catalog" ? 0 : 1,
+
+            items: [
+                {
+                    text:
+                    "<span class='k-icon k-i-grid'></span> Catalog",
+                    encoded: false
+                },
+                {
+                    text:
+                    "<span class='k-icon k-i-list-bulleted'></span> List",
+                    encoded: false
+                }
+            ],
+
+            select: function (e) {
+
+                if (e.indices[0] === 0) {
+
+                    setView("catalog");
+
+                }
+                else {
+
+                    setView("list");
+
+                }
+
+            }
+
+        });
+
+
+        /* =====================================================
+           SET VIEW
+           ===================================================== */
+
+        function setView(view) {
+
+            currentView = view;
+
+            localStorage.setItem(
+                "epsms.annualProcurement.view",
+                view
+            );
+
+            if (view === "catalog") {
+
+                $("#catalogView").show();
+
+                $("#listView").hide();
+
+            }
+            else {
+
+                $("#catalogView").hide();
+
+                $("#listView").show();
+
+            }
+
+            currentPage = 1;
+
+            renderPagination();
+
+        }
+
+
+        /* =====================================================
+           PAGINATION
+           ===================================================== */
+
+        var currentPage = 1;
+
+        var pageSize = 20;
+
+
+        var $catalogItems =
+            $("#catalogGrid").find(".catalog-card");
+
+
+        var $listItems =
+            $("#procurementListBody")
+                .find(".procurement-list-item");
+
+
+        var totalItems = 0;
+
+        var totalPages = 0;
+
+
+        function getCurrentItems() {
+
+            if (currentView === "catalog") {
+
+                return $catalogItems;
+
+            }
+
+            return $listItems;
+
+        }
+
+
+        function renderPagination() {
+
+            var $items =
+                getCurrentItems();
+
+
+            totalItems =
+                $items.length;
+
+
+            totalPages =
+                Math.ceil(
+                    totalItems / pageSize
+                );
+
+
+            if (
+                currentPage > totalPages &&
+                totalPages > 0
+            ) {
+
+                currentPage =
+                    totalPages;
+
+            }
+
+
+            if (totalPages === 0) {
+
+                currentPage = 1;
+
+            }
+
+
+            /*
+             * Hide all items in both views.
+             */
+
+            $catalogItems.hide();
+
+            $listItems.hide();
+
+
+            /*
+             * Calculate current page.
+             */
+
+            var startIndex =
+                (currentPage - 1) *
+                pageSize;
+
+
+            var endIndex =
+                startIndex +
+                pageSize;
+
+
+            /*
+             * Show current view only.
+             */
+
+            $items
+                .slice(
+                startIndex,
+                endIndex
+                )
+                .show();
+
+
+            renderPageNumbers();
+
+            updateButtons();
+
+            updatePageInfo();
+
+        }
+
+
+        /* =====================================================
+           PAGE NUMBERS
+           ===================================================== */
+
+        function renderPageNumbers() {
+
+            var $container =
+                $("#catalogPageNumbers");
+
+
+            $container.empty();
+
+
+            if (totalPages <= 1) {
+
+                return;
+
+            }
+
+
+            var startPage =
+                Math.max(
+                    1,
+                    currentPage - 2
+                );
+
+
+            var endPage =
+                Math.min(
+                    totalPages,
+                    currentPage + 2
+                );
+
+
+            if (startPage > 1) {
+
+                addPageButton(1);
+
+
+                if (startPage > 2) {
+
+                    $container.append(
+                        '<span class="catalog-page-ellipsis">...</span>'
+                    );
+
+                }
+
+            }
+
+
+            for (
+                var i = startPage;
+                i <= endPage;
+                i++
+            ) {
+
+                addPageButton(i);
+
+            }
+
+
+            if (endPage < totalPages) {
+
+                if (
+                    endPage <
+                    totalPages - 1
+                ) {
+
+                    $container.append(
+                        '<span class="catalog-page-ellipsis">...</span>'
+                    );
+
+                }
+
+                addPageButton(totalPages);
+
+            }
+
+        }
+
+
+        function addPageButton(page) {
+
+            var $button =
+                $("<button>", {
+
+                    type: "button",
+
+                    class:
+                    "k-button catalog-page-button",
+
+                    text: page
+
+                });
+
+
+            if (page === currentPage) {
+
+                $button.addClass(
+                    "k-primary"
+                );
+
+            }
+
+
+            $button.on(
+                "click",
+                function () {
+
+                    currentPage =
+                        page;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+            );
+
+
+            $("#catalogPageNumbers")
+                .append($button);
+
+        }
+
+
+        /* =====================================================
+           PREVIOUS / NEXT
+           ===================================================== */
+
+        $("#catalogPrevious").on(
+            "click",
+            function () {
+
+                if (currentPage > 1) {
+
+                    currentPage--;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+
+            }
+        );
+
+
+        $("#catalogNext").on(
+            "click",
+            function () {
+
+                if (
+                    currentPage <
+                    totalPages
+                ) {
+
+                    currentPage++;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           PAGE SIZE
+           ===================================================== */
+
+        $("#catalogPageSize")
+            .data("kendoDropDownList")
+            .bind(
+            "change",
+            function () {
+
+                pageSize =
+                    parseInt(
+                        this.value(),
+                        10
+                    );
+
+
+                currentPage = 1;
+
+                renderPagination();
+
+            }
+            );
+
+
+        /* =====================================================
+           BUTTON STATE
+           ===================================================== */
+
+        function updateButtons() {
+
+            $("#catalogPrevious")
+                .prop(
+                "disabled",
+                currentPage <= 1
+                );
+
+
+            $("#catalogNext")
+                .prop(
+                "disabled",
+                currentPage >= totalPages
+                );
+
+        }
+
+
+        /* =====================================================
+           PAGE INFORMATION
+           ===================================================== */
+
+        function updatePageInfo() {
+
+            if (totalItems === 0) {
+
+                $("#catalogPageInfo").text(
+                    "No procurement items found."
+                );
+
+                return;
+
+            }
+
+
+            var startItem =
+                ((currentPage - 1) *
+                    pageSize) + 1;
+
+
+            var endItem =
+                Math.min(
+                    currentPage *
+                    pageSize,
+                    totalItems
+                );
+
+
+            $("#catalogPageInfo").text(
+
+                "Showing " +
+                startItem +
+                "–" +
+                endItem +
+                " of " +
+                totalItems +
+                " items"
+
+            );
+
+        }
+
+
+        /* =====================================================
+           SCROLL
+           ===================================================== */
+
+        function scrollToProcurement() {
+
+            var $target =
+                currentView === "catalog"
+                    ? $("#catalogView")
+                    : $("#listView");
+
+
+            $("html, body").animate({
+
+                scrollTop:
+                $target.offset().top - 100
+
+            }, 200);
+
+        }
+
+
+        /* =====================================================
+           INITIAL VIEW
+           ===================================================== */
+
+        setView(currentView);
+
+    });
+
+</script>*@
+
+@model iLgs.Models.AnnualProcurementViewModel
+
+@{
+    ViewBag.Title = "Annual Procurement";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<section class="epsms-procurement">
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Message"]
+        </div>
+    }
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span>›</span>
+        Annual Procurement
+    </div>
+
+    <!-- Page Header -->
+    <div class="procurement-header">
+
+        <div>
+            <h1>Annual Procurement</h1>
+
+            <p class="subtitle">
+                Select items from the approved annual procurement
+                plan to create a Purchase Request.
+            </p>
+        </div>
+
+        <!-- View Selector -->
+        <div class="view-selector-container">
+            <label>View</label>
+            <div id="procurementViewSelector"></div>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- FILTERS -->
+    <!-- ========================================================= -->
+
+    @using (Html.BeginForm(
+                "Annual",
+                "Procurement",
+                FormMethod.Get,
+                new { @class = "filter-panel" }))
+    {
+        <div class="filter-row">
+
+            <div>
+                <label>Fiscal Year</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.FiscalYear)
+                    .BindTo(Model.FiscalYears)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div>
+                <label>Department</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.Department)
+                    .DataTextField("Description")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .BindTo(Model.Departments)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div>
+                <label>Category</label>
+
+                @(Html.Kendo().DropDownListFor(m => m.Category)
+                    .BindTo(Model.Categories)
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+            </div>
+
+            <div class="search">
+
+                <label>Search</label>
+
+                @(Html.Kendo().TextBoxFor(m => m.SearchText)
+                    .Placeholder("Search procurement items...")
+                    .HtmlAttributes(new
+                    {
+                        style = "width:100%"
+                    }))
+
+            </div>
+
+            <div class="filter-button">
+
+                @(Html.Kendo().Button()
+                    .Name("filterButton")
+                    .Content(
+                        "<span class='k-icon k-i-filter'></span> Filter"
+                    )
+                    .HtmlAttributes(new
+                    {
+                        type = "submit",
+                        @class = "k-primary"
+                    }))
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- CATALOG VIEW -->
+    <!-- ========================================================= -->
+
+    <div id="catalogView" class="procurement-view">
+
+        <div class="catalog-grid" id="catalogGrid">
+
+            @foreach (var item in Model.Items)
+            {
+                <article class="catalog-card"
+                         data-item-id="@item.Id">
+
+                    <div class="item-code">
+                        @item.Code
+                    </div>
+
+                    <h2>
+                        @item.Description
+                    </h2>
+
+                    <div class="unit">
+                        @item.Unit
+                    </div>
+
+                    <dl class="metrics">
+
+                        <div>
+                            <dt>Planned</dt>
+                            <dd>@item.Qty</dd>
+                        </div>
+
+                        <div>
+                            <dt>Req.</dt>
+                            <dd>@item.QtyUsed</dd>
+                        </div>
+
+                        <div>
+                            <dt>Rem.</dt>
+                            <dd class="remaining">
+                                @item.QtyBal
+                            </dd>
+                        </div>
+
+                    </dl>
+
+                    <div class="cost">
+
+                        <span>Est. Unit Cost</span>
+
+                        <strong>
+                            @((item.UnitCost ?? 0m).ToString(
+                                "C2",
+                                System.Globalization.CultureInfo
+                                    .GetCultureInfo("en-PH")))
+                        </strong>
+
+                    </div>
+
+
+                    <!-- Catalog Add To Cart -->
+                    @using (Html.BeginForm(
+                    "AddToCart",
+                    "Procurement",
+                    FormMethod.Post,
+                    new
+                    {
+                        @class =
+                            "add-to-cart-form catalog-add-to-cart-form",
+                        data_item_id = item.Id
+                    }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        @Html.Hidden("id", item.Id)
+
+                        var disabled =
+                            item.QtyBal <= 0 ||
+                            item.IsInCart;
+
+                        @(Html.Kendo().Button()
+                            .Name(
+                                "catalogAddToCart_" +
+                                item.Id)
+                            .Content(
+                                item.IsInCart
+                                    ? "<span class='k-icon k-i-check'></span> Already in Cart"
+                                    : item.QtyBal <= 0
+                                        ? "<span class='k-icon k-i-lock'></span> Fully Requested"
+                                        : "<span class='k-icon k-i-cart'></span> Add to Cart"
+                            )
+                            .Enable(!disabled)
+                            .HtmlAttributes(new
+                            {
+                                type = "submit",
+                                @class = disabled
+                                    ? "add-to-cart-button disabled"
+                                    : "k-primary add-to-cart-button"
+                            }))
+                    }
+
+                </article>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- LIST VIEW -->
+    <!-- ========================================================= -->
+
+    <div id="listView"
+         class="procurement-view"
+         style="display:none;">
+
+        <div class="procurement-list-container">
+
+            <table class="procurement-list">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="item-column">
+                            Item
+                        </th>
+
+                        <th>
+                            Unit
+                        </th>
+
+                        <th class="number-column">
+                            Planned
+                        </th>
+
+                        <th class="number-column">
+                            Requested
+                        </th>
+
+                        <th class="number-column">
+                            Remaining
+                        </th>
+
+                        <th class="cost-column">
+                            Est. Unit Cost
+                        </th>
+
+                        <th class="action-column">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="procurementListBody">
+
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr class="procurement-list-item"
+                            data-item-id="@item.Id">
+
+                            <!-- Item -->
+                            <td class="item-column">
+
+                                <div class="list-item-info">
+
+                                    <div class="list-item-code">
+                                        @item.Code
+                                    </div>
+
+                                    <div class="list-item-description"
+                                         title="@item.Description">
+
+                                        @item.Description
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- Unit -->
+                            <td>
+                                @item.Unit
+                            </td>
+
+
+                            <!-- Planned -->
+                            <td class="number-column">
+                                @item.Qty
+                            </td>
+
+
+                            <!-- Requested -->
+                            <td class="number-column">
+                                @item.QtyUsed
+                            </td>
+
+
+                            <!-- Remaining -->
+                            <td class="number-column">
+
+                                <strong class="remaining">
+                                    @item.QtyBal
+                                </strong>
+
+                            </td>
+
+
+                            <!-- Cost -->
+                            <td class="cost-column">
+
+                                <strong>
+                                    @((item.UnitCost ?? 0m).ToString(
+                                        "C2",
+                                        System.Globalization.CultureInfo
+                                            .GetCultureInfo("en-PH")))
+                                </strong>
+
+                            </td>
+
+
+                            <!-- Action -->
+                            <td class="action-column">
+
+                                @using (Html.BeginForm(
+                    "AddToCart",
+                    "Procurement",
+                    FormMethod.Post,
+                    new
+                    {
+                        @class =
+                            "add-to-cart-form list-add-to-cart-form",
+                        data_item_id = item.Id
+                    }))
+                                {
+                                    @Html.AntiForgeryToken()
+
+                                    @Html.Hidden("id", item.Id)
+
+                                    var disabled =
+                                        item.QtyBal <= 0 ||
+                                        item.IsInCart;
+
+                                    @(Html.Kendo().Button()
+                                        .Name(
+                                            "listAddToCart_" +
+                                            item.Id)
+                                        .Content(
+                                            item.IsInCart
+                                                ? "<span class='k-icon k-i-check'></span> In Cart"
+                                                : item.QtyBal <= 0
+                                                    ? "<span class='k-icon k-i-lock'></span> Fully Requested"
+                                                    : "<span class='k-icon k-i-cart'></span> Add"
+                                        )
+                                        .Enable(!disabled)
+                                        .HtmlAttributes(new
+                                        {
+                                            type = "submit",
+                                            @class = disabled
+                                                ? "add-to-cart-button disabled"
+                                                : "k-primary add-to-cart-button"
+                                        }))
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PAGINATION -->
+    <!-- ========================================================= -->
+
+    <div class="catalog-pagination">
+
+        <div class="catalog-pagination-info">
+            <span id="catalogPageInfo"></span>
+        </div>
+
+        <div class="catalog-pagination-controls">
+
+            <button type="button"
+                    id="catalogPrevious"
+                    class="k-button">
+
+                <span class="k-icon k-i-arrow-w"></span>
+                Previous
+
+            </button>
+
+            <div id="catalogPageNumbers"
+                 class="catalog-page-numbers">
+            </div>
+
+            <button type="button"
+                    id="catalogNext"
+                    class="k-button">
+
+                Next
+
+                <span class="k-icon k-i-arrow-e"></span>
+
+            </button>
+
+        </div>
+
+        <div class="catalog-page-size">
+
+            <label for="catalogPageSize">
+                Items per page:
+            </label>
+
+            @(Html.Kendo().DropDownList()
+                .Name("catalogPageSize")
+                .BindTo(new[]
+                {
+                    new SelectListItem
+                    {
+                        Text = "20",
+                        Value = "20"
+                    },
+                    new SelectListItem
+                    {
+                        Text = "40",
+                        Value = "40"
+                    },
+                    new SelectListItem
+                    {
+                        Text = "60",
+                        Value = "60"
+                    }
+                })
+                .Value("20")
+                .HtmlAttributes(new
+                {
+                    style = "width:80px"
+                }))
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<style>
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .procurement-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .view-selector-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 180px;
+    }
+
+        .view-selector-container label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+
+    /* =========================================================
+       CATALOG VIEW
+       ========================================================= */
+
+    .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .catalog-card {
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        min-height: 290px;
+        box-sizing: border-box;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+        .catalog-card:hover {
+            border-color: #4b41e1;
+            box-shadow: 0 3px 10px rgba(0,0,0,.08);
+        }
+
+        .catalog-card h2 {
+            margin: 5px 0;
+            font-size: 18px;
+            line-height: 22px;
+            height: 44px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+    .item-code {
+        color: #777;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .unit {
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 0 0 15px 0;
+    }
+
+        .metrics > div {
+            text-align: center;
+            padding: 8px;
+            background: #f5f6f8;
+            border-radius: 5px;
+        }
+
+        .metrics dt {
+            color: #777;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .metrics dd {
+            margin: 0;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+    .remaining {
+        color: #173d70;
+    }
+
+    .cost {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+
+        .cost span {
+            color: #777;
+        }
+
+
+    /* =========================================================
+       LIST VIEW
+       ========================================================= */
+
+    .procurement-list-container {
+        width: 100%;
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .procurement-list {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .procurement-list th {
+            background: #f4f6f9;
+            color: #555;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .procurement-list td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .procurement-list tbody tr:hover {
+            background: #f8f9fb;
+        }
+
+        .procurement-list tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .item-column {
+        width: 34%;
+    }
+
+    .number-column {
+        width: 10%;
+        text-align: right !important;
+    }
+
+    .cost-column {
+        width: 14%;
+        text-align: right !important;
+    }
+
+    .action-column {
+        width: 15%;
+        text-align: center !important;
+    }
+
+    .list-item-info {
+        min-width: 0;
+    }
+
+    .list-item-code {
+        font-size: 11px;
+        color: #777;
+        margin-bottom: 3px;
+        font-weight: 600;
+    }
+
+    .list-item-description {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    /* =========================================================
+       ADD TO CART
+       ========================================================= */
+
+    .add-to-cart-form {
+        width: 100%;
+    }
+
+    .add-to-cart-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .list-add-to-cart-form {
+        max-width: 130px;
+        margin: auto;
+    }
+
+    .add-to-cart-button .k-icon,
+    .filter-button .k-icon {
+        margin-right: 6px;
+    }
+
+    .add-to-cart-button.cart-updating {
+        opacity: .65;
+        cursor: wait;
+    }
+
+
+    /* =========================================================
+       PAGINATION
+       ========================================================= */
+
+    .catalog-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 30px;
+        padding: 15px 0;
+        flex-wrap: wrap;
+    }
+
+    .catalog-pagination-info {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .catalog-pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .catalog-page-numbers {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .catalog-page-button {
+        min-width: 36px;
+    }
+
+    .catalog-page-ellipsis {
+        padding: 0 5px;
+        color: #777;
+    }
+
+    .catalog-page-size {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .catalog-page-size label {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @@media (max-width: 1200px) {
+
+        .catalog-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .catalog-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .procurement-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 600px) {
+
+        .catalog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .procurement-list th:nth-child(3),
+        .procurement-list th:nth-child(4),
+        .procurement-list th:nth-child(5),
+        .procurement-list td:nth-child(3),
+        .procurement-list td:nth-child(4),
+        .procurement-list td:nth-child(5) {
+            display: none;
+        }
+
+        .catalog-pagination {
+            justify-content: center;
+        }
+    }
+</style>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        /* =====================================================
+           VIEW STATE
+           ===================================================== */
+
+        var currentView =
+            localStorage.getItem(
+                "epsms.annualProcurement.view"
+            ) || "catalog";
+
+
+        /* =====================================================
+           KENDO VIEW SELECTOR
+           ===================================================== */
+
+        $("#procurementViewSelector").kendoButtonGroup({
+
+            index:
+            currentView === "catalog"
+                ? 0
+                : 1,
+
+            items: [
+
+                {
+                    text:
+                    "<span class='k-icon k-i-grid'></span> Catalog",
+                    encoded: false
+                },
+
+                {
+                    text:
+                    "<span class='k-icon k-i-list-bulleted'></span> List",
+                    encoded: false
+                }
+
+            ],
+
+            select: function (e) {
+
+                if (e.indices[0] === 0) {
+
+                    setView("catalog");
+
+                }
+                else {
+
+                    setView("list");
+
+                }
+
+            }
+
+        });
+
+
+        /* =====================================================
+           SET VIEW
+           ===================================================== */
+
+        function setView(view) {
+
+            currentView = view;
+
+            localStorage.setItem(
+                "epsms.annualProcurement.view",
+                view
+            );
+
+            if (view === "catalog") {
+
+                $("#catalogView").show();
+
+                $("#listView").hide();
+
+            }
+            else {
+
+                $("#catalogView").hide();
+
+                $("#listView").show();
+
+            }
+
+            currentPage = 1;
+
+            renderPagination();
+
+        }
+
+
+        /* =====================================================
+           PAGINATION
+           ===================================================== */
+
+        var currentPage = 1;
+
+        var pageSize = 20;
+
+        var $catalogItems =
+            $("#catalogGrid")
+                .find(".catalog-card");
+
+        var $listItems =
+            $("#procurementListBody")
+                .find(".procurement-list-item");
+
+        var totalItems = 0;
+
+        var totalPages = 0;
+
+
+        function getCurrentItems() {
+
+            return currentView === "catalog"
+                ? $catalogItems
+                : $listItems;
+
+        }
+
+
+        function renderPagination() {
+
+            var $items =
+                getCurrentItems();
+
+            totalItems =
+                $items.length;
+
+            totalPages =
+                Math.ceil(
+                    totalItems / pageSize
+                );
+
+
+            if (
+                currentPage > totalPages &&
+                totalPages > 0
+            ) {
+
+                currentPage =
+                    totalPages;
+
+            }
+
+
+            if (totalPages === 0) {
+
+                currentPage = 1;
+
+            }
+
+
+            /*
+             * Hide all items from both views.
+             */
+            $catalogItems.hide();
+
+            $listItems.hide();
+
+
+            /*
+             * Calculate page indexes.
+             */
+            var startIndex =
+                (currentPage - 1) *
+                pageSize;
+
+            var endIndex =
+                startIndex +
+                pageSize;
+
+
+            /*
+             * Display current page.
+             */
+            $items
+                .slice(
+                startIndex,
+                endIndex
+                )
+                .show();
+
+
+            renderPageNumbers();
+
+            updateButtons();
+
+            updatePageInfo();
+
+        }
+
+
+        /* =====================================================
+           PAGE NUMBERS
+           ===================================================== */
+
+        function renderPageNumbers() {
+
+            var $container =
+                $("#catalogPageNumbers");
+
+            $container.empty();
+
+
+            if (totalPages <= 1) {
+
+                return;
+
+            }
+
+
+            var startPage =
+                Math.max(
+                    1,
+                    currentPage - 2
+                );
+
+            var endPage =
+                Math.min(
+                    totalPages,
+                    currentPage + 2
+                );
+
+
+            if (startPage > 1) {
+
+                addPageButton(1);
+
+                if (startPage > 2) {
+
+                    $container.append(
+                        '<span class="catalog-page-ellipsis">...</span>'
+                    );
+
+                }
+
+            }
+
+
+            for (
+                var i = startPage;
+                i <= endPage;
+                i++
+            ) {
+
+                addPageButton(i);
+
+            }
+
+
+            if (endPage < totalPages) {
+
+                if (
+                    endPage <
+                    totalPages - 1
+                ) {
+
+                    $container.append(
+                        '<span class="catalog-page-ellipsis">...</span>'
+                    );
+
+                }
+
+                addPageButton(totalPages);
+
+            }
+
+        }
+
+
+        function addPageButton(page) {
+
+            var $button =
+                $("<button>", {
+
+                    type: "button",
+
+                    class:
+                    "k-button catalog-page-button",
+
+                    text: page
+
+                });
+
+
+            if (page === currentPage) {
+
+                $button.addClass(
+                    "k-primary"
+                );
+
+            }
+
+
+            $button.on(
+                "click",
+                function () {
+
+                    currentPage =
+                        page;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+            );
+
+
+            $("#catalogPageNumbers")
+                .append($button);
+
+        }
+
+
+        /* =====================================================
+           PREVIOUS
+           ===================================================== */
+
+        $("#catalogPrevious").on(
+            "click",
+            function () {
+
+                if (currentPage > 1) {
+
+                    currentPage--;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           NEXT
+           ===================================================== */
+
+        $("#catalogNext").on(
+            "click",
+            function () {
+
+                if (
+                    currentPage <
+                    totalPages
+                ) {
+
+                    currentPage++;
+
+                    renderPagination();
+
+                    scrollToProcurement();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           PAGE SIZE
+           ===================================================== */
+
+        var pageSizeDropDown =
+            $("#catalogPageSize")
+                .data("kendoDropDownList");
+
+
+        if (pageSizeDropDown) {
+
+            pageSizeDropDown.bind(
+                "change",
+                function () {
+
+                    pageSize =
+                        parseInt(
+                            this.value(),
+                            10
+                        );
+
+                    currentPage = 1;
+
+                    renderPagination();
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           BUTTON STATE
+           ===================================================== */
+
+        function updateButtons() {
+
+            $("#catalogPrevious")
+                .prop(
+                "disabled",
+                currentPage <= 1
+                );
+
+
+            $("#catalogNext")
+                .prop(
+                "disabled",
+                currentPage >= totalPages
+                );
+
+        }
+
+
+        /* =====================================================
+           PAGE INFORMATION
+           ===================================================== */
+
+        function updatePageInfo() {
+
+            if (totalItems === 0) {
+
+                $("#catalogPageInfo").text(
+                    "No procurement items found."
+                );
+
+                return;
+
+            }
+
+
+            var startItem =
+                ((currentPage - 1) *
+                    pageSize) + 1;
+
+
+            var endItem =
+                Math.min(
+                    currentPage *
+                    pageSize,
+                    totalItems
+                );
+
+
+            $("#catalogPageInfo").text(
+
+                "Showing " +
+                startItem +
+                "–" +
+                endItem +
+                " of " +
+                totalItems +
+                " items"
+
+            );
+
+        }
+
+
+        /* =====================================================
+           SCROLL
+           ===================================================== */
+
+        function scrollToProcurement() {
+
+            var $target =
+                currentView === "catalog"
+                    ? $("#catalogView")
+                    : $("#listView");
+
+
+            if (!$target.length) {
+                return;
+            }
+
+
+            $("html, body").animate({
+
+                scrollTop:
+                $target.offset().top - 100
+
+            }, 200);
+
+        }
+
+
+        /* =====================================================
+           CART SYNCHRONIZATION
+           ===================================================== */
+
+        /*
+         * Catalog and List views use the same Item Id.
+         *
+         * Catalog:
+         *     .catalog-card[data-item-id]
+         *
+         * List:
+         *     .procurement-list-item[data-item-id]
+         *
+         * The Item Id is therefore the single
+         * synchronization key.
+         */
+
+
+        function synchronizeCartState(itemId) {
+
+            var normalizedId =
+                String(itemId).toLowerCase();
+
+
+            $(
+                ".catalog-card[data-item-id], " +
+                ".procurement-list-item[data-item-id]"
+            ).each(function () {
+
+                var $item =
+                    $(this);
+
+
+                var currentId =
+                    String(
+                        $item.attr(
+                            "data-item-id"
+                        )
+                    ).toLowerCase();
+
+
+                if (
+                    currentId !==
+                    normalizedId
+                ) {
+
+                    return;
+
+                }
+
+
+                /*
+                 * =============================================
+                 * CATALOG BUTTON
+                 * =============================================
+                 */
+
+                var $catalogButton =
+                    $item.find(
+                        ".catalog-add-to-cart-form " +
+                        ".add-to-cart-button"
+                    );
+
+
+                if ($catalogButton.length) {
+
+                    $catalogButton
+                        .html(
+                        "<span class='k-icon k-i-check'></span> " +
+                        "Already in Cart"
+                        )
+                        .prop(
+                        "disabled",
+                        true
+                        )
+                        .removeClass(
+                        "k-primary"
+                        )
+                        .removeClass(
+                        "cart-updating"
+                        )
+                        .addClass(
+                        "disabled"
+                        );
+
+                }
+
+
+                /*
+                 * =============================================
+                 * LIST BUTTON
+                 * =============================================
+                 */
+
+                var $listButton =
+                    $item.find(
+                        ".list-add-to-cart-form " +
+                        ".add-to-cart-button"
+                    );
+
+
+                if ($listButton.length) {
+
+                    $listButton
+                        .html(
+                        "<span class='k-icon k-i-check'></span> " +
+                        "In Cart"
+                        )
+                        .prop(
+                        "disabled",
+                        true
+                        )
+                        .removeClass(
+                        "k-primary"
+                        )
+                        .removeClass(
+                        "cart-updating"
+                        )
+                        .addClass(
+                        "disabled"
+                        );
+
+                }
+
+            });
+
+        }
+
+
+        /* =====================================================
+           RESTORE ADD TO CART BUTTON
+           ===================================================== */
+
+        function restoreAddToCartButton($form) {
+
+            var $button =
+                $form.find(
+                    ".add-to-cart-button"
+                );
+
+
+            if (!$button.length) {
+                return;
+            }
+
+
+            $button
+                .prop(
+                "disabled",
+                false
+                )
+                .removeClass(
+                "disabled"
+                )
+                .removeClass(
+                "cart-updating"
+                )
+                .addClass(
+                "k-primary"
+                );
+
+
+            if (
+                $form.hasClass(
+                    "catalog-add-to-cart-form"
+                )
+            ) {
+
+                $button.html(
+                    "<span class='k-icon k-i-cart'></span> " +
+                    "Add to Cart"
+                );
+
+            }
+            else {
+
+                $button.html(
+                    "<span class='k-icon k-i-cart'></span> " +
+                    "Add"
+                );
+
+            }
+
+        }
+
+
+        /* =====================================================
+           UPDATE CART COUNT
+           ===================================================== */
+
+        function updateCartCount(cartCount) {
+
+            if (
+                cartCount === undefined ||
+                cartCount === null
+            ) {
+
+                return;
+
+            }
+
+
+            /*
+             * Update the cart badge if it exists.
+             */
+            $("#cartCount").text(
+                cartCount
+            );
+
+        }
+
+
+        /* =====================================================
+           AJAX ADD TO CART
+           ===================================================== */
+
+        $(document).on(
+            "submit",
+            ".add-to-cart-form",
+            function (e) {
+
+                e.preventDefault();
+
+
+                var $form =
+                    $(this);
+
+
+                var itemId =
+                    $form
+                        .find(
+                        "input[name='id']"
+                        )
+                        .val();
+
+
+                if (!itemId) {
+
+                    console.error(
+                        "AddToCart: Item ID is missing."
+                    );
+
+                    return;
+
+                }
+
+
+                /*
+                 * Prevent double submission.
+                 */
+                if (
+                    $form.data(
+                        "submitting"
+                    ) === true
+                ) {
+
+                    return;
+
+                }
+
+
+                $form.data(
+                    "submitting",
+                    true
+                );
+
+
+                var $button =
+                    $form.find(
+                        ".add-to-cart-button"
+                    );
+
+
+                /*
+                 * Show temporary processing state.
+                 */
+                $button
+                    .addClass(
+                    "cart-updating"
+                    )
+                    .prop(
+                    "disabled",
+                    true
+                    );
+
+
+                /*
+                 * Submit the existing MVC form.
+                 *
+                 * This preserves:
+                 * - AntiForgeryToken
+                 * - id
+                 */
+                $.ajax({
+
+                    url:
+                    $form.attr(
+                        "action"
+                    ),
+
+                    type: "POST",
+
+                    data:
+                    $form.serialize(),
+
+                    dataType: "json",
+
+                    cache: false,
+
+
+                    success: function (
+                        response
+                    ) {
+
+                        console.log(
+                            "AddToCart response:",
+                            response
+                        );
+
+
+                        /*
+                         * =====================================
+                         * ITEM SUCCESSFULLY ADDED
+                         * =====================================
+                         */
+
+                        if (
+                            response &&
+                            response.success === true
+                        ) {
+
+                            /*
+                             * Synchronize the same
+                             * item in BOTH views.
+                             */
+                            synchronizeCartState(
+                                itemId
+                            );
+
+
+                            /*
+                             * Update cart count.
+                             */
+                            updateCartCount(
+                                response.cartCount
+                            );
+
+
+                            $form.data(
+                                "submitting",
+                                false
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * =====================================
+                         * ITEM ALREADY IN CART
+                         * =====================================
+                         */
+
+                        if (
+                            response &&
+                            response.alreadyInCart === true
+                        ) {
+
+                            synchronizeCartState(
+                                itemId
+                            );
+
+
+                            updateCartCount(
+                                response.cartCount
+                            );
+
+
+                            $form.data(
+                                "submitting",
+                                false
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * =====================================
+                         * BUSINESS VALIDATION ERROR
+                         * =====================================
+                         */
+
+                        restoreAddToCartButton(
+                            $form
+                        );
+
+
+                        $form.data(
+                            "submitting",
+                            false
+                        );
+
+
+                        alert(
+                            response &&
+                                response.message
+                                ? response.message
+                                : "Unable to add the item to the cart."
+                        );
+
+                    },
+
+
+                    error: function (
+                        xhr,
+                        status,
+                        error
+                    ) {
+
+                        console.error(
+                            "AddToCart AJAX error:",
+                            status,
+                            error
+                        );
+
+
+                        console.error(
+                            "HTTP Status:",
+                            xhr.status
+                        );
+
+
+                        console.error(
+                            "Response:",
+                            xhr.responseText
+                        );
+
+
+                        restoreAddToCartButton(
+                            $form
+                        );
+
+
+                        $form.data(
+                            "submitting",
+                            false
+                        );
+
+
+                        alert(
+                            "Unable to add the item to the cart."
+                        );
+
+                    }
+
+                });
+
+            }
+        );
+
+
+        /* =====================================================
+           INITIAL VIEW
+           ===================================================== */
+
+        setView(
+            currentView
+        );
+
+    });
+
+</script>
+```
