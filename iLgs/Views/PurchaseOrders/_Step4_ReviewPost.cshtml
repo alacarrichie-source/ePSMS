@@ -1,0 +1,512 @@
+﻿@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+
+        <div>
+            <h2>Step 4: Review, Upload Documents &amp; Post</h2>
+
+            <p class="subtitle">
+                Upload the signed Purchase Order and supporting documents,
+                review the Purchase Order groups, and finalize the obligation.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         GROUP REVIEW / DOCUMENT UPLOAD
+         ============================================================ -->
+
+    <div id="step4ReviewGroupsContainer"
+         class="po-groups-container">
+    </div>
+
+
+    <!-- ============================================================
+         FINAL ACTION BAR
+         ============================================================ -->
+
+    <div class="wizard-summary-bar wizard-final-actions">
+
+        <button type="button"
+                class="btn-procurement-secondary"
+                onclick="goToStep3Back()">
+
+            <span class="k-icon k-i-arrow-left"></span>
+            Back to Step 3
+
+        </button>
+
+
+        <div class="wizard-action-group">
+
+            <button type="button"
+                    class="btn-procurement-secondary"
+                    onclick="submitPOs(true)">
+
+                <span class="k-icon k-i-save"></span>
+                Save as Draft
+
+            </button>
+
+
+            <button type="button"
+                    class="btn-procurement-primary btn-post-po"
+                    onclick="submitPOs(false)">
+
+                <span class="k-icon k-i-check"></span>
+                Obligate &amp; Post Purchase Orders
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+
+    function renderStep4Review() {
+
+        var container =
+            $("#step4ReviewGroupsContainer");
+
+
+        container.empty();
+
+
+        poGroups.forEach(function (grp, index) {
+
+            var groupHtml = $(
+
+                '<section class="group-card">' +
+
+                    '<div class="group-header">' +
+
+                        '<div class="group-title">' +
+
+                            '<span class="k-icon k-i-file-add"></span>' +
+
+                            '<span>' +
+                            escapeWizardHtml(grp.groupName) +
+                            ' - Documents &amp; Verification' +
+                            '</span>' +
+
+                        '</div>' +
+
+                        '<span class="group-badge">' +
+                        grp.items.length +
+                        ' Item(s)' +
+                        '</span>' +
+
+                    '</div>' +
+
+
+                    '<div class="document-upload-grid">' +
+
+                        '<div class="document-upload-card">' +
+
+                            '<div class="document-upload-header">' +
+
+                                '<div>' +
+
+                                    '<h3>Signed PO Copy</h3>' +
+
+                                    '<p>' +
+                                    'Required document' +
+                                    '</p>' +
+
+                                '</div>' +
+
+                                '<span class="document-required-badge">' +
+                                'Required' +
+                                '</span>' +
+
+                            '</div>' +
+
+
+                            '<label class="document-upload-label">' +
+                            'Upload Scanned Signed PO Copy (PDF/Image)' +
+                            '</label>' +
+
+
+                            '<div class="upload-zone">' +
+
+                                '<div class="upload-zone-icon">' +
+                                    '<span class="k-icon k-i-upload"></span>' +
+                                '</div>' +
+
+                                '<input name="file"' +
+                                    ' id="uploadPOCopy_' +
+                                    grp.groupId +
+                                    '"' +
+                                    ' type="file" />' +
+
+                                '<p class="upload-zone-help">' +
+                                'Upload the signed and approved PO copy.' +
+                                '</p>' +
+
+                                '<div id="poCopyUploadStatus_' +
+                                    grp.groupId +
+                                    '" class="upload-status">' +
+                                '</div>' +
+
+                            '</div>' +
+
+                        '</div>' +
+
+
+                        '<div class="document-upload-card">' +
+
+                            '<div class="document-upload-header">' +
+
+                                '<div>' +
+
+                                    '<h3>Supporting Documents</h3>' +
+
+                                    '<p>' +
+                                    'Optional / as applicable' +
+                                    '</p>' +
+
+                                '</div>' +
+
+                            '</div>' +
+
+
+                            '<label class="document-upload-label">' +
+                            'BAC Resolution, Quotations, NOA, etc.' +
+                            '</label>' +
+
+
+                            '<div class="upload-zone">' +
+
+                                '<div class="upload-zone-icon">' +
+                                    '<span class="k-icon k-i-attachment"></span>' +
+                                '</div>' +
+
+                                '<input name="file"' +
+                                    ' id="uploadAddDoc_' +
+                                    grp.groupId +
+                                    '"' +
+                                    ' type="file" />' +
+
+                                '<p class="upload-zone-help">' +
+                                'Attach applicable supporting procurement documents.' +
+                                '</p>' +
+
+                                '<div id="addDocUploadStatus_' +
+                                    grp.groupId +
+                                    '" class="upload-status">' +
+                                '</div>' +
+
+                            '</div>' +
+
+                        '</div>' +
+
+                    '</div>' +
+
+                '</section>'
+            );
+
+
+            container.append(groupHtml);
+
+
+            /*
+             * PO Copy upload.
+             */
+            $("#uploadPOCopy_" + grp.groupId)
+                .kendoUpload({
+
+                    async: {
+
+                        saveUrl:
+                            "@Url.Action("UploadPOCopy", "PurchaseOrders")",
+
+                        autoUpload: true
+
+                    },
+
+                    upload: function (e) {
+
+                        e.data = {
+                            groupId: grp.groupId
+                        };
+
+                    },
+
+                    success: function (e) {
+
+                        grp.poCopyDoc =
+                            e.response.document;
+
+
+                        $("#poCopyUploadStatus_" +
+                            grp.groupId)
+                            .html(
+
+                                '<span class="upload-success">' +
+
+                                    '<span class="k-icon k-i-check"></span>' +
+
+                                    'PO Copy uploaded: ' +
+
+                                    escapeWizardHtml(
+                                        e.response.document.FileName
+                                    ) +
+
+                                '</span>'
+                            );
+
+                    }
+
+                });
+
+
+            /*
+             * Supporting document upload.
+             */
+            $("#uploadAddDoc_" + grp.groupId)
+                .kendoUpload({
+
+                    async: {
+
+                        saveUrl:
+                            "@Url.Action("UploadAdditionalDoc", "PurchaseOrders")",
+
+                        autoUpload: true
+
+                    },
+
+                    upload: function (e) {
+
+                        e.data = {
+                            groupId: grp.groupId
+                        };
+
+                    },
+
+                    success: function (e) {
+
+                        grp.additionalDocs.push(
+                            e.response.document
+                        );
+
+
+                        $("#addDocUploadStatus_" +
+                            grp.groupId)
+                            .html(
+
+                                '<span class="upload-success">' +
+
+                                    '<span class="k-icon k-i-check"></span>' +
+
+                                    'Document attached: ' +
+
+                                    escapeWizardHtml(
+                                        e.response.document.FileName
+                                    ) +
+
+                                '</span>'
+                            );
+
+                    }
+
+                });
+
+        });
+    }
+
+
+    function goToStep3Back() {
+
+        goToWizardStep(3);
+    }
+
+
+    function submitPOs(isDraft) {
+
+        /*
+         * Validate supplier before posting.
+         */
+        if (!isDraft) {
+
+            var invalidGroup =
+                poGroups.some(function (grp) {
+
+                    return !grp.supplierId ||
+                        parseInt(grp.supplierId, 10) <= 0;
+
+                });
+
+
+            if (invalidGroup) {
+
+                alert(
+                    "Please select a supplier for every PO Group before posting."
+                );
+
+                goToWizardStep(3);
+
+                return;
+            }
+
+
+            /*
+             * Signed PO copy is required.
+             */
+            var missingPOCopy =
+                poGroups.some(function (grp) {
+
+                    return !grp.poCopyDoc;
+
+                });
+
+
+            if (missingPOCopy) {
+
+                alert(
+                    "Please upload the signed PO Copy for every PO Group before posting."
+                );
+
+                return;
+            }
+        }
+
+
+        var url =
+            isDraft
+                ? "@Url.Action("SaveDraft", "PurchaseOrders")"
+                : "@Url.Action("PostPOs", "PurchaseOrders")";
+
+
+        var payload =
+            poGroups.map(function (grp) {
+
+                return {
+
+                    GroupId:
+                        grp.groupId,
+
+                    GroupName:
+                        grp.groupName,
+
+                    SupplierId:
+                        parseInt(grp.supplierId, 10) || 0,
+
+                    PODate:
+                        grp.poDate,
+
+                    DeliveryPeriodDays:
+                        parseInt(
+                            grp.deliveryPeriodDays,
+                            10
+                        ) || 30,
+
+                    PlaceOfDelivery:
+                        grp.placeOfDelivery,
+
+                    PaymentTerms:
+                        grp.paymentTerms,
+
+                    ModeOfProcurement:
+                        grp.modeOfProcurement,
+
+                    Items:
+                        grp.items.map(function (item, idx) {
+
+                            return {
+
+                                ItemNo:
+                                    idx + 1,
+
+                                Description:
+                                    item.Description,
+
+                                Quantity:
+                                    item.RequestedQty,
+
+                                Unit:
+                                    item.Unit,
+
+                                UnitCost:
+                                    item.UnitCost,
+
+                                GSOCategory:
+                                    item.GSOCategory,
+
+                                TechnicalDescription:
+                                    item.TechnicalDescription,
+
+                                SourcePRItemId:
+                                    item.Id,
+
+                                SetLotItems:
+                                    item.SetLotItems || []
+
+                            };
+
+                        }),
+
+                    POCopyDoc:
+                        grp.poCopyDoc,
+
+                    AdditionalDocs:
+                        grp.additionalDocs
+
+                };
+
+            });
+
+
+        $.ajax({
+
+            url: url,
+
+            type: "POST",
+
+            contentType: "application/json",
+
+            data:
+                JSON.stringify({
+                    poGroups: payload
+                }),
+
+            success: function (response) {
+
+                if (response.success) {
+
+                    alert(response.message);
+
+                    window.location.href =
+                        response.redirectUrl;
+
+                } else {
+
+                    alert(
+                        "Error: " +
+                        response.message
+                    );
+
+                }
+
+            },
+
+            error: function () {
+
+                alert(
+                    "An error occurred during submission."
+                );
+
+            }
+
+        });
+
+    }
+
+</script>

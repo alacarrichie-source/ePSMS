@@ -318,6 +318,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ai\Models\POWizardViewModel.cs" />
+    <Compile Include="Ai\Models\PurchaseOrderDetailViewModel.cs" />
+    <Compile Include="Ai\Models\PurchaseOrderGridModel.cs" />
+    <Compile Include="Ai\Models\PurchaseRequestGridViewModel.cs" />
+    <Compile Include="Ai\Models\SupplierDropdownViewModel.cs" />
     <Compile Include="Controllers\AccountCodeController.cs" />
     <Compile Include="Controllers\AnnexDController.cs" />
     <Compile Include="Controllers\AuditTrailController.cs" />
@@ -356,11 +361,18 @@
     <Compile Include="Controllers\PsCategoryController.cs" />
     <Compile Include="Controllers\ItemCardController.cs" />
     <Compile Include="Controllers\PurchaseOrderController.cs" />
+    <Compile Include="Controllers\PurchaseOrdersController.cs" />
+    <Compile Include="Controllers\PurchaseOrders_Controller.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StockCardController.cs" />
     <Compile Include="Controllers\ParIcsUploadController.cs" />
+    <Compile Include="Core\Services\PORealtimeHub.cs" />
+    <Compile Include="Core\Services\PurchaseOrderService.cs" />
+    <Compile Include="Core\Services\PurchaseRequestService.cs" />
+    <Compile Include="Core\Services\SupplierService.cs" />
+    <Compile Include="Core\ViewModels\PurchaseOrderViewModels.cs" />
     <Compile Include="Exceptions\Service\AlreadyExistsException.cs" />
     <Compile Include="Exceptions\Service\DependencyValidatorException.cs" />
     <Compile Include="Exceptions\Service\DuplicateKeyException.cs" />
@@ -676,6 +688,9 @@
     <Compile Include="Models\RequestItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RequestSubItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\RisItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -968,6 +983,11 @@
     <Compile Include="Services\AIRs_\AirItemExtnService.cs" />
     <Compile Include="Services\AIRs_\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AIRs_\AirUploadService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\DocumentStorageService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\PdfReportService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\PurcahseOrderAiService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\PurchaseRequestAiService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\SupplierAiService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\AuditLog_\AuditLogService.cs" />
     <Compile Include="Services\Card\CardService.cs" />
@@ -4845,6 +4865,26 @@
     <Content Include="Views\PurchaseOrder\_TransmitPoModal.cshtml" />
     <Content Include="Views\PurchaseOrder\_PoHeaderCard.cshtml" />
     <Content Include="Views\PurchaseOrder\_PoAuditTrail.cshtml" />
+    <Content Include="Views\PurchaseOrders_\Index.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_POWizardModal.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_Step1PRSelector.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_Step2AssignItems.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_Step3PODetails.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_Step4ReviewPost.cshtml" />
+    <Content Include="Views\PurchaseOrders_\_POViewerPrintModal.cshtml" />
+    <Content Include="Views\PurchaseOrders\Index.cshtml" />
+    <Content Include="Views\PurchaseOrders\Print.cshtml" />
+    <Content Include="Views\PurchaseOrders\Wizard.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step1_SelectPRs.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step2_AssignGroupsX.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step3_PODetailsX.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step4_ReviewPost.cshtml" />
+    <Content Include="Views\PurchaseOrders\_PODetailsModal.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step2_AssignGroups2.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step2_AssignGroups.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step3_PODetails2.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step3_PODetails3.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step3_PODetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

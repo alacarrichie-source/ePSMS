@@ -1,0 +1,186 @@
+﻿@*Step 1*@
+@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 1: Select Approved Purchase Requests</h2>
+            <p class="subtitle">
+                Select one or more approved Purchase Requests to consolidate
+                and bundle into Purchase Orders.
+            </p>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         PR GRID
+         ============================================================ -->
+
+    <div class="wizard-grid-container">
+
+        @(Html.Kendo().Grid<PurchaseRequestGridViewModel>()
+            .Name("ApprovedPRsGrid")
+
+            .Columns(columns =>
+            {
+                columns.Select()
+                    .Width(50)
+                    .HeaderHtmlAttributes(new { @class = "text-center" })
+                    .HtmlAttributes(new { @class = "text-center" });
+
+                columns.Bound(p => p.PRNumber)
+                    .Title("PR No.")
+                    .Width(140);
+
+                columns.Bound(p => p.PRDate)
+                    .Title("PR Date")
+                    .Format("{0:MMM dd, yyyy}")
+                    .Width(130);
+
+                columns.Bound(p => p.Department)
+                    .Title("Department")
+                    .Width(200);
+
+                columns.Bound(p => p.Purpose)
+                    .Title("Purpose");
+
+                columns.Bound(p => p.ItemsCount)
+                    .Title("Items")
+                    .Width(90)
+                    .HtmlAttributes(new { @class = "text-center" });
+
+                columns.Bound(p => p.TotalAmount)
+                    .Title("Estimated Total")
+                    .Format("{0:C2}")
+                    .Width(160)
+                    .HtmlAttributes(new
+                    {
+                        @class = "text-end font-weight-bold"
+                    });
+            })
+
+            .Pageable()
+
+            .Sortable()
+
+            .Filterable()
+
+            .PersistSelection()
+
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Model(m => m.Id(p => p.Id))
+                .Read(read => read.Action(
+                    "GetApprovedPRs_Read",
+                    "PurchaseOrders"
+                ))
+            )
+
+            .Events(e => e.Change("onPRSelectionChange"))
+        )
+
+    </div>
+
+
+    <!-- ============================================================
+         STEP SUMMARY
+         ============================================================ -->
+
+    <div class="wizard-summary-bar">
+
+        <div class="wizard-summary-info">
+            <span id="selectedPRCount"
+                  class="wizard-summary-label">
+                0 Purchase Request(s) selected
+            </span>
+        </div>
+
+        <div class="wizard-summary-actions">
+
+            <button type="button"
+                    id="btnStep1Next"
+                    class="btn-procurement-primary"
+                    disabled="disabled"
+                    onclick="goToStep2()">
+
+                Proceed to Group Assignment
+
+                <span class="k-icon k-i-arrow-right"></span>
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    function onPRSelectionChange(e) {
+        var grid = $("#ApprovedPRsGrid").data("kendoGrid");
+
+        // Keep the selected IDs in their original type.
+        // PurchaseRequest Id is a Guid, so DO NOT use .map(Number).
+        selectedPRIds = grid.selectedKeyNames();
+
+        $("#selectedPRCount").text(
+            selectedPRIds.length + " Purchase Request(s) selected"
+        );
+
+        $("#btnStep1Next").prop(
+            "disabled",
+            selectedPRIds.length === 0
+        );
+
+        console.log("Selected PR IDs:", selectedPRIds);
+    }
+
+    function goToStep2() {
+        if (!selectedPRIds || selectedPRIds.length === 0) {
+            return;
+        }
+
+        console.log("Posting PR IDs:", selectedPRIds);
+
+        $.ajax({
+            url: "@Url.Action("GetSelectedPRLineItems", "PurchaseOrders")",
+            type: "POST",
+            traditional: true,
+            data: {
+                prIds: selectedPRIds
+            },
+            success: function (response) {
+                if (response.success) {
+                    allocatedItems = response.items;
+
+                    renderStep2Allocations();
+
+                    //var stepper = $("#poStepper").data("kendoStepper");
+                    //stepper.next();
+                    //goToWizardStep(2);
+                    wizardNext();
+                } else {
+                    alert(
+                        response.message ||
+                        "Unable to retrieve Purchase Request items."
+                    );
+                }
+            },
+            error: function (xhr) {
+                console.error(
+                    "GetSelectedPRLineItems failed:",
+                    xhr.responseText
+                );
+
+                alert(
+                    "An error occurred while retrieving the selected Purchase Requests."
+                );
+            }
+        });
+    }
+</script>
+
+

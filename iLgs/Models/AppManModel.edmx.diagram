@@ -57,6 +57,8 @@
         <EntityTypeShape EntityType="AppManModel.OrderItemRequest" Width="1.5" PointX="7.5" PointY="11.5" />
         <AssociationConnector Association="AppManModel.FK_OrderItemRequests_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_OrderItemRequests_RequestItems" />
+        <EntityTypeShape EntityType="AppManModel.RequestSubItem" Width="1.5" PointX="7.5" PointY="15.875" />
+        <AssociationConnector Association="AppManModel.FK_RequestSubItems_RequestItems" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="4.75" />

@@ -1,0 +1,152 @@
+﻿@model iLgs.Ai.Models.PurchaseOrderDetailViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Purchase Order - @Model.PONumber (GAM Form 101-A)</title>
+    <link rel="stylesheet" href="~/Content/Site.css" />
+    <style>
+        @media print {
+            body { -webkit-print-color-adjust: exact; background: #fff !important; }
+            .no-print { display: none !important; }
+            @page { size: portrait; margin: 12mm; }
+        }
+    </style>
+</head>
+<body style="background: #f7f9fb; padding: 24px;">
+    <div class="epsms-orders">
+        <div class="no-print header-bar" style="max-width: 900px; margin: 0 auto 16px auto;">
+            <a href="javascript:window.history.back();" class="k-button k-button-outline">&larr; Back to Order</a>
+            <div class="action-toolbar">
+                <button class="k-button k-button-solid-primary k-rounded-md" onclick="window.print()">
+                    <span class="k-icon k-i-print"></span> Print Form 101-A
+                </button>
+                <a href="@Url.Action("DownloadPdf", "PurchaseOrders", new { id = Model.Id })" class="k-button k-button-outline">
+                    <span class="k-icon k-i-pdf"></span> Export PDF
+                </a>
+            </div>
+        </div>
+
+        <div class="gam-preview-card">
+            <div style="text-align: right; font-style: italic; font-size: 11px;">Appendix 61</div>
+            <div style="text-align: center; margin-bottom: 16px;">
+                <h2 style="font-size: 18px; margin: 0; font-weight: bold;">PURCHASE ORDER</h2>
+                <h3 style="font-size: 14px; margin: 0; font-weight: bold;">LOCAL GOVERNMENT UNIT OF QUEZON CITY</h3>
+                <p style="margin: 0; font-size: 12px;">National Capital Region</p>
+            </div>
+
+            <table class="gam-table">
+                <tbody>
+                    <tr>
+                        <td style="width: 60%;">
+                            <strong>Supplier:</strong> @Model.SupplierName<br />
+                            <strong>Address:</strong> @Model.SupplierAddress<br />
+                            <strong>TIN:</strong> @Model.SupplierTIN
+                        </td>
+                        <td style="width: 40%;">
+                            <strong>P.O. No.:</strong> @Model.PONumber<br />
+                            <strong>Date:</strong> @Model.PODate.Value.ToString("MMMM dd, yyyy")<br />
+                            <strong>Mode of Procurement:</strong> @Model.ModeOfProcurement
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="font-size: 11px; padding: 4px 8px;">
+                            <em>Gentlemen: Please furnish this Office the following articles subject to the terms and conditions contained herein:</em>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Place of Delivery:</strong> @Model.PlaceOfDelivery<br />
+                            <strong>Date of Delivery:</strong> @Model.DeliveryPeriodDays
+                        </td>
+                        <td>
+                            <strong>Delivery Term:</strong> @Model.DeliveryPeriodDays Calendar Days<br />
+                            <strong>Payment Term:</strong> @Model.PaymentTerms
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="gam-table" style="margin-top: -1px;">
+                <thead>
+                    <tr style="text-align: center;">
+                        <th style="width: 10%;">Stock / Prop. No.</th>
+                        <th style="width: 10%;">Unit</th>
+                        <th style="width: 44%;">Description</th>
+                        <th style="width: 8%;">Quantity</th>
+                        <th style="width: 14%;">Unit Cost</th>
+                        <th style="width: 14%;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LineItems)
+                    {
+                        <tr>
+                            <td style="text-align: center;">@item.StockNo</td>
+                            <td style="text-align: center;">@item.Unit</td>
+                            <td>
+                                <strong>@item.Description</strong>
+                                @if (!string.IsNullOrEmpty(item.TechnicalDescription))
+                                {
+                                    <div style="font-size: 11px; color: #555;">@item.TechnicalDescription</div>
+                                }
+                                @if (item.SetLotItems != null && item.SetLotItems.Any())
+                                {
+                                    <div style="margin-top: 4px; font-size: 11px;">
+                                        <em>Includes Bundle Components:</em>
+                                        <ul style="margin: 0; padding-left: 16px;">
+                                            @foreach (var sub in item.SetLotItems)
+                                            {
+                                                <li>@sub.ItemNo - @sub.ItemName (@sub.Unit)</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                            </td>
+                            <td style="text-align: center;">@item.Quantity</td>
+                            <td style="text-align: right;">@item.UnitCost.ToString("N2")</td>
+                            <td style="text-align: right; font-weight: bold;">@item.TotalCost.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="5" style="text-align: right; font-weight: bold;">TOTAL AMOUNT:</td>
+                        <td style="text-align: right; font-weight: bold;">PHP @Model.TotalAmount.ToString("N2")</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="gam-table" style="margin-top: -1px;">
+                <tbody>
+                    <tr>
+                        <td colspan="2" style="font-size: 11px;">
+                            In case of failure to make the full delivery within the time specified above, a penalty of one-tenth (1/10) of one percent for every day of delay shall be imposed on the undelivered item/s.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; padding-top: 24px;">
+                            Conforme:<br /><br /><br />
+                            <div style="text-align: center;">
+                                ________________________________________<br />
+                                <strong>Signature over Printed Name of Supplier</strong><br />
+                                Date: ________________________
+                            </div>
+                        </td>
+                        <td style="width: 50%; padding-top: 24px;">
+                            Very truly yours,<br /><br /><br />
+                            <div style="text-align: center;">
+                                <strong>HON. CITY MAYOR / LOCAL CHIEF EXECUTIVE</strong><br />
+                                Head of Procuring Entity (HoPE)
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

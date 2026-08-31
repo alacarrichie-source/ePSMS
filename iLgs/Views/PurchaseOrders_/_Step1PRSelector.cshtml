@@ -1,0 +1,33 @@
+﻿@* Views/PurchaseOrders/_Step1PRSelector.cshtml *@
+<div class="pr-selection-step">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="font-weight-bold text-dark mb-0">Step 1: Select Approved Purchase Requests (PRs)</h6>
+        <span class="badge badge-info"><span id="selectedPRCount">0</span> PRs Selected</span>
+    </div>
+
+    @(Html.Kendo().Grid<iLgs.Core.ViewModels.PurchaseRequestViewModel>()
+        .Name("gridApprovedPRs")
+        .Columns(cols =>
+        {
+            cols.Select().Width(40);
+            cols.Bound(p => p.PRNumber).Title("PR No.").Width(130);
+            cols.Bound(p => p.PRDate).Title("Date").Format("{0:MMM dd, yyyy}").Width(100);
+            cols.Bound(p => p.Department).Title("End-User Department").Width(160);
+            cols.Bound(p => p.ModeOfProcurement).Title("Procurement Mode").Width(170);
+            cols.Bound(p => p.ItemCount).Title("Items").Width(70).HtmlAttributes(new { @class = "text-right" });
+            cols.Bound(p => p.TotalEstimatedAmount).Title("Estimated Budget (PHP)").Width(140)
+                .Format("{0:N2}").HtmlAttributes(new { @class = "text-right font-weight-bold" });
+        })
+        .Pageable(p => p.PageSizes(new[] { 5, 10 }))
+        .Sortable()
+        .Filterable()
+        .DataSource(ds => ds.Ajax().Read(r => r.Action("GetAvailablePRs", "PurchaseOrders")))
+        .Events(e => e.Change("onPRSelectionChanged"))
+    )
+
+    <div class="d-flex justify-content-end mt-3">
+        <button id="btnProceedToStep2" class="btn btn-primary btn-sm font-weight-bold" disabled onclick="goToStep(2)">
+            Proceed to Item Allocation <i class="k-icon k-i-arrow-right ml-1"></i>
+        </button>
+    </div>
+</div>

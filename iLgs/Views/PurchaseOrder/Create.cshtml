@@ -126,7 +126,7 @@
                                 columns.Bound(p => p.PrNumber)
                                     .Title("PR Number")
                                     .Width(135)
-                                    .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: #002576;'>#= PrNumber #</span>")
+                                    .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: \\#002576;'>#= PrNumber #</span>")
                                     .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
 
                                 columns.Bound(p => p.PrDate)
@@ -176,6 +176,7 @@
                             .Pageable(p => p.Refresh(true).PageSizes(new[] { 5, 10, 20 }))
                             .Sortable()
                             .Filterable()
+                            .NoRecords()
                             .Selectable(selectable => selectable
                                 .Mode(GridSelectionMode.Multiple)
                                 .Type(GridSelectionType.Row)
@@ -246,7 +247,7 @@
                         columns.Bound(p => p.PrNumber)
                             .Title("PR No.")
                             .Width(130)
-                            .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: #002576;'>#= PrNumber #</span>")
+                            .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: \\#002576;'>#= PrNumber #</span>")
                             .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
 
                         columns.Bound(p => p.CatalogCode)
@@ -305,7 +306,7 @@
                         .Ajax()
                         .ServerOperation(false)
                         .Model(m => m.Id(p => p.Id))
-                        .Read(r => r.Action("ReadAssignablePrItems", "PurchaseOrder"))
+                        .Read(r => r.Action("ReadAssignablePrItems", "PurchaseOrder").Data("getSelectedPrIds"))
                     )
                 )
             </div>
@@ -354,13 +355,13 @@
                             .Title("Catalog Code")
                             .Width(130)
                             .EditorTemplateName("CatalogItemEditor")
-                            .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: #002576;'>#= CatalogCode #</span>")
+                            .ClientTemplate("<span style='font-family: monospace; font-weight: 700; color: \\#002576;'>#= CatalogCode #</span>")
                             .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
 
                         columns.Bound(p => p.Description)
                             .Title("Description & Technical Specifications")
                             .Width(280)
-                            .ClientTemplate("<div><strong>#= Description #</strong># if (TechnicalSpecs) { #<div style='font-size: 11px; color: #5f6470;'>#= TechnicalSpecs #</div># } #</div>")
+                            .ClientTemplate("<div><strong>#= Description #</strong># if (TechnicalSpecs) { #<div style='font-size: 11px; color: \\#5f6470;'>#= TechnicalSpecs #</div># } #</div>")
                             .HeaderHtmlAttributes(new { @class = "font-weight-bold" });
 
                         columns.Bound(p => p.Unit)
@@ -393,7 +394,7 @@
                             .HeaderHtmlAttributes(new { @class = "text-right font-weight-bold" })
                             .ClientFooterTemplate(
                                 "<div class='text-right font-monospace font-weight-bold' " +
-                                "style='color:#002576; font-size:14px;'>" +
+                                "style='color:\\#002576; font-size:14px;'>" +
                                 "₱#= kendo.toString(sum, 'n2') #" +
                                 "</div>"
                             );
@@ -456,7 +457,7 @@
                             aggregates.Add(p => p.Quantity).Sum();
                             aggregates.Add(p => p.TotalCost).Sum();
                         })
-                        .Read(read => read.Action("ReadConsolidatedItems", "PurchaseOrder"))
+                        .Read(read => read.Action("ReadConsolidatedItems", "PurchaseOrder").Data("getCurrentPoId"))
                         .Create(create => create.Action("CreateConsolidatedItem", "PurchaseOrder"))
                         .Update(update => update.Action("UpdateConsolidatedItem", "PurchaseOrder"))
                         .Destroy(destroy => destroy.Action("DeleteConsolidatedItem", "PurchaseOrder"))
@@ -829,7 +830,7 @@
                 $('#btnWizardBack').show();
                 $('#btnWizardCancel').hide();
                 $('#btnWizardNext').show();
-                $('#btnWizardNextText').text('Next: Consolidate (Kendo Grid)');
+                $('#btnWizardNextText').text('Next: Consolidate');
                 $('#btnWizardPost').hide();
                 $('#wizardStepSubtitle').text('Step 2 of 5 — Assign PR Items into Target PO Groups');
             } else if (step === 3) {
@@ -857,6 +858,20 @@
         }
 
         function onWizardNextClick() {
+            alert(currentWizardStep);
+            if (currentWizardStep === 1) {
+                if (selectedPrsList.length === 0) {
+                    alert('Please select at least one approved Purchase Request.');
+                    return;
+                }
+
+                var grid = $("#PrItemAssignmentGrid").data("kendoGrid");
+
+                if (grid) {
+                    grid.dataSource.read();
+                }
+            }
+
             goToWizardStep(currentWizardStep + 1);
         }
 
@@ -971,6 +986,28 @@
         function submitFinalPoPost() {
             $("#confirmPostModal").modal("hide");
             $("#poConsolidationWizardForm").submit();
+        }
+
+        function getSelectedPrIds() {
+            return {
+                prIds: selectedPrsList.map(function (pr) {
+                    return pr.Id;
+                }).join(',')
+            };
+        }        
+
+        function getSelectedPrIds() {
+            return {
+                prIds: selectedPrsList.map(function (pr) {
+                    return pr.Id;
+                }).join(',')
+            };
+        }
+
+        function getCurrentPoId() {
+            return {
+                poId: $("#PoId").val()
+            };
         }
     </script>
 }

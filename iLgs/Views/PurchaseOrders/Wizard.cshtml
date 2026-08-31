@@ -1,0 +1,310 @@
+﻿@*Wizard.cshtml*@
+@model iLgs.Ai.Models.POWizardViewModel
+
+@{
+    ViewBag.Title = "Create Purchase Order";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="epsms-procurement po-wizard">
+
+    <!-- ================================================================
+         BREADCRUMBS
+         ================================================================ -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="@Url.Action("Index", "PurchaseOrders")">Purchase Orders</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span>Create Purchase Order</span>
+    </div>
+
+
+    <!-- ================================================================
+         PAGE HEADER
+         ================================================================ -->
+    <div class="wizard-header">
+        <div class="wizard-header-content">
+            <h1 class="page-title">Create Purchase Order</h1>
+
+            <p class="page-subtitle">
+                Create and consolidate Purchase Orders from approved Purchase Requests.
+            </p>
+        </div>
+
+        <div class="wizard-header-actions">
+            <span class="wizard-draft-status">
+                <span class="wizard-draft-icon">
+                    <span class="k-icon k-i-save"></span>
+                </span>
+                Draft Auto-saved
+            </span>
+
+            <a href="@Url.Action("Index", "PurchaseOrders")"
+               class="btn-procurement-secondary">
+                <span class="k-icon k-i-close"></span>
+                Cancel &amp; Exit
+            </a>
+        </div>
+    </div>
+
+
+    <!-- ================================================================
+         STEPPER
+         ================================================================ -->
+    <div class="wizard-stepper-card">
+        <div id="poStepper"></div>
+    </div>
+
+
+    <!-- ================================================================
+         WIZARD CONTENT
+         ================================================================ -->
+    <div class="wizard-content">
+
+        @using (Html.BeginForm(
+                "Create",
+                "PurchaseOrders",
+                FormMethod.Post,
+                new { id = "poWizardForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div id="wizardValidationSummary"
+                 class="validation-summary-errors"
+                 style="display:none;">
+            </div>
+
+            <!-- ========================================================
+                 STEP 1
+                 ======================================================== -->
+            <div id="wizardStepPane1"
+                 class="wizard-pane">
+
+                @Html.Partial("_Step1_SelectPRs")
+
+            </div>
+
+
+            <!-- ========================================================
+                 STEP 2
+                 ======================================================== -->
+            <div id="wizardStepPane2"
+                 class="wizard-pane"
+                 style="display:none;">
+
+                @Html.Partial("_Step2_AssignGroups")
+
+            </div>
+
+
+            <!-- ========================================================
+                 STEP 3
+                 ======================================================== -->
+            <div id="wizardStepPane3"
+                 class="wizard-pane"
+                 style="display:none;">
+
+                @Html.Partial("_Step3_PODetails")
+
+            </div>
+
+
+            <!-- ========================================================
+                 STEP 4
+                 ======================================================== -->
+            <div id="wizardStepPane4"
+                 class="wizard-pane"
+                 style="display:none;">
+
+                @Html.Partial("_Step4_ReviewPost")
+
+            </div>
+        }
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     PO DETAILS MODAL
+     ================================================================ -->
+
+<div id="poDetailsModal"
+     class="modal fade"
+     tabindex="-1"
+     role="dialog"
+     aria-hidden="true">
+</div>
+
+
+@section scripts {
+
+    <script type="text/javascript">
+
+        var currentWizardStep = 1;
+
+        /*
+         * These objects are shared by all wizard partials.
+         */
+        var selectedPRIds = [];
+        var allocatedItems = [];
+        var poGroups = [
+            {
+                groupId: "grp-1",
+                groupName: "PO Group 1",
+                supplierId: 0,
+                poDate: new Date(),
+                deliveryPeriodDays: 30,
+                placeOfDelivery: "General Services Office (GSO) Warehouse",
+                paymentTerms: "30 Calendar Days upon full acceptance",
+                modeOfProcurement: "Public Bidding",
+                items: [],
+                poCopyDoc: null,
+                additionalDocs: []
+            }
+        ];
+
+
+        /* ============================================================
+           WIZARD INITIALIZATION
+           ============================================================ */
+
+        $(document).ready(function () {
+
+            $("#poStepper").kendoStepper({
+                linear: false,
+
+                steps: [
+                    {
+                        label: "Select PRs",
+                        icon: "check"
+                    },
+                    {
+                        label: "Assign Groups",
+                        icon: "group"
+                    },
+                    {
+                        label: "PO Details",
+                        icon: "file-txt"
+                    },
+                    {
+                        label: "Review & Post",
+                        icon: "check-circle"
+                    }
+                ]
+            });
+
+            goToWizardStep(1);
+        });
+
+
+        /* ============================================================
+           WIZARD NAVIGATION
+           ============================================================ */
+
+        function goToWizardStep(step) {
+
+            if (step < 1 || step > 4) {
+                return;
+            }
+
+            /*
+             * Step 1 validation.
+             */
+            if (step > 1 && selectedPRIds.length === 0) {
+
+                showWizardMessage(
+                    "Please select at least one approved Purchase Request before continuing."
+                );
+
+                goToWizardStep(1);
+
+                return;
+            }
+
+
+            currentWizardStep = step;
+
+
+            /*
+             * Hide all panes.
+             */
+            $(".wizard-pane").hide();
+
+
+            /*
+             * Show requested pane.
+             */
+            $("#wizardStepPane" + step)
+                .fadeIn(150);
+
+
+            /*
+             * Update Kendo Stepper.
+             */
+            var stepper = $("#poStepper").data("kendoStepper");
+
+            if (stepper) {
+                stepper.select(step - 1);
+            }
+
+
+            /*
+             * Update page state.
+             */
+            updateWizardState(step);
+        }
+
+
+        function updateWizardState(step) {
+
+            var titles = {
+                1: "Select approved Purchase Requests.",
+                2: "Assign PR items to Purchase Order Groups.",
+                3: "Configure supplier and Purchase Order details.",
+                4: "Review documents and post Purchase Orders."
+            };
+
+            $("#wizardStepDescription").text(
+                titles[step] || ""
+            );
+        }
+
+
+        function wizardNext() {
+
+            if (currentWizardStep < 4) {
+                goToWizardStep(currentWizardStep + 1);
+            }
+        }
+
+
+        function wizardBack() {
+
+            if (currentWizardStep > 1) {
+                goToWizardStep(currentWizardStep - 1);
+            }
+        }
+
+
+        function showWizardMessage(message) {
+
+            alert(message);
+        }
+
+
+        /*
+         * Prevent accidental form submission from Enter.
+         */
+        $("#poWizardForm").on("keydown", function (e) {
+
+            if (e.keyCode === 13 &&
+                e.target.tagName.toLowerCase() !== "textarea") {
+
+                e.preventDefault();
+            }
+        });
+
+    </script>
+}

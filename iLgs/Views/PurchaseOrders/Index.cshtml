@@ -1,0 +1,177 @@
+﻿@*Index.cshtml*@
+@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+@{
+    ViewBag.Title = "Purchase Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var printUrl = Url.Action("Print", "PurchaseOrders");
+    var pdfUrl = Url.Action("DownloadPdf", "PurchaseOrders");
+}
+
+<div class="epsms-procurement po-wizard">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
+        <span>Purchase Orders</span>
+    </div>
+
+    <!-- Header Bar -->
+    <div class="header-bar">
+        <div>
+            <h1>Purchase Orders</h1>
+            <p class="subtitle">Local Government Unit procurement obligations, PO status tracking, and GAM Form 101-A generation.</p>
+        </div>
+        <div class="action-toolbar">
+            <a href="@Url.Action("Wizard", "PurchaseOrders")" class="k-button k-button-solid-primary k-rounded-md">
+                <span class="k-icon k-i-plus"></span> Generate New PO
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="filter-panel">
+        <div class="filter-row">
+            <div class="search">
+                <label for="searchPO">Search Purchase Orders</label>
+                <input id="searchPO" type="text" class="form-control-custom" placeholder="Search by PO Number, Supplier name, PR reference..." onkeyup="onSearchFilter(this.value)" />
+            </div>
+            <div>
+                <label for="statusFilter">Status Filter</label>
+                <select id="statusFilter" class="form-control-custom" onchange="onStatusFilter(this.value)">
+                    <option value="">All Statuses</option>
+                    <option value="Posted">Posted</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Card: Kendo Grid -->
+    <div class="data-card">
+        @(Html.Kendo().Grid<PurchaseOrderGridViewModel>()
+            .Name("PurchaseOrdersGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.PONumber).Title("PO No.").Width(150).ClientTemplate(
+                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick='openPODetails(#=Id#)'>#=PONumber#</a>"
+                );
+                columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(130);
+                columns.Bound(p => p.SupplierName).Title("Supplier").Width(220);
+                columns.Bound(p => p.SourcePRs).Title("Source PR(s)").Width(160);
+                columns.Bound(p => p.ItemCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(p => p.TotalAmount).Title("Total Amount").Format("{0:C2}").Width(160).HtmlAttributes(new { @class = "text-right font-weight-bold" });
+                columns.Bound(p => p.Status).Title("Status").Width(130).ClientTemplate(
+                    "# if (Status == 'Posted') { #" +
+                        "<span class='status-badge status-posted'>Posted</span>" +
+                    "# } else if (Status == 'Draft') { #" +
+                        "<span class='status-badge status-draft'>Draft</span>" +
+                    "# } else if (Status == 'Cancelled') { #" +
+                        "<span class='status-badge status-cancelled'>Cancelled</span>" +
+                    "# } else { #" +
+                        "<span class='status-badge'>#=Status#</span>" +
+                    "# } #"
+                );
+                // ACTIONS
+                columns.Bound(p => p.Id)
+                    .Title("Actions")
+                    .Width(140)
+                    .Sortable(false)
+                    .Filterable(false)
+                    .ClientTemplate(
+                        "<div class='d-flex gap-1 justify-content-end'>" +
+
+                            // View
+                            "<button type='button' " +
+                                "class='k-button k-button-sm k-button-flat-primary' " +
+                                "title='View Details' " +
+                                "onclick='openPODetails(#=Id#)'>" +
+                                "<span class='k-icon k-i-eye'></span>" +
+                            "</button>" +
+
+                            // Print
+                            "<a href='" + printUrl + "/#=Id#' " +
+                                "target='_blank' " +
+                                "class='k-button k-button-sm k-button-flat-secondary' " +
+                                "title='Print Form 101-A'>" +
+                                "<span class='k-icon k-i-print'></span>" +
+                            "</a>" +
+
+                            // PDF
+                            "<a href='" + pdfUrl + "/#=Id#' " +
+                                "class='k-button k-button-sm k-button-flat-secondary' " +
+                                "title='Download PDF'>" +
+                                "<span class='k-icon k-i-pdf'></span>" +
+                            "</a>" +
+
+                        "</div>"
+                    );
+            })
+            .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }).Refresh(true))
+            .Sortable()
+            .Filterable()
+            .Groupable()
+            .Resizable(r => r.Columns(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Read(read => read.Action("PurchaseOrders_Read", "PurchaseOrders"))
+                .Sort(s => s.Add(p => p.PODate).Descending())
+            )
+        )
+    </div>
+</div>
+
+
+
+<!-- PO Details Modal Window -->
+<div id="poDetailsWindow"></div>
+
+<script>
+    function openPODetails(poId) {
+        var wnd = $("#poDetailsWindow").data("kendoWindow");
+        if (!wnd) {
+            $("#poDetailsWindow").kendoWindow({
+                width: "920px",
+                title: "Purchase Order Details (GAM 101-A)",
+                visible: false,
+                modal: true,
+                actions: ["Maximize", "Close"]
+            });
+            wnd = $("#poDetailsWindow").data("kendoWindow");
+        }
+        wnd.refresh({
+            url: "@Url.Action("GetPODetailsModal", "PurchaseOrders")",
+            data: { id: poId }
+        });
+        wnd.center().open();
+    }
+
+    function onSearchFilter(query) {
+        var grid = $("#PurchaseOrdersGrid").data("kendoGrid");
+        if (query) {
+            grid.dataSource.filter({
+                logic: "or",
+                filters: [
+                    { field: "PONumber", operator: "contains", value: query },
+                    { field: "SupplierName", operator: "contains", value: query },
+                    { field: "SourcePRs", operator: "contains", value: query }
+                ]
+            });
+        } else {
+            grid.dataSource.filter({});
+        }
+    }
+
+    function onStatusFilter(status) {
+        var grid = $("#PurchaseOrdersGrid").data("kendoGrid");
+        if (status) {
+            grid.dataSource.filter({ field: "Status", operator: "eq", value: status });
+        } else {
+            grid.dataSource.filter({});
+        }
+    }
+</script>

@@ -1,0 +1,521 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+
+        <div>
+            <h2>Step 3: Configure Purchase Order Details</h2>
+
+            <p class="subtitle">
+                Select the PhilGEPS registered awardee, configure delivery
+                and payment terms, and review the assigned line items.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         PO GROUPS
+         ============================================================ -->
+
+    <div id="poGroupsTabStripContainer"
+         class="po-groups-container">
+    </div>
+
+
+    <!-- ============================================================
+         NAVIGATION
+         ============================================================ -->
+
+    <div class="wizard-summary-bar">
+
+        <button type="button"
+                class="btn-procurement-secondary"
+                onclick="goToStep2Back()">
+
+            <span class="k-icon k-i-arrow-left"></span>
+            Back to Step 2
+
+        </button>
+
+
+        <button type="button"
+                class="btn-procurement-primary"
+                onclick="goToStep4()">
+
+            Proceed to Document Upload &amp; Review
+
+            <span class="k-icon k-i-arrow-right"></span>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+
+    function escapeWizardHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function prepareStep3Data() {
+
+        poGroups.forEach(function (grp) {
+
+            grp.items =
+                allocatedItems.filter(function (item) {
+
+                    return item.TargetGroupId ===
+                        grp.groupId;
+
+                });
+
+        });
+
+
+        /*
+         * Remove empty groups except Group 1 if desired.
+         */
+        poGroups =
+            poGroups.filter(function (grp) {
+
+                return grp.items.length > 0;
+
+            });
+
+
+        renderStep3TabStrip();
+    }
+
+
+    function renderStep3TabStrip() {
+
+        var container =
+            $("#poGroupsTabStripContainer");
+
+
+        container.empty();
+
+
+        poGroups.forEach(function (grp, index) {
+
+            var groupCard = $(
+
+                '<section class="group-card">' +
+
+                    '<div class="group-header">' +
+
+                        '<div class="group-title">' +
+
+                            '<span class="k-icon k-i-folder"></span>' +
+
+                            '<span>' +
+                            escapeWizardHtml(grp.groupName) +
+                            '</span>' +
+
+                        '</div>' +
+
+                        '<span class="group-badge">' +
+                        grp.items.length +
+                        ' Line Item(s)' +
+                        '</span>' +
+
+                    '</div>' +
+
+
+                    '<div class="form-grid">' +
+
+                        '<div class="form-field form-field-wide">' +
+
+                            '<label for="supplierDropdown_' +
+                            grp.groupId +
+                            '">' +
+
+                            'Supplier (PhilGEPS Registered Awardee)' +
+
+                            ' <span class="required-marker">*</span>' +
+
+                            '</label>' +
+
+                            '<input id="supplierDropdown_' +
+                            grp.groupId +
+                            '" />' +
+
+                        '</div>' +
+
+
+                        '<div class="form-field">' +
+
+                            '<label>Delivery Period (Days) <span class="required-marker">*</span></label>' +
+
+                            '<input type="number"' +
+                            ' class="form-control-custom"' +
+                            ' min="1"' +
+                            ' value="' +
+                            grp.deliveryPeriodDays +
+                            '"' +
+                            ' onchange="poGroups[' +
+                            index +
+                            '].deliveryPeriodDays = this.value" />' +
+
+                        '</div>' +
+
+                    '</div>' +
+
+
+                    '<div class="form-grid form-grid-spaced">' +
+
+                        '<div class="form-field">' +
+
+                            '<label>Payment Terms</label>' +
+
+                            '<input type="text"' +
+                            ' class="form-control-custom"' +
+                            ' value="' +
+                            escapeAttribute(grp.paymentTerms) +
+                            '"' +
+                            ' onchange="poGroups[' +
+                            index +
+                            '].paymentTerms = this.value" />' +
+
+                        '</div>' +
+
+
+                        '<div class="form-field">' +
+
+                            '<label>Place of Delivery</label>' +
+
+                            '<input type="text"' +
+                            ' class="form-control-custom"' +
+                            ' value="' +
+                            escapeAttribute(grp.placeOfDelivery) +
+                            '"' +
+                            ' onchange="poGroups[' +
+                            index +
+                            '].placeOfDelivery = this.value" />' +
+
+                        '</div>' +
+
+
+                        '<div class="form-field">' +
+
+                            '<label>Mode of Procurement</label>' +
+
+                            '<input type="text"' +
+                            ' class="form-control-custom"' +
+                            ' value="' +
+                            escapeAttribute(grp.modeOfProcurement) +
+                            '"' +
+                            ' onchange="poGroups[' +
+                            index +
+                            '].modeOfProcurement = this.value" />' +
+
+                        '</div>' +
+
+                    '</div>' +
+
+
+                    '<div class="group-items-section">' +
+
+                        '<div class="section-heading">' +
+
+                            '<h3>Assigned Line Items</h3>' +
+
+                            '<p>' +
+                            'Review quantities, costs, specifications, and set/lot components.' +
+                            '</p>' +
+
+                        '</div>' +
+
+                        '<div id="groupItemsList_' +
+                        grp.groupId +
+                        '" class="group-items-container"></div>' +
+
+                    '</div>' +
+
+                '</section>'
+            );
+
+
+            container.append(groupCard);
+
+
+            /*
+             * Supplier DropDownList
+             */
+            $("#supplierDropdown_" + grp.groupId)
+                .kendoDropDownList({
+
+                    dataTextField: "Name",
+
+                    dataValueField: "Id",
+
+                    optionLabel:
+                        "-- Select PhilGEPS Supplier --",
+
+                    dataSource: {
+
+                        transport: {
+
+                            read: {
+
+                                url:
+                                    "@Url.Action("GetSuppliersDropdown", "PurchaseOrders")",
+
+                                dataType: "json"
+                            }
+                        }
+                    },
+
+                    change: function () {
+
+                        grp.supplierId =
+                            this.value();
+
+                    }
+
+                });
+
+
+            /*
+             * Render items.
+             */
+            renderGroupItems(grp);
+
+        });
+    }
+
+
+    function renderGroupItems(grp) {
+
+        var html =
+
+            '<div class="table-responsive">' +
+
+            '<table class="items-table">' +
+
+            '<thead>' +
+            '<tr>' +
+
+            '<th class="col-number text-center">#</th>' +
+
+            '<th>Item Description &amp; Specifications</th>' +
+
+            '<th class="col-qty text-center">Qty / Unit</th>' +
+
+            '<th class="col-cost text-end">Unit Cost</th>' +
+
+            '<th class="col-total text-end">Subtotal</th>' +
+
+            '</tr>' +
+
+            '</thead>' +
+
+            '<tbody>';
+
+
+        var total = 0;
+
+
+        grp.items.forEach(function (item, index) {
+
+            var qty =
+                Number(item.RequestedQty) || 0;
+
+            var unitCost =
+                Number(item.UnitCost) || 0;
+
+            var subtotal =
+                qty * unitCost;
+
+            total += subtotal;
+
+
+            html +=
+
+                '<tr>' +
+
+                '<td class="text-center">' +
+                (index + 1) +
+                '</td>' +
+
+                '<td>' +
+
+                '<div class="item-description">' +
+                escapeWizardHtml(item.Description) +
+                '</div>' +
+
+                (
+                    item.TechnicalDescription
+                        ?
+                        '<div class="item-technical-description">' +
+                        escapeWizardHtml(
+                            item.TechnicalDescription
+                        ) +
+                        '</div>'
+                        :
+                        ''
+                );
+
+
+            if (
+                item.SetLotItems &&
+                item.SetLotItems.length > 0
+            ) {
+
+                html +=
+
+                    '<div class="sub-items-box">' +
+
+                        '<div class="sub-items-title">' +
+
+                            '<span class="k-icon k-i-list-bulleted"></span>' +
+
+                            'Set/Lot Sub-Item Components' +
+
+                        '</div>' +
+
+                        '<ul class="sub-items-list">';
+
+
+                item.SetLotItems.forEach(function (sub) {
+
+                    html +=
+
+                        '<li>' +
+
+                            '<span>' +
+
+                                escapeWizardHtml(
+                                    sub.ItemNo
+                                ) +
+
+                                ' - ' +
+
+                                escapeWizardHtml(
+                                    sub.ItemName
+                                ) +
+
+                                ' (' +
+
+                                escapeWizardHtml(
+                                    sub.Unit
+                                ) +
+
+                                ')' +
+
+                            '</span>' +
+
+                            '<strong>' +
+
+                                'PHP ' +
+
+                                Number(
+                                    sub.EstimatedCost
+                                ).toFixed(2) +
+
+                            '</strong>' +
+
+                        '</li>';
+
+                });
+
+
+                html +=
+                        '</ul>' +
+                    '</div>';
+            }
+
+
+            html +=
+
+                '</td>' +
+
+                '<td class="text-center">' +
+                qty +
+                ' ' +
+                escapeWizardHtml(item.Unit) +
+                '</td>' +
+
+                '<td class="text-end">' +
+                'PHP ' +
+                unitCost.toFixed(2) +
+                '</td>' +
+
+                '<td class="text-end font-weight-bold">' +
+                'PHP ' +
+                subtotal.toFixed(2) +
+                '</td>' +
+
+                '</tr>';
+
+        });
+
+
+        html +=
+
+            '<tr class="table-total-row">' +
+
+                '<td colspan="4" class="text-end font-weight-bold">' +
+                    'GROUP TOTAL AMOUNT:' +
+                '</td>' +
+
+                '<td class="text-end total-amount">' +
+                    '<strong>PHP ' +
+                    total.toFixed(2) +
+                    '</strong>' +
+                '</td>' +
+
+            '</tr>' +
+
+            '</tbody>' +
+
+            '</table>' +
+
+            '</div>';
+
+
+        $("#groupItemsList_" + grp.groupId)
+            .html(html);
+    }
+
+
+    function goToStep2Back() {
+
+        goToWizardStep(2);
+    }
+
+
+    function goToStep4() {
+
+        renderStep4Review();
+
+        goToWizardStep(4);
+    }
+
+
+    function escapeAttribute(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return $("<div>")
+            .text(value)
+            .html()
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+</script>

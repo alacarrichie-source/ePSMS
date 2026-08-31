@@ -1,7 +1,10 @@
 ﻿using iLgs.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace iLgs.Services
 {
@@ -9,9 +12,11 @@ namespace iLgs.Services
     {
         IEnumerable<PurchaseRequestSelectionViewModel> GetAvailableApprovedPrs();
         ConsolidatePrWizardViewModel PrepareConsolidationWizard(string commaDelimitedPrIds);
+        PurchaseRequestSelectionViewModel GetPurchaseRequestById(string prId);
         string ExecuteConsolidationAndCreatePo(ConsolidatePrWizardViewModel wizard, string userName);
+        IEnumerable<PrItemAssignmentViewModel> GetAssignableItemsForPrs(string commaDelimitedPrIds);
     }
-
+    
     public class ProcurementConsolidationService : IProcurementConsolidationService
     {
         private readonly AppManEntities _context;
@@ -142,6 +147,64 @@ namespace iLgs.Services
             _context.SaveChanges();
 
             return newPo.Id.ToString();
+        }
+
+        public PurchaseRequestSelectionViewModel GetPurchaseRequestById(string prId)
+        {
+            var r = _context.Requests
+                .Include(x => x.RequestItems)
+                .FirstOrDefault(x => x.Id == Guid.Parse(prId) || x.PrNo == prId);
+
+            if (r == null) return null;
+
+            return new PurchaseRequestSelectionViewModel
+            {
+                Id = r.Id.ToString(),
+                PrNumber = r.PrNo,
+                PrDate = r.PrDate,
+                Department = r.Department,
+                Purpose = r.Purpose,
+                ItemCount = r.RequestItems.Count,
+                TotalAmount = r.RequestItems.Sum(s => s.TotalCost) ?? 0,
+                IsSelected = false
+            };
+        }
+
+        public IEnumerable<PrItemAssignmentViewModel> GetAssignableItemsForPrs(string commaDelimitedPrIds)
+        {
+            var selectedIds = (commaDelimitedPrIds ?? "")
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToList();
+
+            var query = _context.RequestItems
+                .Include(i => i.Request)
+                .AsQueryable();
+
+            if (selectedIds.Any())
+            {
+                query = query.Where(i => selectedIds.Contains(i.PrId.ToString()) || selectedIds.Contains(i.Request.PrNo));
+            }
+
+            return query
+                .OrderBy(i => i.Request.PrNo)
+                .ThenBy(i => i.PpmpCode)
+                .ThenBy(i => i.Description)
+                .Select(i => new PrItemAssignmentViewModel
+                {
+                    Id = i.Id.ToString(),
+                    PrNumber = i.Request.PrNo,
+                    CatalogCode = i.PpmpCode,
+                    Description = i.Description,
+                    Unit = i.Unit,
+                    RequestedQty = (int)(i.Qty ?? 0),
+                    AssignedQty = (int)(i.Qty ?? 0),
+                    RemainingQty = 0,
+                    PoGroup = "PO Group 1 (Main)",
+                    UnitCost = i.UnitCost ?? 0,
+                    TechnicalSpecs = "Standard specifications per approved PR allocation."
+                })
+                .ToList();
         }
     }
 }

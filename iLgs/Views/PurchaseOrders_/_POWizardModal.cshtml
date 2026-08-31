@@ -1,0 +1,38 @@
+﻿@* Views/PurchaseOrders/_POWizardModal.cshtml *@
+<div id="poWizardModal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white py-2 px-3">
+                <h5 class="modal-title font-weight-bold text-sm">
+                    <i class="k-icon k-i-gear mr-1"></i> Multi-PR Purchase Order Consolidation Wizard
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body p-3 bg-light">
+                <!-- Stepper Progress Header -->
+                <div class="wizard-stepper mb-3 p-2 bg-white rounded border">
+                    <div class="d-flex justify-content-between text-xs font-weight-bold">
+                        <span id="stepTab1" class="step-badge active"><span class="step-num">1</span> Select Approved PRs</span>
+                        <span id="stepTab2" class="step-badge"><span class="step-num">2</span> Allocate Items & Suppliers</span>
+                        <span id="stepTab3" class="step-badge"><span class="step-num">3</span> Configure PO Details</span>
+                        <span id="stepTab4" class="step-badge"><span class="step-num">4</span> Review & Finalize</span>
+                    </div>
+                </div>
+
+                <!-- Wizard Steps Container -->
+                <div id="stepContainer1" class="wizard-step-pane">
+                    @Html.Partial("_Step1PRSelector")
+                </div>
+                <div id="stepContainer2" class="wizard-step-pane d-none">
+                    @Html.Partial("_Step2AssignItems")
+                </div>
+                <div id="stepContainer3" class="wizard-step-pane d-none">
+                    @Html.Partial("_Step3PODetails")
+                </div>
+                <div id="stepContainer4" class="wizard-step-pane d-none">
+                    @Html.Partial("_Step4ReviewPost")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

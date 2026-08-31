@@ -1,0 +1,88 @@
+﻿@* Views/PurchaseOrders/Index.cshtml *@
+@model IEnumerable<iLgs.Core.ViewModels.PurchaseOrderViewModel>
+@{
+    ViewBag.Title = "Purchase Order Management - iLgs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="ilgs-container">
+    <!-- Action Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-0">Purchase Orders</h4>
+            <small class="text-muted">High-density grid with live SignalR broadcast sync and COA-compliant PO creation</small>
+        </div>
+        <div>
+            <button id="btnCreatePO" class="btn btn-primary btn-sm font-weight-bold" onclick="onLaunchPOWizard()">
+                <i class="k-icon k-i-plus mr-1"></i> Create Purchase Order
+            </button>
+            <button id="btnCodeInspector" class="btn btn-outline-secondary btn-sm ml-1" onclick="openCodeInspector()">
+                <i class="k-icon k-i-code mr-1"></i> Architecture
+            </button>
+        </div>
+    </div>
+
+    <!-- Kendo UI MVC Grid -->
+    @(Html.Kendo().Grid<iLgs.Core.ViewModels.PurchaseOrderViewModel>()
+        .Name("gridPurchaseOrders")
+        .Columns(columns =>
+        {
+            columns.Select().Width(40).HeaderHtmlAttributes(new { @class = "text-center" });
+            columns.Bound(p => p.PONumber).Title("PO No.").Width(130)
+                .ClientTemplate("<strong>#= PONumber #</strong> #if (IsLiveUpdated) {# <span class='badge badge-success'>LIVE</span> #}#");
+            columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(110);
+            columns.Bound(p => p.SupplierName).Title("Supplier").Width(200);
+            columns.Bound(p => p.SourcePRs).Title("Source PRs").Width(140)
+                .ClientTemplate("<span class='text-primary font-weight-bold font-monospace'>#= SourcePRs.join(', ') #</span>");
+            columns.Bound(p => p.ItemCount).Title("Items").Width(70).HtmlAttributes(new { @class = "text-right" });
+            columns.Bound(p => p.TotalAmount).Title("Total Amount (PHP)").Width(140)
+                .Format("{0:N2}").HtmlAttributes(new { @class = "text-right font-weight-bold text-dark" });
+            columns.Bound(p => p.Status).Title("Status").Width(100)
+                .ClientTemplate("#= renderStatusBadge(Status) #");
+            columns.Bound(p => p.CreatedBy).Title("Created By").Width(120);
+            columns.Command(command =>
+            {
+                command.Custom("View").Text("").IconClass("k-icon k-i-eye").Click("onViewPO");
+                command.Custom("Print").Text("").IconClass("k-icon k-i-print").Click("onPrintPO");
+            }).Title("Actions").Width(100).HtmlAttributes(new { @class = "text-center" });
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Search();
+            toolbar.Excel();
+            toolbar.Pdf();
+        })
+        .Pageable(p => p.Refresh(true).PageSizes(new[] { 10, 20, 50 }))
+        .Sortable()
+        .Filterable()
+        .Scrollable()
+        .ClientDetailTemplateId("templatePODetails")
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(10)
+            .Read(read => read.Action("ReadPurchaseOrders", "PurchaseOrders"))
+            .Model(model => model.Id(p => p.Id))
+        )
+    )
+</div>
+
+<!-- Hierarchy Line Items Subgrid Template -->
+<script id="templatePODetails" type="text/x-kendo-template">
+    @(Html.Kendo().Grid<iLgs.Core.ViewModels.PurchaseOrderItemViewModel>()
+        .Name("gridItems_#=Id#")
+        .Columns(cols =>
+        {
+            cols.Bound(i => i.ItemCode).Title("Stock No.").Width(90);
+            cols.Bound(i => i.Description).Title("Description");
+            cols.Bound(i => i.Unit).Title("Unit").Width(70);
+            cols.Bound(i => i.Quantity).Title("Qty").Width(70).HtmlAttributes(new { @class = "text-right" });
+            cols.Bound(i => i.UnitCost).Title("Unit Cost").Format("{0:N2}").Width(110).HtmlAttributes(new { @class = "text-right" });
+            cols.Bound(i => i.TotalCost).Title("Total").Format("{0:N2}").Width(120).HtmlAttributes(new { @class = "text-right font-weight-bold" });
+        })
+        .DataSource(ds => ds.Ajax().Read(r => r.Action("GetPOItems", "PurchaseOrders", new { poId = "#=Id#" })))
+        .ToClientTemplate()
+    )
+</script>
+
+@Html.Partial("_POWizardModal")
+@Html.Partial("_POViewerPrintModal")

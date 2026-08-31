@@ -1,0 +1,247 @@
+﻿@*Step 3*@
+@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="po-wizard">
+    <div class="wizard-card">
+
+        <div class="wizard-card-header">
+            <div>
+                <h2 class="text-navy">Step 3: Configure Purchase Order Details</h2>
+                <p class="subtitle text-slate">
+                    Select the PhilGEPS registered awardee, configure delivery
+                    and payment terms, and review the assigned line items.
+                </p>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             PO GROUPS
+             ============================================================ -->
+        <div id="poGroupsTabStripContainer" class="po-groups-container">
+        </div>
+
+        <!-- ============================================================
+             NAVIGATION
+             ============================================================ -->
+        <div class="wizard-summary-bar d-flex justify-content-between align-items-center mt-4">
+            <button type="button"
+                    class="btn-procurement-secondary"
+                    onclick="goToStep2Back()">
+                <span class="k-icon k-i-arrow-chevron-left"></span>
+                Back to Step 2
+            </button>
+
+            <button type="button"
+                    class="btn-procurement-primary"
+                    onclick="goToStep4()">
+                Proceed to Document Upload &amp; Review
+                <span class="k-icon k-i-arrow-chevron-right"></span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function escapeWizardHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function prepareStep3Data() {
+        poGroups.forEach(function (grp) {
+            grp.items = allocatedItems.filter(function (item) {
+                return item.TargetGroupId === grp.groupId;
+            });
+        });
+
+        /* Filter out empty groups */
+        poGroups = poGroups.filter(function (grp) {
+            return grp.items && grp.items.length > 0;
+        });
+
+        renderStep3TabStrip();
+    }
+
+    function renderStep3TabStrip() {
+        var container = $("#poGroupsTabStripContainer");
+        container.empty();
+
+        poGroups.forEach(function (grp, index) {
+            var deliveryDays = grp.deliveryPeriodDays !== undefined ? grp.deliveryPeriodDays : '';
+            var paymentTerms = grp.paymentTerms !== undefined ? grp.paymentTerms : '';
+            var placeOfDelivery = grp.placeOfDelivery !== undefined ? grp.placeOfDelivery : '';
+            var modeOfProcurement = grp.modeOfProcurement !== undefined ? grp.modeOfProcurement : '';
+
+            var groupCard = $(
+                '<section class="group-card mb-4">' +
+                    '<div class="group-header">' +
+                        '<div class="group-title text-navy">' +
+                            '<span class="k-icon k-i-folder me-2"></span>' +
+                            '<span>' + escapeWizardHtml(grp.groupName) + '</span>' +
+                        '</div>' +
+                        '<span class="group-badge">' +
+                            grp.items.length + ' Line Item(s)' +
+                        '</span>' +
+                    '</div>' +
+
+                    '<div class="form-grid row g-3 mb-3">' +
+                        '<div class="col-md-8 form-field">' +
+                            '<label class="form-label font-weight-bold" for="supplierDropdown_' + grp.groupId + '">' +
+                                'Supplier (PhilGEPS Registered Awardee) <span class="text-danger">*</span>' +
+                            '</label>' +
+                            '<div>' +
+                                '<input id="supplierDropdown_' + grp.groupId + '" style="width: 100%;" />' +
+                            '</div>' +
+                        '</div>' +
+
+                        '<div class="col-md-4 form-field">' +
+                            '<label class="form-label font-weight-bold">Delivery Period (Days) <span class="text-danger">*</span></label>' +
+                            '<input type="number" class="form-control form-control-custom" min="1" value="' + deliveryDays + '" ' +
+                            'onchange="poGroups[' + index + '].deliveryPeriodDays = this.value" />' +
+                        '</div>' +
+                    '</div>' +
+
+                    '<div class="form-grid row g-3 mb-4">' +
+                        '<div class="col-md-4 form-field">' +
+                            '<label class="form-label">Payment Terms</label>' +
+                            '<input type="text" class="form-control form-control-custom" value="' + escapeWizardHtml(paymentTerms) + '" ' +
+                            'onchange="poGroups[' + index + '].paymentTerms = this.value" />' +
+                        '</div>' +
+
+                        '<div class="col-md-4 form-field">' +
+                            '<label class="form-label">Place of Delivery</label>' +
+                            '<input type="text" class="form-control form-control-custom" value="' + escapeWizardHtml(placeOfDelivery) + '" ' +
+                            'onchange="poGroups[' + index + '].placeOfDelivery = this.value" />' +
+                        '</div>' +
+
+                        '<div class="col-md-4 form-field">' +
+                            '<label class="form-label">Mode of Procurement</label>' +
+                            '<input type="text" class="form-control form-control-custom" value="' + escapeWizardHtml(modeOfProcurement) + '" ' +
+                            'onchange="poGroups[' + index + '].modeOfProcurement = this.value" />' +
+                        '</div>' +
+                    '</div>' +
+
+                    '<div class="group-items-section">' +
+                        '<div class="section-heading mb-2">' +
+                            '<h3 class="text-navy h5 mb-1">Assigned Line Items</h3>' +
+                            '<p class="text-slate small mb-3">Review quantities, costs, specifications, and set/lot components.</p>' +
+                        '</div>' +
+                        '<div id="groupItemsList_' + grp.groupId + '" class="group-items-container"></div>' +
+                    '</div>' +
+                '</section>'
+            );
+
+            container.append(groupCard);
+
+            /* Initialize Kendo DropDownList */
+            $("#supplierDropdown_" + grp.groupId).kendoDropDownList({
+                dataTextField: "Name",
+                dataValueField: "Id",
+                optionLabel: "-- Select PhilGEPS Supplier --",
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "@Url.Action("GetSuppliersDropdown", "PurchaseOrders")",
+                            dataType: "json"
+                        }
+                    }
+                },
+                change: function () {
+                    grp.supplierId = this.value();
+                }
+            });
+
+            renderGroupItems(grp);
+        });
+    }
+
+    function renderGroupItems(grp) {
+        var html =
+            '<div class="table-responsive">' +
+            '<table class="table table-bordered items-table mb-0">' +
+            '<thead class="bg-light">' +
+            '<tr>' +
+            '<th class="text-center" style="width: 50px;">#</th>' +
+            '<th>Item Description &amp; Specifications</th>' +
+            '<th class="text-center" style="width: 120px;">Qty / Unit</th>' +
+            '<th class="text-end" style="width: 140px;">Unit Cost</th>' +
+            '<th class="text-end" style="width: 140px;">Subtotal</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+        var total = 0;
+
+        grp.items.forEach(function (item, index) {
+            var qty = Number(item.RequestedQty) || 0;
+            var unitCost = Number(item.UnitCost) || 0;
+            var subtotal = qty * unitCost;
+            total += subtotal;
+
+            html +=
+                '<tr>' +
+                '<td class="text-center">' + (index + 1) + '</td>' +
+                '<td>' +
+                    '<div class="item-description fw-bold text-navy">' + escapeWizardHtml(item.Description) + '</div>' +
+                    (item.TechnicalDescription ? '<div class="item-technical-description text-slate small mt-1">' + escapeWizardHtml(item.TechnicalDescription) + '</div>' : '');
+
+            if (item.SetLotItems && item.SetLotItems.length > 0) {
+                html +=
+                    '<div class="sub-items-box mt-2">' +
+                        '<div class="sub-items-title fw-bold text-slate mb-1">' +
+                            '<span class="k-icon k-i-list-unordered me-1"></span>Set/Lot Sub-Item Components' +
+                        '</div>' +
+                        '<ul class="sub-items-list list-unstyled mb-0 ms-2 small">';
+
+                item.SetLotItems.forEach(function (sub) {
+                    var estCost = Number(sub.EstimatedCost) || 0;
+                    html +=
+                        '<li class="d-flex justify-content-between py-1 border-bottom-light">' +
+                            '<span>' + escapeWizardHtml(sub.ItemNo) + ' - ' + escapeWizardHtml(sub.ItemName) + ' (' + escapeWizardHtml(sub.Unit) + ')</span>' +
+                            '<strong class="text-slate">PHP ' + estCost.toFixed(2) + '</strong>' +
+                        '</li>';
+                });
+
+                html += '</ul></div>';
+            }
+
+            html +=
+                '</td>' +
+                '<td class="text-center font-monospace">' + qty + ' ' + escapeWizardHtml(item.Unit) + '</td>' +
+                '<td class="text-end font-monospace text-slate">PHP ' + unitCost.toFixed(2) + '</td>' +
+                '<td class="text-end font-monospace fw-bold text-navy">PHP ' + subtotal.toFixed(2) + '</td>' +
+                '</tr>';
+        });
+
+        html +=
+            '<tr class="table-total-row bg-light">' +
+                '<td colspan="4" class="text-end fw-bold text-navy">GROUP TOTAL AMOUNT:</td>' +
+                '<td class="text-end font-monospace total-amount"><strong class="text-success-bold">PHP ' + total.toFixed(2) + '</strong></td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>' +
+            '</div>';
+
+        $("#groupItemsList_" + grp.groupId).html(html);
+    }
+
+    function goToStep2Back() {
+        goToWizardStep(2);
+    }
+
+    function goToStep4() {
+        if (typeof renderStep4Review === 'function') {
+            renderStep4Review();
+        }
+        goToWizardStep(4);
+    }
+
+</script>

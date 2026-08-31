@@ -1,0 +1,350 @@
+﻿@model iLgs.Ai.Models.PurchaseOrderDetailViewModel
+
+<div class="po-details-modal">
+
+    <!-- ============================================================
+         MODAL HEADER
+         ============================================================ -->
+
+    <div class="po-modal-header">
+
+        <div>
+            <h2>@Model.PONumber</h2>
+
+            <p class="subtitle">
+                @if (Model.PODate.HasValue)
+                {
+                    @:Obligated on @Model.PODate.Value.ToString("MMMM dd, yyyy")
+                }
+
+                Created by @Model.CreatedBy
+            </p>
+        </div>
+
+
+        <div class="po-modal-header-actions">
+
+            @if (Model.Status == "Posted")
+            {
+                <span class="status-badge status-posted">
+                    Posted / Obligated
+                </span>
+            }
+            else if (Model.Status == "Draft")
+            {
+                <span class="status-badge status-draft">
+                    Draft
+                </span>
+            }
+            else
+            {
+                <span class="status-badge">
+                    @Model.Status
+                </span>
+            }
+
+
+            <a href="@Url.Action(
+                "Print",
+                "PurchaseOrders",
+                new { id = Model.Id })"
+               target="_blank"
+               class="btn-procurement-secondary">
+
+                <span class="k-icon k-i-print"></span>
+                Print GAM Form 101-A
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUPPLIER / TERMS
+         ============================================================ -->
+
+    <div class="po-info-grid">
+
+        <section class="po-info-card">
+
+            <h3>Supplier Information</h3>
+
+            <dl class="po-info-list">
+
+                <div>
+                    <dt>Name</dt>
+                    <dd>@Model.SupplierName</dd>
+                </div>
+
+                <div>
+                    <dt>TIN</dt>
+                    <dd>@Model.SupplierTIN</dd>
+                </div>
+
+                <div>
+                    <dt>Address</dt>
+                    <dd>@Model.SupplierAddress</dd>
+                </div>
+
+                <div>
+                    <dt>Contact</dt>
+                    <dd>
+                        @Model.SupplierContactPerson
+                        (@Model.SupplierContactNumber)
+                    </dd>
+                </div>
+
+            </dl>
+
+        </section>
+
+
+        <section class="po-info-card">
+
+            <h3>Procurement &amp; Delivery Terms</h3>
+
+            <dl class="po-info-list">
+
+                <div>
+                    <dt>Mode of Procurement</dt>
+                    <dd>@Model.ModeOfProcurement</dd>
+                </div>
+
+                <div>
+                    <dt>Place of Delivery</dt>
+                    <dd>@Model.PlaceOfDelivery</dd>
+                </div>
+
+                <div>
+                    <dt>Delivery Period</dt>
+                    <dd>
+                        @Model.DeliveryPeriodDays Calendar Days
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Payment Terms</dt>
+                    <dd>@Model.PaymentTerms</dd>
+                </div>
+
+            </dl>
+
+        </section>
+
+    </div>
+
+
+    <!-- ============================================================
+         LINE ITEMS
+         ============================================================ -->
+
+    <section class="po-modal-section">
+
+        <div class="section-heading">
+            <h3>Ordered Line Items</h3>
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="items-table">
+
+                <thead>
+                    <tr>
+
+                        <th class="col-number text-center">
+                            #
+                        </th>
+
+                        <th>
+                            Description &amp; Specifications
+                        </th>
+
+                        <th class="col-qty text-center">
+                            Qty / Unit
+                        </th>
+
+                        <th class="col-cost text-end">
+                            Unit Cost
+                        </th>
+
+                        <th class="col-total text-end">
+                            Total Amount
+                        </th>
+
+                    </tr>
+                </thead>
+
+
+                <tbody>
+
+                    @foreach (var item in Model.LineItems)
+                    {
+                        <tr>
+
+                            <td class="text-center">
+                                @item.ItemNo
+                            </td>
+
+
+                            <td>
+
+                                <div class="item-description">
+                                    @item.Description
+                                </div>
+
+
+                                @if (!string.IsNullOrEmpty(
+                    item.TechnicalDescription))
+                                {
+                                    <div class="item-technical-description">
+                                        @item.TechnicalDescription
+                                    </div>
+                                }
+
+
+                                @if (item.SetLotItems != null &&
+                    item.SetLotItems.Any())
+                                {
+                                    <div class="sub-items-box">
+
+                                        <div class="sub-items-title">
+                                            <span class="k-icon k-i-list-bulleted"></span>
+                                            Bundle Components
+                                        </div>
+
+
+                                        <ul class="sub-items-list">
+
+                                            @foreach (
+                        var sub in item.SetLotItems)
+                                            {
+                                                <li>
+
+                                                    <span>
+                                                        @sub.ItemNo -
+                                                        @sub.ItemName
+                                                        (@sub.Unit)
+                                                    </span>
+
+                                                    <strong>
+                                                        PHP
+                                                        @sub.EstimatedCost.ToString("N2")
+                                                    </strong>
+
+                                                </li>
+                                            }
+
+                                        </ul>
+
+                                    </div>
+                                }
+
+                            </td>
+
+
+                            <td class="text-center">
+                                @item.Quantity @item.Unit
+                            </td>
+
+
+                            <td class="text-end">
+                                PHP @item.UnitCost.ToString("N2")
+                            </td>
+
+
+                            <td class="text-end font-weight-bold">
+                                PHP @item.TotalCost.ToString("N2")
+                            </td>
+
+                        </tr>
+                    }
+
+
+                    <tr class="table-total-row">
+
+                        <td colspan="4"
+                            class="text-end font-weight-bold">
+                            TOTAL AMOUNT:
+                        </td>
+
+                        <td class="text-end total-amount">
+                            <strong>
+                                PHP @Model.TotalAmount.ToString("N2")
+                            </strong>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================================================
+         DOCUMENTS
+         ============================================================ -->
+
+    @if (Model.Documents != null &&
+                 Model.Documents.Any())
+    {
+        <section class="po-modal-section">
+
+            <div class="section-heading">
+                <h3>Attached Documents &amp; Scans</h3>
+            </div>
+
+
+            <div class="document-list">
+
+                @foreach (var doc in Model.Documents)
+                {
+                    <div class="document-list-item">
+
+                        <div class="document-list-info">
+
+                            <span class="group-badge">
+                                @doc.Category
+                            </span>
+
+                            <strong>
+                                @doc.FileName
+                            </strong>
+
+                            <span class="document-file-size">
+                                (@doc.FileSize)
+                            </span>
+
+                        </div>
+
+
+                        <a href="@Url.Action(
+                            "DownloadDocument",
+                            "PurchaseOrders",
+                            new
+                            {
+                                path = doc.FilePath,
+                                name = doc.FileName
+                            })"
+                           class="btn-procurement-secondary btn-small">
+
+                            <span class="k-icon k-i-download"></span>
+                            Download
+
+                        </a>
+
+                    </div>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

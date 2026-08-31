@@ -1,0 +1,39 @@
+﻿@* Views/PurchaseOrders/_Step4ReviewPost.cshtml *@
+<div class="review-post-step">
+    <div class="alert alert-success py-2 px-3 text-xs mb-2">
+        <h6 class="font-weight-bold text-success mb-1"><i class="k-icon k-i-check-outline mr-1"></i> Validation Complete</h6>
+        All line items allocated. Fund source references verified under RA 9184 standards.
+    </div>
+
+    <!-- PO Summary Accordion -->
+    <div id="poReviewAccordion" class="accordion mb-3">
+        <!-- Rendered dynamically per PO Group -->
+    </div>
+
+    <!-- Statutory Certification -->
+    <div class="card border-success border-left-4 p-2 bg-white mb-3 text-xs">
+        <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="chkStatutoryCompliance" required />
+            <label class="custom-control-label font-weight-bold text-dark" for="chkStatutoryCompliance">
+                Statutory Procurement & Final Approval Certification
+            </label>
+        </div>
+        <small class="text-muted ml-4 mt-0.5">
+            I certify that items and specifications conform to Republic Act 9184 and budgetary allotments are available.
+        </small>
+    </div>
+
+    <div class="d-flex justify-content-between mt-3">
+        <button class="btn btn-outline-secondary btn-sm" onclick="goToStep(3)">
+            <i class="k-icon k-i-arrow-left mr-1"></i> Back to Details
+        </button>
+        <div>
+            <button class="btn btn-secondary btn-sm font-weight-bold mr-1" onclick="submitPOWizard(true)">
+                <i class="k-icon k-i-save mr-1"></i> Save as Draft
+            </button>
+            <button id="btnFinalPost" class="btn btn-success btn-sm font-weight-bold" disabled onclick="submitPOWizard(false)">
+                <i class="k-icon k-i-upload mr-1"></i> Post & Generate Purchase Orders
+            </button>
+        </div>
+    </div>
+</div>

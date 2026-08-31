@@ -1,0 +1,529 @@
+﻿@*Step 2*@
+@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+    <!-- Step Header -->
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 2: Assign PR Items to Purchase Orders</h2>
+            <p class="subtitle">Distribute line items from selected PRs across PO Groups. Default allocation is PO Group 1.</p>
+        </div>
+    </div>
+
+    <!-- Main Split Layout (Grid) -->
+    <div class="step2-split-layout">
+        <!-- Left Column: PR Line Items Kendo Grid Card -->
+        <div class="step2-items-card">
+            <div class="step2-table-header">
+                <span class="fw-bold" style="color: #002046; font-size: 13px;">
+                    PR Line Items (<span id="step2TotalItemsCount">0</span>)
+                </span>
+                <span style="color: #64748B; font-size: 12px;">
+                    Default Target: <strong style="color: #002046;">PO Group 1</strong>
+                </span>
+            </div>
+
+            @(Html.Kendo().Grid<PRItemAllocationViewModel>()
+            .Name("Step2AllocationsGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(i => i.Description).Title("Description & Source").Width(240).ClientTemplate(
+                    "<div class='fw-bold text-navy' style='line-height: 1.3;'>#: Description #</div>" +
+                    "<div style='display: flex; align-items: center; gap: 6px; margin-top: 3px;'>" +
+                        "<span class='step2-pr-badge'>#: PRNumber #</span>" +
+                        "# if (SetLotItems && SetLotItems.length > 0) { #" +
+                            "<span class='step2-subitem-badge'>#: SetLotItems.length # Sub-Items</span>" +
+                        "# } #" +
+                    "</div>"
+                );
+                columns.Bound(i => i.Unit).Title("Unit").Width(70)
+                    .HtmlAttributes(new { @class = "text-center text-slate" });
+
+                columns.Bound(i => i.RequestedQty).Title("Req. Qty").Width(90)
+                    .HtmlAttributes(new { @class = "text-end fw-bold", style = "font-family: monospace;" });
+
+                columns.Bound(i => i.UnitCost).Title("Unit Cost").Width(120)
+                    .HtmlAttributes(new { @class = "text-end text-slate", style = "font-family: monospace;" })
+                    .ClientTemplate("#: formatStep2Currency(UnitCost) #");
+
+                columns.Bound(i => i.AssignedQty).Title("Assign Qty").Width(110)
+                    .HtmlAttributes(new { @class = "text-center" })
+                    .ClientTemplate(
+                        "<input type='number' min='0' max='#: RequestedQty #' value='#: AssignedQty #' class='step2-assign-input' id='itemAssignQty_#: uid #' onchange='onAssignQtyChange(\"#: uid #\", this)' onkeyup='onAssignQtyChange(\"#: uid #\", this)' />"
+                    );
+
+                columns.Bound(i => i.RemainingQty).Title("Remaining").Width(90)
+                    .HtmlAttributes(new { @class = "text-center", style = "font-family: monospace;" })
+                    .ClientTemplate(
+                        "<span id='itemRemaining_#: uid #'>" +
+                        "# if (RemainingQty == 0) { #" +
+                            "<span class='text-success-bold'>0</span>" +
+                        "# } else { #" +
+                            "<span class='text-warning-bold'>#: RemainingQty #</span>" +
+                        "# } #" +
+                        "</span>"
+                    );
+
+                columns.Bound(i => i.TargetGroupId).Title("Target PO Group").Width(180)
+                    .ClientTemplate(
+                        "<select class='step2-group-select' id='itemGroupSelect_#: uid #' onchange='onTargetGroupSelect(\"#: uid #\", this.value)'>" +
+                            "#= renderGroupDropdownOptions(TargetGroupId) #" +
+                        "</select>"
+                    );
+            })
+            .Scrollable()
+            .Resizable(r => r.Columns(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(false)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Description).Editable(false);
+                    model.Field(p => p.Unit).Editable(false);
+                    model.Field(p => p.RequestedQty).Editable(false);
+                    model.Field(p => p.UnitCost).Editable(false);
+                    model.Field(p => p.RemainingQty).Editable(false);
+                })
+            )
+            )
+        </div>
+
+        <!-- Right Column: Target PO Groups List -->
+        <div class="step2-groups-column">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 13px; font-weight: 700; color: #002046; margin: 0;">
+                    Target PO Groups (<span id="step2GroupsCount">1</span>)
+                </h3>
+                @(Html.Kendo().Button()
+                    .Name("btnCreatePOGroup")
+                    .ThemeColor(ThemeColor.Primary)
+                    .Content("<span class='k-icon k-i-plus'></span> Create PO Group")
+                    .HtmlAttributes(new { onclick = "handleQuickAddGroup()", title = "Create PO Group", @class = "k-rounded-md", style = "font-size: 12px; padding: 6px 12px;" })
+                )
+            </div>
+
+            <div id="step2GroupsListContainer" class="po-groups-container">
+                <!-- Dynamically rendered group cards with metrics -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional Custom Group Modal Window -->
+    @(Html.Kendo().Window()
+        .Name("createGroupModalWindow")
+        .Title("Create New PO Group")
+        .Width(440)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions => actions.Close())
+        .Content(@<text>
+            <div style="padding: 16px; font-size: 12px;">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 6px;">Group Name</label>
+                    <input type="text" id="txtCustomGroupName" class="form-control-custom" placeholder="e.g. PO Group 2" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
+                    <p style="font-size: 10px; color: #64748B; margin-top: 4px;">Leave blank to automatically use <strong id="lblNextGroupName">PO Group 2</strong>.</p>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                    <button type="button" class="k-button k-button-outline" onclick="closeCreateGroupModal()">Cancel</button>
+                    <button type="button" class="k-button k-button-solid-primary k-rounded-md" onclick="submitCreateGroupModal()">Create Group</button>
+                </div>
+            </div>
+        </text>)
+    )
+
+    <!-- Navigation Action Bar -->
+    @*<div class="wizard-summary-bar" style="margin-top: 24px;">
+        <div>
+            @(Html.Kendo().Button()
+                .Name("btnStep2Back")
+                .FillMode(ButtonFillMode.Outline)
+                .Content("&larr; Back to PRs")
+                .HtmlAttributes(new { onclick = "goToStep1()" })
+            )
+        </div>
+        <div class="wizard-summary-actions">
+            @(Html.Kendo().Button()
+                .Name("btnStep2Next")
+                .ThemeColor(ThemeColor.Primary)
+                .Content("Next: PO Details (<span id='btnNextGroupSummary'>1 Group</span>) &rarr;")
+                .HtmlAttributes(new { onclick = "goToStep3()", @class = "k-rounded-md" })
+            )
+        </div>
+    </div>*@
+
+    <div class="wizard-summary-bar">
+        <div class="wizard-action-group" style="width: 100%; justify-content: space-between;">
+            @(Html.Kendo().Button()
+                    .Name("btnStep2Back")
+                    .FillMode(ButtonFillMode.Outline)
+                    .Content("&larr; Back PRs")
+                    .HtmlAttributes(new { onclick = "goToWizardStep(1)", @class = "btn-procurement-secondary" })
+            )
+            @(Html.Kendo().Button()
+                    .Name("btnStep2Next")
+                    .ThemeColor(ThemeColor.Primary)
+                    .Content("Next: PO Details (<span id='btnNextGroupSummary'>1 Group</span>)  &rarr;")
+                    .HtmlAttributes(new { onclick = "goToStep3()", @class = "btn-procurement-primary" })
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function getNextGroupNumber() {
+        var maxNum = 0;
+        if (typeof poGroups !== 'undefined' && poGroups && poGroups.length > 0) {
+            poGroups.forEach(function (g) {
+                var match = g.groupName ? g.groupName.match(/\d+/) : null;
+                if (match) {
+                    var num = parseInt(match[0], 10);
+                    if (num > maxNum) maxNum = num;
+                }
+            });
+        }
+        return maxNum > 0 ? maxNum + 1 : (typeof poGroups !== 'undefined' && poGroups ? poGroups.length + 1 : 1);
+    }
+
+    function formatStep2Currency(amount) {
+        return "PHP " + Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderGroupDropdownOptions(selectedGroupId) {
+        var optionsHtml = '<option value="">-- Unassigned --</option>';
+        if (typeof poGroups !== 'undefined' && poGroups && poGroups.length > 0) {
+            poGroups.forEach(function (grp) {
+                var isSelected = (selectedGroupId === grp.groupId) ? ' selected="selected"' : '';
+                optionsHtml += '<option value="' + grp.groupId + '"' + isSelected + '>' + grp.groupName + '</option>';
+            });
+        }
+        return optionsHtml;
+    }
+
+    function getGroupMetrics(groupId) {
+        if (typeof allocatedItems === 'undefined' || !allocatedItems || allocatedItems.length === 0) {
+            return { count: 0, total: 0, items: [] };
+        }
+        var groupItems = allocatedItems.filter(function (it) {
+            var gId = it.TargetGroupId || (poGroups[0] ? poGroups[0].groupId : "");
+            return gId === groupId && (it.AssignedQty > 0);
+        });
+        var total = groupItems.reduce(function (acc, it) {
+            return acc + (it.AssignedQty * it.UnitCost);
+        }, 0);
+        return {
+            count: groupItems.length,
+            total: total,
+            items: groupItems
+        };
+    }
+
+    function handleQuickAddGroup() {
+        var nextGroupNum = getNextGroupNumber();
+        var newGroupId = "grp-" + nextGroupNum + "-" + Date.now();
+        var newGroup = {
+            groupId: newGroupId,
+            groupName: "PO Group " + nextGroupNum,
+            supplierId: 1,
+            supplierName: "Mega Office Supplies Inc.",
+            deliveryPeriodDays: 30,
+            placeOfDelivery: "Main Warehouse, Building A",
+            paymentTerms: "30 Days",
+            modeOfProcurement: "Public Bidding",
+            items: [],
+            poCopyDoc: null,
+            additionalDocs: []
+        };
+        if (typeof poGroups === 'undefined') window.poGroups = [];
+        poGroups.push(newGroup);
+
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (grid) {
+            grid.refresh();
+        }
+        updateGroupMetricsCards();
+    }
+
+    function openCreateGroupModal() {
+        var nextGroupNum = getNextGroupNumber();
+        $("#lblNextGroupName").text("PO Group " + nextGroupNum);
+        $("#txtCustomGroupName").val("").attr("placeholder", "PO Group " + nextGroupNum);
+        var wnd = $("#createGroupModalWindow").data("kendoWindow");
+        if (wnd) {
+            wnd.center().open();
+        }
+    }
+
+    function closeCreateGroupModal() {
+        var wnd = $("#createGroupModalWindow").data("kendoWindow");
+        if (wnd) {
+            wnd.close();
+        }
+    }
+
+    function submitCreateGroupModal() {
+        var nextGroupNum = getNextGroupNumber();
+        var customName = $("#txtCustomGroupName").val();
+        var finalName = (customName && customName.trim().length > 0) ? customName.trim() : ("PO Group " + nextGroupNum);
+
+        var newGroupId = "grp-" + nextGroupNum + "-" + Date.now();
+        var newGroup = {
+            groupId: newGroupId,
+            groupName: finalName,
+            supplierId: 1,
+            supplierName: "Mega Office Supplies Inc.",
+            deliveryPeriodDays: 30,
+            placeOfDelivery: "Main Warehouse, Building A",
+            paymentTerms: "30 Days",
+            modeOfProcurement: "Public Bidding",
+            items: [],
+            poCopyDoc: null,
+            additionalDocs: []
+        };
+        if (typeof poGroups === 'undefined') window.poGroups = [];
+        poGroups.push(newGroup);
+
+        closeCreateGroupModal();
+
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (grid) {
+            grid.refresh();
+        }
+        updateGroupMetricsCards();
+    }
+
+    function handleDeleteGroup(groupId) {
+        if (!poGroups || poGroups.length <= 1) return;
+
+        poGroups = poGroups.filter(function (g) {
+            return g.groupId !== groupId;
+        });
+
+        var fallbackGroupId = poGroups[0] ? poGroups[0].groupId : "";
+
+        allocatedItems.forEach(function (it) {
+            if (it.TargetGroupId === groupId) {
+                it.TargetGroupId = fallbackGroupId;
+                it.AssignedQty = fallbackGroupId ? it.RequestedQty : 0;
+                it.RemainingQty = fallbackGroupId ? 0 : it.RequestedQty;
+            }
+        });
+
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (grid) {
+            grid.dataSource.data(allocatedItems);
+            grid.refresh();
+        }
+
+        updateGroupMetricsCards();
+    }
+
+    function onAssignQtyChange(uid, inputElem) {
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (!grid) return;
+
+        var dataItem = grid.dataSource.getByUid(uid);
+        if (!dataItem) return;
+
+        var rawVal = parseInt(inputElem.value, 10);
+        if (isNaN(rawVal)) rawVal = 0;
+        var validQty = Math.max(0, Math.min(dataItem.RequestedQty, rawVal));
+        inputElem.value = validQty;
+
+        dataItem.AssignedQty = validQty;
+        dataItem.RemainingQty = dataItem.RequestedQty - validQty;
+
+        if (typeof allocatedItems !== 'undefined') {
+            var originalItem = allocatedItems.find(function (it) { return it.Id === dataItem.Id; });
+            if (originalItem) {
+                originalItem.AssignedQty = validQty;
+                originalItem.RemainingQty = dataItem.RemainingQty;
+            }
+        }
+
+        var remElem = document.getElementById("itemRemaining_" + uid);
+        if (remElem) {
+            if (dataItem.RemainingQty === 0) {
+                remElem.innerHTML = '<span style="color: #16a34a; font-weight: 700;">0</span>';
+            } else {
+                remElem.innerHTML = '<span style="color: #d97706; font-weight: 700;">' + dataItem.RemainingQty + '</span>';
+            }
+        }
+
+        updateGroupMetricsCards();
+    }
+
+    function onTargetGroupSelect(uid, targetGroupId) {
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (!grid) return;
+
+        var dataItem = grid.dataSource.getByUid(uid);
+        if (!dataItem) return;
+
+        dataItem.TargetGroupId = targetGroupId;
+        if (targetGroupId) {
+            dataItem.AssignedQty = dataItem.AssignedQty > 0 ? dataItem.AssignedQty : dataItem.RequestedQty;
+            dataItem.RemainingQty = dataItem.RequestedQty - dataItem.AssignedQty;
+        } else {
+            dataItem.AssignedQty = 0;
+            dataItem.RemainingQty = dataItem.RequestedQty;
+        }
+
+        if (typeof allocatedItems !== 'undefined') {
+            var originalItem = allocatedItems.find(function (it) { return it.Id === dataItem.Id; });
+            if (originalItem) {
+                originalItem.TargetGroupId = targetGroupId;
+                originalItem.AssignedQty = dataItem.AssignedQty;
+                originalItem.RemainingQty = dataItem.RemainingQty;
+            }
+        }
+
+        var qtyInput = document.getElementById("itemAssignQty_" + uid);
+        if (qtyInput) qtyInput.value = dataItem.AssignedQty;
+
+        var remElem = document.getElementById("itemRemaining_" + uid);
+        if (remElem) {
+            if (dataItem.RemainingQty === 0) {
+                remElem.innerHTML = '<span style="color: #16a34a; font-weight: 700;">0</span>';
+            } else {
+                remElem.innerHTML = '<span style="color: #d97706; font-weight: 700;">' + dataItem.RemainingQty + '</span>';
+            }
+        }
+
+        updateGroupMetricsCards();
+    }
+
+    function updateGroupMetricsCards() {
+        var groupsContainer = $("#step2GroupsListContainer");
+        groupsContainer.empty();
+
+        if (typeof poGroups === 'undefined') window.poGroups = [];
+
+        $("#step2GroupsCount").text(poGroups.length);
+        var groupLabel = poGroups.length + " Group" + (poGroups.length !== 1 ? "s" : "");
+        $("#btnNextGroupSummary").text(groupLabel);
+
+        poGroups.forEach(function (group, index) {
+            var metrics = getGroupMetrics(group.groupId);
+            var isPrimary = index === 0;
+            var subTitle = isPrimary ? "Primary Default Group" : ("Consolidated Group " + (index + 1));
+
+            var deleteBtnHtml = "";
+            if (poGroups.length > 1) {
+                deleteBtnHtml = '<button type="button" class="btn-delete-group" onclick="handleDeleteGroup(\'' + group.groupId + '\')" title="Delete Group" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px 4px;">' +
+                    '<span class="k-icon k-i-trash" style="color: #dc2626;"></span>' +
+                    '</button>';
+            }
+
+            var cardHtml = '<div class="step2-group-card-item">' +
+                '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">' +
+                '<div style="display: flex; align-items: center; gap: 8px;">' +
+                '<span class="step2-group-avatar">' + (index + 1) + '</span>' +
+                '<div>' +
+                '<h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #002046;">' + group.groupName + '</h4>' +
+                //'<span style="font-size: 10px; color: #64748b;">' + subTitle + '</span>' +
+                '</div>' +
+                '</div>' +
+                deleteBtnHtml +
+                '</div>' +
+                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 12px;">' +
+                '<div>' +
+                '<span style="font-size: 10px; color: #64748b; display: block;">Assigned Items</span>' +
+                '<strong style="color: #002046;">' + metrics.count + ' item' + (metrics.count !== 1 ? 's' : '') + '</strong>' +
+                '</div>' +
+                '<div style="text-align: right;">' +
+                '<span style="font-size: 10px; color: #64748b; display: block;">Estimated Total</span>' +
+                '<strong style="color: #166534; font-family: monospace; font-size: 12px;">' + formatStep2Currency(metrics.total) + '</strong>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            groupsContainer.append(cardHtml);
+        });
+    }
+
+    function renderStep2Allocations() {
+        if (typeof allocatedItems === 'undefined' || !allocatedItems) window.allocatedItems = [];
+
+        var defaultGroupId = (typeof poGroups !== 'undefined' && poGroups && poGroups.length > 0) ? poGroups[0].groupId : "grp-1";
+        allocatedItems.forEach(function (it) {
+            if (it.TargetGroupId === undefined || it.TargetGroupId === null || it.TargetGroupId === "") {
+                it.TargetGroupId = defaultGroupId;
+            }
+            if (it.AssignedQty === undefined || it.AssignedQty === null) {
+                it.AssignedQty = it.RequestedQty;
+            }
+            if (it.RemainingQty === undefined || it.RemainingQty === null) {
+                it.RemainingQty = it.RequestedQty - it.AssignedQty;
+            }
+        });
+
+        $("#step2TotalItemsCount").text(allocatedItems.length);
+
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (grid) {
+            grid.dataSource.data(allocatedItems);
+            grid.refresh();
+        }
+
+        updateGroupMetricsCards();
+    }
+
+    //function goToStep1() {
+    //    var stepper = $("#poStepper").data("kendoStepper");
+    //    if (stepper) stepper.previous();
+    //    else if (typeof navigateToStep === 'function') navigateToStep(0);
+    //}
+
+    //function goToStep3() {
+    //    if (typeof prepareStep3Data === 'function') prepareStep3Data();
+    //    var stepper = $("#poStepper").data("kendoStepper");
+    //    if (stepper) stepper.next();
+    //    else if (typeof navigateToStep === 'function') wizardNext();
+    //}
+
+    // Function to handle seamless step transitions across both Stepper and UI Containers
+    function navigateToStep(stepIndex) {
+        // 1. Update Kendo Stepper Visual State
+        var stepper = $("#poStepper").data("kendoStepper");
+        if (stepper) {
+            stepper.select(stepIndex);
+        }
+
+        // 2. Hide all wizard step panes and show target step pane
+        $(".wizard-pane").hide();
+        $(".wizard-pane").eq(stepIndex).show();
+    }
+
+    function goToStep1() {
+        navigateToStep(0); // 0-based index for Step 1
+    }
+
+    function goToStep3() {
+        // Process items and group allocations for Step 3
+        if (typeof prepareStep3Data === 'function') {
+            prepareStep3Data();
+        }
+
+        navigateToStep(2); // 0-based index for Step 3
+    }
+
+    // Ensure prepareStep3Data exists if not already globally defined in your layout/parent view
+    if (typeof window.prepareStep3Data !== 'function') {
+        window.prepareStep3Data = function () {
+            if (typeof poGroups !== 'undefined' && typeof allocatedItems !== 'undefined') {
+                poGroups.forEach(function (grp) {
+                    grp.items = allocatedItems.filter(function (item) {
+                        return item.TargetGroupId === grp.groupId && item.AssignedQty > 0;
+                    });
+                });
+
+                if (typeof renderStep3TabStrip === 'function') {
+                    renderStep3TabStrip();
+                }
+            }
+        };
+    }
+    
+</script>

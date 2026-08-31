@@ -1,0 +1,36 @@
+﻿@* Views/PurchaseOrders/_Step2AssignItems.cshtml *@
+<div class="item-allocation-step">
+    <div class="alert alert-info py-2 px-3 text-xs mb-2">
+        <i class="k-icon k-i-information mr-1"></i> Allocate quantities per line item to target suppliers. Multiple PRs will be grouped into consolidated POs.
+    </div>
+
+    <!-- Items Grid with inline quantity and target supplier dropdown -->
+    <div id="allocationItemsContainer" class="border rounded bg-white p-2">
+        <table class="table table-sm table-bordered text-xs mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th style="width:30px">#</th>
+                    <th>PR Reference</th>
+                    <th>Item Description</th>
+                    <th style="width:60px" class="text-center">Unit</th>
+                    <th style="width:70px" class="text-right">PR Qty</th>
+                    <th style="width:90px" class="text-right">Unit Cost</th>
+                    <th style="width:180px">Assign Target Supplier</th>
+                    <th style="width:80px" class="text-right">Assign Qty</th>
+                </tr>
+            </thead>
+            <tbody id="allocationItemsBody">
+                <!-- Dynamically bound via Kendo MVVM or JS Templates -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between mt-3">
+        <button class="btn btn-outline-secondary btn-sm" onclick="goToStep(1)">
+            <i class="k-icon k-i-arrow-left mr-1"></i> Back to PR Selection
+        </button>
+        <button class="btn btn-primary btn-sm font-weight-bold" onclick="goToStep(3)">
+            Configure PO Details <i class="k-icon k-i-arrow-right ml-1"></i>
+        </button>
+    </div>
+</div>

@@ -15,6 +15,11 @@ namespace iLgs.Services.PurchaseOrder
         PurchaseOrderItemViewModel UpdateItem(PurchaseOrderItemViewModel item, string user, DateTime date);
         bool DeleteItem(string itemId);
         bool DeletePurchaseOrder(string poId);
+        bool UpdateStatus(string poId, string status, string username);
+        bool CancelPurchaseOrder(string poId, string reason, string username);
+        IEnumerable<object> GetCatalogLookupItems(string filterText);
+        IEnumerable<string> GetAvailableUnits();
+        IEnumerable<string> GetSupplierList();
     }
 
     public class PurchaseOrderService : IPurchaseOrderService
@@ -52,9 +57,12 @@ namespace iLgs.Services.PurchaseOrder
 
         public PurchaseOrderViewModel GetPurchaseOrderById(string id)
         {
+            if (!Guid.TryParse(id, out Guid orderId))
+                return null;
+
             var entity = _context.Orders
                 .Include(p => p.OrderItems)
-                .FirstOrDefault(p => p.Id == Guid.Parse(id));
+                .FirstOrDefault(p => p.Id == orderId);
 
             if (entity == null) return null;
 
@@ -94,9 +102,12 @@ namespace iLgs.Services.PurchaseOrder
 
         public IEnumerable<PurchaseOrderItemViewModel> GetItemsByPoId(string poId)
         {
+            if (!Guid.TryParse(poId, out Guid orderId))
+                return Enumerable.Empty<PurchaseOrderItemViewModel>();
+
             return _context.OrderItems
                 .AsNoTracking()
-                .Where(i => i.OrderId == Guid.Parse(poId))
+                .Where(i =>  i.OrderId == orderId)
                 .OrderBy(i => i.ItemNo)
                 .Select(i => new PurchaseOrderItemViewModel
                 {
@@ -174,7 +185,10 @@ namespace iLgs.Services.PurchaseOrder
 
         public bool DeleteItem(string itemId)
         {
-            var entity = _context.OrderItems.Find(Guid.Parse(itemId));
+            if (!Guid.TryParse(itemId, out Guid orderItemId))
+                return false;
+
+            var entity = _context.OrderItems.Find(orderItemId);
             if (entity == null) return false;
 
             string poId = entity.OrderId.ToString();
@@ -187,12 +201,91 @@ namespace iLgs.Services.PurchaseOrder
 
         public bool DeletePurchaseOrder(string poId)
         {
-            var po = _context.Orders.Find(Guid.Parse(poId));
+            if (!Guid.TryParse(poId, out Guid orderId))
+                return false;
+
+            var po = _context.Orders.Find(orderId);
             if (po == null) return false;
 
             _context.Orders.Remove(po);
             _context.SaveChanges();
             return true;
+        }
+
+        public bool UpdateStatus(string poId, string status, string username)
+        {
+            //var po = _context.Orders.Find(poId);
+            //if (po == null) return false;
+
+            //po.Status = status;
+            //po.UpdatedDt = DateTime.Now;
+
+            //if (status == "Transmitted")
+            //{
+            //    po.TransmittedDate = DateTime.Now;
+            //}
+            //else if (status == "Approved")
+            //{
+            //    po.ApprovedDate = DateTime.Now;
+            //    po.ApprovedBy = username ?? "Head of Agency";
+            //}
+
+            //_context.SaveChanges();
+            return true;
+        }
+
+        public bool CancelPurchaseOrder(string poId, string reason, string username)
+        {
+            //var po = _context.Orders.Find(poId);
+            //if (po == null) return false;
+
+            //po.Status = "Cancelled";
+            //po.CancellationReason = reason;
+            //po.ModifiedDate = DateTime.UtcNow;
+
+            //_context.SaveChanges();
+            return true;
+        }
+
+        public IEnumerable<object> GetCatalogLookupItems(string filterText)
+        {
+            var query = _context.RequestItems
+                .Select(i => new
+                {
+                    CatalogCode = i.PpmpCode,
+                    Description = i.Description,
+                    Unit = i.Unit,
+                    EstimatedUnitCost = i.UnitCost
+                })
+                .Distinct();
+
+            if (!string.IsNullOrWhiteSpace(filterText))
+            {
+                query = query.Where(i => i.CatalogCode.Contains(filterText) || i.Description.Contains(filterText));
+            }
+
+            return query.Take(50).ToList();
+        }
+
+        public IEnumerable<string> GetAvailableUnits()
+        {
+            return new[]
+            {
+                "Piece", "Set", "Unit", "Ream", "Box", "Pack", "Bottle", "Roll", "Lot", "Month", "Liter", "Meter", "Pair"
+            };
+        }
+
+        public IEnumerable<string> GetSupplierList()
+        {
+            return new[]
+            {
+                "TechCorp Solutions Inc.",
+                "Manila Office Supplies & Logistics",
+                "Crown Paper & Stationery Mart",
+                "Amanah IT Systems & Supplies",
+                "Philippine Global Logistics Corp.",
+                "Advance Computer Systems Corp."
+            };
         }
 
         private void RecalculatePoTotal(string poId)
