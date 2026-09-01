@@ -264,217 +264,31 @@
     // Called when stepping into Step 3
     function prepareStep3Data() {
         if (!poGroups) poGroups = [];
-        if (!allocatedItems) allocatedItems = [];
-        
+
         poGroups.forEach(function (grp) {
-
-            /*
-             * Get all Step 2 items assigned to this PO Group.
-             */
             var groupItems = allocatedItems.filter(function (it) {
-                return (it.TargetGroupId || "grp-1") === grp.groupId
-                    && Number(it.AssignedQty || 0) > 0;
+                return (it.TargetGroupId || "grp-1") === grp.groupId && (it.AssignedQty > 0);
             });
 
-            /*
-             * ============================================================
-             * CONSOLIDATE ITEMS
-             * ============================================================
-             *
-             * Same item = same PPMPCode + Description
-             *
-             * Example:
-             *
-             * PR-001 | PPMP-001 | A4 Paper | 15
-             * PR-005 | PPMP-001 | A4 Paper | 10
-             *
-             * becomes:
-             *
-             * PPMP-001 | A4 Paper | 25
-             *
-             * The individual PR allocations are retained in sourcePRs[]
-             * for the "View Allocation" modal.
-             */
-            var consolidated = {};
-
-            groupItems.forEach(function (it) {
-
-                var ppmpCode = (it.PPMPCode || "").toString().trim();
-                var description = (it.Description || "").toString().trim();
-
-                /*
-                 * Case-insensitive normalized key.
-                 */
-                var consolidationKey =
-                    ppmpCode.toUpperCase() +
-                    "|" +
-                    description.toUpperCase();
-
-                /*
-                 * First occurrence of this item.
-                 */
-                if (!consolidated[consolidationKey]) {
-
-                    consolidated[consolidationKey] = {
-                        id: it.Id || ("li-" + (Object.keys(consolidated).length + 1)),
-
-                        itemNo: Object.keys(consolidated).length + 1,
-
-                        PPMPCode: ppmpCode,
-
-                        description: description,
-
-                        stockNo: it.StockNo || "",
-
-                        itemCode: it.ItemCode || "",
-
-                        unit: it.Unit || "pc",
-
-                        unitCost: Number(it.UnitCost || 0),
-
-                        /*
-                         * This will contain the SUM of AssignedQty
-                         * from all PRs belonging to this item.
-                         */
-                        qty: 0,
-
-                        totalCost: 0,
-
-                        gsoCategory: it.GSOCategory || "Office Supplies",
-
-                        technicalDescription:
-                            it.TechnicalDescription ||
-                            "Government standard specification compliant.",
-
-                        attributes: it.Attributes
-                            ? JSON.parse(JSON.stringify(it.Attributes))
-                            : {
-                                Brand: "Generic",
-                                Origin: "Local"
-                            },
-
-                        setLotItems: it.SetLotItems
-                            ? JSON.parse(JSON.stringify(it.SetLotItems))
-                            : [],
-
-                        /*
-                         * Preserve the individual PR allocations.
-                         */
-                        sourcePRs: []
-                    };
-                }
-
-                var consolidatedItem = consolidated[consolidationKey];
-
-                /*
-                 * ========================================================
-                 * ADD ASSIGNED QUANTITY
-                 * ========================================================
-                 */
-                var assignedQty = Number(it.AssignedQty || 0);
-
-                consolidatedItem.qty += assignedQty;
-
-                /*
-                 * ========================================================
-                 * RETAIN SOURCE PR
-                 * ========================================================
-                 *
-                 * This allows Step 3 to still show:
-                 *
-                 * PR-001 = 15
-                 * PR-005 = 10
-                 *
-                 * even though the PO line is consolidated to 25.
-                 */
-                consolidatedItem.sourcePRs.push({
-
-                    prId: it.PrId || it.PRId || it.PRID || null,
-
-                    prNo: it.PrNo ||
-                          it.PRNo ||
-                          it.PRNumber ||
-                          it.PurchaseRequestNo ||
-                          "",
-
-                    requestingDepartment:
-                        it.RequestingDepartment ||
-                        it.DepartmentName ||
-                        it.Department ||
-                        "",
-
-                    allocatedQty: assignedQty,
-
-                    unit: it.Unit || consolidatedItem.unit,
-
-                    unitCost: Number(it.UnitCost || 0),
-
-                    stockBin:
-                        it.TargetStockBin ||
-                        it.StockBin ||
-                        it.WarehouseBin ||
-                        ""
-                });
-
-                /*
-                 * ========================================================
-                 * RETAIN EXISTING ITEM INFORMATION
-                 * ========================================================
-                 *
-                 * We keep the same fields your original Step 3 uses.
-                 */
-
-                if (!consolidatedItem.stockNo && it.StockNo) {
-                    consolidatedItem.stockNo = it.StockNo;
-                }
-
-                if (!consolidatedItem.itemCode && it.ItemCode) {
-                    consolidatedItem.itemCode = it.ItemCode;
-                }
-
-                if (!consolidatedItem.technicalDescription &&
-                    it.TechnicalDescription) {
-
-                    consolidatedItem.technicalDescription =
-                        it.TechnicalDescription;
-                }
-
-                if ((!consolidatedItem.setLotItems ||
-                    consolidatedItem.setLotItems.length === 0) &&
-                    it.SetLotItems &&
-                    it.SetLotItems.length > 0) {
-
-                    consolidatedItem.setLotItems =
-                        JSON.parse(JSON.stringify(it.SetLotItems));
-                }
-            });
-
-            /*
-             * ============================================================
-             * CONVERT MAP TO ARRAY
-             * ============================================================
-             */
-            grp.items = Object.keys(consolidated).map(function (key, index) {
-
-                var item = consolidated[key];
-
-                item.itemNo = index + 1;
-
-                /*
-                 * Consolidated PO quantity × unit cost.
-                 */
-                item.totalCost =
-                    item.qty * item.unitCost;
-
-                return item;
+            grp.items = groupItems.map(function (it, idx) {
+                return {
+                    id: it.Id || ("li-" + (idx + 1)),
+                    itemNo: idx + 1,
+                    description: it.Description,
+                    stockNo: it.StockNo || ("STK-00" + (idx + 1)),
+                    itemCode: "ITM-00" + (idx + 1),
+                    qty: it.AssignedQty || it.RequestedQty,
+                    unit: it.Unit || "pc",
+                    unitCost: it.UnitCost || 0,
+                    totalCost: (it.AssignedQty || it.RequestedQty) * (it.UnitCost || 0),
+                    gsoCategory: it.GSOCategory || "Office Supplies",
+                    technicalDescription: it.TechnicalDescription || "Government standard specification compliant.",
+                    attributes: it.Attributes || { Brand: "Generic", Origin: "Local" },
+                    setLotItems: it.SetLotItems ? JSON.parse(JSON.stringify(it.SetLotItems)) : []
+                };
             });
         });
 
-        /*
-         * ================================================================
-         * CONTINUE USING YOUR ORIGINAL STEP 3 DESIGN
-         * ================================================================
-         */
         if (activeStep3GroupIndex >= poGroups.length) {
             activeStep3GroupIndex = 0;
         }
@@ -482,7 +296,6 @@
         renderStep3GroupTabs();
         loadActiveGroupForm();
     }
-
 
     // Render group tabs with real-time Complete vs Needs Info badges
     function renderStep3GroupTabs() {

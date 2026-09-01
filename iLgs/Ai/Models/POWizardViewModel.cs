@@ -97,6 +97,8 @@ namespace iLgs.Ai.Models
         public string SuggestedSupplier { get; set; }
         public string TargetGroupId { get; set; } = "grp-1"; // Default to PO Group 1
         public List<POSetLotItemViewModel> SetLotItems { get; set; }
+        public string PPMPCode { get; set; }
+        public string PPMPDescription { get; set; }
     }
 
     public class PODocumentViewModel

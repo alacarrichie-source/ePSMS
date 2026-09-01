@@ -43,7 +43,7 @@ namespace iLgs.Services.Ai.PurchaseOrder
                     TotalAmount = pr.RequestItems.Sum(s => s.TotalCost) ?? 0,
                     //Status = pr.Status.ToString(),
                     Status = pr.PostedDt != null ? "POSTED" : "DRAFT",
-                    ItemsCount = pr.RequestItems.Count
+                    ItemsCount = pr.RequestItems.Count                    
                 });
         }
 
@@ -74,7 +74,8 @@ namespace iLgs.Services.Ai.PurchaseOrder
                     UnitCost = item.UnitCost ?? 0,
                     //GSOCategory = item.GSOCategory,
                     //SuggestedSupplier = item.SuggestedSupplier,
-                    TargetGroupId = "grp-1" // Default assignment to PO Group 1
+                    TargetGroupId = "grp-1", // Default assignment to PO Group 1
+                    PPMPCode = item.PPMPItem?.Code
                 };
 
                 // Deserialize sub-items if present

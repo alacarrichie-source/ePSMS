@@ -34,5 +34,8 @@ namespace iLgs.Ai.Models
         public string Status { get; set; }
 
         public int ItemsCount { get; set; }
+
+        public string PPMPCode { get; set; }
+        public string PPMPDescription { get; set; }
     }
 }

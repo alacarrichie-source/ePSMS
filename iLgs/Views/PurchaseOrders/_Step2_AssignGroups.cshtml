@@ -28,15 +28,21 @@
             .Name("Step2AllocationsGrid")
             .Columns(columns =>
             {
-                columns.Bound(i => i.Description).Title("Description & Source").Width(240).ClientTemplate(
-                    "<div class='fw-bold text-navy' style='line-height: 1.3;'>#: Description #</div>" +
-                    "<div style='display: flex; align-items: center; gap: 6px; margin-top: 3px;'>" +
-                        "<span class='step2-pr-badge'>#: PRNumber #</span>" +
-                        "# if (SetLotItems && SetLotItems.length > 0) { #" +
-                            "<span class='step2-subitem-badge'>#: SetLotItems.length # Sub-Items</span>" +
-                        "# } #" +
-                    "</div>"
-                );
+                //columns.Bound(i => i.Description).Title("Description & Source").Width(240).ClientTemplate(
+                //    "<div class='fw-bold text-navy' style='line-height: 1.3;'>#: Description #</div>" +
+                //    "<div style='display: flex; align-items: center; gap: 6px; margin-top: 3px;'>" +
+                //        "<span class='step2-pr-badge'>#: PRNumber #</span>" +
+                //        "# if (SetLotItems && SetLotItems.length > 0) { #" +
+                //            "<span class='step2-subitem-badge'>#: SetLotItems.length # Sub-Items</span>" +
+                //        "# } #" +
+                //    "</div>"
+                //);
+                columns.Bound(i => i.PRNumber).Title("PR Number").Width(70)
+                    .HtmlAttributes(new { @class = "text-center text-slate" });
+                columns.Bound(i => i.PPMPCode).Title("PPMP Code").Width(70)
+                    .HtmlAttributes(new { @class = "text-center text-slate" });
+                columns.Bound(i => i.Description).Title("PR Item Description").Width(70)
+                    .HtmlAttributes(new { @class = "text-center text-slate" });
                 columns.Bound(i => i.Unit).Title("Unit").Width(70)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
 

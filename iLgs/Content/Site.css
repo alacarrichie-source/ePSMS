@@ -1452,7 +1452,7 @@ form.x-form-custom {
 .po-wizard .po-groups-container {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 16px;    
 }
 
 .po-wizard .group-card {
