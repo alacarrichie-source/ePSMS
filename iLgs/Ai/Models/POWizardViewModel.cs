@@ -35,12 +35,16 @@ namespace iLgs.Ai.Models
         public POGroupDraftViewModel()
         {
             Items = new List<POLineItemDraftViewModel>();
+            SourcePRs = new List<POGroupSourcePRViewModel>();
             AdditionalDocs = new List<PODocumentViewModel>();
         }
 
         public string GroupId { get; set; } // e.g. "grp-1"
         public string GroupName { get; set; } // e.g. "PO Group 1"
         public string PONumber { get; set; }
+        public string PRNumber { get; set; }
+        public string DepartmentName { get; set; }
+        public List<POGroupSourcePRViewModel> SourcePRs { get; set; }
         public Guid? SupplierId { get; set; }
         public string SupplierName { get; set; }
         public string CtrlNo { get; set; }
@@ -109,8 +113,17 @@ namespace iLgs.Ai.Models
         public List<POSetLotItemViewModel> SetLotItems { get; set; }
     }
 
+    public class POGroupSourcePRViewModel
+    {
+        public Guid PRId { get; set; }
+        public string PRNumber { get; set; }
+        public Guid? DepartmentId { get; set; }
+        public string DepartmentName { get; set; }
+    }
+
     public class POItemAllocationDraftViewModel
     {
+        public Guid? PRId { get; set; }
         public Guid? RequestItemId { get; set; }
         public string PRNumber { get; set; }
         public int Quantity { get; set; }
@@ -119,7 +132,10 @@ namespace iLgs.Ai.Models
     public class PRItemAllocationViewModel
     {
         public Guid Id { get; set; }
+        public Guid PRId { get; set; }
         public string PRNumber { get; set; }
+        public Guid? DepartmentId { get; set; }
+        public string DepartmentName { get; set; }
         public string Department { get; set; }
         public string Description { get; set; }
         public string Unit { get; set; }

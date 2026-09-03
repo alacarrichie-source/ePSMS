@@ -2588,3 +2588,17 @@ form.x-form-custom {
     color: #475569;
     text-align: left;
 }
+
+.po-wizard .numeric-cell,
+.po-wizard .numeric-header,
+.po-wizard .k-grid th.numeric-header,
+.po-wizard table th.numeric-header {
+    text-align: right !important;
+}
+
+.po-wizard .numeric-cell input,
+.po-wizard .numeric-cell .k-input,
+.po-wizard .numeric-cell .k-input-inner,
+.po-wizard .step2-assign-input {
+    text-align: right !important;
+}

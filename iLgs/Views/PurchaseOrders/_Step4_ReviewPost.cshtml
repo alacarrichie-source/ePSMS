@@ -1,4 +1,4 @@
-@using Kendo.Mvc.UI
+﻿@using Kendo.Mvc.UI
 
 <div class="wizard-card step4-review-container">
     <div class="step4-header">
@@ -32,7 +32,7 @@
 
     <div class="wizard-summary-bar wizard-final-actions">
         <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(3)">
-            <span class="k-icon k-i-arrow-left"></span> Back to PO Details
+            <span class="k-icon k-i-arrow-left"></span> Back to PO Item Details
         </button>
         <div class="wizard-action-group">
             <button type="button" id="btnStep4SaveDraft" class="btn-procurement-secondary" onclick="submitPOs(true)">Save as Draft</button>
@@ -59,6 +59,10 @@
 
     function formatStep4Currency(amount) {
         return "PHP " + Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatStep4GridAmount(amount) {
+        return Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function renderStep4Review() {
@@ -333,8 +337,8 @@
             $("<td></td>").text(item.article || item.gsoCategory || "").appendTo(row);
             $("<td></td>").text(item.unit || "").appendTo(row);
             $("<td class='text-end'></td>").text(item.qty || 0).appendTo(row);
-            $("<td class='text-end'></td>").text(formatStep4Currency(item.unitCost)).appendTo(row);
-            $("<td class='text-end'></td>").text(formatStep4Currency(Number(item.qty || 0) * Number(item.unitCost || 0))).appendTo(row);
+            $("<td class='text-end'></td>").text(formatStep4GridAmount(item.unitCost)).appendTo(row);
+            $("<td class='text-end'></td>").text(formatStep4GridAmount(Number(item.qty || 0) * Number(item.unitCost || 0))).appendTo(row);
             tbody.append(row);
             var subItems = item.setLotItems || item.SetLotItems || [];
             if (subItems.length) {
@@ -353,8 +357,8 @@
                     $('<td></td>').text(description).appendTo(subRow);
                     $('<td></td>').text(unit).appendTo(subRow);
                     $('<td class="text-end"></td>').text(quantity).appendTo(subRow);
-                    $('<td class="text-end"></td>').text(formatStep4Currency(unitCost)).appendTo(subRow);
-                    $('<td class="text-end"></td>').text(formatStep4Currency(quantity * unitCost)).appendTo(subRow);
+                    $('<td class="text-end"></td>').text(formatStep4GridAmount(unitCost)).appendTo(subRow);
+                    $('<td class="text-end"></td>').text(formatStep4GridAmount(quantity * unitCost)).appendTo(subRow);
                     subItemBody.append(subRow);
                 });
                 subItemCell.append($('<div class="step4-subitems-title"></div>').text('Sub-items for item ' + (item.itemNo || (index + 1))), subItemTable);
@@ -481,11 +485,18 @@
     }
 
     function buildPOPayload() {
+        if (typeof syncPOGroupSourcePRs === "function") syncPOGroupSourcePRs();
         return poGroups.map(function (group) {
+            var sourcePRs = group.sourcePRs || [];
             return {
                 GroupId: group.groupId,
                 GroupName: group.groupName,
                 PONumber: group.poNumber,
+                PRNumber: group.PRNumber || "",
+                DepartmentName: group.DepartmentName || "",
+                SourcePRs: sourcePRs.map(function (source) {
+                    return { PRId: source.PRId, PRNumber: source.PRNumber, DepartmentId: source.DepartmentId || null, DepartmentName: source.DepartmentName || "" };
+                }),
                 SupplierId: group.supplierId || null,
                 SupplierName: group.supplierName,
                 CtrlNo: group.ctrlNo,
@@ -529,7 +540,7 @@
                         AdditionalSpecs: item.additionalSpecs || {},
                         SetLotItems: item.setLotItems || [],
                         Allocations: (item.sourcePRs || []).map(function (source) {
-                            return { RequestItemId: source.requestItemId, PRNumber: source.prNo, Quantity: Number(source.allocatedQty || 0) };
+                            return { PRId: source.prId || null, RequestItemId: source.requestItemId, PRNumber: source.prNo, Quantity: Number(source.allocatedQty || 0) };
                         })
                     };
                 }),
@@ -539,7 +550,7 @@
         });
     }
 
-    function submitPOs(isDraft) {
+    function submitPOs(isDraft) {        
         if (isDraft) { saveWizardDraft(true); return; }
         if (!isDraft && !$("#chkStep4Certification").is(":checked")) { showWizardMessage("Confirm the compliance certification before posting."); return; }
         if (!isDraft && $("#btnPostPurchaseOrders").prop("disabled")) { showWizardMessage("Complete all required PO details and signed PO uploads before posting."); return; }

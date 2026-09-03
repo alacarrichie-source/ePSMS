@@ -65,6 +65,9 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 var vm = new PRItemAllocationViewModel
                 {
                     Id = item.Id,
+                    PRId = item.Request.Id,
+                    DepartmentId = item.Request.DeptId,
+                    DepartmentName = item.Request.Department,
                     Department = item.Request.Department,
                     PRNumber = item.Request.PrNo,
                     Description = item.Description,
@@ -85,6 +88,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     .OrderBy(subItem => subItem.ItemNo)
                     .Select(subItem => new POSetLotItemViewModel
                     {
+                        RequestSubItemId = subItem.Id,
                         ItemNo = subItem.ItemNo,
                         ItemName = subItem.Description,
                         Unit = subItem.Unit,

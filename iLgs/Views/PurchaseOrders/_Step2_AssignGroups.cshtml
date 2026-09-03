@@ -43,26 +43,35 @@
                     .HtmlAttributes(new { @class = "text-center text-slate" });
                 columns.Bound(i => i.PPMPCode).Title("PPMP Code").Width(70)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
-                columns.Bound(i => i.Description).Title("PR Item Description").Width(70)
+                columns.Bound(i => i.Description).Title("PR Item Description").Width(120)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
-                columns.Bound(i => i.Unit).Title("Unit").Width(70)
+                columns.Bound(i => i.Unit).Title("Unit").Width(50)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
 
-                columns.Bound(i => i.RequestedQty).Title("Req. Qty").Width(90)
-                    .HtmlAttributes(new { @class = "text-end fw-bold", style = "font-family: monospace;" });
+                columns.Bound(i => i.RequestedQty).Title("Req. Qty").Width(50)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell fw-bold", style = "font-family: monospace;" });
 
-                columns.Bound(i => i.UnitCost).Title("Unit Cost").Width(120)
-                    .HtmlAttributes(new { @class = "text-end text-slate", style = "font-family: monospace;" })
-                    .ClientTemplate("#: formatStep2Currency(UnitCost) #");
+                columns.Bound(i => i.UnitCost).Title("Unit Cost").Width(100)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell", style = "font-family: monospace;" })
+                    .ClientTemplate("<input class='step2-unit-cost-input' data-uid='#: uid #' value='#: Number(UnitCost || 0).toFixed(2) #' />");
 
-                columns.Bound(i => i.AssignedQty).Title("Assign Qty").Width(110)
-                    .HtmlAttributes(new { @class = "text-center" })
+                columns.Bound(i => i.UnitCost).Title("Estimated Total").Width(100)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell", style = "font-family: monospace;" })
+                    .ClientTemplate("<span id='itemEstimatedTotal_#: uid #'>#: formatStep2GridAmount(Number(AssignedQty || 0) * Number(UnitCost || 0)) #</span>");
+
+                columns.Bound(i => i.AssignedQty).Title("Assign Qty").Width(50)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell" })
                     .ClientTemplate(
                         "<input type='number' min='0' max='#: RequestedQty #' value='#: AssignedQty #' class='step2-assign-input' id='itemAssignQty_#: uid #' onchange='onAssignQtyChange(\"#: uid #\", this)' onkeyup='onAssignQtyChange(\"#: uid #\", this)' />"
                     );
 
-                columns.Bound(i => i.RemainingQty).Title("Remaining").Width(90)
-                    .HtmlAttributes(new { @class = "text-center", style = "font-family: monospace;" })
+                columns.Bound(i => i.RemainingQty).Title("Remaining").Width(50)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell", style = "font-family: monospace;" })
                     .ClientTemplate(
                         "<span id='itemRemaining_#: uid #'>" +
                         "# if (RemainingQty == 0) { #" +
@@ -73,7 +82,7 @@
                         "</span>"
                     );
 
-                columns.Bound(i => i.TargetGroupId).Title("Target PO Group").Width(180)
+                columns.Bound(i => i.TargetGroupId).Title("Target PO Group").Width(150)
                     .ClientTemplate(
                         "<select class='step2-group-select' id='itemGroupSelect_#: uid #' onchange='onTargetGroupSelect(\"#: uid #\", this.value)'>" +
                             "#= renderGroupDropdownOptions(TargetGroupId) #" +
@@ -93,7 +102,7 @@
                     model.Field(p => p.Description).Editable(false);
                     model.Field(p => p.Unit).Editable(false);
                     model.Field(p => p.RequestedQty).Editable(false);
-                    model.Field(p => p.UnitCost).Editable(false);
+                    model.Field(p => p.UnitCost).Editable(true);
                     model.Field(p => p.RemainingQty).Editable(false);
                 })
             )
@@ -166,6 +175,14 @@
     var restoringStep2GridData = false;
 
     function onStep2GridDataBound(e) {
+        e.sender.tbody.find(".step2-unit-cost-input").each(function () {
+            var input = $(this);
+            if (input.data("kendoNumericTextBox")) return;
+            input.kendoNumericTextBox({
+                min: 0, decimals: 2, format: "n2", spinners: false,
+                change: function () { onStep2UnitCostChange(input.data("uid"), this.value()); }
+            });
+        });
         if (restoringStep2GridData ||
             typeof allocatedItems === "undefined" ||
             !allocatedItems ||
@@ -197,8 +214,12 @@
         return maxNum > 0 ? maxNum + 1 : (typeof poGroups !== 'undefined' && poGroups ? poGroups.length + 1 : 1);
     }
 
+    function formatStep2GridAmount(amount) {
+        return Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function formatStep2Currency(amount) {
-        return "PHP " + Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return "PHP " + formatStep2GridAmount(amount);
     }
 
     function renderGroupDropdownOptions(selectedGroupId) {
@@ -230,6 +251,30 @@
         };
     }
 
+    function syncPOGroupSourcePRs() {
+        $.each(poGroups || [], function (_, group) {
+            var seenByPrId = {};
+            var sourcePRs = [];
+            $.each(allocatedItems || [], function (_, item) {
+                if (item.TargetGroupId !== group.groupId || Number(item.AssignedQty || 0) <= 0) return;
+                var prId = item.PRId || item.PrId || item.prId;
+                if (!prId) return;
+                var key = String(prId).toLowerCase();
+                if (seenByPrId[key]) return;
+                seenByPrId[key] = true;
+                sourcePRs.push({
+                    PRId: prId,
+                    PRNumber: item.PRNumber || item.PrNumber || item.PrNo || "",
+                    DepartmentId: item.DepartmentId || item.DeptId || null,
+                    DepartmentName: item.DepartmentName || item.Department || item.RequestingDepartment || ""
+                });
+            });
+            group.sourcePRs = sourcePRs;
+            group.PRNumber = sourcePRs.map(function (pr) { return pr.PRNumber; }).filter(Boolean).join(", ");
+            var departments = sourcePRs.map(function (pr) { return pr.DepartmentName; }).filter(Boolean);
+            group.DepartmentName = departments.filter(function (name, index) { return departments.indexOf(name) === index; }).join(", ");
+        });
+    }
     function getGroupSourceSummary(items) {
         var sourcesByPR = {};
         $.each(items || [], function (_, item) {
@@ -424,6 +469,22 @@
             }
         }
 
+        $("#itemEstimatedTotal_" + uid).text(formatStep2GridAmount(validQty * Number(dataItem.UnitCost || 0)));
+        updateGroupMetricsCards();
+    }
+
+    function onStep2UnitCostChange(uid, value) {
+        var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+        if (!grid) return;
+        var dataItem = grid.dataSource.getByUid(uid);
+        if (!dataItem) return;
+        var unitCost = Number(value);
+        if (!isFinite(unitCost) || unitCost < 0) unitCost = 0;
+        unitCost = Math.round(unitCost * 100) / 100;
+        dataItem.UnitCost = unitCost;
+        var originalItem = (allocatedItems || []).find(function (it) { return it.Id === dataItem.Id; });
+        if (originalItem) originalItem.UnitCost = unitCost;
+        $("#itemEstimatedTotal_" + uid).text(formatStep2GridAmount(Number(dataItem.AssignedQty || 0) * unitCost));
         updateGroupMetricsCards();
     }
 
@@ -464,6 +525,7 @@
             }
         }
 
+        $("#itemEstimatedTotal_" + uid).text(formatStep2GridAmount(Number(dataItem.AssignedQty || 0) * Number(dataItem.UnitCost || 0)));
         updateGroupMetricsCards();
     }
 
@@ -472,6 +534,7 @@
         groupsContainer.empty();
 
         if (typeof poGroups === 'undefined') window.poGroups = [];
+        syncPOGroupSourcePRs();
 
         $("#step2GroupsCount").text(poGroups.length);
         var groupLabel = poGroups.length + " Group" + (poGroups.length !== 1 ? "s" : "");

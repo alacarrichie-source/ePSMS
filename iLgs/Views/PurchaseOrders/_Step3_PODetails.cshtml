@@ -13,7 +13,7 @@
     <!-- Step Header -->
     <div class="header-bar" style="margin-bottom: 16px;">
         <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: #002046; margin: 0 0 4px 0;">Step 3: Purchase Order Details</h2>
+            <h2 style="font-size: 18px; font-weight: 700; color: #002046; margin: 0 0 4px 0;">Step 3: PO Item Details</h2>
             <p class="subtitle" style="font-size: 12px; color: #64748B; margin: 0;">Review and complete the consolidated line items for each PO group.</p>
         </div>
     </div>
@@ -167,10 +167,15 @@
         return "PHP " + Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function formatStep3GridAmount(amount) {
+        return Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     // Called when stepping into Step 3
     function prepareStep3Data() {
         if (!poGroups) poGroups = [];
         if (!allocatedItems) allocatedItems = [];
+        if (typeof syncPOGroupSourcePRs === "function") syncPOGroupSourcePRs();
         
         poGroups.forEach(function (grp) {
             var existingItems = grp.items || [];
@@ -319,6 +324,8 @@
                           it.PurchaseRequestNo ||
                           "",
 
+                    departmentId: it.DepartmentId || it.DeptId || null,
+
                     requestingDepartment:
                         it.RequestingDepartment ||
                         it.DepartmentName ||
@@ -386,7 +393,7 @@
 
                 if (savedItem) {
                     ["itemNo", "itemCodeId", "itemCode", "psType", "article", "gsoCategory", "category", "account",
-                        "subAccount", "stockNo", "description", "technicalDescription", "unit", "unitCost",
+                        "subAccount", "stockNo", "description", "technicalDescription", "unit",
                         "attributes", "additionalSpecs", "setLotItems"].forEach(function (fieldName) {
                             if (savedItem[fieldName] !== undefined && savedItem[fieldName] !== null) {
                                 item[fieldName] = savedItem[fieldName];
@@ -1001,11 +1008,45 @@
         var item = grp.items.find(function (i) { return i.id === itemId; });
         if (item) {
             if (!item.setLotItems) item.setLotItems = [];
-            item.setLotItems.push({ description: "New Component Sub-Item", qty: 1, unit: "pc" });
+            item.setLotItems.push({ ItemName: "New Component Sub-Item", Qty: 1, Unit: "pc", EstimatedCost: 0 });
             renderStep3AccordionItems();
+            scheduleWizardAutoSave();
         }
     }
 
+    function getStep3SubItemValues(sub) {
+        return {
+            description: sub.ItemName != null ? sub.ItemName : (sub.description || sub.Description || sub.itemName || ""),
+            quantity: Number(sub.Qty != null ? sub.Qty : (sub.qty || 0)),
+            unitCost: Number(sub.EstimatedCost != null ? sub.EstimatedCost : (sub.estimatedCost != null ? sub.estimatedCost : (sub.UnitCost != null ? sub.UnitCost : (sub.unitCost || 0))))
+        };
+    }
+
+    function updateStep3SubItem(itemId, subIndex, field, value) {
+        var item = findStep3Item(itemId);
+        var subItems = item ? (item.setLotItems || item.SetLotItems || []) : [];
+        var sub = subItems[subIndex];
+        if (!sub) return;
+        if (field === "description") sub.ItemName = value;
+        if (field === "quantity") sub.Qty = Math.max(0, Number(value) || 0);
+        if (field === "unitCost") sub.EstimatedCost = Math.round(Math.max(0, Number(value) || 0) * 100) / 100;
+        var values = getStep3SubItemValues(sub);
+        $("#step3SubItemTotal_" + itemId + "_" + subIndex).text(formatStep3GridAmount(values.quantity * values.unitCost));
+        updateStep3SetLotTotal(itemId);
+        scheduleWizardAutoSave();
+    }
+
+    function getStep3SetLotTotal(item) {
+        return (item.setLotItems || item.SetLotItems || []).reduce(function (sum, sub) {
+            var values = getStep3SubItemValues(sub);
+            return sum + (values.quantity * values.unitCost);
+        }, 0);
+    }
+
+    function updateStep3SetLotTotal(itemId) {
+        var item = findStep3Item(itemId);
+        if (item) $("#step3SetLotTotal_" + itemId).text(formatStep3GridAmount(getStep3SetLotTotal(item)));
+    }
     // Render Line Items Accordion
     function renderStep3AccordionItems() {
         var activeGroup = poGroups[activeStep3GroupIndex];
@@ -1164,26 +1205,30 @@
 
                 if (subItemsCount > 0) {
                     var subTable = $('<table class="step3-subitems-table">' +
-                        '<thead><tr><th>Sub-item No.</th><th>Description</th><th>Unit</th><th class="text-end">Qty</th><th class="text-end">Unit Cost</th><th class="text-end">Total</th></tr></thead>' +
-                        '<tbody></tbody>' +
+                        '<thead><tr><th>Sub-item No.</th><th>Description</th><th>Unit</th><th class="numeric-header">Qty</th><th class="numeric-header">Unit Cost</th><th class="numeric-header">Total</th></tr></thead>' +
+                        '<tbody></tbody><tfoot><tr><td colspan="5" class="numeric-header">Total Estimated Set/Lot Cost</td><td id="step3SetLotTotal_' + item.id + '" class="numeric-cell"></td></tr></tfoot>' +
                         '</table>');
                     var subTbody = subTable.find('tbody');
 
                     step3SubItems.forEach(function (sub, subIndex) {
                         var itemNo = sub.itemNo || sub.ItemNo || (subIndex + 1);
-                        var description = sub.description || sub.Description || sub.itemName || sub.ItemName || '';
+                        var values = getStep3SubItemValues(sub);
+                        var description = values.description;
                         var unit = sub.unit || sub.Unit || '';
-                        var quantity = Number(sub.qty != null ? sub.qty : (sub.Qty || 0));
-                        var unitCost = Number(sub.unitCost != null ? sub.unitCost : (sub.UnitCost != null ? sub.UnitCost : (sub.estimatedCost != null ? sub.estimatedCost : (sub.EstimatedCost || 0))));
+                        var quantity = values.quantity;
+                        var unitCost = values.unitCost;
                         var subRow = $('<tr></tr>');
                         $('<td></td>').text(itemNo).appendTo(subRow);
-                        $('<td></td>').text(description).appendTo(subRow);
+                        $('<td></td>').append($('<input type="text" class="form-control-custom step3-subitem-description" />').val(description).on('change', function () { updateStep3SubItem(item.id, subIndex, "description", this.value); })).appendTo(subRow);
                         $('<td></td>').text(unit).appendTo(subRow);
-                        $('<td class="text-end"></td>').text(quantity).appendTo(subRow);
-                        $('<td class="text-end"></td>').text(formatStep3Currency(unitCost)).appendTo(subRow);
-                        $('<td class="text-end"></td>').text(formatStep3Currency(quantity * unitCost)).appendTo(subRow);
+                        var qtyInput = $('<input class="step3-subitem-qty" />').appendTo($('<td class="numeric-cell"></td>').appendTo(subRow));
+                        var costInput = $('<input class="step3-subitem-unit-cost" />').appendTo($('<td class="numeric-cell"></td>').appendTo(subRow));
+                        $('<td class="numeric-cell" id="step3SubItemTotal_' + item.id + '_' + subIndex + '"></td>').text(formatStep3GridAmount(quantity * unitCost)).appendTo(subRow);
                         subTbody.append(subRow);
+                        qtyInput.kendoNumericTextBox({ min: 0, decimals: 0, format: "n0", spinners: false, value: quantity, change: function () { updateStep3SubItem(item.id, subIndex, "quantity", this.value()); } });
+                        costInput.kendoNumericTextBox({ min: 0, decimals: 2, format: "n2", spinners: false, value: unitCost, change: function () { updateStep3SubItem(item.id, subIndex, "unitCost", this.value()); } });
                     });
+                    subTable.find('#step3SetLotTotal_' + item.id).text(formatStep3GridAmount(getStep3SetLotTotal(item)));
                     subItemsWrapper.append(subTable);
                 } else {
                     subItemsWrapper.append('<div style="font-size: 11px; color: #94a3b8; font-style: italic;">No sub-items configured for this item.</div>');

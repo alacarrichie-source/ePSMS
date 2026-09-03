@@ -304,6 +304,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 {
                     foreach (var grp in poGroups)
                     {
+                        var date = (DateTime?)DateTime.Now;
                         var poNumber = String.IsNullOrWhiteSpace(grp.PONumber)
                             ? await GeneratePONumberAsync()
                             : grp.PONumber.Trim();
@@ -334,11 +335,31 @@ namespace iLgs.Ai.Services.PurchaseOrder
                             CertifiedCorrectBy = grp.CertifiedCorrectBy,
                             CertifiedCorrectDate = grp.CertifiedCorrectDate,
                             InsertedBy = user,
-                            InsertedDt = DateTime.Now,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date,
                             PostedBy = isDraft ? null : user,
-                            PostedDt = isDraft ? null : (DateTime?)DateTime.Now
+                            PostedDt = isDraft ? null : date
                         };
 
+                        if (grp.SourcePRs != null)
+                        {
+                            foreach (var sourcePR in grp.SourcePRs
+                                .Where(source => source != null && source.PRId != Guid.Empty)
+                                .GroupBy(source => source.PRId)
+                                .Select(group => group.First()))
+                            {
+                                po.OrderRequests.Add(new OrderRequest
+                                {
+                                    Id = Guid.NewGuid(),
+                                    PrId = sourcePR.PRId,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                });
+                            }
+                        }
                         int itemIndex = 1;
                         foreach (var itemDraft in grp.Items)
                         {
@@ -358,9 +379,56 @@ namespace iLgs.Ai.Services.PurchaseOrder
                                 Unit = itemDraft.Unit,
                                 UnitCost = itemDraft.UnitCost,
                                 Amount = itemDraft.Quantity * itemDraft.UnitCost,
-                                OtherDesc = itemDraft.TechnicalDescription
+                                OtherDesc = itemDraft.TechnicalDescription,
+                                InsertedBy = user,
+                                InsertedDt = date,                                
+                                UpdatedBy = user,
+                                UpdatedDt = date,
                             };
 
+                            if (itemDraft.SetLotItems != null)
+                            {
+                                var subItemIndex = 0;
+                                foreach (var subItemDraft in itemDraft.SetLotItems)
+                                {
+                                    if (subItemDraft == null || subItemDraft.Qty < 0 || subItemDraft.EstimatedCost < 0) continue;
+                                    subItemIndex++;
+                                    var orderSubItem = new OrderSubItem
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        OrderItem = lineItem,
+                                        ItemNo = String.IsNullOrWhiteSpace(subItemDraft.ItemNo) ? subItemIndex.ToString() : subItemDraft.ItemNo,
+                                        ItemNoIndex = subItemIndex.ToString(),
+                                        Description = subItemDraft.ItemName,
+                                        Unit = subItemDraft.Unit,
+                                        QtyPerSet = subItemDraft.Qty,
+                                        TotalQty = subItemDraft.Qty * itemDraft.Quantity,
+                                        UnitCost = subItemDraft.EstimatedCost,
+                                        EstimatedTotalCost = subItemDraft.Qty * subItemDraft.EstimatedCost,
+                                        SortOrder = subItemIndex,
+                                        IsActive = true,
+                                        InsertedBy = user,
+                                        InsertedDt = date,
+                                        UpdatedBy = user,
+                                        UpdatedDt = date
+                                    };
+                                    if (subItemDraft.RequestSubItemId.HasValue)
+                                    {
+                                        orderSubItem.OrderSubItemRequests.Add(new OrderSubItemRequest
+                                        {
+                                            Id = Guid.NewGuid(),
+                                            RequestSubItemId = subItemDraft.RequestSubItemId.Value,
+                                            QtyApplied = subItemDraft.Qty,
+                                            InsertedBy = user,
+                                            InsertedDt = date,
+                                            UpdatedBy = user,
+                                            UpdatedDt = date
+                                            
+                                        });
+                                    }
+                                    lineItem.OrderSubItems.Add(orderSubItem);
+                                }
+                            }
                             if (itemDraft.Allocations != null)
                             {
                                 foreach (var allocation in itemDraft.Allocations)
@@ -372,7 +440,9 @@ namespace iLgs.Ai.Services.PurchaseOrder
                                         RequestItemId = allocation.RequestItemId.Value,
                                         QtyApplied = allocation.Quantity,
                                         InsertedBy = user,
-                                        InsertedDt = DateTime.Now
+                                        InsertedDt = date,
+                                        UpdatedBy = user,
+                                        UpdatedDt = date
                                     });
                                 }
                             }

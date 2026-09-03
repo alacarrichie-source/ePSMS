@@ -31,9 +31,12 @@
                 columns.Bound(p => p.PRDate).Title("PR Date").Format("{0:MMM dd, yyyy}").Width(130);
                 columns.Bound(p => p.Department).Title("Department").Width(200);
                 columns.Bound(p => p.Purpose).Title("Purpose");
-                columns.Bound(p => p.ItemsCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(p => p.ItemsCount).Title("Items").Width(90)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell" });
                 columns.Bound(p => p.TotalAmount).Title("Estimated Total").Format("{0:n2}").Width(160)
-                    .HtmlAttributes(new { @class = "text-end font-weight-bold" });
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell font-weight-bold" });
             })
             .Pageable()
             .Sortable()

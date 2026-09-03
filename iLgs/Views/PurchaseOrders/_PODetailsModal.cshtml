@@ -162,15 +162,15 @@
                             Description &amp; Specifications
                         </th>
 
-                        <th class="col-qty text-center">
+                        <th class="col-qty numeric-header">
                             Qty / Unit
                         </th>
 
-                        <th class="col-cost text-end">
+                        <th class="col-cost numeric-header">
                             Unit Cost
                         </th>
 
-                        <th class="col-total text-end">
+                        <th class="col-total numeric-header">
                             Total Amount
                         </th>
 
@@ -245,18 +245,18 @@
                             </td>
 
 
-                            <td class="text-center">
+                            <td class="numeric-cell">
                                 @item.Quantity @item.Unit
                             </td>
 
 
-                            <td class="text-end">
-                                PHP @item.UnitCost.ToString("N2")
+                            <td class="numeric-cell">
+                                @item.UnitCost.ToString("N2")
                             </td>
 
 
-                            <td class="text-end font-weight-bold">
-                                PHP @item.TotalCost.ToString("N2")
+                            <td class="numeric-cell font-weight-bold">
+                                @item.TotalCost.ToString("N2")
                             </td>
 
                         </tr>
@@ -270,9 +270,9 @@
                             TOTAL AMOUNT:
                         </td>
 
-                        <td class="text-end total-amount">
+                        <td class="numeric-cell total-amount">
                             <strong>
-                                PHP @Model.TotalAmount.ToString("N2")
+                                @Model.TotalAmount.ToString("N2")
                             </strong>
                         </td>
 
