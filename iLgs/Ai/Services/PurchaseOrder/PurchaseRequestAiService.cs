@@ -53,7 +53,8 @@ namespace iLgs.Ai.Services.PurchaseOrder
 
             var items = await _db.RequestItems
                 .Include(i => i.PPMPItem)
-                .Include(i => i.Request)                
+                .Include(i => i.Request)
+                .Include(i => i.RequestSubItems)
                 .Where(i => prIds.Contains(i.PrId.ToString())) // && i.RemainingQty > 0)
                 .ToListAsync();
 
@@ -80,24 +81,17 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     PPMPCode = item.PPMPItem?.Code
                 };
 
-                // Deserialize sub-items if present
-                //if (!string.IsNullOrEmpty(item.SubItemsJson))
-                //{
-                //    try
-                //    {
-                //        vm.SetLotItems = _serializer.Deserialize<List<POSetLotItemViewModel>>(item.SubItemsJson);
-                //    }
-                //    catch
-                //    {
-                //        vm.SetLotItems = new List<POSetLotItemViewModel>();
-                //    }
-                //}
-                //else
-                //{
-                //    vm.SetLotItems = new List<POSetLotItemViewModel>();
-                //}
-
-                vm.SetLotItems = new List<POSetLotItemViewModel>();
+                vm.SetLotItems = item.RequestSubItems
+                    .OrderBy(subItem => subItem.ItemNo)
+                    .Select(subItem => new POSetLotItemViewModel
+                    {
+                        ItemNo = subItem.ItemNo,
+                        ItemName = subItem.Description,
+                        Unit = subItem.Unit,
+                        Qty = (int)(subItem.Qty ?? 0),
+                        EstimatedCost = subItem.UnitCost ?? 0
+                    })
+                    .ToList();
 
                 result.Add(vm);
             }

@@ -8,13 +8,28 @@
 
 <section class="epsms-procurement">
     <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
+        <span class="breadcrumb-separator">&gt;</span>
         <a href="@Url.Action("Annual")">Annual Procurement</a>
-        <span>›</span>
+        <span class="breadcrumb-separator">&gt;</span>
         My Cart
     </div>
 
-    <h1>My Procurement Cart</h1>
-    <p class="subtitle">Review quantities before creating your purchase request.</p>
+    <h1>@(Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart")</h1>
+    <p class="subtitle">@(Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : "Review quantities before creating your purchase request.")</p>
+
+    @if (Model.IsRevision)
+    {
+        <div class="pr-revision-notice">
+            <strong>Returned for Revision</strong>
+            <span>Revision No. @Model.RevisionNo</span>
+            <p><b>Reviewer Comment:</b> @(String.IsNullOrWhiteSpace(Model.ReviewComment) ? "No comment was recorded." : Model.ReviewComment)</p>
+        </div>
+        <div class="pr-revision-toolbar">
+            <a class="k-button k-button-solid-base" href="@Url.Action("Annual", "Procurement")"><span class="k-icon k-i-plus"></span> Add More Items</a>
+            <span>Cart changes are saved automatically for this session.</span>
+        </div>
+    }
 
     @Html.AntiForgeryToken()
 
@@ -27,7 +42,8 @@
                 .Width(65);
             columns.Bound(x => x.Code)
                 .Title("Item Code");
-            columns.Bound(x => x.Description);
+            columns.Bound(x => x.Description)
+                .HtmlAttributes(new { @class = "cart-multiline-description" });
             columns.Bound(x => x.Unit)
                 .Width(95);
             columns.Bound(x => x.Quantity)
@@ -49,7 +65,11 @@
             }).Width(180);
         })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
-        .Events(events => events.Edit("onCartGridEdit"))
+        .ClientDetailTemplateId("cartSubItemsTemplate")
+        .Events(events => events
+            .Edit("onCartGridEdit")
+            .DetailInit("onCartDetailInit"))
+        .Scrollable(scrollable => scrollable.Height(420))
         .Pageable()
         .Sortable()
         .HtmlAttributes(new { @class = "data-card" })
@@ -91,7 +111,7 @@
         </a>*@
         @(Html.Kendo().Button()
             .Name("proceedToCheckout")
-            .Content("<span class='k-icon k-i-arrow-right'></span> Proceed to Checkout")
+            .Content("<span class='k-icon k-i-arrow-right'></span> " + (Model.IsRevision ? "Proceed to Revision Checkout" : "Proceed to Checkout"))
             .HtmlAttributes(new
             {
                 type = "button",
@@ -99,12 +119,294 @@
                 style = "min-width: 180px;"
             })
             .Events(e => e.Click("proceedToCheckout"))
+            .Enable(Model.Items != null && Model.Items.Any())
         )
     </div>
 </section>
 
+<script id="cartSubItemsTemplate" type="text/x-kendo-template">
+    <div class="cart-sub-items-host"></div>
+</script>
+
 @section scripts {
     <script>
+        var cartSubItemUrls = {
+            read: "@Url.Action("CartSubItemsRead", "Procurement")",
+            create: "@Url.Action("CreateCartSubItem", "Procurement")",
+            update: "@Url.Action("UpdateCartSubItem", "Procurement")",
+            destroy: "@Url.Action("RemoveCartSubItem", "Procurement")",
+            units: "@Url.Action("GetUnits", "Getters")"
+        };
+
+        function columnTemplate(value) {
+            var encodedValue = kendo.htmlEncode(value || "");
+            return "<span title='" + encodedValue + "'>" + encodedValue + "</span>";
+        }
+
+        function cartSubItemUnitEditor(container, options) {
+            var $input =
+                $("<input required name='" + options.field +
+                    "' data-bind='value:" + options.field + "' />")
+                    .appendTo(container);
+
+            $input.kendoMultiColumnComboBox({
+                    placeholder: "Select unit",
+                    dataTextField: "Code",
+                    dataValueField: "Code",
+                    valuePrimitive: true,
+                    filter: "contains",
+                    autoBind: false,
+                    suggest: true,
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: cartSubItemUrls.units,
+                                dataType: "json",
+                                data: function () {
+                                    var widget =
+                                        $input.data("kendoMultiColumnComboBox");
+                                    return {
+                                        text: widget ? widget.input.val() : ""
+                                    };
+                                }
+                            }
+                        },
+                        serverFiltering: true
+                    },
+                    columns: [
+                        { field: "Code", title: "Code", width: 100 },
+                        {
+                            field: "Description",
+                            title: "Description",
+                            width: 220,
+                            template: "#= columnTemplate(data.Description) #"
+                        },
+                        {
+                            field: "Desc2",
+                            title: "Category",
+                            width: 180,
+                            template: "#= columnTemplate(data.Desc2) #"
+                        }
+                    ]
+                });
+        }
+
+        function cartDescriptionEditor(container, options) {
+            $("<textarea class='k-textbox cart-description-editor' " +
+                "name='" + options.field + "' data-bind='value:" +
+                options.field + "' rows='4'></textarea>")
+                .appendTo(container);
+        }
+
+        function cartSubItemRequestData(parentItemId) {
+            return {
+                parentItemId: parentItemId,
+                __RequestVerificationToken:
+                    $("input[name='__RequestVerificationToken']").val()
+            };
+        }
+
+        function onCartDetailInit(e) {
+            var parentItemId = e.data.Id;
+            var $host = e.detailCell.find(".cart-sub-items-host");
+
+            $("<div class='cart-sub-items-title'>User-defined sub-items</div>")
+                .prependTo($host);
+
+            var $subGridElement = $("<div />").appendTo($host);
+
+            $subGridElement.kendoGrid({
+                toolbar: [{
+                    template: "<button type='button' class='k-button k-primary cart-add-sub-item'>" +
+                        "<span class='k-icon k-i-plus'></span>Add Sub-item</button>"
+                }],
+                editable: "inline",
+                scrollable: true,
+                height: 300,
+                sortable: false,
+                pageable: false,
+                columns: [
+                    { field: "ItemNo", title: "Item No.", width: 85 },
+                    {
+                        field: "Description",
+                        title: "Description",
+                        editor: cartDescriptionEditor,
+                        attributes: { "class": "cart-multiline-description" }
+                    },
+                    {
+                        field: "Unit",
+                        title: "Unit",
+                        width: 120,
+                        editor: cartSubItemUnitEditor
+                    },
+                    { field: "Quantity", title: "Qty", width: 95, format: "{0:n2}" },
+                    {
+                        field: "UnitCost",
+                        title: "Unit Cost",
+                        width: 125,
+                        template: "\u20B1#= kendo.toString(UnitCost, 'n2') #"
+                    },
+                    {
+                        field: "Total",
+                        title: "Total",
+                        width: 130,
+                        template: "\u20B1#= kendo.toString(Total, 'n2') #"
+                    },
+                    {
+                        command: [
+                            { name: "edit", text: "Edit" },
+                            { name: "destroy", text: "Remove" }
+                        ],
+                        width: 175
+                    }
+                ],
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: cartSubItemUrls.read,
+                            type: "POST",
+                            data: function () {
+                                return cartSubItemRequestData(parentItemId);
+                            }
+                        },
+                        create: {
+                            url: cartSubItemUrls.create,
+                            type: "POST",
+                            data: function () {
+                                return cartSubItemRequestData(parentItemId);
+                            }
+                        },
+                        update: {
+                            url: cartSubItemUrls.update,
+                            type: "POST",
+                            data: function () {
+                                return cartSubItemRequestData(parentItemId);
+                            }
+                        },
+                        destroy: {
+                            url: cartSubItemUrls.destroy,
+                            type: "POST",
+                            data: function () {
+                                return cartSubItemRequestData(parentItemId);
+                            }
+                        }
+                    },
+                    error: onCartSubItemError,
+                    requestEnd: function (request) {
+                        var isMutation =
+                            request.type === "create" ||
+                            request.type === "update" ||
+                            request.type === "destroy";
+
+                        if (isMutation &&
+                            request.response &&
+                            !request.response.Errors) {
+                            this.read();
+                        }
+                    },
+                    schema: {
+                        data: "Data",
+                        total: "Total",
+                        errors: "Errors",
+                        model: {
+                            id: "Id",
+                            fields: {
+                                Id: {
+                                    type: "string",
+                                    editable: false,
+                                    nullable: true,
+                                    defaultValue: null
+                                },
+                                ParentItemId: {
+                                    type: "string",
+                                    editable: false,
+                                    defaultValue: parentItemId
+                                },
+                                ItemNo: { type: "string", editable: false },
+                                Description: {
+                                    type: "string",
+                                    validation: { required: true }
+                                },
+                                Unit: {
+                                    type: "string",
+                                    validation: { required: true }
+                                },
+                                Quantity: {
+                                    type: "number",
+                                    defaultValue: 1,
+                                    validation: { required: true, min: 0.01 }
+                                },
+                                UnitCost: {
+                                    type: "number",
+                                    defaultValue: 0,
+                                    validation: { required: true, min: 0 }
+                                },
+                                Total: { type: "number", editable: false }
+                            }
+                        }
+                    }
+                }
+            });
+
+            var subGrid = $subGridElement.data("kendoGrid");
+            subGrid.wrapper.on("click.cartSubItem", ".cart-add-sub-item", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Explicit insertion is more reliable than Grid.addRow() inside
+                // a hierarchy/detail row. It also guarantees that Kendo regards
+                // the item as new and therefore calls the create transport.
+                var newSubItem = subGrid.dataSource.insert(0, {
+                    Id: null,
+                    ParentItemId: parentItemId,
+                    ItemNo: "New",
+                    Description: "",
+                    Unit: "",
+                    Quantity: 1,
+                    UnitCost: 0,
+                    Total: 0
+                });
+                var $newRow = subGrid.tbody.find("tr[data-uid='" +
+                    newSubItem.uid + "']");
+
+                if (!$newRow.length) {
+                    alert("Unable to open a new sub-item row. Please refresh the cart and try again.");
+                    return;
+                }
+
+                subGrid.editRow($newRow);
+            });
+        }
+
+        function onCartSubItemError(e) {
+            var messages = [];
+
+            if (e.errors) {
+                $.each(e.errors, function (fieldName, error) {
+                    if (error.errors) {
+                        $.each(error.errors, function () {
+                            messages.push(this);
+                        });
+                    }
+                });
+            }
+
+            if (!messages.length) {
+                return;
+            }
+
+            $("[data-role='grid']").each(function () {
+                var grid = $(this).data("kendoGrid");
+                if (grid && grid.dataSource === e.sender) {
+                    grid.one("dataBinding", function (event) {
+                        event.preventDefault();
+                    });
+                }
+            });
+
+            alert(messages.join("\n"));
+        }
+
         function onCartGridError(e) {
             var messages = [];
 
@@ -152,10 +454,29 @@
                 if (typeof updateCartBadge === "function") {
                     updateCartBadge(result.cartCount);
                 }
+
+                var checkoutButton = $("#proceedToCheckout").data("kendoButton");
+                if (checkoutButton) {
+                    checkoutButton.enable(result.itemCount > 0);
+                }
             });
         }
 
         function onCartGridEdit(e) {
+            var descriptionInput = e.container.find("input[name='Description']");
+
+            if (descriptionInput.length) {
+                var descriptionValue = descriptionInput.val();
+                var $textArea =
+                    $("<textarea class='k-textbox cart-description-editor' " +
+                        "name='Description' data-bind='value:Description' " +
+                        "rows='4'></textarea>")
+                        .val(descriptionValue);
+
+                descriptionInput.replaceWith($textArea);
+                kendo.bind($textArea, e.model);
+            }
+
             var quantityInput = e.container
                 .find("input[name='Quantity']")
                 .data("kendoNumericTextBox");

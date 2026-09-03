@@ -323,6 +323,8 @@
     <Compile Include="Ai\Models\PurchaseOrderGridModel.cs" />
     <Compile Include="Ai\Models\PurchaseRequestGridViewModel.cs" />
     <Compile Include="Ai\Models\SupplierDropdownViewModel.cs" />
+    <Compile Include="Ai\Services\DocumentHistoryService.cs" />
+    <Compile Include="Ai\Services\DocumentTypes.cs" />
     <Compile Include="Controllers\AccountCodeController.cs" />
     <Compile Include="Controllers\AnnexDController.cs" />
     <Compile Include="Controllers\AuditTrailController.cs" />
@@ -417,6 +419,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\GridViewModels.cs" />
+    <Compile Include="Models\OrderSubItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderSubItemRequest.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PurchaseOrderWizardProgress.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -505,6 +513,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DollarRateViewModels.cs" />
+    <Compile Include="Models\DocumentStatusHistory.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\ErrorLog.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -4437,6 +4448,7 @@
     <Content Include="Views\CustodianAccountability2\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\CustodianReportCount\Department.cshtml" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
+    <Content Include="Views\Requests\_Review.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
     <Content Include="Views\RIS\Index.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
@@ -4879,16 +4891,9 @@
     <Content Include="Views\PurchaseOrders\Index.cshtml" />
     <Content Include="Views\PurchaseOrders\Print.cshtml" />
     <Content Include="Views\PurchaseOrders\Wizard.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step1_SelectPRs1.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step2_AssignGroupsX.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step3_PODetailsX.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step4_ReviewPost.cshtml" />
     <Content Include="Views\PurchaseOrders\_PODetailsModal.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step2_AssignGroups2.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step2_AssignGroups.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step3_PODetails2.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step3_PODetails3.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step3_PODetails4.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step3_PODetails.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step1_SelectPRs.cshtml" />
   </ItemGroup>

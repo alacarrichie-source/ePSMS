@@ -39,6 +39,7 @@
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
+        <EntityTypeShape EntityType="AppManModel.DocumentStatusHistory" Width="1.5" PointX="17.375" PointY="0.75" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="86" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="7.75" PointY="0.75" />
@@ -57,7 +58,12 @@
         <EntityTypeShape EntityType="AppManModel.OrderItemRequest" Width="1.5" PointX="7.5" PointY="11.5" />
         <AssociationConnector Association="AppManModel.FK_OrderItemRequests_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_OrderItemRequests_RequestItems" />
-        <EntityTypeShape EntityType="AppManModel.RequestSubItem" Width="1.5" PointX="7.5" PointY="15.875" />
+        <EntityTypeShape EntityType="AppManModel.OrderSubItemRequest" Width="1.5" PointX="9.75" PointY="19.875" />
+        <EntityTypeShape EntityType="AppManModel.OrderSubItem" Width="1.5" PointX="7.5" PointY="21.25" />
+        <AssociationConnector Association="AppManModel.FK_OrderSubItems_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_OrderSubItemRequests_OrderSubItems" />
+        <EntityTypeShape EntityType="AppManModel.RequestSubItem" Width="1.5" PointX="7.5" PointY="15.75" />
+        <AssociationConnector Association="AppManModel.FK_OrderSubItemRequests_RequestSubItems" />
         <AssociationConnector Association="AppManModel.FK_RequestSubItems_RequestItems" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="RSMI" ZoomLevel="75" >

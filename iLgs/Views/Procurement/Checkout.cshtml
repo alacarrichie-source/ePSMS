@@ -4,7 +4,7 @@
 @using Kendo.Mvc.UI
 
 @{
-    ViewBag.Title = "Purchase Request Checkout";
+    ViewBag.Title = Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 
     var cartItems = Model.Items ?? new List<iLgs.Models.CartItemViewModel>();    
@@ -12,19 +12,31 @@
 
 <section class="epsms-procurement">
     <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
+        <span class="breadcrumb-separator">&gt;</span>
         <a href="@Url.Action("Annual")">Annual Procurement</a>
-        <span>›</span>
+        <span class="breadcrumb-separator">&gt;</span>
         <a href="@Url.Action("Cart")">My Cart</a>
         <span>›</span>
         Checkout
     </div>
 
-    <h1>Purchase Request Checkout</h1>
-    <p class="subtitle">Review and finalize your procurement request details.</p>
+    <h1>@(Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout")</h1>
+    <p class="subtitle">@(Model.IsRevision ? "Review the revised Purchase Request before returning it to the review queue." : "Review and finalize your procurement request details.")</p>
+
+    @if (Model.IsRevision)
+    {
+        <div class="pr-revision-notice">
+            <strong>Returned for Revision</strong>
+            <span>Revision No. @Model.RevisionNo</span>
+            <p><b>Reviewer Comment:</b> @(String.IsNullOrWhiteSpace(Model.ReviewComment) ? "No comment was recorded." : Model.ReviewComment)</p>
+        </div>
+    }
 
     @using (Html.BeginForm("Checkout", "Procurement", FormMethod.Post, new { name = "formCheckout", id = "formCheckout" }))
     {
         @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.CheckoutToken)
         @Html.ValidationSummary(
             true,
             "",
@@ -213,7 +225,7 @@
 
                 @(Html.Kendo().Grid<iLgs.Models.CartItemViewModel>()
                     .Name("requestItems")
-                    .BindTo(cartItems)
+                    .ClientDetailTemplateId("checkoutSubItemsTemplate")
                     .Columns(columns =>
                     {
                         columns.Bound(x => x.ItemNo)
@@ -225,7 +237,8 @@
                             .Width(110);
 
                         columns.Bound(x => x.Description)
-                            .Title("Description");
+                            .Title("Description")
+                            .HtmlAttributes(new { @class = "cart-multiline-description" });
 
                         columns.Bound(x => x.Unit)
                             .Title("Unit")
@@ -239,15 +252,23 @@
                         columns.Bound(x => x.UnitCost)
                             .Title("Unit Cost")
                             .Width(130)
-                            .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+                            .ClientTemplate("\u20B1#= kendo.toString(UnitCost, 'n2') #");
 
                         columns.Bound(x => x.EstimatedAmount)
                             .Title("Estimated Amount")
                             .Width(150)
-                            .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+                            .ClientTemplate("\u20B1#= kendo.toString(EstimatedAmount, 'n2') #");
                     })
-                    .Sortable()
+                    .Events(events => events.DetailInit("onCheckoutDetailInit"))
+                    .Scrollable(scrollable => scrollable.Height(420))
                     .Pageable()
+                    .Sortable()
+                    .HtmlAttributes(new { @class = "data-card checkout-items-grid" })
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                        .Read(read => read.Action("CartRead", "Procurement"))
+                    )
                 )
             </section>
 
@@ -285,14 +306,17 @@
 
                 <div class="submit-confirmation">
                     <label>
-                        <input type="checkbox" id="confirmCheckout" />
+                        <input type="checkbox" id="confirmCheckout"
+                               @(Model.Confirmed ? "checked=checked" : "") />
+                        @Html.HiddenFor(m => m.Confirmed, new { id = "confirmedCheckoutValue" })
                         I have reviewed the purchase request details and confirm that they are correct.
                     </label>
+                    @Html.ValidationMessageFor(m => m.Confirmed, "", new { @class = "text-danger" })
                 </div>
 
                 @(Html.Kendo().Button()
                 .Name("submitForReview")
-                .Content("<span class='k-icon k-i-check'></span> Submit for Review")
+                .Content("<span class='k-icon k-i-check'></span> " + (Model.IsRevision ? "Resubmit Purchase Request" : "Submit for Review"))
                 .HtmlAttributes(new
                 {
                     type = "submit",
@@ -314,6 +338,10 @@
         </div>
     }
 </section>
+
+<script id="checkoutSubItemsTemplate" type="text/x-kendo-template">
+    <div class="checkout-sub-items-host"></div>
+</script>
 
 <style>
     .submit-confirmation {
@@ -342,7 +370,65 @@
     @Scripts.Render("~/bundles/jqueryval")
 
     <script>
+        function onCheckoutDetailInit(e) {
+            var parentItemId = e.data.Id;
+            var $host = e.detailCell.find(".checkout-sub-items-host");
+
+            $("<div class='cart-sub-items-title'>User-defined sub-items</div>")
+                .prependTo($host);
+
+            $("<div />")
+                .appendTo($host)
+                .kendoGrid({
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Action("CartSubItemsRead", "Procurement")",
+                                type: "POST",
+                                data: function () {
+                                    return { parentItemId: parentItemId };
+                                }
+                            }
+                        },
+                        schema: {
+                            data: "Data",
+                            total: "Total",
+                            errors: "Errors"
+                        }
+                    },
+                    scrollable: true,
+                    height: 300,
+                    sortable: false,
+                    pageable: false,
+                    columns: [
+                        { field: "ItemNo", title: "Item No.", width: "12%" },
+                        {
+                            field: "Description",
+                            title: "Description",
+                            width: "35%",
+                            attributes: { "class": "cart-multiline-description" }
+                        },
+                        { field: "Unit", title: "Unit", width: "12%" },
+                        { field: "Quantity", title: "Qty", width: "11%", format: "{0:n2}" },
+                        {
+                            field: "UnitCost",
+                            title: "Unit Cost",
+                            width: "15%",
+                            template: "\u20B1#= kendo.toString(UnitCost, 'n2') #"
+                        },
+                        {
+                            field: "Total",
+                            title: "Total",
+                            width: "15%",
+                            template: "\u20B1#= kendo.toString(Total, 'n2') #"
+                        }
+                    ]
+                });
+        }
+
         $(document).ready(function () {
+            var isRevisionCheckout = @Html.Raw(Json.Encode(Model.IsRevision));
+            var revisionConfirmed = false;
             @*var disabled = $("#formCheckout").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
@@ -365,46 +451,62 @@
                 }
             });*@
 
-            var disabled = $("#formCheckout").find(':input:disabled').removeAttr('disabled');
-
             // Initially disable Submit for Review
             var submitButton = $("#submitForReview").data("kendoButton");
-            submitButton.enable(false);
+            submitButton.enable($("#confirmCheckout").is(":checked"));
 
             // Enable/disable Submit for Review based on confirmation checkbox
             $("#confirmCheckout").on("change", function () {
+                $("#confirmedCheckoutValue").val(this.checked ? "true" : "false");
                 submitButton.enable(this.checked);
+            });
+
+            $("#formCheckout").on("submit", function () {
+                var confirmed = $("#confirmCheckout").is(":checked");
+                $("#confirmedCheckoutValue").val(confirmed ? "true" : "false");
+
+                if (!confirmed) {
+                    submitButton.enable(false);
+                    return false;
+                }
+
+                if (isRevisionCheckout && !revisionConfirmed && window.kendo && kendo.confirm) {
+                    var form = this;
+                    kendo.confirm("Resubmit this Purchase Request for review?<br><br>The revised Purchase Request will become read-only again and return to the review queue.")
+                        .done(function () {
+                            revisionConfirmed = true;
+                            form.submit();
+                        });
+                    return false;
+                }
+
+                return true;
             });
 
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("GetModelDefault", "Requests")',
                 success: function (result) {
-                    $("#Availability")
-                        .data("kendoMultiColumnComboBox")
-                        .value(result.model.Availability);
+                    var availability = $("#Availability").data("kendoMultiColumnComboBox");
+                    var approvedBy = $("#ApprovedBy").data("kendoMultiColumnComboBox");
 
-                    $("#Availability")
-                        .data("kendoMultiColumnComboBox")
-                        .trigger("change");
+                    if (availability && !availability.value()) {
+                        availability.value(result.model.Availability);
+                        availability.trigger("change");
+                    }
 
-                    $("#AvaialbilityDesig")
-                        .val(result.model.AvaialbilityDesig)
-                        .trigger("change");
+                    if (!$("#AvaialbilityDesig").val()) {
+                        $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig).trigger("change");
+                    }
 
-                    $("#ApprovedBy")
-                        .data("kendoMultiColumnComboBox")
-                        .value(result.model.ApprovedBy);
+                    if (approvedBy && !approvedBy.value()) {
+                        approvedBy.value(result.model.ApprovedBy);
+                        approvedBy.trigger("change");
+                    }
 
-                    $("#ApprovedBy")
-                        .data("kendoMultiColumnComboBox")
-                        .trigger("change");
-
-                    $("#ApprovedDesig")
-                        .val(result.model.ApprovedDesig)
-                        .trigger("change");
-
-                    disabled.attr('disabled', 'disabled');
+                    if (!$("#ApprovedDesig").val()) {
+                        $("#ApprovedDesig").val(result.model.ApprovedDesig).trigger("change");
+                    }
                 },
                 error: function (req, status, errorObj) {
                     alert(req.responseText);

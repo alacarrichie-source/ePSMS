@@ -28,19 +28,24 @@
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             //columns.Bound(c => c.SetLotNo).Width(50);
-            columns.Command(command =>
+            if (ViewBag.CanRevise == true)
             {
-                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
-                //command.Destroy();
-            }).Width(70);
+                columns.Command(command =>
+                {
+                    command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
+                    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
+                }).Width(70);
+            }
         })
         .ToolBar(toolbar =>
         {
-            toolbar.Template(@<text>                
-                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRequestItem")))                    
-            @(Html.Kendo().Button().Name("btnAddPpmpItem_" + ViewData["requestId"]).Content("Add from PPMP").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddPpmpItem")))                    
-            </text>);            
+            if (ViewBag.CanRevise == true)
+            {
+                toolbar.Template(@<text>
+                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRequestItem")))
+                    @(Html.Kendo().Button().Name("btnAddPpmpItem_" + ViewData["requestId"]).Content("Add from PPMP").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddPpmpItem")))
+                </text>);
+            }
         })
         .Pageable(pager => pager
             .Input(false)

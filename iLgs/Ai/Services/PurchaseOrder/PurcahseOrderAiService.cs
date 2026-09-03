@@ -309,6 +309,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                             : grp.PONumber.Trim();
                         var po = new Order
                         {
+                            Id = Guid.NewGuid(),
                             PoNo = poNumber,
                             CtrlNo = grp.CtrlNo,
                             PoDate = grp.PODate,
@@ -347,6 +348,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                             itemIndex++;
                             var lineItem = new OrderItem
                             {
+                                Id = Guid.NewGuid(),
                                 ItemNo = itemNo,
                                 ItemCodeId = itemDraft.ItemCodeId,
                                 Description = itemDraft.Description,
@@ -365,9 +367,12 @@ namespace iLgs.Ai.Services.PurchaseOrder
                                 {
                                     lineItem.OrderItemRequests.Add(new OrderItemRequest
                                     {
+                                        Id = Guid.NewGuid(),
                                         OrderItem = lineItem,
                                         RequestItemId = allocation.RequestItemId.Value,
-                                        QtyApplied = allocation.Quantity
+                                        QtyApplied = allocation.Quantity,
+                                        InsertedBy = user,
+                                        InsertedDt = DateTime.Now
                                     });
                                 }
                             }

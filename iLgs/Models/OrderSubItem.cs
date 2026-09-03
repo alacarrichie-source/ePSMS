@@ -12,30 +12,38 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RequestSubItem
+    public partial class OrderSubItem
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RequestSubItem()
+        public OrderSubItem()
         {
             this.OrderSubItemRequests = new HashSet<OrderSubItemRequest>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RequestItemId { get; set; }
+        public System.Guid OrderItemId { get; set; }
         public string ItemNo { get; set; }
         public string ItemNoIndex { get; set; }
         public string Description { get; set; }
-        public Nullable<decimal> Qty { get; set; }
         public string Unit { get; set; }
+        public decimal QtyPerSet { get; set; }
+        public Nullable<decimal> TotalQty { get; set; }
+        public string Brand { get; set; }
+        public string Model { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
-        public Nullable<decimal> Total { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<decimal> EstimatedTotalCost { get; set; }
+        public string GroupName { get; set; }
+        public string Remarks { get; set; }
+        public int SortOrder { get; set; }
+        public bool IsActive { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual OrderItem OrderItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderSubItemRequest> OrderSubItemRequests { get; set; }
-        public virtual RequestItem RequestItem { get; set; }
     }
 }

@@ -1,10 +1,13 @@
-﻿using iLgs.Exceptions;
+﻿using iLgs.Ai.Services;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -42,6 +45,7 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask UnsubmitAsync(Guid requestId, string user, DateTime date);
 
         ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
+        ValueTask<PurchaseRequestViewModel> SaveRevisionCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
 
         IRequestItemService RequestItem { get; }
     }
@@ -55,6 +59,7 @@ namespace iLgs.Services.PurchaseRequest
         private readonly IExceptionService<RequestVM> _vmExceptionService = new ExceptionService<RequestVM>();
         private readonly IExceptionService<PurchaseRequestViewModel> _prCheckoutExceptionService = new ExceptionService<PurchaseRequestViewModel>();
         private readonly IPriceCapService _priceCapService;
+        private readonly IDocumentHistoryService _documentHistoryService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         private IRequestItemService _requestItemService;
@@ -67,6 +72,7 @@ namespace iLgs.Services.PurchaseRequest
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
             _priceCapService = new PriceCapService(_db);
             _requestItemService = new RequestItemService(_db);
+            _documentHistoryService = new DocumentHistoryService(_db);
         }
 
         //public RequestService(AppManEntities db,
@@ -88,39 +94,51 @@ namespace iLgs.Services.PurchaseRequest
             return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
         }
 
-        private static Expression<Func<Request, RequestVM>> Projection
-        = s => new RequestVM
-        {
-            Id = s.Id,
-            CtrlNo = s.CtrlNo,
-            Fund = s.Fund,
-            FundSpecific = s.FundSpecific,
-            DeptId = s.DeptId,
-            Department = s.Department,
-            Section = s.Section,
-            PrNo = s.PrNo,
-            PrDate = s.PrDate,
-            FPP = s.FPP,
-            Purpose = s.Purpose,
-            RequestedBy = s.RequestedBy,
-            RequestedDesig = s.RequestedDesig,
-            Availability = s.Availability,
-            AvaialbilityDesig = s.AvaialbilityDesig,
-            ApprovedBy = s.ApprovedBy,
-            ApprovedDesig = s.ApprovedDesig,
-            SubmittedBy = s.SubmittedBy,
-            SubmittedDt = s.SubmittedDt,
-            PostedBy = s.PostedBy,
-            PostedDt = s.PostedDt,
-            //IsWithPO = s.Orders.Any(),
-            IsWithPO = s.RequestItems.Any(a => a.OrderItemRequests.Any()),
-            InsertedBy = s.InsertedBy,
-            InsertedDt = s.InsertedDt
-        };
+        private static Expression<Func<Request, RequestVM>> Projection(AppManEntities db) {
+            return s => new RequestVM
+            {
+                Id = s.Id,
+                CtrlNo = s.CtrlNo,
+                Fund = s.Fund,
+                FundSpecific = s.FundSpecific,
+                DeptId = s.DeptId,
+                Department = s.Department,
+                Section = s.Section,
+                PrNo = s.PrNo,
+                PrDate = s.PrDate,
+                FPP = s.FPP,
+                Purpose = s.Purpose,
+                RequestedBy = s.RequestedBy,
+                RequestedDesig = s.RequestedDesig,
+                Availability = s.Availability,
+                AvaialbilityDesig = s.AvaialbilityDesig,
+                ApprovedBy = s.ApprovedBy,
+                ApprovedDesig = s.ApprovedDesig,
+                SubmittedBy = s.SubmittedBy,
+                SubmittedDt = s.SubmittedDt,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
+                ItemCount = s.RequestItems.Count(),
+                TotalAmount = s.RequestItems.Sum(i => i.TotalCost) ?? 0,
+                //Status = !(s.PostedBy == null || s.PostedBy == "")
+                //    ? "Posted"
+                //    : (!(s.SubmittedBy == null || s.SubmittedBy == "")
+                //        ? "Submitted"
+                //        : "Draft"),
+                Status = db.DocumentStatusHistories.Where(h => h.DocumentType == DocumentTypes.PurchaseRequest && h.DocumentId == s.Id)
+                    .OrderByDescending(h => h.ChangedDt)
+                    .Select(h => h.ToStatus)
+                    .FirstOrDefault(),
+                //IsWithPO = s.Orders.Any(),
+                IsWithPO = s.RequestItems.Any(a => a.OrderItemRequests.Any()),
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt
+            };
+        }
 
         public IQueryable<RequestVM> GetAll()
         {
-            return _db.Requests.AsNoTracking().Select(Projection).AsQueryable();
+            return _db.Requests.AsNoTracking().Select(Projection(_db)).AsQueryable();
         }
 
         public async ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId)
@@ -131,7 +149,7 @@ namespace iLgs.Services.PurchaseRequest
                 data = data.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId));
             }
 
-            return data.Select(Projection).AsNoTracking();
+            return data.Select(Projection(_db)).AsNoTracking();
         }
 
         public async ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId, bool? isSubmitted)
@@ -147,12 +165,12 @@ namespace iLgs.Services.PurchaseRequest
                 data = data.Where(w => !(w.SubmittedBy == null || w.SubmittedBy == ""));
             }
 
-            return data.Select(Projection).AsNoTracking();
+            return data.Select(Projection(_db)).AsNoTracking();
         }
 
         public Task<RequestVM> GetByIdAsync(Guid? prId)
         {
-            return _db.Requests.Where(w => w.Id == prId).Select(Projection).FirstOrDefaultAsync();
+            return _db.Requests.Where(w => w.Id == prId).Select(Projection(_db)).FirstOrDefaultAsync();
         }
 
         public async Task<bool> IsAnyPrNoAsync(Guid id, string prNo)
@@ -167,7 +185,7 @@ namespace iLgs.Services.PurchaseRequest
 
         public Task<RequestVM> GetByPrNoAsync(string prNo)
         {
-            return _db.Requests.Where(w => w.PrNo == prNo).Select(Projection).FirstOrDefaultAsync();
+            return _db.Requests.Where(w => w.PrNo == prNo).Select(Projection(_db)).FirstOrDefaultAsync();
         }
 
         //public bool IsPosted(Guid requestId)
@@ -221,51 +239,306 @@ namespace iLgs.Services.PurchaseRequest
         public ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date) =>
         _prCheckoutExceptionService.TryCatch(async () =>
         {
-            var request = new RequestVM()
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                Fund = model.Fund,
-                FundSpecific = model.FundSpecific,
-                DeptId = model.DeptId,
-                Department = model.Department,
-                //Section = model.Section,
-                //PrNo = model.PrNo,
-                //PrDate = model.PrDate,
-                FPP = model.FPP,
-                Purpose = model.Purpose,
-                RequestedBy = model.RequestedBy,
-                RequestedDesig = model.RequestedDesig,
-                Availability = model.Availability,
-                AvaialbilityDesig = model.AvaialbilityDesig,
-                ApprovedBy = model.ApprovedBy,
-                ApprovedDesig = model.ApprovedDesig,
-                SubmittedBy = user,
-                SubmittedDt = date
-            };
-            var requestVM = await CreateAsync(request, user, date);
-            model.CtrlNo = requestVM.CtrlNo;
-
-            foreach (var item in model.Items)
-            {
-                var requestItem = new RequestItemVM()
+                try
                 {
-                    PrId = requestVM.Id,
-                    ItemNo = item.ItemNo,
-                    ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo),
-                    Description = item.Description,
-                    //OtherDesc = item.OtherDesc,
-                    //Remarks = item.Remarks,
-                    Qty = item.Quantity,
-                    Unit = item.Unit,
-                    UnitCost = item.UnitCost,
-                    TotalCost = item.EstimatedAmount,
-                    //PriceRate = item.PriceRate,
-                    PpmpItemId = item.Id,
-                    PpmpCode = item.Code
-                };
-                await RequestItem.CreateAsync(requestItem, user, date);
-            }
+                    var itemIds = model.Items.Select(x => x.Id).Distinct().ToList();
+                    var currentItems = await _db.PPMPItems
+                        .Include(x => x.PPMP)
+                        .Include(x => x.PPMPItemUsages)
+                        .Where(x => itemIds.Contains(x.Id))
+                        .ToListAsync();
 
-            return model;
+                    if (currentItems.Count != itemIds.Count)
+                    {
+                        throw new InvalidOperationException("One or more procurement items no longer exist.");
+                    }
+
+                    foreach (var item in model.Items)
+                    {
+                        var currentItem = currentItems.Single(x => x.Id == item.Id);
+                        var usedQuantity = currentItem.PPMPItemUsages.Sum(x => x.Qty).GetValueOrDefault();
+                        var availableQuantity = currentItem.Qty.GetValueOrDefault() - usedQuantity;
+
+                        if (currentItem.PPMP == null ||
+                            currentItem.PPMP.DeptId != model.DeptId ||
+                            currentItem.PPMP.ForYear != model.ProcurementFiscalYear ||
+                            item.Quantity <= 0 ||
+                            item.Quantity > availableQuantity)
+                        {
+                            throw new InvalidOperationException(
+                                item.Code + " is no longer available for the requested quantity.");
+                        }
+
+                        if (!currentItem.UnitCost.HasValue)
+                        {
+                            throw new InvalidOperationException(item.Code + " has no unit cost.");
+                        }
+
+                        if (String.IsNullOrWhiteSpace(item.Description))
+                        {
+                            throw new InvalidOperationException(item.Code + " requires a description.");
+                        }
+
+                        item.Code = currentItem.Code;
+                        item.Description = item.Description.Trim();
+                        item.Unit = currentItem.Unit;
+                        item.UnitCost = currentItem.UnitCost;
+                    }
+
+                    var request = new RequestVM()
+                    {
+                        Fund = model.Fund,
+                        FundSpecific = model.FundSpecific,
+                        DeptId = model.DeptId,
+                        Department = model.Department,
+                        FPP = model.FPP,
+                        Purpose = model.Purpose,
+                        RequestedBy = model.RequestedBy,
+                        RequestedDesig = model.RequestedDesig,
+                        Availability = model.Availability,
+                        AvaialbilityDesig = model.AvaialbilityDesig,
+                        ApprovedBy = model.ApprovedBy,
+                        ApprovedDesig = model.ApprovedDesig,
+                        SubmittedBy = user,
+                        SubmittedDt = date
+                    };
+                    var requestVM = await CreateAsync(request, user, date);
+                    model.CtrlNo = requestVM.CtrlNo;
+
+                    foreach (var item in model.Items)
+                    {
+                        var requestItem = new RequestItemVM()
+                        {
+                            PrId = requestVM.Id,
+                            ItemNo = item.ItemNo,
+                            ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo),
+                            Description = item.Description,
+                            Qty = item.Quantity,
+                            Unit = item.Unit,
+                            UnitCost = item.UnitCost,
+                            TotalCost = item.EstimatedAmount,
+                            PpmpItemId = item.Id,
+                            PpmpCode = item.Code
+                        };
+                        await RequestItem.CreateAsync(requestItem, user, date);
+
+                        foreach (var subItem in item.SubItems ?? Enumerable.Empty<CartSubItemViewModel>())
+                        {
+                            if (String.IsNullOrWhiteSpace(subItem.Description) ||
+                                String.IsNullOrWhiteSpace(subItem.Unit) ||
+                                subItem.Quantity <= 0 ||
+                                subItem.UnitCost < 0)
+                            {
+                                throw new InvalidOperationException(
+                                    "A sub-item under " + item.Code + " contains invalid values.");
+                            }
+
+                            _db.RequestSubItems.Add(new RequestSubItem
+                            {
+                                Id = Guid.NewGuid(),
+                                RequestItemId = requestItem.Id,
+                                ItemNo = subItem.ItemNo,
+                                ItemNoIndex = Utility.GetItemNoIndex(subItem.ItemNo),
+                                Description = subItem.Description.Trim(),
+                                Unit = subItem.Unit.Trim(),
+                                Qty = subItem.Quantity,
+                                UnitCost = subItem.UnitCost,
+                                Total = subItem.Total,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            });
+                        }                        
+                    }
+
+                    var oldStatus = "DRAFT";
+                    var history = (await _documentHistoryService.GetLatestHistoryAsync(DocumentTypes.PurchaseRequest, request.Id));
+                    if (history != null)
+                    {
+                        oldStatus = history.ToStatus;
+                    }
+                    _documentHistoryService.AddStatusHistory(
+                        DocumentTypes.PurchaseRequest,
+                        request.Id,
+                        request.PrNo,
+                        oldStatus,
+                        "SUBMITTED",
+                        "Submit",
+                        null,
+                        user);
+
+                    await _db.SaveChangesAsync();
+
+                    transaction.Commit();
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        });
+
+        public ValueTask<PurchaseRequestViewModel> SaveRevisionCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date) =>
+        _prCheckoutExceptionService.TryCatch(async () =>
+        {
+            if (!model.RequestId.HasValue || model.RequestId.Value == Guid.Empty)
+                throw new InvalidOperationException("The revision Purchase Request is missing.");
+
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var requestId = model.RequestId.Value;
+                    var entity = await _db.Requests
+                        .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
+                        .FirstOrDefaultAsync(x => x.Id == requestId);
+                    if (entity == null)
+                        throw new InvalidOperationException("The Purchase Request no longer exists.");
+
+                    var latestStatus = await _db.DocumentStatusHistories
+                        .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == requestId)
+                        .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
+                        .Select(x => x.ToStatus).FirstOrDefaultAsync();
+                    if (!String.Equals(latestStatus, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Only a Purchase Request currently being revised can be resubmitted.");
+
+                    if (model.Items == null || !model.Items.Any())
+                        throw new InvalidOperationException("The Purchase Request must contain at least one item.");
+
+                    var ppmpIds = model.Items.Select(x => x.Id).Distinct().ToList();
+                    var ppmpItems = await _db.PPMPItems.Include(x => x.PPMP).Include(x => x.PPMPItemUsages)
+                        .Where(x => ppmpIds.Contains(x.Id)).ToListAsync();
+                    if (ppmpItems.Count != ppmpIds.Count)
+                        throw new InvalidOperationException("One or more procurement items no longer exist.");
+
+                    foreach (var item in model.Items)
+                    {
+                        var ppmpItem = ppmpItems.Single(x => x.Id == item.Id);
+                        var usedByOthers = ppmpItem.PPMPItemUsages.Where(x => x.PrId != requestId).Sum(x => x.Qty).GetValueOrDefault();
+                        var available = ppmpItem.Qty.GetValueOrDefault() - usedByOthers;
+                        if (ppmpItem.PPMP == null || ppmpItem.PPMP.DeptId != entity.DeptId ||
+                            ppmpItem.PPMP.ForYear != model.ProcurementFiscalYear || item.Quantity <= 0 || item.Quantity > available)
+                            throw new InvalidOperationException(item.Code + " is no longer available for the requested quantity.");
+                        if (!ppmpItem.UnitCost.HasValue || String.IsNullOrWhiteSpace(item.Description))
+                            throw new InvalidOperationException(item.Code + " has incomplete item details.");
+                    }
+
+                    entity.Fund = model.Fund == null ? null : model.Fund.Trim().ToUpper();
+                    entity.FundSpecific = model.FundSpecific;
+                    entity.FPP = model.FPP;
+                    entity.Purpose = model.Purpose == null ? "" : model.Purpose.Trim();
+                    entity.RequestedBy = model.RequestedBy == null ? "" : model.RequestedBy.Trim();
+                    entity.RequestedDesig = model.RequestedDesig == null ? "" : model.RequestedDesig.Trim();
+                    entity.Availability = model.Availability == null ? "" : model.Availability.Trim();
+                    entity.AvaialbilityDesig = model.AvaialbilityDesig == null ? "" : model.AvaialbilityDesig.Trim();
+                    entity.ApprovedBy = model.ApprovedBy == null ? "" : model.ApprovedBy.Trim();
+                    entity.ApprovedDesig = model.ApprovedDesig == null ? "" : model.ApprovedDesig.Trim();
+                    entity.SubmittedBy = user;
+                    entity.SubmittedDt = date;
+                    entity.UpdatedBy = user;
+                    entity.UpdatedDt = date;
+
+                    var retainedItemIds = new HashSet<Guid>();
+                    foreach (var item in model.Items)
+                    {
+                        var ppmpItem = ppmpItems.Single(x => x.Id == item.Id);
+                        var requestItem = item.RequestItemId.HasValue
+                            ? entity.RequestItems.SingleOrDefault(x => x.Id == item.RequestItemId.Value)
+                            : null;
+                        if (item.RequestItemId.HasValue && requestItem == null)
+                            throw new InvalidOperationException("A Purchase Request item changed in another session. Reload the revision.");
+                        if (requestItem == null)
+                        {
+                            requestItem = new RequestItem { Id = Guid.NewGuid(), PrId = entity.Id, InsertedBy = user, InsertedDt = date };
+                            entity.RequestItems.Add(requestItem);
+                            item.RequestItemId = requestItem.Id;
+                        }
+
+                        retainedItemIds.Add(requestItem.Id);
+                        requestItem.ItemNo = item.ItemNo;
+                        requestItem.ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo);
+                        requestItem.Description = item.Description.Trim();
+                        requestItem.OtherDesc = item.TechnicalSpecifications == null ? "" : item.TechnicalSpecifications.Trim();
+                        requestItem.Qty = item.Quantity;
+                        requestItem.Unit = ppmpItem.Unit;
+                        requestItem.UnitCost = ppmpItem.UnitCost;
+                        requestItem.TotalCost = item.Quantity * ppmpItem.UnitCost.GetValueOrDefault();
+                        requestItem.PpmpItemId = ppmpItem.Id;
+                        requestItem.PpmpCode = ppmpItem.Code;
+                        requestItem.UpdatedBy = user;
+                        requestItem.UpdatedDt = date;
+
+                        var retainedSubItemIds = new HashSet<Guid>();
+                        foreach (var subItem in item.SubItems ?? Enumerable.Empty<CartSubItemViewModel>())
+                        {
+                            if (String.IsNullOrWhiteSpace(subItem.Description) || String.IsNullOrWhiteSpace(subItem.Unit) || subItem.Quantity <= 0 || subItem.UnitCost < 0)
+                                throw new InvalidOperationException("A sub-item under " + item.Code + " contains invalid values.");
+                            var entitySubItem = requestItem.RequestSubItems.SingleOrDefault(x => x.Id == subItem.Id);
+                            if (entitySubItem == null)
+                            {
+                                entitySubItem = new RequestSubItem { Id = subItem.Id == Guid.Empty ? Guid.NewGuid() : subItem.Id, RequestItemId = requestItem.Id, InsertedBy = user, InsertedDt = date };
+                                requestItem.RequestSubItems.Add(entitySubItem);
+                                subItem.Id = entitySubItem.Id;
+                            }
+                            retainedSubItemIds.Add(entitySubItem.Id);
+                            entitySubItem.ItemNo = subItem.ItemNo;
+                            entitySubItem.ItemNoIndex = Utility.GetItemNoIndex(subItem.ItemNo);
+                            entitySubItem.Description = subItem.Description.Trim();
+                            entitySubItem.Unit = subItem.Unit.Trim();
+                            entitySubItem.Qty = subItem.Quantity;
+                            entitySubItem.UnitCost = subItem.UnitCost;
+                            entitySubItem.Total = subItem.Total;
+                            entitySubItem.UpdatedBy = user;
+                            entitySubItem.UpdatedDt = date;
+                        }
+                        _db.RequestSubItems.RemoveRange(requestItem.RequestSubItems.Where(x => !retainedSubItemIds.Contains(x.Id)).ToList());
+                    }
+
+                    var removedItems = entity.RequestItems.Where(x => !retainedItemIds.Contains(x.Id)).ToList();
+                    _db.RequestSubItems.RemoveRange(removedItems.SelectMany(x => x.RequestSubItems).ToList());
+                    _db.RequestItems.RemoveRange(removedItems);
+
+                    var usages = await _db.PPMPItemUsages.Where(x => x.PrId == requestId).ToListAsync();
+                    foreach (var item in model.Items)
+                    {
+                        var usage = usages.FirstOrDefault(x => x.PpmpItemId == item.Id);
+                        if (usage == null)
+                        {
+                            usage = new PPMPItemUsage { Id = Guid.NewGuid(), PpmpItemId = item.Id, PrId = requestId, InsertedBy = user, InsertedDt = date };
+                            _db.PPMPItemUsages.Add(usage);
+                        }
+                        usage.Type = String.IsNullOrWhiteSpace(entity.PrNo) ? "PR-CN" : "PR";
+                        usage.Reference = entity.PrNo ?? entity.CtrlNo;
+                        usage.Qty = item.Quantity;
+                        usage.UpdatedBy = user;
+                        usage.UpdatedDt = date;
+                    }
+                    _db.PPMPItemUsages.RemoveRange(usages.Where(x => !x.PpmpItemId.HasValue || !ppmpIds.Contains(x.PpmpItemId.Value)).ToList());
+
+                    var revisionNo = await _db.DocumentStatusHistories.CountAsync(x =>
+                        x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == requestId && x.Action.StartsWith("Resubmitted")) + 1;
+                    _documentHistoryService.AddStatusHistory(DocumentTypes.PurchaseRequest, requestId,
+                        entity.PrNo ?? entity.CtrlNo, PrStatuses.Revising, PrStatuses.Submitted,
+                        "Resubmitted - Revision " + revisionNo,
+                        "Purchase Request resubmitted after revision " + revisionNo + ".", user);
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                    model.CtrlNo = entity.CtrlNo;
+                    model.RevisionNo = revisionNo;
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         });
 
         public ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date) =>
@@ -575,19 +848,19 @@ namespace iLgs.Services.PurchaseRequest
 
             mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
 
-            string keyName = yyyy + "-" + mm;
+            string keyName = yyyy + mm;
             // yyyy-mm-9999
             // 123456789012
 
             var order = _db.Requests.Where(w => w.CtrlNo.Substring(0, 4) == yyyy).OrderByDescending(o => o.CtrlNo).FirstOrDefault();
             if (order == null)
             {
-                return keyName + "-" + "0001";
+                return keyName + "0001";
             }
             else
-            {
-                var sequence = (int.Parse(order.CtrlNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
+            {                
+                var sequence = (int.Parse(order.CtrlNo.Substring(order.CtrlNo.Length -4)) + 1).ToString();
+                return keyName + sequence.PadLeft(4, '0');
             }
         }
 

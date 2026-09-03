@@ -1144,7 +1144,8 @@
                 }
                 // Set / Lot Sub-Items Section
                 var subItemsWrapper = $('<div style="padding-top: 10px; border-top: 1px solid #cbd5e1;"></div>');
-                var subItemsCount = (item.setLotItems ? item.setLotItems.length : 0);
+                var step3SubItems = item.setLotItems || item.SetLotItems || [];
+                var subItemsCount = step3SubItems.length;
                 var autoBadgeHtml = subItemsCount > 0
                     ? '<span class="step3-subitem-auto-badge" style="font-size: 10px; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px;"><span class="k-icon k-i-hyperlink"></span> Auto-retrieved (' + subItemsCount + ' sub-items)</span>'
                     : '';
@@ -1162,18 +1163,26 @@
                 subItemsWrapper.append(subItemsHeader);
 
                 if (subItemsCount > 0) {
-                    var subTable = $('<table style="width: 100%; border-collapse: collapse; font-size: 11px; background: #fff; border: 1px solid #e2e8f0;">' +
-                        '<thead><tr style="background: #f1f5f9; text-align: left;"><th style="padding: 4px 6px;">Description</th><th style="padding: 4px 6px; text-align: right;">Qty</th><th style="padding: 4px 6px;">Unit</th></tr></thead>' +
+                    var subTable = $('<table class="step3-subitems-table">' +
+                        '<thead><tr><th>Sub-item No.</th><th>Description</th><th>Unit</th><th class="text-end">Qty</th><th class="text-end">Unit Cost</th><th class="text-end">Total</th></tr></thead>' +
                         '<tbody></tbody>' +
                         '</table>');
                     var subTbody = subTable.find('tbody');
 
-                    item.setLotItems.forEach(function (sub) {
-                        subTbody.append('<tr>' +
-                            '<td style="padding: 4px 6px; border-top: 1px solid #e2e8f0;">' + sub.description + '</td>' +
-                            '<td style="padding: 4px 6px; border-top: 1px solid #e2e8f0; text-align: right; font-family: monospace;">' + sub.qty + '</td>' +
-                            '<td style="padding: 4px 6px; border-top: 1px solid #e2e8f0;">' + sub.unit + '</td>' +
-                            '</tr>');
+                    step3SubItems.forEach(function (sub, subIndex) {
+                        var itemNo = sub.itemNo || sub.ItemNo || (subIndex + 1);
+                        var description = sub.description || sub.Description || sub.itemName || sub.ItemName || '';
+                        var unit = sub.unit || sub.Unit || '';
+                        var quantity = Number(sub.qty != null ? sub.qty : (sub.Qty || 0));
+                        var unitCost = Number(sub.unitCost != null ? sub.unitCost : (sub.UnitCost != null ? sub.UnitCost : (sub.estimatedCost != null ? sub.estimatedCost : (sub.EstimatedCost || 0))));
+                        var subRow = $('<tr></tr>');
+                        $('<td></td>').text(itemNo).appendTo(subRow);
+                        $('<td></td>').text(description).appendTo(subRow);
+                        $('<td></td>').text(unit).appendTo(subRow);
+                        $('<td class="text-end"></td>').text(quantity).appendTo(subRow);
+                        $('<td class="text-end"></td>').text(formatStep3Currency(unitCost)).appendTo(subRow);
+                        $('<td class="text-end"></td>').text(formatStep3Currency(quantity * unitCost)).appendTo(subRow);
+                        subTbody.append(subRow);
                     });
                     subItemsWrapper.append(subTable);
                 } else {

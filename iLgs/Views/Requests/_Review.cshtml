@@ -1,0 +1,83 @@
+@model iLgs.Models.PurchaseRequestReviewViewModel
+@using System.Globalization
+@using System.Linq
+@{
+    Layout = null;
+    var phCulture = CultureInfo.GetCultureInfo("en-PH");
+}
+
+<div class="pr-review" data-request-id="@Model.Id">
+    <div class="pr-review-heading">
+        <div>
+            <span class="pr-review-eyebrow">Submitted Purchase Request</span>
+            <h2>@(String.IsNullOrWhiteSpace(Model.CtrlNo) ? "Purchase Request" : Model.CtrlNo)</h2>
+        </div>
+        <span class="status-badge status-submitted">@Model.Status</span>
+    </div>
+
+    <div class="pr-review-fields">
+        <div><label>Department</label><span>@Model.Department</span></div>
+        <div><label>Section</label><span>@Model.Section</span></div>
+        <div class="pr-review-wide"><label>Purpose</label><span class="pr-review-multiline">@Model.Purpose</span></div>
+        <div><label>FPP</label><span>@Model.FPP</span></div>
+        <div><label>Fund</label><span>@Model.Fund</span></div>
+        <div><label>Fund Specific</label><span>@Model.FundSpecific</span></div>
+        <div><label>Requested By</label><span>@Model.RequestedBy</span></div>
+        <div><label>Designation</label><span>@Model.RequestedDesig</span></div>
+        <div><label>Cash Availability</label><span>@Model.Availability</span></div>
+        <div><label>Availability Designation</label><span>@Model.AvaialbilityDesig</span></div>
+        <div><label>Approved By</label><span>@Model.ApprovedBy</span></div>
+        <div><label>Approver Designation</label><span>@Model.ApprovedDesig</span></div>
+        <div><label>Submitted By</label><span>@Model.SubmittedBy</span></div>
+        <div><label>Submitted Date</label><span>@(Model.SubmittedDt.HasValue ? Model.SubmittedDt.Value.ToString("MM/dd/yyyy HH:mm") : "")</span></div>
+    </div>
+
+    <div class="pr-review-section-heading">
+        <h3>Purchase Request Items</h3>
+        <strong>@Model.EstimatedTotal.ToString("C2", phCulture)</strong>
+    </div>
+
+    <div class="pr-review-items-scroll">
+        <table class="pr-review-table">
+            <thead><tr><th>No.</th><th>PPMP Code</th><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
+            <tbody>
+            @if (!Model.Items.Any())
+            {
+                <tr><td colspan="7" class="pr-review-empty">No Purchase Request items were found.</td></tr>
+            }
+            @foreach (var item in Model.Items)
+            {
+                <tr class="pr-review-item-row">
+                    <td>@item.ItemNo</td><td>@item.PpmpCode</td>
+                    <td><span class="pr-review-multiline">@item.Description</span>@if (!String.IsNullOrWhiteSpace(item.OtherDesc)) { <small>@item.OtherDesc</small> }</td>
+                    <td>@item.Unit</td><td class="pr-review-number">@item.Qty.GetValueOrDefault().ToString("N2")</td>
+                    <td class="pr-review-number">@item.UnitCost.GetValueOrDefault().ToString("C2", phCulture)</td>
+                    <td class="pr-review-number">@item.TotalCost.GetValueOrDefault().ToString("C2", phCulture)</td>
+                </tr>
+                <tr class="pr-review-subitems-row"><td colspan="7">
+                    <div class="pr-review-subitems-title">User-defined sub-items</div>
+                    <div class="pr-review-subitems-scroll"><table class="pr-review-subitems-table">
+                        <thead><tr><th>Item No.</th><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
+                        <tbody>
+                        @if (!item.SubItems.Any()) { <tr><td colspan="6" class="pr-review-empty">No sub-items.</td></tr> }
+                        @foreach (var subItem in item.SubItems)
+                        {
+                            <tr><td>@subItem.ItemNo</td><td class="pr-review-multiline">@subItem.Description</td><td>@subItem.Unit</td>
+                                <td class="pr-review-number">@subItem.Qty.GetValueOrDefault().ToString("N2")</td>
+                                <td class="pr-review-number">@subItem.UnitCost.GetValueOrDefault().ToString("C2", phCulture)</td>
+                                <td class="pr-review-number">@subItem.Total.GetValueOrDefault().ToString("C2", phCulture)</td></tr>
+                        }
+                        </tbody>
+                    </table></div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pr-review-actions">
+        <button type="button" class="k-button" onclick="closePurchaseRequestReview()">Close</button>
+        <button type="button" class="k-button k-button-solid-base" onclick="openReviewReturnDialog()"><span class="k-icon k-i-undo"></span> Return for Revision</button>
+        <button type="button" class="k-button k-button-solid-primary" onclick="openReviewPostDialog()"><span class="k-icon k-i-check"></span> Post</button>
+    </div>
+</div>

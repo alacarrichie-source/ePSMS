@@ -1,4 +1,5 @@
 ﻿using iLgs.Agents.Services;
+using iLgs.Ai.Services;
 using iLgs.App_Start;
 using iLgs.Exceptions;
 using iLgs.Models;
@@ -25,9 +26,6 @@ using iLgs.Services.StockCards;
 using iLgs.Services.Uploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -62,6 +60,7 @@ namespace iLgs
             // Register your DbContext (EF6)
             services.AddScoped<AppManEntities>();
             services.AddScoped<IAppManEntitiesFactory, AppManEntitiesFactory>();
+            services.AddScoped<IDocumentHistoryService, DocumentHistoryService>();
 
             //services.AddSingleton<IAppManEntitiesFactory, AppManEntitiesFactory>();
             //services.AddScoped<AppManEntities>(sp => new AppManEntities());

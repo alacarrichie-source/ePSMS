@@ -176,18 +176,39 @@
         fitStep4KendoWidget(procurementElement.data('kendoMultiColumnComboBox'));
 
         var supplierElement = $('#' + step4FieldId('Supplier', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
+        var resolvingInitialSupplier = !!group.supplierId;
         supplierElement.kendoMultiColumnComboBox({
             placeholder: 'Select Supplier', dataTextField: 'Name', dataValueField: 'Id', valuePrimitive: true,
             filter: 'contains', minLength: 1, autoBind: true,
             columns: [{ field: 'Name', title: 'Name', width: 210 }, { field: 'BusinessName', title: 'Business Name', width: 210 }, { field: 'Address', title: 'Address', width: 330 }, { field: 'TIN', title: 'TIN', width: 130 }],
-            dataSource: step4RemoteDataSource('@Url.Action("GetSupplier", "Getters")', function () { var widget = supplierElement.data('kendoMultiColumnComboBox'); return { text: widget ? (widget.text() || widget.value() || '') : '' }; }),
+            dataSource: step4RemoteDataSource('@Url.Action("GetSupplier", "Getters")', function () {
+                var widget = supplierElement.data('kendoMultiColumnComboBox');
+                return { text: resolvingInitialSupplier ? String(group.supplierId) : (widget ? (widget.text() || '') : '') };
+            }),
+            dataBound: function () {
+                if (!group.supplierId) return;
+                var supplierId = String(group.supplierId).toLowerCase();
+                var match = null;
+                $.each(this.dataSource.view(), function (_, supplier) {
+                    if (String(supplier.Id).toLowerCase() === supplierId) { match = supplier; return false; }
+                });
+                if (match) {
+                    this.value(match.Id);
+                    this.text(match.Name || group.supplierName || '');
+                    this.input.val(match.Name || group.supplierName || '');
+                } else if (group.supplierName) {
+                    this.text(group.supplierName);
+                    this.input.val(group.supplierName);
+                }
+                resolvingInitialSupplier = false;
+            },
             select: function (e) { setStep4Supplier(groupIndex, e.dataItem); },
             change: function () { if (!this.value()) setStep4Supplier(groupIndex, null); }
         });
         var supplierCombo = supplierElement.data('kendoMultiColumnComboBox');
         fitStep4KendoWidget(supplierCombo);
         supplierCombo.value(group.supplierId || '');
-        if (group.supplierId && group.supplierName) { supplierCombo.text(group.supplierName); supplierCombo.input.val(group.supplierName); }
+        if (group.supplierName) { supplierCombo.text(group.supplierName); supplierCombo.input.val(group.supplierName); }
 
         initializeStep4DatePicker('PoDate', groupIndex, group.poDate || new Date(), 'poDate');
         initializeStep4TextBox('SupAddress', groupIndex, group.supAddress, 'supAddress');
@@ -315,6 +336,31 @@
             $("<td class='text-end'></td>").text(formatStep4Currency(item.unitCost)).appendTo(row);
             $("<td class='text-end'></td>").text(formatStep4Currency(Number(item.qty || 0) * Number(item.unitCost || 0))).appendTo(row);
             tbody.append(row);
+            var subItems = item.setLotItems || item.SetLotItems || [];
+            if (subItems.length) {
+                var subItemRow = $('<tr class="step4-subitems-row"></tr>');
+                var subItemCell = $('<td colspan="7"></td>');
+                var subItemTable = $('<table class="step4-subitems-table"><thead><tr><th>Sub-item No.</th><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead><tbody></tbody></table>');
+                var subItemBody = subItemTable.find('tbody');
+                $.each(subItems, function (subIndex, subItem) {
+                    var itemNo = subItem.itemNo || subItem.ItemNo || (subIndex + 1);
+                    var description = subItem.description || subItem.Description || subItem.itemName || subItem.ItemName || '';
+                    var unit = subItem.unit || subItem.Unit || '';
+                    var quantity = Number(subItem.qty != null ? subItem.qty : (subItem.Qty || 0));
+                    var unitCost = Number(subItem.unitCost != null ? subItem.unitCost : (subItem.UnitCost != null ? subItem.UnitCost : (subItem.estimatedCost != null ? subItem.estimatedCost : (subItem.EstimatedCost || 0))));
+                    var subRow = $('<tr></tr>');
+                    $('<td></td>').text(itemNo).appendTo(subRow);
+                    $('<td></td>').text(description).appendTo(subRow);
+                    $('<td></td>').text(unit).appendTo(subRow);
+                    $('<td class="text-end"></td>').text(quantity).appendTo(subRow);
+                    $('<td class="text-end"></td>').text(formatStep4Currency(unitCost)).appendTo(subRow);
+                    $('<td class="text-end"></td>').text(formatStep4Currency(quantity * unitCost)).appendTo(subRow);
+                    subItemBody.append(subRow);
+                });
+                subItemCell.append($('<div class="step4-subitems-title"></div>').text('Sub-items for item ' + (item.itemNo || (index + 1))), subItemTable);
+                subItemRow.append(subItemCell);
+                tbody.append(subItemRow);
+            }
         });
         wrapper.append(table);
         return wrapper;
@@ -509,7 +555,10 @@
                 window.location.href = response.redirectUrl || "@Url.Action("Index", "PurchaseOrders")";
             }
             else showWizardMessage(response.message || "Unable to process the Purchase Orders.");
-        }).fail(function () { showWizardMessage("The server could not process the Purchase Orders."); })
+        }).fail(function (xhr) {
+            var response = xhr.responseJSON || {};
+            showWizardMessage(response.message || "The server could not process the Purchase Orders.");
+        })
           .always(function () { kendo.ui.progress($(".step4-review-container"), false); buttons.prop("disabled", false); refreshStep4Readiness(); });
     }
 </script>

@@ -63,6 +63,11 @@ namespace iLgs.Models
 
         public bool IsWithPO { get; set; }
 
+        public int ItemCount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string Status { get; set; }
+        public string StatusRemarks { get; set; }
+
         // TRANSIENTS 
         // From RIS
 
@@ -104,6 +109,78 @@ namespace iLgs.Models
 
         //[Display(Name = "RIS No.")]
         //public string RisNo { get; set; }
+    }
+
+    public class PurchaseRequestReviewViewModel
+    {
+        public PurchaseRequestReviewViewModel() { Items = new List<PurchaseRequestReviewItemViewModel>(); }
+        public Guid Id { get; set; }
+        public string CtrlNo { get; set; }
+        public string PrNo { get; set; }
+        public DateTime? PrDate { get; set; }
+        public string Department { get; set; }
+        public string Section { get; set; }
+        public string Purpose { get; set; }
+        public string FPP { get; set; }
+        public string Fund { get; set; }
+        public string FundSpecific { get; set; }
+        public string RequestedBy { get; set; }
+        public string RequestedDesig { get; set; }
+        public string Availability { get; set; }
+        public string AvaialbilityDesig { get; set; }
+        public string ApprovedBy { get; set; }
+        public string ApprovedDesig { get; set; }
+        public string SubmittedBy { get; set; }
+        public DateTime? SubmittedDt { get; set; }
+        public string Status { get; set; }
+        public string StatusRemarks { get; set; }
+        public decimal EstimatedTotal { get; set; }
+        public IList<PurchaseRequestReviewItemViewModel> Items { get; set; }
+    }
+
+    public class PurchaseRequestReviewItemViewModel
+    {
+        public PurchaseRequestReviewItemViewModel() { SubItems = new List<PurchaseRequestReviewSubItemViewModel>(); }
+        public Guid Id { get; set; }
+        public string ItemNo { get; set; }
+        public string PpmpCode { get; set; }
+        public string Description { get; set; }
+        public string OtherDesc { get; set; }
+        public string Unit { get; set; }
+        public decimal? Qty { get; set; }
+        public decimal? UnitCost { get; set; }
+        public decimal? TotalCost { get; set; }
+        public IList<PurchaseRequestReviewSubItemViewModel> SubItems { get; set; }
+    }
+
+    public class PurchaseRequestReviewSubItemViewModel
+    {
+        public string ItemNo { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public decimal? Qty { get; set; }
+        public decimal? UnitCost { get; set; }
+        public decimal? Total { get; set; }
+    }
+
+    public class PostPurchaseRequestViewModel
+    {
+        [Required]
+        public Guid RequestId { get; set; }
+        [Required(ErrorMessage = "PR Number is required.")]
+        [StringLength(50)]
+        public string PrNumber { get; set; }
+        [Required(ErrorMessage = "PR Date is required.")]
+        public DateTime? PrDate { get; set; }
+    }
+
+    public class ReturnPurchaseRequestViewModel
+    {
+        [Required]
+        public Guid RequestId { get; set; }
+        [Required(ErrorMessage = "A review comment is required.")]
+        [StringLength(1000)]
+        public string ReviewComment { get; set; }
     }
 
     public class RequestItemVM

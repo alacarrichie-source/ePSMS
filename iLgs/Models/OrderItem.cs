@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.OrderItemUnitGroupDescriptionItems = new HashSet<OrderItemUnitGroupDescriptionItem>();
             this.PARItems = new HashSet<PARItem>();
             this.OrderItemRequests = new HashSet<OrderItemRequest>();
+            this.OrderSubItems = new HashSet<OrderSubItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -59,5 +60,7 @@ namespace iLgs.Models
         public virtual ICollection<PARItem> PARItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemRequest> OrderItemRequests { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderSubItem> OrderSubItems { get; set; }
     }
 }

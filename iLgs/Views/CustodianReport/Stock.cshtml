@@ -780,7 +780,7 @@
         setSubmitButton();
     }
 
-    function onEditGrid(e) {
+    function onEditGridOld(e) {
         e.preventDefault();
         selectedGrid = e.sender;
 
@@ -834,6 +834,185 @@
                 }, 50); // 0-50ms delay usually works well
             }
         }
+        trackingId = selectedId;
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            if (!$("#sectionId").val()) {
+                alert("Please select a location before proceeding.");
+
+                var wnd = e.container && e.container.data("kendoWindow");
+
+                if (wnd) {
+                    wnd.close();
+                    selectedGrid.dataSource.remove(e.model);
+                }
+            }
+            else {
+                var accountGroup = '@ViewBag.AccountGroup';
+                var row = e.sender.tbody.find("tr:first");
+
+                this.select(row);
+
+                selectedId = null;
+
+                e.model.set("ForYear", $("#forYear").val());
+                e.model.set("MainDeptId", $("#deptId").val());
+                e.model.set("LocationId", $("#sectionId").val());
+                e.model.set("LocationCode", selectedSectionCode);
+                e.model.set("Location", selectedSection);
+                e.model.set(
+                    "MainDeptName",
+                    $("#deptId").data("kendoMultiColumnComboBox").text()
+                );
+                e.model.set("AccountGroup", accountGroup);
+            }
+        }
+        else {
+            selectedId = e.model.get("Id");
+
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+
+            selectedGrid.select(
+                $('[data-uid="' + rowitem.uid + '"]')
+            );
+
+            var dataItem = e.model;
+
+            e.model.set("ForYear", $("#forYear").val());
+            e.model.set("MainDeptId", $("#deptId").val());
+
+            if (IsPosted(dataItem) || '@ViewBag.IsDemand' === 'True') {
+
+                setTimeout(function () {
+
+                    var popup = e.container;
+
+                    // ------------------------------------------------
+                    // Standard text controls
+                    // ------------------------------------------------
+                    popup.find(
+                        'input[type="text"], ' +
+                        'input[type="number"], ' +
+                        'input[type="date"], ' +
+                        'input[type="datetime"], ' +
+                        'input[type="datetime-local"], ' +
+                        'textarea'
+                    ).prop("readonly", true);
+
+
+                    // ------------------------------------------------
+                    // Kendo widgets
+                    // ------------------------------------------------
+                    popup.find("[data-role]").each(function () {
+
+                        var element = $(this);
+                        var widget = kendo.widgetInstance(element);
+
+                        if (!widget) {
+                            return;
+                        }
+
+                        // NumericTextBox
+                        if (widget instanceof kendo.ui.NumericTextBox) {
+
+                            widget.element.prop("readonly", true);
+
+                            // Prevent spinner buttons
+                            widget.wrapper
+                                .find(".k-select")
+                                .hide();
+                        }
+
+                        // DatePicker
+                        else if (widget instanceof kendo.ui.DatePicker) {
+
+                            widget.element.prop("readonly", true);
+
+                            widget.wrapper
+                                .find(".k-select")
+                                .hide();
+                        }
+
+                        // DateTimePicker
+                        else if (widget instanceof kendo.ui.DateTimePicker) {
+
+                            widget.element.prop("readonly", true);
+
+                            widget.wrapper
+                                .find(".k-select")
+                                .hide();
+                        }
+
+                        // ComboBox
+                        else if (widget instanceof kendo.ui.ComboBox) {
+
+                            widget.input.prop("readonly", true);
+
+                            widget.wrapper
+                                .find(".k-select")
+                                .hide();
+                        }
+
+                        // MultiColumnComboBox
+                        else if (widget instanceof kendo.ui.MultiColumnComboBox) {
+
+                            widget.input.prop("readonly", true);
+
+                            widget.wrapper
+                                .find(".k-select")
+                                .hide();
+                        }
+                    });
+
+
+                    // ------------------------------------------------
+                    // Checkboxes / radio buttons
+                    // readonly doesn't work for these.
+                    // Prevent changing their values instead.
+                    // ------------------------------------------------
+                    popup.find(
+                        'input[type="checkbox"], input[type="radio"]'
+                    ).on("click.readonly", function (event) {
+                        event.preventDefault();
+                        return false;
+                    });
+
+
+                    // ------------------------------------------------
+                    // Select
+                    // HTML select has no readonly property.
+                    // Prevent changing the selection.
+                    // ------------------------------------------------
+                    popup.find("select").each(function () {
+
+                        var select = $(this);
+
+                        select.data(
+                            "readonly-value",
+                            select.val()
+                        );
+
+                        select.on("change.readonly", function () {
+
+                            $(this).val(
+                                $(this).data("readonly-value")
+                            );
+                        });
+                    });
+
+
+                    // Hide Update / Save
+                    popup.find(".k-grid-update").hide();
+
+                }, 50);
+            }
+        }
+
         trackingId = selectedId;
     }
 
@@ -1265,6 +1444,59 @@
     }
 
     function RefreshDivs(dataItem) {
+
+        var fieldsContainer = $("#DIV_ALLFIELDS");
+
+        fieldsContainer.removeClass("hidden");
+        fieldsContainer.empty();
+
+        var formData = $("#form").serializeArray();
+
+        // Remove Id and ItemCodeId from serialized form
+        formData = formData.filter(function (field) {
+            return field.name !== "Id" &&
+                   field.name !== "ItemCodeId";
+        });
+
+        // Existing grid record Id
+        formData.push({
+            name: "Id",
+            value: selectedId || "00000000-0000-0000-0000-000000000000"
+        });
+
+        // Current ComboBox selection
+        formData.push({
+            name: "ItemCodeId",
+            value: $("#ItemCodeId").val()
+        });
+
+        console.log("Record Id:", selectedId);
+        console.log("ItemCodeId:", $("#ItemCodeId").val());
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("LoadStockFields", "CustodianReport")',
+            data: $.param(formData),
+
+            beforeSend: function () {
+                kendo.ui.progress($("#form"), true);
+            },
+
+            success: function (result) {
+                fieldsContainer.html(result);
+            },
+
+            error: function (xhr) {
+                console.error("LoadStockFields error:", xhr.responseText);
+            },
+
+            complete: function () {
+                kendo.ui.progress($("#form"), false);
+            }
+        });
+    }
+
+    function RefreshDivsOld(dataItem) {
         var fieldsContainer = $('#DIV_ALLFIELDS');
 
         fieldsContainer.removeClass('hidden');

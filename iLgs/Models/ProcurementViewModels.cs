@@ -33,11 +33,20 @@ namespace iLgs.Models
         //public IEnumerable<ProcurementItemViewModel> Items { get; set; }
         public IEnumerable<PPMPItemVM> Items { get; set; }
         public int CartCount { get; set; }
+        public bool IsRevision { get; set; }
+        public Guid? RequestId { get; set; }
     }
 
     public class CartItemViewModel : PPMPItemVM // ProcurementItemViewModel
     {
+        public CartItemViewModel()
+        {
+            SubItems = new List<CartSubItemViewModel>();
+        }
+
         public string ItemNo { get; set; }
+        public Guid? RequestItemId { get; set; }
+        public string TechnicalSpecifications { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
@@ -45,16 +54,68 @@ namespace iLgs.Models
 
         //public decimal EstimatedAmount {get { return Quantity * UnitCost.GetValueOrDefault(); }        
         public decimal EstimatedAmount => Quantity * (UnitCost ?? 0m);
+        public IList<CartSubItemViewModel> SubItems { get; set; }
+    }
+
+    public class CartSubItemViewModel
+    {
+        public Guid Id { get; set; }
+        public Guid ParentItemId { get; set; }
+
+        [Display(Name = "Item No.")]
+        public string ItemNo { get; set; }
+
+        [Required(ErrorMessage = "Description is required.")]
+        public string Description { get; set; }
+
+        [Required(ErrorMessage = "Unit is required.")]
+        public string Unit { get; set; }
+
+        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "Quantity must be greater than zero.")]
+        [Display(Name = "Qty")]
+        public decimal Quantity { get; set; }
+
+        [Range(typeof(decimal), "0", "999999999999", ErrorMessage = "Unit cost cannot be negative.")]
+        [Display(Name = "Unit Cost")]
+        public decimal UnitCost { get; set; }
+
+        public decimal Total { get { return Quantity * UnitCost; } }
     }
 
     public class CartViewModel
     {
+        public CartViewModel()
+        {
+            Items = new List<CartItemViewModel>();
+        }
+
+        public Guid? DepartmentId { get; set; }
+        public int? FiscalYear { get; set; }
+        public Guid? RequestId { get; set; }
+        public bool IsRevision { get; set; }
+        public string Status { get; set; }
+        public string ReviewComment { get; set; }
+        public int RevisionNo { get; set; }
+        public string RevisionUser { get; set; }
         public IList<CartItemViewModel> Items { get; set; }
-        public decimal EstimatedTotal { get { return Items.Sum(x => x.EstimatedAmount); } }
+        public decimal EstimatedTotal { get { return (Items ?? new List<CartItemViewModel>()).Sum(x => x.EstimatedAmount); } }
     }
 
     public class PurchaseRequestViewModel
     {
+        [Required]
+        public string CheckoutToken { get; set; }
+
+        public int ProcurementFiscalYear { get; set; }
+        public Guid? RequestId { get; set; }
+        public bool IsRevision { get; set; }
+        public string Status { get; set; }
+        public string ReviewComment { get; set; }
+        public int RevisionNo { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Please confirm that you reviewed the purchase request.")]
+        public bool Confirmed { get; set; }
+
         [Required]
         [Display(Name = "Cash Availability")]
         public string Availability { get; set; }
