@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services.Ai.PurchaseOrder
+namespace iLgs.Ai.Services.PurchaseOrder
 {
     public interface ISupplierAiService
     {

@@ -361,8 +361,9 @@
     <Compile Include="Controllers\PsCategoryController.cs" />
     <Compile Include="Controllers\ItemCardController.cs" />
     <Compile Include="Controllers\PurchaseOrderController.cs" />
-    <Compile Include="Controllers\PurchaseOrdersController.cs" />
+    <Compile Include="Controllers\PurchaseOrders1Controller.cs" />
     <Compile Include="Controllers\PurchaseOrders_Controller.cs" />
+    <Compile Include="Controllers\PurchsaeOrdersController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
@@ -416,6 +417,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\GridViewModels.cs" />
+    <Compile Include="Models\PurchaseOrderWizardProgress.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PurchaseOrderWizardViewModels.cs" />
     <Compile Include="Models\AllField.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -4875,7 +4879,7 @@
     <Content Include="Views\PurchaseOrders\Index.cshtml" />
     <Content Include="Views\PurchaseOrders\Print.cshtml" />
     <Content Include="Views\PurchaseOrders\Wizard.cshtml" />
-    <Content Include="Views\PurchaseOrders\_Step1_SelectPRs.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step1_SelectPRs1.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step2_AssignGroupsX.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step3_PODetailsX.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step4_ReviewPost.cshtml" />
@@ -4886,6 +4890,7 @@
     <Content Include="Views\PurchaseOrders\_Step3_PODetails3.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step3_PODetails4.cshtml" />
     <Content Include="Views\PurchaseOrders\_Step3_PODetails.cshtml" />
+    <Content Include="Views\PurchaseOrders\_Step1_SelectPRs.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4902,6 +4907,7 @@
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
     <Folder Include="Views\PsCard\" />
+    <Folder Include="Views\PurchsaeOrders\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
   <ItemGroup>
@@ -5052,7 +5058,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

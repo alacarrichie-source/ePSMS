@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
-namespace iLgs.Services.Ai.PurchaseOrder
+namespace iLgs.Ai.Services.PurchaseOrder
 {    
     public interface IDocumentStorageService
     {
@@ -15,9 +15,16 @@ namespace iLgs.Services.Ai.PurchaseOrder
 
     public class DocumentStorageService : IDocumentStorageService
     {
+        private const int MaximumUploadBytes = 10 * 1024 * 1024;
+        private static readonly string[] AllowedExtensions = { ".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx", ".xls", ".xlsx" };
+
         public PODocumentViewModel SaveUploadedFile(HttpPostedFileBase file, string subFolder, string category)
         {
-            if (file == null || file.ContentLength == 0) return null;
+            if (file == null || file.ContentLength == 0) throw new InvalidOperationException("Select a file to upload.");
+            if (file.ContentLength > MaximumUploadBytes) throw new InvalidOperationException("Files must not exceed 10 MB.");
+            var extension = Path.GetExtension(file.FileName);
+            if (String.IsNullOrWhiteSpace(extension) || !AllowedExtensions.Contains(extension.ToLowerInvariant()))
+                throw new InvalidOperationException("This file type is not allowed.");
 
             var uploadDir = HttpContext.Current.Server.MapPath($"~/App_Data/Uploads/{subFolder}/");
             if (!Directory.Exists(uploadDir))
@@ -25,7 +32,7 @@ namespace iLgs.Services.Ai.PurchaseOrder
                 Directory.CreateDirectory(uploadDir);
             }
 
-            var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var uniqueFileName = Guid.NewGuid().ToString("N") + extension.ToLowerInvariant();
             var fullPath = Path.Combine(uploadDir, uniqueFileName);
             file.SaveAs(fullPath);
 
@@ -44,7 +51,11 @@ namespace iLgs.Services.Ai.PurchaseOrder
 
         public byte[] GetFileBytes(string relativePath)
         {
+            if (String.IsNullOrWhiteSpace(relativePath)) return null;
             var fullPath = HttpContext.Current.Server.MapPath(relativePath);
+            var uploadRoot = Path.GetFullPath(HttpContext.Current.Server.MapPath("~/App_Data/Uploads/"));
+            fullPath = Path.GetFullPath(fullPath);
+            if (!fullPath.StartsWith(uploadRoot, StringComparison.OrdinalIgnoreCase)) return null;
             return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
         }
     }

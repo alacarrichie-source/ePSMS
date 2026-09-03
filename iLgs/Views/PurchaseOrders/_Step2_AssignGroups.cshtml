@@ -39,6 +39,8 @@
                 //);
                 columns.Bound(i => i.PRNumber).Title("PR Number").Width(70)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
+                columns.Bound(i => i.Department).Title("Department").Width(100)
+                    .HtmlAttributes(new { @class = "text-center text-slate" });
                 columns.Bound(i => i.PPMPCode).Title("PPMP Code").Width(70)
                     .HtmlAttributes(new { @class = "text-center text-slate" });
                 columns.Bound(i => i.Description).Title("PR Item Description").Width(70)
@@ -80,6 +82,8 @@
             })
             .Scrollable()
             .Resizable(r => r.Columns(true))
+            .AutoBind(false)
+            .Events(events => events.DataBound("onStep2GridDataBound"))
             .DataSource(dataSource => dataSource
                 .Ajax()
                 .ServerOperation(false)
@@ -140,37 +144,18 @@
     )
 
     <!-- Navigation Action Bar -->
-    @*<div class="wizard-summary-bar" style="margin-top: 24px;">
-        <div>
-            @(Html.Kendo().Button()
+    <div class="wizard-summary-bar wizard-final-actions">
+        @(Html.Kendo().Button()
                 .Name("btnStep2Back")
                 .FillMode(ButtonFillMode.Outline)
-                .Content("&larr; Back to PRs")
-                .HtmlAttributes(new { onclick = "goToStep1()" })
-            )
-        </div>
-        <div class="wizard-summary-actions">
-            @(Html.Kendo().Button()
-                .Name("btnStep2Next")
-                .ThemeColor(ThemeColor.Primary)
-                .Content("Next: PO Details (<span id='btnNextGroupSummary'>1 Group</span>) &rarr;")
-                .HtmlAttributes(new { onclick = "goToStep3()", @class = "k-rounded-md" })
-            )
-        </div>
-    </div>*@
-
-    <div class="wizard-summary-bar">
-        <div class="wizard-action-group" style="width: 100%; justify-content: space-between;">
-            @(Html.Kendo().Button()
-                    .Name("btnStep2Back")
-                    .FillMode(ButtonFillMode.Outline)
-                    .Content("&larr; Back PRs")
-                    .HtmlAttributes(new { onclick = "goToWizardStep(1)", @class = "btn-procurement-secondary" })
-            )
+                .Content("<span class='k-icon k-i-arrow-left'></span> Back to PRs")
+                .HtmlAttributes(new { onclick = "goToWizardStep(1)", @class = "btn-procurement-secondary" })
+        )
+        <div class="wizard-action-group">
             @(Html.Kendo().Button()
                     .Name("btnStep2Next")
                     .ThemeColor(ThemeColor.Primary)
-                    .Content("Next: PO Details (<span id='btnNextGroupSummary'>1 Group</span>)  &rarr;")
+                    .Content("Next: PO Details (<span id='btnNextGroupSummary'>1 Group</span>) <span class='k-icon k-i-arrow-right'></span>")
                     .HtmlAttributes(new { onclick = "goToStep3()", @class = "btn-procurement-primary" })
             )
         </div>
@@ -178,6 +163,26 @@
 </div>
 
 <script>
+    var restoringStep2GridData = false;
+
+    function onStep2GridDataBound(e) {
+        if (restoringStep2GridData ||
+            typeof allocatedItems === "undefined" ||
+            !allocatedItems ||
+            allocatedItems.length === 0 ||
+            e.sender.dataSource.view().length > 0) {
+            return;
+        }
+
+        restoringStep2GridData = true;
+        try {
+            e.sender.dataSource.data(allocatedItems);
+            e.sender.refresh();
+        } finally {
+            restoringStep2GridData = false;
+        }
+    }
+
     function getNextGroupNumber() {
         var maxNum = 0;
         if (typeof poGroups !== 'undefined' && poGroups && poGroups.length > 0) {
@@ -225,18 +230,62 @@
         };
     }
 
+    function getGroupSourceSummary(items) {
+        var sourcesByPR = {};
+        $.each(items || [], function (_, item) {
+            var prNumber = $.trim(item.PRNumber || item.PrNumber || item.PrNo || "");
+            if (!prNumber) return;
+            var department = $.trim(item.Department || item.DepartmentName || item.RequestingDepartment || "");
+            if (!sourcesByPR[prNumber]) {
+                sourcesByPR[prNumber] = { prNumber: prNumber, department: department };
+            } else if (!sourcesByPR[prNumber].department && department) {
+                sourcesByPR[prNumber].department = department;
+            }
+        });
+
+        var sources = Object.keys(sourcesByPR)
+            .map(function (key) { return sourcesByPR[key]; })
+            .sort(function (left, right) {
+                return left.prNumber.localeCompare(right.prNumber, undefined, { numeric: true, sensitivity: "base" });
+            });
+
+        return {
+            count: sources.length,
+            prNumbers: sources.map(function (source) { return source.prNumber; }).join(", "),
+            departments: sources.map(function (source) { return source.department || "Department not specified"; }).join(" / ")
+        };
+    }
+
     function handleQuickAddGroup() {
         var nextGroupNum = getNextGroupNumber();
         var newGroupId = "grp-" + nextGroupNum + "-" + Date.now();
         var newGroup = {
             groupId: newGroupId,
             groupName: "PO Group " + nextGroupNum,
-            supplierId: 1,
-            supplierName: "Mega Office Supplies Inc.",
+            poNumber: "",
+            supplierId: "",
+            supplierName: "",
+            ctrlNo: "",
+            supBusiness: "",
+            supAddress: "",
+            supTIN: "",
+            supEmail: "",
+            supZipCode: "",
+            supContactNo: "",
+            poDate: new Date(),
             deliveryPeriodDays: 30,
-            placeOfDelivery: "Main Warehouse, Building A",
+            deliveryDate: "",
+            placeOfDelivery: "",
+            termDelivery: "",
             paymentTerms: "30 Days",
             modeOfProcurement: "Public Bidding",
+            signedBySuppName: "",
+            signedBySuppDate: null,
+            signedByAuthName: "",
+            signedByAuthDesignation: "",
+            resoNo: "",
+            certifiedCorrectBy: "",
+            certifiedCorrectDate: null,
             items: [],
             poCopyDoc: null,
             additionalDocs: []
@@ -277,12 +326,30 @@
         var newGroup = {
             groupId: newGroupId,
             groupName: finalName,
-            supplierId: 1,
-            supplierName: "Mega Office Supplies Inc.",
+            poNumber: "",
+            supplierId: "",
+            supplierName: "",
+            ctrlNo: "",
+            supBusiness: "",
+            supAddress: "",
+            supTIN: "",
+            supEmail: "",
+            supZipCode: "",
+            supContactNo: "",
+            poDate: new Date(),
             deliveryPeriodDays: 30,
-            placeOfDelivery: "Main Warehouse, Building A",
+            deliveryDate: "",
+            placeOfDelivery: "",
+            termDelivery: "",
             paymentTerms: "30 Days",
             modeOfProcurement: "Public Bidding",
+            signedBySuppName: "",
+            signedBySuppDate: null,
+            signedByAuthName: "",
+            signedByAuthDesignation: "",
+            resoNo: "",
+            certifiedCorrectBy: "",
+            certifiedCorrectDate: null,
             items: [],
             poCopyDoc: null,
             additionalDocs: []
@@ -412,6 +479,7 @@
 
         poGroups.forEach(function (group, index) {
             var metrics = getGroupMetrics(group.groupId);
+            var sourceSummary = getGroupSourceSummary(metrics.items);
             var isPrimary = index === 0;
             var subTitle = isPrimary ? "Primary Default Group" : ("Consolidated Group " + (index + 1));
 
@@ -427,7 +495,13 @@
                 '<div style="display: flex; align-items: center; gap: 8px;">' +
                 '<span class="step2-group-avatar">' + (index + 1) + '</span>' +
                 '<div>' +
-                '<h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #002046;">' + group.groupName + '</h4>' +
+                '<h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #002046;">' + escapeWizardHtml(group.groupName) + '</h4>' +
+                '<div class="step2-group-source-summary">' +
+                '<div><span>' + (sourceSummary.count > 1 ? 'Consolidated PR Numbers' : 'PR Number') + ':</span> <strong>' +
+                escapeWizardHtml(sourceSummary.prNumbers || "No PR assigned") + '</strong></div>' +
+                '<div><span>' + (sourceSummary.count > 1 ? 'Consolidated Departments' : 'Department') + ':</span> <strong>' +
+                escapeWizardHtml(sourceSummary.departments || "No department assigned") + '</strong></div>' +
+                '</div>' +
                 //'<span style="font-size: 10px; color: #64748b;">' + subTitle + '</span>' +
                 '</div>' +
                 '</div>' +
@@ -447,6 +521,7 @@
 
             groupsContainer.append(cardHtml);
         });
+        if (typeof scheduleWizardAutoSave === "function") scheduleWizardAutoSave();
     }
 
     function renderStep2Allocations() {
@@ -490,20 +565,8 @@
     //}
 
     // Function to handle seamless step transitions across both Stepper and UI Containers
-    function navigateToStep(stepIndex) {
-        // 1. Update Kendo Stepper Visual State
-        var stepper = $("#poStepper").data("kendoStepper");
-        if (stepper) {
-            stepper.select(stepIndex);
-        }
-
-        // 2. Hide all wizard step panes and show target step pane
-        $(".wizard-pane").hide();
-        $(".wizard-pane").eq(stepIndex).show();
-    }
-
     function goToStep1() {
-        navigateToStep(0); // 0-based index for Step 1
+        goToWizardStep(1);
     }
 
     function goToStep3() {
@@ -512,7 +575,7 @@
             prepareStep3Data();
         }
 
-        navigateToStep(2); // 0-based index for Step 3
+        goToWizardStep(3);
     }
 
     // Ensure prepareStep3Data exists if not already globally defined in your layout/parent view

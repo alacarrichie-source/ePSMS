@@ -40,7 +40,7 @@
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
         <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         </Diagram>
-      <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="94" >
+      <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="86" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="7.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="7.75" PointY="3.75" />
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="3" PointY="12.25" />
@@ -332,6 +332,9 @@
         <AssociationConnector Association="AppManModel.FK_PPMPItems_PPMPs" />
         <EntityTypeShape EntityType="AppManModel.PPMPItemUsage" Width="1.5" PointX="5.25" PointY="3" />
         <AssociationConnector Association="AppManModel.FK_PPMPItemUsages_PPMPItems" />
+      </Diagram>
+      <Diagram DiagramId="19ff972d76f64588b7c7e32011b4df44" Name="Wizards" >
+        <EntityTypeShape EntityType="AppManModel.PurchaseOrderWizardProgress" Width="1.5" PointX="0.75" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

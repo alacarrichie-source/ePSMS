@@ -8,9 +8,11 @@
 
     var printUrl = Url.Action("Print", "PurchaseOrders");
     var pdfUrl = Url.Action("DownloadPdf", "PurchaseOrders");
+    var resumeDraftUrl = Url.Action("Wizard", "PurchaseOrders");
 }
 
 <div class="epsms-procurement po-wizard">
+    @Html.AntiForgeryToken()
     <!-- Breadcrumbs -->
     <div class="breadcrumbs">
         <a href="@Url.Action("Index", "Home")">Home</a> &gt;
@@ -30,6 +32,49 @@
             </a>
         </div>
     </div>
+
+    <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">
+        <div class="wizard-drafts-header">
+            <div>
+                <h2 id="wizardDraftsHeading">My Wizard Drafts</h2>
+                <p>Continue an unfinished Purchase Order wizard from where you stopped.</p>
+            </div>
+            <span class="k-icon k-i-save wizard-drafts-icon" aria-hidden="true"></span>
+        </div>
+
+        @(Html.Kendo().Grid<POWizardDraftListItemViewModel>()
+            .Name("MyWizardDraftsGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(d => d.DraftName).Title("Draft").Width(190);
+                columns.Bound(d => d.SelectedPRCount).Title("Selected PRs").Width(110)
+                    .HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(d => d.CurrentStep).Title("Progress").Width(190)
+                    .ClientTemplate(
+                        "<span class='wizard-draft-step'>Step #=CurrentStep# of 4</span>" +
+                        "<span class='wizard-draft-step-name'>#=wizardDraftStepName(CurrentStep)#</span>");
+                columns.Bound(d => d.LastUpdatedAt).Title("Last Saved")
+                    .Format("{0:MMM dd, yyyy h:mm tt}").Width(190);
+                columns.Bound(d => d.Id).Title("Actions").Width(180)
+                    .Sortable(false).Filterable(false)
+                    .ClientTemplate(
+                        "<div class='wizard-draft-actions'>" +
+                            "<a class='btn-procurement-primary' href='" + resumeDraftUrl + "?draftId=#=Id#'>" +
+                                "<span class='k-icon k-i-arrow-right'></span> Resume" +
+                            "</a>" +
+                            "<button type='button' class='btn-procurement-secondary' onclick=\"discardWizardDraft('#=Id#')\">Discard</button>" +
+                        "</div>");
+            })
+            .NoRecords()
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("MyWizardDrafts_Read", "PurchaseOrders"))
+                .Sort(sort => sort.Add(d => d.LastUpdatedAt).Descending())
+            )
+        )
+    </section>
 
     <!-- Filter Panel -->
     <div class="filter-panel">
@@ -131,6 +176,36 @@
 <div id="poDetailsWindow"></div>
 
 <script>
+    function wizardDraftStepName(step) {
+        return {
+            1: "Select PRs",
+            2: "Assign Groups",
+            3: "PO Details",
+            4: "Review & Post"
+        }[step] || "In progress";
+    }
+
+    function discardWizardDraft(draftId) {
+        if (!window.confirm("Discard this wizard draft? It will no longer appear in My Wizard Drafts.")) return;
+        $.ajax({
+            url: "@Url.Action("DiscardWizardDraft", "PurchaseOrders")",
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                id: draftId
+            }
+        }).done(function (response) {
+            if (!response.success) {
+                if (window.kendo && kendo.alert) kendo.alert(response.message || "The draft could not be discarded.");
+                return;
+            }
+            var grid = $("#MyWizardDraftsGrid").data("kendoGrid");
+            if (grid) grid.dataSource.read();
+        }).fail(function () {
+            if (window.kendo && kendo.alert) kendo.alert("The draft could not be discarded.");
+        });
+    }
+
     function openPODetails(poId) {
         var wnd = $("#poDetailsWindow").data("kendoWindow");
         if (!wnd) {

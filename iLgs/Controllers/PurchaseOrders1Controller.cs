@@ -6,13 +6,13 @@ using System.Web;
 using System.Web.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
-using iLgs.Services.Ai.PurchaseOrder;
 using iLgs.Ai.Models;
+using iLgs.Ai.Services.PurchaseOrder;
 
 namespace iLgs.Controllers
 {
     [Authorize]
-    public class PurchaseOrdersController : BaseController
+    public class PurchaseOrders1Controller : BaseController
     {
         private readonly IPurchaseOrderAiService _poService;
         private readonly IPurchaseRequestAiService _prService;
@@ -20,7 +20,7 @@ namespace iLgs.Controllers
         private readonly IPdfReportService _pdfService;
         private readonly IDocumentStorageService _docService;
 
-        public PurchaseOrdersController()
+        public PurchaseOrders1Controller()
         {
             _poService = new PurchaseOrderAiService(_db);
             _prService = new PurchaseRequestAiService(_db);

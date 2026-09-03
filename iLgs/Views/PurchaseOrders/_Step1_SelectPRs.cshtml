@@ -1,5 +1,4 @@
-﻿@*Step 1*@
-@using Kendo.Mvc.UI
+﻿@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
@@ -14,16 +13,13 @@
         </div>
     </div>
 
-
     <!-- ============================================================
          PR GRID
          ============================================================ -->
-
     <div class="wizard-grid-container">
 
         @(Html.Kendo().Grid<PurchaseRequestGridViewModel>()
             .Name("ApprovedPRsGrid")
-
             .Columns(columns =>
             {
                 columns.Select()
@@ -31,156 +27,141 @@
                     .HeaderHtmlAttributes(new { @class = "text-center" })
                     .HtmlAttributes(new { @class = "text-center" });
 
-                columns.Bound(p => p.PRNumber)
-                    .Title("PR No.")
-                    .Width(140);
-
-                columns.Bound(p => p.PRDate)
-                    .Title("PR Date")
-                    .Format("{0:MMM dd, yyyy}")
-                    .Width(130);
-
-                columns.Bound(p => p.Department)
-                    .Title("Department")
-                    .Width(200);
-
-                columns.Bound(p => p.Purpose)
-                    .Title("Purpose");
-
-                columns.Bound(p => p.ItemsCount)
-                    .Title("Items")
-                    .Width(90)
-                    .HtmlAttributes(new { @class = "text-center" });
-
-                columns.Bound(p => p.TotalAmount)
-                    .Title("Estimated Total")
-                    .Format("{0:n2}")
-                    .Width(160)
-                    .HtmlAttributes(new
-                    {
-                        @class = "text-end font-weight-bold"
-                    });
+                columns.Bound(p => p.PRNumber).Title("PR No.").Width(140);
+                columns.Bound(p => p.PRDate).Title("PR Date").Format("{0:MMM dd, yyyy}").Width(130);
+                columns.Bound(p => p.Department).Title("Department").Width(200);
+                columns.Bound(p => p.Purpose).Title("Purpose");
+                columns.Bound(p => p.ItemsCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(p => p.TotalAmount).Title("Estimated Total").Format("{0:n2}").Width(160)
+                    .HtmlAttributes(new { @class = "text-end font-weight-bold" });
             })
-
             .Pageable()
-
             .Sortable()
-
             .Filterable()
-
             .PersistSelection()
-
             .DataSource(dataSource => dataSource
                 .Ajax()
                 .Model(m => m.Id(p => p.Id))
-                .Read(read => read.Action(
-                    "GetApprovedPRs_Read",
-                    "PurchaseOrders"
-                ))
+                .Read(read => read.Action("GetApprovedPRs_Read", "PurchaseOrders"))
             )
-
-            .Events(e => e.Change("onPRSelectionChange"))
+            .Events(e => e
+                .Change("onPRSelectionChange")
+                .DataBound("onPRGridDataBound") @* Added DataBound to handle draft loading *@
+            )
         )
 
     </div>
 
-
     <!-- ============================================================
-         STEP SUMMARY
+         STEP SUMMARY / ACTIONS
          ============================================================ -->
-
-    <div class="wizard-summary-bar">
+    <div class="wizard-summary-bar wizard-final-actions">
 
         <div class="wizard-summary-info">
-            <span id="selectedPRCount"
-                  class="wizard-summary-label">
+            <span id="selectedPRCount" class="wizard-summary-label">
                 0 Purchase Request(s) selected
             </span>
         </div>
 
-        <div class="wizard-summary-actions">
+        <div class="wizard-action-group">
+            @* --- NEW: Save to Draft Button --- *@
+            <button type="button"
+                    id="btnSaveDraft"
+                    class="btn-procurement-secondary"
+                    onclick="saveStep1Draft()">
+                <span class="k-icon k-i-save"></span>
+                Save as Draft
+            </button>
 
             <button type="button"
                     id="btnStep1Next"
                     class="btn-procurement-primary"
                     disabled="disabled"
                     onclick="goToStep2()">
-
                 Proceed to Group Assignment
-
                 <span class="k-icon k-i-arrow-right"></span>
             </button>
-
         </div>
 
     </div>
 
 </div>
 
-
 <script>
+    var restoringPRDraftSelection = false;
+
+    function onPRGridDataBound(e) {
+        var grid = this;
+        var restoredIds = (selectedPRIds || []).map(function (id) {
+            return String(id).toLowerCase();
+        });
+        var rowsToSelect = $();
+
+        // Seed Kendo's persisted-selection map so saved PRs on other pages
+        // remain selected when the user pages, filters, or sorts the grid.
+        if (grid._selectedIds) {
+            restoredIds.forEach(function (id) { grid._selectedIds[id] = true; });
+        }
+
+        grid.tbody.find("tr").each(function () {
+            var item = grid.dataItem(this);
+            if (item && restoredIds.indexOf(String(item.Id).toLowerCase()) >= 0) {
+                rowsToSelect = rowsToSelect.add(this);
+            }
+        });
+
+        if (rowsToSelect.length) {
+            restoringPRDraftSelection = true;
+            grid.select(rowsToSelect);
+            restoringPRDraftSelection = false;
+        }
+
+        // Keep the complete saved selection, including IDs on other grid pages.
+        selectedPRIds = restoredIds;
+        updateSelectionUI();
+    }
+
     function onPRSelectionChange(e) {
+        if (restoringPRDraftSelection) return;
         var grid = $("#ApprovedPRsGrid").data("kendoGrid");
+        selectedPRIds = grid.selectedKeyNames().map(String);
+        updateSelectionUI();
+    }
 
-        // Keep the selected IDs in their original type.
-        // PurchaseRequest Id is a Guid, so DO NOT use .map(Number).
-        selectedPRIds = grid.selectedKeyNames();
+    function updateSelectionUI() {
+        var count = selectedPRIds.length;
+        $("#selectedPRCount").text(count + " Purchase Request(s) selected");
+        $("#btnStep1Next").prop("disabled", count === 0);
+        // Draft button can be disabled if 0, or kept enabled to allow clearing a draft
+        $("#btnSaveDraft").prop("disabled", count === 0);
+    }
 
-        $("#selectedPRCount").text(
-            selectedPRIds.length + " Purchase Request(s) selected"
-        );
-
-        $("#btnStep1Next").prop(
-            "disabled",
-            selectedPRIds.length === 0
-        );
-
-        console.log("Selected PR IDs:", selectedPRIds);
+    // --- NEW: Save Draft Logic ---
+    function saveStep1Draft() {
+        saveWizardDraft(true);
     }
 
     function goToStep2() {
-        if (!selectedPRIds || selectedPRIds.length === 0) {
-            return;
-        }
-
-        console.log("Posting PR IDs:", selectedPRIds);
+        if (!selectedPRIds || selectedPRIds.length === 0) return;
 
         $.ajax({
             url: "@Url.Action("GetSelectedPRLineItems", "PurchaseOrders")",
             type: "POST",
             traditional: true,
-            data: {
-                prIds: selectedPRIds
-            },
+            data: { __RequestVerificationToken: getAntiForgeryToken(), prIds: selectedPRIds },
             success: function (response) {
                 if (response.success) {
-                    allocatedItems = response.items;
-
-                    renderStep2Allocations();
-
-                    //var stepper = $("#poStepper").data("kendoStepper");
-                    //stepper.next();
-                    //goToWizardStep(2);
+                allocatedItems = response.items;
+                renderStep2Allocations();
+                scheduleWizardAutoSave();
                     wizardNext();
                 } else {
-                    alert(
-                        response.message ||
-                        "Unable to retrieve Purchase Request items."
-                    );
+                    alert(response.message || "Unable to retrieve Purchase Request items.");
                 }
             },
             error: function (xhr) {
-                console.error(
-                    "GetSelectedPRLineItems failed:",
-                    xhr.responseText
-                );
-
-                alert(
-                    "An error occurred while retrieving the selected Purchase Requests."
-                );
+                alert("An error occurred while retrieving the selected Purchase Requests.");
             }
         });
     }
 </script>
-
-

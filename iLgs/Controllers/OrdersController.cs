@@ -1056,7 +1056,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] OrderItemVM model)
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] OrderItemVM model, string fieldPrefix = null)
         {
             if (model.Id != Guid.Empty)
             {
@@ -1068,9 +1068,14 @@ namespace iLgs.Controllers
             }
             
             string partialView = await _itemCodeService.GetPartialViewAsync(model.ItemCodeId);
-            if (!string.IsNullOrEmpty(partialView))
+            if (String.IsNullOrWhiteSpace(partialView))
             {
-                partialView = $"{partialView}";
+                return Content(String.Empty);
+            }
+            if (!String.IsNullOrWhiteSpace(fieldPrefix))
+            {
+                var safePrefix = new string(fieldPrefix.Where(c => Char.IsLetterOrDigit(c) || c == '_').ToArray());
+                ViewData.TemplateInfo.HtmlFieldPrefix = safePrefix;
             }
             return PartialView(partialView, model);
         }

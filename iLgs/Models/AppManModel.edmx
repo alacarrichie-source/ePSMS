@@ -1833,6 +1833,18 @@
           <Property Name="PostedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="PostedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="PurchaseOrderWizardProgress">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CreatedBy" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+          <Property Name="UpdatedAt" Type="datetime" />
+          <Property Name="LastStep" Type="int" Nullable="false" />
+          <Property Name="SelectedPrIds" Type="nvarchar(max)" />
+          <Property Name="IsCompleted" Type="bit" Nullable="false" />
+        </EntityType>
         <EntityType Name="RequestItems">
           <Key>
             <PropertyRef Name="Id" />
@@ -4852,6 +4864,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="PsCardItemUnitGroupDescriptions" EntityType="Self.PsCardItemUnitGroupDescriptions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemUnitGroups" EntityType="Self.PsCardItemUnitGroups" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCards" EntityType="Self.PsCards" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PurchaseOrderWizardProgress" EntityType="Self.PurchaseOrderWizardProgress" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RequestItems" EntityType="Self.RequestItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RequestItemUnitGroupDescriptionItems" EntityType="Self.RequestItemUnitGroupDescriptionItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RequestItemUnitGroupDescriptions" EntityType="Self.RequestItemUnitGroupDescriptions" Schema="dbo" store:Type="Tables" />
@@ -6342,6 +6355,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RequestItem" EntitySet="RequestItems" />
             <End Role="RequestSubItem" EntitySet="RequestSubItems" />
           </AssociationSet>
+          <EntitySet Name="PurchaseOrderWizardProgresses" EntityType="AppManModel.PurchaseOrderWizardProgress" />
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -11275,6 +11289,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="PurchaseOrderWizardProgress">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="CreatedBy" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="UpdatedAt" Type="DateTime" Precision="3" />
+          <Property Name="LastStep" Type="Int32" Nullable="false" />
+          <Property Name="SelectedPrIds" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsCompleted" Type="Boolean" Nullable="false" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -14037,6 +14063,19 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="ItermNoIndex" ColumnName="ItermNoIndex" />
                 <ScalarProperty Name="ItemNo" ColumnName="ItemNo" />
                 <ScalarProperty Name="RequestItemId" ColumnName="RequestItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PurchaseOrderWizardProgresses">
+            <EntityTypeMapping TypeName="AppManModel.PurchaseOrderWizardProgress">
+              <MappingFragment StoreEntitySet="PurchaseOrderWizardProgress">
+                <ScalarProperty Name="IsCompleted" ColumnName="IsCompleted" />
+                <ScalarProperty Name="SelectedPrIds" ColumnName="SelectedPrIds" />
+                <ScalarProperty Name="LastStep" ColumnName="LastStep" />
+                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

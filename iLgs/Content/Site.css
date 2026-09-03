@@ -1194,6 +1194,137 @@ form.x-form-custom {
 .po-wizard #poStepper {
     max-width: 960px;
     margin: 0 auto;
+    pointer-events: none;
+}
+
+.po-wizard .step2-group-source-summary {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+.po-wizard .step2-group-source-summary span {
+    font-weight: 600;
+}
+
+.po-wizard .step2-group-source-summary strong {
+    color: #334155;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.po-wizard #step3SplitLayoutContainer .form-control-custom,
+.po-wizard #step3SplitLayoutContainer textarea,
+.po-wizard #step3SplitLayoutContainer select,
+.po-wizard #step3SplitLayoutContainer .k-widget,
+.po-wizard #step3SplitLayoutContainer .k-input,
+.po-wizard #step3SplitLayoutContainer .k-textbox {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.po-wizard .step3-order-item-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-content: start;
+}
+
+.po-wizard .step3-item-field-full {
+    grid-column: 1 / -1;
+}
+
+.po-wizard .step3-item-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #475569;
+    font-weight: 600;
+}
+
+.po-wizard .step3-allocation-row {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 1200px) {
+    .po-wizard .step3-accordion-body {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .po-wizard .step3-order-item-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .po-wizard .step3-item-field-full {
+        grid-column: auto;
+    }
+}
+
+.po-wizard .step3-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.po-wizard .step3-field-full {
+    grid-column: 1 / -1;
+}
+
+/* Keep dynamically initialized Step 4 Kendo inputs inside their CSS-grid cells. */
+.po-wizard .step4-detail-section,
+.po-wizard .step4-detail-section .step3-fields-grid,
+.po-wizard .step4-detail-section .form-field {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.po-wizard .step4-detail-section .k-widget,
+.po-wizard .step4-detail-section .k-multicolumncombobox,
+.po-wizard .step4-detail-section .k-datepicker {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.po-wizard .step4-detail-section .k-dropdown-wrap,
+.po-wizard .step4-detail-section .k-picker-wrap {
+    display: flex;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.po-wizard .step4-detail-section .k-dropdown-wrap .k-input,
+.po-wizard .step4-detail-section .k-picker-wrap .k-input {
+    flex: 1 1 auto;
+    width: auto !important;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+}
+
+.po-wizard .step4-detail-section .k-select,
+.po-wizard .step4-detail-section .k-input-button {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+    .po-wizard .step3-fields-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .po-wizard .step3-field-full {
+        grid-column: auto;
+    }
 }
 
 .po-wizard .k-stepper {
@@ -2039,6 +2170,128 @@ form.x-form-custom {
 .step2-groups-column {
     width: 100%;
     box-sizing: border-box;
+}
+
+.step4-header,
+.step4-title-row,
+.step4-metrics {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.step4-header { margin-bottom: 20px; }
+.step4-title-row { justify-content: flex-start; align-items: center; gap: 8px; }
+.step4-title-row h2 { margin: 0; color: #002046; font-size: 18px; }
+.step4-title-row .k-badge { font-size: 10px; text-transform: uppercase; }
+.step4-groups { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+.step4-group-card { overflow: hidden; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+.step4-group-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 0;
+    background: #f8fafc;
+    color: #002046;
+    text-align: left;
+}
+.step4-group-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 50%;
+    background: #002046;
+    color: #fff;
+    font-weight: 700;
+}
+.step4-group-heading { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.step4-group-heading small { color: #64748b; }
+.step4-group-amount { color: #166534; font-family: monospace; font-weight: 700; }
+.step4-group-body { padding: 16px; border-top: 1px solid #cbd5e1; }
+.step4-table-wrap { width: 100%; overflow-x: auto; }
+.step4-table-wrap .items-table { min-width: 760px; }
+.step4-table-wrap td strong,
+.step4-table-wrap td small { display: block; }
+.step4-documents {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+.step4-document-card { padding: 12px; border: 1px solid #dbe3ec; border-radius: 6px; background: #fff; }
+.step4-document-card h3 { margin: 0 0 8px; color: #002046; font-size: 12px; }
+.step4-document-card h3 span { color: #64748b; font-size: 10px; font-weight: 400; }
+.step4-document-card p,
+.step4-document-card li { color: #64748b; font-size: 11px; }
+.step4-document-card input { width: 100%; margin-top: 8px; font-size: 11px; }
+.step4-readiness,
+.step4-total { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; }
+.step4-readiness { display: flex; align-items: center; gap: 8px; }
+.step4-readiness div,
+.step4-total { display: flex; flex-direction: column; }
+.step4-readiness span,
+.step4-total span { color: #64748b; font-size: 10px; }
+.step4-readiness.is-ready { border-color: #86efac; background: #dcfce7; color: #166534; }
+.step4-readiness.is-ready span { color: #15803d; }
+.step4-certification { margin-bottom: 20px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; }
+.step4-certification label { display: flex; align-items: flex-start; gap: 10px; color: #002046; font-size: 12px; line-height: 1.5; }
+.step4-preview { padding: 20px; }
+.wizard-empty-state { padding: 24px; border: 1px solid #cbd5e1; border-radius: 8px; color: #64748b; text-align: center; }
+
+.wizard-drafts-card {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #f8fbff;
+}
+.wizard-drafts-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+.wizard-drafts-header h2 { margin: 0; color: #002046; font-size: 16px; }
+.wizard-drafts-header p { margin: 3px 0 0; color: #64748b; font-size: 11px; }
+.wizard-drafts-icon { color: #115cb9; font-size: 22px; }
+.wizard-draft-step,
+.wizard-draft-step-name { display: block; }
+.wizard-draft-step { color: #002046; font-weight: 700; }
+.wizard-draft-step-name { color: #64748b; font-size: 10px; }
+.wizard-draft-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.wizard-draft-actions .btn-procurement-primary,
+.wizard-draft-actions .btn-procurement-secondary {
+    min-height: 30px;
+    padding: 4px 9px;
+    font-size: 11px;
+}
+
+@media (max-width: 992px) {
+    .step2-split-layout,
+    .po-wizard .step3-split-layout {
+        grid-template-columns: 1fr !important;
+    }
+    .step4-header { flex-direction: column; }
+    .step4-documents { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .wizard-draft-actions { align-items: stretch; flex-direction: column; }
+    .step4-metrics { width: 100%; flex-direction: column; }
+    .step4-metrics > * { width: 100%; box-sizing: border-box; }
+    .step4-group-header { align-items: flex-start; flex-wrap: wrap; }
+    .step4-group-amount { margin-left: 40px; }
 }
 
 /* Flexbox Fallback (In case display: grid is overridden elsewhere) */

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
 
-namespace iLgs.Services.Ai.PurchaseOrder
+namespace iLgs.Ai.Services.PurchaseOrder
 {    
     public interface IPurchaseRequestAiService
     {
@@ -52,7 +52,8 @@ namespace iLgs.Services.Ai.PurchaseOrder
             if (prIds == null || prIds.Length == 0) return new List<PRItemAllocationViewModel>();
 
             var items = await _db.RequestItems
-                .Include(i => i.Request)
+                .Include(i => i.PPMPItem)
+                .Include(i => i.Request)                
                 .Where(i => prIds.Contains(i.PrId.ToString())) // && i.RemainingQty > 0)
                 .ToListAsync();
 
@@ -63,6 +64,7 @@ namespace iLgs.Services.Ai.PurchaseOrder
                 var vm = new PRItemAllocationViewModel
                 {
                     Id = item.Id,
+                    Department = item.Request.Department,
                     PRNumber = item.Request.PrNo,
                     Description = item.Description,
                     Unit = item.Unit,

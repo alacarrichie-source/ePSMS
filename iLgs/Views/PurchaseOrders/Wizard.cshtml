@@ -33,11 +33,11 @@
         </div>
 
         <div class="wizard-header-actions">
-            <span class="wizard-draft-status">
+            <span class="wizard-draft-status" aria-live="polite">
                 <span class="wizard-draft-icon">
                     <span class="k-icon k-i-save"></span>
                 </span>
-                Draft Auto-saved
+                <span id="wizardDraftStatusText">Not yet saved</span>
             </span>
 
             <a href="@Url.Action("Index", "PurchaseOrders")"
@@ -142,23 +142,49 @@
 
     <script type="text/javascript">
 
-        var currentWizardStep = 1;
+        var currentWizardStep = @Convert.ToInt32(ViewBag.CurrentStep ?? 1);
+        var wizardDraftId = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.DraftId));
+        var initialWizardStateJson = @Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(Convert.ToString(ViewBag.WizardStateJson), true));
+        var wizardAutoSaveTimer = null;
+        var wizardDraftReady = false;
+        var wizardDraftDirty = false;
+        var wizardDraftVersion = 0;
+        var wizardDraftSaveRequest = null;
+        var wizardDraftSaveQueued = false;
 
         /*
          * These objects are shared by all wizard partials.
          */
-        var selectedPRIds = [];
+        var selectedPRIds = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.SelectedPrIds ?? new List<Guid>()));
         var allocatedItems = [];
         var poGroups = [
             {
                 groupId: "grp-1",
                 groupName: "PO Group 1",
-                supplierId: 0,
+                poNumber: "",
+                supplierId: "",
+                supplierName: "",
+                ctrlNo: "",
+                supBusiness: "",
+                supAddress: "",
+                supTIN: "",
+                supEmail: "",
+                supZipCode: "",
+                supContactNo: "",
                 poDate: new Date(),
                 deliveryPeriodDays: 30,
+                deliveryDate: "",
                 placeOfDelivery: "General Services Office (GSO) Warehouse",
+                termDelivery: "",
                 paymentTerms: "30 Calendar Days upon full acceptance",
                 modeOfProcurement: "Public Bidding",
+                signedBySuppName: "",
+                signedBySuppDate: null,
+                signedByAuthName: "",
+                signedByAuthDesignation: "",
+                resoNo: "",
+                certifiedCorrectBy: "",
+                certifiedCorrectDate: null,
                 items: [],
                 poCopyDoc: null,
                 additionalDocs: []
@@ -171,9 +197,10 @@
            ============================================================ */
 
         $(document).ready(function () {
+            restoreWizardDraft();
 
             $("#poStepper").kendoStepper({
-                linear: false,
+                linear: true,
 
                 steps: [
                     {
@@ -195,7 +222,12 @@
                 ]
             });
 
-            goToWizardStep(1);
+            if (allocatedItems.length && typeof renderStep2Allocations === "function") renderStep2Allocations();
+            goToWizardStep(currentWizardStep);
+            wizardDraftReady = true;
+            $("#poWizardForm").on("input change", "input, select, textarea", function () {
+                scheduleWizardAutoSave();
+            });
         });
 
 
@@ -218,13 +250,24 @@
                     "Please select at least one approved Purchase Request before continuing."
                 );
 
-                goToWizardStep(1);
-
                 return;
+            }
+
+            if (step > 2 && !validateStep2Allocations()) {
+                showWizardMessage("Allocate the full requested quantity of every PR item before continuing.");
+                step = 2;
+            }
+
+            if (step > 3) {
+                if (!validateStep3Groups()) {
+                    showWizardMessage("Complete all required line-item information for every PO group before continuing.");
+                    step = 3;
+                }
             }
 
 
             currentWizardStep = step;
+            if (wizardDraftReady) scheduleWizardAutoSave();
 
 
             /*
@@ -254,6 +297,93 @@
              * Update page state.
              */
             updateWizardState(step);
+            if (step === 2) window.setTimeout(activateStep2FromWizardState, 160);
+            if (step === 3 && typeof prepareStep3Data === "function") prepareStep3Data();
+            if (step === 4 && typeof renderStep4Review === "function") renderStep4Review();
+        }
+
+        function activateStep2FromWizardState() {
+            if (allocatedItems && allocatedItems.length > 0) {
+                renderAndResizeStep2();
+                return;
+            }
+
+            if (!selectedPRIds || selectedPRIds.length === 0) {
+                renderAndResizeStep2();
+                return;
+            }
+
+            $.ajax({
+                url: "@Url.Action("GetSelectedPRLineItems", "PurchaseOrders")",
+                type: "POST",
+                traditional: true,
+                data: {
+                    __RequestVerificationToken: getAntiForgeryToken(),
+                    prIds: selectedPRIds
+                }
+            }).done(function (response) {
+                if (!response || !response.success) {
+                    showWizardMessage(response && response.message ? response.message : "PR line items could not be restored.");
+                    return;
+                }
+
+                allocatedItems = response.items || [];
+                restoreStep2AssignmentsFromGroups();
+                renderAndResizeStep2();
+                scheduleWizardAutoSave();
+            }).fail(function () {
+                showWizardMessage("PR line items could not be restored.");
+            });
+        }
+
+        function restoreStep2AssignmentsFromGroups() {
+            var assignmentByItemId = {};
+            $.each(poGroups || [], function (_, group) {
+                $.each(group.items || [], function (_, item) {
+                    $.each(item.sourcePRs || [], function (_, source) {
+                        if (!source.requestItemId) return;
+                        assignmentByItemId[String(source.requestItemId).toLowerCase()] = {
+                            groupId: group.groupId,
+                            assignedQty: Number(source.allocatedQty || 0)
+                        };
+                    });
+                });
+            });
+
+            $.each(allocatedItems || [], function (_, item) {
+                var assignment = assignmentByItemId[String(item.Id || "").toLowerCase()];
+                if (!assignment) return;
+                item.TargetGroupId = assignment.groupId;
+                item.AssignedQty = assignment.assignedQty;
+                item.RemainingQty = Math.max(0, Number(item.RequestedQty || 0) - assignment.assignedQty);
+            });
+        }
+
+        function renderAndResizeStep2() {
+            if (typeof renderStep2Allocations === "function") renderStep2Allocations();
+            var grid = $("#Step2AllocationsGrid").data("kendoGrid");
+            if (grid) {
+                grid.dataSource.data(allocatedItems || []);
+                grid.refresh();
+                grid.resize();
+            }
+        }
+
+        function validateStep2Allocations() {
+            return allocatedItems && allocatedItems.length > 0 && allocatedItems.every(function (item) {
+                return item.TargetGroupId && Number(item.AssignedQty) > 0 && Number(item.RemainingQty) === 0;
+            });
+        }
+
+        function validateStep3Groups() {
+            return poGroups && poGroups.length > 0 && poGroups.every(function (group) {
+                return group.items && group.items.length > 0 &&
+                    group.items.every(function (item) {
+                        return typeof isStep3ItemComplete === "function"
+                            ? isStep3ItemComplete(item)
+                            : !!item;
+                    });
+            });
         }
 
 
@@ -262,8 +392,8 @@
             var titles = {
                 1: "Select approved Purchase Requests.",
                 2: "Assign PR items to Purchase Order Groups.",
-                3: "Configure supplier and Purchase Order details.",
-                4: "Review documents and post Purchase Orders."
+                3: "Complete the Purchase Order line-item details.",
+                4: "Complete PO details, review documents, and post Purchase Orders."
             };
 
             $("#wizardStepDescription").text(
@@ -290,7 +420,104 @@
 
         function showWizardMessage(message) {
 
-            alert(message);
+            $("#wizardValidationSummary").text(message).show().attr("role", "alert");
+            if (window.kendo && kendo.alert) kendo.alert(message);
+        }
+
+        function getAntiForgeryToken() {
+            return $("#poWizardForm input[name='__RequestVerificationToken']").val();
+        }
+
+        function restoreWizardDraft() {
+            if (!initialWizardStateJson) return;
+            try {
+                var state = JSON.parse(initialWizardStateJson);
+                selectedPRIds = (state.selectedPRIds || []).map(String);
+                allocatedItems = state.allocatedItems || [];
+                poGroups = state.poGroups && state.poGroups.length ? state.poGroups : poGroups;
+                currentWizardStep = Math.max(1, Math.min(4, Number(state.currentStep || currentWizardStep || 1)));
+                $("#wizardDraftStatusText").text("Draft restored");
+            } catch (e) {
+                currentWizardStep = 1;
+                $("#wizardDraftStatusText").text("Draft could not be restored");
+            }
+        }
+
+        function buildWizardDraftState() {
+            return {
+                version: 1,
+                currentStep: currentWizardStep,
+                selectedPRIds: selectedPRIds.map(String),
+                allocatedItems: allocatedItems || [],
+                poGroups: poGroups || []
+            };
+        }
+
+        function scheduleWizardAutoSave() {
+            if (!wizardDraftReady || !selectedPRIds || selectedPRIds.length === 0) return;
+            wizardDraftDirty = true;
+            wizardDraftVersion++;
+            $("#wizardDraftStatusText").text("Unsaved changes");
+            window.clearTimeout(wizardAutoSaveTimer);
+            wizardAutoSaveTimer = window.setTimeout(function () { saveWizardDraft(false); }, 1200);
+        }
+
+        function saveWizardDraft(showConfirmation) {
+            if (!selectedPRIds || selectedPRIds.length === 0) {
+                if (showConfirmation) showWizardMessage("Select at least one Purchase Request before saving.");
+                return $.Deferred().reject().promise();
+            }
+            if (wizardDraftSaveRequest) {
+                wizardDraftSaveQueued = true;
+                return wizardDraftSaveRequest;
+            }
+            window.clearTimeout(wizardAutoSaveTimer);
+            $("#wizardDraftStatusText").text("Saving...");
+            var savedVersion = wizardDraftVersion;
+            var stateJson = JSON.stringify(buildWizardDraftState());
+            wizardDraftSaveRequest = $.ajax({
+                url: "@Url.Action("SavePODraft", "PurchaseOrders")",
+                type: "POST",
+                traditional: true,
+                data: {
+                    __RequestVerificationToken: getAntiForgeryToken(),
+                    draftId: wizardDraftId,
+                    wizardStateJson: stateJson,
+                    prIds: selectedPRIds,
+                    currentStep: currentWizardStep
+                }
+            }).done(function (response) {
+                if (!response.success) {
+                    $("#wizardDraftStatusText").text("Save failed");
+                    if (showConfirmation) showWizardMessage(response.message || "The draft could not be saved.");
+                    return;
+                }
+                wizardDraftId = response.draftId;
+                wizardDraftDirty = wizardDraftVersion !== savedVersion;
+                $("#wizardDraftStatusText").text("Saved at " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+                if (window.history && history.replaceState && wizardDraftId) {
+                    history.replaceState(null, document.title, "@Url.Action("Wizard", "PurchaseOrders")?draftId=" + encodeURIComponent(wizardDraftId));
+                }
+                if (showConfirmation && window.showNotification) showNotification("Wizard draft saved.", "success");
+            }).fail(function () {
+                $("#wizardDraftStatusText").text("Save failed — retry available");
+                if (showConfirmation) showWizardMessage("The wizard draft could not be saved.");
+            }).always(function () {
+                wizardDraftSaveRequest = null;
+                if (wizardDraftSaveQueued) {
+                    wizardDraftSaveQueued = false;
+                    saveWizardDraft(false);
+                }
+            });
+            return wizardDraftSaveRequest;
+        }
+
+        $(window).on("beforeunload", function () {
+            if (wizardDraftDirty) return "This wizard has unsaved changes.";
+        });
+
+        function escapeWizardHtml(value) {
+            return $("<div/>").text(value == null ? "" : String(value)).html();
         }
 
 

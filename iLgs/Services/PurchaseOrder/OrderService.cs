@@ -29,6 +29,11 @@ namespace iLgs.Services.PurchaseOrder
         IQueryable<PrItemSelectionVM> GetPrItemSelection(Guid? orderId);
         IQueryable<PrItemSelectionVM> GetItemPR(Guid? orderItemId);
 
+        string GetDepartment(List<Request> requestList);
+        string GetDeliveryPlace(List<Request> requestList);
+        string GetPrNo(List<Request> requestList);
+        string GetFund(List<Request> requestList);
+
         ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
         ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
         ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
@@ -783,10 +788,30 @@ namespace iLgs.Services.PurchaseOrder
 
         private void SetModel(OrderVM model, List<Request> requestList)
         {
-            model.Department = string.Join(" / ", requestList.Select(s => s.Department));
-            model.DeliveryPlace = string.Join(" / ", requestList.Select(s => s.Department));
-            model.PrNo = string.Join(", ", requestList.Select(s => s.PrNo));
-            model.Fund = string.Join(", ", requestList.GroupBy(g => g.Fund).Select(s => s.Key));
+            model.Department = GetDepartment(requestList);
+            model.DeliveryPlace = GetDeliveryPlace(requestList);
+            model.PrNo = GetPrNo(requestList);
+            model.Fund = GetFund(requestList);
+        }
+
+        public string GetDepartment(List<Request> requestList)
+        {
+            return string.Join(" / ", requestList.Select(s => s.Department));
+        }
+
+        public string GetDeliveryPlace(List<Request> requestList)
+        {
+            return string.Join(" / ", requestList.Select(s => s.Department));
+        }
+
+        public string GetPrNo(List<Request> requestList)
+        {
+            return string.Join(" / ", requestList.Select(s => s.PrNo));
+        }
+
+        public string GetFund(List<Request> requestList)
+        {
+            return string.Join(", ", requestList.GroupBy(g => g.Fund).Select(s => s.Key));
         }
 
         private void MapModelToEntityFields(Order entity, OrderVM model, Mode mode, List<Request> requestList)

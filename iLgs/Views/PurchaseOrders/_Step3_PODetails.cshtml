@@ -1,12 +1,20 @@
 ﻿@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
+<style>
+    .step3-missing-field-focus {
+        outline: 3px solid rgba(245, 158, 11, 0.45) !important;
+        outline-offset: 2px;
+        transition: outline-color 0.2s ease;
+    }
+</style>
+
 <div class="wizard-card">
     <!-- Step Header -->
     <div class="header-bar" style="margin-bottom: 16px;">
         <div>
             <h2 style="font-size: 18px; font-weight: 700; color: #002046; margin: 0 0 4px 0;">Step 3: Purchase Order Details</h2>
-            <p class="subtitle" style="font-size: 12px; color: #64748B; margin: 0;">Review consolidated items and finalize PO header details per supplier group.</p>
+            <p class="subtitle" style="font-size: 12px; color: #64748B; margin: 0;">Review and complete the consolidated line items for each PO group.</p>
         </div>
     </div>
 
@@ -15,115 +23,12 @@
         <!-- Dynamically rendered tabs with status badges -->
     </div>
 
-    <!-- Main Split Form Layout (Reversed Layout: Left Column = 340px, Right Column = Flex 1) -->
-    <div class="step3-split-layout form-grid" id="step3SplitLayoutContainer" style="display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; width: 100%;">
-        <!-- Left Column: Header Details & Delivery Terms Cards -->
-        <div class="step3-left-col">
-            <!-- Header Details Card -->
-            <div class="step3-card group-card">
-                <div class="group-title text-navy">
-                    <span class="k-icon k-i-user" style="color: #115cb9;"></span>
-                    Header Details
-                </div>
-
-                <div class="form-field-wide" style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-                    <div class="form-field">
-                        <label>PO No.</label>
-                        <input type="text" disabled value="(Auto-generated on posting)" class="form-control-custom" style="background: #f1f5f9; font-family: monospace; color: #64748b;" />
-                    </div>
-
-                    <div class="form-field">
-                        <label>
-                            PO Date <span class="required-marker">*</span>
-                        </label>
-                        @(Html.Kendo().DatePicker()
-                                .Name("Step3PODate")
-                                .Value(DateTime.Now)
-                                .Format("yyyy-MM-dd")
-                                .HtmlAttributes(new { style = "width: 100%;", onchange = "onStep3PODateChange(this.value)" })
-                        )
-                    </div>
-
-                    <div class="form-field">
-                        <label>
-                            Supplier <span class="required-marker">*</span>
-                        </label>
-                        @(Html.Kendo().DropDownList()
-                                .Name("Step3SupplierDropdown")
-                                .DataTextField("Name")
-                                .DataValueField("Id")
-                                .OptionLabel("-- Select PhilGEPS Supplier --")
-                                .DataSource(source => source
-                                    .Read(read => read.Action("GetSuppliersDropdown", "PurchaseOrders"))
-                                )
-                                .HtmlAttributes(new { style = "width: 100%;", onchange = "onStep3SupplierChange(this.value)" })
-                        )
-                    </div>
-
-                    <div class="form-field">
-                        <label>Mode of Procurement</label>
-                        @(Html.Kendo().DropDownList()
-                                .Name("Step3ProcurementMode")
-                                .BindTo(new[] { "Public Bidding", "Shopping (Sec 52.1b)", "Direct Contracting", "Small Value Procurement (Sec 53.9)" })
-                                .HtmlAttributes(new { style = "width: 100%;", onchange = "onStep3ProcurementModeChange(this.value)" })
-                        )
-                    </div>
-                </div>
-            </div>
-
-            <!-- Delivery & Payment Terms Card -->
-            <div class="step3-card group-card" style="margin-top: 16px;">
-                <div class="group-title text-navy">
-                    <span class="k-icon k-i-cart" style="color: #115cb9;"></span>
-                    Delivery &amp; Payment Terms
-                </div>
-
-                <div class="form-field-wide" style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-                    <div class="form-field">
-                        <label>
-                            Delivery Period (Calendar Days) <span class="required-marker">*</span>
-                        </label>
-                        @(Html.Kendo().NumericTextBox<int>()
-                                .Name("Step3DeliveryPeriod")
-                                .Min(1)
-                                .Max(365)
-                                .Format("n0")
-                                .Decimals(0)
-                                .HtmlAttributes(new { style = "width: 100%;", onchange = "onStep3DeliveryPeriodChange(this.value)" })
-                        )
-                    </div>
-
-                    <div class="form-field">
-                        <label>
-                            Place of Delivery <span class="required-marker">*</span>
-                        </label>
-                        <input type="text" id="txtStep3PlaceOfDelivery" class="form-control-custom" placeholder="e.g. Main Warehouse, Building A" onchange="onStep3PlaceOfDeliveryChange(this.value)" onkeyup="onStep3PlaceOfDeliveryChange(this.value)" />
-                    </div>
-
-                    <div class="form-field">
-                        <label>
-                            Payment Terms <span class="required-marker">*</span>
-                        </label>
-                        @(Html.Kendo().DropDownList()
-                                .Name("Step3PaymentTerms")
-                                .BindTo(new[] { "30 Days", "15 Days", "Cash on Delivery", "Progress Billing" })
-                                .HtmlAttributes(new { style = "width: 100%;", onchange = "onStep3PaymentTermsChange(this.value)" })
-                        )
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Metric Banner & Consolidated Line Items Accordion -->
+    <div class="step3-split-layout form-grid" id="step3SplitLayoutContainer" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; width: 100%;">
+        <!-- Consolidated Line Items. PO-level details are completed in Step 4. -->
         <div class="step3-right-col">
             <!-- Metric Banner -->
             <div class="step3-metric-banner" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; gap: 20px;">
-                    <div>
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; display: block;">Assigned Supplier</span>
-                        <span id="lblActiveGroupSupplierName" style="font-weight: 700; font-size: 12px; color: #002046;">Mega Office Supplies Inc.</span>
-                    </div>
-                    <div style="height: 32px; width: 1px; background-color: #cbd5e1;"></div>
                     <div>
                         <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; display: block;">Consolidated Items</span>
                         <span id="lblActiveGroupItemsCount" style="font-weight: 700; font-size: 12px; color: #002046;">0 Items</span>
@@ -220,19 +125,19 @@
         </text>)
     )
 
-    <!-- Navigation Action Bar with Step 1 Themed Navy and Secondary Buttons -->
-    <div class="wizard-summary-bar">
-        <div class="wizard-action-group" style="width: 100%; justify-content: space-between;">
-            @(Html.Kendo().Button()
-                    .Name("btnStep3Back")
-                    .FillMode(ButtonFillMode.Outline)
-                    .Content("&larr; Back to Assign Items")
-                    .HtmlAttributes(new { onclick = "goToWizardStep(2)", @class = "btn-procurement-secondary" })
-            )
+    <!-- Navigation Action Bar -->
+    <div class="wizard-summary-bar wizard-final-actions">
+        @(Html.Kendo().Button()
+                .Name("btnStep3Back")
+                .FillMode(ButtonFillMode.Outline)
+                .Content("<span class='k-icon k-i-arrow-left'></span> Back to Assign Items")
+                .HtmlAttributes(new { onclick = "goToWizardStep(2)", @class = "btn-procurement-secondary" })
+        )
+        <div class="wizard-action-group">
             @(Html.Kendo().Button()
                     .Name("btnStep3Next")
                     .ThemeColor(ThemeColor.Primary)
-                    .Content("Next: Review & Post &rarr;")
+                    .Content("Next: Review & Post <span class='k-icon k-i-arrow-right'></span>")
                     .HtmlAttributes(new { onclick = "goToWizardStep(4)", @class = "btn-procurement-primary" })
             )
         </div>
@@ -242,6 +147,7 @@
 <script>
     var activeStep3GroupIndex = 0;
     var expandedStep3ItemId = null;
+    var step3StockNumberTimers = {};
 
     var GSO_CATEGORIES_LIST = [
         'Office Supplies',
@@ -267,6 +173,7 @@
         if (!allocatedItems) allocatedItems = [];
         
         poGroups.forEach(function (grp) {
+            var existingItems = grp.items || [];
 
             /*
              * Get all Step 2 items assigned to this PO Group.
@@ -326,7 +233,17 @@
 
                         stockNo: it.StockNo || "",
 
+                        itemCodeId: it.ItemCodeId || null,
+
                         itemCode: it.ItemCode || "",
+
+                        psType: it.PsType || "",
+
+                        category: it.Category || "",
+
+                        account: it.Account || it.PsTypeDesc || "",
+
+                        subAccount: it.SubAccount || "",
 
                         unit: it.Unit || "pc",
 
@@ -340,11 +257,11 @@
 
                         totalCost: 0,
 
-                        gsoCategory: it.GSOCategory || "Office Supplies",
+                        article: it.Article || it.GSOCategory || description,
 
-                        technicalDescription:
-                            it.TechnicalDescription ||
-                            "Government standard specification compliant.",
+                        gsoCategory: it.Article || it.GSOCategory || description,
+
+                        technicalDescription: it.OtherDescription || it.TechnicalDescription || "",
 
                         attributes: it.Attributes
                             ? JSON.parse(JSON.stringify(it.Attributes))
@@ -352,6 +269,10 @@
                                 Brand: "Generic",
                                 Origin: "Local"
                             },
+
+                        additionalSpecs: it.AdditionalSpecs
+                            ? $.extend({}, it.AdditionalSpecs)
+                            : {},
 
                         setLotItems: it.SetLotItems
                             ? JSON.parse(JSON.stringify(it.SetLotItems))
@@ -388,6 +309,7 @@
                  * even though the PO line is consolidated to 25.
                  */
                 consolidatedItem.sourcePRs.push({
+                    requestItemId: it.Id,
 
                     prId: it.PrId || it.PRId || it.PRID || null,
 
@@ -457,8 +379,22 @@
             grp.items = Object.keys(consolidated).map(function (key, index) {
 
                 var item = consolidated[key];
+                var savedItem = existingItems.find(function (existing) {
+                    return existing.id === item.id || ((existing.PPMPCode || existing.ppmpCode || "").toUpperCase() + "|" +
+                        (existing.description || "").toUpperCase()) === key;
+                });
 
-                item.itemNo = index + 1;
+                if (savedItem) {
+                    ["itemNo", "itemCodeId", "itemCode", "psType", "article", "gsoCategory", "category", "account",
+                        "subAccount", "stockNo", "description", "technicalDescription", "unit", "unitCost",
+                        "attributes", "additionalSpecs", "setLotItems"].forEach(function (fieldName) {
+                            if (savedItem[fieldName] !== undefined && savedItem[fieldName] !== null) {
+                                item[fieldName] = savedItem[fieldName];
+                            }
+                        });
+                }
+
+                item.itemNo = item.itemNo || (index + 1);
 
                 /*
                  * Consolidated PO quantity × unit cost.
@@ -468,6 +404,13 @@
 
                 return item;
             });
+
+            var sourceSummary = getStep3GroupSourceSummary(grp);
+            var currentPlaceOfDelivery = $.trim(grp.placeOfDelivery || "");
+            if (sourceSummary.departments &&
+                (!currentPlaceOfDelivery || currentPlaceOfDelivery === "General Services Office (GSO) Warehouse")) {
+                grp.placeOfDelivery = sourceSummary.departments;
+            }
         });
 
         /*
@@ -484,6 +427,117 @@
     }
 
 
+    function getStep3GroupSourceSummary(group) {
+        var sourcesByPrNumber = {};
+
+        $.each((group && group.items) || [], function (_, item) {
+            $.each(item.sourcePRs || [], function (_, source) {
+                var prNumber = $.trim(source.prNo || source.PRNumber || "");
+                var department = $.trim(source.requestingDepartment || source.DepartmentName || source.Department || "");
+                if (!prNumber) return;
+
+                if (!sourcesByPrNumber[prNumber]) {
+                    sourcesByPrNumber[prNumber] = {
+                        prNumber: prNumber,
+                        department: department
+                    };
+                } else if (!sourcesByPrNumber[prNumber].department && department) {
+                    sourcesByPrNumber[prNumber].department = department;
+                }
+            });
+        });
+
+        var sources = Object.keys(sourcesByPrNumber).map(function (key) {
+            return sourcesByPrNumber[key];
+        }).sort(function (left, right) {
+            return left.prNumber.localeCompare(right.prNumber, undefined, {
+                numeric: true,
+                sensitivity: "base"
+            });
+        });
+
+        return {
+            prNumbers: sources.map(function (source) { return source.prNumber; }).join(", "),
+            departments: sources.map(function (source) { return source.department || "Department not specified"; }).join(" / ")
+        };
+    }
+
+
+    function getStep3ItemMissingFields(item) {
+        if (!item) return [{ field: "item", itemId: null }];
+        var itemCodeId = item.itemCodeId || item.ItemCodeId;
+        var ppmpCode = item.PPMPCode || item.ppmpCode || item.PpmpCode;
+        var description = item.description || item.Description;
+        var stockNo = item.stockNo || item.StockNo;
+        var unit = item.unit || item.Unit;
+        var quantity = item.qty != null ? item.qty : item.Quantity;
+        var unitCost = item.unitCost != null ? item.unitCost : item.UnitCost;
+
+        var missing = [];
+        if (!itemCodeId) missing.push({ field: "article", itemId: item.id });
+        if (!$.trim(ppmpCode || "")) missing.push({ field: "PPMPCode", itemId: item.id });
+        if (!$.trim(description || "")) missing.push({ field: "description", itemId: item.id });
+        if (!$.trim(stockNo || "")) missing.push({ field: "stockNo", itemId: item.id });
+        if (!$.trim(unit || "")) missing.push({ field: "unit", itemId: item.id });
+        if (!(Number(quantity) > 0)) missing.push({ field: "quantity", itemId: item.id });
+        if (!(Number(unitCost) >= 0)) missing.push({ field: "unitCost", itemId: item.id });
+        return missing;
+    }
+
+    function getStep3GroupMissingFields(group) {
+        var missing = [];
+        if (!group) return missing;
+        if (!group.items || !group.items.length) {
+            missing.push({ field: "items", selector: "#step3ItemsAccordionContainer" });
+        }
+        $.each(group.items || [], function (_, item) {
+            missing = missing.concat(getStep3ItemMissingFields(item));
+        });
+        return missing;
+    }
+
+    function isStep3ItemComplete(item) {
+        return getStep3ItemMissingFields(item).length === 0;
+    }
+
+    function focusStep3Control(selector) {
+        var element = $(selector);
+        if (!element.length) return false;
+        var widget = element.data("kendoMultiColumnComboBox") || element.data("kendoComboBox") || element.data("kendoDropDownList");
+        var focusTarget = widget && widget.input ? widget.input : element;
+        focusTarget.focus();
+        var wrapper = widget && widget.wrapper ? widget.wrapper : element;
+        wrapper.addClass("step3-missing-field-focus");
+        setTimeout(function () { wrapper.removeClass("step3-missing-field-focus"); }, 1800);
+        return true;
+    }
+
+    function focusFirstStep3MissingField(groupIndex, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        var group = poGroups[groupIndex];
+        var missing = getStep3GroupMissingFields(group);
+        if (!missing.length) return;
+
+        activeStep3GroupIndex = groupIndex;
+        var first = missing[0];
+        renderStep3GroupTabs();
+        loadActiveGroupForm();
+
+        setTimeout(function () {
+            if (first.selector && focusStep3Control(first.selector)) return;
+            if (first.field === "article" && focusStep3Control("#step3Article_" + first.itemId)) return;
+            if (focusStep3Control("#accordionItem_" + first.itemId + " [data-step3-item-field='" + first.field + "']")) return;
+            var card = $("#accordionItem_" + first.itemId);
+            if (card.length) {
+                card.attr("tabindex", "-1").focus().addClass("step3-missing-field-focus");
+                setTimeout(function () { card.removeClass("step3-missing-field-focus"); }, 1800);
+            }
+        }, 150);
+    }
+
     // Render group tabs with real-time Complete vs Needs Info badges
     function renderStep3GroupTabs() {
         var tabsContainer = $("#step3GroupTabsNav");
@@ -491,16 +545,22 @@
 
         poGroups.forEach(function (grp, index) {
             var isActive = index === activeStep3GroupIndex;
-            var isComplete = grp.placeOfDelivery && grp.placeOfDelivery.trim().length > 0 && grp.deliveryPeriodDays > 0;
+            var sourceSummary = getStep3GroupSourceSummary(grp);
+            var missingFields = getStep3GroupMissingFields(grp);
+            var isComplete = grp.items && grp.items.length > 0 && missingFields.length === 0;
 
             var badgeHtml = isComplete
                 ? '<span class="tab-badge-complete" style="background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Complete</span>'
-                : '<span class="tab-badge-incomplete" style="background: #fef3c7; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Needs Info</span>';
+                : '<span class="tab-badge-incomplete" role="button" tabindex="0" title="Go to the first field that needs information" onclick="focusFirstStep3MissingField(' + index + ', event)" onkeydown="if(event.key === \'Enter\' || event.key === \' \') focusFirstStep3MissingField(' + index + ', event)" style="background: #fef3c7; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; cursor: pointer; white-space: nowrap;">Needs Info (' + missingFields.length + ')</span>';
 
             var activeClass = isActive ? ' active' : '';
 
-            var tabBtn = $('<button type="button" class="step3-tab-btn' + activeClass + '" onclick="selectStep3Group(' + index + ')" style="padding: 8px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px 6px 0 0; cursor: pointer; margin-right: 4px;">' +
-                '<span>' + grp.groupName + '</span> ' + badgeHtml +
+            var tabBtn = $('<button type="button" class="step3-tab-btn' + activeClass + '" onclick="selectStep3Group(' + index + ')" style="padding: 8px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px 6px 0 0; cursor: pointer; margin-right: 4px; display: inline-flex; align-items: flex-start; gap: 6px;">' +
+                '<span class="step3-tab-copy" style="display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left;">' +
+                '<strong>' + escapeStep3Html(grp.groupName) + '</strong>' +
+                '<small><span>PR Number:</span> ' + escapeStep3Html(sourceSummary.prNumbers || "Not available") + '</small>' +
+                '<small><span>Department:</span> ' + escapeStep3Html(sourceSummary.departments || "Not available") + '</small>' +
+                '</span>' + badgeHtml +
                 '</button>');
 
             tabsContainer.append(tabBtn);
@@ -519,41 +579,45 @@
         var activeGroup = poGroups[activeStep3GroupIndex];
         if (!activeGroup) return;
 
-        // Set DatePicker
-        var dp = $("#Step3PODate").data("kendoDatePicker");
-        if (dp) {
-            dp.value(activeGroup.poDate ? new Date(activeGroup.poDate) : new Date());
+        var supplierCombo = $("#Step3SupplierDropdown").data("kendoMultiColumnComboBox");
+        if (supplierCombo) {
+            supplierCombo.value(activeGroup.supplierId || "");
+            if (activeGroup.supplierId && activeGroup.supplierName) {
+                supplierCombo.text(activeGroup.supplierName);
+                supplierCombo.input.val(activeGroup.supplierName);
+            }
         }
 
-        // Set Supplier DropDownList
-        var supplierDdl = $("#Step3SupplierDropdown").data("kendoDropDownList");
-        if (supplierDdl) {
-            supplierDdl.value(activeGroup.supplierId || 1);
+        var procCombo = $("#Step3ProcurementMode").data("kendoMultiColumnComboBox");
+        if (procCombo) {
+            procCombo.value(activeGroup.modeOfProcurement || "");
         }
 
-        // Set Procurement Mode DropDownList
-        var procDdl = $("#Step3ProcurementMode").data("kendoDropDownList");
-        if (procDdl) {
-            procDdl.value(activeGroup.modeOfProcurement || "Public Bidding");
-        }
+        $("#txtStep3SupBusiness").val(activeGroup.supBusiness || "");
+        $("#txtStep3SupTIN").val(activeGroup.supTIN || "");
+        $("#txtStep3SupAddress").val(activeGroup.supAddress || "");
+        $("#txtStep3SupEmail").val(activeGroup.supEmail || "");
+        $("#txtStep3SupContactNo").val(activeGroup.supContactNo || "");
+        $("#txtStep3SupZipCode").val(activeGroup.supZipCode || "");
+        $("#txtStep3PlaceOfDelivery").val(activeGroup.placeOfDelivery || "");
+        $("#txtStep3DeliveryDate").val(activeGroup.deliveryDate || activeGroup.deliveryPeriodDays || "");
+        $("#txtStep3SignedBySuppName").val(activeGroup.signedBySuppName || "");
+        $("#txtStep3SignedByAuthName").val(activeGroup.signedByAuthName || "");
+        $("#txtStep3SignedByAuthDesignation").val(activeGroup.signedByAuthDesignation || "");
+        $("#txtStep3ResoNo").val(activeGroup.resoNo || "");
+        $("#txtStep3CertifiedCorrectBy").val(activeGroup.certifiedCorrectBy || "");
 
-        // Set Delivery Period NumericTextBox
-        var ntb = $("#Step3DeliveryPeriod").data("kendoNumericTextBox");
-        if (ntb) {
-            ntb.value(activeGroup.deliveryPeriodDays || 30);
-        }
-
-        // Set Place of Delivery input
-        $("#txtStep3PlaceOfDelivery").val(activeGroup.placeOfDelivery || "Main Warehouse, Building A");
-
-        // Set Payment Terms DropDownList
-        var ptDdl = $("#Step3PaymentTerms").data("kendoDropDownList");
-        if (ptDdl) {
-            ptDdl.value(activeGroup.paymentTerms || "30 Days");
-        }
+        var deliveryCombo = $("#Step3DeliveryTerm").data("kendoMultiColumnComboBox");
+        if (deliveryCombo) deliveryCombo.value(activeGroup.termDelivery || "");
+        var paymentCombo = $("#Step3PaymentTerms").data("kendoMultiColumnComboBox");
+        if (paymentCombo) paymentCombo.value(activeGroup.paymentTerms || "");
+        var suppDate = $("#Step3SignedBySuppDate").data("kendoDatePicker");
+        if (suppDate) suppDate.value(activeGroup.signedBySuppDate ? new Date(activeGroup.signedBySuppDate) : null);
+        var certifiedDate = $("#Step3CertifiedCorrectDate").data("kendoDatePicker");
+        if (certifiedDate) certifiedDate.value(activeGroup.certifiedCorrectDate ? new Date(activeGroup.certifiedCorrectDate) : null);
 
         // Update Metric Banner
-        $("#lblActiveGroupSupplierName").text(activeGroup.supplierName || "Mega Office Supplies Inc.");
+        $("#lblActiveGroupSupplierName").text(activeGroup.supplierName || "Supplier not selected");
         $("#lblActiveGroupItemsCount").text((activeGroup.items ? activeGroup.items.length : 0) + " Items");
 
         var total = 0;
@@ -568,47 +632,75 @@
         renderStep3AccordionItems();
     }
 
-    // Header Details change handlers
-    function onStep3PODateChange(val) {
-        var grp = poGroups[activeStep3GroupIndex];
-        if (grp) grp.poDate = val;
-    }
-
-    function onStep3SupplierChange(val) {
+    function setStep3GroupField(field, value) {
         var grp = poGroups[activeStep3GroupIndex];
         if (!grp) return;
-        var ddl = $("#Step3SupplierDropdown").data("kendoDropDownList");
-        if (ddl) {
-            grp.supplierId = val;
-            grp.supplierName = ddl.text();
-            $("#lblActiveGroupSupplierName").text(grp.supplierName);
-        }
+        grp[field] = value;
+        renderStep3GroupTabs();
+        scheduleWizardAutoSave();
     }
 
-    function onStep3ProcurementModeChange(val) {
-        var grp = poGroups[activeStep3GroupIndex];
-        if (grp) grp.modeOfProcurement = val;
+    function getStep3SupplierFilter() {
+        var combo = $("#Step3SupplierDropdown").data("kendoMultiColumnComboBox");
+        return { text: combo ? (combo.text() || combo.value() || "") : "" };
     }
 
-    function onStep3DeliveryPeriodChange(val) {
+    function onStep3SupplierSelect(e) {
         var grp = poGroups[activeStep3GroupIndex];
-        if (grp) {
-            grp.deliveryPeriodDays = parseInt(val, 10) || 30;
-            renderStep3GroupTabs();
-        }
+        var supplier = e.dataItem;
+        if (!grp || !supplier) return;
+        grp.supplierId = supplier.Id;
+        grp.supplierName = supplier.Name || "";
+        grp.supBusiness = supplier.BusinessName || "";
+        grp.supAddress = supplier.Address || "";
+        grp.supTIN = supplier.TIN || "";
+        grp.supZipCode = supplier.ZipCode || "";
+        grp.supEmail = supplier.Email || "";
+        grp.supContactNo = supplier.ContactNos || "";
+        $("#txtStep3SupBusiness").val(grp.supBusiness);
+        $("#txtStep3SupAddress").val(grp.supAddress);
+        $("#txtStep3SupTIN").val(grp.supTIN);
+        $("#txtStep3SupZipCode").val(grp.supZipCode);
+        $("#txtStep3SupEmail").val(grp.supEmail);
+        $("#txtStep3SupContactNo").val(grp.supContactNo);
+        $("#lblActiveGroupSupplierName").text(grp.supplierName || "Supplier not selected");
+        renderStep3GroupTabs();
+        scheduleWizardAutoSave();
+    }
+
+    function onStep3SupplierWidgetChange(e) {
+        var grp = poGroups[activeStep3GroupIndex];
+        if (!grp || e.sender.value()) return;
+        grp.supplierId = null;
+        grp.supplierName = "";
+        ["supBusiness", "supAddress", "supTIN", "supZipCode", "supEmail", "supContactNo"].forEach(function (field) { grp[field] = ""; });
+        $("#txtStep3SupBusiness,#txtStep3SupAddress,#txtStep3SupTIN,#txtStep3SupZipCode,#txtStep3SupEmail,#txtStep3SupContactNo").val("");
+        $("#lblActiveGroupSupplierName").text("Supplier not selected");
+        scheduleWizardAutoSave();
+    }
+
+    function onStep3ProcurementModeWidgetChange(e) {
+        setStep3GroupField("modeOfProcurement", e.sender.value());
+    }
+
+    function onStep3DeliveryTermWidgetChange(e) {
+        setStep3GroupField("termDelivery", e.sender.value());
+    }
+
+    function onStep3PaymentTermsWidgetChange(e) {
+        setStep3GroupField("paymentTerms", e.sender.value());
+    }
+
+    function onStep3SignedBySuppDateChange(e) {
+        setStep3GroupField("signedBySuppDate", e.sender.value());
+    }
+
+    function onStep3CertifiedCorrectDateChange(e) {
+        setStep3GroupField("certifiedCorrectDate", e.sender.value());
     }
 
     function onStep3PlaceOfDeliveryChange(val) {
-        var grp = poGroups[activeStep3GroupIndex];
-        if (grp) {
-            grp.placeOfDelivery = val;
-            renderStep3GroupTabs();
-        }
-    }
-
-    function onStep3PaymentTermsChange(val) {
-        var grp = poGroups[activeStep3GroupIndex];
-        if (grp) grp.paymentTerms = val;
+        setStep3GroupField("placeOfDelivery", val);
     }
 
     // Accordion interaction functions
@@ -644,6 +736,253 @@
         if (!grp || !grp.items) return;
         var item = grp.items.find(function (i) { return i.id === itemId; });
         if (item) item.technicalDescription = newDesc;
+    }
+
+    function escapeStep3Html(value) {
+        return $("<div/>").text(value == null ? "" : value).html();
+    }
+
+    function escapeStep3Attribute(value) {
+        return escapeStep3Html(value).replace(/"/g, "&quot;");
+    }
+
+    function findStep3Item(itemId) {
+        var grp = poGroups[activeStep3GroupIndex];
+        if (!grp || !grp.items) return null;
+        return grp.items.find(function (item) { return item.id === itemId; });
+    }
+
+    function onStep3ItemFieldChange(itemId, field, value) {
+        var item = findStep3Item(itemId);
+        if (!item) return;
+        item[field] = value;
+        if (field === "description") {
+            $("#accordionItem_" + itemId + " .step3-item-heading").text(value);
+        }
+        renderStep3GroupTabs();
+        scheduleWizardAutoSave();
+    }
+
+    function onStep3ItemNumberChange(itemId, field, value) {
+        var item = findStep3Item(itemId);
+        if (!item) return;
+        item[field] = Number(value || 0);
+        item.totalCost = Number(item.qty || 0) * Number(item.unitCost || 0);
+        renderStep3AccordionItems();
+        renderStep3GroupTabs();
+        scheduleWizardAutoSave();
+    }
+
+    function getStep3ItemLookupData(item) {
+        return function () {
+            var combo = $("#step3Article_" + item.id).data("kendoMultiColumnComboBox");
+            return {
+                text: combo ? (combo.text() || combo.value() || "") : "",
+                ppmpCode: item.PPMPCode || "",
+                refDate: kendo.toString(kendo.parseDate(poGroups[activeStep3GroupIndex].poDate || new Date()), "MM/dd/yyyy")
+            };
+        };
+    }
+
+    function initializeStep3ItemWidgets(item) {
+        var articleElement = $("#step3Article_" + item.id);
+        articleElement.kendoMultiColumnComboBox({
+            dataTextField: "Article",
+            dataValueField: "Id",
+            valuePrimitive: true,
+            filter: "contains",
+            placeholder: "Select Article",
+            columns: [
+                { field: "Category", title: "Category", width: 120 },
+                { field: "Code", title: "Code", width: 110 },
+                { field: "TypeDesc", title: "Account", width: 180 },
+                { field: "SubAccount1", title: "Sub-Account1", width: 160 },
+                { field: "SubAccount2", title: "Sub-Account2", width: 160 },
+                { field: "SubAccount3", title: "Sub-Account3", width: 140 },
+                { field: "SubAccount4", title: "Sub-Account4", width: 140 },
+                { field: "Article", title: "Article", width: 200 }
+            ],
+            dataSource: {
+                serverFiltering: true,
+                transport: { read: { url: "@Url.Action("GetPpmpItemAccounts", "ItemHelper")", dataType: "json", data: getStep3ItemLookupData(item) } }
+            },
+            select: function (e) {
+                var selected = this.dataItem(e.item);
+                if (!selected) return;
+                item.itemCodeId = selected.Id;
+                item.itemCode = selected.Code || "";
+                item.psType = selected.Type || "";
+                item.article = selected.Article || "";
+                item.gsoCategory = item.article;
+                item.category = selected.Category || "";
+                item.account = selected.TypeDesc || "";
+                item.subAccount = selected.MainDesc || "";
+                setTimeout(renderStep3AccordionItems, 0);
+                renderStep3GroupTabs();
+                scheduleWizardAutoSave();
+            },
+            change: function () {
+                if (!this.value()) {
+                    item.itemCodeId = null;
+                    item.article = "";
+                    item.gsoCategory = "";
+                    renderStep3GroupTabs();
+                    scheduleWizardAutoSave();
+                }
+            }
+        });
+        var articleCombo = articleElement.data("kendoMultiColumnComboBox");
+        articleCombo.value(item.itemCodeId || "");
+        if (item.article) articleCombo.text(item.article);
+
+        var unitElement = $("#step3Unit_" + item.id);
+        if (unitElement.length) {
+            unitElement.kendoMultiColumnComboBox({
+            dataTextField: "Code",
+            dataValueField: "Code",
+            valuePrimitive: true,
+            filter: "contains",
+            placeholder: "Select unit",
+            columns: [
+                { field: "Code", title: "Code", width: 90 },
+                { field: "Description", title: "Description", width: 180 },
+                { field: "Desc2", title: "Category", width: 160 }
+            ],
+            dataSource: { serverFiltering: true, transport: { read: { url: "@Url.Action("GetUnitInd", "Getters")", dataType: "json" } } },
+            change: function () {
+                item.unit = this.value() || "";
+                renderStep3GroupTabs();
+                scheduleWizardAutoSave();
+            }
+            });
+            unitElement.data("kendoMultiColumnComboBox").value(item.unit || "");
+        }
+        loadStep3AdditionalSpecs(item);
+    }
+
+    function getStep3SpecPrefix(itemId) {
+        return "WizardSpecs_" + String(itemId || "").replace(/[^A-Za-z0-9_]/g, "_");
+    }
+
+    function captureStep3AdditionalSpecs(itemId) {
+        var item = findStep3Item(itemId);
+        var container = $("#step3AdditionalSpecs_" + itemId);
+        if (!item || !container.length) return;
+        item.additionalSpecs = item.additionalSpecs || {};
+        container.find(":input[name]").each(function () {
+            var name = this.name || "";
+            var marker = ".AllField.";
+            var markerIndex = name.indexOf(marker);
+            if (markerIndex < 0) return;
+            var fieldName = name.substring(markerIndex + marker.length);
+            var value = $(this).is(":checkbox") ? $(this).is(":checked") : $(this).val();
+            item.additionalSpecs[fieldName] = value == null ? "" : String(value);
+        });
+        scheduleWizardAutoSave();
+    }
+
+    function restoreStep3AdditionalSpecs(item) {
+        var container = $("#step3AdditionalSpecs_" + item.id);
+        var specs = item.additionalSpecs || {};
+        Object.keys(specs).forEach(function (fieldName) {
+            var control = container.find("[name$='.AllField." + fieldName + "']");
+            if (!control.length) return;
+            if (control.is(":checkbox")) control.prop("checked", specs[fieldName] === true || specs[fieldName] === "true");
+            else control.val(specs[fieldName]);
+            var widget = kendo.widgetInstance(control);
+            if (widget && widget.value) widget.value(specs[fieldName]);
+        });
+    }
+
+    function loadStep3AdditionalSpecs(item) {
+        var container = $("#step3AdditionalSpecs_" + item.id);
+        if (!container.length) return;
+        if (!item.itemCodeId) {
+            container.html('<div class="wizard-empty-state">Select an Article to load its additional specification fields.</div>');
+            return;
+        }
+
+        kendo.ui.progress(container, true);
+        $.ajax({
+            url: "@Url.Action("LoadFields", "Orders")",
+            type: "POST",
+            data: {
+                Id: item.id,
+                ItemCodeId: item.itemCodeId,
+                fieldPrefix: getStep3SpecPrefix(item.id)
+            }
+        }).done(function (html) {
+            if (!$.trim(html || "")) {
+                container.html('<div class="wizard-empty-state">No additional specification fields are configured for this Article.</div>');
+                return;
+            }
+            container.html(html);
+            restoreStep3AdditionalSpecs(item);
+            container.off("change.step3Specs").on("change.step3Specs", ":input", function () {
+                captureStep3AdditionalSpecs(item.id);
+                refreshStep3StockNumber(item.id);
+            });
+            refreshStep3StockNumber(item.id);
+        }).fail(function () {
+            container.html('<div class="wizard-error-state">Additional specification fields could not be loaded.</div>');
+        }).always(function () {
+            kendo.ui.progress(container, false);
+        });
+    }
+
+    function UpdateDescription(e) {
+        var element = e && e.sender && e.sender.element ? e.sender.element : $(e && e.target);
+        var container = element.closest(".step3-dynamic-specs");
+        if (!container.length) return;
+        var itemId = container.data("item-id");
+        captureStep3AdditionalSpecs(itemId);
+        refreshStep3StockNumber(itemId);
+    }
+
+    function refreshStep3StockNumber(itemId) {
+        var item = findStep3Item(itemId);
+        if (!item || !item.itemCodeId || !item.itemCode) return;
+
+        clearTimeout(step3StockNumberTimers[itemId]);
+        step3StockNumberTimers[itemId] = setTimeout(function () {
+            var requestData = {
+                Id: item.id,
+                ItemCodeId: item.itemCodeId,
+                ItemCode: item.itemCode,
+                PsType: item.psType || "",
+                PpmpCode: item.PPMPCode || "",
+                Description: item.description || "",
+                Unit: item.unit || "",
+                Qty: Number(item.qty || 0),
+                UnitCost: Number(item.unitCost || 0)
+            };
+            $.each(item.additionalSpecs || {}, function (fieldName, value) {
+                requestData["AllField." + fieldName] = value;
+            });
+
+            var container = $("#step3AdditionalSpecs_" + itemId);
+            kendo.ui.progress(container, true);
+            $.ajax({
+                url: "@Url.Action("GetDescription", "Orders")",
+                type: "POST",
+                data: requestData
+            }).done(function (result) {
+                if (!result || result.StockNo == null) return;
+                item.stockNo = result.StockNo;
+                $("#accordionItem_" + itemId)
+                    .find("[data-step3-item-field='stockNo']")
+                    .val(item.stockNo);
+                $("#accordionItem_" + itemId)
+                    .find(".step3-item-stock-number")
+                    .text(item.stockNo || item.itemCode || "");
+                renderStep3GroupTabs();
+                scheduleWizardAutoSave();
+            }).fail(function () {
+                showWizardMessage("The Stock/Property No. could not be refreshed.");
+            }).always(function () {
+                kendo.ui.progress(container, false);
+            });
+        }, 250);
     }
 
     function onItemAttributeChange(itemId, key, value) {
@@ -690,8 +1029,8 @@
                 '<div style="display: flex; align-items: center; gap: 12px;">' +
                 '<span style="width: 24px; height: 24px; border-radius: 50%; background: #002046; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">' + (index + 1) + '</span>' +
                 '<div>' +
-                '<div style="font-weight: 700; font-size: 12px; color: #002046;">' + item.description + '</div>' +
-                '<span style="font-family: monospace; font-size: 11px; color: #64748b;">' + (item.stockNo || item.itemCode) + '</span>' +
+                '<div class="step3-item-heading" style="font-weight: 700; font-size: 12px; color: #002046;">' + escapeStep3Html(item.description) + '</div>' +
+                '<span class="step3-item-stock-number" style="font-family: monospace; font-size: 11px; color: #64748b;">' + escapeStep3Html(item.stockNo || item.itemCode || "") + '</span>' +
                 '</div>' +
                 '</div>' +
                 '<div style="display: flex; align-items: center; gap: 20px; font-size: 12px;">' +
@@ -715,7 +1054,7 @@
 
             // Accordion Body
             if (isExpanded) {
-                var body = $('<div class="step3-accordion-body" style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #ffffff;"></div>');
+                var body = $('<div class="step3-accordion-body" style="padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; background: #ffffff;"></div>');
 
                 // Left Sub-Panel
                 var catOptionsHtml = '';
@@ -726,13 +1065,13 @@
 
                 var leftSubPanel = $('<div style="display: flex; flex-direction: column; gap: 12px;">' +
                     '<div>' +
-                    '<label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">GSO Category <span style="color: #ef4444;">*</span></label>' +
+                    '<label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Article <span style="color: #ef4444;">*</span></label>' +
                     '<select class="form-control-custom" style="width: 100%; padding: 6px;" onchange="onItemGSOCategoryChange(\'' + item.id + '\', this.value)">' +
                     catOptionsHtml +
                     '</select>' +
                     '</div>' +
                     '<div>' +
-                    '<label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Technical Description</label>' +
+                    '<label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Other Description</label>' +
                     '<textarea rows="3" class="form-control-custom" style="width: 100%; resize: none;" placeholder="Detailed government specifications..." onchange="onItemTechDescChange(\'' + item.id + '\', this.value)">' + (item.technicalDescription || '') + '</textarea>' +
                     '</div>' +
                     '<div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #e2e8f0;">' +
@@ -748,9 +1087,40 @@
                     '</div>' +
                     '</div>');
 
+                var orderedFieldsPanel = $('<div class="step3-order-item-fields"></div>');
+                function appendItemField(label, control, fullWidth) {
+                    var wrapper = $('<div></div>').toggleClass("step3-item-field-full", !!fullWidth);
+                    wrapper.append($('<label class="step3-item-label"></label>').html(label));
+                    wrapper.append(control);
+                    orderedFieldsPanel.append(wrapper);
+                }
+                function itemTextInput(fieldName, value, readOnly) {
+                    var control = $('<input class="form-control-custom" style="width:100%;" />')
+                        .attr("data-step3-item-field", fieldName)
+                        .val(value || "");
+                    if (readOnly) control.prop("readonly", true);
+                    else control.on("change", function () { onStep3ItemFieldChange(item.id, fieldName, this.value); });
+                    return control;
+                }
+
+                appendItemField("Article <span class='required-marker'>*</span>", $('<input id="step3Article_' + item.id + '" style="width:100%; max-width:100%" />'), true);
+                appendItemField("PPMP Code", itemTextInput("PPMPCode", item.PPMPCode, true), false);
+                appendItemField("Category", itemTextInput("category", item.category, true), false);
+                appendItemField("Account", itemTextInput("account", item.account, true), false);
+                appendItemField("Sub-Accounts", itemTextInput("subAccount", item.subAccount, true), false);
+                appendItemField("Additional Specs",
+                    $('<div class="step3-dynamic-specs" id="step3AdditionalSpecs_' + item.id + '"></div>')
+                        .attr("data-item-id", item.id), true);
+                appendItemField("Stock/Property No.", itemTextInput("stockNo", item.stockNo, true), false);
+                appendItemField("Description <span class='required-marker'>*</span>",
+                    $('<textarea rows="2" class="form-control-custom" style="width:100%; resize:vertical;"></textarea>').val(item.description || "")
+                        .attr("data-step3-item-field", "description")
+                        .on("change", function () { onStep3ItemFieldChange(item.id, "description", this.value); }), true);
+                appendItemField("Other Description",
+                    $('<textarea rows="3" class="form-control-custom" style="width:100%; resize:vertical;"></textarea>').val(item.technicalDescription || "")
+                        .on("change", function () { onStep3ItemFieldChange(item.id, "technicalDescription", this.value); }), true);
                 // Right Sub-Panel
                 var rightSubPanel = $('<div class="step3-subitem-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px;"></div>');
-                rightSubPanel.append('<h4 style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #002046; margin: 0 0 10px 0;">Additional Specs: ' + item.gsoCategory + '</h4>');
 
                 var attrs = item.attributes || {};
                 var attrsGrid = $('<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;"></div>');
@@ -772,8 +1142,6 @@
                     attrsGrid.append('<div><label style="font-size: 10px; color: #64748b; display: block;">Brand / Manufacturer</label><input type="text" value="' + (attrs.Brand || 'Standard Government Grade') + '" class="form-control-custom" style="width: 100%; padding: 4px;" onchange="onItemAttributeChange(\'' + item.id + '\', \'Brand\', this.value)" /></div>');
                     attrsGrid.append('<div><label style="font-size: 10px; color: #64748b; display: block;">Warranty / Terms</label><input type="text" value="' + (attrs.Warranty || '1 Year Standard') + '" class="form-control-custom" style="width: 100%; padding: 4px;" onchange="onItemAttributeChange(\'' + item.id + '\', \'Warranty\', this.value)" /></div>');
                 }
-                rightSubPanel.append(attrsGrid);
-
                 // Set / Lot Sub-Items Section
                 var subItemsWrapper = $('<div style="padding-top: 10px; border-top: 1px solid #cbd5e1;"></div>');
                 var subItemsCount = (item.setLotItems ? item.setLotItems.length : 0);
@@ -783,13 +1151,14 @@
 
                 var subItemsHeader = $('<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
                     '<div style="display: flex; align-items: center; gap: 6px;">' +
-                    '<span style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;">Set / Lot Sub-Items Composition</span>' +
+                    '<span style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;">Sub-item</span>' +
                     autoBadgeHtml +
                     '</div>' +
                     '<button type="button" class="k-button k-button-flat-primary" style="font-size: 11px; padding: 2px 6px;" onclick="onAddSubItem(\'' + item.id + '\')">' +
                     '<span class="k-icon k-i-plus"></span> Add Sub-Item' +
                     '</button>' +
                     '</div>');
+                subItemsHeader.find("button").remove();
                 subItemsWrapper.append(subItemsHeader);
 
                 if (subItemsCount > 0) {
@@ -808,17 +1177,18 @@
                     });
                     subItemsWrapper.append(subTable);
                 } else {
-                    subItemsWrapper.append('<div style="font-size: 11px; color: #94a3b8; font-style: italic;">No set/lot sub-items configured for this item.</div>');
+                    subItemsWrapper.append('<div style="font-size: 11px; color: #94a3b8; font-style: italic;">No sub-items configured for this item.</div>');
                 }
 
                 rightSubPanel.append(subItemsWrapper);
 
-                body.append(leftSubPanel);
+                body.append(orderedFieldsPanel);
                 body.append(rightSubPanel);
                 itemCard.append(body);
             }
 
             container.append(itemCard);
+            if (isExpanded) initializeStep3ItemWidgets(item);
         });
     }
 </script>

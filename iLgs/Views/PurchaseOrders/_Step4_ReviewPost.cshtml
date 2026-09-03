@@ -1,512 +1,515 @@
-﻿@using iLgs.Ai.Models
+@using Kendo.Mvc.UI
 
-<div class="wizard-card">
-
-    <div class="wizard-card-header">
-
+<div class="wizard-card step4-review-container">
+    <div class="step4-header">
         <div>
-            <h2>Step 4: Review, Upload Documents &amp; Post</h2>
-
-            <p class="subtitle">
-                Upload the signed Purchase Order and supporting documents,
-                review the Purchase Order groups, and finalize the obligation.
-            </p>
+            <div class="step4-title-row">
+                <h2>Step 4: Review, Document Attachments &amp; Obligate</h2>
+                <span class="k-badge k-badge-solid k-badge-primary k-rounded-md">Draft Mode</span>
+            </div>
+            <p class="subtitle">Review each PO group, attach the signed PO and supporting documents, then save or post.</p>
         </div>
-
+        <div class="step4-metrics" aria-live="polite">
+            <div id="step4ReadinessBadge" class="step4-readiness is-pending">
+                <span class="k-icon k-i-warning"></span>
+                <div><strong>Needs attention</strong><span id="step4ValidationSummary">Review required fields</span></div>
+            </div>
+            <div class="step4-total">
+                <span>Grand obligation total</span>
+                <strong id="step4GrandTotalAmount">PHP 0.00</strong>
+            </div>
+        </div>
     </div>
 
+    <div id="step4ReviewGroupsContainer" class="step4-groups"></div>
 
-    <!-- ============================================================
-         GROUP REVIEW / DOCUMENT UPLOAD
-         ============================================================ -->
-
-    <div id="step4ReviewGroupsContainer"
-         class="po-groups-container">
+    <div class="step4-certification">
+        <label for="chkStep4Certification">
+            <input type="checkbox" id="chkStep4Certification" onchange="refreshStep4Readiness()" />
+            <span><strong>Procurement compliance certification:</strong> I confirm that the submitted items, quantities, supplier awards, and procurement terms have been checked against the approved procurement records and applicable rules.</span>
+        </label>
     </div>
-
-
-    <!-- ============================================================
-         FINAL ACTION BAR
-         ============================================================ -->
 
     <div class="wizard-summary-bar wizard-final-actions">
-
-        <button type="button"
-                class="btn-procurement-secondary"
-                onclick="goToStep3Back()">
-
-            <span class="k-icon k-i-arrow-left"></span>
-            Back to Step 3
-
+        <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(3)">
+            <span class="k-icon k-i-arrow-left"></span> Back to PO Details
         </button>
-
-
         <div class="wizard-action-group">
-
-            <button type="button"
-                    class="btn-procurement-secondary"
-                    onclick="submitPOs(true)">
-
-                <span class="k-icon k-i-save"></span>
-                Save as Draft
-
+            <button type="button" id="btnStep4SaveDraft" class="btn-procurement-secondary" onclick="submitPOs(true)">Save as Draft</button>
+            <button type="button" id="btnPostPurchaseOrders" class="btn-procurement-primary btn-post-po" onclick="submitPOs(false)" disabled="disabled">
+                <span class="k-icon k-i-check"></span> Obligate &amp; Post Purchase Orders
             </button>
-
-
-            <button type="button"
-                    class="btn-procurement-primary btn-post-po"
-                    onclick="submitPOs(false)">
-
-                <span class="k-icon k-i-check"></span>
-                Obligate &amp; Post Purchase Orders
-
-            </button>
-
         </div>
-
     </div>
-
 </div>
 
+@(Html.Kendo().Window()
+    .Name("step4PreviewWindow")
+    .Title("Purchase Order Draft Preview")
+    .Width(880)
+    .Height(650)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Maximize().Close())
+    .Content(@<text><div id="step4PreviewContent" class="step4-preview"></div></text>)
+)
 
 <script type="text/javascript">
+    var expandedReviewGroupIndex = 0;
+
+    function formatStep4Currency(amount) {
+        return "PHP " + Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     function renderStep4Review() {
-
-        var container =
-            $("#step4ReviewGroupsContainer");
-
-
+        var container = $("#step4ReviewGroupsContainer");
+        kendo.destroy(container);
         container.empty();
-
-
-        poGroups.forEach(function (grp, index) {
-
-            var groupHtml = $(
-
-                '<section class="group-card">' +
-
-                    '<div class="group-header">' +
-
-                        '<div class="group-title">' +
-
-                            '<span class="k-icon k-i-file-add"></span>' +
-
-                            '<span>' +
-                            escapeWizardHtml(grp.groupName) +
-                            ' - Documents &amp; Verification' +
-                            '</span>' +
-
-                        '</div>' +
-
-                        '<span class="group-badge">' +
-                        grp.items.length +
-                        ' Item(s)' +
-                        '</span>' +
-
-                    '</div>' +
-
-
-                    '<div class="document-upload-grid">' +
-
-                        '<div class="document-upload-card">' +
-
-                            '<div class="document-upload-header">' +
-
-                                '<div>' +
-
-                                    '<h3>Signed PO Copy</h3>' +
-
-                                    '<p>' +
-                                    'Required document' +
-                                    '</p>' +
-
-                                '</div>' +
-
-                                '<span class="document-required-badge">' +
-                                'Required' +
-                                '</span>' +
-
-                            '</div>' +
-
-
-                            '<label class="document-upload-label">' +
-                            'Upload Scanned Signed PO Copy (PDF/Image)' +
-                            '</label>' +
-
-
-                            '<div class="upload-zone">' +
-
-                                '<div class="upload-zone-icon">' +
-                                    '<span class="k-icon k-i-upload"></span>' +
-                                '</div>' +
-
-                                '<input name="file"' +
-                                    ' id="uploadPOCopy_' +
-                                    grp.groupId +
-                                    '"' +
-                                    ' type="file" />' +
-
-                                '<p class="upload-zone-help">' +
-                                'Upload the signed and approved PO copy.' +
-                                '</p>' +
-
-                                '<div id="poCopyUploadStatus_' +
-                                    grp.groupId +
-                                    '" class="upload-status">' +
-                                '</div>' +
-
-                            '</div>' +
-
-                        '</div>' +
-
-
-                        '<div class="document-upload-card">' +
-
-                            '<div class="document-upload-header">' +
-
-                                '<div>' +
-
-                                    '<h3>Supporting Documents</h3>' +
-
-                                    '<p>' +
-                                    'Optional / as applicable' +
-                                    '</p>' +
-
-                                '</div>' +
-
-                            '</div>' +
-
-
-                            '<label class="document-upload-label">' +
-                            'BAC Resolution, Quotations, NOA, etc.' +
-                            '</label>' +
-
-
-                            '<div class="upload-zone">' +
-
-                                '<div class="upload-zone-icon">' +
-                                    '<span class="k-icon k-i-attachment"></span>' +
-                                '</div>' +
-
-                                '<input name="file"' +
-                                    ' id="uploadAddDoc_' +
-                                    grp.groupId +
-                                    '"' +
-                                    ' type="file" />' +
-
-                                '<p class="upload-zone-help">' +
-                                'Attach applicable supporting procurement documents.' +
-                                '</p>' +
-
-                                '<div id="addDocUploadStatus_' +
-                                    grp.groupId +
-                                    '" class="upload-status">' +
-                                '</div>' +
-
-                            '</div>' +
-
-                        '</div>' +
-
-                    '</div>' +
-
-                '</section>'
-            );
-
-
-            container.append(groupHtml);
-
-
-            /*
-             * PO Copy upload.
-             */
-            $("#uploadPOCopy_" + grp.groupId)
-                .kendoUpload({
-
-                    async: {
-
-                        saveUrl:
-                            "@Url.Action("UploadPOCopy", "PurchaseOrders")",
-
-                        autoUpload: true
-
-                    },
-
-                    upload: function (e) {
-
-                        e.data = {
-                            groupId: grp.groupId
-                        };
-
-                    },
-
-                    success: function (e) {
-
-                        grp.poCopyDoc =
-                            e.response.document;
-
-
-                        $("#poCopyUploadStatus_" +
-                            grp.groupId)
-                            .html(
-
-                                '<span class="upload-success">' +
-
-                                    '<span class="k-icon k-i-check"></span>' +
-
-                                    'PO Copy uploaded: ' +
-
-                                    escapeWizardHtml(
-                                        e.response.document.FileName
-                                    ) +
-
-                                '</span>'
-                            );
-
-                    }
-
-                });
-
-
-            /*
-             * Supporting document upload.
-             */
-            $("#uploadAddDoc_" + grp.groupId)
-                .kendoUpload({
-
-                    async: {
-
-                        saveUrl:
-                            "@Url.Action("UploadAdditionalDoc", "PurchaseOrders")",
-
-                        autoUpload: true
-
-                    },
-
-                    upload: function (e) {
-
-                        e.data = {
-                            groupId: grp.groupId
-                        };
-
-                    },
-
-                    success: function (e) {
-
-                        grp.additionalDocs.push(
-                            e.response.document
-                        );
-
-
-                        $("#addDocUploadStatus_" +
-                            grp.groupId)
-                            .html(
-
-                                '<span class="upload-success">' +
-
-                                    '<span class="k-icon k-i-check"></span>' +
-
-                                    'Document attached: ' +
-
-                                    escapeWizardHtml(
-                                        e.response.document.FileName
-                                    ) +
-
-                                '</span>'
-                            );
-
-                    }
-
-                });
-
-        });
-    }
-
-
-    function goToStep3Back() {
-
-        goToWizardStep(3);
-    }
-
-
-    function submitPOs(isDraft) {
-
-        /*
-         * Validate supplier before posting.
-         */
-        if (!isDraft) {
-
-            var invalidGroup =
-                poGroups.some(function (grp) {
-
-                    return !grp.supplierId ||
-                        parseInt(grp.supplierId, 10) <= 0;
-
-                });
-
-
-            if (invalidGroup) {
-
-                alert(
-                    "Please select a supplier for every PO Group before posting."
-                );
-
-                goToWizardStep(3);
-
-                return;
-            }
-
-
-            /*
-             * Signed PO copy is required.
-             */
-            var missingPOCopy =
-                poGroups.some(function (grp) {
-
-                    return !grp.poCopyDoc;
-
-                });
-
-
-            if (missingPOCopy) {
-
-                alert(
-                    "Please upload the signed PO Copy for every PO Group before posting."
-                );
-
-                return;
-            }
+        var grandTotal = 0;
+
+        if (!poGroups || poGroups.length === 0) {
+            container.html('<div class="wizard-empty-state">No PO groups configured. Return to Step 2.</div>');
+            refreshStep4Readiness();
+            return;
         }
 
+        $.each(poGroups, function (index, group) {
+            var groupTotal = 0;
+            $.each(group.items || [], function (_, item) { groupTotal += Number(item.qty || 0) * Number(item.unitCost || 0); });
+            grandTotal += groupTotal;
 
-        var url =
-            isDraft
-                ? "@Url.Action("SaveDraft", "PurchaseOrders")"
-                : "@Url.Action("PostPOs", "PurchaseOrders")";
+            var card = $('<section class="step4-group-card"></section>');
+            var header = $('<button type="button" class="step4-group-header"></button>')
+                .attr("aria-expanded", expandedReviewGroupIndex === index ? "true" : "false")
+                .on("click", function () {
+                    expandedReviewGroupIndex = expandedReviewGroupIndex === index ? -1 : index;
+                    renderStep4Review();
+                });
+            $("<span class='step4-group-number'></span>").text(index + 1).appendTo(header);
+            var heading = $("<span class='step4-group-heading'></span>").appendTo(header);
+            $("<strong></strong>").text(group.groupName || ("PO Group " + (index + 1))).appendTo(heading);
+            $("<small></small>").text((group.supplierName || "Supplier not selected") + " • " + (group.items || []).length + " item(s)").appendTo(heading);
+            $("<span class='step4-group-amount'></span>").text(formatStep4Currency(groupTotal)).appendTo(header);
+            $("<span class='k-icon'></span>").addClass(expandedReviewGroupIndex === index ? "k-i-arrow-chevron-up" : "k-i-arrow-chevron-down").appendTo(header);
+            card.append(header);
 
-
-        var payload =
-            poGroups.map(function (grp) {
-
-                return {
-
-                    GroupId:
-                        grp.groupId,
-
-                    GroupName:
-                        grp.groupName,
-
-                    SupplierId:
-                        parseInt(grp.supplierId, 10) || 0,
-
-                    PODate:
-                        grp.poDate,
-
-                    DeliveryPeriodDays:
-                        parseInt(
-                            grp.deliveryPeriodDays,
-                            10
-                        ) || 30,
-
-                    PlaceOfDelivery:
-                        grp.placeOfDelivery,
-
-                    PaymentTerms:
-                        grp.paymentTerms,
-
-                    ModeOfProcurement:
-                        grp.modeOfProcurement,
-
-                    Items:
-                        grp.items.map(function (item, idx) {
-
-                            return {
-
-                                ItemNo:
-                                    idx + 1,
-
-                                Description:
-                                    item.Description,
-
-                                Quantity:
-                                    item.RequestedQty,
-
-                                Unit:
-                                    item.Unit,
-
-                                UnitCost:
-                                    item.UnitCost,
-
-                                GSOCategory:
-                                    item.GSOCategory,
-
-                                TechnicalDescription:
-                                    item.TechnicalDescription,
-
-                                SourcePRItemId:
-                                    item.Id,
-
-                                SetLotItems:
-                                    item.SetLotItems || []
-
-                            };
-
-                        }),
-
-                    POCopyDoc:
-                        grp.poCopyDoc,
-
-                    AdditionalDocs:
-                        grp.additionalDocs
-
-                };
-
-            });
-
-
-        $.ajax({
-
-            url: url,
-
-            type: "POST",
-
-            contentType: "application/json",
-
-            data:
-                JSON.stringify({
-                    poGroups: payload
-                }),
-
-            success: function (response) {
-
-                if (response.success) {
-
-                    alert(response.message);
-
-                    window.location.href =
-                        response.redirectUrl;
-
-                } else {
-
-                    alert(
-                        "Error: " +
-                        response.message
-                    );
-
-                }
-
-            },
-
-            error: function () {
-
-                alert(
-                    "An error occurred during submission."
-                );
-
+            if (expandedReviewGroupIndex === index) {
+                var body = $('<div class="step4-group-body"></div>');
+                body.append(buildStep4PoDetailsPanel(group, index));
+                body.append(buildStep4ItemsTable(group));
+                body.append(buildStep4DocumentPanel(group, index));
+                card.append(body);
             }
-
+            container.append(card);
+            if (expandedReviewGroupIndex === index) {
+                initializeStep4PoDetails(group, index);
+                initializeStep4DocumentUploads(group, index);
+            }
         });
 
+        $("#step4GrandTotalAmount").text(formatStep4Currency(grandTotal));
+        refreshStep4Readiness();
     }
 
+    function step4FieldId(name, groupIndex) {
+        return "Step4" + name + "_" + groupIndex;
+    }
+
+    function buildStep4Field(label, control, fullWidth) {
+        return $('<div class="form-field' + (fullWidth ? ' step3-field-full' : '') + '"></div>')
+            .append($('<label></label>').html(label))
+            .append(control);
+    }
+
+    function buildStep4PoDetailsPanel(group, groupIndex) {
+        var wrapper = $('<div class="step4-po-details"></div>');
+        var headerFields = $('<div class="step3-fields-grid"></div>');
+        headerFields.append(buildStep4Field('PO No. <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PoNo', groupIndex)), false));
+        headerFields.append(buildStep4Field('PO Date <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PoDate', groupIndex)), false));
+        headerFields.append(buildStep4Field('Mode of Procurement <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('ProcurementMode', groupIndex)), false));
+        headerFields.append(buildStep4Field('Supplier <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('Supplier', groupIndex)), true));
+        headerFields.append(buildStep4Field('Address', $('<input />').attr('id', step4FieldId('SupAddress', groupIndex)), true));
+        headerFields.append(buildStep4Field('TIN', $('<input />').attr('id', step4FieldId('SupTIN', groupIndex)), false));
+        wrapper.append(buildStep4Section('k-i-user', 'Header Details', headerFields));
+
+        var termsFields = $('<div class="step3-fields-grid"></div>');
+        termsFields.append(buildStep4Field('Place of Delivery <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PlaceOfDelivery', groupIndex)), true));
+        termsFields.append(buildStep4Field('Date of Delivery', $('<input />').attr('id', step4FieldId('DeliveryDate', groupIndex)), false));
+        termsFields.append(buildStep4Field('Delivery Term <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('DeliveryTerm', groupIndex)), false));
+        termsFields.append(buildStep4Field('Payment Term <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PaymentTerms', groupIndex)), true));
+        wrapper.append(buildStep4Section('k-i-cart', 'Delivery &amp; Payment Terms', termsFields));
+
+        var signatoryFields = $('<div class="step3-fields-grid"></div>');
+        signatoryFields.append(buildStep4Field('Supplier Signatory', $('<input />').attr('id', step4FieldId('SignedBySuppName', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Date Signed', $('<input />').attr('id', step4FieldId('SignedBySuppDate', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Authorized Official', $('<input />').attr('id', step4FieldId('SignedByAuthName', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Designation', $('<input />').attr('id', step4FieldId('SignedByAuthDesignation', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Resolution No.', $('<input />').attr('id', step4FieldId('ResoNo', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Certified Correct By', $('<input />').attr('id', step4FieldId('CertifiedCorrectBy', groupIndex)), false));
+        signatoryFields.append(buildStep4Field('Date Certified', $('<input />').attr('id', step4FieldId('CertifiedCorrectDate', groupIndex)), false));
+        wrapper.append(buildStep4Section('k-i-check-circle', 'Signatories &amp; Certification', signatoryFields));
+        return wrapper;
+    }
+
+    function buildStep4Section(iconClass, title, fields) {
+        return $('<section class="step3-card group-card step4-detail-section" style="margin-bottom:16px"></section>')
+            .append($('<div class="group-title text-navy"><span class="k-icon ' + iconClass + '" style="color:#115cb9"></span> ' + title + '</div>'))
+            .append(fields);
+    }
+
+    function initializeStep4PoDetails(group, groupIndex) {
+        var poNumberElement = $('#' + step4FieldId('PoNo', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
+        poNumberElement.kendoMaskedTextBox({ mask: '0000-00-0000', promptChar: ' ', value: group.poNumber || '',
+            change: function () { setStep4GroupField(groupIndex, 'poNumber', this.value()); }
+        });
+        var poNumberWidget = poNumberElement.data('kendoMaskedTextBox');
+        poNumberWidget.enable(true);
+        fitStep4KendoWidget(poNumberWidget);
+
+        var procurementElement = $('#' + step4FieldId('ProcurementMode', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
+        procurementElement.kendoMultiColumnComboBox({
+            placeholder: 'Select Procurement Mode', dataTextField: 'Description', dataValueField: 'Description', valuePrimitive: true,
+            filter: 'contains', columns: [{ field: 'Description', title: 'Procurement Mode', width: 300 }],
+            dataSource: step4RemoteDataSource('@Url.Action("GetCodeList", "Getters")', step4CodeLookupData(procurementElement, 'PROC-MODE')),
+            value: group.modeOfProcurement || '', change: function () { setStep4GroupField(groupIndex, 'modeOfProcurement', this.value()); }
+        });
+        fitStep4KendoWidget(procurementElement.data('kendoMultiColumnComboBox'));
+
+        var supplierElement = $('#' + step4FieldId('Supplier', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
+        supplierElement.kendoMultiColumnComboBox({
+            placeholder: 'Select Supplier', dataTextField: 'Name', dataValueField: 'Id', valuePrimitive: true,
+            filter: 'contains', minLength: 1, autoBind: true,
+            columns: [{ field: 'Name', title: 'Name', width: 210 }, { field: 'BusinessName', title: 'Business Name', width: 210 }, { field: 'Address', title: 'Address', width: 330 }, { field: 'TIN', title: 'TIN', width: 130 }],
+            dataSource: step4RemoteDataSource('@Url.Action("GetSupplier", "Getters")', function () { var widget = supplierElement.data('kendoMultiColumnComboBox'); return { text: widget ? (widget.text() || widget.value() || '') : '' }; }),
+            select: function (e) { setStep4Supplier(groupIndex, e.dataItem); },
+            change: function () { if (!this.value()) setStep4Supplier(groupIndex, null); }
+        });
+        var supplierCombo = supplierElement.data('kendoMultiColumnComboBox');
+        fitStep4KendoWidget(supplierCombo);
+        supplierCombo.value(group.supplierId || '');
+        if (group.supplierId && group.supplierName) { supplierCombo.text(group.supplierName); supplierCombo.input.val(group.supplierName); }
+
+        initializeStep4DatePicker('PoDate', groupIndex, group.poDate || new Date(), 'poDate');
+        initializeStep4TextBox('SupAddress', groupIndex, group.supAddress, 'supAddress');
+        initializeStep4TextBox('SupTIN', groupIndex, group.supTIN, 'supTIN');
+        initializeStep4TextBox('PlaceOfDelivery', groupIndex, group.placeOfDelivery, 'placeOfDelivery');
+        initializeStep4TextBox('DeliveryDate', groupIndex, group.deliveryDate || group.deliveryPeriodDays, 'deliveryDate');
+        initializeStep4CodeCombo('DeliveryTerm', groupIndex, 'DELI-TERM', 'Select Delivery Term', group.termDelivery, 'termDelivery');
+        initializeStep4CodeCombo('PaymentTerms', groupIndex, 'PAY-TERM', 'Select Payment Term', group.paymentTerms, 'paymentTerms');
+        initializeStep4TextBox('SignedBySuppName', groupIndex, group.signedBySuppName, 'signedBySuppName');
+        initializeStep4DatePicker('SignedBySuppDate', groupIndex, group.signedBySuppDate, 'signedBySuppDate');
+        initializeStep4TextBox('SignedByAuthName', groupIndex, group.signedByAuthName, 'signedByAuthName');
+        initializeStep4TextBox('SignedByAuthDesignation', groupIndex, group.signedByAuthDesignation, 'signedByAuthDesignation');
+        initializeStep4TextBox('ResoNo', groupIndex, group.resoNo, 'resoNo');
+        initializeStep4TextBox('CertifiedCorrectBy', groupIndex, group.certifiedCorrectBy, 'certifiedCorrectBy');
+        initializeStep4DatePicker('CertifiedCorrectDate', groupIndex, group.certifiedCorrectDate, 'certifiedCorrectDate');
+    }
+
+    function initializeStep4TextBox(name, groupIndex, value, field) {
+        var element = $('#' + step4FieldId(name, groupIndex));
+        element.kendoTextBox({ value: value || '', change: function () { setStep4GroupField(groupIndex, field, this.value()); } });
+        var widget = element.data('kendoTextBox');
+        fitStep4KendoWidget(widget);
+    }
+
+    function fitStep4KendoWidget(widget) {
+        if (!widget || !widget.wrapper || !widget.wrapper.length) return;
+        var wrapper = widget.wrapper;
+        wrapper.closest('.form-field').css({ minWidth: 0, maxWidth: '100%', overflow: 'hidden' });
+        wrapper[0].style.setProperty('display', 'flex', 'important');
+        wrapper[0].style.setProperty('width', '100%', 'important');
+        wrapper[0].style.setProperty('max-width', '100%', 'important');
+        wrapper[0].style.setProperty('min-width', '0', 'important');
+        wrapper[0].style.setProperty('box-sizing', 'border-box', 'important');
+        wrapper.find('.k-dropdown-wrap, .k-picker-wrap, .k-input-wrap').each(function () {
+            this.style.setProperty('display', 'flex', 'important');
+            this.style.setProperty('width', '100%', 'important');
+            this.style.setProperty('max-width', '100%', 'important');
+            this.style.setProperty('min-width', '0', 'important');
+            this.style.setProperty('box-sizing', 'border-box', 'important');
+        });
+        wrapper.find('input.k-input, .k-input-inner').each(function () {
+            this.style.setProperty('flex', '1 1 0', 'important');
+            this.style.setProperty('width', '0', 'important');
+            this.style.setProperty('min-width', '0', 'important');
+            this.style.setProperty('max-width', '100%', 'important');
+            this.style.setProperty('box-sizing', 'border-box', 'important');
+        });
+        wrapper.find('.k-select, .k-input-button').each(function () {
+            this.style.setProperty('flex', '0 0 auto', 'important');
+        });
+    }
+
+    function step4RemoteDataSource(url, requestData) {
+        return {
+            serverFiltering: true,
+            transport: { read: { url: url, dataType: 'json', data: requestData } }
+        };
+    }
+
+    function step4CodeLookupData(element, mastCode) {
+        return function () {
+            var widget = element.data('kendoMultiColumnComboBox');
+            return {
+                mastCode: mastCode,
+                addAll: false,
+                text: widget ? (widget.text() || '') : ''
+            };
+        };
+    }
+
+    function initializeStep4CodeCombo(name, groupIndex, mastCode, placeholder, value, field) {
+        var element = $('#' + step4FieldId(name, groupIndex));
+        element.kendoMultiColumnComboBox({
+            placeholder: placeholder, dataTextField: 'Description', dataValueField: 'Description', valuePrimitive: true, filter: 'contains',
+            columns: [{ field: 'Description', title: placeholder.replace('Select ', ''), width: 300 }],
+            dataSource: step4RemoteDataSource('@Url.Action("GetCodeList", "Getters")', step4CodeLookupData(element, mastCode)),
+            value: value || '', change: function () { setStep4GroupField(groupIndex, field, this.value()); }
+        });
+        fitStep4KendoWidget(element.data('kendoMultiColumnComboBox'));
+    }
+
+    function initializeStep4DatePicker(name, groupIndex, value, field) {
+        $('#' + step4FieldId(name, groupIndex)).kendoDatePicker({ format: 'MM/dd/yyyy', value: value ? new Date(value) : null,
+            change: function () { setStep4GroupField(groupIndex, field, this.value()); }
+        });
+        fitStep4KendoWidget($('#' + step4FieldId(name, groupIndex)).data('kendoDatePicker'));
+    }
+
+    function setStep4GroupField(groupIndex, field, value) {
+        if (!poGroups[groupIndex]) return;
+        poGroups[groupIndex][field] = value;
+        scheduleWizardAutoSave();
+        refreshStep4Readiness();
+    }
+
+    function setStep4Supplier(groupIndex, supplier) {
+        var group = poGroups[groupIndex];
+        if (!group) return;
+        group.supplierId = supplier ? supplier.Id : null;
+        group.supplierName = supplier ? (supplier.Name || '') : '';
+        group.supBusiness = supplier ? (supplier.BusinessName || '') : '';
+        group.supAddress = supplier ? (supplier.Address || '') : '';
+        group.supTIN = supplier ? (supplier.TIN || '') : '';
+        group.supZipCode = supplier ? (supplier.ZipCode || '') : '';
+        group.supEmail = supplier ? (supplier.Email || '') : '';
+        group.supContactNo = supplier ? (supplier.ContactNos || '') : '';
+        scheduleWizardAutoSave();
+        renderStep4Review();
+    }
+
+    function buildStep4ItemsTable(group) {
+        var wrapper = $('<div class="step4-table-wrap"></div>');
+        var table = $('<table class="items-table"><thead><tr><th>#</th><th>Description</th><th>Article</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead><tbody></tbody></table>');
+        var tbody = table.find("tbody");
+        $.each(group.items || [], function (index, item) {
+            var row = $("<tr></tr>");
+            $("<td></td>").text(index + 1).appendTo(row);
+            var description = $("<td></td>");
+            $("<strong></strong>").text(item.description || "").appendTo(description);
+            if (item.technicalDescription) $("<small></small>").text(item.technicalDescription).appendTo(description);
+            row.append(description);
+            $("<td></td>").text(item.article || item.gsoCategory || "").appendTo(row);
+            $("<td></td>").text(item.unit || "").appendTo(row);
+            $("<td class='text-end'></td>").text(item.qty || 0).appendTo(row);
+            $("<td class='text-end'></td>").text(formatStep4Currency(item.unitCost)).appendTo(row);
+            $("<td class='text-end'></td>").text(formatStep4Currency(Number(item.qty || 0) * Number(item.unitCost || 0))).appendTo(row);
+            tbody.append(row);
+        });
+        wrapper.append(table);
+        return wrapper;
+    }
+
+    function buildStep4DocumentPanel(group, groupIndex) {
+        var panel = $('<div class="step4-documents"></div>');
+        var poCopy = $('<div class="step4-document-card"></div>').append("<h3>Signed PO Copy <span>Required to post</span></h3>");
+        poCopy.append(buildStep4DocumentList(group.poCopyDoc ? [group.poCopyDoc] : [], "No signed PO copy uploaded."));
+        poCopy.append($('<input type="file" />').attr('id', step4FieldId('POCopyUpload', groupIndex)));
+
+        var supporting = $('<div class="step4-document-card"></div>').append("<h3>Supporting Documents <span>Optional</span></h3>");
+        supporting.append(buildStep4DocumentList(group.additionalDocs || [], "No supporting documents uploaded."));
+        supporting.append($('<input type="file" multiple="multiple" />').attr('id', step4FieldId('SupportingUpload', groupIndex)));
+
+        var preview = $('<div class="step4-document-card"></div>').append("<h3>Draft Preview <span>On-screen only</span></h3>");
+        preview.append($('<button type="button" class="btn-procurement-secondary">Preview Purchase Order</button>').on("click", function () { openStep4Preview(groupIndex); }));
+        panel.append(poCopy, supporting, preview);
+        return panel;
+    }
+
+    function buildStep4DocumentList(documents, emptyText) {
+        var list = $('<div class="step4-uploaded-documents"></div>');
+        if (!documents.length) return list.append($('<p></p>').text(emptyText));
+        $.each(documents, function (_, doc) {
+            var row = $('<div class="step4-uploaded-document" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px"></div>');
+            $('<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>').text(doc.FileName || 'Uploaded document').appendTo(row);
+            $('<button type="button">Preview</button>').kendoButton({ icon: 'eye' }).on('click', function () { openStep4DocumentPreview(doc); }).appendTo(row);
+            list.append(row);
+        });
+        return list;
+    }
+
+    function initializeStep4DocumentUploads(group, groupIndex) {
+        initializeStep4Upload('POCopyUpload', group, groupIndex, true,
+            ['.pdf', '.jpg', '.jpeg', '.png'], '@Url.Action("UploadPOCopy", "PurchaseOrders")');
+        initializeStep4Upload('SupportingUpload', group, groupIndex, false,
+            ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png'], '@Url.Action("UploadAdditionalDoc", "PurchaseOrders")');
+    }
+
+    function initializeStep4Upload(name, group, groupIndex, isPOCopy, extensions, saveUrl) {
+        $('#' + step4FieldId(name, groupIndex)).kendoUpload({
+            multiple: !isPOCopy,
+            showFileList: true,
+            validation: { allowedExtensions: extensions },
+            async: { saveUrl: saveUrl, saveField: 'file', autoUpload: true, batch: false },
+            upload: function (e) {
+                e.data = { __RequestVerificationToken: getAntiForgeryToken(), groupId: group.groupId };
+            },
+            success: function (e) {
+                if (e.operation !== 'upload') return;
+                var response = e.response || {};
+                if (!response.success || !response.document) {
+                    showWizardMessage(response.message || 'Upload failed.');
+                    return;
+                }
+                if (isPOCopy) group.poCopyDoc = response.document;
+                else {
+                    group.additionalDocs = group.additionalDocs || [];
+                    group.additionalDocs.push(response.document);
+                }
+                scheduleWizardAutoSave();
+                setTimeout(renderStep4Review, 0);
+            },
+            error: function () { showWizardMessage('The document could not be uploaded.'); }
+        });
+    }
+
+    function openStep4DocumentPreview(doc) {
+        if (!doc || !doc.FilePath) return;
+        var fileName = doc.FileName || 'Document';
+        var extension = fileName.split('.').pop().toLowerCase();
+        var previewUrl = '@Url.Action("PreviewDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath);
+        var downloadUrl = '@Url.Action("DownloadDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath) + '&name=' + encodeURIComponent(fileName);
+        var content = $('#step4PreviewContent').empty();
+        if (extension === 'pdf') {
+            $('<iframe title="Document preview" style="width:100%;height:560px;border:0"></iframe>').attr('src', previewUrl).appendTo(content);
+        } else if (extension === 'jpg' || extension === 'jpeg' || extension === 'png') {
+            $('<img alt="Document preview" style="display:block;max-width:100%;max-height:560px;margin:auto" />').attr('src', previewUrl).appendTo(content);
+        } else {
+            content.append($('<div class="wizard-empty-state"></div>').text('This file type cannot be previewed in the browser. Download it to review the document.'));
+        }
+        $('<a class="btn-procurement-secondary" style="display:inline-block;margin-top:12px">Download</a>').attr('href', downloadUrl).appendTo(content);
+        var windowWidget = $('#step4PreviewWindow').data('kendoWindow');
+        if (windowWidget) windowWidget.title(fileName).center().open();
+    }
+
+    function refreshStep4Readiness() {
+        var groupsValid = validateStep3Groups() && validateStep4PoDetails();
+        var docsValid = poGroups && poGroups.every(function (group) { return !!group.poCopyDoc; });
+        var certified = $("#chkStep4Certification").is(":checked");
+        var ready = groupsValid && docsValid && certified;
+        $("#btnPostPurchaseOrders").prop("disabled", !ready);
+        $("#step4ReadinessBadge").toggleClass("is-ready", ready).toggleClass("is-pending", !ready);
+        $("#step4ValidationSummary").text(ready ? "All groups validated" : (!groupsValid ? "PO details incomplete" : (!docsValid ? "Signed PO copy required" : "Certification required")));
+    }
+
+    function validateStep4PoDetails() {
+        return poGroups && poGroups.length > 0 && poGroups.every(function (group) {
+            return $.trim(group.poNumber || '') !== '' && !!group.supplierId &&
+                !!group.poDate &&
+                $.trim(group.placeOfDelivery || "") !== "" &&
+                $.trim(group.termDelivery || "") !== "" &&
+                $.trim(group.paymentTerms || "") !== "" &&
+                $.trim(group.modeOfProcurement || "") !== "";
+        });
+    }
+
+    function openStep4Preview(groupIndex) {
+        var group = poGroups[groupIndex];
+        if (!group) return;
+        var content = $("#step4PreviewContent").empty();
+        $("<h2>Purchase Order Draft</h2>").appendTo(content);
+        $("<p></p>").text((group.groupName || "") + " — " + (group.supplierName || "Supplier not selected")).appendTo(content);
+        content.append(buildStep4ItemsTable(group));
+        var windowWidget = $("#step4PreviewWindow").data("kendoWindow");
+        if (windowWidget) windowWidget.center().open();
+    }
+
+    function buildPOPayload() {
+        return poGroups.map(function (group) {
+            return {
+                GroupId: group.groupId,
+                GroupName: group.groupName,
+                PONumber: group.poNumber,
+                SupplierId: group.supplierId || null,
+                SupplierName: group.supplierName,
+                CtrlNo: group.ctrlNo,
+                SupBusiness: group.supBusiness,
+                SupAddress: group.supAddress,
+                SupTIN: group.supTIN,
+                SupEmail: group.supEmail,
+                SupZipCode: group.supZipCode,
+                SupContactNo: group.supContactNo,
+                PODate: group.poDate || new Date(),
+                DeliveryPeriodDays: String(group.deliveryPeriodDays || ""),
+                DeliveryDate: group.deliveryDate,
+                PlaceOfDelivery: group.placeOfDelivery,
+                TermDelivery: group.termDelivery,
+                PaymentTerms: group.paymentTerms,
+                ModeOfProcurement: group.modeOfProcurement,
+                SignedBySuppName: group.signedBySuppName,
+                SignedBySuppDate: group.signedBySuppDate,
+                SignedByAuthName: group.signedByAuthName,
+                SignedByAuthDesignation: group.signedByAuthDesignation,
+                ResoNo: group.resoNo,
+                CertifiedCorrectBy: group.certifiedCorrectBy,
+                CertifiedCorrectDate: group.certifiedCorrectDate,
+                Items: (group.items || []).map(function (item, index) {
+                    return {
+                        Id: item.id,
+                        ItemNo: String(item.itemNo || (index + 1)),
+                        ItemCode: item.PPMPCode || item.itemCode,
+                        StockNo: item.stockNo,
+                        Description: item.description,
+                        ItemCodeId: item.itemCodeId || null,
+                        Quantity: Number(item.qty || 0),
+                        PpmpCode: item.PPMPCode || item.ppmpCode,
+                        Category: item.category,
+                        Account: item.account,
+                        SubAccount: item.subAccount,
+                        Unit: item.unit,
+                        UnitCost: Number(item.unitCost || 0),
+                        GSOCategory: item.gsoCategory,
+                        TechnicalDescription: item.technicalDescription,
+                        AdditionalSpecs: item.additionalSpecs || {},
+                        SetLotItems: item.setLotItems || [],
+                        Allocations: (item.sourcePRs || []).map(function (source) {
+                            return { RequestItemId: source.requestItemId, PRNumber: source.prNo, Quantity: Number(source.allocatedQty || 0) };
+                        })
+                    };
+                }),
+                POCopyDoc: group.poCopyDoc,
+                AdditionalDocs: group.additionalDocs || []
+            };
+        });
+    }
+
+    function submitPOs(isDraft) {
+        if (isDraft) { saveWizardDraft(true); return; }
+        if (!isDraft && !$("#chkStep4Certification").is(":checked")) { showWizardMessage("Confirm the compliance certification before posting."); return; }
+        if (!isDraft && $("#btnPostPurchaseOrders").prop("disabled")) { showWizardMessage("Complete all required PO details and signed PO uploads before posting."); return; }
+        var buttons = $("#btnStep4SaveDraft, #btnPostPurchaseOrders").prop("disabled", true);
+        kendo.ui.progress($(".step4-review-container"), true);
+        $.ajax({
+            url: "@Url.Action("PostPOs", "PurchaseOrders")",
+            type: "POST",
+            data: { __RequestVerificationToken: getAntiForgeryToken(), draftId: wizardDraftId, poGroupsJson: JSON.stringify(buildPOPayload()) }
+        }).done(function (response) {
+            if (response.success) {
+                wizardDraftDirty = false;
+                window.location.href = response.redirectUrl || "@Url.Action("Index", "PurchaseOrders")";
+            }
+            else showWizardMessage(response.message || "Unable to process the Purchase Orders.");
+        }).fail(function () { showWizardMessage("The server could not process the Purchase Orders."); })
+          .always(function () { kendo.ui.progress($(".step4-review-container"), false); buttons.prop("disabled", false); refreshStep4Readiness(); });
+    }
 </script>
