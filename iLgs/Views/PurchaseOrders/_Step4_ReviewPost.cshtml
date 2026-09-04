@@ -380,8 +380,8 @@
         supporting.append(buildStep4DocumentList(group.additionalDocs || [], "No supporting documents uploaded."));
         supporting.append($('<input type="file" multiple="multiple" />').attr('id', step4FieldId('SupportingUpload', groupIndex)));
 
-        var preview = $('<div class="step4-document-card"></div>').append("<h3>Draft Preview <span>On-screen only</span></h3>");
-        preview.append($('<button type="button" class="btn-procurement-secondary">Preview Purchase Order</button>').on("click", function () { openStep4Preview(groupIndex); }));
+        var preview = $('<div class="step4-document-card"></div>').append("<h3>Draft Preview <span>Crystal PDF</span></h3>");
+        preview.append($('<button type="button" class="btn-procurement-secondary"><span class="k-icon k-i-print"></span> Preview / Print Purchase Order</button>').on("click", function () { printWizardPO(group.groupId); }));
         panel.append(poCopy, supporting, preview);
         return panel;
     }
@@ -482,6 +482,78 @@
         content.append(buildStep4ItemsTable(group));
         var windowWidget = $("#step4PreviewWindow").data("kendoWindow");
         if (windowWidget) windowWidget.center().open();
+    }
+
+    function printWizardPO(groupId) {
+        var payload = buildPOPayload();
+        if (groupId) {
+            payload = payload.filter(function (group) { return group.GroupId === groupId; });
+        }
+        if (!payload || payload.length === 0) {
+            showWizardMessage("There is no Purchase Order data to print.");
+            return;
+        }
+
+        var printWindow = window.open("", "_blank");
+        if (printWindow) {
+            printWindow.document.title = "Generating Purchase Order";
+            printWindow.document.body.innerHTML =
+                "<p style='font-family:Arial,sans-serif;padding:24px'>Generating Purchase Order preview...</p>";
+        }
+
+        var request = new XMLHttpRequest();
+        request.open("POST", '@Url.Action("PrintWizardPO", "PurchaseOrders")', true);
+        request.responseType = "blob";
+        request.timeout = 120000;
+        request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+
+        request.onload = function () {
+            var contentType = request.getResponseHeader("Content-Type") || "";
+            if (request.status < 200 || request.status >= 300) {
+                showPrintError("Unable to generate the Purchase Order (HTTP " + request.status + ").");
+                return;
+            }
+            if (contentType.toLowerCase().indexOf("application/pdf") < 0) {
+                showPrintError("The server did not return a PDF preview.");
+                return;
+            }
+
+            var pdfBlob = request.response instanceof Blob
+                ? request.response
+                : new Blob([request.response], { type: "application/pdf" });
+            var pdfUrl = window.URL.createObjectURL(pdfBlob);
+            if (printWindow && !printWindow.closed) printWindow.location.replace(pdfUrl);
+            else window.open(pdfUrl, "_blank");
+            window.setTimeout(function () { window.URL.revokeObjectURL(pdfUrl); }, 60000);
+        };
+
+        request.onerror = function () {
+            showPrintError("A network error occurred while generating the Purchase Order.");
+        };
+        request.ontimeout = function () {
+            showPrintError("Generating the Purchase Order timed out.");
+        };
+        request.onabort = function () {
+            showPrintError("Generating the Purchase Order was cancelled.");
+        };
+
+        function showPrintError(message) {
+            console.error("Wizard PO print failed:", message);
+            if (printWindow && !printWindow.closed) {
+                printWindow.document.body.innerHTML =
+                    "<p style='font-family:Arial,sans-serif;padding:24px;color:#b91c1c'>" +
+                    $("<div>").text(message).html() + "</p>";
+            }
+            showWizardMessage(message);
+        }
+
+        try {
+            request.send(JSON.stringify({ poGroups: payload }));
+        } catch (error) {
+            showPrintError(error && error.message
+                ? error.message
+                : "Unable to start the Purchase Order preview request.");
+        }
     }
 
     function buildPOPayload() {

@@ -6,7 +6,7 @@
     ViewBag.Title = "Purchase Orders";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var printUrl = Url.Action("Print", "PurchaseOrders");
+    var printUrl = Url.Action("PrintPO", "PurchaseOrders");
     var pdfUrl = Url.Action("DownloadPdf", "PurchaseOrders");
     var resumeDraftUrl = Url.Action("Wizard", "PurchaseOrders");
 }
@@ -140,7 +140,7 @@
                             "</button>" +
 
                             // Print
-                            "<a href='" + printUrl + "/#=Id#' " +
+                            "<a href='" + printUrl + "?id=#=Id#' " +
                                 "target='_blank' " +
                                 "class='k-button k-button-sm k-button-flat-secondary' " +
                                 "title='Print Form 101-A'>" +

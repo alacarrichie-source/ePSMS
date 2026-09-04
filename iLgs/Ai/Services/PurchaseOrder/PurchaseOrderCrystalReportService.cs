@@ -77,30 +77,22 @@ namespace iLgs.Ai.Service.PurchaseOrder
             {
                 report.Load(reportPath);
 
+                // Optional child tables that participate in the main report
+                // are inner-joined by Crystal by default. Add key-only rows
+                // for empty children so they do not suppress header/items.
+                EnsureOptionalMainReportRows(report, ds);
+
                 // Crystal does NOT connect to SQL Server.
                 // The complete report data is supplied here.
                 report.SetDataSource(ds);
 
-                // Optional subreports.
-                SetSubreportDataSourceIfExists(
-                    report,
-                    "SourcePRsSubreport",
-                    ds.SourcePRs);
-
-                SetSubreportDataSourceIfExists(
-                    report,
-                    "SetLotItemsSubreport",
-                    ds.SetLotItems);
-
-                SetSubreportDataSourceIfExists(
-                    report,
-                    "AllocationsSubreport",
-                    ds.Allocations);
-
-                SetSubreportDataSourceIfExists(
-                    report,
-                    "AdditionalSpecsSubreport",
-                    ds.AdditionalSpecs);
+                // SetDataSource(DataSet) does not reliably refresh the table
+                // bindings after the .rpt schema has been changed. Crystal can
+                // then export successfully while every bound field is empty.
+                // Bind each main-report table explicitly, but keep the DataSet
+                // assignment above so its parent/child relations remain
+                // available to the report.
+                BindMainReportTables(report, ds);
 
                 using (Stream stream = report.ExportToStream(
                     ExportFormatType.PortableDocFormat))
@@ -112,6 +104,93 @@ namespace iLgs.Ai.Service.PurchaseOrder
             }
         }
 
+
+        private static void EnsureOptionalMainReportRows(
+            ReportDocument report,
+            DataSet dataSet)
+        {
+            foreach (Table reportTable in report.Database.Tables)
+            {
+                DataTable childTable = FindDataTable(
+                    dataSet,
+                    reportTable.Name,
+                    reportTable.Location);
+
+                if (childTable == null || childTable.Rows.Count != 0)
+                    continue;
+
+                DataRelation relation = dataSet.Relations
+                    .Cast<DataRelation>()
+                    .FirstOrDefault(x => x.ChildTable == childTable);
+
+                if (relation == null || relation.ParentTable.Rows.Count == 0)
+                    continue;
+
+                foreach (DataRow parentRow in relation.ParentTable.Rows)
+                {
+                    DataRow childRow = childTable.NewRow();
+
+                    for (int i = 0; i < relation.ParentColumns.Length; i++)
+                    {
+                        childRow[relation.ChildColumns[i]] =
+                            parentRow[relation.ParentColumns[i]];
+                    }
+
+                    childTable.Rows.Add(childRow);
+                }
+            }
+        }
+        private static void BindMainReportTables(
+            ReportDocument report,
+            DataSet dataSet)
+        {
+            foreach (Table reportTable in report.Database.Tables)
+            {
+                DataTable sourceTable = FindDataTable(
+                    dataSet,
+                    reportTable.Name,
+                    reportTable.Location);
+
+                if (sourceTable == null)
+                {
+                    throw new InvalidOperationException(
+                        "The Crystal Report table '" + reportTable.Name +
+                        "' does not exist in PurchaseOrderReportDataSet.");
+                }
+
+                reportTable.SetDataSource(sourceTable);
+            }
+        }
+
+
+
+        private static DataTable FindDataTable(
+            DataSet dataSet,
+            params string[] reportTableNames)
+        {
+            foreach (string rawName in reportTableNames)
+            {
+                if (string.IsNullOrWhiteSpace(rawName))
+                    continue;
+
+                string tableName = rawName;
+                int separatorIndex = tableName.LastIndexOf('.');
+                if (separatorIndex >= 0)
+                    tableName = tableName.Substring(separatorIndex + 1);
+
+                DataTable exactMatch = dataSet.Tables
+                    .Cast<DataTable>()
+                    .FirstOrDefault(x => string.Equals(
+                        x.TableName,
+                        tableName,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (exactMatch != null)
+                    return exactMatch;
+            }
+
+            return null;
+        }
 
         // ================================================================
         // PAYLOAD -> TYPED DATASET
@@ -397,7 +476,6 @@ namespace iLgs.Ai.Service.PurchaseOrder
             return ds;
         }
 
-
         // ================================================================
         // NORMALIZATION
         // ================================================================
@@ -445,29 +523,11 @@ namespace iLgs.Ai.Service.PurchaseOrder
             return group;
         }
 
-
         // ================================================================
         // HELPERS
         // ================================================================
 
-        private static void SetSubreportDataSourceIfExists(
-            ReportDocument report,
-            string subreportName,
-            object dataSource)
-        {
-            try
-            {
-                ReportDocument subreport =
-                    report.Subreports[subreportName];
 
-                if (subreport != null)
-                    subreport.SetDataSource(dataSource);
-            }
-            catch
-            {
-                // Optional subreport not found.
-            }
-        }
 
         private static void Set(
             DataRow row,

@@ -45,41 +45,81 @@ namespace iLgs.Ai.Services.PurchaseOrder
         /// </summary>
         public async Task<Guid> SaveWizardProgressAsync(Guid? draftId, string stateJson, List<Guid> prIds, int currentStep, string user)
         {
-            PurchaseOrderWizardProgress draft;
-            if (draftId.HasValue)
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                draft = await _db.PurchaseOrderWizardProgresses
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == draftId.Value &&
-                        x.CreatedBy == user &&
-                        x.IsCompleted == false);
-                if (draft == null)
-                    throw new InvalidOperationException("The wizard draft was not found or is no longer active.");
-            }
-            else
-            {
-                // A wizard opened without a draft id represents a new, independent
-                // draft. Subsequent saves send the returned id and update only it.
-                draft = new PurchaseOrderWizardProgress
+                try
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedBy = user,
-                    CreatedAt = DateTime.Now
-                };
-                _db.PurchaseOrderWizardProgresses.Add(draft);
+                    PurchaseOrderWizardProgress draft;
+                    if (draftId.HasValue)
+                    {
+                        draft = await _db.PurchaseOrderWizardProgresses
+                            .FirstOrDefaultAsync(x => x.Id == draftId.Value && x.CreatedBy == user && x.IsCompleted == false);
+                        if (draft == null)
+                            throw new InvalidOperationException("The wizard draft was not found or is no longer active.");
+                    }
+                    else
+                    {
+                        var createdAt = DateTime.Now;
+                        draft = new PurchaseOrderWizardProgress
+                        {
+                            Id = Guid.NewGuid(),
+                            DraftNo = await GenerateDraftNumberAsync(createdAt),
+                            CreatedBy = user,
+                            CreatedAt = createdAt
+                        };
+                        _db.PurchaseOrderWizardProgresses.Add(draft);
+                    }
+
+                    draft.LastStep = currentStep;
+                    draft.UpdatedAt = DateTime.Now;
+                    draft.SelectedPrIds = String.IsNullOrWhiteSpace(stateJson)
+                        ? string.Join(",", prIds ?? new List<Guid>())
+                        : stateJson;
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                    return draft.Id;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
-
-            draft.LastStep = currentStep;
-            draft.UpdatedAt = DateTime.Now;
-
-            draft.SelectedPrIds = String.IsNullOrWhiteSpace(stateJson)
-                ? string.Join(",", prIds ?? new List<Guid>())
-                : stateJson;
-
-            await _db.SaveChangesAsync();
-            return draft.Id;
         }
 
+        private async Task<string> GenerateDraftNumberAsync(DateTime date)
+        {
+            string prefix = date.ToString("yyyyMM");
+            string legacyPrefix = date.ToString("yyyy-MM-");
+            var draftNumbers = await _db.PurchaseOrderWizardProgresses
+                .Where(x => x.DraftNo != null && x.DraftNo.StartsWith(prefix))
+                .Select(x => x.DraftNo)
+                .ToListAsync();
+            var controlNumbers = await _db.Orders
+                .Where(x => x.CtrlNo != null &&
+                    (x.CtrlNo.StartsWith(prefix) || x.CtrlNo.StartsWith(legacyPrefix)))
+                .Select(x => x.CtrlNo)
+                .ToListAsync();
+
+            int lastSequence = draftNumbers.Concat(controlNumbers)
+                .Select(x =>
+                {
+                    int sequence;
+                    if (x.Length == 10 && Int32.TryParse(x.Substring(6, 4), out sequence))
+                        return sequence;
+                    if (x.Length == 12 && Int32.TryParse(x.Substring(8, 4), out sequence))
+                        return sequence;
+                    return 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            if (lastSequence >= 9999)
+                throw new InvalidOperationException("The monthly Purchase Order control-number sequence is exhausted.");
+
+            return prefix + (lastSequence + 1).ToString("D4");
+        }
         /// <summary>
         /// Retrieves previously saved PR selections to repopulate Step 1
         /// </summary>
@@ -135,26 +175,6 @@ namespace iLgs.Ai.Services.PurchaseOrder
 
             if (!drafts.Any()) return new List<POWizardDraftListItemViewModel>();
 
-            // Build a stable, schema-free monthly control number. Completed drafts
-            // remain in the sequence so active draft numbers are not reused.
-            var earliestDraft = drafts.Min(d => d.CreatedAt);
-            var latestDraft = drafts.Max(d => d.CreatedAt);
-            var rangeStart = new DateTime(earliestDraft.Year, earliestDraft.Month, 1);
-            var rangeEnd = new DateTime(latestDraft.Year, latestDraft.Month, 1).AddMonths(1);
-            var sequenceSource = await _db.PurchaseOrderWizardProgresses
-                .AsNoTracking()
-                .Where(d => d.CreatedAt >= rangeStart && d.CreatedAt < rangeEnd)
-                .Select(d => new { d.Id, d.CreatedAt })
-                .ToListAsync();
-
-            var sequenceById = sequenceSource
-                .GroupBy(d => new { d.CreatedAt.Year, d.CreatedAt.Month })
-                .SelectMany(month => month
-                    .OrderBy(d => d.CreatedAt)
-                    .ThenBy(d => d.Id)
-                    .Select((draft, index) => new { draft.Id, Sequence = index + 1 }))
-                .ToDictionary(d => d.Id, d => d.Sequence);
-
             return drafts.Select(d => new POWizardDraftListItemViewModel
             {
                 Id = d.Id,
@@ -162,8 +182,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 LastUpdatedAt = d.UpdatedAt ?? d.CreatedAt,
                 CurrentStep = Math.Max(1, Math.Min(4, d.LastStep)),
                 SelectedPRCount = CountSelectedPRs(d.SelectedPrIds),
-                DraftName = d.CreatedAt.ToString("yyyyMM") +
-                    (sequenceById.ContainsKey(d.Id) ? sequenceById[d.Id] : 1).ToString("D4")
+                DraftName = d.DraftNo
             }).ToList();
         }
 
@@ -496,6 +515,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
     public class WizardDraftDto
     {
         public Guid DraftId { get; set; }
+        public string DraftNo { get; set; }
         public List<Guid> PrIds { get; set; }
         public int CurrentStep { get; set; }
         public string StateJson { get; set; }

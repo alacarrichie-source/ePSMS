@@ -809,6 +809,9 @@
       <DependentUpon>CustodianStock.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\DataSets\PurchaseOrderReportDataSet.cs">
+      <DependentUpon>PurchaseOrderReportDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Reports\DataSets\PurchaseOrderReportDataSet.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

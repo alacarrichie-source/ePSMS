@@ -144,6 +144,7 @@ namespace iLgs.Controllers
             ViewBag.WizardStateJson = null;
             ViewBag.CurrentStep = 1;
             ViewBag.DraftId = null;
+            ViewBag.DraftNo = null;
 
             // If a draftId is provided, we load the previously selected PRs
             // This populates the checkboxes in Step 1 automatically
@@ -156,6 +157,7 @@ namespace iLgs.Controllers
                 {
                     ViewBag.SelectedPrIds = draft.PrIds;
                     ViewBag.DraftId = draft.DraftId;
+                    ViewBag.DraftNo = draft.DraftNo;
                     ViewBag.WizardStateJson = draft.StateJson;
                     ViewBag.CurrentStep = draft.CurrentStep;
                 }
@@ -233,11 +235,17 @@ namespace iLgs.Controllers
                     currentStep,
                     user);
 
+                var savedDraftNo = await _db.PurchaseOrderWizardProgresses
+                    .Where(d => d.Id == savedDraftId)
+                    .Select(d => d.DraftNo)
+                    .SingleAsync();
+
                 return Json(new
                 {
                     success = true,
                     message = "Progress saved successfully.",
-                    draftId = savedDraftId
+                    draftId = savedDraftId,
+                    draftNo = savedDraftNo
                 });
             }
             catch (Exception)
@@ -302,25 +310,31 @@ namespace iLgs.Controllers
 
             try
             {
+                var user = User.Identity.Name ?? "Admin";
+                if (!draftId.HasValue)
+                    return Json(new { success = false, message = "Save the wizard draft before posting." });
+
+                var completedDraft = await _db.PurchaseOrderWizardProgresses
+                    .FirstOrDefaultAsync(d =>
+                        d.Id == draftId.Value &&
+                        d.CreatedBy == user &&
+                        !d.IsCompleted);
+
+                if (completedDraft == null || String.IsNullOrWhiteSpace(completedDraft.DraftNo))
+                    return Json(new { success = false, message = "The wizard draft number could not be found." });
+
+                // The persisted server-generated draft number is authoritative.
+                // Never accept a client-supplied control number during posting.
+                foreach (var group in poGroups)
+                    group.CtrlNo = completedDraft.DraftNo;
+
                 var validationMessage = await ValidateWizardGroupsAsync(poGroups, true);
                 if (validationMessage != null) return Json(new { success = false, message = validationMessage });
-                var user = User.Identity.Name ?? "Admin";
-                var created = await _poService.CreatePOsFromWizardAsync(poGroups, user, isDraft: false);
-                if (draftId.HasValue)
-                {
-                    var completedDraft = await _db.PurchaseOrderWizardProgresses
-                        .FirstOrDefaultAsync(d =>
-                            d.Id == draftId.Value &&
-                            d.CreatedBy == user &&
-                            !d.IsCompleted);
 
-                    if (completedDraft != null)
-                    {
-                        completedDraft.IsCompleted = true;
-                        completedDraft.UpdatedAt = DateTime.Now;
-                        await _db.SaveChangesAsync();
-                    }
-                }
+                var created = await _poService.CreatePOsFromWizardAsync(poGroups, user, isDraft: false);
+                completedDraft.IsCompleted = true;
+                completedDraft.UpdatedAt = DateTime.Now;
+                await _db.SaveChangesAsync();
                 var poNumbers = string.Join(", ", created.Select(p => p.PoNo));
 
                 return Json(new
@@ -545,6 +559,8 @@ namespace iLgs.Controllers
                 GroupName = "Purchase Order",
 
                 PONumber = po.PoNo,
+                PRNumber = po.PrNo,
+                DepartmentName = po.Department,
 
                 SupplierId = po.SupplierId,
 

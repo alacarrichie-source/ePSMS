@@ -144,6 +144,7 @@
 
         var currentWizardStep = @Convert.ToInt32(ViewBag.CurrentStep ?? 1);
         var wizardDraftId = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.DraftId));
+        var wizardDraftNo = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.DraftNo));
         var initialWizardStateJson = @Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(Convert.ToString(ViewBag.WizardStateJson), true));
         var wizardAutoSaveTimer = null;
         var wizardDraftReady = false;
@@ -435,6 +436,9 @@
                 selectedPRIds = (state.selectedPRIds || []).map(String);
                 allocatedItems = state.allocatedItems || [];
                 poGroups = state.poGroups && state.poGroups.length ? state.poGroups : poGroups;
+                if (wizardDraftNo) {
+                    poGroups.forEach(function (group) { group.ctrlNo = wizardDraftNo; });
+                }
                 currentWizardStep = Math.max(1, Math.min(4, Number(state.currentStep || currentWizardStep || 1)));
                 $("#wizardDraftStatusText").text("Draft restored");
             } catch (e) {

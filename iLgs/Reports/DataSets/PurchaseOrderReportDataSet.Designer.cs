@@ -1000,7 +1000,7 @@ namespace iLgs.Reports.DataSets {
                         string SupContactNo, 
                         System.DateTime PODate, 
                         int DeliveryPeriodDays, 
-                        System.DateTime DeliveryDate, 
+                        string DeliveryDate, 
                         string PlaceOfDelivery, 
                         string TermDelivery, 
                         string PaymentTerms, 
@@ -1139,7 +1139,7 @@ namespace iLgs.Reports.DataSets {
                 base.Columns.Add(this.columnPODate);
                 this.columnDeliveryPeriodDays = new global::System.Data.DataColumn("DeliveryPeriodDays", typeof(int), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnDeliveryPeriodDays);
-                this.columnDeliveryDate = new global::System.Data.DataColumn("DeliveryDate", typeof(global::System.DateTime), null, global::System.Data.MappingType.Element);
+                this.columnDeliveryDate = new global::System.Data.DataColumn("DeliveryDate", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnDeliveryDate);
                 this.columnPlaceOfDelivery = new global::System.Data.DataColumn("PlaceOfDelivery", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnPlaceOfDelivery);
@@ -4076,10 +4076,10 @@ namespace iLgs.Reports.DataSets {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public System.DateTime DeliveryDate {
+            public string DeliveryDate {
                 get {
                     try {
-                        return ((global::System.DateTime)(this[this.tablePOHeader.DeliveryDateColumn]));
+                        return ((string)(this[this.tablePOHeader.DeliveryDateColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
                         throw new global::System.Data.StrongTypingException("The value for column \'DeliveryDate\' in table \'POHeader\' is DBNull.", e);
@@ -4620,23 +4620,12 @@ namespace iLgs.Reports.DataSets {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public SourcePRsRow[] GetSourcePRsRows() {
-                if ((this.Table.ChildRelations["POHeader_SourcePRs"] == null)) {
-                    return new SourcePRsRow[0];
+            public AdditionalDocsRow[] GetAdditionalDocsRows() {
+                if ((this.Table.ChildRelations["POHeader_AdditionalDocs"] == null)) {
+                    return new AdditionalDocsRow[0];
                 }
                 else {
-                    return ((SourcePRsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_SourcePRs"])));
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public POItemsRow[] GetPOItemsRows() {
-                if ((this.Table.ChildRelations["POHeader_POItems"] == null)) {
-                    return new POItemsRow[0];
-                }
-                else {
-                    return ((POItemsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_POItems"])));
+                    return ((AdditionalDocsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_AdditionalDocs"])));
                 }
             }
             
@@ -4653,12 +4642,23 @@ namespace iLgs.Reports.DataSets {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public AdditionalDocsRow[] GetAdditionalDocsRows() {
-                if ((this.Table.ChildRelations["POHeader_AdditionalDocs"] == null)) {
-                    return new AdditionalDocsRow[0];
+            public POItemsRow[] GetPOItemsRows() {
+                if ((this.Table.ChildRelations["POHeader_POItems"] == null)) {
+                    return new POItemsRow[0];
                 }
                 else {
-                    return ((AdditionalDocsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_AdditionalDocs"])));
+                    return ((POItemsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_POItems"])));
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public SourcePRsRow[] GetSourcePRsRows() {
+                if ((this.Table.ChildRelations["POHeader_SourcePRs"] == null)) {
+                    return new SourcePRsRow[0];
+                }
+                else {
+                    return ((SourcePRsRow[])(base.GetChildRows(this.Table.ChildRelations["POHeader_SourcePRs"])));
                 }
             }
         }
@@ -5264,12 +5264,12 @@ namespace iLgs.Reports.DataSets {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public AdditionalSpecsRow[] GetAdditionalSpecsRows() {
-                if ((this.Table.ChildRelations["POItems_AdditionalSpecs"] == null)) {
-                    return new AdditionalSpecsRow[0];
+            public AllocationsRow[] GetAllocationsRows() {
+                if ((this.Table.ChildRelations["POItems_Allocations"] == null)) {
+                    return new AllocationsRow[0];
                 }
                 else {
-                    return ((AdditionalSpecsRow[])(base.GetChildRows(this.Table.ChildRelations["POItems_AdditionalSpecs"])));
+                    return ((AllocationsRow[])(base.GetChildRows(this.Table.ChildRelations["POItems_Allocations"])));
                 }
             }
             
@@ -5286,12 +5286,12 @@ namespace iLgs.Reports.DataSets {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
-            public AllocationsRow[] GetAllocationsRows() {
-                if ((this.Table.ChildRelations["POItems_Allocations"] == null)) {
-                    return new AllocationsRow[0];
+            public AdditionalSpecsRow[] GetAdditionalSpecsRows() {
+                if ((this.Table.ChildRelations["POItems_AdditionalSpecs"] == null)) {
+                    return new AdditionalSpecsRow[0];
                 }
                 else {
-                    return ((AllocationsRow[])(base.GetChildRows(this.Table.ChildRelations["POItems_Allocations"])));
+                    return ((AdditionalSpecsRow[])(base.GetChildRows(this.Table.ChildRelations["POItems_AdditionalSpecs"])));
                 }
             }
         }
