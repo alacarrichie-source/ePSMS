@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="PurchaseOrderReportDataSet"
+    targetNamespace="http://tempuri.org/PurchaseOrderReportDataSet.xsd"
+    xmlns:mstns="http://tempuri.org/PurchaseOrderReportDataSet.xsd"
+    xmlns="http://tempuri.org/PurchaseOrderReportDataSet.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+    attributeFormDefault="qualified"
+    elementFormDefault="qualified">
+
+  <xs:element name="PurchaseOrderReportDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+
+        <xs:element name="POHeader">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GroupId" type="xs:string" />
+              <xs:element name="GroupName" type="xs:string" minOccurs="0" />
+              <xs:element name="PONumber" type="xs:string" minOccurs="0" />
+              <xs:element name="PRNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="DepartmentName" type="xs:string" minOccurs="0" />
+
+              <xs:element name="SupplierId" type="xs:string" minOccurs="0" />
+              <xs:element name="SupplierName" type="xs:string" minOccurs="0" />
+              <xs:element name="CtrlNo" type="xs:string" minOccurs="0" />
+              <xs:element name="SupBusiness" type="xs:string" minOccurs="0" />
+              <xs:element name="SupAddress" type="xs:string" minOccurs="0" />
+              <xs:element name="SupTIN" type="xs:string" minOccurs="0" />
+              <xs:element name="SupEmail" type="xs:string" minOccurs="0" />
+              <xs:element name="SupZipCode" type="xs:string" minOccurs="0" />
+              <xs:element name="SupContactNo" type="xs:string" minOccurs="0" />
+
+              <xs:element name="PODate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="DeliveryPeriodDays" type="xs:int" minOccurs="0" />
+              <xs:element name="DeliveryDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="PlaceOfDelivery" type="xs:string" minOccurs="0" />
+              <xs:element name="TermDelivery" type="xs:string" minOccurs="0" />
+              <xs:element name="PaymentTerms" type="xs:string" minOccurs="0" />
+              <xs:element name="ModeOfProcurement" type="xs:string" minOccurs="0" />
+
+              <xs:element name="SignedBySuppName" type="xs:string" minOccurs="0" />
+              <xs:element name="SignedBySuppDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="SignedByAuthName" type="xs:string" minOccurs="0" />
+              <xs:element name="SignedByAuthDesignation" type="xs:string" minOccurs="0" />
+              <xs:element name="ResoNo" type="xs:string" minOccurs="0" />
+              <xs:element name="CertifiedCorrectBy" type="xs:string" minOccurs="0" />
+              <xs:element name="CertifiedCorrectDate" type="xs:dateTime" minOccurs="0" />
+
+              <xs:element name="GrandTotal" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="SourcePRs">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GroupId" type="xs:string" />
+              <xs:element name="PRId" type="xs:string" />
+              <xs:element name="PRNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="DepartmentId" type="xs:string" minOccurs="0" />
+              <xs:element name="DepartmentName" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="POItems">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GroupId" type="xs:string" />
+              <xs:element name="ItemId" type="xs:string" />
+              <xs:element name="ItemNo" type="xs:string" minOccurs="0" />
+              <xs:element name="ItemCode" type="xs:string" minOccurs="0" />
+              <xs:element name="ItemCodeId" type="xs:string" minOccurs="0" />
+              <xs:element name="PpmpCode" type="xs:string" minOccurs="0" />
+              <xs:element name="StockNo" type="xs:string" minOccurs="0" />
+              <xs:element name="Description" type="xs:string" minOccurs="0" />
+              <xs:element name="Quantity" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Unit" type="xs:string" minOccurs="0" />
+              <xs:element name="UnitCost" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TotalCost" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Category" type="xs:string" minOccurs="0" />
+              <xs:element name="Account" type="xs:string" minOccurs="0" />
+              <xs:element name="SubAccount" type="xs:string" minOccurs="0" />
+              <xs:element name="GSOCategory" type="xs:string" minOccurs="0" />
+              <xs:element name="TechnicalDescription" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="AdditionalSpecs">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ItemId" type="xs:string" />
+              <xs:element name="AdditionalSpecsId" type="xs:string" minOccurs="0" />
+              <xs:element name="Multipliers" type="xs:string" minOccurs="0" />
+              <xs:element name="Brand" type="xs:string" minOccurs="0" />
+              <xs:element name="Model" type="xs:string" minOccurs="0" />
+              <xs:element name="Dimension" type="xs:string" minOccurs="0" />
+              <xs:element name="Size" type="xs:string" minOccurs="0" />
+              <xs:element name="Weight" type="xs:string" minOccurs="0" />
+              <xs:element name="Materials" type="xs:string" minOccurs="0" />
+              <xs:element name="Capacity" type="xs:string" minOccurs="0" />
+              <xs:element name="Color" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="SetLotItems">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ItemId" type="xs:string" />
+              <xs:element name="RequestSubItemId" type="xs:string" minOccurs="0" />
+              <xs:element name="ItemNo" type="xs:string" minOccurs="0" />
+              <xs:element name="ItemName" type="xs:string" minOccurs="0" />
+              <xs:element name="Unit" type="xs:string" minOccurs="0" />
+              <xs:element name="Qty" type="xs:decimal" minOccurs="0" />
+              <xs:element name="EstimatedCost" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Allocations">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ItemId" type="xs:string" />
+              <xs:element name="PRId" type="xs:string" minOccurs="0" />
+              <xs:element name="RequestItemId" type="xs:string" minOccurs="0" />
+              <xs:element name="PRNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="Quantity" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="POCopyDocs">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GroupId" type="xs:string" />
+              <xs:element name="DocumentId" type="xs:int" minOccurs="0" />
+              <xs:element name="FileName" type="xs:string" minOccurs="0" />
+              <xs:element name="FilePath" type="xs:string" minOccurs="0" />
+              <xs:element name="FileSize" type="xs:string" minOccurs="0" />
+              <xs:element name="Category" type="xs:string" minOccurs="0" />
+              <xs:element name="UploadedAt" type="xs:dateTime" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="AdditionalDocs">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GroupId" type="xs:string" />
+              <xs:element name="DocumentId" type="xs:int" minOccurs="0" />
+              <xs:element name="FileName" type="xs:string" minOccurs="0" />
+              <xs:element name="FilePath" type="xs:string" minOccurs="0" />
+              <xs:element name="FileSize" type="xs:string" minOccurs="0" />
+              <xs:element name="Category" type="xs:string" minOccurs="0" />
+              <xs:element name="UploadedAt" type="xs:dateTime" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+      </xs:choice>
+    </xs:complexType>
+
+    <xs:unique name="POHeaderKey" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:POHeader" />
+      <xs:field xpath="mstns:GroupId" />
+    </xs:unique>
+
+    <xs:unique name="POItemsKey" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:POItems" />
+      <xs:field xpath="mstns:ItemId" />
+    </xs:unique>
+
+    <xs:keyref name="POHeader_SourcePRs" refer="POHeaderKey">
+      <xs:selector xpath=".//mstns:SourcePRs" />
+      <xs:field xpath="mstns:GroupId" />
+    </xs:keyref>
+
+    <xs:keyref name="POHeader_POItems" refer="POHeaderKey">
+      <xs:selector xpath=".//mstns:POItems" />
+      <xs:field xpath="mstns:GroupId" />
+    </xs:keyref>
+
+    <xs:keyref name="POHeader_POCopyDocs" refer="POHeaderKey">
+      <xs:selector xpath=".//mstns:POCopyDocs" />
+      <xs:field xpath="mstns:GroupId" />
+    </xs:keyref>
+
+    <xs:keyref name="POHeader_AdditionalDocs" refer="POHeaderKey">
+      <xs:selector xpath=".//mstns:AdditionalDocs" />
+      <xs:field xpath="mstns:GroupId" />
+    </xs:keyref>
+
+    <xs:keyref name="POItems_AdditionalSpecs" refer="POItemsKey">
+      <xs:selector xpath=".//mstns:AdditionalSpecs" />
+      <xs:field xpath="mstns:ItemId" />
+    </xs:keyref>
+
+    <xs:keyref name="POItems_SetLotItems" refer="POItemsKey">
+      <xs:selector xpath=".//mstns:SetLotItems" />
+      <xs:field xpath="mstns:ItemId" />
+    </xs:keyref>
+
+    <xs:keyref name="POItems_Allocations" refer="POItemsKey">
+      <xs:selector xpath=".//mstns:Allocations" />
+      <xs:field xpath="mstns:ItemId" />
+    </xs:keyref>
+
+  </xs:element>
+</xs:schema>

@@ -325,6 +325,7 @@
     <Compile Include="Ai\Models\SupplierDropdownViewModel.cs" />
     <Compile Include="Ai\Services\DocumentHistoryService.cs" />
     <Compile Include="Ai\Services\DocumentTypes.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\PurchaseOrderCrystalReportService.cs" />
     <Compile Include="Controllers\AccountCodeController.cs" />
     <Compile Include="Controllers\AnnexDController.cs" />
     <Compile Include="Controllers\AuditTrailController.cs" />
@@ -808,6 +809,11 @@
       <DependentUpon>CustodianStock.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\DataSets\PurchaseOrderReportDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PurchaseOrderReportDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Reports\IcsSet.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -836,6 +842,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>PropertyCard.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\PurchaseOrder.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PurchaseOrder.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\Ris.cs">
@@ -1929,6 +1941,17 @@
     <None Include="Properties\PublishProfiles\ilgs manila.pubxml" />
     <None Include="Properties\PublishProfiles\Web2015.pubxml" />
     <None Include="Properties\PublishProfiles\Web02.pubxml" />
+    <Content Include="Reports\DataSets\PurchaseOrderReportDataSet.xsc">
+      <DependentUpon>PurchaseOrderReportDataSet.xsd</DependentUpon>
+    </Content>
+    <None Include="Reports\DataSets\PurchaseOrderReportDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>PurchaseOrderReportDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <Content Include="Reports\DataSets\PurchaseOrderReportDataSet.xss">
+      <DependentUpon>PurchaseOrderReportDataSet.xsd</DependentUpon>
+    </Content>
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Reports\ParSet.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -5006,6 +5029,10 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpciRight.cs</LastGenOutput>
     </Content>
+    <EmbeddedResource Include="Reports\PurchaseOrder.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>PurchaseOrder.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Reports\RpcPpeEquipment.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpeEquipment.cs</LastGenOutput>
@@ -5063,7 +5090,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

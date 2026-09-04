@@ -312,6 +312,8 @@ namespace iLgs.Ai.Services.PurchaseOrder
                         {
                             Id = Guid.NewGuid(),
                             PoNo = poNumber,
+                            PrNo = grp.PRNumber,
+                            Department = grp.DepartmentName,
                             CtrlNo = grp.CtrlNo,
                             PoDate = grp.PODate,
                             SupplierId = grp.SupplierId,

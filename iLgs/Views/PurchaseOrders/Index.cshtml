@@ -36,7 +36,7 @@
     <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">
         <div class="wizard-drafts-header">
             <div>
-                <h2 id="wizardDraftsHeading">My Wizard Drafts</h2>
+                <h2 id="wizardDraftsHeading">My Drafts</h2>
                 <p>Continue an unfinished Purchase Order wizard from where you stopped.</p>
             </div>
             <span class="k-icon k-i-save wizard-drafts-icon" aria-hidden="true"></span>
@@ -108,7 +108,9 @@
                 columns.Bound(p => p.SupplierName).Title("Supplier").Width(220);
                 columns.Bound(p => p.SourcePRs).Title("Source PR(s)").Width(160);
                 columns.Bound(p => p.ItemCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
-                columns.Bound(p => p.TotalAmount).Title("Total Amount").Format("{0:C2}").Width(160).HtmlAttributes(new { @class = "text-right font-weight-bold" });
+                columns.Bound(p => p.TotalAmount).Title("Total Amount").Format("{0:n2}").Width(160)
+                    .HtmlAttributes(new { style = "text-align:right;", @class = "text-right font-weight-bold" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 columns.Bound(p => p.Status).Title("Status").Width(130).ClientTemplate(
                     "# if (Status == 'Posted') { #" +
                         "<span class='status-badge status-posted'>Posted</span>" +

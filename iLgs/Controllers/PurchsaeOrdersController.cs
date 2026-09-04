@@ -12,6 +12,9 @@ using iLgs.Ai.Models;
 using iLgs.Ai.Services.PurchaseOrder;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using iLgs.Ai.Service;
+using iLgs.Ai.Service.PurchaseOrder;
+using System.Net;
 
 namespace iLgs.Controllers
 {
@@ -89,7 +92,7 @@ namespace iLgs.Controllers
             var model = await _poService.GetPODetailsAsync(id);
             if (model == null) return HttpNotFound("Purchase Order not found.");
             return View("Print", model);
-        }
+        }        
 
         [HttpGet]
         public async Task<ActionResult> DownloadPdf(Guid id)
@@ -126,7 +129,7 @@ namespace iLgs.Controllers
                 return Json(new { success = true, message = "Purchase Order cancelled." });
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
-        }
+        }        
 
         // ==========================================
         // 2. 4-STEP PO CREATION WIZARD
@@ -421,5 +424,366 @@ namespace iLgs.Controllers
                 extension == ".png" ? "image/png" : "application/octet-stream";
             return File(fileBytes, contentType);
         }
+
+        // ================================================================
+        // 1. PRINT FROM WIZARD PAYLOAD
+        // ================================================================
+
+        /// <summary>
+        /// Step 4 preview/print.
+        /// Receives the JSON PO Groups payload directly from the Wizard.
+        /// Nothing is re-read from SQL Server.
+        /// </summary>
+        [HttpPost]
+        public ActionResult PrintWizardPO(List<POGroupReportPayload> poGroups)
+        {
+            if (poGroups == null || poGroups.Count == 0)
+            {
+                return new HttpStatusCodeResult(
+                    HttpStatusCode.BadRequest,
+                    "No Purchase Order payload was supplied.");
+            }
+
+            try
+            {
+                var reportService =
+                    new PurchaseOrderCrystalReportService();
+
+                string reportPath = Server.MapPath(
+                    "~/Reports/PurchaseOrder.rpt");
+
+                byte[] pdf = reportService.ExportWizardPayloadPdf(
+                    poGroups,
+                    reportPath);
+
+                // No filename => browser displays the PDF inline.
+                return File(pdf, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(
+                    HttpStatusCode.InternalServerError,
+                    GetFullExceptionMessage(ex));
+            }
+        }
+
+
+        // ================================================================
+        // 2. PRINT AN ACTUAL / SAVED PURCHASE ORDER
+        // ================================================================
+
+        /// <summary>
+        /// Prints an already-saved Purchase Order.
+        ///
+        /// Flow:
+        /// database -> BuildActualPOPayload() -> same payload structure
+        /// -> same DataSet -> same PurchaseOrder.rpt.
+        /// </summary>
+        [HttpGet]
+        public ActionResult PrintPO(Guid id)
+        {
+            try
+            {
+                POGroupReportPayload payload = BuildActualPOPayload(id);
+
+                if (payload == null)
+                {
+                    return HttpNotFound(
+                        "The Purchase Order could not be found.");
+                }
+
+                var reportService =
+                    new PurchaseOrderCrystalReportService();
+
+                string reportPath = Server.MapPath(
+                    "~/Reports/PurchaseOrder.rpt");
+
+                byte[] pdf = reportService.ExportActualDataPdf(
+                    payload,
+                    reportPath);
+
+                return File(pdf, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(
+                    HttpStatusCode.InternalServerError,
+                    GetFullExceptionMessage(ex));
+            }
+        }
+
+
+        // ================================================================
+        // ACTUAL DATABASE DATA -> SHARED REPORT PAYLOAD
+        // ================================================================
+
+        /// <summary>
+        /// This is the ONLY database-specific part of the reporting flow.
+        ///
+        /// Map your saved Order and its related entities here.
+        ///
+        /// IMPORTANT:
+        /// The property/navigation names below are based on the PO model
+        /// discussed for your wizard. Rename any property that differs in
+        /// your actual EF model.
+        /// </summary>
+        private POGroupReportPayload BuildActualPOPayload(Guid poId)
+        {
+            var po = _db.Orders
+                  .AsNoTracking()
+                  .Include(x => x.OrderItems.Select(i => i.ItemCode.ItemType))
+                  .Include(x => x.OrderItems.Select(i => i.OrderItemRequests))
+                  .SingleOrDefault(x => x.Id == poId);
+
+            if (po == null)
+                return null;
+
+            var payload = new POGroupReportPayload
+            {
+                // A saved PO is one report group.
+                GroupId = po.Id.ToString(),
+                GroupName = "Purchase Order",
+
+                PONumber = po.PoNo,
+
+                SupplierId = po.SupplierId,
+
+                // Change these to your Supplier navigation/property names.
+                SupplierName = po.SupName,
+                CtrlNo = po.CtrlNo,
+                SupBusiness = po.SupBusiness,
+                SupAddress = po.SupAddress,
+                SupTIN = po.SupTIN,
+                SupEmail = po.SupEmail,
+                SupZipCode = po.SupZipCode,
+                SupContactNo = po.SupContactNo,
+
+                PODate = po.PoDate,
+                //DeliveryPeriodDays = 
+                //    po.DeliveryDate == null
+                //        ? null
+                //        : po.term.ToString(),
+
+                DeliveryDate = po.DeliveryDate,
+                PlaceOfDelivery = po.DeliveryPlace,
+                TermDelivery = po.TermDelivery,
+                PaymentTerms = po.TermPayment,
+                ModeOfProcurement = po.PoMode,
+
+                SignedBySuppName = po.SignedBySuppName,
+                SignedBySuppDate = po.SignedBySuppDate,
+                SignedByAuthName = po.SignedByAuthName,
+                SignedByAuthDesignation =
+                    po.SignedByAuthDesignation,
+                ResoNo = po.ResoNo,
+                CertifiedCorrectBy = po.CertifiedCorrectBy,
+                CertifiedCorrectDate = po.CertifiedCorrectDate,
+
+                SourcePRs = new List<SourcePRReportPayload>(),
+                Items = new List<POItemReportPayload>(),
+                AdditionalDocs =
+                    new List<PODocumentReportPayload>()
+            };
+
+
+            // ============================================================
+            // ITEMS
+            // ============================================================
+
+            foreach (var item in po.OrderItems.OrderBy(x => x.ItemNo))
+            {
+                var reportItem = new POItemReportPayload
+                {
+                    Id = item.Id,
+                    ItemNo = item.ItemNo.ToString(),
+                    ItemCode = item.ItemCode.Code,
+                    ItemCodeId = item.ItemCodeId,
+                    PpmpCode = item.PpmpCode,
+                    StockNo = item.PsNo,
+
+                    Description = item.Description,
+                    Quantity = item.Qty ?? 0,
+                    Unit = item.Unit,
+                    UnitCost = item.UnitCost ?? 0,
+
+                    Category = item.ItemCode.ItemType.Category,
+                    //Account = item.ItemCode.ItemType.Account,
+                    //SubAccount = item.SubAccount,
+                    //GSOCategory = item.GSOCategory,
+                    TechnicalDescription =
+                        item.OtherDesc,
+
+                    SetLotItems =
+                        new List<SetLotItemReportPayload>(),
+
+                    Allocations =
+                        new List<AllocationReportPayload>()
+                };
+
+
+                // ========================================================
+                // ADDITIONAL SPECS
+                // ========================================================
+                //
+                // Map this from whichever extension/specification entity
+                // contains the item's final saved specification.
+                //
+                // Example:
+                //
+                // if (item.AdditionalSpecs != null)
+                // {
+                //     reportItem.AdditionalSpecs =
+                //         new AdditionalSpecsReportPayload
+                //         {
+                //             Id = item.AdditionalSpecs.Id,
+                //             Multipliers =
+                //                 item.AdditionalSpecs.Multipliers,
+                //             Brand = item.AdditionalSpecs.Brand,
+                //             Model_ = item.AdditionalSpecs.Model_,
+                //             Dimension =
+                //                 item.AdditionalSpecs.Dimension,
+                //             Size = item.AdditionalSpecs.Size,
+                //             Weight = item.AdditionalSpecs.Weight,
+                //             Materials =
+                //                 item.AdditionalSpecs.Materials,
+                //             Capacity =
+                //                 item.AdditionalSpecs.Capacity,
+                //             Color = item.AdditionalSpecs.Color
+                //         };
+                // }
+
+
+                // ========================================================
+                // SET / LOT COMPONENTS
+                // ========================================================
+                
+
+                foreach (var sub in item.OrderSubItems
+                                           .OrderBy(x => x.ItemNo))
+                {
+                    reportItem.SetLotItems.Add(
+                        new SetLotItemReportPayload
+                        {
+                            //RequestSubItemId =
+                            //    sub.RequestSubItemId,
+                            ItemNo = sub.ItemNo,
+                            ItemName = sub.Description,
+                            Unit = sub.Unit,
+                            Qty = sub.QtyPerSet,
+                            EstimatedCost =
+                                sub.EstimatedTotalCost ?? 0
+                        });
+                }
+
+
+                // ========================================================
+                // SOURCE PR ALLOCATIONS
+                // ========================================================
+
+                //foreach (var allocation in item.OrderItemRequests)
+                //{
+                //    reportItem.Allocations.Add(
+                //        new AllocationReportPayload
+                //        {
+                //            // Prefer the actual Request/PR ID.
+                //            PRId = allocation.RequestId,
+
+                //            RequestItemId =
+                //                allocation.RequestItemId,
+
+                //            PRNumber =
+                //                allocation.PRNumber,
+
+                //            Quantity =
+                //                allocation.Qty
+                //        });
+                //}
+
+                payload.Items.Add(reportItem);
+            }
+
+
+            // ============================================================
+            // SOURCE PRs
+            // ============================================================
+            //
+            // BEST OPTION:
+            // Build SourcePRs from the actual Request navigation/entity so
+            // DepartmentId and DepartmentName are authoritative.
+            //
+            // Example:
+            //
+            // var sourceRequestIds = payload.Items
+            //     .SelectMany(x => x.Allocations)
+            //     .Where(x => x.PRId != null)
+            //     .Select(x => (Guid)x.PRId)
+            //     .Distinct()
+            //     .ToList();
+            //
+            // var requests = db.Requests
+            //     .AsNoTracking()
+            //     .Where(x => sourceRequestIds.Contains(x.Id))
+            //     .ToList();
+            //
+            // payload.SourcePRs = requests
+            //     .Select(x => new SourcePRReportPayload
+            //     {
+            //         PRId = x.Id,
+            //         PRNumber = x.PrNo,
+            //         DepartmentId = x.DepartmentId,
+            //         DepartmentName = x.DepartmentName
+            //     })
+            //     .ToList();
+
+
+            // ============================================================
+            // OPTIONAL DOCUMENTS
+            // ============================================================
+            //
+            // Map your actual saved PO document entities if they are
+            // required by the report.
+            //
+            // payload.POCopyDoc = ...
+            // payload.AdditionalDocs = ...
+
+
+            // ============================================================
+            // SUMMARY VALUES
+            // ============================================================
+            //
+            // You can leave these blank. The Crystal service automatically
+            // derives them from SourcePRs.
+            //
+            // payload.PRNumber = ...
+            // payload.DepartmentName = ...
+
+            return payload;            
+
+            // Remove this line after you insert your actual EF mapping above.
+            //throw new NotImplementedException(
+            //    "Map your saved Order entity to POGroupReportPayload " +
+            //    "inside BuildActualPOPayload().");
+        }
+
+
+        // ================================================================
+        // ERROR HELPER
+        // ================================================================
+
+        private static string GetFullExceptionMessage(Exception ex)
+        {
+            var messages = new List<string>();
+
+            while (ex != null)
+            {
+                if (!string.IsNullOrWhiteSpace(ex.Message))
+                    messages.Add(ex.Message);
+
+                ex = ex.InnerException;
+            }
+
+            return string.Join(" -> ", messages);
+        }
+
     }
 }
