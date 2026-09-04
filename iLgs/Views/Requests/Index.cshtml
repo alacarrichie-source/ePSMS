@@ -1,43 +1,62 @@
-﻿@{
-    ViewBag.Title = "Purchase Requests";
+@{
+    var isSubmittedMode = ViewBag.IsSubmitted == true;
+    ViewBag.Title = isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-
 <div class="epsms-procurement pr-index-page">
     @Html.AntiForgeryToken()
-    @*<div class="breadcrumbs">
-        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
-        <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
-        <span>Purchase Requests</span>
-    </div>*@
 
     <div class="header-bar">
         <div>
-            <h1>Purchase Requests</h1>
-            <p class="subtitle">Create, review, track, and manage Purchase Requests.</p>
+            <div class="pr-breadcrumbs">
+                <span>Procurement</span> &gt;
+                <span>@(isSubmittedMode ? "Posting & Review" : "Purchase Requests")</span>
+                @if (isSubmittedMode)
+                {
+                    <span class="pr-mode-badge">Posting Queue</span>
+                }
+            </div>
+            <h1>@(isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests")</h1>
+            <p class="subtitle">
+                @(isSubmittedMode
+                    ? "Review verified requisitions, return items for corrections, or assign official PR numbers and post."
+                    : "Create, review, track, and manage departmental purchase requests.")
+            </p>
         </div>
-        @if (ViewBag.IsSubmitted != true)
-        {
         <div class="action-toolbar">
-            <a href="@Url.Action("Annual", "Procurement")" class="k-button k-button-solid-primary k-rounded-md">
-                <span class="k-icon k-i-plus"></span> Create a New PR
-            </a>
+            @if (!isSubmittedMode)
+            {
+                <a href="@Url.Action("Annual", "Procurement")" class="k-button k-button-solid-primary k-rounded-md">
+                    <span class="k-icon k-i-plus"></span> Create a New PR
+                </a>
+            }
+            <button type="button" class="k-button k-button-solid-base k-rounded-md" onclick="refreshPrGrid()" title="Refresh grid data">
+                <span class="k-icon k-i-reload"></span> Refresh
+            </button>
         </div>
-        }
     </div>
 
-    <div class="filter-panel">
-        <div class="filter-row">
-            <div class="search">
-                <label for="searchPR">Search Purchase Requests</label>
-                <input id="searchPR" type="text" class="form-control-custom"
-                       placeholder="Search by PR number, department, purpose, fund..."
-                       onkeyup="applyPrFilters()" />
+    <!-- Filter Panel with Quick Filters -->
+    <div class="filter-panel pr-filter-panel">
+        <div class="pr-filter-row">
+            <div class="pr-filter-search">
+                <label for="searchPR">Quick Search</label>
+                <div class="pr-search-wrapper">
+                    <span class="k-icon k-i-search pr-search-icon"></span>
+                    <input id="searchPR" type="text" class="form-control-custom pr-search-input"
+                           placeholder="Search by PR#, Ctrl#, department, purpose, fund, creator..." />
+                </div>
             </div>
-            <div>
+            <div class="pr-filter-dept">
+                <label for="prDeptFilter">Department</label>
+                <select id="prDeptFilter" class="form-control-custom" onchange="applyPrFilters()">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+            <div class="pr-filter-status">
                 <label for="prStatusFilter">Status Filter</label>
-                <select id="prStatusFilter" class="form-control-custom" onchange="applyPrFilters()">
+                <select id="prStatusFilter" class="form-control-custom" onchange="onStatusFilterChange()">
                     <option value="">All Statuses</option>
                     <option value="Draft">Draft</option>
                     <option value="Submitted">Submitted</option>
@@ -46,32 +65,75 @@
                     <option value="Posted">Posted</option>
                 </select>
             </div>
+            <div class="pr-filter-actions">
+                <button type="button" class="k-button k-button-solid-base pr-btn-reset" onclick="resetPrFilters()" title="Clear all filters">
+                    <span class="k-icon k-i-reset"></span> Reset
+                </button>
+            </div>
+        </div>
+        <div class="pr-quick-pills">
+            <span class="pr-pill-label">Quick Filter:</span>
+            <button type="button" class="pr-pill active" data-status="" onclick="filterByStatusPill('')">All (<span id="pillCountAll">0</span>)</button>
+            <button type="button" class="pr-pill" data-status="Draft" onclick="filterByStatusPill('Draft')">Draft (<span id="pillCountDraft">0</span>)</button>
+            <button type="button" class="pr-pill" data-status="Submitted" onclick="filterByStatusPill('Submitted')">Submitted (<span id="pillCountSubmitted">0</span>)</button>
+            <button type="button" class="pr-pill" data-status="Returned" onclick="filterByStatusPill('Returned')">Returned (<span id="pillCountReturned">0</span>)</button>
+            <button type="button" class="pr-pill" data-status="Posted" onclick="filterByStatusPill('Posted')">Posted (<span id="pillCountPosted">0</span>)</button>
         </div>
     </div>
 
+    <!-- Data Card with Kendo Grid -->
     <div class="data-card">
 @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
         .Name("grid")
         .HtmlAttributes(new { @class = "pr-directory-grid" })
         .Columns(col =>
         {
-            col.Bound(c => c.PrNo).Title("PR Number").Width(140)
-                .ClientTemplate("<a href='javascript:void(0)' class='pr-number-link' onclick=\"viewPurchaseRequest('#=Id#')\">#=kendo.htmlEncode(PrNo || CtrlNo || 'Unnumbered')#</a>");
-            col.Bound(c => c.PrDate).Title("PR Date").Format("{0:MMM dd, yyyy}").Width(130);
-            col.Bound(c => c.Department).Title("Department").Width(190);
+            col.Bound(c => c.PrNo).Title("PR / Ctrl No.").Width(150)
+                .ClientTemplate(
+                    "<div class='pr-number-col'>" +
+                        "<a href='javascript:void(0)' class='pr-number-link' onclick=\"viewPurchaseRequest('#=Id#')\">" +
+                            "# if (PrNo) { #" +
+                                "<span class='pr-no-text'>#= kendo.htmlEncode(PrNo) #</span>" +
+                            "# } else { #" +
+                                "<span class='pr-no-draft'>Unnumbered</span>" +
+                            "# } #" +
+                        "</a>" +
+                        "<span class='pr-ctrl-sub'>Ctrl: #= kendo.htmlEncode(CtrlNo || '-') #</span>" +
+                    "</div>"
+                );            
+            col.Bound(c => c.Department).Title("Department & Fund").Width(190)
+                .ClientTemplate(
+                    "<div class='pr-dept-col'>" +
+                        "<span class='pr-dept-name' title='#= kendo.htmlEncode(Department || '') #'>#= kendo.htmlEncode(Department || '-') #</span>" +
+                        "<span class='pr-fund-sub'>#= kendo.htmlEncode(Fund || '') #</span>" +
+                    "</div>"
+                );
             col.Bound(c => c.Purpose).Title("Purpose").Width(260)
                 .ClientTemplate("<span class='pr-purpose' title='#=kendo.htmlEncode(Purpose || \'\')#'>#=kendo.htmlEncode(Purpose || '')#</span>");
-            col.Bound(c => c.Fund).Title("Fund").Width(120);
-            col.Bound(c => c.ItemCount).Title("Items").Width(80)
-                .HtmlAttributes(new { @class = "text-center" });
-            col.Bound(c => c.TotalAmount).Title("Total Amount").Width(150)
-                .ClientTemplate("\u20B1#=kendo.toString(TotalAmount, 'n2')#")
-                .HtmlAttributes(new { @class = "text-right font-weight-bold" });
+            col.Bound(c => c.TotalAmount).Title("Items & Amount").Width(150)
+                .HtmlAttributes(new { @class = "text-right" })
+                .HeaderHtmlAttributes(new { @class = "text-right" })
+                .ClientTemplate(
+                    "<div class='pr-amount-col text-right'>" +
+                        "<span class='pr-amount-text font-weight-bold'>#= kendo.toString(TotalAmount, 'n2') #</span>" +
+                        "<span class='pr-items-sub'>#= ItemCount # #= ItemCount === 1 ? 'item' : 'items' #</span>" +
+                    "</div>"
+                );
+            col.Bound(c => c.PrDate).Title("Date & Creator").Width(140)
+                .ClientTemplate(
+                    "<div class='pr-date-col'>" +
+                        "<span class='pr-date-text font-weight-bold'>#= InsertedDt ? kendo.toString(InsertedDt, 'MMM dd, yyyy') : '-' #</span>" +
+                        "<span class='pr-creator-sub'>by #= kendo.htmlEncode(InsertedBy || '-') #</span>" +
+                    "</div>"
+                );
             col.Bound(c => c.Status).Title("Status").Width(120)
+                .HtmlAttributes(new { @class = "text-center" })
+                .HeaderHtmlAttributes(new { @class = "text-center" })
                 .ClientTemplate("#=renderPrStatus(Status)#");
-            col.Bound(c => c.InsertedBy).Title("Created By").Width(150);
-            col.Bound(c => c.Id).Title("Actions").Width(205)
+            col.Bound(c => c.Id).Title("Actions").Width(190)
                 .Sortable(false).Filterable(false)
+                .HtmlAttributes(new { @class = "text-right" })
+                .HeaderHtmlAttributes(new { @class = "text-right" })
                 .ClientTemplate("#=renderPrActions(data)#");
         })
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
@@ -81,9 +143,16 @@
             .ButtonCount(5)
         )
         .Filterable()
-        .NoRecords()
+        .NoRecords(n => n.Template(
+            "<div class='pr-empty-state'>" +
+                "<span class='k-icon k-i-folder-open pr-empty-icon'></span>" +
+                "<h3>No Purchase Requests found</h3>" +
+                "<p>No records match your search query or selected status filter.</p>" +
+                "<button type='button' class='k-button k-button-solid-base k-rounded-md' onclick='resetPrFilters()'>Reset Filters</button>" +
+            "</div>"
+        ))
         .Resizable(r => r.Columns(true))
-        .Scrollable(s => s.Height(500))
+        .Scrollable()
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
         .ClientDetailTemplateId("Details")
@@ -97,21 +166,23 @@
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             })
             .Sort(s => s.Add(a => a.InsertedDt).Descending())
-        .Read(read => read.Action("RequestRead", "Requests", new { isSubmitted = ViewBag.IsSubmitted }))
-        .Update(update => update.Action("RequestUpdate", "Requests"))
-        .Destroy(destroy => destroy.Action("RequestDestroy", "Requests"))
-    )
-    .Events(events => events
-        .Change("onChangeGrid")
-        .Edit("onEditGrid")
-        .DataBound("onDataBoundGrid")
+            .Read(read => read.Action("RequestRead", "Requests", new { isSubmitted = ViewBag.IsSubmitted }))
+            .Update(update => update.Action("RequestUpdate", "Requests"))
+            .Destroy(destroy => destroy.Action("RequestDestroy", "Requests"))
+        )
+        .Events(events => events
+            .Change("onChangeGrid")
+            .Edit("onEditGrid")
+            .DataBound("onDataBoundGrid")
         )
 )
     </div>
 </div>
 
+<!-- Review PR Modal Window -->
 <div id="purchaseRequestReviewWindow" style="display:none;"></div>
 
+<!-- Post PR Confirmation Modal Window -->
 <div id="postPurchaseRequestWindow" style="display:none;">
     <div class="pr-return-form">
         <p>Confirm the official Purchase Request number and date before posting.</p>
@@ -127,6 +198,7 @@
     </div>
 </div>
 
+<!-- Return PR for Revision Modal Window -->
 <div id="returnForRevisionWindow" style="display:none;">
     <div class="pr-return-form">
         <p>Explain the corrections required before this Purchase Request can be resubmitted.</p>
@@ -142,46 +214,50 @@
     </div>
 </div>
 
+<!-- Master-Detail Template -->
 <script id="Details" type="text/kendo-tmpl">
-    @(Html.Kendo().TabStrip()
-            .Name("tabStrip_#=Id#")
-            //.HtmlAttributes(new { @class = "no-text-tabstrip" })
-            .TabPosition(TabStripTabPosition.Top)
-            .Animation(animation =>
-            {
-                animation.Open(config =>
+    # if (StatusRemarks && Status === "Returned") { #
+    <div class="pr-detail-returned-alert">
+        <span class="k-icon k-i-warning pr-alert-icon"></span>
+        <div>
+            <strong>Review Comment / Reason for Return:</strong>
+            <p>#= kendo.htmlEncode(StatusRemarks) #</p>
+        </div>
+    </div>
+    # } #
+    <div class="pr-detail-wrapper">
+        @(Html.Kendo().TabStrip()
+                .Name("tabStrip_#=Id#")
+                .HtmlAttributes(new { @class = "pr-clean-tabstrip" })
+                .TabPosition(TabStripTabPosition.Top)
+                .Animation(animation =>
                 {
-                    config.Fade(FadeDirection.In);
-                });
-            })
-            .Events(e => e.Select("onSelectTabStrip"))
-            .SelectedIndex(0)
-            .Items(items =>
-            {
-                items.Add().Text("Items")
-                    .Selected(true)
-                    .LoadContentFrom("_RequestItem", "Requests", new { requestId = "#=Id#" });
-                //items.Add().Text("Groups")                    
-                //    .LoadContentFrom("_UnitGroup", "Requests", new { requestId = "#=Id#" });
-            }).ToClientTemplate())
+                    animation.Open(config =>
+                    {
+                        config.Fade(FadeDirection.In);
+                    });
+                })
+                .Events(e => e.Select("onSelectTabStrip"))
+                .SelectedIndex(0)
+                .Items(items =>
+                {
+                    items.Add().Text("Requisition Items")
+                        .Selected(true)
+                        .LoadContentFrom("_RequestItem", "Requests", new { requestId = "#=Id#" });
+                }).ToClientTemplate())
+    </div>
 </script>
 
 <div id="windowcontainer"></div>
 
 <style>
     .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
-        width: auto;                        
+        width: auto;
     }
 
     .k-window-content {
         overflow-x: hidden;
     }
-
-    .k-grid .k-grid-search {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-    }    
 
     .k-floating-label-container {
         width: 100%;
@@ -194,18 +270,21 @@
         width: fit-content;
     }
 
-    .no-text-tabstrip .k-item .k-link {
-        padding: 0; /* Remove padding */
-        text-indent: -9999px; /* Move the text outside the visible area */
-        overflow: hidden; /* Hide any overflow */
+    .pr-clean-tabstrip {
+        background: transparent;
+        border: none;
     }
 
-    /*#grid .k-grid-content {
-        overflow-y: auto;
-        height: calc(100vh - 200px)!important;        
-    }*/    
-</style>
+    .pr-clean-tabstrip .k-tabstrip-items {
+        border-bottom: 2px solid #e2e8f0;
+    }
 
+    .pr-clean-tabstrip .k-content {
+        padding: 16px 0 0 0;
+        border: none;
+        background: transparent;
+    }
+</style>
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
@@ -220,10 +299,10 @@
     # } #
 </script>
 
-
 <script type="text/javascript">
     var purchaseRequestPrintUrl = '@Url.Action("PurchaseRequestRpt", "Requests")';
     var purchaseRequestReviewUrl = '@Url.Action("Review", "Requests")';
+    var purchaseRequestViewUrl = '@Url.Action("View", "Requests")';
     var startRevisionUrl = '@Url.Action("StartRevision", "Procurement")';
     var postPurchaseRequestUrl = '@Url.Action("PostPurchaseRequest", "Requests")';
     var returnForRevisionUrl = '@Url.Action("ReturnForRevision", "Requests")';
@@ -231,11 +310,24 @@
     var isPrReviewMode = @Html.Raw(Json.Encode(ViewBag.IsSubmitted == true));
     var reviewRequestId = null;
 
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedItemId = null;
+    var submittedBy = null;
+    var postedBy = null;
+    var selectedPrNo = null;
+    var selectedCtrlNo = null;
+
+    var searchTimer = null;
+    var knownDepartments = {};
+
+    // --- Badge & Action Renderers ---
+
     function renderPrStatus(status) {
         var value = status || "Draft";
         var cssClass = value === "Posted"
             ? "status-posted"
-                : (value === "Submitted"
+            : (value === "Submitted"
                 ? "status-submitted"
                 : (value === "Returned" ? "status-returned" : (value === "Revising" ? "status-revising" : "status-draft")));
 
@@ -283,6 +375,8 @@
         return html + "</div>";
     }
 
+    // --- Row Target & Dialog Helpers ---
+
     function getPurchaseRequestRow(id) {
         var grid = $("#grid").data("kendoGrid");
         var item = grid ? grid.dataSource.get(id) : null;
@@ -291,9 +385,10 @@
 
     function viewPurchaseRequest(id) {
         var target = getPurchaseRequestRow(id);
-        if (!target) return;
-        target.grid.select(target.row);
-        target.grid.expandRow(target.row);
+        if (target) {
+            target.grid.select(target.row);
+        }
+        openPurchaseRequestModal(id, true);
     }
 
     function editPurchaseRequest(id) {
@@ -304,9 +399,14 @@
     }
 
     function startPurchaseRequestRevision(id) {
-        $.ajax({ url: startRevisionUrl, type: "POST", data: {
-            __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(), id: id
-        }}).done(function (result) {
+        $.ajax({
+            url: startRevisionUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                id: id
+            }
+        }).done(function (result) {
             if (result.success) window.location.href = result.redirectUrl;
             else if (window.kendo && kendo.alert) kendo.alert(kendo.htmlEncode(result.message || "The revision could not be started."));
         }).fail(function () {
@@ -333,19 +433,73 @@
             encodeURIComponent(target.item.CtrlNo), "_blank");
     }
 
-    function openPurchaseRequestReview(id) {
+    function showReturnComment(id) {
+        var target = getPurchaseRequestRow(id);
+        if (!target) return;
+        var message = target.item.StatusRemarks || "No review comment was recorded.";
+
+        if (window.kendo && kendo.alert) {
+            kendo.alert("<strong>Review comment</strong><br><br>" + kendo.htmlEncode(message));
+        } else {
+            window.alert(message);
+        }
+    }
+
+    function resubmitPurchaseRequest(id) {
+        if (!window.confirm("Resubmit this revised Purchase Request for review?")) return;
+
+        $.ajax({
+            url: resubmitRequestUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                requestId: id
+            }
+        }).done(function (result) {
+            if (!result.success) {
+                window.alert(result.message || "The Purchase Request could not be resubmitted.");
+                return;
+            }
+            refreshPrGrid();
+        }).fail(function () {
+            window.alert("The Purchase Request could not be resubmitted.");
+        });
+    }
+
+    // --- Review & Details Modal Handlers ---
+
+    function openPurchaseRequestModal(id, viewOnly) {
         reviewRequestId = id;
         var wnd = $("#purchaseRequestReviewWindow").data("kendoWindow");
+        var title = viewOnly ? "Purchase Request Details" : "Review Purchase Request";
+        var url = viewOnly ? purchaseRequestViewUrl : purchaseRequestReviewUrl;
+
         if (!wnd) {
             $("#purchaseRequestReviewWindow").kendoWindow({
-                title: "Review Purchase Request", width: "94%", height: "86%", modal: true,
-                visible: false, actions: ["Maximize", "Close"], refresh: function () { this.center(); }
+                title: title,
+                width: "94%",
+                height: "86%",
+                modal: true,
+                visible: false,
+                actions: ["Maximize", "Close"],
+                refresh: function () { this.center(); }
             });
             wnd = $("#purchaseRequestReviewWindow").data("kendoWindow");
+        } else {
+            wnd.title(title);
         }
+
         wnd.content("<div class='pr-review-loading'>Loading Purchase Request...</div>");
         wnd.center().open();
-        wnd.refresh({ url: purchaseRequestReviewUrl, data: { id: id } });
+        wnd.refresh({ url: url, data: { id: id } });
+    }
+
+    function openPurchaseRequestReview(id) {
+        var target = getPurchaseRequestRow(id);
+        if (target) {
+            target.grid.select(target.row);
+        }
+        openPurchaseRequestModal(id, false);
     }
 
     function closePurchaseRequestReview() {
@@ -359,7 +513,10 @@
         var target = getPurchaseRequestRow(reviewRequestId);
         $("#reviewPostPrNumber").val(target && target.item.PrNo ? target.item.PrNo : "");
         var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
-        if (!datePicker) { $("#reviewPostPrDate").kendoDatePicker({ format: "MM/dd/yyyy" }); datePicker = $("#reviewPostPrDate").data("kendoDatePicker"); }
+        if (!datePicker) {
+            $("#reviewPostPrDate").kendoDatePicker({ format: "MM/dd/yyyy" });
+            datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
+        }
         datePicker.value(target && target.item.PrDate ? target.item.PrDate : new Date());
         var wnd = ensureReviewDialog("#postPurchaseRequestWindow", "Post Purchase Request", 500);
         wnd.center().open();
@@ -370,6 +527,34 @@
         if (wnd) wnd.close();
     }
 
+    function submitReviewPost() {
+        var prNumber = $.trim($("#reviewPostPrNumber").val());
+        var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
+        var prDate = datePicker ? datePicker.value() : null;
+        if (!prNumber || !prDate) {
+            $("#reviewPostError").text("PR Number and PR Date are required.");
+            return;
+        }
+        setReviewButtonBusy("#confirmReviewPost", true);
+        $.ajax({
+            url: postPurchaseRequestUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                RequestId: reviewRequestId,
+                PrNumber: prNumber,
+                PrDate: kendo.toString(prDate, "yyyy-MM-dd")
+            }
+        }).done(function (result) {
+            if (result.success) completeReviewAction();
+            else $("#reviewPostError").text(result.message || "The Purchase Request could not be posted.");
+        }).fail(function () {
+            $("#reviewPostError").text("The Purchase Request could not be posted.");
+        }).always(function () {
+            setReviewButtonBusy("#confirmReviewPost", false);
+        });
+    }
+
     function openReviewReturnDialog() {
         $("#returnRevisionRemarks").val("");
         $("#returnRevisionError").text("");
@@ -377,43 +562,9 @@
         wnd.center().open();
     }
 
-    function ensureReviewDialog(selector, title, width) {
-        var wnd = $(selector).data("kendoWindow");
-        if (!wnd) { $(selector).kendoWindow({ title: title, width: width + "px", modal: true, visible: false, actions: ["Close"] }); wnd = $(selector).data("kendoWindow"); }
-        return wnd;
-    }
-
     function closeReturnForRevision() {
         var wnd = $("#returnForRevisionWindow").data("kendoWindow");
         if (wnd) wnd.close();
-    }
-
-    function setReviewButtonBusy(selector, busy) {
-        $(selector).prop("disabled", busy).toggleClass("k-disabled", busy);
-    }
-
-    function completeReviewAction() {
-        closeReviewPostDialog();
-        closeReturnForRevision();
-        closePurchaseRequestReview();
-        var grid = $("#grid").data("kendoGrid");
-        if (grid) grid.dataSource.read();
-    }
-
-    function submitReviewPost() {
-        var prNumber = $.trim($("#reviewPostPrNumber").val());
-        var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
-        var prDate = datePicker ? datePicker.value() : null;
-        if (!prNumber || !prDate) { $("#reviewPostError").text("PR Number and PR Date are required."); return; }
-        setReviewButtonBusy("#confirmReviewPost", true);
-        $.ajax({ url: postPurchaseRequestUrl, type: "POST", data: {
-            __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-            RequestId: reviewRequestId, PrNumber: prNumber, PrDate: kendo.toString(prDate, "yyyy-MM-dd")
-        }}).done(function (result) {
-            if (result.success) completeReviewAction();
-            else $("#reviewPostError").text(result.message || "The Purchase Request could not be posted.");
-        }).fail(function () { $("#reviewPostError").text("The Purchase Request could not be posted."); })
-          .always(function () { setReviewButtonBusy("#confirmReviewPost", false); });
     }
 
     function submitReturnForRevision() {
@@ -438,52 +589,48 @@
                 $("#returnRevisionError").text(result.message || "The Purchase Request could not be returned.");
                 return;
             }
-
             completeReviewAction();
         }).fail(function () {
             $("#returnRevisionError").text("The Purchase Request could not be returned.");
-        }).always(function () { setReviewButtonBusy("#confirmReturnForRevision", false); });
-    }
-
-    function resubmitPurchaseRequest(id) {
-        if (!window.confirm("Resubmit this revised Purchase Request for review?")) return;
-
-        $.ajax({
-            url: resubmitRequestUrl,
-            type: "POST",
-            data: {
-                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-                requestId: id
-            }
-        }).done(function (result) {
-            if (!result.success) {
-                window.alert(result.message || "The Purchase Request could not be resubmitted.");
-                return;
-            }
-
-            $("#grid").data("kendoGrid").dataSource.read();
-        }).fail(function () {
-            window.alert("The Purchase Request could not be resubmitted.");
+        }).always(function () {
+            setReviewButtonBusy("#confirmReturnForRevision", false);
         });
     }
 
-    function showReturnComment(id) {
-        var target = getPurchaseRequestRow(id);
-        if (!target) return;
-        var message = target.item.StatusRemarks || "No review comment was recorded.";
-
-        if (window.kendo && kendo.alert) {
-            kendo.alert("<strong>Review comment</strong><br><br>" + kendo.htmlEncode(message));
-        } else {
-            window.alert(message);
+    function ensureReviewDialog(selector, title, width) {
+        var wnd = $(selector).data("kendoWindow");
+        if (!wnd) {
+            $(selector).kendoWindow({
+                title: title,
+                width: width + "px",
+                modal: true,
+                visible: false,
+                actions: ["Close"]
+            });
+            wnd = $(selector).data("kendoWindow");
         }
+        return wnd;
     }
+
+    function setReviewButtonBusy(selector, busy) {
+        $(selector).prop("disabled", busy).toggleClass("k-disabled", busy);
+    }
+
+    function completeReviewAction() {
+        closeReviewPostDialog();
+        closeReturnForRevision();
+        closePurchaseRequestReview();
+        refreshPrGrid();
+    }
+
+    // --- Search, Filtering & Metric Calculations ---
 
     function applyPrFilters() {
         var grid = $("#grid").data("kendoGrid");
         if (!grid) return;
 
         var query = $.trim($("#searchPR").val());
+        var dept = $("#prDeptFilter").val();
         var status = $("#prStatusFilter").val();
         var filters = [];
 
@@ -495,131 +642,106 @@
                     { field: "CtrlNo", operator: "contains", value: query },
                     { field: "Department", operator: "contains", value: query },
                     { field: "Purpose", operator: "contains", value: query },
-                    { field: "Fund", operator: "contains", value: query }
+                    { field: "Fund", operator: "contains", value: query },
+                    { field: "InsertedBy", operator: "contains", value: query }
                 ]
             });
         }
 
-        if (status) filters.push({ field: "Status", operator: "eq", value: status });
+        if (dept) {
+            filters.push({ field: "Department", operator: "eq", value: dept });
+        }
+
+        if (status) {
+            filters.push({ field: "Status", operator: "eq", value: status });
+        }
+
         grid.dataSource.filter(filters.length ? { logic: "and", filters: filters } : {});
     }
 
-    function columnTemplate(data) {
-        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    function filterByStatusPill(status) {
+        $("#prStatusFilter").val(status);
+        $(".pr-pill").removeClass("active");
+        $(".pr-pill[data-status='" + status + "']").addClass("active");
+
+        applyPrFilters();
     }
 
-    function getQtySumExcludingSet() {
-        var grid = $("#gridItems_" + selectedId).data("kendoGrid");
-        var data = grid.dataSource.view();
+    function onStatusFilterChange() {
+        var status = $("#prStatusFilter").val();
+        filterByStatusPill(status);
+    }
 
-        var total = 0;
+    function resetPrFilters() {
+        $("#searchPR").val("");
+        $("#prDeptFilter").val("");
+        var defaultStatus = isPrReviewMode ? "Submitted" : "";
+        filterByStatusPill(defaultStatus);
+    }
+
+    function refreshPrGrid() {
+        var grid = $("#grid").data("kendoGrid");
+        if (grid) grid.dataSource.read();
+    }
+
+    function updateQuickFilterCountsAndDept(data) {
+        if (!data) return;
+
+        var totalCount = data.length;
+        var draftCount = 0;
+        var submittedCount = 0;
+        var returnedCount = 0;
+        var postedCount = 0;
+
+        var deptSelect = $("#prDeptFilter");
+        var currentDept = deptSelect.val();
 
         for (var i = 0; i < data.length; i++) {
-            if (data[i].ItemNo && !data[i].ItemNo.includes(".")) {
-                total += data[i].Qty || 0;
+            var item = data[i];
+
+            var st = item.Status || "Draft";
+            if (st === "Draft" || st === "Revising") draftCount++;
+            if (st === "Submitted") submittedCount++;
+            if (st === "Returned") returnedCount++;
+            if (st === "Posted") postedCount++;
+
+            if (item.Department && !knownDepartments[item.Department]) {
+                knownDepartments[item.Department] = true;
+                deptSelect.append($("<option>", { value: item.Department, text: item.Department }));
             }
         }
 
-        return total;
+        if (currentDept) deptSelect.val(currentDept);
+
+        // Update pill counts
+        $("#pillCountAll").text(totalCount);
+        $("#pillCountDraft").text(draftCount);
+        $("#pillCountSubmitted").text(submittedCount);
+        $("#pillCountReturned").text(returnedCount);
+        $("#pillCountPosted").text(postedCount);
     }
 
-    function getTotalCostSumExcludingSet() {
-        var grid = $("#gridItems_" + selectedId).data("kendoGrid");
-        var data = grid.dataSource.view();
+    // Attach debounced search listener
+    $(document).ready(function () {
+        $("#searchPR").on("input", function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                applyPrFilters();
+            }, 250);
+        });
 
-        var total = 0;
-
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].ItemNo && !data[i].ItemNo.includes(".")) {
-                total += data[i].TotalCost || 0;
-            }
+        if (isPrReviewMode) {
+            $("#prStatusFilter").val("Submitted");
+            $(".pr-pill").removeClass("active");
+            $(".pr-pill[data-status='Submitted']").addClass("active");
         }
+    });
 
-        return total;
-    }
-
-
-    function onSelectTabStrip(e) {
-        var tabStrip = this;
-        for (var idx = 0; ; ++idx) {
-            var tab = tabStrip.contentElement(idx);
-            if (tab == null)
-                break;
-            if (tab == e.contentElement) {
-                //current tab logic - just let it go
-            }
-            else {
-                //all other tabs
-                $(tab).html("");
-            }
-        }
-    }
-
-    function error_handler(e, status) {
-        if ((e.errors)) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
-                }
-            });
-            alert(message);
-        }
-    }
-
-    //$(window).on("resize", function () {
-    //    var gridElement = $("#grid"),
-    //        dataArea = gridElement.find(".k-grid-content"),
-    //        gridHeight = gridElement.innerHeight(),
-    //        otherElements = gridElement.children().not(".k-grid-content"),
-    //        otherElementsHeight = 0;
-    //        otherElements.each(function () {
-    //            otherElementsHeight += $(this).outerHeight();
-    //        });
-    //    dataArea.height(gridHeight - otherElementsHeight);
-    //});
-
-    function GridError(args) {
-        if (args.errors) {
-            var validationError = true;
-            $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
-                    validationError = false;
-                    selectedGrid.dataSource.read();
-                }
-            });
-            if (validationError) {
-                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
-                $('#ErrorContent').removeClass('hidden');
-
-                selectedGrid.one("dataBinding", function (e) {
-                    e.preventDefault();
-                    var errors = selectedGrid.editable.element.find(".errors");
-
-                    errors.empty();
-                    $.each(args.errors, function (propertyName) {
-                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
-                        errors.append(renderedTemplate);
-                    });
-                });
-            }
-        }
-    }
-
-    var selectedGrid = null;
-    var selectedId = null;
-    var selectedItemId = null;
-    var submittedBy = null;
-    var postedBy = null;
-    var selectedPrNo = null;
-    var selectedCtrlNo = null;
+    // --- Grid Event Handlers ---
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
-        var grid = $("#grid");
+        if (!selectedData) return;
 
         selectedId = selectedData.Id;
         selectedItemId = null;
@@ -627,38 +749,12 @@
         postedBy = selectedData.PostedBy;
         selectedPrNo = selectedData.PrNo;
         selectedCtrlNo = selectedData.CtrlNo;
-
-        if (postedBy) {
-            $(".k-grid-btnUnpostPR", grid).show();
-            $(".k-grid-btnPostPR", grid).hide();
-            $(".k-grid-btnSubmitPR", grid).hide();
-            $(".k-grid-btnUnsubmitPR", grid).hide();
-        } else {
-            if (submittedBy) {
-                $(".k-grid-btnUnsubmitPR", grid).show();
-                $(".k-grid-btnSubmitPR", grid).hide();
-
-                $(".k-grid-btnUnpostPR", grid).hide();
-                $(".k-grid-btnPostPR", grid).show();
-            } else {
-                $(".k-grid-btnUnsubmitPR", grid).hide();
-                $(".k-grid-btnSubmitPR", grid).show();
-
-                $(".k-grid-btnUnpostPR", grid).hide();
-                $(".k-grid-btnPostPR", grid).hide();
-            }
-        }
-
-        @*var isSubmitted = @Html.Raw(Json.Encode(ViewBag.IsSubmitted ?? false));
-        if (isSubmitted || postedBy) {
-            $(".k-grid-btnPrintPR", grid).show();
-        }
-        else {
-            $(".k-grid-btnPrintPR", grid).hide();
-        }*@
     }
 
     function onDataBoundGrid(e) {
+        var rawData = this.dataSource.data();
+        updateQuickFilterCountsAndDept(rawData);
+
         if (selectedId) {
             var dataItem = this.dataSource.get(selectedId);
             if (dataItem) {
@@ -668,23 +764,9 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
 
-            //var firstRow = this.tbody.find("tr.k-master-row").first();
-            //this.expandRow(firstRow);
-
-            // Attach a handler to the "detailExpand" event
             this.bind("detailExpand", function (e) {
-                // Select the expanded master row
                 this.select(e.masterRow);
             });
-        }
-
-        var grid = $("#grid");
-        if (this.dataSource.data().length == 0) {
-            $(".k-grid-btnPrintPR", grid).hide();
-            $(".k-grid-btnPostPR", grid).hide();
-            $(".k-grid-btnUnpostPR", grid).hide();
-            $(".k-grid-btnSubmitPR", grid).hide();
-            $(".k-grid-btnUnsubmitPR", grid).hide();
         }
     }
 
@@ -701,34 +783,27 @@
                 type: "POST",
                 url: '@Url.Action("GetModelDefault", "Requests")',
                 success: function (result) {
-                    //var date = kendo.toString(kendo.parseDate(result.model.PrDate), 'MM/dd/yyyy');
-                    //var datePicker = $("#PrDate").data("kendoDatePicker");
-                    //datePicker.value(date);
-                    //datePicker.trigger("change");
+                    if (result && result.model) {
+                        $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
+                        $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
+                        $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig).trigger("change");
 
-                    $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
-                    $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
-                    $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig);
-                    $("#AvaialbilityDesig").trigger("change");
-
-                    $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
-                    $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
-                    $("#ApprovedDesig").val(result.model.ApprovedDesig);
-                    $("#ApprovedDesig").trigger("change");
-
-                    disabled.attr('disabled', 'disabled')
+                        $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
+                        $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
+                        $("#ApprovedDesig").val(result.model.ApprovedDesig).trigger("change");
+                    }
+                    disabled.attr('disabled', 'disabled');
                 },
-                error: function (req, status, errorObj) {
+                error: function (req) {
                     alert(req.responseText);
                 }
             });
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-            //// refresh RIS Nos
-            //$("#RisId").data("kendoMultiColumnComboBox").dataSource.read(DataRisId());
+            if (rowitem) {
+                selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            }
         }
     }
 
@@ -746,7 +821,8 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();
+                if (selectedGrid) selectedGrid.dataSource.read();
+                else refreshPrGrid();
             }
             if (e.type == "create") {
                 var responseData = e.response;
@@ -754,35 +830,77 @@
                 selectedId = newRecord.Id;
 
                 if (selectedId) {
-
                     var grid = $("#grid").data("kendoGrid");
-
-                    // Trigger a read operation on the data source.
                     grid.dataSource.read().then(function () {
-                        // Additional actions to be performed after the read operation.
-
-                        // Find the row with the specified Id.
                         var dataItem = grid.dataSource.get(selectedId);
-
-                        // If the row is found, expand it.
                         if (dataItem) {
                             var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
                             grid.expandRow(row);
                         }
                     });
-
-                    //RequestItem("A", null, null);
                     PpeItems();
                 }
             }
         }
     }
 
-    // Grid Item
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    if (selectedGrid) selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError && selectedGrid && selectedGrid.editable) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function onSelectTabStrip(e) {
+        var tabStrip = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = tabStrip.contentElement(idx);
+            if (tab == null) break;
+            if (tab != e.contentElement) {
+                $(tab).html("");
+            }
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    // --- Detail Grid Items Handlers ---
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Id;
+        if (selectedData) selectedItemId = selectedData.Id;
     }
 
     function onDataBoundGridItems(e) {
@@ -795,34 +913,6 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
         }
-
-        //var parentRow = this.wrapper.closest("tr").prev();
-        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-        //var grid = this.wrapper.closest("[data-role=grid]");
-
-        //if (parentModel.SubmittedBy) {
-        //    $(".k-grid-add", grid).hide();
-        //}
-        //var trs = this.tbody.find('tr').each(function () {
-        //    if (parentModel.SubmittedBy) {
-        //        $(this).find('.k-grid-Edit,.k-grid-Delete,.k-grid-edit,.k-grid-delete').hide();
-        //    }
-        //});
-
-        //var grid = e.sender;
-        //var dataItems = grid.dataSource.view(); // currently visible rows
-
-        //// --- Italicize rows where Unit == "Set"
-        //grid.tbody.find("tr").each(function (index) {
-        //    var dataItem = dataItems[index];
-        //    if (dataItem.Unit === "set" || dataItem.Unit === "lot") {
-        //        $(this).css({
-        //            "font-style": "italic",
-        //            "font-weight": "bold"
-        //        });
-        //    }
-        //});
     }
 
     function onEditGridItems(e) {
@@ -837,24 +927,11 @@
             selectedItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            //$("#Code").attr("readonly", "readonly");
         }
-    }
-
-    function DataRisId() {
-        var text = $("#RisId").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#RisId").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            prId: $("#Id").val(),
-            text: text
-        };
     }
 
     function onClickDeleteGridItem(e) {
         e.preventDefault();
-
         var grid = $(e.target).closest(".k-grid").data("kendoGrid");
         selectedGrid = grid;
         var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
@@ -863,494 +940,61 @@
             grid.dataSource.remove(dataItem);
             grid.dataSource.sync();
         }
-
-
-        //e.preventDefault();
-        ////selectedGrid = this;
-        //selectedGrid = $("gridItems_" + selectedId).data("kendoGrid");
-        //var deleteButton = $(e.target).closest(".k-grid-delete"); // Adjust the selector based on your delete button class or identifier
-        ////alert(deleteButton);
-        //var tr = deleteButton.closest("tr");
-        ////alert(tr);
-        ////var dataItem = selectedGrid.dataItem(tr);
-        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        //alert(dataItem);
-
-        ////var rowItem = selectedGrid.dataSource.getByUid(tr.data("uid"));
-
-        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        //alert(rowitem);
-
-        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        //selectedGrid.removeRow(tr); // Delete the row
-
-
-
-
-        //var tr = $(e.currentTarget).closest("tr");
-        //var dataItem = selectedGrid.dataItem(tr);
-        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        //selectedGrid.removeRow(tr);
-    }
-
-    function DataPsCodeId() {
-        var text = $("#PsCodeId").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#PsCodeId").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            text: text
-        };
-    }
-
-    function DataSection() {
-        var text = $("#Section").data("kendoMultiColumnComboBox").text();
-        return {
-            department: $("#Department").val(),
-            text: text
-        };
-    }
-
-    //function DataRequestedBy() {
-    //    var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
-    //    return {
-    //        department: $("#Department").val(),
-    //        text: text
-    //    };
-    //}
-
-    function DataRequestedBy() {
-        var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
-        return {
-            department: $("#Department").val(),
-            text: text
-        };
-    }
-
-    function onSelectRequestedBy(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#RequestedDesig").val(dataItem.Designation).trigger("change");
-
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('RequestedDesig', $('#RequestedDesig').val());
-    }
-
-    function onSelectAvailability(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#AvaialbilityDesig").val(dataItem.Desc2).trigger("change");
-
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('AvaialbilityDesig', $('#AvaialbilityDesig').val());
-    }
-
-    function DataApprovedBy() {
-        var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
-        return {
-            department: $("#Department").val(),
-            text: text
-        };
-    }
-
-    function onSelectApprovedBy(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
-
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('ApprovedDesig', $('#ApprovedDesig').val());
-    }
-
-    function onSelectPsType(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#PsType").val(dataItem.Code).trigger("change");
-        RefreshGridItemExtn();
-    }
-
-    function onDataBoundPsType(e) {
-        RefreshGridItemExtn();
-    }
-
-    function RefreshGridItemExtn()
-    {
-        $("#gridItemExtn").data("kendoGrid").dataSource.read();
-    }
-
-    function onSaveChangesGridItemExtn(e) {
-        var grid = e.sender;
-        var itemValues = grid.dataSource.data().map(function (item) {
-            return item.ItemValue;
-        });
-
-        var description = itemValues.join(" ");
-        alert(description);
-    }
-
-    function onDataBoundGridItemExtn(e) {
-        var grid = e.sender;
-        // Iterate over each row in the grid
-        grid.tbody.find("tr").each(function () {
-            var dataItem = grid.dataItem(this);
-
-            // Add condition based on your requirements to disable the row
-            if (dataItem.IsEnabled == false) {
-                // Disable the row
-                $(this).addClass("k-state-disabled");
-            }
-        });
-    }
-
-    function onSaveGridItemExtn(e) {
-        var grid = e.sender;
-        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
-
-        for (var key in e.values) {
-            if (e.values.hasOwnProperty(key)) {
-                if (key == "ItemValue") {
-                    model.set('ItemValue', e.values[key]);
-                } else {
-                    model.set('Sequence', e.values[key]);
-                }
-            }
-        }
-
-        // Create an array to store the row values
-        var rowValues = [];
-        var gridData = e.sender.dataSource.data();
-        var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
-
-        // Sort the data manually using the sort descriptor
-        gridData.sort(function (a, b) {
-            // Sort the data items first by 'ItemKey', then by 'Sequence'
-            if (a.Sequence === b.Sequence) {
-                return a.ItemNo.localeCompare(b.ItemNo);
-            }
-            return a.Sequence - b.Sequence;
-        });
-
-
-        for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];
-            rowValues.push(rowData.ItemValue);
-        }
-
-        var description = rowValues.join(" ");
-        $("#Description").val(description).trigger('change');
-    }
-
-    function DataRisItemExtnGrid()
-    {
-        return {
-            risItemId: $("#RisItemId").val(),
-            accountCode: $("#PsType").val()
-        };
-    }
-
-    function changeAmount(e) {
-        var qty = $("#Qty").data("kendoNumericTextBox").value();
-        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
-        var amount = qty * unitCost;
-
-        $("#TotalCost").data("kendoNumericTextBox").value(amount);
-        $("#TotalCost").data("kendoNumericTextBox").trigger("change");
-    }
-
-    function onGridItemsRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
-            }
-        }
-    }
-
-    //function onBtnSubmitClick(e) {
-    //    e.preventDefault();
-    //    if (submittedBy) {
-    //        alert("Request already submitted by " + submittedBy);
-    //    }
-    //    else {
-    //        alert('s');
-    //    }
-    //}
-
-    //$(document).ready(function () {
-    //    $(".k-grid-btnSubmit").click(function (e) {
-    //        e.preventDefault(); // Prevent the default behavior of the button
-
-    //        // Handle the custom command button click event
-    //        onBtnSubmitClick();
-    //    });
-    //});
-
-    $(".k-grid-btnPostPR").click(function (e) {
-        e.preventDefault();
-        if (postedBy) {
-            alert("Request already posted by " + postedBy);
-        }
-        else {
-            var msg = "Post Control Number " + selectedCtrlNo + "?";
-
-            if (confirm(msg)) {
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("PostRequest", "Requests")',
-                    data: { requestId: selectedId },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            $("#grid").data("kendoGrid").dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        alert(req.responseText);
-                    }
-                });
-            }
-        }
-    });
-
-    $(".k-grid-btnUnpostPR").click(function (e) {
-        e.preventDefault();
-        var msg = "Unpost PR Number " + selectedPrNo + "?";
-
-        if (confirm(msg)) {
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("UnpostRequest", "Requests")',
-                data: { requestId: selectedId },
-                async: true,
-                beforeSend: function () {
-                    window.kendo.ui.progress($(document.body), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($(document.body), false);
-                    if (result.Errors == "") {
-                        $("#grid").data("kendoGrid").dataSource.read();
-                    } else {
-                        alert(result.Errors);
-                    }
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                }
-            });
-        }
-    });
-
-    $(".k-grid-btnSubmitPR").click(function (e) {
-        e.preventDefault();
-        if (submittedBy) {
-            alert("Request already submitted by " + submittedBy);
-        }
-        else {
-            var msg = "Submit Control Number " + selectedCtrlNo + " for posting?";
-
-            if (confirm(msg)) {
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("SubmitRequest", "Requests")',
-                    data: { requestId: selectedId },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            $("#grid").data("kendoGrid").dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        alert(req.responseText);
-                    }
-                });
-            }
-        }
-    });
-
-    $(".k-grid-btnUnsubmitPR").click(function (e) {
-        e.preventDefault();
-        var msg = "Unsubmit Control Number " + selectedCtrlNo + " for posting?";
-
-        if (confirm(msg)) {
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("UnsubmitRequest", "Requests")',
-                data: { requestId: selectedId },
-                async: true,
-                beforeSend: function () {
-                    window.kendo.ui.progress($(document.body), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($(document.body), false);
-                    if (result.Errors == "") {
-                        $("#grid").data("kendoGrid").dataSource.read();
-                    } else {
-                        alert(result.Errors);
-                    }
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                }
-            });
-        }
-    });
-
-    $(".k-grid-btnPrintPR").click(function (e) {
-        e.preventDefault();
-        var toolbar = 0;
-        if (postedBy) {
-            toolbar = 1;
-        }
-
-        var grid = $("#grid").data("kendoGrid");
-        var selectedCtrlNo;
-        grid.select().each(function () {
-            var dataItems = grid.dataItem($(this));
-            selectedCtrlNo = dataItems.CtrlNo;
-        });
-
-        var url = '@Url.Action("PurchaseRequestRpt", "Requests")?ctrlNo=' + selectedCtrlNo + '#toolbar=' + toolbar;
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    });
-
-    //$(document).ready(function () {
-    //    // Bind click event for "Add Request Item" button
-    //    $(document).on("click", ".k-grid-btnAddRequestItem", function () {
-    //        onClickBtnAddRequestItem();
-    //    });
-    //});
-
-
-    function onSelectOffice(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#DeptId").val(dataItem.Id).trigger("change");
-        $("#Department").val(dataItem.Description).trigger("change");
-
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('DeptId', $('#DeptId').val());
-        model.set('Department', $('#Department').val());
-
-        setTimeout(function () {
-            var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
-            if (fppComboBox) {
-                fppComboBox.dataSource.read();
-            }
-        }, 500);
-    }
-
-    function onChangeOffice(e) {
-        var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
-        if (fppComboBox) {
-            fppComboBox.dataSource.read();
-        }
-    }
-
-    function onSelectFpp(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#Fund").val(dataItem.Fund).trigger("change");
-
-        var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('Fund', $('#Fund').val());
-    }
-
-    function DataFpp() {
-        var text = $("#FPP").data("kendoMultiColumnComboBox").text();
-        return {
-            department: $("#DeptId").data("kendoMultiColumnComboBox").text(),
-            text: text
-        };
     }
 
     function onClickBtnAddRequestItem(e) {
         e.preventDefault();
-
-        // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         parentGrid.select(parentRow);
-
         RequestItem("A", null, null);
     }
 
     function onClickBtnEditRequestItem(e) {
         e.preventDefault();
-
-        // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
         parentGrid.select(parentRow);
 
-        // the current row for this detail
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         RequestItem("E", dataItem.Id, dataItem.SetLotNo);
+    }
+
+    function onClickBtnAddPpmpItem(e) {
+        e.preventDefault();
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        parentGrid.select(parentRow);
+        PpeItems();
     }
 
     function RequestItem(mode, recId, setLotNo) {
         var myTitle = (mode == "A") ? "Request Item - ADD" : "Request Item - EDIT";
         var width = 800;
-        //var height = 570;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    close: function () {
-                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    var detailGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+                    if (detailGrid) detailGrid.dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+
         mywindow.setOptions({
             title: myTitle,
             width: width
-            //height: "auto"
         });
         mywindow.refresh({
             url: '@Url.Action("_RequestItemAddEdit", "Requests")',
@@ -1360,81 +1004,105 @@
                 setLotNo: setLotNo
             },
             complete: function () {
-                // Resize the window to fit its content
                 mywindow.resize();
                 mywindow.center();
             }
         });
-        //mywindow.center();
         mywindow.open();
     }
 
-    function onClickBtnAddPpmpItem(e) {
-        e.preventDefault();
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        parentGrid.select(parentRow);
-
-        PpeItems();
-    }
-
-    function PpeItems()
-    {
+    function PpeItems() {
         var myTitle = "PPMP Items";
         var width = "80%";
-        //var height = 570;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    close: function () {
-                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    var detailGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+                    if (detailGrid) detailGrid.dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+
         mywindow.setOptions({
             title: myTitle,
             width: width
-            //height: "auto"
         });
         mywindow.refresh({
             url: '@Url.Action("_PpmpItems", "Requests")',
-            data: {
-                prId: selectedId
-            },
+            data: { prId: selectedId },
             complete: function () {
-                // Resize the window to fit its content
                 mywindow.resize();
                 mywindow.center();
             }
         });
-        //mywindow.center();
         mywindow.open();
     }
 
     function resizeWindow() {
         var mywindow = $("#window").data("kendoWindow");
         if (mywindow) {
-            mywindow.setOptions({
-                width: "800",
-                height: "auto"
-            });
-            mywindow.center(); // Optional: Center the window after resizing
+            mywindow.setOptions({ width: "800", height: "auto" });
+            mywindow.center();
         }
     }
 
-    function DataRisId() {
-        var text = $("#RisId").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#RisId").data("kendoMultiColumnComboBox").value();
+    function changeAmount() {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
+        var amount = (qty || 0) * (unitCost || 0);
+
+        $("#TotalCost").data("kendoNumericTextBox").value(amount);
+        $("#TotalCost").data("kendoNumericTextBox").trigger("change");
+    }
+
+    function onGridItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                var detailGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+                if (detailGrid) detailGrid.dataSource.read();
+            }
         }
+    }
+
+    function getQtySumExcludingSet() {
+        var grid = $("#gridItems_" + selectedId).data("kendoGrid");
+        if (!grid) return 0;
+        var data = grid.dataSource.view();
+        var total = 0;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].ItemNo && !data[i].ItemNo.includes(".")) {
+                total += data[i].Qty || 0;
+            }
+        }
+        return total;
+    }
+
+    function getTotalCostSumExcludingSet() {
+        var grid = $("#gridItems_" + selectedId).data("kendoGrid");
+        if (!grid) return 0;
+        var data = grid.dataSource.view();
+        var total = 0;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].ItemNo && !data[i].ItemNo.includes(".")) {
+                total += data[i].TotalCost || 0;
+            }
+        }
+        return total;
+    }
+
+    // --- Helpers used by _RequestTemplate popup editor ---
+
+    function DataRisId() {
+        var combo = $("#RisId").data("kendoMultiColumnComboBox");
+        var text = combo ? (combo.text() || combo.value()) : "";
         return {
             prId: $("#Id").val(),
             text: text
@@ -1443,7 +1111,6 @@
 
     function onSelectRisId(e) {
         var dataItem = this.dataItem(e.item.index());
-        //var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
         var risDate = kendo.parseDate(dataItem.RisDate);
 
         $("#PrNo").val(dataItem.RisNo).trigger("change");
@@ -1469,286 +1136,89 @@
         model.set("RequestedDesig", dataItem.ApprovedByDesignation);
     }
 
-    // ITEM UNIT GROUPS
-    function onClickBtnEditRisItemUnitGroup(e) {
-        e.preventDefault();
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-        parentGrid.select(parentRow);
+    function onSelectOffice(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#DeptId").val(dataItem.Id).trigger("change");
+        $("#Department").val(dataItem.Description).trigger("change");
 
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('DeptId', $('#DeptId').val());
+        model.set('Department', $('#Department').val());
 
-        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        //RisItem("E", dataItem.Id);
-        selectedGrid.editRow();
+        setTimeout(function () {
+            var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
+            if (fppComboBox) fppComboBox.dataSource.read();
+        }, 500);
     }
 
-    function InlineGridUnitGroupError(e) {
-        if (e.errors) {
-            let message = "Errors:\n";
-
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
-                    });
-                }
-            });
-
-            alert(message); // You can replace this with any other UI method to display errors
-            $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
-        }
+    function onChangeOffice() {
+        var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
+        if (fppComboBox) fppComboBox.dataSource.read();
     }
 
-    function onGridItemUnitGroupsRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
-            }
-        }
+    function onSelectFpp(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#Fund").val(dataItem.Fund).trigger("change");
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('Fund', $('#Fund').val());
     }
 
-    var selectedUnitGroupId;
-    var selectedUnitGroupDescriptionId = null;
-    var selectedUnitGroupDescriptionItemId = null;
-
-    function onChangeGridItemUnitGroups(e) {
-        var selectedData = this.dataItem(this.select());
-        selectedUnitGroupId = selectedData.Id;
-        selectedUnitGroupDescriptionId = null;
-        selectedUnitGroupDescriptionItemId = null;
-    }
-
-    function onDataBoundGridItemUnitGroups(e) {
-        if (selectedUnitGroupId) {
-            var dataItem = this.dataSource.get(selectedUnitGroupId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
-        }
-    }
-
-    function onEditGridItemUnitGroups(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedUnitGroupId = null;
-            selectedUnitGroupDescriptionId = null;
-            selectedUnitGroupDescriptionItemId = null;
-            e.model.set("PrId", selectedId);
-        } else {
-            selectedUnitGroupId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onClickDeleteGridItemUnitGroups(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-            selectedUnitGroupDescriptionId = null;
-        }
-    }
-    // END RIS ITEM UNIT GROUPS
-
-    // RIS ITEM UNIT GROUP DESCRIPTIONS
-    function InlineGridUnitGroupDescriptionError(e) {
-        if (e.errors) {
-            let message = "Errors:\n";
-
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
-                    });
-                }
-            });
-
-            alert(message); // You can replace this with any other UI method to display errors
-            $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
-        }
-    }
-
-    function onGridItemUnitGroupDescriptionsRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
-            }
-        }
-    }
-
-    function onChangeGridItemUnitGroupDescriptions(e) {
-        var selectedData = this.dataItem(this.select());
-        selectedUnitGroupDescriptionId = selectedData.Id;
-        selectedUnitGroupDescriptionItemId = null;
-    }
-
-    function onDataBoundGridItemUnitGroupDescriptions(e) {
-        if (selectedUnitGroupDescriptionId) {
-            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
-        }
-    }
-
-    function onEditGridItemUnitGroupDescriptions(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedUnitGroupDescriptionId = null;
-            selectedUnitGroupDescriptionItemId = null;
-            e.model.set("UnitGroupId", selectedUnitGroupId);
-        } else {
-            selectedUnitGroupDescriptionId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onClickDeleteGridItemUnitGroupDescriptions(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-    // END RIS ITEM UNIT GROUP DESCRIPTIONS
-
-    // RIS UNIT GROUP DESCRIPTION ITEMS
-    function InlineGridUnitGroupDescriptionItemError(e) {
-        if (e.errors) {
-            let message = "Errors:\n";
-
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
-                    });
-                }
-            });
-
-            alert(message); // You can replace this with any other UI method to display errors
-            $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
-        }
-    }
-
-    function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
-            }
-        }
-    }
-
-    function onChangeGridItemUnitGroupDescriptionItems(e) {
-        var selectedData = this.dataItem(this.select());
-        selectedUnitGroupDescriptionItemId = selectedData.Id;
-    }
-
-    function onDataBoundGridItemUnitGroupDescriptionItems(e) {
-        if (selectedUnitGroupDescriptionItemId) {
-            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionItemId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-    }
-
-    function onEditGridItemUnitGroupDescriptionItems(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-        parentGrid.select(parentRow);
-
-
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedUnitGroupDescriptionItemId = null;
-            e.model.set("UnitGroupDescriptionId", selectedUnitGroupDescriptionId);
-        } else {
-            selectedUnitGroupDescriptionItemId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onClickDeleteGridItemUnitGroupDescriptionItems(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-
-    function DataItemAvailableGrid() {
+    function DataFpp() {
+        var combo = $("#FPP").data("kendoMultiColumnComboBox");
+        var deptCombo = $("#DeptId").data("kendoMultiColumnComboBox");
         return {
-            risId: selectedId
+            department: deptCombo ? deptCombo.text() : "",
+            text: combo ? combo.text() : ""
         };
     }
 
-    function onChangeGridItemAvailable(arg) {
-        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
+    function DataPsCodeId() {
+        var combo = $("#PsCodeId").data("kendoMultiColumnComboBox");
+        return { text: combo ? (combo.text() || combo.value()) : "" };
     }
-    // END RIS UNIT GROUP DESCRIPTION ITEMS
+
+    function DataSection() {
+        var combo = $("#Section").data("kendoMultiColumnComboBox");
+        return {
+            department: $("#Department").val(),
+            text: combo ? combo.text() : ""
+        };
+    }
+
+    function DataRequestedBy() {
+        var combo = $("#RequestedBy").data("kendoMultiColumnComboBox");
+        return {
+            department: $("#Department").val(),
+            text: combo ? combo.text() : ""
+        };
+    }
+
+    function onSelectRequestedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#RequestedDesig").val(dataItem.Designation).trigger("change");
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('RequestedDesig', $('#RequestedDesig').val());
+    }
+
+    function onSelectAvailability(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#AvaialbilityDesig").val(dataItem.Desc2).trigger("change");
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('AvaialbilityDesig', $('#AvaialbilityDesig').val());
+    }
+
+    function DataApprovedBy() {
+        var combo = $("#ApprovedBy").data("kendoMultiColumnComboBox");
+        return {
+            department: $("#Department").val(),
+            text: combo ? combo.text() : ""
+        };
+    }
+
+    function onSelectApprovedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('ApprovedDesig', $('#ApprovedDesig').val());
+    }
 </script>
-
-

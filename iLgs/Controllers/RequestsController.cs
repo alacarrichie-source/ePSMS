@@ -1,4 +1,4 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.CrystalReports.Engine;
 using iLgs.Ai.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
@@ -228,24 +228,18 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        [HttpGet]
-        public async Task<ActionResult> Review(Guid id)
+        private async Task<PurchaseRequestReviewViewModel> LoadPurchaseRequestReviewModelAsync(Guid id)
         {
-            var access = await Access(User.Identity.GetUserId(), "requests_posting");
-            if (!access.IsAllowed || !access.AllowPost)
-            {
-                return new HttpStatusCodeResult(403, "Purchase Request review access denied.");
-            }
-
             var entity = await _db.Requests
                 .AsNoTracking()
                 .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
                 .FirstOrDefaultAsync(x => x.Id == id);
-            var status = await GetRequestStatusAsync(entity);
-            if (entity == null || status != PrStatuses.Submitted || entity.PostedDt.HasValue)
+            if (entity == null)
             {
-                return HttpNotFound("Only a Submitted Purchase Request can be reviewed.");
+                return null;
             }
+
+            var status = await GetRequestStatusAsync(entity);
 
             var model = new PurchaseRequestReviewViewModel
             {
@@ -298,6 +292,52 @@ namespace iLgs.Controllers
                     }).ToList()
             };
 
+            return model;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Review(Guid id, bool? viewOnly = false)
+        {
+            if (viewOnly == true)
+            {
+                return await ViewRequest(id);
+            }
+
+            var access = await Access(User.Identity.GetUserId(), "requests_posting");
+            if (!access.IsAllowed || !access.AllowPost)
+            {
+                return new HttpStatusCodeResult(403, "Purchase Request review access denied.");
+            }
+
+            var model = await LoadPurchaseRequestReviewModelAsync(id);
+            if (model == null || model.Status != PrStatuses.Submitted)
+            {
+                return HttpNotFound("Only a Submitted Purchase Request can be reviewed.");
+            }
+
+            model.IsViewOnly = false;
+            ViewBag.IsViewOnly = false;
+            return PartialView("_Review", model);
+        }
+
+        [HttpGet]
+        [ActionName("View")]
+        public async Task<ActionResult> ViewRequest(Guid id)
+        {
+            var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
+            if (!access.IsAllowed)
+            {
+                return new HttpStatusCodeResult(403, "Purchase Request access denied.");
+            }
+
+            var model = await LoadPurchaseRequestReviewModelAsync(id);
+            if (model == null)
+            {
+                return HttpNotFound("Purchase Request not found.");
+            }
+
+            model.IsViewOnly = true;
+            ViewBag.IsViewOnly = true;
             return PartialView("_Review", model);
         }
 

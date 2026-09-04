@@ -4,80 +4,792 @@
 @{
     Layout = null;
     var phCulture = CultureInfo.GetCultureInfo("en-PH");
+    var isViewOnly = Model.IsViewOnly || (ViewBag.IsViewOnly == true);
+    var statusClass = Model.Status == "Posted"
+        ? "status-posted"
+        : (Model.Status == "Submitted"
+            ? "status-submitted"
+            : (Model.Status == "Returned"
+                ? "status-returned"
+                : (Model.Status == "Revising" ? "status-revising" : "status-draft")));
+}
+
+@functions {
+    string Val(string val)
+    {
+        return string.IsNullOrWhiteSpace(val) ? "—" : val.Trim();
+    }
 }
 
 <div class="pr-review" data-request-id="@Model.Id">
+    <!-- Header / Review Heading -->
     <div class="pr-review-heading">
-        <div>
-            <span class="pr-review-eyebrow">Submitted Purchase Request</span>
-            <h2>@(String.IsNullOrWhiteSpace(Model.CtrlNo) ? "Purchase Request" : Model.CtrlNo)</h2>
+        <div class="pr-review-heading-content">
+            <span class="pr-review-eyebrow">@(isViewOnly ? "Purchase Request Details" : "Submitted Purchase Request Review")</span>
+            <h2 class="pr-review-title">
+                @(string.IsNullOrWhiteSpace(Model.CtrlNo) ? (string.IsNullOrWhiteSpace(Model.PrNo) ? "Purchase Request" : Model.PrNo) : Model.CtrlNo)
+                @if (!string.IsNullOrWhiteSpace(Model.PrNo) && Model.PrNo != Model.CtrlNo)
+                {
+                    <span class="pr-review-prno-badge">PR No. @Model.PrNo</span>
+                }
+            </h2>
         </div>
-        <span class="status-badge status-submitted">@Model.Status</span>
+        <div class="pr-review-heading-badge">
+            <span class="status-badge @statusClass">@Val(Model.Status)</span>
+        </div>
     </div>
 
-    <div class="pr-review-fields">
-        <div><label>Department</label><span>@Model.Department</span></div>
-        <div><label>Section</label><span>@Model.Section</span></div>
-        <div class="pr-review-wide"><label>Purpose</label><span class="pr-review-multiline">@Model.Purpose</span></div>
-        <div><label>FPP</label><span>@Model.FPP</span></div>
-        <div><label>Fund</label><span>@Model.Fund</span></div>
-        <div><label>Fund Specific</label><span>@Model.FundSpecific</span></div>
-        <div><label>Requested By</label><span>@Model.RequestedBy</span></div>
-        <div><label>Designation</label><span>@Model.RequestedDesig</span></div>
-        <div><label>Cash Availability</label><span>@Model.Availability</span></div>
-        <div><label>Availability Designation</label><span>@Model.AvaialbilityDesig</span></div>
-        <div><label>Approved By</label><span>@Model.ApprovedBy</span></div>
-        <div><label>Approver Designation</label><span>@Model.ApprovedDesig</span></div>
-        <div><label>Submitted By</label><span>@Model.SubmittedBy</span></div>
-        <div><label>Submitted Date</label><span>@(Model.SubmittedDt.HasValue ? Model.SubmittedDt.Value.ToString("MM/dd/yyyy HH:mm") : "")</span></div>
+    @if (Model.Status == "Returned" && !string.IsNullOrWhiteSpace(Model.StatusRemarks))
+    {
+        <div class="pr-review-returned-alert">
+            <span class="k-icon k-i-warning pr-alert-icon"></span>
+            <div>
+                <strong>Review Comment / Reason for Return:</strong>
+                <p>@Model.StatusRemarks</p>
+            </div>
+        </div>
+    }
+
+    <!-- Section 1: Purchase Request Information -->
+    <div class="pr-review-card">
+        <div class="pr-review-card-header">
+            <span class="k-icon k-i-file-txt pr-card-header-icon"></span>
+            <h3>PURCHASE REQUEST INFORMATION</h3>
+        </div>
+        <div class="pr-review-card-body">
+            <!-- PR Number and PR Date -->
+            <div class="pr-review-2col-layout pr-review-field-block">
+                <div class="pr-review-col">
+                    <span class="pr-review-label">PR Number</span>
+                    <div class="pr-review-value font-weight-bold font-mono">@Val(Model.PrNo)</div>
+                </div>
+                <div class="pr-review-col">
+                    <span class="pr-review-label">PR Date</span>
+                    <div class="pr-review-value">@(Model.PrDate.HasValue ? Model.PrDate.Value.ToString("MMM dd, yyyy", phCulture) : "—")</div>
+                </div>
+            </div>
+
+            <div class="pr-review-field-block">
+                <span class="pr-review-label">Department</span>
+                <div class="pr-review-value pr-dept-text">
+                    @Val(Model.Department)
+                    @if (!string.IsNullOrWhiteSpace(Model.Section))
+                    {
+                        <span class="pr-section-pill">Section: @Model.Section</span>
+                    }
+                </div>
+            </div>
+
+            <div class="pr-review-field-block">
+                <span class="pr-review-label">Purpose</span>
+                <div class="pr-review-value pr-purpose-text pr-review-multiline">@Val(Model.Purpose)</div>
+            </div>
+
+            <!-- Financial Information Subsection (Responsive 2-column) -->
+            <div class="pr-review-subcard">
+                <div class="pr-review-subcard-title">FINANCIAL ALLOCATION</div>
+                <div class="pr-review-2col-layout">
+                    <!-- Left: FPP -->
+                    <div class="pr-review-col">
+                        <div class="pr-review-field">
+                            <span class="pr-review-label">FPP (Program / Project)</span>
+                            <div class="pr-review-value font-mono">@Val(Model.FPP)</div>
+                        </div>
+                    </div>
+                    <!-- Right: Fund & Specific Fund -->
+                    <div class="pr-review-col">
+                        <div class="pr-review-field">
+                            <span class="pr-review-label">Fund</span>
+                            <div class="pr-review-value">@Val(Model.Fund)</div>
+                        </div>
+                        <div class="pr-review-field pr-mt-field">
+                            <span class="pr-review-label">Specific Fund</span>
+                            <div class="pr-review-value">@Val(Model.FundSpecific)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="pr-review-section-heading">
-        <h3>Purchase Request Items</h3>
-        <strong>@Model.EstimatedTotal.ToString("C2", phCulture)</strong>
+    <!-- Section 2: Signatories / Approval Information & Submission -->
+    <div class="pr-review-card">
+        <div class="pr-review-card-header">
+            <span class="k-icon k-i-user pr-card-header-icon"></span>
+            <h3>SIGNATORIES & SUBMISSION</h3>
+        </div>
+        <div class="pr-review-card-body">
+            <div class="pr-review-signatories-table-wrapper">
+                <table class="pr-review-signatories-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">PERSON / ROLE</th>
+                            <th style="width: 55%;">DESIGNATION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="pr-review-label">Requested By</span>
+                                <div class="pr-review-value font-weight-bold">@Val(Model.RequestedBy)</div>
+                            </td>
+                            <td>
+                                <span class="pr-review-label">Designation</span>
+                                <div class="pr-review-value text-muted">@Val(Model.RequestedDesig)</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="pr-review-label">Cash Availability</span>
+                                <div class="pr-review-value font-weight-bold">@Val(Model.Availability)</div>
+                            </td>
+                            <td>
+                                <span class="pr-review-label">Designation</span>
+                                <div class="pr-review-value text-muted">@Val(Model.AvaialbilityDesig)</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="pr-review-label">Approved By</span>
+                                <div class="pr-review-value font-weight-bold">@Val(Model.ApprovedBy)</div>
+                            </td>
+                            <td>
+                                <span class="pr-review-label">Designation</span>
+                                <div class="pr-review-value text-muted">@Val(Model.ApprovedDesig)</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Section 3: Submission Information -->
+            <div class="pr-review-submission-strip">
+                <div class="pr-review-submission-field">
+                    <span class="pr-review-label">Submitted By</span>
+                    <div class="pr-review-value font-weight-semibold">@Val(Model.SubmittedBy)</div>
+                </div>
+                <div class="pr-review-submission-field">
+                    <span class="pr-review-label">Submitted Date</span>
+                    <div class="pr-review-value font-mono">
+                        @(Model.SubmittedDt.HasValue ? Model.SubmittedDt.Value.ToString("MMM dd, yyyy hh:mm tt") : "—")
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="pr-review-items-scroll">
-        <table class="pr-review-table">
-            <thead><tr><th>No.</th><th>PPMP Code</th><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
-            <tbody>
-            @if (!Model.Items.Any())
-            {
-                <tr><td colspan="7" class="pr-review-empty">No Purchase Request items were found.</td></tr>
-            }
-            @foreach (var item in Model.Items)
-            {
-                <tr class="pr-review-item-row">
-                    <td>@item.ItemNo</td><td>@item.PpmpCode</td>
-                    <td><span class="pr-review-multiline">@item.Description</span>@if (!String.IsNullOrWhiteSpace(item.OtherDesc)) { <small>@item.OtherDesc</small> }</td>
-                    <td>@item.Unit</td><td class="pr-review-number">@item.Qty.GetValueOrDefault().ToString("N2")</td>
-                    <td class="pr-review-number">@item.UnitCost.GetValueOrDefault().ToString("C2", phCulture)</td>
-                    <td class="pr-review-number">@item.TotalCost.GetValueOrDefault().ToString("C2", phCulture)</td>
-                </tr>
-                <tr class="pr-review-subitems-row"><td colspan="7">
-                    <div class="pr-review-subitems-title">User-defined sub-items</div>
-                    <div class="pr-review-subitems-scroll"><table class="pr-review-subitems-table">
-                        <thead><tr><th>Item No.</th><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
-                        <tbody>
-                        @if (!item.SubItems.Any()) { <tr><td colspan="6" class="pr-review-empty">No sub-items.</td></tr> }
-                        @foreach (var subItem in item.SubItems)
-                        {
-                            <tr><td>@subItem.ItemNo</td><td class="pr-review-multiline">@subItem.Description</td><td>@subItem.Unit</td>
-                                <td class="pr-review-number">@subItem.Qty.GetValueOrDefault().ToString("N2")</td>
-                                <td class="pr-review-number">@subItem.UnitCost.GetValueOrDefault().ToString("C2", phCulture)</td>
-                                <td class="pr-review-number">@subItem.Total.GetValueOrDefault().ToString("C2", phCulture)</td></tr>
-                        }
-                        </tbody>
-                    </table></div>
-                </td></tr>
-            }
-            </tbody>
-        </table>
+    <!-- Section 4: Purchase Request Items -->
+    <div class="pr-review-card pr-review-items-card">
+        <div class="pr-review-card-header pr-review-items-header">
+            <div class="pr-review-items-title-group">
+                <span class="k-icon k-i-cart pr-card-header-icon"></span>
+                <h3>PURCHASE REQUEST ITEMS</h3>
+                <span class="pr-items-badge">@Model.Items.Count line @(Model.Items.Count == 1 ? "item" : "items")</span>
+            </div>
+            <div class="pr-review-grand-total">
+                <span class="pr-grand-total-label">TOTAL ESTIMATED AMOUNT</span>
+                <span class="pr-grand-total-val">&#8369;@Model.EstimatedTotal.ToString("N2")</span>
+            </div>
+        </div>
+
+        <div class="pr-review-items-scroll">
+            <table class="pr-review-table">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 70px;">ITEM NO.</th>
+                        <th class="text-center" style="width: 120px;">PPMP CODE</th>
+                        <th style="min-width: 280px;">DESCRIPTION</th>
+                        <th class="text-center" style="width: 70px;">UNIT</th>
+                        <th class="text-right" style="width: 80px;">QTY</th>
+                        <th class="text-right" style="width: 125px;">UNIT COST (&#8369;)</th>
+                        <th class="text-right" style="width: 135px;">TOTAL (&#8369;)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="pr-review-empty">
+                            <span class="k-icon k-i-folder-open pr-empty-icon"></span>
+                            <p>No Purchase Request items were found.</p>
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    var hasSubItems = item.SubItems != null && item.SubItems.Any();
+                    <tr class="pr-review-item-row @(hasSubItems ? "pr-has-subitems" : "")">
+                        <td class="text-center font-mono font-weight-bold pr-item-no">@Val(item.ItemNo)</td>
+                        <td class="text-center font-mono text-muted pr-ppmp-code">@Val(item.PpmpCode)</td>
+                        <td class="pr-item-desc-cell">
+                            <span class="pr-review-multiline pr-desc-main">@item.Description</span>
+                            @if (!string.IsNullOrWhiteSpace(item.OtherDesc))
+                            {
+                                <small class="pr-desc-sub">@item.OtherDesc</small>
+                            }
+                        </td>
+                        <td class="text-center text-muted">@Val(item.Unit)</td>
+                        <td class="text-right font-mono">@(item.Qty.HasValue ? item.Qty.Value.ToString("N2") : "—")</td>
+                        <td class="text-right font-mono">@(item.UnitCost.HasValue ? item.UnitCost.Value.ToString("N2") : "—")</td>
+                        <td class="text-right font-mono font-weight-bold pr-item-total-col">
+                            @(item.TotalCost.HasValue ? item.TotalCost.Value.ToString("N2") : "—")
+                        </td>
+                    </tr>
+
+                    if (hasSubItems)
+                    {
+                        <tr class="pr-review-subitems-row">
+                            <td colspan="7">
+                                <div class="pr-review-subitems-wrapper">
+                                    <div class="pr-subitems-header">
+                                        <span class="k-icon k-i-layers"></span>
+                                        <strong>Sub-Items</strong>
+                                        <span class="pr-subitems-count">(@item.SubItems.Count sub-@(item.SubItems.Count == 1 ? "item" : "items") for Item #@item.ItemNo)</span>
+                                    </div>
+                                    <div class="pr-subitems-table-container">
+                                        <table class="pr-review-subitems-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center" style="width: 70px;">ITEM NO.</th>
+                                                    <th style="min-width: 250px;">DESCRIPTION</th>
+                                                    <th class="text-center" style="width: 70px;">UNIT</th>
+                                                    <th class="text-right" style="width: 80px;">QTY</th>
+                                                    <th class="text-right" style="width: 125px;">UNIT COST (&#8369;)</th>
+                                                    <th class="text-right" style="width: 135px;">TOTAL (&#8369;)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach (var subItem in item.SubItems)
+                                            {
+                                                <tr>
+                                                    <td class="text-center font-mono">@Val(subItem.ItemNo)</td>
+                                                    <td class="pr-review-multiline pr-subitem-desc">@subItem.Description</td>
+                                                    <td class="text-center text-muted">@Val(subItem.Unit)</td>
+                                                    <td class="text-right font-mono">@(subItem.Qty.HasValue ? subItem.Qty.Value.ToString("N2") : "—")</td>
+                                                    <td class="text-right font-mono">@(subItem.UnitCost.HasValue ? subItem.UnitCost.Value.ToString("N2") : "—")</td>
+                                                    <td class="text-right font-mono font-weight-semibold">
+                                                        @(subItem.Total.HasValue ? subItem.Total.Value.ToString("N2") : "—")
+                                                    </td>
+                                                </tr>
+                                            }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+                @if (Model.Items.Any())
+                {
+                    <tfoot>
+                        <tr class="pr-review-footer-total-row">
+                            <td colspan="6" class="text-right font-weight-bold pr-footer-total-label">
+                                ESTIMATED GRAND TOTAL:
+                            </td>
+                            <td class="text-right font-mono font-weight-bold pr-footer-total-val">
+                                &#8369;@Model.EstimatedTotal.ToString("N2")
+                            </td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
     </div>
 
+    <!-- Actions Toolbar -->
     <div class="pr-review-actions">
-        <button type="button" class="k-button" onclick="closePurchaseRequestReview()">Close</button>
-        <button type="button" class="k-button k-button-solid-base" onclick="openReviewReturnDialog()"><span class="k-icon k-i-undo"></span> Return for Revision</button>
-        <button type="button" class="k-button k-button-solid-primary" onclick="openReviewPostDialog()"><span class="k-icon k-i-check"></span> Post</button>
+        <button type="button" class="k-button k-button-solid-base k-rounded-md" onclick="closePurchaseRequestReview()">
+            Close
+        </button>
+        @if (!isViewOnly)
+        {
+            <button type="button" class="k-button k-button-solid-base k-rounded-md" onclick="openReviewReturnDialog()">
+                <span class="k-icon k-i-undo"></span> Return for Revision
+            </button>
+            <button type="button" class="k-button k-button-solid-primary k-rounded-md" onclick="openReviewPostDialog()">
+                <span class="k-icon k-i-check"></span> Post
+            </button>
+        }
     </div>
 </div>
+
+<style>
+    .pr-review {
+        padding: 22px 24px;
+        background: #f8fafc;
+        color: #1e293b;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Returned Alert */
+    .pr-review-returned-alert {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 16px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        color: #92400e;
+        margin-bottom: 18px;
+    }
+
+    .pr-review-returned-alert strong {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+        color: #b45309;
+    }
+
+    .pr-review-returned-alert p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    /* Header */
+    .pr-review-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pr-review-eyebrow {
+        display: block;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .pr-review-title {
+        margin: 0;
+        color: #002576;
+        font-size: 22px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .pr-review-prno-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 9px;
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        border-radius: 4px;
+    }
+
+    /* Cards / Panels */
+    .pr-review-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        margin-bottom: 18px;
+        overflow: hidden;
+    }
+
+    .pr-review-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pr-review-card-header h3 {
+        margin: 0;
+        color: #0f172a;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .pr-card-header-icon {
+        color: #002576;
+        font-size: 14px;
+    }
+
+    .pr-review-card-body {
+        padding: 18px;
+    }
+
+    /* Fields, Labels, Values */
+    .pr-review-field-block {
+        margin-bottom: 14px;
+    }
+
+    .pr-review-field-block:last-child {
+        margin-bottom: 0;
+    }
+
+    .pr-review-label {
+        display: block;
+        margin-bottom: 4px;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .pr-review-value {
+        color: #0f172a;
+        font-size: 13px;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .pr-dept-text {
+        font-size: 15px;
+        color: #002576;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .pr-section-pill {
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 8px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        color: #475569;
+    }
+
+    .pr-purpose-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: #334155;
+        line-height: 1.6;
+        background: #f8fafc;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+    }
+
+    .pr-review-multiline {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    /* Financial Allocation Subsection */
+    .pr-review-subcard {
+        margin-top: 16px;
+        padding: 14px 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+    }
+
+    .pr-review-subcard-title {
+        color: #475569;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pr-review-2col-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .pr-mt-field {
+        margin-top: 10px;
+    }
+
+    /* Signatories Table */
+    .pr-review-signatories-table-wrapper {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .pr-review-signatories-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .pr-review-signatories-table th {
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 8px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+
+    .pr-review-signatories-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .pr-review-signatories-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Submission Info Strip */
+    .pr-review-submission-strip {
+        display: flex;
+        gap: 32px;
+        margin-top: 14px;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+    }
+
+    .pr-review-submission-field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Items Section */
+    .pr-review-items-header {
+        justify-content: space-between;
+    }
+
+    .pr-review-items-title-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pr-items-badge {
+        font-size: 11px;
+        font-weight: 500;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .pr-review-grand-total {
+        text-align: right;
+    }
+
+    .pr-grand-total-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .pr-grand-total-val {
+        font-size: 17px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .pr-review-items-scroll {
+        max-height: 480px;
+        overflow: auto;
+    }
+
+    /* Items Table */
+    .pr-review-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 880px;
+    }
+
+    .pr-review-table th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 10px 12px;
+        border-bottom: 2px solid #cbd5e1;
+    }
+
+    .pr-review-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: top;
+        font-size: 12px;
+    }
+
+    .pr-review-item-row:hover {
+        background: #f8fafc;
+    }
+
+    .pr-desc-main {
+        display: block;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .pr-desc-sub {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .pr-item-total-col {
+        color: #0f172a;
+        font-size: 13px;
+    }
+
+    /* Sub-items Panel */
+    .pr-review-subitems-row > td {
+        padding: 0 16px 14px 36px !important;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pr-review-subitems-wrapper {
+        background: #ffffff;
+        border: 1px solid #dbeafe;
+        border-left: 3px solid #3b82f6;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-top: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .pr-subitems-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        color: #1e40af;
+        font-size: 11px;
+    }
+
+    .pr-subitems-count {
+        color: #64748b;
+        font-weight: normal;
+        font-size: 10px;
+    }
+
+    .pr-subitems-table-container {
+        overflow-x: auto;
+    }
+
+    .pr-review-subitems-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 680px;
+    }
+
+    .pr-review-subitems-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pr-review-subitems-table td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 11px;
+        vertical-align: top;
+    }
+
+    .pr-subitem-desc {
+        color: #334155;
+    }
+
+    /* Table Footer Total */
+    .pr-review-footer-total-row td {
+        background: #f8fafc;
+        padding: 12px 14px;
+        border-top: 2px solid #cbd5e1;
+        border-bottom: none;
+    }
+
+    .pr-footer-total-label {
+        font-size: 11px;
+        color: #475569;
+        letter-spacing: 0.05em;
+    }
+
+    .pr-footer-total-val {
+        font-size: 15px;
+        color: #002576;
+    }
+
+    /* Empty state */
+    .pr-review-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .pr-empty-icon {
+        font-size: 28px;
+        color: #cbd5e1;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    /* Actions Bar */
+    .pr-review-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+        background: #f8fafc;
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .pr-review { padding: 14px; }
+        .pr-review-2col-layout { grid-template-columns: 1fr; }
+        .pr-review-submission-strip { flex-direction: column; gap: 10px; }
+        .pr-review-heading { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .pr-review-items-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .pr-review-grand-total { text-align: left; }
+        .pr-review-actions { flex-direction: column-reverse; align-items: stretch; }
+        .pr-review-actions button { width: 100%; }
+        .pr-review-subitems-row > td { padding-left: 14px !important; }
+    }
+</style>

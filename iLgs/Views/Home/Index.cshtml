@@ -1,223 +1,330 @@
-﻿
-@*@using Kendo.Mvc.UI.Fluent
-@model IQueryable<iLgs.Models.Menubase>
+@model iLgs.Models.DashboardViewModel
 @{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="home-content">
-    <div class="scrollview-container">
-        @(Html.Kendo().ScrollView()
-            .Name("scrollView")
-            .ContentHeight("100%")
-            .Items(x =>
+<link href="@Url.Content("~/Content/dashboard.css")" rel="stylesheet" type="text/css" />
+
+<div class="epsms-dashboard">
+
+    <!-- 1. Context Header Bar -->
+    <div class="dashboard-header">
+        <div class="header-brand-wrap">
+            <img src="@Url.Content("~/Assets/Logo.png")" alt="ePSMS Logo" class="header-logo" />
+            <div class="header-titles">
+                <h1>Dashboard</h1>
+                <p class="subtitle">eProperty and Supply Management System &bull; City Government of Las Piñas</p>
+            </div>
+        </div>
+
+        <div class="header-context-wrap">
+            <div class="user-meta-chip">
+                <span>Welcome, <strong>@Model.UserFullName</strong></span>
+                <span class="department-tag">@Model.DepartmentName</span>
+            </div>
+
+            <div class="header-date-badge">
+                <span class="k-icon k-i-calendar" style="margin-right: 4px;"></span>
+                <span>FY @Model.FiscalYear &bull; @Model.CurrentDateText</span>
+            </div>
+
+            @if (Model.CartItemCount > 0)
             {
-                x.Add().Content("<div class='image image1'></div>");
-                x.Add().Content("<div class='image image2'></div>");
-                x.Add().Content("<div class='image image3'></div>");
-                x.Add().Content("<div class='image image4'></div>");
-                x.Add().Content("<div class='image image5'></div>");
-            })
-            .HtmlAttributes(new { style = "width:100vw; max-width: 100%; margin: auto; height: 64.14vh;" })
-        )
+                <a href="@Url.Action("Cart", "Procurement")" class="btn-dashboard-cart" title="View items currently in your procurement cart">
+                    <span class="k-icon k-i-cart"></span> Cart (@Model.CartItemCount)
+                </a>
+            }
+
+            <a href="@Url.Action("Annual", "Procurement")" class="btn-dashboard-primary">
+                <span class="k-icon k-i-plus"></span> Create Purchase Request
+            </a>
+        </div>
     </div>
 
-    <div id="top-picks" class="top-picks-container">
-        <div class="top-picks">
-            <div class="top-pick-card" style="width:100%; height:250px;">>
-                <a href="@Url.Action("Index","StockCard")">
-                    <div class="category-heading">Stock Card</div>
-                    <img src="@Url.Content("~/Assets/stock-card.jpg")" class="category-image" />
-                </a>
+    <!-- 2. Key Metrics & Status Overview (KPI Cards) -->
+    <div class="kpi-section-title">
+        <span class="k-icon k-i-chart-column-stacked"></span> Operational Statistics Overview
+    </div>
+
+    <div class="dashboard-kpi-grid">
+        <!-- Purchase Requests (PR) Card -->
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <span class="kpi-card-title">Purchase Requests</span>
+                <span class="kpi-card-icon k-icon k-i-file-add"></span>
             </div>
-            <div class="top-pick-card" style="width:100%; height:250px;">>
-                <a href="@Url.Action("Index","PoIssuance")">
-                    <div class="category-heading">PO Issuance</div>
-                    <img src="@Url.Content("~/Assets/issuance.jpg")" class="category-image" />
-                </a>
+            <div class="kpi-card-body">
+                <div class="kpi-number">@Model.KpiSummary.PrTotal</div>
+                <div class="kpi-unit-label">Active / In-Progress Requests</div>
             </div>
-            <div class="top-pick-card" style="width:100%; height:250px;">>
-                <a href="@Url.Action("RunningTotal","RSMI")">
-                    <div class="category-heading-components">RSMI</div>
-                    <img src="@Url.Content("~/Assets/rsmi.jpg")" class="category-image" />
+            <div class="kpi-badges-row">
+                <a href="@Url.Action("Index", "Requests")" class="kpi-sub-badge badge-draft" title="Draft PRs in preparation">
+                    Draft @Model.KpiSummary.PrDraft
                 </a>
-            </div>
-            <div class="top-pick-card" style="width:100%; height:250px;">>
-                <a href="@Url.Action("RunningTotal","Rpci")">
-                    <div class="category-heading">RPCI</div>
-                    <img src="@Url.Content("~/Assets/rpci.jpg")" class="category-image" />
+                <a href="@Url.Action("Index", "Requests")" class="kpi-sub-badge badge-submitted" title="PRs submitted for review">
+                    For Review @Model.KpiSummary.PrSubmitted
+                </a>
+                @if (Model.KpiSummary.PrReturned > 0)
+                {
+                    <a href="@Url.Action("Index", "Requests")" class="kpi-sub-badge badge-returned" title="PRs returned for revision">
+                        Returned @Model.KpiSummary.PrReturned
+                    </a>
+                }
+                <a href="@Url.Action("Index", "Requests")" class="kpi-sub-badge badge-posted" title="Posted & Approved PRs">
+                    Posted @Model.KpiSummary.PrPosted
                 </a>
             </div>
         </div>
-    </div>    
-</div>*@
 
-@*<style>
-    .top-pick-heading {
-        text-align: center;
-    }
+        <!-- Purchase Orders (PO) Card -->
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <span class="kpi-card-title">Purchase Orders</span>
+                <span class="kpi-card-icon k-icon k-i-file-txt"></span>
+            </div>
+            <div class="kpi-card-body">
+                <div class="kpi-number">@Model.KpiSummary.PoTotal</div>
+                <div class="kpi-unit-label">Active Consolidated Orders</div>
+            </div>
+            <div class="kpi-badges-row">
+                <a href="@Url.Action("Index", "PurchaseOrder")" class="kpi-sub-badge badge-draft" title="Draft allocations">
+                    Draft @Model.KpiSummary.PoDraft
+                </a>
+                <a href="@Url.Action("Index", "PurchaseOrder")" class="kpi-sub-badge badge-posted" title="Posted / Transmitted POs">
+                    Posted @Model.KpiSummary.PoPosted
+                </a>
+                @if (Model.KpiSummary.PoCommittedAmount > 0)
+                {
+                    <span class="kpi-sub-badge" style="background: #f8fafc; color: #002576; font-family: monospace; font-weight: 700;" title="Total budget commitment">
+                        ₱@Model.KpiSummary.PoCommittedAmount.ToString("N0")
+                    </span>
+                }
+            </div>
+        </div>
 
-    .top-pick-card {
-        width: 90%;        /* width of each item relative to ScrollView */
-        max-width: 600px;  /* optional max width */
-        height: 100%;      /* fill the ScrollView height */
-        margin: auto;      /* center horizontally */
-        box-sizing: border-box;
-    }
+        <!-- Acceptance & Inspection (AIR) Card -->
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <span class="kpi-card-title">Deliveries & Inspection</span>
+                <span class="kpi-card-icon k-icon k-i-search"></span>
+            </div>
+            <div class="kpi-card-body">
+                <div class="kpi-number">@Model.KpiSummary.AirPendingInspection</div>
+                <div class="kpi-unit-label">Awaiting Property Inspection</div>
+            </div>
+            <div class="kpi-badges-row">
+                <a href="@Url.Action("Inspection", "AIRs")" class="kpi-sub-badge badge-submitted" title="Deliveries pending inspection sign-off">
+                    Pending @Model.KpiSummary.AirPendingInspection
+                </a>
+                <a href="@Url.Action("Inspection", "AIRs")" class="kpi-sub-badge badge-posted" title="Inspected & Accepted deliveries">
+                    Inspected @Model.KpiSummary.AirInspected
+                </a>
+                <span class="kpi-sub-badge badge-draft">
+                    Total AIR @Model.KpiSummary.AirTotal
+                </span>
+            </div>
+        </div>
 
-	.image1 {
-		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-	}
-	.image2 {
-		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-	}
-	.image3 {
-		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-	}
-	.image4 {
-		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-	}
-	.image5 {
-		background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-	}
-</style>*@
+        <!-- Requisition & Issuance (RIS) Card -->
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <span class="kpi-card-title">Requisitions (RIS)</span>
+                <span class="kpi-card-icon k-icon k-i-check-circle"></span>
+            </div>
+            <div class="kpi-card-body">
+                <div class="kpi-number">@Model.KpiSummary.RisTotal</div>
+                <div class="kpi-unit-label">Requisitions in Pipeline</div>
+            </div>
+            <div class="kpi-badges-row">
+                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-draft" title="Awaiting department approval">
+                    Approval @Model.KpiSummary.RisPendingApproval
+                </a>
+                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-submitted" title="Approved, ready for supply release">
+                    Issuance @Model.KpiSummary.RisPendingIssuance
+                </a>
+                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-posted" title="Issued and posted">
+                    Posted @Model.KpiSummary.RisPosted
+                </a>
+            </div>
+        </div>
 
-@*<script type="text/javascript">
-    //$(document).ready(function () {
-    //    // Wait a tiny moment to ensure ScrollView template is rendered
-    //    setTimeout(function () {
-    //        initChart2();
-    //    }, 100); // small delay ensures template HTML is present
-    //});
+        <!-- Property & Inventory Card -->
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <span class="kpi-card-title">Property & Inventory</span>
+                <span class="kpi-card-icon k-icon k-i-grid"></span>
+            </div>
+            <div class="kpi-card-body">
+                <div class="kpi-number">@Model.KpiSummary.StockCardCount</div>
+                <div class="kpi-unit-label">Active Stock Card Items</div>
+            </div>
+            <div class="kpi-badges-row">
+                <a href="@Url.Action("Index", "PropertyCard")" class="kpi-sub-badge badge-draft" title="Property Cards (PPE)">
+                    PPE Cards @Model.KpiSummary.PropertyCardCount
+                </a>
+                <a href="@Url.Action("Index", "CustodianReport")" class="kpi-sub-badge badge-posted" title="Property Acknowledgement Receipts">
+                    PAR @Model.KpiSummary.ParCount
+                </a>
+                <a href="@Url.Action("Index", "CustodianReport")" class="kpi-sub-badge badge-submitted" title="Inventory Custodian Slips">
+                    ICS @Model.KpiSummary.IcsCount
+                </a>
+            </div>
+        </div>
+    </div>
 
-    function onTopPicksChange(e) {
-        initChart2(); // only initialize charts in visible page
-    }
+    <!-- 3. Action Required (Operational Backlog) -->
+    <div class="action-required-panel">
+        <div class="panel-header-row">
+            <h2 class="panel-heading">
+                <span class="k-icon k-i-bell" style="color: #dc2626;"></span> Action Required
+                <span class="panel-count-pill">@Model.ActionRequiredItems.Count Pending</span>
+            </h2>
+            <a href="@Url.Action("Index", "Requests")" style="font-size: 11px; font-weight: 600; color: #002576; text-decoration: none;">
+                View All Pending Requests &rarr;
+            </a>
+        </div>
 
-    function initCharts() {
-        $(".chart-holder").each(function () {
-            var $holder = $(this);
-            var code = $holder.data("code");
-
-            if (!code || $holder.data("kendoChart")) return; // skip if already initialized
-
-            $holder.kendoChart({
-                title: { text: "Applicants Per Year (Approved vs Denied)" },
-                legend: { position: "top" },
-                dataSource: {
-                    transport: {
-                        read: {
-                            url: "/Dashboard/GetTransactionStatusPerYear",
-                            data: { tranCode: code },
-                            dataType: "json"
-                        }
-                    }
-                },
-                series: [
-                    { field: "Approved", name: "Approved", type: "column", stack: true },
-                    { field: "Denied", name: "Denied", type: "column", stack: true }
-                ],
-                seriesColors: ["#4CAF50", "#F44336"],
-                categoryAxis: { field: "Year", title: { text: "Year" } },
-                valueAxis: { title: { text: "Number of Applicants" } },
-                tooltip: { visible: true, template: "#= series.name #: #= value #" }
-            });
-        });
-    }
-
-    function initChart2() {
-        $(".chart-holder").each(function () {
-            var $holder = $(this);
-            var code = $holder.data("code");
-
-            if (!code || $holder.data("kendoChart")) return; // skip if already initialized
-
-            $holder.kendoChart({
-                title: { text: "Applicants Per Year" },
-                legend: { position: "top" },
-                dataSource: {
-                    transport: {
-                        read: {
-                            url: "/Dashboard/GetTransactionStatusPerYear",
-                            data: { tranCode: code },
-                            dataType: "json"
-                        }
-                    }
-                },
-                series: [
-                    //{ field: "Applied", name: "Applied", type: "column", stack: true },
-                    { field: "Pending", name: "Pending", type: "column", stack: true },
-                    { field: "Approved", name: "Approved", type: "column", stack: true },
-                    { field: "Denied", name: "Denied", type: "column", stack: true }
-                ],
-                //seriesColors: ["#2196F3", "#FFC107", "#4CAF50", "#F44336"], // Blue, Amber, Green, Red
-                seriesColors: ["#FFC107", "#4CAF50", "#F44336"], // Blue, Amber, Green, Red
-                categoryAxis: { field: "Year", title: { text: "Year" } },
-                valueAxis: { title: { text: "Number of Applicants" } },
-                tooltip: { visible: true, template: "#= series.name #: #= value #" }
-            });
-        });
-
-    }
-
-</script>*@
-
-
-@using Kendo.Mvc.UI.Fluent
-    @model IQueryable<iLgs.Models.Menubase>
-    @{
-        ViewBag.Title = "Home Page";
-        Layout = "~/Views/Shared/_AppLayout.cshtml";
-    }
-
-        <div class="jumbotron">
-            <div class="logo-container">
-                <div class="logo-row">
-                    <img src='@Url.Content("~/Assets/Logo.png")' alt="ePSMS logo" class="logo" />
-                    <div class="text-block">
-                        <div class="description">
-                            eProperty and Supplies Management System<br />
-                            Las Pinas City
+        @if (Model.ActionRequiredItems.Any())
+        {
+            <div class="action-items-list">
+                @foreach (var item in Model.ActionRequiredItems)
+                {
+                    <div class="action-item-card urgency-@item.UrgencyLevel">
+                        <div class="action-item-content">
+                            <div class="action-item-top">
+                                <span class="doc-type-badge doc-@item.DocumentType.ToLower()">@item.DocumentType</span>
+                                <span class="action-doc-no">@item.DocumentNo</span>
+                                <span class="action-department">&bull; @item.Department</span>
+                                @if (item.Date.HasValue)
+                                {
+                                    <span style="font-size: 11px; color: #64748b;">(@item.Date.Value.ToString("MMM dd, yyyy"))</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <div style="font-size: 12px; color: #475569; font-weight: 500;">
+                                    @item.Description
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.Remarks))
+                            {
+                                <div class="action-remarks">
+                                    <strong>Notice:</strong> @item.Remarks
+                                </div>
+                            }
+                        </div>
+                        <div class="action-item-actions">
+                            <a href="@item.ActionUrl" class="btn-action-resolve @(item.UrgencyLevel == "danger" ? "btn-danger-resolve" : "")">
+                                @item.ActionLabel &rarr;
+                            </a>
                         </div>
                     </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="action-empty-state">
+                <span class="k-icon k-i-check-circle" style="font-size: 28px; color: #16a34a; display: block; margin-bottom: 6px;"></span>
+                <strong>All caught up!</strong> There are currently no urgent pending items requiring your attention.
+            </div>
+        }
+    </div>
+
+    <!-- 4. Procurement & Property Lifecycle Pipeline -->
+    <div class="workflow-section">
+        <div class="kpi-section-title">
+            <span class="k-icon k-i-connector"></span> Procurement &amp; Property Lifecycle Pipeline
+        </div>
+
+        <div class="workflow-pipeline-grid">
+            @foreach (var step in Model.WorkflowPipeline)
+            {
+                <a href="@step.Url" class="pipeline-card" title="Open @step.Title">
+                    <div class="pipeline-card-top">
+                        <span class="pipeline-step-title">@step.Title</span>
+                        <span class="pipeline-card-icon k-icon @step.IconClass"></span>
+                    </div>
+                    <div>
+                        <div class="pipeline-count">@step.Count</div>
+                        <div class="pipeline-subtitle">@step.Subtitle</div>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- 5. Dual Operational Columns (Grid 7 : 5) -->
+    <div class="dashboard-main-grid">
+
+        <!-- Left Column: Recent System Activity Feed -->
+        <div class="content-panel">
+            <div class="panel-inner-header">
+                <h3>
+                    <span class="k-icon k-i-clock" style="color: #002576;"></span> Recent System Activity
+                </h3>
+                <span style="font-size: 11px; color: #64748b;">Live Status Audit Trail</span>
+            </div>
+
+            @if (Model.RecentActivities.Any())
+            {
+                <div class="activity-feed-list">
+                    @foreach (var act in Model.RecentActivities)
+                    {
+                        <div class="activity-feed-item">
+                            <span class="doc-type-badge doc-@act.DocumentType.ToLower()">@act.DocumentType</span>
+                            <div class="activity-main-text">
+                                <div>
+                                    <a href="@act.Url" class="activity-doc-link">@act.DocumentNo</a>
+                                    <span style="color: #64748b;"> &bull; </span>
+                                    <span>@act.Action</span>
+                                    <span style="color: #64748b;"> by </span>
+                                    <strong>@(string.IsNullOrWhiteSpace(act.User) ? "System" : act.User)</strong>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(act.Remarks))
+                                {
+                                    <span class="activity-remarks-snippet" title="@act.Remarks">
+                                        &ldquo;@act.Remarks&rdquo;
+                                    </span>
+                                }
+                            </div>
+                            <div class="activity-time-text">@act.TimeAgo</div>
+                        </div>
+                    }
                 </div>
+            }
+            else
+            {
+                <div class="action-empty-state">
+                    No recent activity records found.
+                </div>
+            }
+        </div>
+
+        <!-- Right Column: Common Tasks & Quick Navigation -->
+        <div class="content-panel">
+            <div class="panel-inner-header">
+                <h3>
+                    <span class="k-icon k-i-grid" style="color: #002576;"></span> Common Operations &amp; Registries
+                </h3>
+                <span style="font-size: 11px; color: #64748b;">Quick Shortcuts</span>
+            </div>
+
+            <div class="quick-actions-grid">
+                @foreach (var action in Model.QuickActions)
+                {
+                    <a href="@action.Url" class="action-tile @(action.IsPrimary ? "tile-primary" : "")">
+                        <span class="action-tile-icon k-icon @action.IconClass"></span>
+                        <div class="action-tile-content">
+                            <span class="action-tile-title">@action.Title</span>
+                            <span class="action-tile-desc">@action.Description</span>
+                        </div>
+                    </a>
+                }
             </div>
         </div>
 
+    </div>
 
-    <style>
-        body {
-            background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-
-        .body-opaque {
-            opacity: 0.85;
-        }
-
-        .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* aligns logo and text to the left */
-        }
-
-        .logo {
-            height: 300px; /* adjust as needed */
-        }
-
-        .text-block {
-            margin-top: -180px; /* adjust as needed to reduce space between logo and text */
-            padding-left: 300px; /* slight indent so it aligns under the "e" of the logo */
-        }
-
-        .description {
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.4;
-        }
-    </style>
-
+</div>

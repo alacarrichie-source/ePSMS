@@ -1,0 +1,685 @@
+/* ==========================================================================
+   ePSMS Modern Dashboard Styles
+   Enterprise Government Theme (Las Pinas City ePSMS)
+   ========================================================================== */
+
+.epsms-dashboard {
+    max-width: 1696px;
+    margin: 0 auto;
+    padding: 16px 20px 40px;
+    background-color: #f7f9fb;
+    color: #191c1e;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   1. Dashboard Context Header
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.epsms-dashboard .header-brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.epsms-dashboard .header-logo {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.epsms-dashboard .header-titles h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #002576;
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+}
+
+.epsms-dashboard .header-titles .subtitle {
+    font-size: 12px;
+    color: #5f6470;
+    margin: 0;
+}
+
+.epsms-dashboard .header-context-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.epsms-dashboard .user-meta-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 11px;
+    color: #475569;
+}
+
+.epsms-dashboard .user-meta-chip strong {
+    font-size: 13px;
+    color: #0f172a;
+}
+
+.epsms-dashboard .user-meta-chip .department-tag {
+    color: #002576;
+    font-weight: 600;
+}
+
+.epsms-dashboard .header-date-badge {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.epsms-dashboard .btn-dashboard-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #002576;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    border: none;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.epsms-dashboard .btn-dashboard-primary:hover {
+    background-color: #001b57;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.epsms-dashboard .btn-dashboard-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    color: #002576 !important;
+    border: 1px solid #002576;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .btn-dashboard-cart:hover {
+    background-color: #eff6ff;
+}
+
+/* --------------------------------------------------------------------------
+   2. Key Metrics & Status Overview (KPI Cards)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .kpi-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.epsms-dashboard .dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.epsms-dashboard .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 125px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
+}
+
+.epsms-dashboard .kpi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.epsms-dashboard .kpi-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.epsms-dashboard .kpi-card-icon {
+    font-size: 16px;
+    color: #002576;
+    background: #eff6ff;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.epsms-dashboard .kpi-card-body {
+    margin-bottom: 12px;
+}
+
+.epsms-dashboard .kpi-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #002576;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.epsms-dashboard .kpi-unit-label {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.epsms-dashboard .kpi-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    margin-top: auto;
+}
+
+.epsms-dashboard .kpi-sub-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-draft {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-submitted {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-returned {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-posted {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* --------------------------------------------------------------------------
+   3. Action Required (Operational Backlog)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .action-required-panel {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+.epsms-dashboard .panel-heading {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.epsms-dashboard .panel-count-pill {
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.epsms-dashboard .action-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.epsms-dashboard .action-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .action-item-card.urgency-danger {
+    border-left: 4px solid #ef4444;
+    background: #fff5f5;
+    border-color: #fecaca;
+}
+
+.epsms-dashboard .action-item-card.urgency-warning {
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.epsms-dashboard .action-item-card.urgency-info {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.epsms-dashboard .action-item-content {
+    flex: 1;
+    min-width: 260px;
+}
+
+.epsms-dashboard .action-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.epsms-dashboard .doc-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.epsms-dashboard .doc-type-badge.doc-pr {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.epsms-dashboard .doc-type-badge.doc-po {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.epsms-dashboard .doc-type-badge.doc-air {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.epsms-dashboard .doc-type-badge.doc-ris {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.epsms-dashboard .action-doc-no {
+    font-weight: 700;
+    color: #0f172a;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.epsms-dashboard .action-department {
+    font-size: 12px;
+    color: #475569;
+}
+
+.epsms-dashboard .action-remarks {
+    font-size: 12px;
+    color: #334155;
+    margin: 3px 0 0 0;
+    line-height: 1.35;
+}
+
+.epsms-dashboard .action-remarks strong {
+    color: #991b1b;
+}
+
+.epsms-dashboard .action-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.epsms-dashboard .btn-action-resolve {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #002576;
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 5px;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .btn-action-resolve:hover {
+    background: #001b57;
+}
+
+.epsms-dashboard .btn-action-resolve.btn-danger-resolve {
+    background: #dc2626;
+}
+
+.epsms-dashboard .btn-action-resolve.btn-danger-resolve:hover {
+    background: #b91c1c;
+}
+
+.epsms-dashboard .action-empty-state {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Workflow Pipeline (Visual Lifecycle)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .workflow-section {
+    margin-bottom: 24px;
+}
+
+.epsms-dashboard .workflow-pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.epsms-dashboard .pipeline-card {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-decoration: none !important;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.epsms-dashboard .pipeline-card:hover {
+    border-color: #002576;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.epsms-dashboard .pipeline-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.epsms-dashboard .pipeline-step-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.epsms-dashboard .pipeline-card-icon {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.epsms-dashboard .pipeline-count {
+    font-size: 18px;
+    font-weight: 700;
+    color: #002576;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.epsms-dashboard .pipeline-subtitle {
+    font-size: 10px;
+    color: #64748b;
+}
+
+@media (max-width: 1024px) {
+    .epsms-dashboard .workflow-pipeline-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+/* --------------------------------------------------------------------------
+   5. Dual Operational Columns (Split 7 : 5 Grid)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .dashboard-main-grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 20px;
+}
+
+@media (max-width: 992px) {
+    .epsms-dashboard .dashboard-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.epsms-dashboard .content-panel {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .panel-inner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.epsms-dashboard .panel-inner-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Recent Activity List */
+.epsms-dashboard .activity-feed-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.epsms-dashboard .activity-feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.epsms-dashboard .activity-feed-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.epsms-dashboard .activity-doc-link {
+    font-family: monospace;
+    font-weight: 700;
+    color: #002576;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.epsms-dashboard .activity-doc-link:hover {
+    text-decoration: underline;
+}
+
+.epsms-dashboard .activity-main-text {
+    flex: 1;
+    min-width: 0;
+    color: #334155;
+}
+
+.epsms-dashboard .activity-remarks-snippet {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.epsms-dashboard .activity-time-text {
+    font-size: 10px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* Quick Actions Tiles Grid */
+.epsms-dashboard .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+}
+
+.epsms-dashboard .action-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    text-decoration: none !important;
+    color: #1e293b !important;
+    transition: all 0.15s ease;
+}
+
+.epsms-dashboard .action-tile:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.epsms-dashboard .action-tile.tile-primary {
+    background: #002576;
+    border-color: #001f66;
+    color: #ffffff !important;
+}
+
+.epsms-dashboard .action-tile.tile-primary:hover {
+    background: #001b57;
+    color: #ffffff !important;
+}
+
+.epsms-dashboard .action-tile-icon {
+    font-size: 16px;
+    color: #002576;
+    background: #ffffff;
+    padding: 6px;
+    border-radius: 5px;
+    display: inline-flex;
+}
+
+.epsms-dashboard .action-tile.tile-primary .action-tile-icon {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.epsms-dashboard .action-tile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.epsms-dashboard .action-tile-title {
+    font-size: 12px;
+    font-weight: 700;
+    display: block;
+    line-height: 1.25;
+}
+
+.epsms-dashboard .action-tile-desc {
+    font-size: 10px;
+    color: #64748b;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.epsms-dashboard .action-tile.tile-primary .action-tile-desc {
+    color: #e2e8f0;
+}

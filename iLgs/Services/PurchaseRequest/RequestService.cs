@@ -129,6 +129,14 @@ namespace iLgs.Services.PurchaseRequest
                     .OrderByDescending(h => h.ChangedDt)
                     .Select(h => h.ToStatus)
                     .FirstOrDefault(),
+                StatusUser = db.DocumentStatusHistories.Where(h => h.DocumentType == DocumentTypes.PurchaseRequest && h.DocumentId == s.Id)
+                    .OrderByDescending(h => h.ChangedDt)
+                    .Select(h => h.ChangedBy)
+                    .FirstOrDefault(),
+                StatusDate = db.DocumentStatusHistories.Where(h => h.DocumentType == DocumentTypes.PurchaseRequest && h.DocumentId == s.Id)
+                    .OrderByDescending(h => h.ChangedDt)
+                    .Select(h => h.ChangedDt)
+                    .FirstOrDefault(),
                 //IsWithPO = s.Orders.Any(),
                 IsWithPO = s.RequestItems.Any(a => a.OrderItemRequests.Any()),
                 InsertedBy = s.InsertedBy,

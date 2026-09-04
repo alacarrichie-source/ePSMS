@@ -1,4 +1,4 @@
-﻿using Kendo.Mvc.UI;
+using Kendo.Mvc.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -66,6 +66,8 @@ namespace iLgs.Models
         public int ItemCount { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
+        public string StatusUser { get; set; }
+        public DateTime StatusDate { get; set; }
         public string StatusRemarks { get; set; }
 
         // TRANSIENTS 
@@ -135,6 +137,7 @@ namespace iLgs.Models
         public string Status { get; set; }
         public string StatusRemarks { get; set; }
         public decimal EstimatedTotal { get; set; }
+        public bool IsViewOnly { get; set; }
         public IList<PurchaseRequestReviewItemViewModel> Items { get; set; }
     }
 

@@ -19,7 +19,8 @@ namespace iLgs.Services.PurchaseOrder
     public interface IOrderService
     {
         IQueryable<OrderVM> GetAll();
-        ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId);
+        Task<IQueryable<OrderVM>> GetAllAsync(string userId);
+        Task<IQueryable<OrderVM>> GetAllForAirAsync(string userId);
         IQueryable<OrderVM> GetAllParOrders();
         ValueTask<Models.Order> GetByIdAsync(Guid orderId);
         ValueTask<Models.Order> GetByPoNoAsync(string poNo);
@@ -175,7 +176,7 @@ namespace iLgs.Services.PurchaseOrder
             return data;
         }
 
-        public async ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId)
+        public async Task<IQueryable<OrderVM>> GetAllAsync(string userId)
         {
             IQueryable<OrderVM> data = null;
             if (await _userService.IsAdminAsync(userId))
@@ -191,6 +192,22 @@ namespace iLgs.Services.PurchaseOrder
                             b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
                                 c.UserId == userId)))).Select(Projection(_db)).OrderByDescending(o => o.PoNo);
             }
+            return data;
+        }
+
+        public async Task<IQueryable<OrderVM>> GetAllForAirAsync(string userId)
+        {
+            IQueryable<OrderVM> data = _db.Orders.Where(w => w.OrderItems
+                .Any(a => a.OrderItemRequests
+                    .Any(b => (b.AIRItems.Sum(s => s.Qty) ?? 0) < b.QtyApplied))).AsNoTracking().Select(Projection(_db));
+            if (!await _userService.IsAdminAsync(userId))
+            {
+                data = _db.Orders.AsNoTracking()
+                    .Where(w => w.OrderItems.Any(a =>
+                        a.OrderItemRequests.Any(b =>
+                            b.RequestItem.Request.Codextn.DepartmentUsers.Any(c =>
+                                c.UserId == userId)))).Select(Projection(_db));
+            }            
             return data;
         }
 

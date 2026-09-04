@@ -1,4 +1,4 @@
-﻿using iLgs.Models;
+using iLgs.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,7 @@ using Kendo.Mvc.UI;
 using iLgs.Services.Codes;
 using Kendo.Mvc.Extensions;
 using System.Data.Entity;
+using iLgs.Services.Dashboard;
 
 namespace iLgs.Controllers
 {
@@ -114,16 +115,28 @@ namespace iLgs.Controllers
         //}
 
         private readonly ICodextnService _codextnService;
+        private readonly IDashboardService _dashboardService;
+
         public HomeController()
         {
             _codextnService = new CodextnService(_db);
+            _dashboardService = new DashboardService(_db);
         }
 
+        public async Task<ActionResult> Index()
+        {
+            string userId = User != null && User.Identity.IsAuthenticated ? User.Identity.GetUserId() : null;
+            string userName = User != null && User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
 
-        public ActionResult Index()
-        {            
+            var model = await _dashboardService.GetDashboardDataAsync(userId, userName);
 
-            return View();
+            var activeCart = Session["ProcurementCart"] as CartViewModel;
+            if (activeCart != null && activeCart.Items != null)
+            {
+                model.CartItemCount = activeCart.Items.Count;
+            }
+
+            return View(model);
         }
 
         public async Task<ActionResult> GetHomePages([DataSourceRequest] DataSourceRequest request, int count)

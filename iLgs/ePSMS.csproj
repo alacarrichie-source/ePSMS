@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -419,6 +419,7 @@
     <Compile Include="Models\AIRItemExtnVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\DashboardViewModel.cs" />
     <Compile Include="Models\GridViewModels.cs" />
     <Compile Include="Models\OrderSubItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -1003,6 +1004,8 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Include="Services\Dashboard\IDashboardService.cs" />
+    <Compile Include="Services\Dashboard\DashboardService.cs" />
     <Compile Include="Services\AccountableOfficerService.cs" />
     <Compile Include="Services\AccountCode_\AccountCodeItemService.cs" />
     <Compile Include="Services\AccountCode_\AccountCodeService.cs" />
@@ -1771,6 +1774,7 @@
     <Content Include="fonts\icomoon.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\dashboard.css" />
     <EntityDeploy Include="Models\AppManModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>AppManModel.Designer.cs</LastGenOutput>
