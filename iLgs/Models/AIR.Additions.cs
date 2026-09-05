@@ -19,6 +19,7 @@ namespace iLgs.Models
         // ----------------------------------------------------------------
         // Delivery / Invoice extras
         // ----------------------------------------------------------------
+        public string Disposition { get; set; }
         public string DrNo { get; set; }
         public decimal? InvoiceAmount { get; set; }
         public string InvoiceType { get; set; }

@@ -1,4 +1,4 @@
-﻿@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
@@ -7,38 +7,61 @@
         <div>
             <h2>Step 2: Inspect Items &amp; Record Deliveries</h2>
             <p class="subtitle">
-                Enter physically verified quantities delivered against each Purchase Order item. Pass/Fail results and acceptance decisions are handled separately in downstream acceptance.
+                Enter physically verified quantities delivered against each Purchase Order item. For items designated as Inventory, enter physical inventory details per inspected unit.
             </p>
         </div>
     </div>
 
     <!-- ============================================================
          INSPECTION METADATA PANEL
+         Field order: Inspection Date -> Inspection Committee -> Inspection Location (optional) -> Inspector Name -> Designation -> Remarks
          ============================================================ -->
     <div class="form-card mb-4 p-3 bg-light rounded border">
         <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Inspection Header &amp; Committee Details</h4>
         <div class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label for="txtInspectionDate" class="form-label small fw-bold">Inspection Date <span class="text-danger">*</span></label>
                 <input type="date" id="txtInspectionDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="scheduleWizardAutoSave()" />
             </div>
-            <div class="col-md-3">
-                <label for="txtInspectionLocation" class="form-label small fw-bold">Inspection Location <span class="text-danger">*</span></label>
-                <input type="text" id="txtInspectionLocation" class="form-control-custom w-100" placeholder="e.g. GSO Warehouse, City Hall" value="GSO Warehouse" onchange="scheduleWizardAutoSave()" />
+            <div class="col-md-4">
+                <label for="txtInspectionCommittee" class="form-label small fw-bold">Inspection Committee / Team Members <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="text" id="txtInspectionCommittee" class="form-control-custom w-100" placeholder="Names of assisting committee members..." onchange="scheduleWizardAutoSave()" />
             </div>
-            <div class="col-md-3">
-                <label for="txtInspectorName" class="form-label small fw-bold">Inspector Name <span class="text-danger">*</span></label>
-                <input type="text" id="txtInspectorName" class="form-control-custom w-100" placeholder="Full name of Inspector" onchange="scheduleWizardAutoSave()" />
+            <div class="col-md-4">
+                <label for="txtInspectionLocation" class="form-label small fw-bold">Inspection Location <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="text" id="txtInspectionLocation" class="form-control-custom w-100" placeholder="e.g. GSO Warehouse, City Hall" onchange="scheduleWizardAutoSave()" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <label for="InspectorName" class="form-label small fw-bold">Inspector Name <span class="text-danger">*</span></label>
+                @(Html.Kendo().MultiColumnComboBox()
+                    .Name("InspectorName")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;", id = "InspectorName" })
+                    .Placeholder("Select Officer")
+                    .DataTextField("Description")
+                    .DataValueField("Description")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetOfficers", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Description").Title("Name").Width("60%");
+                        c.Add().Field("Desc2").Title("Designation").Width("40%");
+                    })
+                    .Events(e => e.Select("onInspectorSelect").Change("onInspectorChange"))
+                    .Suggest(true)
+                )
+            </div>
+            <div class="col-md-4">
                 <label for="txtInspectorDesignation" class="form-label small fw-bold">Designation</label>
                 <input type="text" id="txtInspectorDesignation" class="form-control-custom w-100" placeholder="e.g. Inspection Officer I" onchange="scheduleWizardAutoSave()" />
             </div>
-            <div class="col-md-6">
-                <label for="txtInspectionCommittee" class="form-label small fw-bold">Inspection Committee / Team Members (Optional)</label>
-                <input type="text" id="txtInspectionCommittee" class="form-control-custom w-100" placeholder="Names of assisting committee members..." onchange="scheduleWizardAutoSave()" />
-            </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label for="txtGeneralRemarks" class="form-label small fw-bold">General Inspection Remarks</label>
                 <input type="text" id="txtGeneralRemarks" class="form-control-custom w-100" placeholder="Physical condition, batch notes, delivery notes..." onchange="scheduleWizardAutoSave()" />
             </div>
@@ -69,41 +92,46 @@
 
     <!-- ============================================================
          ITEMS INSPECTION TABLE
+         Includes: #, PR Number, Department, Item No., PPMP Code, Description, Unit, PO Qty, Prev. Inspected, Remaining, Qty This Insp, Total Insp, Disposition, Inventory Details, Remarks, History
          ============================================================ -->
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle mb-0" id="tblInspectItems">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 40px;" class="text-center">#</th>
-                    <th style="width: 100px;">Item No.</th>
-                    <th style="width: 110px;">PPMP Code</th>
+                    <th style="width: 35px;" class="text-center">#</th>
+                    <th style="width: 110px;">PR Number</th>
+                    <th style="width: 120px;">Department</th>
+                    <th style="width: 70px;">Item No.</th>
+                    <th style="width: 90px;">PPMP Code</th>
                     <th>Description</th>
-                    <th style="width: 70px;">Unit</th>
-                    <th style="width: 100px;" class="text-end">Ordered</th>
-                    <th style="width: 110px;" class="text-end">Prev. Inspected</th>
-                    <th style="width: 100px;" class="text-end">Remaining</th>
-                    <th style="width: 120px;" class="text-end text-primary">Inspect Now</th>
-                    <th style="width: 110px;" class="text-end">Total Inspected</th>
-                    <th style="width: 160px;">Remarks</th>
-                    <th style="width: 70px;" class="text-center">History</th>
+                    <th style="width: 60px;">Unit</th>
+                    <th style="width: 85px;" class="text-end">PO Qty</th>
+                    <th style="width: 85px;" class="text-end">Prev. Insp.</th>
+                    <th style="width: 85px;" class="text-end">Remaining</th>
+                    <th style="width: 105px;" class="text-end text-primary">Qty This Insp.</th>
+                    <th style="width: 85px;" class="text-end">Total Insp.</th>
+                    <th style="width: 125px;">Disposition</th>
+                    <th style="width: 155px;" class="text-center">Inventory Details</th>
+                    <th style="width: 120px;">Remarks</th>
+                    <th style="width: 50px;" class="text-center">Hist.</th>
                 </tr>
             </thead>
             <tbody id="inspectItemsTableBody">
                 <tr>
-                    <td colspan="12" class="p-4 text-center text-muted">
+                    <td colspan="16" class="p-4 text-center text-muted">
                         Please select a Purchase Order in Step 1 to load items.
                     </td>
                 </tr>
             </tbody>
             <tfoot class="table-light fw-bold" id="inspectItemsTableFooter" style="display:none;">
                 <tr>
-                    <td colspan="5" class="text-end">Grand Totals:</td>
+                    <td colspan="7" class="text-end">Grand Totals:</td>
                     <td class="text-end" id="lblGrandOrdered">0.00</td>
                     <td class="text-end" id="lblGrandPrevInspected">0.00</td>
                     <td class="text-end" id="lblGrandRemaining">0.00</td>
                     <td class="text-end text-primary" id="lblGrandInspectNow">0.00</td>
                     <td class="text-end" id="lblGrandTotalInspected">0.00</td>
-                    <td colspan="2"></td>
+                    <td colspan="4"></td>
                 </tr>
             </tfoot>
         </table>
@@ -130,32 +158,170 @@
 </div>
 
 <script type="text/javascript">
+    var activeModalItemIdx = -1;
+
+    function onInspectorSelect(e) {
+        var dataItem = e.dataItem;
+        if (dataItem) {
+            var name = dataItem.Description || "";
+            var designation = dataItem.Desc2 || "";
+            $("#txtInspectorDesignation").val(designation);
+            if (airWizardState) {
+                airWizardState.InspectorName = name;
+                airWizardState.InspectorDesignation = designation;
+            }
+            if (typeof scheduleWizardAutoSave === "function") {
+                scheduleWizardAutoSave();
+            }
+        }
+    }
+
+    function onInspectorChange(e) {
+        var cb = this;
+        var val = cb.value() || "";
+        var dataItem = cb.dataItem();
+        var designation = (dataItem && dataItem.Desc2) ? dataItem.Desc2 : $("#txtInspectorDesignation").val();
+        $("#txtInspectorDesignation").val(designation);
+        if (airWizardState) {
+            airWizardState.InspectorName = val;
+            airWizardState.InspectorDesignation = designation;
+        }
+        if (typeof scheduleWizardAutoSave === "function") {
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function checkInventoryDetailCompleted(extnName, d) {
+        if (!d) return false;
+        extnName = extnName || "ItemExtnOther";
+        if (extnName === "ItemExtnVehicle") {
+            return !!((d.ConductionNo && d.ConductionNo.trim()) ||
+                      (d.EngineNo && d.EngineNo.trim()) ||
+                      (d.ChasisNo && d.ChasisNo.trim()) ||
+                      (d.PlateNo && d.PlateNo.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else if (extnName === "ItemExtnLand") {
+            return !!((d.PIN && d.PIN.trim()) ||
+                      (d.TctNo && d.TctNo.trim()) ||
+                      (d.Address && d.Address.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else if (extnName === "ItemExtnBuilding") {
+            return !!((d.ProjectName && d.ProjectName.trim()) ||
+                      (d.Address && d.Address.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else {
+            return !!((d.SerialNo && d.SerialNo.trim()) || (d.Remarks && d.Remarks.trim()));
+        }
+    }
+
+    function reconcileItemInventoryDetails(itm) {
+        if (!itm) return;
+        var currentDisp = itm.Disposition || (airWizardState ? airWizardState.Disposition : "") || "Inventory";
+        itm.Disposition = currentDisp;
+
+        if (currentDisp === "Inventory") {
+            var req = Math.floor(itm.InspectNowQty || 0);
+            itm.RequiredInventoryCount = req;
+            if (!itm.InventoryDetails) itm.InventoryDetails = [];
+
+            if (itm.InventoryDetails.length > req) {
+                itm.InventoryDetails = itm.InventoryDetails.slice(0, req);
+            } else {
+                while (itm.InventoryDetails.length < req) {
+                    var uIdx = itm.InventoryDetails.length + 1;
+                    itm.InventoryDetails.push({
+                        UnitIndex: uIdx,
+                        UnitNumber: uIdx,
+                        Condition: "Brand New",
+                        IsCompleted: false
+                    });
+                }
+            }
+
+            var compCount = 0;
+            itm.InventoryDetails.forEach(function (d, i) {
+                d.UnitIndex = i + 1;
+                d.UnitNumber = i + 1;
+                d.IsCompleted = checkInventoryDetailCompleted(itm.ItemExtnName, d);
+                if (d.IsCompleted) compCount++;
+            });
+            itm.CompletedInventoryCount = compCount;
+        } else {
+            itm.RequiredInventoryCount = 0;
+            itm.CompletedInventoryCount = 0;
+        }
+    }
+
     function renderStep2Items(data) {
         if (!data || !data.Items || data.Items.length === 0) {
-            $("#inspectItemsTableBody").html("<tr><td colspan='12' class='p-4 text-center text-muted'>No items found for this Purchase Order.</td></tr>");
+            $("#inspectItemsTableBody").html("<tr><td colspan='16' class='p-4 text-center text-muted'>No items found for this Purchase Order.</td></tr>");
             $("#inspectItemsTableFooter").hide();
             return;
         }
 
-        if (data.InspectorName) $("#txtInspectorName").val(data.InspectorName);
-        if (data.InspectionLocation) $("#txtInspectionLocation").val(data.InspectionLocation);
-        if (data.InspectorDesignation) $("#txtInspectorDesignation").val(data.InspectorDesignation);
-        if (data.InspectionCommittee) $("#txtInspectionCommittee").val(data.InspectionCommittee);
-        if (data.GeneralRemarks) $("#txtGeneralRemarks").val(data.GeneralRemarks);
+        // Populate Inspector MultiColumnComboBox
+        var cb = $("#InspectorName").data("kendoMultiColumnComboBox");
+        if (cb) {
+            cb.value(data.InspectorName || "");
+            cb.text(data.InspectorName || "");
+        } else {
+            $("#InspectorName").val(data.InspectorName || "");
+        }
+
+        if (data.InspectorDesignation !== undefined) $("#txtInspectorDesignation").val(data.InspectorDesignation || "");
+        if (data.InspectionLocation !== undefined && data.InspectionLocation !== null) {
+            $("#txtInspectionLocation").val(data.InspectionLocation);
+        } else if (!$("#txtInspectionLocation").val()) {
+            $("#txtInspectionLocation").val(data.DeliveryPlace || "");
+        }
+        if (data.InspectionCommittee !== undefined) $("#txtInspectionCommittee").val(data.InspectionCommittee || "");
+        if (data.GeneralRemarks !== undefined) $("#txtGeneralRemarks").val(data.GeneralRemarks || "");
 
         var html = "";
         data.Items.forEach(function (item, idx) {
+            // Default item disposition from wizard state if not set
+            if (!item.Disposition) {
+                item.Disposition = data.Disposition || "Inventory";
+            }
+            reconcileItemInventoryDetails(item);
+
             var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
             var expandBtn = isSet ? "<button type='button' class='btn btn-xs btn-link p-0 text-decoration-none' onclick='toggleSubItemsRow(" + idx + ")'><span id='expandIcon_" + idx + "' class='k-icon k-i-arrow-chevron-right'></span></button>" : "";
 
+            var prCellContent = "";
+            var deptCellContent = "";
+
+            if (item.Sources && item.Sources.length > 1) {
+                prCellContent = item.Sources.map(function (s) {
+                    var qtyFormatted = Number(s.Qty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return "<div class='small fw-bold text-primary'>" + (s.PRNumber || "--") + " <span class='text-muted fw-normal'>(" + qtyFormatted + ")</span></div>";
+                }).join("");
+
+                deptCellContent = item.Sources.map(function (s) {
+                    return "<div class='small text-muted text-truncate' title='" + (s.Department || "--") + "'>" + (s.Department || "--") + "</div>";
+                }).join("");
+            } else if (item.Sources && item.Sources.length === 1) {
+                var s = item.Sources[0];
+                prCellContent = "<span class='small fw-bold text-primary'>" + (s.PRNumber || item.PRNumber || "--") + "</span>";
+                deptCellContent = "<span class='small text-muted text-truncate' title='" + (s.Department || item.Department || "--") + "'>" + (s.Department || item.Department || "--") + "</span>";
+            } else {
+                prCellContent = "<span class='small fw-bold text-primary'>" + (item.PRNumber || data.PRNumber || "--") + "</span>";
+                deptCellContent = "<span class='small text-muted text-truncate' title='" + (item.Department || data.DepartmentName || "--") + "'>" + (item.Department || data.DepartmentName || "--") + "</span>";
+            }
+
             html += "<tr id='parentItemRow_" + idx + "' data-item-idx='" + idx + "' class='" + (isSet ? "table-set-parent" : "") + "'>";
             html += "<td class='text-center'>" + expandBtn + "</td>";
+            html += "<td>" + prCellContent + "</td>";
+            html += "<td>" + deptCellContent + "</td>";
             html += "<td class='fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>";
             html += "<td class='small text-muted'>" + (item.PPMPCode || "--") + "</td>";
             html += "<td>";
             html += "  <div class='fw-semibold'>" + (item.Description || "Item") + "</div>";
             if (isSet) {
                 html += "  <span class='badge bg-info text-dark small'>Set / Lot (" + item.SubItems.length + " components)</span>";
+            }
+            if (item.ItemExtnName) {
+                html += "  <span class='badge bg-light text-secondary border small mt-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>";
             }
             html += "</td>";
             html += "<td class='text-muted small'>" + (item.Unit || "unit") + "</td>";
@@ -169,7 +335,25 @@
             html += "</td>";
 
             html += "<td class='text-end font-monospace fw-bold' id='lblTotalInspected_" + idx + "'>" + Number(item.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+
+            // Disposition Selector
+            html += "<td>";
+            html += "  <select class='form-control-custom w-100 form-control-sm' id='ddlItemDisposition_" + idx + "' onchange='onItemDispositionChange(" + idx + ", this.value)'>";
+            html += "    <option value='Inventory'" + (item.Disposition === 'Inventory' ? " selected" : "") + ">Inventory</option>";
+            html += "    <option value='For Distribution'" + (item.Disposition === 'For Distribution' ? " selected" : "") + ">For Distribution</option>";
+            html += "    <option value='N/A'" + (item.Disposition === 'N/A' ? " selected" : "") + ">N/A</option>";
+            html += "  </select>";
+            html += "</td>";
+
+            // Inventory Details Cell
+            html += "<td class='text-center' id='inventoryDetailsCell_" + idx + "'>";
+            html += renderInventoryDetailsButtonHtml(item, idx);
+            html += "</td>";
+
+            // Remarks
             html += "<td><input type='text' class='form-control-custom w-100 item-remarks-input' id='txtRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Item notes...' onchange='onItemRemarksChange(" + idx + ", this.value)' /></td>";
+
+            // History
             html += "<td class='text-center'><button type='button' class='btn btn-xs btn-outline-secondary' onclick='openItemHistory(\"" + item.OrderItemId + "\")' title='View Inspection History'><span class='k-icon k-i-history'></span></button></td>";
             html += "</tr>";
 
@@ -177,7 +361,7 @@
             if (isSet) {
                 html += "<tr id='subItemsRow_" + idx + "' style='display:none;' class='table-light'>";
                 html += "  <td></td>";
-                html += "  <td colspan='11' class='p-3'>";
+                html += "  <td colspan='15' class='p-3'>";
                 html += "    <div class='p-2 bg-white rounded border'>";
                 html += "      <div class='fw-bold small text-secondary mb-2'><span class='k-icon k-i-layers'></span> Set/Lot Components for: " + (item.Description || "Item") + "</div>";
                 html += "      <table class='table table-sm table-bordered mb-0'>";
@@ -221,16 +405,64 @@
         recalculateGrandTotals();
     }
 
-    function toggleSubItemsRow(idx) {
-        var row = $("#subItemsRow_" + idx);
-        var icon = $("#expandIcon_" + idx);
-        if (row.is(":visible")) {
-            row.hide();
-            icon.removeClass("k-i-arrow-chevron-down").addClass("k-i-arrow-chevron-right");
-        } else {
-            row.show();
-            icon.removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
+    function renderInventoryDetailsButtonHtml(item, idx) {
+        if (item.Disposition !== "Inventory") {
+            return "<span class='badge bg-light text-muted border'>Not Required</span>";
         }
+        var inspectQty = item.InspectNowQty || 0;
+        if (inspectQty <= 0) {
+            return "<span class='text-muted small'>Inspect Qty is 0</span>";
+        }
+        var req = Math.floor(inspectQty);
+        var comp = (item.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(item.ItemExtnName, d); }).length;
+        item.RequiredInventoryCount = req;
+        item.CompletedInventoryCount = comp;
+
+        if (comp >= req && req > 0) {
+            return "<button type='button' class='btn btn-xs btn-success w-100 text-nowrap' onclick='openInventoryModal(" + idx + ")'><span class='k-icon k-i-check'></span> Details " + comp + " / " + req + "</button>";
+        } else {
+            return "<button type='button' class='btn btn-xs btn-warning text-dark w-100 text-nowrap' onclick='openInventoryModal(" + idx + ")'><span class='k-icon k-i-edit'></span> Enter Details (" + comp + " / " + req + ")</button>";
+        }
+    }
+
+    function updateInventoryDetailsButton(idx) {
+        var item = airWizardState.Items[idx];
+        if (!item) return;
+        var container = $("#inventoryDetailsCell_" + idx);
+        if (container.length) {
+            container.html(renderInventoryDetailsButtonHtml(item, idx));
+        }
+    }
+
+    function onItemDispositionChange(idx, newDisp) {
+        var item = airWizardState.Items[idx];
+        if (!item) return;
+
+        var prevDisp = item.Disposition;
+        if (prevDisp === "Inventory" && newDisp !== "Inventory") {
+            var hasData = (item.InventoryDetails || []).some(function (d) {
+                return d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted);
+            });
+
+            if (hasData) {
+                var confirmed = confirm("Changing disposition from Inventory to " + newDisp + " will discard entered inventory details for this item. Are you sure you want to proceed?");
+                if (!confirmed) {
+                    $("#ddlItemDisposition_" + idx).val("Inventory");
+                    return;
+                }
+            }
+            item.InventoryDetails = [];
+            item.CompletedInventoryCount = 0;
+            item.RequiredInventoryCount = 0;
+        }
+
+        item.Disposition = newDisp;
+        if (newDisp === "Inventory") {
+            reconcileItemInventoryDetails(item);
+        }
+
+        updateInventoryDetailsButton(idx);
+        scheduleWizardAutoSave();
     }
 
     function onItemInspectNowChange(idx, valStr) {
@@ -248,12 +480,36 @@
             alert("Inspect Now quantity cannot exceed Remaining quantity (" + maxAllowed + ").");
         }
 
+        var oldQty = item.InspectNowQty || 0;
+        var newRequired = Math.floor(val);
+        var currentDetails = item.InventoryDetails || [];
+
+        // If reducing quantity on an Inventory item, check if entered details would be discarded
+        if (item.Disposition === "Inventory" && newRequired < currentDetails.length) {
+            var hasEnteredDataDiscarded = false;
+            for (var k = newRequired; k < currentDetails.length; k++) {
+                var d = currentDetails[k];
+                if (d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted)) {
+                    hasEnteredDataDiscarded = true;
+                    break;
+                }
+            }
+            if (hasEnteredDataDiscarded) {
+                var confirmed = confirm("Reducing quantity to " + newRequired + " will discard entered inventory details for unit(s) " + (newRequired + 1) + " to " + currentDetails.length + ". Do you wish to proceed?");
+                if (!confirmed) {
+                    $("#txtInspectNow_" + idx).val(oldQty);
+                    return;
+                }
+            }
+        }
+
         item.InspectNowQty = val;
         var total = (item.PreviousInspectedQty || 0) + val;
-        var remainingAfter = (item.OrderedQty || 0) - total;
-        if (remainingAfter < 0) remainingAfter = 0;
-
         $("#lblTotalInspected_" + idx).text(Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        // Reconcile inventory details count
+        reconcileItemInventoryDetails(item);
+        updateInventoryDetailsButton(idx);
 
         // If parent item has sub-items, proportionally adjust sub-items inspect now
         if (item.IsSetLot && item.SubItems) {
@@ -270,6 +526,18 @@
 
         recalculateGrandTotals();
         scheduleWizardAutoSave();
+    }
+
+    function toggleSubItemsRow(idx) {
+        var row = $("#subItemsRow_" + idx);
+        var icon = $("#expandIcon_" + idx);
+        if (row.is(":visible")) {
+            row.hide();
+            icon.removeClass("k-i-arrow-chevron-down").addClass("k-i-arrow-chevron-right");
+        } else {
+            row.show();
+            icon.removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
+        }
     }
 
     function onSubItemInspectNowChange(idx, sIdx, valStr) {
@@ -386,6 +654,384 @@
             alert("You must enter an 'Inspect Now' quantity greater than 0 for at least one item before continuing.");
             return;
         }
+
+        // Completion validation: Ensure all inventory items have Completed Count == Required Count
+        if (airWizardState.Items) {
+            for (var idx = 0; idx < airWizardState.Items.length; idx++) {
+                var itm = airWizardState.Items[idx];
+                if (itm.Disposition === "Inventory" && (itm.InspectNowQty || 0) > 0) {
+                    var req = Math.floor(itm.InspectNowQty);
+                    var comp = (itm.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(itm.ItemExtnName, d); }).length;
+                    if (comp < req) {
+                        alert("Item #" + (itm.ItemNo || (idx + 1)) + " (" + (itm.Description || "Item") + ") requires " + req + " inventory detail records, but only " + comp + " completed.\n\nPlease click [Enter Details] to complete inventory records before continuing.");
+                        return;
+                    }
+                }
+            }
+        }
+
         goToWizardStep(3);
+    }
+
+    // ============================================================
+    // INVENTORY DETAILS MODAL LOGIC (Supports Vehicle, Land, Building, Other)
+    // ============================================================
+    function openInventoryModal(idx) {
+        activeModalItemIdx = idx;
+        var item = airWizardState.Items[idx];
+        if (!item) return;
+
+        reconcileItemInventoryDetails(item);
+        var extnName = item.ItemExtnName || "ItemExtnOther";
+        var reqCount = item.RequiredInventoryCount;
+
+        var extnTitle = "Other / General Equipment";
+        if (extnName === "ItemExtnVehicle") extnTitle = "Motor Vehicle";
+        else if (extnName === "ItemExtnLand") extnTitle = "Real Property / Land";
+        else if (extnName === "ItemExtnBuilding") extnTitle = "Building / Structure";
+
+        var html = "";
+
+        // Header info bar inside modal
+        html += "<div class='p-3 bg-light rounded border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2'>";
+        html += "  <div>";
+        html += "    <div class='fw-bold fs-6 text-dark'>" + (item.Description || "Item") + "</div>";
+        html += "    <div class='small text-muted'>PR #" + (item.PRNumber || "--") + " &bull; Required Inventory Assets: <strong class='text-primary'>" + reqCount + " units</strong> &bull; Asset Model: <span class='badge bg-secondary'>" + extnTitle + "</span></div>";
+        html += "  </div>";
+        html += "  <div class='d-flex align-items-center gap-2'>";
+        html += "    <span id='modalLiveCompletionBadge' class='badge " + (item.CompletedInventoryCount >= reqCount ? "bg-success" : "bg-warning text-dark") + " fs-6'>";
+        html += "      " + (item.CompletedInventoryCount || 0) + " of " + reqCount + " Completed";
+        html += "    </span>";
+        html += "  </div>";
+        html += "</div>";
+
+        // Batch tool helper bar
+        html += "<div class='p-2 bg-white rounded border mb-3 d-flex align-items-center flex-wrap gap-2 small'>";
+        html += "  <span class='fw-bold text-secondary'><span class='k-icon k-i-gear'></span> Quick Tools:</span>";
+        html += "  <div class='d-flex align-items-center gap-1'>";
+        html += "    <label class='mb-0 text-muted'>Set All Condition:</label>";
+        html += "    <select id='batchConditionSelect' class='form-control-custom form-control-sm' style='width:120px;'>";
+        html += "      <option value='Brand New'>Brand New</option>";
+        html += "      <option value='Good'>Good</option>";
+        html += "      <option value='Fair'>Fair</option>";
+        html += "      <option value='Poor'>Poor</option>";
+        html += "      <option value='Unserviceable'>Unserviceable</option>";
+        html += "    </select>";
+        html += "    <button type='button' class='btn btn-xs btn-outline-primary' onclick='applyBatchCondition()'>Apply</button>";
+        html += "  </div>";
+        html += "  <span class='text-muted'>|</span>";
+        html += "  <div class='d-flex align-items-center gap-1'>";
+        html += "    <label class='mb-0 text-muted'>Sequential Serials:</label>";
+        html += "    <input type='text' id='batchSerialPrefix' class='form-control-custom form-control-sm' placeholder='Prefix (e.g. SN-)' style='width:90px;' />";
+        html += "    <input type='number' id='batchSerialStart' class='form-control-custom form-control-sm' placeholder='Start (1001)' style='width:85px;' />";
+        html += "    <button type='button' class='btn btn-xs btn-outline-primary' onclick='applyBatchSerials()'>Fill</button>";
+        html += "  </div>";
+        if (reqCount > 1) {
+            html += "  <span class='text-muted'>|</span>";
+            html += "  <button type='button' class='btn btn-xs btn-outline-secondary' onclick='copyUnit1ToAll()'><span class='k-icon k-i-copy'></span> Copy Unit 1 Common Fields</button>";
+        }
+        html += "</div>";
+
+        // Extension-specific dynamic table
+        html += "<div class='table-responsive' style='max-height: 380px; overflow-y: auto;'>";
+        html += "  <table class='table table-sm table-bordered align-middle mb-0' id='tblModalInventoryUnits'>";
+        html += "    <thead class='table-light sticky-top small'>";
+        html += "      <tr>";
+        html += "        <th style='width:45px;' class='text-center'>Unit</th>";
+        html += "        <th style='width:110px;'>Condition</th>";
+
+        if (extnName === "ItemExtnVehicle") {
+            html += "    <th style='width:120px;'>Serial No.</th>";
+            html += "    <th style='width:120px;'>Conduction No.</th>";
+            html += "    <th style='width:120px;'>Engine No.</th>";
+            html += "    <th style='width:120px;'>Chassis No.</th>";
+            html += "    <th style='width:100px;'>Plate No.</th>";
+            html += "    <th style='width:90px;'>Color</th>";
+            html += "    <th style='width:90px;'>Year Model</th>";
+            html += "    <th style='width:100px;'>Series No.</th>";
+        } else if (extnName === "ItemExtnLand") {
+            html += "    <th style='width:120px;'>Property Index (PIN)</th>";
+            html += "    <th style='width:120px;'>TCT No.</th>";
+            html += "    <th style='width:100px;'>Lot No.</th>";
+            html += "    <th style='width:100px;'>Survey No.</th>";
+            html += "    <th style='width:100px;'>Area (sq.m.)</th>";
+            html += "    <th>Location / Address</th>";
+        } else if (extnName === "ItemExtnBuilding") {
+            html += "    <th style='width:120px;'>Ref / Serial No.</th>";
+            html += "    <th style='width:140px;'>Project Name</th>";
+            html += "    <th style='width:110px;'>Building Type</th>";
+            html += "    <th style='width:90px;'>No. Storeys</th>";
+            html += "    <th style='width:90px;'>Floor Area</th>";
+            html += "    <th>Location / Address</th>";
+        } else { // ItemExtnOther
+            html += "    <th style='width:150px;'>Serial No. <span class='text-danger'>*</span></th>";
+            html += "    <th style='width:120px;'>Brand</th>";
+            html += "    <th style='width:120px;'>Model</th>";
+            html += "    <th>Asset Remarks / Specifications</th>";
+        }
+
+        html += "        <th style='width:70px;' class='text-center'>Status</th>";
+        html += "      </tr>";
+        html += "    </thead>";
+        html += "    <tbody id='modalInventoryTbody' class='small'>";
+
+        item.InventoryDetails.forEach(function (u, uIdx) {
+            var isComp = checkInventoryDetailCompleted(extnName, u);
+            var cond = u.Condition || "Brand New";
+
+            html += "    <tr id='unitRow_" + uIdx + "' data-unit-idx='" + uIdx + "'>";
+            html += "      <td class='text-center fw-bold bg-light'>#" + (uIdx + 1) + "</td>";
+            html += "      <td>";
+            html += "        <select class='form-control-custom form-control-sm w-100 unit-condition' onchange='onModalUnitFieldChange(" + uIdx + ")'>";
+            html += "          <option value='Brand New'" + (cond === "Brand New" ? " selected" : "") + ">Brand New</option>";
+            html += "          <option value='Good'" + (cond === "Good" ? " selected" : "") + ">Good</option>";
+            html += "          <option value='Fair'" + (cond === "Fair" ? " selected" : "") + ">Fair</option>";
+            html += "          <option value='Poor'" + (cond === "Poor" ? " selected" : "") + ">Poor</option>";
+            html += "          <option value='Unserviceable'" + (cond === "Unserviceable" ? " selected" : "") + ">Unserviceable</option>";
+            html += "        </select>";
+            html += "      </td>";
+
+            if (extnName === "ItemExtnVehicle") {
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-conduction' value='" + (u.ConductionNo || "") + "' placeholder='Conduction...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-engine' value='" + (u.EngineNo || "") + "' placeholder='Engine...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-chasis' value='" + (u.ChasisNo || "") + "' placeholder='Chassis...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-plate' value='" + (u.PlateNo || "") + "' placeholder='Plate...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-color' value='" + (u.Color || "") + "' placeholder='Color...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-year' value='" + (u.YearModel || "") + "' placeholder='Year...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-series' value='" + (u.SeriesNo || "") + "' placeholder='Series...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+            } else if (extnName === "ItemExtnLand") {
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-pin' value='" + (u.PIN || "") + "' placeholder='PIN...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-tct' value='" + (u.TctNo || "") + "' placeholder='TCT No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-lot' value='" + (u.LotNo || "") + "' placeholder='Lot No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-survey' value='" + (u.SurveyNo || "") + "' placeholder='Survey No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-area' value='" + (u.Area || "") + "' placeholder='Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Location address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+            } else if (extnName === "ItemExtnBuilding") {
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Ref / Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-project' value='" + (u.ProjectName || "") + "' placeholder='Project Name...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-buildingtype' value='" + (u.BuildingType || "") + "' placeholder='Type...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='number' class='form-control-custom form-control-sm w-100 unit-storeys' value='" + (u.NumStoreys || "") + "' placeholder='Storeys' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-floorarea' value='" + (u.FloorArea || "") + "' placeholder='Floor Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Building Address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+            } else { // ItemExtnOther
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial Number...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-brand' value='" + (u.Brand || item.Brand || "") + "' placeholder='Brand...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-model' value='" + (u.Model || "") + "' placeholder='Model...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-remarks' value='" + (u.Remarks || "") + "' placeholder='Notes/Specs...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+            }
+
+            html += "      <td class='text-center' id='unitStatusCell_" + uIdx + "'>";
+            html += "        " + (isComp ? "<span class='badge bg-success'>OK</span>" : "<span class='badge bg-light text-muted border'>--</span>");
+            html += "      </td>";
+            html += "    </tr>";
+        });
+
+        html += "    </tbody>";
+        html += "  </table>";
+        html += "</div>";
+
+        // Modal Action bar
+        html += "<div class='d-flex justify-content-between align-items-center mt-3 pt-2 border-top'>";
+        html += "  <span class='small text-muted' id='modalFooterHint'>Enter physical serial numbers and identifiers for each physical asset.</span>";
+        html += "  <div class='d-flex gap-2'>";
+        html += "    <button type='button' class='btn-procurement-secondary btn-sm' onclick='closeInventoryModal()'>Cancel</button>";
+        html += "    <button type='button' class='btn-procurement-primary btn-sm' onclick='saveInventoryModal()'><span class='k-icon k-i-check'></span> Save Details</button>";
+        html += "  </div>";
+        html += "</div>";
+
+        $("#inventoryDetailsModalContent").html(html);
+
+        var win = $("#inventoryDetailsWindow").data("kendoWindow");
+        if (win) {
+            win.title("Inventory Details: " + (item.Description || "Item") + " (" + reqCount + " Units)");
+            win.center().open();
+        }
+    }
+
+    function onModalUnitFieldChange(uIdx) {
+        var item = airWizardState.Items[activeModalItemIdx];
+        if (!item) return;
+        var extnName = item.ItemExtnName || "ItemExtnOther";
+
+        var row = $("#unitRow_" + uIdx);
+        var dummy = readUnitFromRow(row, extnName);
+        var isComp = checkInventoryDetailCompleted(extnName, dummy);
+
+        var cell = $("#unitStatusCell_" + uIdx);
+        if (isComp) {
+            cell.html("<span class='badge bg-success'>OK</span>");
+        } else {
+            cell.html("<span class='badge bg-light text-muted border'>--</span>");
+        }
+
+        updateModalCompletionCounter();
+    }
+
+    function readUnitFromRow(row, extnName) {
+        var u = {
+            Condition: row.find(".unit-condition").val() || "Brand New"
+        };
+
+        if (extnName === "ItemExtnVehicle") {
+            u.SerialNo = row.find(".unit-serial").val() || "";
+            u.ConductionNo = row.find(".unit-conduction").val() || "";
+            u.EngineNo = row.find(".unit-engine").val() || "";
+            u.ChasisNo = row.find(".unit-chasis").val() || "";
+            u.PlateNo = row.find(".unit-plate").val() || "";
+            u.Color = row.find(".unit-color").val() || "";
+            u.YearModel = row.find(".unit-year").val() || "";
+            u.SeriesNo = row.find(".unit-series").val() || "";
+        } else if (extnName === "ItemExtnLand") {
+            u.PIN = row.find(".unit-pin").val() || "";
+            u.TctNo = row.find(".unit-tct").val() || "";
+            u.LotNo = row.find(".unit-lot").val() || "";
+            u.SurveyNo = row.find(".unit-survey").val() || "";
+            u.Area = row.find(".unit-area").val() || "";
+            u.Address = row.find(".unit-address").val() || "";
+            u.SerialNo = u.PIN || u.TctNo || "";
+        } else if (extnName === "ItemExtnBuilding") {
+            u.SerialNo = row.find(".unit-serial").val() || "";
+            u.ProjectName = row.find(".unit-project").val() || "";
+            u.BuildingType = row.find(".unit-buildingtype").val() || "";
+            u.NumStoreys = parseInt(row.find(".unit-storeys").val()) || null;
+            u.FloorArea = row.find(".unit-floorarea").val() || "";
+            u.Address = row.find(".unit-address").val() || "";
+        } else { // ItemExtnOther
+            u.SerialNo = row.find(".unit-serial").val() || "";
+            u.Brand = row.find(".unit-brand").val() || "";
+            u.Model = row.find(".unit-model").val() || "";
+            u.Remarks = row.find(".unit-remarks").val() || "";
+        }
+
+        return u;
+    }
+
+    function updateModalCompletionCounter() {
+        var item = airWizardState.Items[activeModalItemIdx];
+        if (!item) return;
+        var extnName = item.ItemExtnName || "ItemExtnOther";
+
+        var comp = 0;
+        $("#modalInventoryTbody tr").each(function () {
+            var u = readUnitFromRow($(this), extnName);
+            if (checkInventoryDetailCompleted(extnName, u)) comp++;
+        });
+
+        var req = item.RequiredInventoryCount;
+        var badge = $("#modalLiveCompletionBadge");
+        if (comp >= req && req > 0) {
+            badge.removeClass("bg-warning text-dark").addClass("bg-success text-white").text(comp + " of " + req + " Completed");
+        } else {
+            badge.removeClass("bg-success text-white").addClass("bg-warning text-dark").text(comp + " of " + req + " Completed");
+        }
+    }
+
+    function applyBatchCondition() {
+        var val = $("#batchConditionSelect").val();
+        $("#modalInventoryTbody .unit-condition").val(val);
+        $("#modalInventoryTbody tr").each(function (uIdx) {
+            onModalUnitFieldChange(uIdx);
+        });
+    }
+
+    function applyBatchSerials() {
+        var prefix = $("#batchSerialPrefix").val() || "";
+        var startNo = parseInt($("#batchSerialStart").val());
+        if (isNaN(startNo)) {
+            alert("Please enter a valid starting serial number (e.g. 1001).");
+            return;
+        }
+
+        $("#modalInventoryTbody tr").each(function (idx) {
+            var serialInput = $(this).find(".unit-serial");
+            if (serialInput.length) {
+                serialInput.val(prefix + (startNo + idx));
+            }
+            onModalUnitFieldChange(idx);
+        });
+    }
+
+    function copyUnit1ToAll() {
+        var rows = $("#modalInventoryTbody tr");
+        if (rows.length < 2) return;
+
+        var row1 = rows.eq(0);
+        var item = airWizardState.Items[activeModalItemIdx];
+        var extnName = item.ItemExtnName || "ItemExtnOther";
+
+        if (extnName === "ItemExtnVehicle") {
+            var color = row1.find(".unit-color").val();
+            var year = row1.find(".unit-year").val();
+            var series = row1.find(".unit-series").val();
+            rows.slice(1).each(function () {
+                if (color) $(this).find(".unit-color").val(color);
+                if (year) $(this).find(".unit-year").val(year);
+                if (series) $(this).find(".unit-series").val(series);
+            });
+        } else if (extnName === "ItemExtnLand" || extnName === "ItemExtnBuilding") {
+            var addr = row1.find(".unit-address").val();
+            var proj = row1.find(".unit-project").val();
+            var bType = row1.find(".unit-buildingtype").val();
+            rows.slice(1).each(function () {
+                if (addr) $(this).find(".unit-address").val(addr);
+                if (proj) $(this).find(".unit-project").val(proj);
+                if (bType) $(this).find(".unit-buildingtype").val(bType);
+            });
+        } else {
+            var brand = row1.find(".unit-brand").val();
+            var model = row1.find(".unit-model").val();
+            var remarks = row1.find(".unit-remarks").val();
+            rows.slice(1).each(function () {
+                if (brand) $(this).find(".unit-brand").val(brand);
+                if (model) $(this).find(".unit-model").val(model);
+                if (remarks) $(this).find(".unit-remarks").val(remarks);
+            });
+        }
+
+        rows.each(function (idx) {
+            onModalUnitFieldChange(idx);
+        });
+    }
+
+    function saveInventoryModal() {
+        var item = airWizardState.Items[activeModalItemIdx];
+        if (!item) return;
+        var extnName = item.ItemExtnName || "ItemExtnOther";
+
+        var details = [];
+        var compCount = 0;
+
+        $("#modalInventoryTbody tr").each(function (uIdx) {
+            var u = readUnitFromRow($(this), extnName);
+            u.UnitIndex = uIdx + 1;
+            u.UnitNumber = uIdx + 1;
+            u.IsCompleted = checkInventoryDetailCompleted(extnName, u);
+
+            // Retain existing ExtnId if previously persisted
+            if (item.InventoryDetails && item.InventoryDetails[uIdx]) {
+                u.ExtnId = item.InventoryDetails[uIdx].ExtnId;
+                u.AirItemId = item.InventoryDetails[uIdx].AirItemId;
+            }
+
+            if (u.IsCompleted) compCount++;
+            details.push(u);
+        });
+
+        item.InventoryDetails = details;
+        item.RequiredInventoryCount = item.RequiredInventoryCount || details.length;
+        item.CompletedInventoryCount = compCount;
+
+        updateInventoryDetailsButton(activeModalItemIdx);
+        closeInventoryModal();
+        scheduleWizardAutoSave();
+    }
+
+    function closeInventoryModal() {
+        var win = $("#inventoryDetailsWindow").data("kendoWindow");
+        if (win) {
+            win.close();
+        }
+        activeModalItemIdx = -1;
     }
 </script>

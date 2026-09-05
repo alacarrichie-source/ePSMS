@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using iLgs.Ai.Models;
 using iLgs.Models;
+using iLgs.Services.AIRs_;
 
 namespace iLgs.Ai.Services.Air
 {
@@ -27,11 +28,13 @@ namespace iLgs.Ai.Services.Air
     {
         private readonly AppManEntities _db;
         private readonly IDocumentHistoryService _historyService;
+        private readonly IAirItemAbstractService _airItemSharedService;
 
         public AirInspectionService(AppManEntities db, IDocumentHistoryService historyService)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
             _historyService = historyService ?? throw new ArgumentNullException(nameof(historyService));
+            _airItemSharedService = new AirItemAbstractService(_db);
         }
 
         public async Task<List<AIRGridItemViewModel>> GetAirListAsync(string statusFilter)
@@ -58,30 +61,29 @@ namespace iLgs.Ai.Services.Air
                     CtrlNo = a.CtrlNo,
                     AirDate = a.AIRDate,
                     OrderId = a.OrderId,
-                    PONumber = a.Order != null ? a.Order.PoNo : string.Empty,
-                    PODate = a.Order != null ? a.Order.PoDate : null,
-                    SupplierName = a.Order != null ? a.Order.SupName : string.Empty,
-                    Department = a.Order != null ? a.Order.Department : a.Custodian,
-                    InvoiceNo = a.InvoiceNo,
+                    PONumber = a.Order?.PoNo ?? "N/A",
+                    PODate = a.Order?.PoDate,
+                    SupplierName = a.Order?.SupName ?? "N/A",
+                    Department = a.Order?.Department ?? "N/A",
+                    InvoiceNo = a.InvoiceNo ?? "N/A",
                     DrNo = a.DrNo,
                     ItemsCount = a.AIRItems.Count,
                     TotalInspectedQty = a.AIRItems.Sum(i => i.Qty ?? 0),
                     OverallStatus = overallStatus,
                     InspectionStatus = a.PostedDt != null ? AirInspectionStatuses.Posted : (a.IsInspected == true ? AirInspectionStatuses.Submitted : AirInspectionStatuses.Draft),
-                    AcceptanceStatus = a.PostedDt != null ? AirAcceptanceStatuses.Accepted : (a.AcceptanceStartedDt != null ? AirAcceptanceStatuses.InProgress : AirAcceptanceStatuses.Pending),
+                    AcceptanceStatus = a.PostedDt != null ? AirAcceptanceStatuses.Accepted : (a.AcceptedDate != null ? AirAcceptanceStatuses.Accepted : (a.AcceptanceStartedDt != null ? AirAcceptanceStatuses.InProgress : AirAcceptanceStatuses.Pending)),
                     RevisionComments = a.RevisionComments,
                     WithdrawalReason = a.WithdrawalReason,
-                    WithdrawalRequested = a.WithdrawalRequested,
+                    WithdrawalRequested = a.WithdrawalRequested == true,
 
-                    // Permissions — derived from resolved status
-                    CanContinue = overallStatus == AirStatuses.Draft,
-                    CanWithdraw = overallStatus == AirStatuses.SubmittedForAcceptance,
-                    CanRequestWithdrawal = overallStatus == AirStatuses.AcceptanceInProgress && !a.WithdrawalRequested,
-                    CanRevise = overallStatus == AirStatuses.ReturnedForRevision,
-                    CanStartAcceptance = overallStatus == AirStatuses.SubmittedForAcceptance,
-                    CanContinueAcceptance = overallStatus == AirStatuses.AcceptanceInProgress,
-                    CanPost = overallStatus == AirStatuses.Accepted,
-                    CanPrint = overallStatus == AirStatuses.Posted
+                    CanContinue = a.IsInspected != true && a.PostedDt == null,
+                    CanWithdraw = a.IsInspected == true && a.AcceptanceStartedDt == null && a.PostedDt == null,
+                    CanRequestWithdrawal = a.IsInspected == true && a.AcceptanceStartedDt != null && a.PostedDt == null,
+                    CanRevise = !string.IsNullOrWhiteSpace(a.RevisionComments) && a.PostedDt == null,
+                    CanStartAcceptance = a.IsInspected == true && a.AcceptanceStartedDt == null && a.PostedDt == null,
+                    CanContinueAcceptance = a.AcceptanceStartedDt != null && a.PostedDt == null,
+                    CanPost = a.AcceptedDate != null && a.PostedDt == null,
+                    CanPrint = a.PostedDt != null
                 };
 
                 result.Add(vm);
@@ -92,69 +94,80 @@ namespace iLgs.Ai.Services.Air
 
         public async Task<List<AIRWizardDraftListItemViewModel>> GetMyDraftsAsync(string user)
         {
-            var drafts = await _db.AIRs.AsNoTracking()
-                .Include(a => a.Order)
-                .Where(a => a.PostedDt == null && a.IsInspected != true && a.InsertedBy == user)
+            return await _db.AIRs.AsNoTracking()
+                .Where(a => a.IsInspected != true && (a.InsertedBy == user || a.UpdatedBy == user))
                 .OrderByDescending(a => a.UpdatedDt ?? a.InsertedDt)
+                .Select(a => new AIRWizardDraftListItemViewModel
+                {
+                    Id = a.Id,
+                    DraftNo = a.CtrlNo ?? a.AIRNo,
+                    PONumber = a.Order != null ? a.Order.PoNo : "N/A",
+                    SupplierName = a.Order != null ? a.Order.SupName : "N/A",
+                    CurrentStep = 1,
+                    CreatedAt = a.InsertedDt ?? DateTime.Today,
+                    LastUpdatedAt = a.UpdatedDt ?? a.InsertedDt ?? DateTime.Today
+                })
                 .ToListAsync();
-
-            return drafts.Select(d => new AIRWizardDraftListItemViewModel
-            {
-                Id = d.Id,
-                DraftNo = d.CtrlNo ?? "Draft",
-                PONumber = d.Order != null ? d.Order.PoNo : "N/A",
-                SupplierName = d.Order != null ? d.Order.SupName : "N/A",
-                CurrentStep = 2,
-                CreatedAt = d.InsertedDt ?? DateTime.Now,
-                LastUpdatedAt = d.UpdatedDt ?? d.InsertedDt ?? DateTime.Now
-            }).ToList();
         }
 
         public async Task<List<POInspectionCandidateViewModel>> GetEligiblePurchaseOrdersAsync()
         {
             var orders = await _db.Orders.AsNoTracking()
                 .Include(o => o.OrderItems.Select(oi => oi.OrderItemRequests))
-                .Where(o => o.PostedDt != null)
-                .OrderByDescending(o => o.PoDate)
+                .Where(o => o.OrderItems.Any())
+                .OrderByDescending(o => o.PoDate ?? o.InsertedDt)
                 .ToListAsync();
+
+            var orderIds = orders.Select(o => o.Id).ToList();
+
+            var postedAirItems = await _db.AIRItems.AsNoTracking()
+                .Where(ai => ai.AIR.PostedDt != null && ai.OrderItemRequest != null && ai.OrderItemRequest.OrderItem.OrderId.HasValue && orderIds.Contains(ai.OrderItemRequest.OrderItem.OrderId.Value))
+                .Select(ai => new
+                {
+                    OrderId = ai.OrderItemRequest.OrderItem.OrderId.Value,
+                    Qty = ai.Qty ?? 0
+                })
+                .ToListAsync();
+
+            var postedTotals = postedAirItems
+                .GroupBy(x => x.OrderId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
 
             var result = new List<POInspectionCandidateViewModel>();
 
             foreach (var o in orders)
             {
-                // Inspect based on QtyApplied of OrderItemRequest
-                var oirList = o.OrderItems.SelectMany(oi => oi.OrderItemRequests).ToList();
-                decimal totalOrdered = oirList.Sum(oir => (decimal?)oir.QtyApplied ?? 0);
-                if (totalOrdered == 0 && o.OrderItems.Any())
+                decimal totalOrdered = o.OrderItems.Sum(oi => 
+                    oi.OrderItemRequests != null && oi.OrderItemRequests.Any() 
+                        ? oi.OrderItemRequests.Sum(oir => (decimal?)oir.QtyApplied ?? 0) 
+                        : (oi.Qty ?? 0));
+
+                if (totalOrdered == 0)
                 {
                     totalOrdered = o.OrderItems.Sum(oi => oi.Qty ?? 0);
                 }
 
-                var oirIds = oirList.Select(oir => oir.Id).ToList();
-                var orderItemIds = o.OrderItems.Select(oi => oi.Id).ToList();
-
-                // Cumulative posted inspections only
-                var postedInspected = await _db.AIRItems
-                    .Where(ai => ai.AIR.PostedDt != null &&
-                                 ((ai.OrderItemRequestId.HasValue && oirIds.Contains(ai.OrderItemRequestId.Value)) ||
-                                  (ai.OrderItemRequest != null && orderItemIds.Contains(ai.OrderItemRequest.OrderItemId.Value))))
-                    .SumAsync(ai => (decimal?)ai.Qty) ?? 0;
+                decimal postedInspected = 0;
+                if (postedTotals.ContainsKey(o.Id))
+                {
+                    postedInspected = postedTotals[o.Id];
+                }
 
                 decimal remaining = totalOrdered - postedInspected;
                 if (remaining < 0) remaining = 0;
 
                 string statusText;
-                int progressPercent = 0;
+                int progressPercent;
 
                 if (postedInspected == 0)
                 {
                     statusText = "Not Inspected";
                     progressPercent = 0;
                 }
-                else if (postedInspected < totalOrdered)
+                else if (remaining > 0)
                 {
                     statusText = "Partially Inspected";
-                    progressPercent = totalOrdered > 0 ? (int)Math.Round((postedInspected / totalOrdered) * 100) : 0;
+                    progressPercent = totalOrdered > 0 ? (int)Math.Min(100, Math.Round((postedInspected / totalOrdered) * 100)) : 0;
                 }
                 else
                 {
@@ -188,7 +201,8 @@ namespace iLgs.Ai.Services.Air
         public async Task<AIRWizardViewModel> GetPOInspectionDetailsAsync(Guid orderId, Guid? airId = null)
         {
             var order = await _db.Orders
-                .Include(o => o.OrderItems.Select(oi => oi.OrderItemRequests))
+                .Include(o => o.OrderItems.Select(oi => oi.ItemCode.ItemType))
+                .Include(o => o.OrderItems.Select(oi => oi.OrderItemRequests.Select(oir => oir.RequestItem.Request)))
                 .Include(o => o.OrderItems.Select(oi => oi.OrderSubItems))
                 .FirstOrDefaultAsync(o => o.Id == orderId);
             if (order == null) throw new InvalidOperationException("Purchase Order not found.");
@@ -212,7 +226,10 @@ namespace iLgs.Ai.Services.Air
             AIR existingAir = null;
             if (airId.HasValue)
             {
-                existingAir = await _db.AIRs.Include(a => a.AIRItems).FirstOrDefaultAsync(a => a.Id == airId.Value);
+                existingAir = await _db.AIRs
+                    .Include(a => a.AIRItems.Select(ai => ai.AIRItemExtns))
+                    .FirstOrDefaultAsync(a => a.Id == airId.Value);
+
                 if (existingAir != null)
                 {
                     vm.AirId = existingAir.Id;
@@ -232,6 +249,7 @@ namespace iLgs.Ai.Services.Air
                     vm.Invoice.InvoiceAmount = existingAir.InvoiceAmount;
                     vm.Invoice.InvoiceType = existingAir.InvoiceType;
                     vm.Invoice.BillingReference = existingAir.BillingReference;
+                    vm.Disposition = existingAir.Disposition ?? (existingAir.InvDist == "D" ? "For Distribution" : (existingAir.InvDist == "I" ? "Inventory" : existingAir.InvDist));
                 }
             }
 
@@ -239,10 +257,28 @@ namespace iLgs.Ai.Services.Air
             {
                 var oirList = oi.OrderItemRequests != null && oi.OrderItemRequests.Any() 
                     ? oi.OrderItemRequests.ToList() 
-                    : await _db.OrderItemRequests.Where(r => r.OrderItemId == oi.Id).ToListAsync();
+                    : await _db.OrderItemRequests.Include(r => r.RequestItem.Request).Where(r => r.OrderItemId == oi.Id).ToListAsync();
                 var oirIds = oirList.Select(r => r.Id).ToList();
                 var oir = oirList.FirstOrDefault();
                 Guid oirId = oir != null ? oir.Id : Guid.Empty;
+
+                var prSources = oirList
+                    .Where(r => r.RequestItem != null && r.RequestItem.Request != null)
+                    .Select(r => new AIRItemSourceAllocationViewModel
+                    {
+                        PRNumber = r.RequestItem.Request.PrNo,
+                        Department = r.RequestItem.Request.Department,
+                        Qty = r.QtyApplied ?? 0
+                    })
+                    .ToList();
+
+                string prNumber = prSources.Any()
+                    ? string.Join(", ", prSources.Select(s => s.PRNumber).Where(p => !string.IsNullOrWhiteSpace(p)).Distinct())
+                    : (order.PrNo ?? string.Empty);
+
+                string department = prSources.Any()
+                    ? string.Join(", ", prSources.Select(s => s.Department).Where(d => !string.IsNullOrWhiteSpace(d)).Distinct())
+                    : (order.Department ?? string.Empty);
 
                 decimal orderedQty = oirList.Sum(r => (decimal?)r.QtyApplied ?? 0);
                 if (orderedQty == 0) orderedQty = oi.Qty ?? 0;
@@ -257,10 +293,11 @@ namespace iLgs.Ai.Services.Air
 
                 decimal currentInspectNow = 0;
                 string itemRemarks = string.Empty;
+                AIRItem existingItem = null;
 
                 if (existingAir != null)
                 {
-                    var existingItem = existingAir.AIRItems.FirstOrDefault(ai => 
+                    existingItem = existingAir.AIRItems.FirstOrDefault(ai => 
                         (ai.OrderItemRequestId.HasValue && oirIds.Contains(ai.OrderItemRequestId.Value)) ||
                         (ai.OrderItemRequest != null && ai.OrderItemRequest.OrderItemId == oi.Id));
 
@@ -271,11 +308,22 @@ namespace iLgs.Ai.Services.Air
                     }
                 }
 
+                // Determine extension type dynamically using _airItemSharedService
+                string category = oi.ItemCode?.ItemType?.Code;
+                string itemExtnName = _airItemSharedService.GetItemExtnNameByCategory(category);
+                if (string.IsNullOrWhiteSpace(itemExtnName))
+                {
+                    itemExtnName = "ItemExtnOther";
+                }
+
                 var lineItem = new AIRLineItemViewModel
                 {
                     OrderItemId = oi.Id,
                     OrderItemRequestId = oirId,
                     ItemNo = oi.ItemNo,
+                    PRNumber = prNumber,
+                    Department = department,
+                    Sources = prSources,
                     PPMPCode = oi.PpmpCode,
                     Description = oi.Description ?? oi.ItemName,
                     Unit = oi.Unit,
@@ -284,8 +332,91 @@ namespace iLgs.Ai.Services.Air
                     PreviousInspectedQty = postedQty,
                     InspectNowQty = currentInspectNow,
                     Remarks = itemRemarks,
-                    IsSetLot = oi.OrderSubItems.Any()
+                    IsSetLot = oi.OrderSubItems.Any(),
+                    CategoryCode = category,
+                    ItemExtnName = itemExtnName,
+                    Disposition = existingItem?.Disposition 
+                        ?? (existingItem?.InvDist == "D" ? "For Distribution" : (existingItem?.InvDist == "I" ? "Inventory" : existingItem?.InvDist)) 
+                        ?? vm.Disposition
                 };
+
+                // Populate existing extension records if any
+                if (existingItem != null && existingItem.AIRItemExtns != null && existingItem.AIRItemExtns.Any())
+                {
+                    foreach (var extn in existingItem.AIRItemExtns.OrderBy(e => e.ContentNo))
+                    {
+                        var detail = new AIRItemInventoryDetailViewModel
+                        {
+                            Id = extn.Id,
+                            AirItemId = extn.AIRItemId,
+                            ContentNo = extn.ContentNo ?? 1,
+                            TContentNo = extn.TContentNo,
+                            SetLotNo = extn.SetLotNo,
+                            SetLotQtyNo = extn.SetLotQtyNo
+                        };
+
+                        if (extn is AIRItemExtnVehicle v)
+                        {
+                            detail.ConductionNo = v.ConductionNo;
+                            detail.EngineNo = v.EngineNo;
+                            detail.ChasisNo = v.ChasisNo;
+                            detail.PlateNo = v.PlateNo;
+                            detail.Color = v.Color;
+                            detail.YearModel = v.YearModel;
+                            detail.SeriesNo = v.SeriesNo;
+                            detail.MVFileNo = v.MVFileNo;
+                            detail.CRN = v.CRN;
+                            detail.CRDate = v.CRDate;
+                            detail.OrNo = v.OrNo;
+                            detail.OrDate = v.OrDate;
+                            detail.NetWeight = v.NetWeight;
+                            detail.InsPolicyNo = v.InsPolicyNo;
+                        }
+                        else if (extn is AIRItemExtnLand l)
+                        {
+                            detail.PIN = l.PIN;
+                            detail.Address = l.Address;
+                            detail.LandMarks = l.LandMarks;
+                            detail.TctNo = l.TctNo;
+                            detail.DRPNo = l.DRPNo;
+                            detail.MarketValue = l.MarketValue;
+                            detail.PricePerSqm = l.PricePerSqm;
+                        }
+                        else if (extn is AIRItemExtnBuilding b)
+                        {
+                            detail.ProjectName = b.ProjectName;
+                            detail.BuildingType = b.BuildingType;
+                            detail.Address = b.Address;
+                            detail.Area = b.Area;
+                            detail.Status = b.Status;
+                            detail.Condition = b.Condition;
+                        }
+                        else if (extn is AIRItemExtnOther o)
+                        {
+                            detail.SerialNo = o.SerialNo;
+                            detail.Condition = o.Condition;
+                        }
+
+                        detail.IsCompleted = IsDetailCompleted(detail, itemExtnName);
+                        lineItem.InventoryDetails.Add(detail);
+                    }
+                }
+
+                // Reconcile units for lineItem if Disposition == "Inventory"
+                if (lineItem.Disposition == "Inventory" && lineItem.InspectNowQty > 0)
+                {
+                    int targetCount = (int)Math.Floor(lineItem.InspectNowQty);
+                    for (int q = lineItem.InventoryDetails.Count + 1; q <= targetCount; q++)
+                    {
+                        lineItem.InventoryDetails.Add(new AIRItemInventoryDetailViewModel
+                        {
+                            ContentNo = q,
+                            TContentNo = q,
+                            IsCompleted = false,
+                            Condition = "Good"
+                        });
+                    }
+                }
 
                 // Sub-items if Set/Lot
                 foreach (var sub in oi.OrderSubItems.OrderBy(s => s.SortOrder))
@@ -326,7 +457,7 @@ namespace iLgs.Ai.Services.Air
             AIR air;
             if (model.AirId.HasValue)
             {
-                air = await _db.AIRs.Include(a => a.AIRItems).FirstOrDefaultAsync(a => a.Id == model.AirId.Value);
+                air = await _db.AIRs.Include(a => a.AIRItems.Select(ai => ai.AIRItemExtns)).FirstOrDefaultAsync(a => a.Id == model.AirId.Value);
                 if (air == null) throw new InvalidOperationException("Draft AIR not found.");
             }
             else
@@ -365,10 +496,14 @@ namespace iLgs.Ai.Services.Air
             air.InvoiceType = model.Invoice?.InvoiceType;
             air.BillingReference = model.Invoice?.BillingReference;
 
+            // Disposition
+            air.Disposition = model.Disposition;
+            air.InvDist = model.Disposition == "For Distribution" ? "D" : (model.Disposition == "Inventory" ? "I" : model.Disposition);
+
             air.UpdatedBy = user;
             air.UpdatedDt = DateTime.Now;
 
-            // Sync line items
+            // Sync line items and extensions
             SyncAirItems(air, model, user);
 
             await _db.SaveChangesAsync();
@@ -393,6 +528,20 @@ namespace iLgs.Ai.Services.Air
             if (model.Items == null || !model.Items.Any(i => i.InspectNowQty > 0))
             {
                 throw new InvalidOperationException("At least one item must have an Inspect Now quantity greater than 0.");
+            }
+
+            // Validate inventory asset details completion for items with Disposition = Inventory
+            foreach (var item in model.Items)
+            {
+                if (item.Disposition == "Inventory" && item.InspectNowQty > 0)
+                {
+                    int required = (int)Math.Floor(item.InspectNowQty);
+                    int completed = item.InventoryDetails != null ? item.InventoryDetails.Count(d => IsDetailCompleted(d, item.ItemExtnName)) : 0;
+                    if (completed < required)
+                    {
+                        throw new InvalidOperationException($"Cannot submit for acceptance: Inventory details for item '{item.Description}' are incomplete ({completed} of {required} units completed). Please complete all inventory unit entries before submitting.");
+                    }
+                }
             }
 
             // Server-side concurrency guard: recalculate remaining from DB based on OrderItemRequests
@@ -430,7 +579,7 @@ namespace iLgs.Ai.Services.Air
 
             if (model.AirId.HasValue)
             {
-                air = await _db.AIRs.Include(a => a.AIRItems).FirstOrDefaultAsync(a => a.Id == model.AirId.Value);
+                air = await _db.AIRs.Include(a => a.AIRItems.Select(ai => ai.AIRItemExtns)).FirstOrDefaultAsync(a => a.Id == model.AirId.Value);
                 if (air == null) throw new InvalidOperationException("Draft AIR not found.");
                 isResubmit = !string.IsNullOrWhiteSpace(air.RevisionComments);
             }
@@ -472,6 +621,10 @@ namespace iLgs.Ai.Services.Air
             air.InvoiceType = model.Invoice?.InvoiceType;
             air.BillingReference = model.Invoice?.BillingReference;
 
+            // Disposition
+            air.Disposition = model.Disposition;
+            air.InvDist = model.Disposition == "For Distribution" ? "D" : (model.Disposition == "Inventory" ? "I" : model.Disposition);
+
             // Clear revision comments on resubmit so it enters clean review
             if (isResubmit)
             {
@@ -490,7 +643,7 @@ namespace iLgs.Ai.Services.Air
             _historyService.AddStatusHistory(
                 DocumentTypes.AcceptanceInspectionReport,
                 air.Id,
-                air.AIRNo,
+                air.AIRNo ?? air.CtrlNo,
                 isResubmit ? AirStatuses.ReturnedForRevision : AirStatuses.Draft,
                 AirStatuses.SubmittedForAcceptance,
                 "Submit for Acceptance",
@@ -571,7 +724,7 @@ namespace iLgs.Ai.Services.Air
 
         public async Task DiscardDraftAsync(Guid draftId, string user)
         {
-            var air = await _db.AIRs.Include(a => a.AIRItems).FirstOrDefaultAsync(a => a.Id == draftId);
+            var air = await _db.AIRs.Include(a => a.AIRItems.Select(ai => ai.AIRItemExtns)).FirstOrDefaultAsync(a => a.Id == draftId);
             if (air == null) throw new InvalidOperationException("Draft not found.");
 
             if (air.IsInspected == true || air.PostedDt != null)
@@ -582,6 +735,11 @@ namespace iLgs.Ai.Services.Air
             var items = air.AIRItems.ToList();
             foreach (var item in items)
             {
+                var extns = item.AIRItemExtns.ToList();
+                foreach (var extn in extns)
+                {
+                    _db.AIRItemExtns.Remove(extn);
+                }
                 _db.AIRItems.Remove(item);
             }
             _db.AIRs.Remove(air);
@@ -591,7 +749,7 @@ namespace iLgs.Ai.Services.Air
 
         public async Task<AIRItemHistoryViewModel> GetItemInspectionHistoryAsync(Guid orderItemId)
         {
-            var orderItem = await _db.OrderItems.Include(oi => oi.Order).FirstOrDefaultAsync(oi => oi.Id == orderItemId);
+            var orderItem = await _db.OrderItems.FirstOrDefaultAsync(oi => oi.Id == orderItemId);
             if (orderItem == null) throw new InvalidOperationException("Order item not found.");
 
             var oirList = await _db.OrderItemRequests.Where(r => r.OrderItemId == orderItemId).ToListAsync();
@@ -667,6 +825,8 @@ namespace iLgs.Ai.Services.Air
                             OrderItemRequestId = oir.Id,
                             Qty = item.InspectNowQty,
                             Remarks = item.Remarks,
+                            Disposition = item.Disposition,
+                            InvDist = item.Disposition == "For Distribution" ? "D" : (item.Disposition == "Inventory" ? "I" : item.Disposition),
                             InsertedBy = user,
                             InsertedDt = DateTime.Now
                         };
@@ -676,17 +836,237 @@ namespace iLgs.Ai.Services.Air
                     {
                         existingItem.Qty = item.InspectNowQty;
                         existingItem.Remarks = item.Remarks;
+                        existingItem.Disposition = item.Disposition;
+                        existingItem.InvDist = item.Disposition == "For Distribution" ? "D" : (item.Disposition == "Inventory" ? "I" : item.Disposition);
                         existingItem.UpdatedBy = user;
                         existingItem.UpdatedDt = DateTime.Now;
                     }
+
+                    // Sync extension records for this item
+                    SyncItemExtensions(existingItem, item, user);
                 }
                 else
                 {
                     if (existingItem != null)
                     {
+                        var extns = existingItem.AIRItemExtns != null 
+                            ? existingItem.AIRItemExtns.ToList() 
+                            : _db.AIRItemExtns.Where(e => e.AIRItemId == existingItem.Id).ToList();
+                        foreach (var extn in extns)
+                        {
+                            _db.AIRItemExtns.Remove(extn);
+                        }
                         _db.AIRItems.Remove(existingItem);
                     }
                 }
+            }
+        }
+
+        private void SyncItemExtensions(AIRItem airItem, AIRLineItemViewModel item, string user)
+        {
+            var existingExtns = airItem.AIRItemExtns != null 
+                ? airItem.AIRItemExtns.ToList() 
+                : _db.AIRItemExtns.Where(e => e.AIRItemId == airItem.Id).ToList();
+
+            if (item.Disposition != "Inventory")
+            {
+                foreach (var extn in existingExtns)
+                {
+                    _db.AIRItemExtns.Remove(extn);
+                }
+                return;
+            }
+
+            int targetQty = (int)Math.Floor(item.InspectNowQty);
+            string extnType = item.ItemExtnName;
+            if (string.IsNullOrWhiteSpace(extnType)) extnType = "ItemExtnOther";
+
+            // Remove excess extensions if quantity was reduced
+            var excess = existingExtns.Where(e => e.ContentNo > targetQty).ToList();
+            foreach (var e in excess)
+            {
+                _db.AIRItemExtns.Remove(e);
+                existingExtns.Remove(e);
+            }
+
+            if (item.InventoryDetails == null) return;
+
+            for (int q = 1; q <= targetQty; q++)
+            {
+                var detail = item.InventoryDetails.FirstOrDefault(d => d.ContentNo == q) 
+                             ?? (q <= item.InventoryDetails.Count ? item.InventoryDetails[q - 1] : null);
+
+                var existingExtn = existingExtns.FirstOrDefault(e => e.ContentNo == q);
+
+                if (existingExtn != null)
+                {
+                    existingExtn.UpdatedBy = user;
+                    existingExtn.UpdatedDt = DateTime.Now;
+                    UpdateConcreteExtension(existingExtn, detail);
+                }
+                else
+                {
+                    var newExtn = CreateConcreteExtension(airItem.Id, q, detail, extnType, user);
+                    airItem.AIRItemExtns.Add(newExtn);
+                }
+            }
+        }
+
+        private static AIRItemExtn CreateConcreteExtension(Guid airItemId, int contentNo, AIRItemInventoryDetailViewModel d, string extnType, string user)
+        {
+            DateTime now = DateTime.Now;
+            if (extnType == "ItemExtnVehicle")
+            {
+                return new AIRItemExtnVehicle
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItemId,
+                    ContentNo = contentNo,
+                    TContentNo = contentNo,
+                    ConductionNo = d?.ConductionNo ?? "",
+                    EngineNo = d?.EngineNo ?? "",
+                    ChasisNo = d?.ChasisNo ?? "",
+                    PlateNo = d?.PlateNo ?? "",
+                    Color = d?.Color ?? "",
+                    YearModel = d?.YearModel,
+                    SeriesNo = d?.SeriesNo ?? "",
+                    MVFileNo = d?.MVFileNo ?? "",
+                    CRN = d?.CRN ?? "",
+                    CRDate = d?.CRDate,
+                    OrNo = d?.OrNo ?? "",
+                    OrDate = d?.OrDate,
+                    NetWeight = d?.NetWeight,
+                    InsPolicyNo = d?.InsPolicyNo ?? "",
+                    InsertedBy = user,
+                    InsertedDt = now,
+                    UpdatedBy = user,
+                    UpdatedDt = now
+                };
+            }
+            else if (extnType == "ItemExtnLand")
+            {
+                return new AIRItemExtnLand
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItemId,
+                    ContentNo = contentNo,
+                    TContentNo = contentNo,
+                    PIN = d?.PIN ?? "",
+                    Address = d?.Address ?? "",
+                    LandMarks = d?.LandMarks ?? "",
+                    TctNo = d?.TctNo ?? "",
+                    DRPNo = d?.DRPNo ?? "",
+                    MarketValue = d?.MarketValue,
+                    PricePerSqm = d?.PricePerSqm,
+                    InsertedBy = user,
+                    InsertedDt = now,
+                    UpdatedBy = user,
+                    UpdatedDt = now
+                };
+            }
+            else if (extnType == "ItemExtnBuilding")
+            {
+                return new AIRItemExtnBuilding
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItemId,
+                    ContentNo = contentNo,
+                    TContentNo = contentNo,
+                    ProjectName = d?.ProjectName ?? "",
+                    BuildingType = d?.BuildingType ?? "",
+                    Address = d?.Address ?? "",
+                    Area = d?.Area,
+                    Status = d?.Status ?? "",
+                    Condition = d?.Condition ?? "",
+                    InsertedBy = user,
+                    InsertedDt = now,
+                    UpdatedBy = user,
+                    UpdatedDt = now
+                };
+            }
+            else // Default to ItemExtnOther
+            {
+                return new AIRItemExtnOther
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItemId,
+                    ContentNo = contentNo,
+                    TContentNo = contentNo,
+                    SerialNo = d?.SerialNo ?? "",
+                    Condition = d?.Condition ?? "",
+                    InsertedBy = user,
+                    InsertedDt = now,
+                    UpdatedBy = user,
+                    UpdatedDt = now
+                };
+            }
+        }
+
+        private static void UpdateConcreteExtension(AIRItemExtn extn, AIRItemInventoryDetailViewModel d)
+        {
+            if (d == null) return;
+
+            if (extn is AIRItemExtnVehicle v)
+            {
+                v.ConductionNo = d.ConductionNo ?? v.ConductionNo;
+                v.EngineNo = d.EngineNo ?? v.EngineNo;
+                v.ChasisNo = d.ChasisNo ?? v.ChasisNo;
+                v.PlateNo = d.PlateNo ?? v.PlateNo;
+                v.Color = d.Color ?? v.Color;
+                v.YearModel = d.YearModel ?? v.YearModel;
+                v.SeriesNo = d.SeriesNo ?? v.SeriesNo;
+                v.MVFileNo = d.MVFileNo ?? v.MVFileNo;
+                v.CRN = d.CRN ?? v.CRN;
+                v.CRDate = d.CRDate ?? v.CRDate;
+                v.OrNo = d.OrNo ?? v.OrNo;
+                v.OrDate = d.OrDate ?? v.OrDate;
+                v.NetWeight = d.NetWeight ?? v.NetWeight;
+                v.InsPolicyNo = d.InsPolicyNo ?? v.InsPolicyNo;
+            }
+            else if (extn is AIRItemExtnLand l)
+            {
+                l.PIN = d.PIN ?? l.PIN;
+                l.Address = d.Address ?? l.Address;
+                l.LandMarks = d.LandMarks ?? l.LandMarks;
+                l.TctNo = d.TctNo ?? l.TctNo;
+                l.DRPNo = d.DRPNo ?? l.DRPNo;
+                l.MarketValue = d.MarketValue ?? l.MarketValue;
+                l.PricePerSqm = d.PricePerSqm ?? l.PricePerSqm;
+            }
+            else if (extn is AIRItemExtnBuilding b)
+            {
+                b.ProjectName = d.ProjectName ?? b.ProjectName;
+                b.BuildingType = d.BuildingType ?? b.BuildingType;
+                b.Address = d.Address ?? b.Address;
+                b.Area = d.Area ?? b.Area;
+                b.Status = d.Status ?? b.Status;
+                b.Condition = d.Condition ?? b.Condition;
+            }
+            else if (extn is AIRItemExtnOther o)
+            {
+                o.SerialNo = d.SerialNo ?? o.SerialNo;
+                o.Condition = d.Condition ?? o.Condition;
+            }
+        }
+
+        private static bool IsDetailCompleted(AIRItemInventoryDetailViewModel d, string extnType)
+        {
+            if (d == null) return false;
+            if (extnType == "ItemExtnVehicle")
+            {
+                return !string.IsNullOrWhiteSpace(d.ConductionNo) || !string.IsNullOrWhiteSpace(d.EngineNo) || !string.IsNullOrWhiteSpace(d.PlateNo) || !string.IsNullOrWhiteSpace(d.ChasisNo);
+            }
+            else if (extnType == "ItemExtnLand")
+            {
+                return !string.IsNullOrWhiteSpace(d.PIN) || !string.IsNullOrWhiteSpace(d.TctNo) || !string.IsNullOrWhiteSpace(d.Address);
+            }
+            else if (extnType == "ItemExtnBuilding")
+            {
+                return !string.IsNullOrWhiteSpace(d.ProjectName) || !string.IsNullOrWhiteSpace(d.Address);
+            }
+            else // ItemExtnOther
+            {
+                return !string.IsNullOrWhiteSpace(d.SerialNo);
             }
         }
 

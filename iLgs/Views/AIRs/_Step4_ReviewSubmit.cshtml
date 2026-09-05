@@ -1,4 +1,4 @@
-﻿@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI
 
 <div class="wizard-card step4-review-container">
     <div class="step4-header mb-4">
@@ -62,7 +62,8 @@
                     <div class="mb-1"><strong>PO Date:</strong> <span id="revPODate">--</span></div>
                     <div class="mb-1"><strong>Supplier:</strong> <span id="revSupplier">--</span></div>
                     <div class="mb-1"><strong>Department:</strong> <span id="revDepartment">--</span></div>
-                    <div><strong>Place of Delivery:</strong> <span id="revDeliveryPlace">--</span></div>
+                    <div class="mb-1"><strong>Place of Delivery:</strong> <span id="revDeliveryPlace">--</span></div>
+                    <div><strong>Intended Disposition:</strong> <span id="revDisposition" class="badge bg-secondary">--</span></div>
                 </div>
             </div>
         </div>
@@ -89,14 +90,18 @@
             <table class="table table-bordered table-sm align-middle mb-0">
                 <thead class="table-light small">
                     <tr>
-                        <th style="width:70px;">Item No.</th>
+                        <th style="width:60px;">Item No.</th>
+                        <th style="width:120px;">PR Number</th>
+                        <th style="width:140px;">Department</th>
                         <th>Description</th>
-                        <th style="width:60px;">Unit</th>
-                        <th style="width:90px;" class="text-end">Ordered</th>
-                        <th style="width:100px;" class="text-end">Prev. Insp.</th>
-                        <th style="width:120px;" class="text-end text-primary fw-bold">Inspect Now</th>
-                        <th style="width:100px;" class="text-end">Total Insp.</th>
-                        <th style="width:90px;" class="text-end">Remaining</th>
+                        <th style="width:55px;">Unit</th>
+                        <th style="width:80px;" class="text-end">Ordered</th>
+                        <th style="width:80px;" class="text-end">Prev. Insp.</th>
+                        <th style="width:90px;" class="text-end text-primary fw-bold">Inspect Now</th>
+                        <th style="width:80px;" class="text-end">Total Insp.</th>
+                        <th style="width:80px;" class="text-end">Remaining</th>
+                        <th style="width:110px;">Disposition</th>
+                        <th style="width:130px;" class="text-center">Inventory Details</th>
                         <th>Remarks</th>
                     </tr>
                 </thead>
@@ -153,13 +158,25 @@
     function collectWizardFormData() {
         if (!airWizardState) return;
 
+        // Step 1 inputs
+        if ($("#ddlPoDisposition").length && $("#ddlPoDisposition").val()) {
+            airWizardState.Disposition = $("#ddlPoDisposition").val();
+        }
+
         // Step 2 inputs
         airWizardState.InspectionDate = $("#txtInspectionDate").val() || new Date();
-        airWizardState.InspectionLocation = $("#txtInspectionLocation").val();
-        airWizardState.InspectorName = $("#txtInspectorName").val();
-        airWizardState.InspectorDesignation = $("#txtInspectorDesignation").val();
-        airWizardState.InspectionCommittee = $("#txtInspectionCommittee").val();
-        airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val();
+        airWizardState.InspectionLocation = $("#txtInspectionLocation").val() || "";
+
+        var inspectorCb = $("#InspectorName").data("kendoMultiColumnComboBox");
+        if (inspectorCb) {
+            airWizardState.InspectorName = inspectorCb.value() || "";
+        } else if ($("#InspectorName").length) {
+            airWizardState.InspectorName = $("#InspectorName").val() || "";
+        }
+
+        airWizardState.InspectorDesignation = $("#txtInspectorDesignation").val() || "";
+        airWizardState.InspectionCommittee = $("#txtInspectionCommittee").val() || "";
+        airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val() || "";
 
         // Step 3 inputs
         if (!airWizardState.Invoice) airWizardState.Invoice = {};
@@ -181,6 +198,7 @@
         $("#revSupplier").text(airWizardState.SupplierName || "N/A");
         $("#revDepartment").text(airWizardState.DepartmentName || "N/A");
         $("#revDeliveryPlace").text(airWizardState.DeliveryPlace || "N/A");
+        $("#revDisposition").text(airWizardState.Disposition || "N/A");
 
         // Inspection & Invoice
         $("#revInspectionDate").text(airWizardState.InspectionDate ? new Date(airWizardState.InspectionDate).toLocaleDateString() : new Date().toLocaleDateString());
@@ -197,6 +215,7 @@
         var grandPrev = 0;
         var grandInspectNow = 0;
         var grandRemaining = 0;
+        var allInventoryValid = true;
 
         if (airWizardState.Items) {
             airWizardState.Items.forEach(function (i) {
@@ -215,8 +234,37 @@
                 var isInspected = inspectNow > 0;
                 var rowClass = isInspected ? "table-light fw-semibold" : "text-muted";
 
+                var prText = i.PRNumber || "--";
+                var deptText = i.Department || "--";
+
+                var isInventory = (i.Disposition === "Inventory");
+                var dispBadge = "<span class='badge " + (isInventory ? "bg-primary" : "bg-secondary") + "'>" + (i.Disposition || "N/A") + "</span>";
+
+                var invDetailsCell = "";
+                if (isInventory) {
+                    if (inspectNow > 0) {
+                        var reqCount = Math.floor(inspectNow);
+                        var compCount = (i.InventoryDetails || []).filter(function (d) {
+                            return typeof checkInventoryDetailCompleted === "function" ? checkInventoryDetailCompleted(i.ItemExtnName, d) : d.IsCompleted;
+                        }).length;
+
+                        if (compCount >= reqCount && reqCount > 0) {
+                            invDetailsCell = "<span class='badge bg-success'><span class='k-icon k-i-check'></span> " + compCount + " / " + reqCount + " Complete</span>";
+                        } else {
+                            invDetailsCell = "<span class='badge bg-danger'><span class='k-icon k-i-close'></span> " + compCount + " / " + reqCount + " Incomplete</span>";
+                            allInventoryValid = false;
+                        }
+                    } else {
+                        invDetailsCell = "<span class='text-muted small'>--</span>";
+                    }
+                } else {
+                    invDetailsCell = "<span class='badge bg-light text-muted border'>Not Required</span>";
+                }
+
                 var tr = "<tr class='" + rowClass + "'>" +
                          "  <td>" + (i.ItemNo || "--") + "</td>" +
+                         "  <td class='fw-semibold text-primary'>" + prText + "</td>" +
+                         "  <td class='text-muted'>" + deptText + "</td>" +
                          "  <td>" + (i.Description || "Item") + "</td>" +
                          "  <td>" + (i.Unit || "") + "</td>" +
                          "  <td class='text-end font-monospace'>" + Number(ordered).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
@@ -224,6 +272,8 @@
                          "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(inspectNow).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                          "  <td class='text-end font-monospace'>" + Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                          "  <td class='text-end font-monospace " + (remAfter > 0 ? "text-danger" : "text-success") + "'>" + Number(remAfter).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td>" + dispBadge + "</td>" +
+                         "  <td class='text-center'>" + invDetailsCell + "</td>" +
                          "  <td>" + (i.Remarks || "--") + "</td>" +
                          "</tr>";
                 tbody.append(tr);
@@ -234,9 +284,9 @@
                         var subInspect = sub.InspectNowQty || 0;
                         var subTotal = (sub.PreviousInspectedQty || 0) + subInspect;
                         var subRem = (sub.ExpectedQty || 0) - subTotal;
-                        var subTr = "<tr class='table-sm text-secondary' style='background:\\#f8fafc; font-size:11px;'>" +
+                        var subTr = "<tr class='table-sm text-secondary' style='background:#f8fafc; font-size:11px;'>" +
                                     "  <td class='text-end'>&rdquor;</td>" +
-                                    "  <td colspan='2' class='ps-3'>&bull; " + (sub.Description || "") + " (" + (sub.SubItemNo || "") + ")</td>" +
+                                    "  <td colspan='4' class='ps-3'>&bull; " + (sub.Description || "") + " (" + (sub.SubItemNo || "") + ")</td>" +
                                     "  <td class='text-end font-monospace'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                                     "  <td class='text-end font-monospace text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                                     "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(subInspect).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
@@ -272,6 +322,19 @@
                             "</span>";
                 docsContainer.append(badge);
             });
+        }
+
+        // Readiness & Completion state
+        if (!allInventoryValid) {
+            $("#step4ReadinessBadge").removeClass("is-ready").addClass("border-danger bg-danger bg-opacity-10");
+            $("#step4ValidationSummary").html("<span class='text-danger fw-bold'>Inventory details incomplete. Return to Step 2.</span>");
+            $("#chkInspectionCertification").prop("disabled", true).prop("checked", false);
+            $("#btnSubmitForAcceptance").prop("disabled", true);
+        } else {
+            $("#step4ReadinessBadge").removeClass("border-danger bg-danger bg-opacity-10").addClass("is-ready");
+            $("#step4ValidationSummary").text("Ready to submit");
+            $("#chkInspectionCertification").prop("disabled", false);
+            toggleCertification($("#chkInspectionCertification").is(":checked"));
         }
     }
 

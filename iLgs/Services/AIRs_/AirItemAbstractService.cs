@@ -1,4 +1,4 @@
-﻿using iLgs.Models;
+using iLgs.Models;
 using System;
 using System.Linq;
 using static iLgs.Models.Enums;
@@ -43,6 +43,10 @@ namespace iLgs.Services.AIRs_
                 else if (c == CatTransportationProp())
                 {
                     itemExtnName = "ItemExtnVehicle";
+                }
+                else if (c == CatBuildingsProp())
+                {
+                    itemExtnName = "ItemExtnBuilding";
                 }
                 else if (c == CatMachineriesProp()
                     || c == CatFurnituresProp()

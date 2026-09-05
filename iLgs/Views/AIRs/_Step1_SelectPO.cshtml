@@ -1,4 +1,4 @@
-﻿@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
@@ -37,7 +37,7 @@
                 columns.Bound(p => p.PRNumber).Title("PR No.").Width(130);
                 columns.Bound(p => p.Department).Title("Department").Width(180);
                 columns.Bound(p => p.SupplierName).Title("Supplier").Width(200);
-                columns.Bound(p => p.DeliveryPlace).Title("Delivery Place").Width(160);
+                //columns.Bound(p => p.DeliveryPlace).Title("Delivery Place").Width(160);
                 columns.Bound(p => p.ItemCount).Title("Items").Width(80)
                     .HeaderHtmlAttributes(new { @class = "numeric-header" })
                     .HtmlAttributes(new { @class = "numeric-cell" });
@@ -78,14 +78,27 @@
     </div>
 
     <!-- ============================================================
-         SELECTED PO SUMMARY BAR
+         SELECTED PO SUMMARY BAR WITH DISPOSITION SELECTOR
          ============================================================ -->
-    <div id="step1SelectedPOSummary" class="mt-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center" style="display:none !important;">
+    <div id="step1SelectedPOSummary" class="mt-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-3" style="display:none !important;">
         <div>
             <span class="text-muted small">Selected Purchase Order:</span>
             <div class="fw-bold fs-6" id="summaryPONo">--</div>
             <div class="text-muted small" id="summarySupplierDept">--</div>
         </div>
+
+        <div class="d-flex align-items-center gap-2 p-2 bg-white rounded border">
+            <label for="ddlPoDisposition" class="small fw-bold mb-0 text-secondary" style="white-space:nowrap;">
+                <span class="k-icon k-i-redo"></span> Intended Disposition:
+            </label>
+            <select id="ddlPoDisposition" class="form-control-custom" style="min-width: 170px;" onchange="onPoDispositionChange(this.value)">
+                <option value="">-- Select Disposition --</option>
+                <option value="Inventory">Inventory</option>
+                <option value="For Distribution">For Distribution</option>
+                <option value="N/A">N/A</option>
+            </select>
+        </div>
+
         <div class="text-end">
             <span class="text-muted small">PO Obligation Total:</span>
             <div class="fw-bold fs-6 text-primary" id="summaryTotalAmount">PHP 0.00</div>
@@ -109,16 +122,85 @@
 </div>
 
 <script type="text/javascript">
+    var poStates = poStates || {};
+
+    function onPoDispositionChange(val) {
+        if (!airWizardState) return;
+
+        var prevDisp = airWizardState.Disposition;
+        if (prevDisp === "Inventory" && val !== "Inventory" && airWizardState.Items) {
+            var anyHasData = airWizardState.Items.some(function (itm) {
+                return itm.Disposition === "Inventory" && (itm.InventoryDetails || []).some(function (d) {
+                    return d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted);
+                });
+            });
+
+            if (anyHasData) {
+                var confirmed = confirm("Changing intended disposition from Inventory to " + val + " will reset entered inventory details. Do you wish to proceed?");
+                if (!confirmed) {
+                    $("#ddlPoDisposition").val("Inventory");
+                    return;
+                }
+            }
+        }
+
+        airWizardState.Disposition = val;
+        if (selectedOrderId && poStates[selectedOrderId]) {
+            poStates[selectedOrderId].Disposition = val;
+        }
+
+        if (airWizardState.Items) {
+            airWizardState.Items.forEach(function (itm) {
+                itm.Disposition = val;
+                if (val !== "Inventory") {
+                    itm.InventoryDetails = [];
+                    itm.CompletedInventoryCount = 0;
+                    itm.RequiredInventoryCount = 0;
+                } else if (typeof reconcileItemInventoryDetails === "function") {
+                    reconcileItemInventoryDetails(itm);
+                }
+            });
+        }
+
+        if (typeof renderStep2Items === "function" && airWizardState.Items && airWizardState.Items.length > 0) {
+            renderStep2Items(airWizardState);
+        }
+
+        if (typeof scheduleWizardAutoSave === "function") {
+            scheduleWizardAutoSave();
+        }
+    }
+
     function onSelectPO(orderId) {
+        // Cache previous PO state if changing
+        if (selectedOrderId && airWizardState && selectedOrderId !== orderId) {
+            if ($("#ddlPoDisposition").length) {
+                airWizardState.Disposition = $("#ddlPoDisposition").val() || "";
+            }
+            poStates[selectedOrderId] = airWizardState;
+        }
+
         selectedOrderId = orderId;
         $("#hdnOrderId").val(orderId);
         $("#poSelectedIndicator").removeClass("text-danger").addClass("text-success").text("Purchase Order Selected");
         $("#btnStep1Proceed").prop("disabled", false);
 
+        // If previously visited in this session, restore cached state
+        if (poStates[orderId]) {
+            airWizardState = poStates[orderId];
+            updateStep1Summary(airWizardState);
+            if (typeof renderStep2Items === "function") {
+                renderStep2Items(airWizardState);
+            }
+            return;
+        }
+
         // Fetch PO details and load items for Step 2
-        $.get('@Url.Action("GetPOInspectionDetails", "AIRs")', { orderId: orderId, airId: airId }, function (res) {
+        var queryAirId = (airWizardState && airWizardState.OrderId === orderId) ? airId : null;
+        $.get('@Url.Action("GetPOInspectionDetails", "AIRs")', { orderId: orderId, airId: queryAirId }, function (res) {
             if (res.success && res.data) {
                 airWizardState = res.data;
+                poStates[orderId] = airWizardState;
                 updateStep1Summary(res.data);
                 if (typeof renderStep2Items === "function") {
                     renderStep2Items(res.data);
@@ -130,9 +212,11 @@
     }
 
     function updateStep1Summary(data) {
+        if (!data) return;
         $("#summaryPONo").text(data.PONumber + " (" + (data.PRNumber ? "PR: " + data.PRNumber : "Direct") + ")");
-        $("#summarySupplierDept").text("Supplier: " + data.SupplierName + " | Dept: " + data.DepartmentName);
+        $("#summarySupplierDept").text("Supplier: " + (data.SupplierName || "--") + " | Dept: " + (data.DepartmentName || "--"));
         $("#summaryTotalAmount").text("PHP " + Number(data.POTotalAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#ddlPoDisposition").val(data.Disposition || "");
         $("#step1SelectedPOSummary").show();
     }
 
@@ -141,6 +225,9 @@
             $("input[name='selectedPO'][value='" + selectedOrderId + "']").prop("checked", true);
             $("#btnStep1Proceed").prop("disabled", false);
             $("#poSelectedIndicator").removeClass("text-danger").addClass("text-success").text("Purchase Order Selected");
+            if (airWizardState) {
+                updateStep1Summary(airWizardState);
+            }
             $("#step1SelectedPOSummary").show();
         }
     }
@@ -149,6 +236,9 @@
         if (!selectedOrderId) {
             alert("Please select a Purchase Order first.");
             return;
+        }
+        if ($("#ddlPoDisposition").length && airWizardState) {
+            airWizardState.Disposition = $("#ddlPoDisposition").val() || "";
         }
         goToWizardStep(2);
     }

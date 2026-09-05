@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -37,6 +37,7 @@ namespace iLgs.Ai.Models
         public string DeliveryPlace { get; set; }
         public string Purpose { get; set; }
         public decimal POTotalAmount { get; set; }
+        public string Disposition { get; set; }
 
         // Step 2: Inspection Details
         public DateTime InspectionDate { get; set; }
@@ -66,12 +67,17 @@ namespace iLgs.Ai.Models
         public AIRLineItemViewModel()
         {
             SubItems = new List<AIRSubItemViewModel>();
+            Sources = new List<AIRItemSourceAllocationViewModel>();
+            InventoryDetails = new List<AIRItemInventoryDetailViewModel>();
         }
 
         public Guid? AirItemId { get; set; }
         public Guid OrderItemId { get; set; }
         public Guid OrderItemRequestId { get; set; }
         public string ItemNo { get; set; }
+        public string PRNumber { get; set; }
+        public string Department { get; set; }
+        public List<AIRItemSourceAllocationViewModel> Sources { get; set; }
         public string PPMPCode { get; set; }
         public string Description { get; set; }
         public string Unit { get; set; }
@@ -107,6 +113,70 @@ namespace iLgs.Ai.Models
         public string Remarks { get; set; }
         public bool IsSetLot { get; set; }
         public List<AIRSubItemViewModel> SubItems { get; set; }
+
+        // Inventory Extension & Disposition tracking
+        public string Disposition { get; set; }
+        public string ItemExtnName { get; set; }
+        public string CategoryCode { get; set; }
+        public List<AIRItemInventoryDetailViewModel> InventoryDetails { get; set; }
+
+        public int RequiredInventoryCount => (int)Math.Floor(InspectNowQty);
+        public int CompletedInventoryCount => InventoryDetails != null ? InventoryDetails.Count(d => d.IsCompleted) : 0;
+    }
+
+    public class AIRItemInventoryDetailViewModel
+    {
+        public Guid Id { get; set; }
+        public Guid? AirItemId { get; set; }
+        public int ContentNo { get; set; }
+        public string SetLotNo { get; set; }
+        public int? SetLotQtyNo { get; set; }
+        public int? TContentNo { get; set; }
+        public bool IsCompleted { get; set; }
+
+        // Common / ItemExtnOther
+        public string SerialNo { get; set; }
+        public string Condition { get; set; }
+        public string Remarks { get; set; }
+
+        // ItemExtnVehicle
+        public string ConductionNo { get; set; }
+        public string EngineNo { get; set; }
+        public string ChasisNo { get; set; }
+        public string PlateNo { get; set; }
+        public string Color { get; set; }
+        public int? YearModel { get; set; }
+        public string SeriesNo { get; set; }
+        public string MVFileNo { get; set; }
+        public string CRN { get; set; }
+        public DateTime? CRDate { get; set; }
+        public string OrNo { get; set; }
+        public DateTime? OrDate { get; set; }
+        public int? NetWeight { get; set; }
+        public string InsPolicyNo { get; set; }
+
+        // ItemExtnLand
+        public string PIN { get; set; }
+        public string Address { get; set; }
+        public string LandMarks { get; set; }
+        public string TctNo { get; set; }
+        public string DRPNo { get; set; }
+        public decimal? MarketValue { get; set; }
+        public decimal? PricePerSqm { get; set; }
+
+        // ItemExtnBuilding
+        public string ProjectName { get; set; }
+        public string BuildingType { get; set; }
+        public decimal? Area { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class AIRItemSourceAllocationViewModel
+    {
+        public string PRNumber { get; set; }
+        public string Department { get; set; }
+        public decimal Qty { get; set; }
     }
 
     public class AIRSubItemViewModel

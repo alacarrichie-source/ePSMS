@@ -151,6 +151,20 @@
     .Content(@<text><div id="itemHistoryModalContent" class="p-3"></div></text>)
 )
 
+<!-- INVENTORY DETAILS MODAL -->
+@(Html.Kendo().Window()
+    .Name("inventoryDetailsWindow")
+    .Title("Inventory Asset Details")
+    .Width(1050)
+    .Height(620)
+    .Modal(true)
+    .Visible(false)
+    .Draggable(true)
+    //.Resizable(true)
+    .Actions(actions => actions.Close())
+    .Content(@<text><div id="inventoryDetailsModalContent" class="p-3"></div></text>)
+)
+
 @section scripts {
     <script type="text/javascript">
         var currentWizardStep = @Convert.ToInt32(ViewBag.CurrentStep ?? 1);
@@ -170,6 +184,20 @@
                 loadPODetailsForWizard(airWizardState.OrderId);
             } else if (airWizardState && airWizardState.Items && airWizardState.Items.length > 0) {
                 if (typeof renderStep2Items === "function") renderStep2Items(airWizardState);
+            }
+
+            // Restore initial state into DOM controls
+            if (airWizardState) {
+                if (airWizardState.Disposition && $("#ddlPoDisposition").length) {
+                    $("#ddlPoDisposition").val(airWizardState.Disposition);
+                }
+                setTimeout(function () {
+                    var cb = $("#InspectorName").data("kendoMultiColumnComboBox");
+                    if (cb && airWizardState.InspectorName) {
+                        cb.value(airWizardState.InspectorName);
+                        cb.text(airWizardState.InspectorName);
+                    }
+                }, 200);
             }
 
             $("#airWizardForm").on("input change", "input, select, textarea", function () {
@@ -223,6 +251,23 @@
                     showWizardMessage("You must enter an 'Inspect Now' quantity greater than 0 for at least one item.");
                     return;
                 }
+
+                // Inventory Details completion validation
+                if (airWizardState.Items) {
+                    for (var i = 0; i < airWizardState.Items.length; i++) {
+                        var itm = airWizardState.Items[i];
+                        if (itm.Disposition === "Inventory" && (itm.InspectNowQty || 0) > 0) {
+                            var req = Math.floor(itm.InspectNowQty);
+                            var comp = (itm.InventoryDetails || []).filter(function (d) {
+                                return typeof checkInventoryDetailCompleted === "function" ? checkInventoryDetailCompleted(itm.ItemExtnName, d) : d.IsCompleted;
+                            }).length;
+                            if (comp < req) {
+                                showWizardMessage("Item #" + (itm.ItemNo || (i + 1)) + " (" + (itm.Description || "Item") + ") requires " + req + " inventory detail records, but only " + comp + " completed. Please enter details for all units in Step 2 before proceeding.");
+                                return;
+                            }
+                        }
+                    }
+                }
             }
 
             // Step 3 Validation (Invoice Entry)
@@ -245,7 +290,31 @@
             currentWizardStep = step;
             updateStepperUI(step);
 
-            // Trigger step-specific sync hooks
+            // Step-specific restore hooks when navigating forward/backward
+            if (step === 1) {
+                if (airWizardState && airWizardState.Disposition) {
+                    $("#ddlPoDisposition").val(airWizardState.Disposition);
+                }
+            }
+            if (step === 2) {
+                var cb = $("#InspectorName").data("kendoMultiColumnComboBox");
+                if (cb && airWizardState && airWizardState.InspectorName) {
+                    cb.value(airWizardState.InspectorName);
+                    cb.text(airWizardState.InspectorName);
+                }
+                if (airWizardState && airWizardState.InspectorDesignation) {
+                    $("#txtInspectorDesignation").val(airWizardState.InspectorDesignation);
+                }
+                if (airWizardState && airWizardState.InspectionLocation !== undefined && airWizardState.InspectionLocation !== null) {
+                    $("#txtInspectionLocation").val(airWizardState.InspectionLocation);
+                }
+                if (airWizardState && airWizardState.InspectionCommittee) {
+                    $("#txtInspectionCommittee").val(airWizardState.InspectionCommittee);
+                }
+                if (airWizardState && airWizardState.GeneralRemarks) {
+                    $("#txtGeneralRemarks").val(airWizardState.GeneralRemarks);
+                }
+            }
             if (step === 3 && typeof syncStep3Form === "function") {
                 syncStep3Form();
             }
@@ -275,14 +344,32 @@
             if (!airWizardState) return;
 
             airWizardState.OrderId = selectedOrderId || $("#hdnOrderId").val();
+
+            // Step 1: Disposition
+            if ($("#ddlPoDisposition").length) {
+                var dVal = $("#ddlPoDisposition").val();
+                if (dVal !== undefined && dVal !== null) {
+                    airWizardState.Disposition = dVal || airWizardState.Disposition || "";
+                }
+            }
+
+            // Step 2: Inspection Header & Details
             airWizardState.AirDate = $("#txtInspectionDate").val() || new Date().toISOString();
             airWizardState.InspectionDate = $("#txtInspectionDate").val() || new Date().toISOString();
-            airWizardState.InspectionLocation = $("#txtInspectionLocation").val();
-            airWizardState.InspectorName = $("#txtInspectorName").val();
-            airWizardState.InspectorDesignation = $("#txtInspectorDesignation").val();
-            airWizardState.InspectionCommittee = $("#txtInspectionCommittee").val();
-            airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val();
+            airWizardState.InspectionLocation = $("#txtInspectionLocation").val() || "";
 
+            var inspectorCb = $("#InspectorName").data("kendoMultiColumnComboBox");
+            if (inspectorCb) {
+                airWizardState.InspectorName = inspectorCb.value() || "";
+            } else if ($("#InspectorName").length) {
+                airWizardState.InspectorName = $("#InspectorName").val() || "";
+            }
+
+            airWizardState.InspectorDesignation = $("#txtInspectorDesignation").val() || "";
+            airWizardState.InspectionCommittee = $("#txtInspectionCommittee").val() || "";
+            airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val() || "";
+
+            // Step 3: Invoice
             if (!airWizardState.Invoice) airWizardState.Invoice = {};
             airWizardState.Invoice.InvoiceNo = $("#txtInvoiceNo").val();
             airWizardState.Invoice.InvoiceDate = $("#txtInvoiceDate").val() || new Date().toISOString();
@@ -291,7 +378,7 @@
             airWizardState.Invoice.InvoiceType = $("#ddlInvoiceType").val();
             airWizardState.Invoice.BillingReference = $("#txtBillingReference").val();
 
-            // Collect line item inspect quantities and remarks from Step 2 inputs
+            // Collect line item inspect quantities, remarks, and disposition from Step 2 inputs
             if (airWizardState.Items && airWizardState.Items.length > 0) {
                 airWizardState.Items.forEach(function (item, idx) {
                     var inputQty = $("#txtInspectNow_" + idx);
@@ -301,6 +388,10 @@
                     var inputRemarks = $("#txtRemarks_" + idx);
                     if (inputRemarks.length) {
                         item.Remarks = inputRemarks.val() || "";
+                    }
+                    var selDisp = $("#ddlItemDisposition_" + idx);
+                    if (selDisp.length) {
+                        item.Disposition = selDisp.val() || item.Disposition || airWizardState.Disposition || "Inventory";
                     }
                 });
             }
@@ -336,7 +427,7 @@
         function saveDraftExplicit() {
             collectWizardFormData();
             var token = $('input[name="__RequestVerificationToken"]').val();
-            var $btn = $(".btn-procurement-secondary:contains('Save Draft')");
+            var $btn = $(".btn-procurement-secondary:contains('Save Draft'), .btn-procurement-secondary:contains('Save as Draft')");
             $btn.prop('disabled', true);
 
             $.ajax({
@@ -365,10 +456,32 @@
             });
         }
 
+        function submitInspectionFinal() {
+            submitInspectionExplicit();
+        }
+
         function submitInspectionExplicit() {
             collectWizardFormData();
+
+            // Guard against submitting with incomplete inventory records
+            if (airWizardState.Items) {
+                for (var i = 0; i < airWizardState.Items.length; i++) {
+                    var itm = airWizardState.Items[i];
+                    if (itm.Disposition === "Inventory" && (itm.InspectNowQty || 0) > 0) {
+                        var req = Math.floor(itm.InspectNowQty);
+                        var comp = (itm.InventoryDetails || []).filter(function (d) {
+                            return typeof checkInventoryDetailCompleted === "function" ? checkInventoryDetailCompleted(itm.ItemExtnName, d) : d.IsCompleted;
+                        }).length;
+                        if (comp < req) {
+                            showWizardMessage("Cannot submit inspection: Item #" + (itm.ItemNo || (i + 1)) + " (" + (itm.Description || "Item") + ") requires " + req + " inventory details, but only " + comp + " is completed. Please complete all units in Step 2.");
+                            return;
+                        }
+                    }
+                }
+            }
+
             var token = $('input[name="__RequestVerificationToken"]').val();
-            var $btn = $("#btnSubmitInspection");
+            var $btn = $("#btnSubmitForAcceptance, #btnSubmitInspection");
             $btn.prop('disabled', true).text('Submitting...');
 
             $.ajax({
@@ -383,12 +496,12 @@
                     if (res.success) {
                         window.location.href = '@Url.Action("Index", "AIRs")';
                     } else {
-                        $btn.prop('disabled', false).html('<span class="k-icon k-i-check"></span> Submit for Official Acceptance');
+                        $btn.prop('disabled', false).html('<span class="k-icon k-i-check"></span> Submit for Acceptance');
                         showWizardMessage("Submission failed: " + res.message);
                     }
                 },
                 error: function (xhr) {
-                    $btn.prop('disabled', false).html('<span class="k-icon k-i-check"></span> Submit for Official Acceptance');
+                    $btn.prop('disabled', false).html('<span class="k-icon k-i-check"></span> Submit for Acceptance');
                     var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.statusText;
                     showWizardMessage("Error submitting inspection: " + msg);
                 }
@@ -406,6 +519,9 @@
             $.get(url, function (res) {
                 if (res.success) {
                     airWizardState = res.data;
+                    if (typeof updateStep1Summary === "function") {
+                        updateStep1Summary(airWizardState);
+                    }
                     if (typeof renderStep2Items === "function") {
                         renderStep2Items(airWizardState);
                     }
