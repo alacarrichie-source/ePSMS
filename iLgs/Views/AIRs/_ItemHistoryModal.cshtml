@@ -1,0 +1,72 @@
+﻿@model iLgs.Ai.Models.AIRItemHistoryViewModel
+
+<div class="p-2">
+    <!-- Item Header -->
+    <div class="p-3 bg-light rounded border mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-secondary mb-1">Item #@Model.ItemNo</span>
+                <h5 class="fs-6 fw-bold mb-0 text-dark">@Model.Description</h5>
+            </div>
+            <div class="text-end">
+                <span class="small text-muted d-block">Cumulative Inspection Status</span>
+                <span class="font-monospace fw-bold fs-6">
+                    @Model.TotalPostedInspectedQty.ToString("n2") / @Model.OrderedQty.ToString("n2")
+                </span>
+                <span class="small text-muted">(@Model.RemainingQty.ToString("n2") remaining)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>AIR No.</th>
+                    <th>Date Inspected</th>
+                    <th>Inspector / Officer</th>
+                    <th>Invoice Reference</th>
+                    <th class="text-end">Inspected Qty</th>
+                    <th class="text-center" style="width: 100px;">Status</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Inspections == null || !Model.Inspections.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-muted">
+                            No prior posted inspections recorded for this Purchase Order item.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var insp in Model.Inspections)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">@insp.AirNo</td>
+                            <td class="text-muted">@(insp.InspectionDate.HasValue ? insp.InspectionDate.Value.ToString("MMM dd, yyyy") : "--")</td>
+                            <td>@(string.IsNullOrWhiteSpace(insp.InspectorName) ? "GSO Inspection Team" : insp.InspectorName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(insp.InvoiceNo) ? "--" : insp.InvoiceNo)</td>
+                            <td class="text-end font-monospace fw-bold text-success">@insp.InspectedQty.ToString("n2")</td>
+                            <td class="text-center">
+                                <span class="status-badge status-posted"><span class="k-icon k-i-check"></span> Posted</span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+            @if (Model.Inspections != null && Model.Inspections.Any())
+            {
+                <tfoot class="table-light small fw-bold">
+                    <tr>
+                        <td colspan="4" class="text-end">Total Posted Quantity:</td>
+                        <td class="text-end font-monospace text-success">@Model.TotalPostedInspectedQty.ToString("n2")</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+</div>

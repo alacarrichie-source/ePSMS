@@ -1,0 +1,155 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 1: Select Purchase Order</h2>
+            <p class="subtitle">
+                Select an approved Purchase Order that contains pending deliveries available for physical inspection.
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         PO GRID
+         ============================================================ -->
+    <div class="wizard-grid-container">
+
+        @(Html.Kendo().Grid<POInspectionCandidateViewModel>()
+            .Name("AvailablePOsGrid")
+            .Columns(columns =>
+            {
+                columns.Template(@<text></text>)
+                    .ClientTemplate(
+                        "<input type='radio' name='selectedPO' value='#=OrderId#' " +
+                        "onchange='onSelectPO(\"#=OrderId#\")' " +
+                        "#= selectedOrderId == OrderId ? \"checked='checked'\" : \"\" # " +
+                        "#= InspectionStatusText == 'Fully Inspected' ? \"disabled='disabled'\" : \"\" # />"
+                    )
+                    .Width(50)
+                    .HeaderHtmlAttributes(new { @class = "text-center" })
+                    .HtmlAttributes(new { @class = "text-center" });
+
+                columns.Bound(p => p.PONumber).Title("PO No.").Width(140);
+                columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(120);
+                columns.Bound(p => p.PRNumber).Title("PR No.").Width(130);
+                columns.Bound(p => p.Department).Title("Department").Width(180);
+                columns.Bound(p => p.SupplierName).Title("Supplier").Width(200);
+                columns.Bound(p => p.DeliveryPlace).Title("Delivery Place").Width(160);
+                columns.Bound(p => p.ItemCount).Title("Items").Width(80)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell" });
+                columns.Bound(p => p.TotalAmount).Title("PO Amount").Format("{0:n2}").Width(140)
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" })
+                    .HtmlAttributes(new { @class = "numeric-cell font-weight-bold" });
+                columns.Bound(p => p.InspectionStatusText).Title("Inspection Progress").Width(180)
+                    .ClientTemplate(
+                        "<div class='d-flex flex-column gap-1'>" +
+                            "<div>" +
+                                "# if (InspectionStatusText == 'Not Inspected') { #" +
+                                    "<span class='status-badge status-draft'>Not Inspected</span>" +
+                                "# } else if (InspectionStatusText == 'Partially Inspected') { #" +
+                                    "<span class='status-badge status-submitted'>Partially Inspected</span>" +
+                                "# } else { #" +
+                                    "<span class='status-badge status-posted'>Fully Inspected</span>" +
+                                "# } #" +
+                            "</div>" +
+                            "<div class='progress' style='height:5px; background:\\#e2e8f0; border-radius:3px; overflow:hidden;'>" +
+                                "<div class='progress-bar bg-primary' style='width:#=InspectionProgressPercent#%; height:100%;'></div>" +
+                            "</div>" +
+                        "</div>"
+                    );
+            })
+            .Pageable(pager => pager.Refresh(true).PageSizes(new[] { 5, 10, 20 }).ButtonCount(5))
+            .Sortable()
+            .Filterable()
+            .NoRecords(n => n.Template("<div class='p-4 text-center text-muted'>No Purchase Orders available for inspection.</div>"))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Model(m => m.Id(p => p.OrderId))
+                .Read(read => read.Action("EligiblePOs_Read", "AIRs"))
+            )
+            .Events(e => e.DataBound("onPOGridDataBound"))
+        )
+
+    </div>
+
+    <!-- ============================================================
+         SELECTED PO SUMMARY BAR
+         ============================================================ -->
+    <div id="step1SelectedPOSummary" class="mt-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center" style="display:none !important;">
+        <div>
+            <span class="text-muted small">Selected Purchase Order:</span>
+            <div class="fw-bold fs-6" id="summaryPONo">--</div>
+            <div class="text-muted small" id="summarySupplierDept">--</div>
+        </div>
+        <div class="text-end">
+            <span class="text-muted small">PO Obligation Total:</span>
+            <div class="fw-bold fs-6 text-primary" id="summaryTotalAmount">PHP 0.00</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         STEP SUMMARY / ACTIONS
+         ============================================================ -->
+    <div class="wizard-summary-bar mt-4">
+        <div>
+            <span class="text-muted small">Selection status: </span>
+            <span id="poSelectedIndicator" class="fw-bold text-danger">No Purchase Order selected</span>
+        </div>
+
+        <button type="button" id="btnStep1Proceed" class="btn-procurement-primary" onclick="proceedToStep2()" disabled="disabled">
+            Proceed to Inspect Items <span class="k-icon k-i-arrow-right"></span>
+        </button>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function onSelectPO(orderId) {
+        selectedOrderId = orderId;
+        $("#hdnOrderId").val(orderId);
+        $("#poSelectedIndicator").removeClass("text-danger").addClass("text-success").text("Purchase Order Selected");
+        $("#btnStep1Proceed").prop("disabled", false);
+
+        // Fetch PO details and load items for Step 2
+        $.get('@Url.Action("GetPOInspectionDetails", "AIRs")', { orderId: orderId, airId: airId }, function (res) {
+            if (res.success && res.data) {
+                airWizardState = res.data;
+                updateStep1Summary(res.data);
+                if (typeof renderStep2Items === "function") {
+                    renderStep2Items(res.data);
+                }
+            } else {
+                alert(res.message || "Failed to load Purchase Order items.");
+            }
+        });
+    }
+
+    function updateStep1Summary(data) {
+        $("#summaryPONo").text(data.PONumber + " (" + (data.PRNumber ? "PR: " + data.PRNumber : "Direct") + ")");
+        $("#summarySupplierDept").text("Supplier: " + data.SupplierName + " | Dept: " + data.DepartmentName);
+        $("#summaryTotalAmount").text("PHP " + Number(data.POTotalAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#step1SelectedPOSummary").show();
+    }
+
+    function onPOGridDataBound(e) {
+        if (selectedOrderId) {
+            $("input[name='selectedPO'][value='" + selectedOrderId + "']").prop("checked", true);
+            $("#btnStep1Proceed").prop("disabled", false);
+            $("#poSelectedIndicator").removeClass("text-danger").addClass("text-success").text("Purchase Order Selected");
+            $("#step1SelectedPOSummary").show();
+        }
+    }
+
+    function proceedToStep2() {
+        if (!selectedOrderId) {
+            alert("Please select a Purchase Order first.");
+            return;
+        }
+        goToWizardStep(2);
+    }
+</script>

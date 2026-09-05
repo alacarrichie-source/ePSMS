@@ -1,4 +1,4 @@
-namespace iLgs.Ai.Services
+﻿namespace iLgs.Ai.Services
 {
     public static class DocumentTypes
     {
@@ -18,5 +18,42 @@ namespace iLgs.Ai.Services
         public const string Revising = "Revising";
         public const string Posted = "Posted";
         public const string Cancelled = "Cancelled";
+    }
+
+    public static class AirStatuses
+    {
+        public const string Draft = "Draft";
+        public const string InspectionInProgress = "Inspection In Progress";
+        public const string SubmittedForAcceptance = "Submitted for Acceptance";
+        public const string ReturnedForRevision = "Returned for Revision";
+        public const string AcceptanceInProgress = "Acceptance In Progress";
+        public const string Accepted = "Accepted";
+        public const string Posted = "Posted";
+        public const string Cancelled = "Cancelled";
+        public const string Withdrawn = "Withdrawn";
+    }
+
+    public static class AirInspectionStatuses
+    {
+        public const string Draft = "Draft";
+        public const string InProgress = "In Progress";
+        public const string Submitted = "Submitted for Acceptance";
+        public const string Returned = "Returned for Revision";
+        public const string Posted = "Posted";
+    }
+
+    public static class AirAcceptanceStatuses
+    {
+        public const string None = "None";
+        public const string Pending = "Pending";
+        public const string InProgress = "In Progress";
+        public const string Accepted = "Accepted";
+        public const string Declined = "Declined";
+    }
+
+    public static class AirDispositions
+    {
+        public const string Inventory = "Inventory";
+        public const string ForDistribution = "ForDistribution";
     }
 }

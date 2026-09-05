@@ -1,0 +1,391 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 2: Inspect Items &amp; Record Deliveries</h2>
+            <p class="subtitle">
+                Enter physically verified quantities delivered against each Purchase Order item. Pass/Fail results and acceptance decisions are handled separately in downstream acceptance.
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         INSPECTION METADATA PANEL
+         ============================================================ -->
+    <div class="form-card mb-4 p-3 bg-light rounded border">
+        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Inspection Header &amp; Committee Details</h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="txtInspectionDate" class="form-label small fw-bold">Inspection Date <span class="text-danger">*</span></label>
+                <input type="date" id="txtInspectionDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtInspectionLocation" class="form-label small fw-bold">Inspection Location <span class="text-danger">*</span></label>
+                <input type="text" id="txtInspectionLocation" class="form-control-custom w-100" placeholder="e.g. GSO Warehouse, City Hall" value="GSO Warehouse" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtInspectorName" class="form-label small fw-bold">Inspector Name <span class="text-danger">*</span></label>
+                <input type="text" id="txtInspectorName" class="form-control-custom w-100" placeholder="Full name of Inspector" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtInspectorDesignation" class="form-label small fw-bold">Designation</label>
+                <input type="text" id="txtInspectorDesignation" class="form-control-custom w-100" placeholder="e.g. Inspection Officer I" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-6">
+                <label for="txtInspectionCommittee" class="form-label small fw-bold">Inspection Committee / Team Members (Optional)</label>
+                <input type="text" id="txtInspectionCommittee" class="form-control-custom w-100" placeholder="Names of assisting committee members..." onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-6">
+                <label for="txtGeneralRemarks" class="form-label small fw-bold">General Inspection Remarks</label>
+                <input type="text" id="txtGeneralRemarks" class="form-control-custom w-100" placeholder="Physical condition, batch notes, delivery notes..." onchange="scheduleWizardAutoSave()" />
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SUPPORTING DOCUMENTS / PHOTOS UPLOADER
+         ============================================================ -->
+    <div class="mb-4 p-3 bg-white rounded border">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <h4 class="fs-6 fw-bold mb-0 text-dark"><span class="k-icon k-i-attachment"></span> Supporting Inspection Documents &amp; Delivery Photos</h4>
+                <p class="small text-muted mb-0">Attach physical delivery photos, technical verification sheets, or delivery receipts (PDF, JPG, PNG).</p>
+            </div>
+            <div>
+                <label class="btn-procurement-secondary btn-sm mb-0" style="cursor:pointer;">
+                    <span class="k-icon k-i-upload"></span> Attach Files
+                    <input type="file" id="fileInspectionDoc" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="handleInspectionFileUpload(this)" />
+                </label>
+            </div>
+        </div>
+
+        <div id="inspectionDocsList" class="d-flex flex-wrap gap-2 mt-2">
+            <span class="small text-muted font-italic" id="noDocsPlaceholder">No supporting documents attached yet.</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ITEMS INSPECTION TABLE
+         ============================================================ -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-0" id="tblInspectItems">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 40px;" class="text-center">#</th>
+                    <th style="width: 100px;">Item No.</th>
+                    <th style="width: 110px;">PPMP Code</th>
+                    <th>Description</th>
+                    <th style="width: 70px;">Unit</th>
+                    <th style="width: 100px;" class="text-end">Ordered</th>
+                    <th style="width: 110px;" class="text-end">Prev. Inspected</th>
+                    <th style="width: 100px;" class="text-end">Remaining</th>
+                    <th style="width: 120px;" class="text-end text-primary">Inspect Now</th>
+                    <th style="width: 110px;" class="text-end">Total Inspected</th>
+                    <th style="width: 160px;">Remarks</th>
+                    <th style="width: 70px;" class="text-center">History</th>
+                </tr>
+            </thead>
+            <tbody id="inspectItemsTableBody">
+                <tr>
+                    <td colspan="12" class="p-4 text-center text-muted">
+                        Please select a Purchase Order in Step 1 to load items.
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot class="table-light fw-bold" id="inspectItemsTableFooter" style="display:none;">
+                <tr>
+                    <td colspan="5" class="text-end">Grand Totals:</td>
+                    <td class="text-end" id="lblGrandOrdered">0.00</td>
+                    <td class="text-end" id="lblGrandPrevInspected">0.00</td>
+                    <td class="text-end" id="lblGrandRemaining">0.00</td>
+                    <td class="text-end text-primary" id="lblGrandInspectNow">0.00</td>
+                    <td class="text-end" id="lblGrandTotalInspected">0.00</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- ============================================================
+         STEP ACTIONS
+         ============================================================ -->
+    <div class="wizard-summary-bar mt-4">
+        <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(1)">
+            <span class="k-icon k-i-arrow-left"></span> Back to PO Selection
+        </button>
+
+        <div class="wizard-action-group">
+            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                <span class="k-icon k-i-save"></span> Save Draft
+            </button>
+            <button type="button" class="btn-procurement-primary" onclick="proceedToStep3()">
+                Proceed to Invoice Entry <span class="k-icon k-i-arrow-right"></span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function renderStep2Items(data) {
+        if (!data || !data.Items || data.Items.length === 0) {
+            $("#inspectItemsTableBody").html("<tr><td colspan='12' class='p-4 text-center text-muted'>No items found for this Purchase Order.</td></tr>");
+            $("#inspectItemsTableFooter").hide();
+            return;
+        }
+
+        if (data.InspectorName) $("#txtInspectorName").val(data.InspectorName);
+        if (data.InspectionLocation) $("#txtInspectionLocation").val(data.InspectionLocation);
+        if (data.InspectorDesignation) $("#txtInspectorDesignation").val(data.InspectorDesignation);
+        if (data.InspectionCommittee) $("#txtInspectionCommittee").val(data.InspectionCommittee);
+        if (data.GeneralRemarks) $("#txtGeneralRemarks").val(data.GeneralRemarks);
+
+        var html = "";
+        data.Items.forEach(function (item, idx) {
+            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
+            var expandBtn = isSet ? "<button type='button' class='btn btn-xs btn-link p-0 text-decoration-none' onclick='toggleSubItemsRow(" + idx + ")'><span id='expandIcon_" + idx + "' class='k-icon k-i-arrow-chevron-right'></span></button>" : "";
+
+            html += "<tr id='parentItemRow_" + idx + "' data-item-idx='" + idx + "' class='" + (isSet ? "table-set-parent" : "") + "'>";
+            html += "<td class='text-center'>" + expandBtn + "</td>";
+            html += "<td class='fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>";
+            html += "<td class='small text-muted'>" + (item.PPMPCode || "--") + "</td>";
+            html += "<td>";
+            html += "  <div class='fw-semibold'>" + (item.Description || "Item") + "</div>";
+            if (isSet) {
+                html += "  <span class='badge bg-info text-dark small'>Set / Lot (" + item.SubItems.length + " components)</span>";
+            }
+            html += "</td>";
+            html += "<td class='text-muted small'>" + (item.Unit || "unit") + "</td>";
+            html += "<td class='text-end font-monospace'>" + Number(item.OrderedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+            html += "<td class='text-end font-monospace text-muted'>" + Number(item.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+            html += "<td class='text-end font-monospace fw-bold text-danger' id='lblRemaining_" + idx + "'>" + Number(item.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+
+            // Inspect Now Input
+            html += "<td class='text-end'>";
+            html += "  <input type='number' step='any' min='0' max='" + item.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold text-primary inspect-now-input' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' oninput='onItemInspectNowChange(" + idx + ", this.value)' />";
+            html += "</td>";
+
+            html += "<td class='text-end font-monospace fw-bold' id='lblTotalInspected_" + idx + "'>" + Number(item.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+            html += "<td><input type='text' class='form-control-custom w-100 item-remarks-input' id='txtRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Item notes...' onchange='onItemRemarksChange(" + idx + ", this.value)' /></td>";
+            html += "<td class='text-center'><button type='button' class='btn btn-xs btn-outline-secondary' onclick='openItemHistory(\"" + item.OrderItemId + "\")' title='View Inspection History'><span class='k-icon k-i-history'></span></button></td>";
+            html += "</tr>";
+
+            // If Set/Lot, render collapsible child sub-items table
+            if (isSet) {
+                html += "<tr id='subItemsRow_" + idx + "' style='display:none;' class='table-light'>";
+                html += "  <td></td>";
+                html += "  <td colspan='11' class='p-3'>";
+                html += "    <div class='p-2 bg-white rounded border'>";
+                html += "      <div class='fw-bold small text-secondary mb-2'><span class='k-icon k-i-layers'></span> Set/Lot Components for: " + (item.Description || "Item") + "</div>";
+                html += "      <table class='table table-sm table-bordered mb-0'>";
+                html += "        <thead class='table-light small'>";
+                html += "          <tr>";
+                html += "            <th style='width:90px;'>Sub-No.</th>";
+                html += "            <th>Component Description</th>";
+                html += "            <th style='width:60px;'>Unit</th>";
+                html += "            <th style='width:90px;' class='text-end'>Expected</th>";
+                html += "            <th style='width:90px;' class='text-end'>Prev. Insp.</th>";
+                html += "            <th style='width:90px;' class='text-end'>Remaining</th>";
+                html += "            <th style='width:110px;' class='text-end text-primary'>Inspect Now</th>";
+                html += "            <th style='width:90px;' class='text-end'>Total Insp.</th>";
+                html += "            <th>Remarks</th>";
+                html += "          </tr>";
+                html += "        </thead>";
+                html += "        <tbody>";
+                item.SubItems.forEach(function (sub, sIdx) {
+                    html += "          <tr>";
+                    html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
+                    html += "            <td>" + (sub.Description || "") + "</td>";
+                    html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
+                    html += "            <td class='text-end font-monospace small'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                    html += "            <td class='text-end font-monospace small text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                    html += "            <td class='text-end font-monospace small fw-bold text-danger' id='lblSubRemaining_" + idx + "_" + sIdx + "'>" + Number(sub.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                    html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + sub.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold form-control-sm' id='txtSubInspectNow_" + idx + "_" + sIdx + "' value='" + (sub.InspectNowQty || 0) + "' oninput='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                    html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                    html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Sub-item notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                    html += "          </tr>";
+                });
+                html += "        </tbody>";
+                html += "      </table>";
+                html += "    </div>";
+                html += "  </td>";
+                html += "</tr>";
+            }
+        });
+
+        $("#inspectItemsTableBody").html(html);
+        $("#inspectItemsTableFooter").show();
+        recalculateGrandTotals();
+    }
+
+    function toggleSubItemsRow(idx) {
+        var row = $("#subItemsRow_" + idx);
+        var icon = $("#expandIcon_" + idx);
+        if (row.is(":visible")) {
+            row.hide();
+            icon.removeClass("k-i-arrow-chevron-down").addClass("k-i-arrow-chevron-right");
+        } else {
+            row.show();
+            icon.removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
+        }
+    }
+
+    function onItemInspectNowChange(idx, valStr) {
+        var val = parseFloat(valStr) || 0;
+        var item = airWizardState.Items[idx];
+        if (!item) return;
+
+        var maxAllowed = item.RemainingBeforeQty;
+        if (val < 0) {
+            val = 0;
+            $("#txtInspectNow_" + idx).val(0);
+        } else if (val > maxAllowed) {
+            val = maxAllowed;
+            $("#txtInspectNow_" + idx).val(maxAllowed);
+            alert("Inspect Now quantity cannot exceed Remaining quantity (" + maxAllowed + ").");
+        }
+
+        item.InspectNowQty = val;
+        var total = (item.PreviousInspectedQty || 0) + val;
+        var remainingAfter = (item.OrderedQty || 0) - total;
+        if (remainingAfter < 0) remainingAfter = 0;
+
+        $("#lblTotalInspected_" + idx).text(Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        // If parent item has sub-items, proportionally adjust sub-items inspect now
+        if (item.IsSetLot && item.SubItems) {
+            item.SubItems.forEach(function (sub, sIdx) {
+                var subRatio = (sub.ExpectedQty || 0) / (item.OrderedQty || 1);
+                var subVal = val * subRatio;
+                if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
+                sub.InspectNowQty = subVal;
+                $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
+                var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
+                $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            });
+        }
+
+        recalculateGrandTotals();
+        scheduleWizardAutoSave();
+    }
+
+    function onSubItemInspectNowChange(idx, sIdx, valStr) {
+        var val = parseFloat(valStr) || 0;
+        var item = airWizardState.Items[idx];
+        if (!item || !item.SubItems[sIdx]) return;
+        var sub = item.SubItems[sIdx];
+
+        if (val < 0) val = 0;
+        if (val > sub.RemainingBeforeQty) val = sub.RemainingBeforeQty;
+        sub.InspectNowQty = val;
+        $("#txtSubInspectNow_" + idx + "_" + sIdx).val(val);
+
+        var subTotal = (sub.PreviousInspectedQty || 0) + val;
+        $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        scheduleWizardAutoSave();
+    }
+
+    function onItemRemarksChange(idx, val) {
+        if (airWizardState.Items[idx]) {
+            airWizardState.Items[idx].Remarks = val;
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function onSubItemRemarksChange(idx, sIdx, val) {
+        if (airWizardState.Items[idx] && airWizardState.Items[idx].SubItems[sIdx]) {
+            airWizardState.Items[idx].SubItems[sIdx].Remarks = val;
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function recalculateGrandTotals() {
+        if (!airWizardState || !airWizardState.Items) return;
+        var grandOrdered = 0;
+        var grandPrev = 0;
+        var grandRemaining = 0;
+        var grandInspectNow = 0;
+        var grandTotal = 0;
+
+        airWizardState.Items.forEach(function (i) {
+            grandOrdered += (i.OrderedQty || 0);
+            grandPrev += (i.PreviousInspectedQty || 0);
+            grandRemaining += (i.RemainingBeforeQty || 0);
+            grandInspectNow += (i.InspectNowQty || 0);
+            grandTotal += ((i.PreviousInspectedQty || 0) + (i.InspectNowQty || 0));
+        });
+
+        $("#lblGrandOrdered").text(Number(grandOrdered).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#lblGrandPrevInspected").text(Number(grandPrev).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#lblGrandRemaining").text(Number(grandRemaining).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#lblGrandInspectNow").text(Number(grandInspectNow).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#lblGrandTotalInspected").text(Number(grandTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    }
+
+    function handleInspectionFileUpload(input) {
+        if (!input.files || input.files.length === 0) return;
+        var formData = new FormData();
+        formData.append("file", input.files[0]);
+        formData.append("category", "InspectionDoc");
+
+        $.ajax({
+            url: '@Url.Action("UploadAttachment", "AIRs")',
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success && res.document) {
+                    if (!airWizardState.SupportingDocuments) airWizardState.SupportingDocuments = [];
+                    airWizardState.SupportingDocuments.push(res.document);
+                    renderSupportingDocs();
+                    scheduleWizardAutoSave();
+                } else {
+                    alert(res.message || "Failed to upload file.");
+                }
+            }
+        });
+    }
+
+    function renderSupportingDocs() {
+        var container = $("#inspectionDocsList");
+        container.empty();
+        if (!airWizardState.SupportingDocuments || airWizardState.SupportingDocuments.length === 0) {
+            container.html("<span class='small text-muted font-italic'>No supporting documents attached yet.</span>");
+            return;
+        }
+
+        airWizardState.SupportingDocuments.forEach(function (doc, idx) {
+            var badge = "<span class='badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2'>" +
+                        "  <span class='k-icon k-i-file'></span> " +
+                        "  <span>" + doc.FileName + " (" + doc.FileSize + ")</span>" +
+                        "  <button type='button' class='btn-close btn-close-sm' onclick='removeSupportingDoc(" + idx + ")' title='Remove attachment'></button>" +
+                        "</span>";
+            container.append(badge);
+        });
+    }
+
+    function removeSupportingDoc(idx) {
+        if (airWizardState.SupportingDocuments) {
+            airWizardState.SupportingDocuments.splice(idx, 1);
+            renderSupportingDocs();
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function proceedToStep3() {
+        var hasInspectQty = false;
+        if (airWizardState.Items) {
+            hasInspectQty = airWizardState.Items.some(function (i) { return (i.InspectNowQty || 0) > 0; });
+        }
+        if (!hasInspectQty) {
+            alert("You must enter an 'Inspect Now' quantity greater than 0 for at least one item before continuing.");
+            return;
+        }
+        goToWizardStep(3);
+    }
+</script>

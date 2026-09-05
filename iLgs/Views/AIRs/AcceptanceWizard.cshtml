@@ -1,0 +1,276 @@
+@*AcceptanceWizard.cshtml*@
+@model iLgs.Ai.Models.AIRAcceptanceWizardViewModel
+
+@{
+    ViewBag.Title = "Acceptance Wizard (" + (Model.AirNo ?? Model.CtrlNo) + ")";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="epsms-procurement po-wizard air-acceptance-wizard">
+
+    <!-- ================================================================
+         BREADCRUMBS
+         ================================================================ -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="@Url.Action("Index", "AIRs")">Acceptance &amp; Inspection Reports</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span>Official Acceptance Wizard</span>
+    </div>
+
+    <!-- ================================================================
+         PAGE HEADER
+         ================================================================ -->
+    <div class="wizard-header">
+        <div class="wizard-header-content">
+            <h1 class="page-title">
+                Official Acceptance Wizard — @(Model.AirNo ?? Model.CtrlNo)
+            </h1>
+            <p class="page-subtitle">
+                Review physical inspection records, officially accept delivered goods, allocate item disposition (Inventory vs. For Distribution), and post official obligation.
+            </p>
+        </div>
+
+        <div class="wizard-header-actions">
+            <button type="button" class="btn-procurement-secondary text-danger border-danger" onclick="openReturnRevisionModal()">
+                <span class="k-icon k-i-undo text-danger"></span> Return for Revision
+            </button>
+
+            <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-secondary">
+                <span class="k-icon k-i-close"></span> Exit
+            </a>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         STEPPER (PURE HTML/CSS - CONSISTENT WITH PO WIZARD)
+         ================================================================ -->
+    <div class="data-card" style="margin-bottom: 20px; padding: 14px 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1;">
+        <div class="wizard-stepper" style="display: flex; align-items: center; justify-content: space-between; max-width: 860px; margin: 0 auto;">
+            <!-- Step 1 Tab -->
+            <div class="wizard-step-item active" id="stepIndicator1" onclick="goToAcceptanceStep(1)" style="display: flex; align-items: center; cursor: pointer;">
+                <div class="step-circle" id="circle1" style="width: 28px; height: 28px; border-radius: 50%; background-color: #2c3e50; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 4px #f1f5f9;">1</div>
+                <span class="step-label" id="label1" style="margin-left: 8px; font-size: 12px; font-weight: 700; color: #2c3e50;">Review Inspection</span>
+            </div>
+            <div class="step-line" id="line1" style="flex: 1; height: 2px; background-color: #cbd5e1; margin: 0 10px;"></div>
+
+            <!-- Step 2 Tab -->
+            <div class="wizard-step-item" id="stepIndicator2" onclick="goToAcceptanceStep(2)" style="display: flex; align-items: center; cursor: pointer;">
+                <div class="step-circle" id="circle2" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</div>
+                <span class="step-label" id="label2" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Custodian &amp; Location</span>
+            </div>
+            <div class="step-line" id="line2" style="flex: 1; height: 2px; background-color: #cbd5e1; margin: 0 10px;"></div>
+
+            <!-- Step 3 Tab -->
+            <div class="wizard-step-item" id="stepIndicator3" onclick="goToAcceptanceStep(3)" style="display: flex; align-items: center; cursor: pointer;">
+                <div class="step-circle" id="circle3" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">3</div>
+                <span class="step-label" id="label3" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Item Disposition</span>
+            </div>
+            <div class="step-line" id="line3" style="flex: 1; height: 2px; background-color: #cbd5e1; margin: 0 10px;"></div>
+
+            <!-- Step 4 Tab -->
+            <div class="wizard-step-item" id="stepIndicator4" onclick="goToAcceptanceStep(4)" style="display: flex; align-items: center; cursor: pointer;">
+                <div class="step-circle" id="circle4" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">4</div>
+                <span class="step-label" id="label4" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Review &amp; Post</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         WIZARD CONTENT
+         ================================================================ -->
+    <div class="wizard-content">
+
+        @using (Html.BeginForm("PostAcceptance", "AIRs", FormMethod.Post, new { id = "acceptanceWizardForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.AirId, new { id = "hdnAcceptanceAirId" })
+
+            <div id="acceptanceValidationSummary" class="validation-summary-errors" style="display:none;"></div>
+
+            <!-- STEP 1 -->
+            <div id="accStepPane1" class="wizard-pane">
+                @Html.Partial("_AcceptanceStep1_Review")
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="accStepPane2" class="wizard-pane" style="display:none;">
+                @Html.Partial("_AcceptanceStep2_Details")
+            </div>
+
+            <!-- STEP 3 -->
+            <div id="accStepPane3" class="wizard-pane" style="display:none;">
+                @Html.Partial("_AcceptanceStep3_Disposition")
+            </div>
+
+            <!-- STEP 4 -->
+            <div id="accStepPane4" class="wizard-pane" style="display:none;">
+                @Html.Partial("_AcceptanceStep4_ReviewPost")
+            </div>
+        }
+    </div>
+
+</div>
+
+<!-- RETURN FOR REVISION MODAL -->
+@(Html.Kendo().Window()
+    .Name("returnRevisionModal")
+    .Title("Return AIR for Revision")
+    .Width(500)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div class="p-3">
+            <p class="text-muted small mb-3">
+                Returning this AIR will send it back to the Inspection Team. Please provide clear revision instructions explaining what needs correction or re-inspection.
+            </p>
+            <div class="mb-3">
+                <label for="txtRevisionRemarks" class="form-label small fw-bold">Revision Instructions <span class="text-danger">*</span></label>
+                <textarea id="txtRevisionRemarks" class="form-control-custom w-100" rows="4" placeholder="Detail the discrepancy, wrong serial numbers, missing items, or reasons for rejection..."></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn-procurement-secondary" onclick="$('#returnRevisionModal').data('kendoWindow').close()">Cancel</button>
+                <button type="button" class="btn-procurement-primary bg-danger border-danger" onclick="submitReturnForRevision()">
+                    <span class="k-icon k-i-undo"></span> Confirm Return
+                </button>
+            </div>
+        </div>
+    </text>)
+)
+
+@section scripts {
+    <script type="text/javascript">
+        var currentAccStep = 1;
+        var acceptanceState = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+
+        $(document).ready(function () {
+            goToAcceptanceStep(1);
+        });
+
+        function updateAcceptanceStepperUI(step) {
+            for (var i = 1; i <= 4; i++) {
+                var circle = $('#circle' + i);
+                var label = $('#label' + i);
+                var line = $('#line' + i);
+
+                if (i < step) {
+                    circle.css({ 'background-color': '#1d4ed8', 'color': '#ffffff', 'box-shadow': 'none' }).html('<span class="k-icon k-i-check"></span>');
+                    label.css({ 'color': '#2c3e50', 'font-weight': '600' });
+                    if (line.length) line.css('background-color', '#1d4ed8');
+                } else if (i === step) {
+                    circle.css({ 'background-color': '#2c3e50', 'color': '#ffffff', 'box-shadow': '0 0 0 4px #f1f5f9' }).text(i);
+                    label.css({ 'color': '#2c3e50', 'font-weight': '700' });
+                } else {
+                    circle.css({ 'background-color': '#e2e8f0', 'color': '#64748b', 'box-shadow': 'none' }).text(i);
+                    label.css({ 'color': '#64748b', 'font-weight': '500' });
+                    if (line.length) line.css('background-color', '#cbd5e1');
+                }
+            }
+        }
+
+        function goToAcceptanceStep(step) {
+            if (step < 1 || step > 4) return;
+
+            // Step 2 validation
+            if (step > 2) {
+                var acceptedBy = $("#txtAcceptedBy").val();
+                if (!acceptedBy || !acceptedBy.trim()) {
+                    showAccMessage("Please enter the name of the Authorized Acceptance Officer in Step 2.");
+                    return;
+                }
+            }
+
+            hideAccMessage();
+
+            for (var i = 1; i <= 4; i++) {
+                $("#accStepPane" + i).hide();
+            }
+            $("#accStepPane" + step).fadeIn(200);
+
+            currentAccStep = step;
+            updateAcceptanceStepperUI(step);
+
+            if (step === 3 && typeof renderStep3Dispositions === "function") {
+                renderStep3Dispositions();
+            }
+
+            if (step === 4 && typeof renderStep4AcceptanceReview === "function") {
+                renderStep4AcceptanceReview();
+            }
+        }
+
+        function showAccMessage(msg) {
+            $("#acceptanceValidationSummary").html("<span>" + msg + "</span>").show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideAccMessage() {
+            $("#acceptanceValidationSummary").hide();
+        }
+
+        function openReturnRevisionModal() {
+            $("#txtRevisionRemarks").val("");
+            $("#returnRevisionModal").data("kendoWindow").center().open();
+        }
+
+        function submitReturnForRevision() {
+            var remarks = $("#txtRevisionRemarks").val();
+            if (!remarks || !remarks.trim()) {
+                alert("Please provide revision comments.");
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            $.ajax({
+                url: '@Url.Action("ReturnForRevision", "AIRs")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    AirId: acceptanceState.AirId,
+                    Reason: remarks
+                },
+                success: function (res) {
+                    if (res.success) {
+                        alert("AIR returned for revision successfully.");
+                        window.location.href = '@Url.Action("Index", "AIRs")';
+                    } else {
+                        alert(res.message || "Failed to return AIR.");
+                    }
+                }
+            });
+        }
+
+        function postAcceptanceFinal() {
+            if (!confirm("Officially accept and post this Acceptance and Inspection Report? This will commit property allocations.")) return;
+
+            if (typeof collectAcceptanceFormData === "function") collectAcceptanceFormData();
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $("#btnPostAcceptance").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Posting Acceptance...");
+
+            $.ajax({
+                url: '@Url.Action("PostAcceptance", "AIRs")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    model: acceptanceState
+                },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message || "Acceptance posted successfully!");
+                        window.location.href = '@Url.Action("Index", "AIRs")';
+                    } else {
+                        alert(res.message || "Failed to post acceptance.");
+                        $("#btnPostAcceptance").prop("disabled", false).html("<span class='k-icon k-i-check'></span> Post Official Acceptance");
+                    }
+                },
+                error: function () {
+                    alert("A network error occurred while posting acceptance.");
+                    $("#btnPostAcceptance").prop("disabled", false).html("<span class='k-icon k-i-check'></span> Post Official Acceptance");
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,155 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 2: Acceptance Details &amp; Quantity Decision</h2>
+            <p class="subtitle">
+                Record the official government acceptance of verified deliveries. Specify accepted quantities and officer accountability details.
+            </p>
+        </div>
+    </div>
+
+    <!-- Acceptance Officer Form -->
+    <div class="form-card mb-4 p-4 bg-white rounded border">
+        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Acceptance Officer Accountability</h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="txtAcceptanceDate" class="form-label small fw-bold">Acceptance Date <span class="text-danger">*</span></label>
+                <input type="date" id="txtAcceptanceDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtAcceptedBy" class="form-label small fw-bold">Accepted By (Officer Name) <span class="text-danger">*</span></label>
+                <input type="text" id="txtAcceptedBy" class="form-control-custom w-100" placeholder="Full name of Acceptance Officer..." value="@Model.AcceptedBy" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtAcceptedByDesignation" class="form-label small fw-bold">Designation</label>
+                <input type="text" id="txtAcceptedByDesignation" class="form-control-custom w-100" placeholder="e.g. Supply Officer IV / Custodian" value="@Model.AcceptedByDesignation" />
+            </div>
+            <div class="col-md-3">
+                <label for="txtDepartmentOffice" class="form-label small fw-bold">Department / Custodian Office</label>
+                <input type="text" id="txtDepartmentOffice" class="form-control-custom w-100" placeholder="e.g. General Services Office" value="@Model.Department" />
+            </div>
+            <div class="col-12">
+                <label for="txtAcceptanceRemarks" class="form-label small fw-bold">General Acceptance Remarks</label>
+                <textarea id="txtAcceptanceRemarks" class="form-control-custom w-100" rows="2" placeholder="Official notes on acceptance, packaging condition, or reasons for any partial acceptance...">@Model.AcceptanceRemarks</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Accepted Quantities Table -->
+    <div class="form-card mb-4 p-4 bg-white rounded border">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fs-6 fw-bold mb-0 text-primary"><span class="k-icon k-i-check"></span> Officially Accepted Item Quantities</h4>
+                <p class="small text-muted mb-0">Accepted Quantity defaults to Inspected Quantity. If any items are rejected prior to acceptance, adjust the accepted quantity accordingly.</p>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetAllAcceptedQuantities()">
+                <span class="k-icon k-i-reset"></span> Reset to Inspected
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0" id="tblAcceptedQuantities">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width:70px;">Item No.</th>
+                        <th>Description</th>
+                        <th style="width:70px;">Unit</th>
+                        <th style="width:110px;" class="text-end">Inspected Qty</th>
+                        <th style="width:140px;" class="text-end text-success fw-bold">Accepted Qty</th>
+                        <th>Acceptance Item Remarks</th>
+                    </tr>
+                </thead>
+                <tbody class="small" id="accItemsBody">
+                    <!-- Rendered via script -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Step Actions -->
+    <div class="wizard-summary-bar mt-4">
+        <button type="button" class="btn-procurement-secondary" onclick="goToAcceptanceStep(1)">
+            <span class="k-icon k-i-arrow-left"></span> Back to Review
+        </button>
+        <button type="button" class="btn-procurement-primary" onclick="proceedToAcceptanceStep3()">
+            Proceed to Item Disposition <span class="k-icon k-i-arrow-right"></span>
+        </button>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function renderAccStep2Items() {
+        var tbody = $("#accItemsBody");
+        tbody.empty();
+
+        if (!acceptanceState.Items || acceptanceState.Items.length === 0) {
+            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted">No items available.</td></tr>');
+            return;
+        }
+
+        acceptanceState.Items.forEach(function (item, idx) {
+            var tr = "<tr>" +
+                     "  <td class='fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>" +
+                     "  <td>" + (item.Description || "Item") + "</td>" +
+                     "  <td class='text-muted'>" + (item.Unit || "") + "</td>" +
+                     "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(item.InspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                     "  <td class='text-end'>" +
+                     "    <input type='number' step='any' min='0' max='" + item.InspectedQty + "' class='form-control-custom text-end fw-bold text-success' id='txtAccQty_" + idx + "' value='" + (item.AcceptedQty != null ? item.AcceptedQty : item.InspectedQty) + "' onchange='onAcceptedQtyChange(" + idx + ", this.value)' />" +
+                     "  </td>" +
+                     "  <td><input type='text' class='form-control-custom w-100' id='txtAccRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Condition / remarks...' onchange='onAccItemRemarksChange(" + idx + ", this.value)' /></td>" +
+                     "</tr>";
+            tbody.append(tr);
+        });
+    }
+
+    function onAcceptedQtyChange(idx, valStr) {
+        var val = parseFloat(valStr) || 0;
+        var item = acceptanceState.Items[idx];
+        if (!item) return;
+
+        if (val < 0) {
+            val = 0;
+            $("#txtAccQty_" + idx).val(0);
+        } else if (val > item.InspectedQty) {
+            val = item.InspectedQty;
+            $("#txtAccQty_" + idx).val(item.InspectedQty);
+            alert("Accepted quantity cannot exceed Inspected quantity (" + item.InspectedQty + ").");
+        }
+
+        item.AcceptedQty = val;
+    }
+
+    function onAccItemRemarksChange(idx, val) {
+        if (acceptanceState.Items[idx]) {
+            acceptanceState.Items[idx].Remarks = val;
+        }
+    }
+
+    function resetAllAcceptedQuantities() {
+        if (!acceptanceState.Items) return;
+        acceptanceState.Items.forEach(function (item, idx) {
+            item.AcceptedQty = item.InspectedQty;
+            $("#txtAccQty_" + idx).val(item.InspectedQty);
+        });
+    }
+
+    function proceedToAcceptanceStep3() {
+        var officer = $("#txtAcceptedBy").val();
+        if (!officer || !officer.trim()) {
+            alert("Please enter the name of the Acceptance Officer.");
+            $("#txtAcceptedBy").focus();
+            return;
+        }
+        collectAcceptanceFormData();
+        goToAcceptanceStep(3);
+    }
+
+    $(document).ready(function () {
+        renderAccStep2Items();
+    });
+</script>

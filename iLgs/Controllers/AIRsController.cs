@@ -1,4 +1,4 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
@@ -21,6 +21,10 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.Enums;
+using iLgs.Ai.Models;
+using iLgs.Ai.Services;
+using iLgs.Ai.Services.Air;
+using iLgs.Ai.Services.PurchaseOrder;
 
 namespace iLgs.Controllers
 {
@@ -34,6 +38,9 @@ namespace iLgs.Controllers
         private readonly IAirUploadService _uploadService;
         //private readonly string[] _menuId = { "airs_inspection", "airs_acceptance" };
         private string _menuId = string.Empty;
+        private readonly IAirInspectionService _airInspectionService;
+        private readonly IAirAcceptanceService _airAcceptanceService;
+        private readonly IDocumentStorageService _docService;
 
         public AIRsController()
         {
@@ -42,6 +49,9 @@ namespace iLgs.Controllers
             _codextnService = new CodextnService(_db);
             _orderService = new OrderService(_db);            
             _uploadService = new AirUploadService(_db);
+            _airInspectionService = new AirInspectionService(_db, new DocumentHistoryService(_db));
+            _airAcceptanceService = new AirAcceptanceService(_db, new DocumentHistoryService(_db));
+            _docService = new DocumentStorageService();
         }
 
         //public AIRsController(AppManEntities db, IAirService airService, IAirItemService airItemService, ICodextnService codextnService, IOrderService orderService,
@@ -125,18 +135,266 @@ namespace iLgs.Controllers
             return View("Index");
         }
 
-        // GET: 
+        // GET: AIRs
         public ActionResult Index()
         {
-            if (TempData["AllowIndexAccess"] == null || !(bool)TempData["AllowIndexAccess"])
-            {
-                ViewBag.Error = "Access Denied!";
-                return View("Error"); // Or some other handling
-            }
-
-            TempData["airs"] = _menuId;
+            ViewBag.Title = "Acceptance & Inspection Reports";
             return View();
         }
+
+        // GET: AIRs/AIRs_Read
+        public async Task<ActionResult> AIRs_Read([DataSourceRequest] DataSourceRequest request, string statusFilter)
+        {
+            var data = await _airInspectionService.GetAirListAsync(statusFilter);
+            return Json(data.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: AIRs/MyDrafts_Read
+        public async Task<ActionResult> MyDrafts_Read([DataSourceRequest] DataSourceRequest request)
+        {
+            var user = User.Identity.Name;
+            var data = await _airInspectionService.GetMyDraftsAsync(user);
+            return Json(data.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: AIRs/Wizard
+        public async Task<ActionResult> Wizard(Guid? id, Guid? orderId)
+        {
+            AIRWizardViewModel model;
+
+            if (id.HasValue)
+            {
+                model = await _airInspectionService.GetAirInspectionForEditAsync(id.Value);
+            }
+            else if (orderId.HasValue)
+            {
+                model = await _airInspectionService.GetPOInspectionDetailsAsync(orderId.Value);
+                model.CurrentStep = 2;
+            }
+            else
+            {
+                model = new AIRWizardViewModel();
+            }
+
+            ViewBag.Title = "AIR Inspection Wizard";
+            ViewBag.CurrentStep = model.CurrentStep;
+            ViewBag.DraftId = model.DraftId;
+            ViewBag.DraftNo = model.DraftNo;
+            ViewBag.WizardStateJson = JsonConvert.SerializeObject(model);
+
+            return View("Wizard", model);
+        }
+
+        // GET: AIRs/EligiblePOs_Read
+        public async Task<ActionResult> EligiblePOs_Read([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = await _airInspectionService.GetEligiblePurchaseOrdersAsync();
+            return Json(data.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: AIRs/GetPOInspectionDetails
+        [HttpGet]
+        public async Task<ActionResult> GetPOInspectionDetails(Guid orderId, Guid? airId)
+        {
+            try
+            {
+                var details = await _airInspectionService.GetPOInspectionDetailsAsync(orderId, airId);
+                return Json(new { success = true, data = details }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: AIRs/SaveDraft
+        [HttpPost]
+        public async Task<ActionResult> SaveDraft(AIRWizardViewModel model)
+        {
+            try
+            {
+                ValidateHeaderOrFormAntiForgeryToken();
+                var id = await _airInspectionService.SaveInspectionDraftAsync(model, User.Identity.Name);
+                return Json(new { success = true, airId = id, message = "Inspection draft saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/SubmitForAcceptance
+        [HttpPost]
+        public async Task<ActionResult> SubmitForAcceptance(AIRWizardViewModel model)
+        {
+            try
+            {
+                ValidateHeaderOrFormAntiForgeryToken();
+                var id = await _airInspectionService.SubmitForAcceptanceAsync(model, User.Identity.Name);
+                return Json(new { success = true, airId = id, message = "Inspection submitted for acceptance." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        private void ValidateHeaderOrFormAntiForgeryToken()
+        {
+            var cookie = Request.Cookies[System.Web.Helpers.AntiForgeryConfig.CookieName];
+            var cookieToken = cookie != null ? cookie.Value : null;
+            var formToken = Request.Headers["X-RequestVerificationToken"] ?? Request.Form["__RequestVerificationToken"];
+            if (!string.IsNullOrEmpty(formToken))
+            {
+                System.Web.Helpers.AntiForgery.Validate(cookieToken, formToken);
+            }
+        }
+
+        // POST: AIRs/WithdrawSubmission
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> WithdrawSubmission(AIRActionRequestViewModel model)
+        {
+            try
+            {
+                await _airInspectionService.WithdrawSubmissionAsync(model.AirId, model.Reason, User.Identity.Name);
+                return Json(new { success = true, message = "Submission withdrawn. Status reverted to Draft." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/RequestWithdrawal
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RequestWithdrawal(AIRActionRequestViewModel model)
+        {
+            try
+            {
+                await _airInspectionService.RequestWithdrawalAsync(model.AirId, model.Reason, User.Identity.Name);
+                return Json(new { success = true, message = "Withdrawal request sent to Acceptance Officer." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/DiscardDraft
+        [HttpPost]
+        public async Task<ActionResult> DiscardDraft(Guid id)
+        {
+            try
+            {
+                await _airInspectionService.DiscardDraftAsync(id, User.Identity.Name);
+                return Json(new { success = true, message = "Draft discarded." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: AIRs/GetItemHistory
+        public async Task<ActionResult> GetItemHistory(Guid orderItemId)
+        {
+            var history = await _airInspectionService.GetItemInspectionHistoryAsync(orderItemId);
+            return PartialView("_ItemHistoryModal", history);
+        }
+
+        // ==========================================
+        // ACCEPTANCE ACTIONS
+        // ==========================================
+
+        // POST: AIRs/StartAcceptance
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> StartAcceptance(Guid id)
+        {
+            try
+            {
+                await _airAcceptanceService.StartAcceptanceAsync(id, User.Identity.Name);
+                return Json(new { success = true, message = "Acceptance process started." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: AIRs/AcceptanceWizard
+        public async Task<ActionResult> AcceptanceWizard(Guid id)
+        {
+            var model = await _airAcceptanceService.GetAcceptanceDetailsAsync(id);
+            ViewBag.Title = "AIR Acceptance Wizard";
+            return View("AcceptanceWizard", model);
+        }
+
+        // POST: AIRs/ReturnForRevision
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ReturnForRevision(AIRActionRequestViewModel model)
+        {
+            try
+            {
+                await _airAcceptanceService.ReturnForRevisionAsync(model.AirId, model.Reason, User.Identity.Name);
+                return Json(new { success = true, message = "AIR returned for revision." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/DeclineWithdrawal
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeclineWithdrawal(AIRActionRequestViewModel model)
+        {
+            try
+            {
+                await _airAcceptanceService.DeclineWithdrawalAsync(model.AirId, model.Reason, User.Identity.Name);
+                return Json(new { success = true, message = "Withdrawal request declined." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/PostAcceptance
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> PostAcceptance(AIRAcceptanceWizardViewModel model)
+        {
+            try
+            {
+                await _airAcceptanceService.PostAcceptanceAsync(model, User.Identity.Name);
+                return Json(new { success = true, message = "AIR accepted and posted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: AIRs/UploadAttachment
+        [HttpPost]
+        public ActionResult UploadAttachment(HttpPostedFileBase file, string category)
+        {
+            try
+            {
+                var doc = _docService.SaveUploadedFile(file, "AIR", category ?? "SupportingDoc");
+                return Json(new { success = true, document = doc });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
         public async Task<ActionResult> AIRRead([DataSourceRequest] DataSourceRequest request, int? airGroup)
         {

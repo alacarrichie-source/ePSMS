@@ -1,0 +1,281 @@
+﻿@using Kendo.Mvc.UI
+
+<div class="wizard-card step4-review-container">
+    <div class="step4-header mb-4">
+        <div>
+            <div class="step4-title-row d-flex align-items-center gap-2 mb-1">
+                <h2 class="mb-0">Step 4: Review Inspection &amp; Submit for Acceptance</h2>
+                <span class="k-badge k-badge-solid k-badge-primary k-rounded-md">Ready for Submission</span>
+            </div>
+            <p class="subtitle mb-0">Verify inspected delivery quantities, inspection committee details, and invoice attachments before official submission to Acceptance.</p>
+        </div>
+        <div class="step4-metrics d-flex align-items-center gap-3">
+            <div id="step4ReadinessBadge" class="step4-readiness is-ready p-2 px-3 rounded border d-flex align-items-center gap-2 bg-light">
+                <span class="k-icon k-i-check text-success fs-5"></span>
+                <div>
+                    <strong class="d-block small text-success">Inspection Complete</strong>
+                    <span id="step4ValidationSummary" class="small text-muted">Ready to submit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SUMMARY METRICS CARDS
+         ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="p-3 bg-light rounded border text-center">
+                <span class="text-muted small d-block mb-1">Total Ordered Qty</span>
+                <strong class="fs-5" id="revGrandOrdered">0.00</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-light rounded border text-center">
+                <span class="text-muted small d-block mb-1">Previous Posted Inspected</span>
+                <strong class="fs-5 text-secondary" id="revGrandPrev">0.00</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary text-center">
+                <span class="text-primary small fw-bold d-block mb-1">Inspected This Transaction</span>
+                <strong class="fs-5 text-primary" id="revGrandInspectNow">0.00</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-light rounded border text-center">
+                <span class="text-muted small d-block mb-1">Remaining After Inspection</span>
+                <strong class="fs-5 text-danger" id="revGrandRemaining">0.00</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         HEADER & PO REVIEW CARDS
+         ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="p-3 bg-white rounded border h-100">
+                <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-cart"></span> Purchase Order Reference</h4>
+                <div class="small">
+                    <div class="mb-1"><strong>PO Number:</strong> <span id="revPONumber">--</span></div>
+                    <div class="mb-1"><strong>PO Date:</strong> <span id="revPODate">--</span></div>
+                    <div class="mb-1"><strong>Supplier:</strong> <span id="revSupplier">--</span></div>
+                    <div class="mb-1"><strong>Department:</strong> <span id="revDepartment">--</span></div>
+                    <div><strong>Place of Delivery:</strong> <span id="revDeliveryPlace">--</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 bg-white rounded border h-100">
+                <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-user"></span> Physical Inspection &amp; Invoice Summary</h4>
+                <div class="small">
+                    <div class="mb-1"><strong>Inspection Date:</strong> <span id="revInspectionDate">--</span></div>
+                    <div class="mb-1"><strong>Inspector / Officer:</strong> <span id="revInspector">--</span></div>
+                    <div class="mb-1"><strong>Inspection Location:</strong> <span id="revLocation">--</span></div>
+                    <div class="mb-1"><strong>Invoice No. &amp; Date:</strong> <span id="revInvoiceNoDate">--</span></div>
+                    <div><strong>Delivery Receipt (DR) No.:</strong> <span id="revDrNo">--</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         INSPECTED ITEMS BREAKDOWN TABLE
+         ============================================================ -->
+    <div class="mb-4">
+        <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-list-unordered"></span> Inspected Delivery Quantities Breakdown</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width:70px;">Item No.</th>
+                        <th>Description</th>
+                        <th style="width:60px;">Unit</th>
+                        <th style="width:90px;" class="text-end">Ordered</th>
+                        <th style="width:100px;" class="text-end">Prev. Insp.</th>
+                        <th style="width:120px;" class="text-end text-primary fw-bold">Inspect Now</th>
+                        <th style="width:100px;" class="text-end">Total Insp.</th>
+                        <th style="width:90px;" class="text-end">Remaining</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="revItemsTableBody" class="small">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ATTACHMENTS RECAP
+         ============================================================ -->
+    <div class="mb-4 p-3 bg-light rounded border">
+        <h4 class="fs-6 fw-bold text-secondary mb-2"><span class="k-icon k-i-attachment"></span> Attached Documents</h4>
+        <div id="revAttachedDocsContainer" class="d-flex flex-wrap gap-2 small">
+            <span class="text-muted font-italic">No attachments.</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CERTIFICATION CHECKBOX
+         ============================================================ -->
+    <div class="step4-certification p-3 bg-white rounded border mb-4">
+        <label for="chkInspectionCertification" class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+            <input type="checkbox" id="chkInspectionCertification" class="mt-1" onchange="toggleCertification(this.checked)" />
+            <span class="small">
+                <strong>Inspector Physical Verification Certification:</strong> I hereby certify that the physical goods and supplies listed above have been inspected, counted, and verified as to delivery quantity in accordance with the specified Purchase Order terms and delivery receipts. Final acceptance and disposition will be determined by the Acceptance Officer.
+            </span>
+        </label>
+    </div>
+
+    <!-- ============================================================
+         FINAL ACTIONS BAR
+         ============================================================ -->
+    <div class="wizard-summary-bar wizard-final-actions">
+        <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(3)">
+            <span class="k-icon k-i-arrow-left"></span> Back to Invoice Entry
+        </button>
+
+        <div class="wizard-action-group">
+            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                <span class="k-icon k-i-save"></span> Save as Draft
+            </button>
+            <button type="button" id="btnSubmitForAcceptance" class="btn-procurement-primary" onclick="submitInspectionFinal()" disabled="disabled">
+                <span class="k-icon k-i-check"></span> Submit for Acceptance
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function collectWizardFormData() {
+        if (!airWizardState) return;
+
+        // Step 2 inputs
+        airWizardState.InspectionDate = $("#txtInspectionDate").val() || new Date();
+        airWizardState.InspectionLocation = $("#txtInspectionLocation").val();
+        airWizardState.InspectorName = $("#txtInspectorName").val();
+        airWizardState.InspectorDesignation = $("#txtInspectorDesignation").val();
+        airWizardState.InspectionCommittee = $("#txtInspectionCommittee").val();
+        airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val();
+
+        // Step 3 inputs
+        if (!airWizardState.Invoice) airWizardState.Invoice = {};
+        airWizardState.Invoice.DrNo = $("#txtDrNo").val();
+        airWizardState.Invoice.InvoiceNo = $("#txtInvoiceNo").val();
+        airWizardState.Invoice.InvoiceDate = $("#txtInvoiceDate").val() || new Date();
+        airWizardState.Invoice.InvoiceAmount = parseFloat($("#txtInvoiceAmount").val()) || null;
+        airWizardState.Invoice.InvoiceType = $("#ddlInvoiceType").val();
+        airWizardState.Invoice.BillingReference = $("#txtBillingReference").val();
+        airWizardState.Invoice.Remarks = $("#txtInvoiceRemarks").val();
+    }
+
+    function renderStep4Review() {
+        collectWizardFormData();
+
+        // PO details
+        $("#revPONumber").text(airWizardState.PONumber || "N/A");
+        $("#revPODate").text(airWizardState.PODate ? new Date(airWizardState.PODate).toLocaleDateString() : "N/A");
+        $("#revSupplier").text(airWizardState.SupplierName || "N/A");
+        $("#revDepartment").text(airWizardState.DepartmentName || "N/A");
+        $("#revDeliveryPlace").text(airWizardState.DeliveryPlace || "N/A");
+
+        // Inspection & Invoice
+        $("#revInspectionDate").text(airWizardState.InspectionDate ? new Date(airWizardState.InspectionDate).toLocaleDateString() : new Date().toLocaleDateString());
+        $("#revInspector").text(airWizardState.InspectorName ? (airWizardState.InspectorName + (airWizardState.InspectorDesignation ? " (" + airWizardState.InspectorDesignation + ")" : "")) : "Not specified");
+        $("#revLocation").text(airWizardState.InspectionLocation || "N/A");
+        $("#revInvoiceNoDate").text((airWizardState.Invoice.InvoiceNo || "N/A") + " (Date: " + (airWizardState.Invoice.InvoiceDate ? new Date(airWizardState.Invoice.InvoiceDate).toLocaleDateString() : "N/A") + ")");
+        $("#revDrNo").text(airWizardState.Invoice.DrNo || "None specified");
+
+        // Items table
+        var tbody = $("#revItemsTableBody");
+        tbody.empty();
+
+        var grandOrdered = 0;
+        var grandPrev = 0;
+        var grandInspectNow = 0;
+        var grandRemaining = 0;
+
+        if (airWizardState.Items) {
+            airWizardState.Items.forEach(function (i) {
+                var ordered = i.OrderedQty || 0;
+                var prev = i.PreviousInspectedQty || 0;
+                var inspectNow = i.InspectNowQty || 0;
+                var total = prev + inspectNow;
+                var remAfter = ordered - total;
+                if (remAfter < 0) remAfter = 0;
+
+                grandOrdered += ordered;
+                grandPrev += prev;
+                grandInspectNow += inspectNow;
+                grandRemaining += remAfter;
+
+                var isInspected = inspectNow > 0;
+                var rowClass = isInspected ? "table-light fw-semibold" : "text-muted";
+
+                var tr = "<tr class='" + rowClass + "'>" +
+                         "  <td>" + (i.ItemNo || "--") + "</td>" +
+                         "  <td>" + (i.Description || "Item") + "</td>" +
+                         "  <td>" + (i.Unit || "") + "</td>" +
+                         "  <td class='text-end font-monospace'>" + Number(ordered).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td class='text-end font-monospace text-muted'>" + Number(prev).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(inspectNow).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td class='text-end font-monospace'>" + Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td class='text-end font-monospace " + (remAfter > 0 ? "text-danger" : "text-success") + "'>" + Number(remAfter).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                         "  <td>" + (i.Remarks || "--") + "</td>" +
+                         "</tr>";
+                tbody.append(tr);
+
+                // Set/Lot sub-items if present
+                if (i.IsSetLot && i.SubItems && i.SubItems.length > 0) {
+                    i.SubItems.forEach(function (sub) {
+                        var subInspect = sub.InspectNowQty || 0;
+                        var subTotal = (sub.PreviousInspectedQty || 0) + subInspect;
+                        var subRem = (sub.ExpectedQty || 0) - subTotal;
+                        var subTr = "<tr class='table-sm text-secondary' style='background:\\#f8fafc; font-size:11px;'>" +
+                                    "  <td class='text-end'>&rdquor;</td>" +
+                                    "  <td colspan='2' class='ps-3'>&bull; " + (sub.Description || "") + " (" + (sub.SubItemNo || "") + ")</td>" +
+                                    "  <td class='text-end font-monospace'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td class='text-end font-monospace text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(subInspect).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td class='text-end font-monospace'>" + Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td class='text-end font-monospace'>" + Number(subRem).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td>" + (sub.Remarks || "--") + "</td>" +
+                                    "</tr>";
+                        tbody.append(subTr);
+                    });
+                }
+            });
+        }
+
+        $("#revGrandOrdered").text(Number(grandOrdered).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#revGrandPrev").text(Number(grandPrev).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#revGrandInspectNow").text(Number(grandInspectNow).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#revGrandRemaining").text(Number(grandRemaining).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        // Attachments
+        var docsContainer = $("#revAttachedDocsContainer");
+        docsContainer.empty();
+        var allDocs = [];
+        if (airWizardState.SupportingDocuments) allDocs = allDocs.concat(airWizardState.SupportingDocuments);
+        if (airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments) allDocs = allDocs.concat(airWizardState.Invoice.InvoiceAttachments);
+
+        if (allDocs.length === 0) {
+            docsContainer.html("<span class='text-muted font-italic'>No attachments uploaded.</span>");
+        } else {
+            allDocs.forEach(function (doc) {
+                var badge = "<span class='badge bg-white text-dark border p-2 d-inline-flex align-items-center gap-1'>" +
+                            "  <span class='k-icon k-i-file-pdf text-danger'></span> " +
+                            "  <span>" + doc.FileName + " (" + doc.FileSize + ")</span>" +
+                            "</span>";
+                docsContainer.append(badge);
+            });
+        }
+    }
+
+    function toggleCertification(checked) {
+        $("#btnSubmitForAcceptance").prop("disabled", !checked);
+    }
+</script>

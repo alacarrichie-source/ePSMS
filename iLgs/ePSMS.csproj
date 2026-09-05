@@ -318,6 +318,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ai\Models\AIRWizardViewModel.cs" />
+    <Compile Include="Ai\Services\Air\AirInspectionService.cs" />
+    <Compile Include="Ai\Services\Air\AirAcceptanceService.cs" />
     <Compile Include="Ai\Models\POWizardViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderDetailViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderGridModel.cs" />
@@ -395,6 +398,8 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AccountCodeViewModels.cs" />
+    <Compile Include="Models\AIR.Additions.cs" />
+    <Compile Include="Models\AIRItem.Additions.cs" />
     <Compile Include="Models\AIR.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -4313,6 +4318,17 @@
     <Content Include="Views\Requests\EditorTemplates\_RequestTemplate.cshtml" />
     <Content Include="Views\Orders\Index.cshtml" />
     <Content Include="Views\AIRs\Index.cshtml" />
+    <Content Include="Views\AIRs\Wizard.cshtml" />
+    <Content Include="Views\AIRs\_Step1_SelectPO.cshtml" />
+    <Content Include="Views\AIRs\_Step2_InspectItems.cshtml" />
+    <Content Include="Views\AIRs\_Step3_InvoiceEntry.cshtml" />
+    <Content Include="Views\AIRs\_Step4_ReviewSubmit.cshtml" />
+    <Content Include="Views\AIRs\AcceptanceWizard.cshtml" />
+    <Content Include="Views\AIRs\_AcceptanceStep1_Review.cshtml" />
+    <Content Include="Views\AIRs\_AcceptanceStep2_Details.cshtml" />
+    <Content Include="Views\AIRs\_AcceptanceStep3_Disposition.cshtml" />
+    <Content Include="Views\AIRs\_AcceptanceStep4_ReviewPost.cshtml" />
+    <Content Include="Views\AIRs\_ItemHistoryModal.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemTemplate.cshtml" />
     <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
@@ -5107,3 +5123,4 @@
   <Target Name="AfterBuild">
   </Target> -->
 </Project>
+

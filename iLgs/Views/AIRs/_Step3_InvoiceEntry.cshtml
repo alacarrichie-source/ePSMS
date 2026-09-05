@@ -1,0 +1,242 @@
+﻿@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+<div class="wizard-card">
+
+    <div class="wizard-card-header">
+        <div>
+            <h2>Step 3: Supplier Invoice &amp; Delivery Receipt Details</h2>
+            <p class="subtitle">
+                Capture the supplier delivery receipt, sales invoice number, billing reference, and upload digital copies of supplier documents.
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SUPPLIER & ORDER REFERENCE CARD
+         ============================================================ -->
+    <div class="form-card mb-4 p-3 bg-light rounded border">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <span class="text-muted small">Supplier Awardee:</span>
+                <div class="fw-bold fs-6" id="txtStep3Supplier">--</div>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">Purchase Order No:</span>
+                <div class="fw-bold fs-6 text-primary" id="txtStep3PONumber">--</div>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">Target Department:</span>
+                <div class="fw-bold fs-6" id="txtStep3Department">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         INVOICE / DR DETAILS FORM
+         ============================================================ -->
+    <div class="form-card mb-4 p-4 bg-white rounded border">
+        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-file-txt"></span> Invoice &amp; Billing Information</h4>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="txtDrNo" class="form-label small fw-bold">Delivery Receipt (DR) No.</label>
+                <input type="text" id="txtDrNo" class="form-control-custom w-100" placeholder="e.g. DR-2026-0492" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-4">
+                <label for="txtInvoiceNo" class="form-label small fw-bold">Sales Invoice No. <span class="text-danger">*</span></label>
+                <input type="text" id="txtInvoiceNo" class="form-control-custom w-100" placeholder="e.g. SI-88910" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-4">
+                <label for="txtInvoiceDate" class="form-label small fw-bold">Invoice Date <span class="text-danger">*</span></label>
+                <input type="date" id="txtInvoiceDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="scheduleWizardAutoSave()" />
+            </div>
+
+            <div class="col-md-4">
+                <label for="txtInvoiceAmount" class="form-label small fw-bold">Invoice Total Amount (PHP)</label>
+                <input type="number" step="0.01" id="txtInvoiceAmount" class="form-control-custom w-100 font-monospace fw-bold" placeholder="0.00" onchange="scheduleWizardAutoSave()" />
+            </div>
+            <div class="col-md-4">
+                <label for="ddlInvoiceType" class="form-label small fw-bold">Invoice Type</label>
+                <select id="ddlInvoiceType" class="form-control-custom w-100" onchange="scheduleWizardAutoSave()">
+                    <option value="Sales Invoice">Sales Invoice (SI)</option>
+                    <option value="Official Receipt">Official Receipt (OR)</option>
+                    <option value="Billing Statement">Billing Statement</option>
+                    <option value="Delivery Receipt">Delivery Receipt Only</option>
+                    <option value="Other">Other / Commercial Invoice</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="txtBillingReference" class="form-label small fw-bold">Billing Reference</label>
+                <input type="text" id="txtBillingReference" class="form-control-custom w-100" placeholder="e.g. Charge Invoice / Ref No." onchange="scheduleWizardAutoSave()" />
+            </div>
+
+            <div class="col-12">
+                <label for="txtInvoiceRemarks" class="form-label small fw-bold">Invoice &amp; Payment Remarks</label>
+                <textarea id="txtInvoiceRemarks" class="form-control-custom w-100" rows="2" placeholder="Payment terms, withholding tax deductions, partial billing notes..." onchange="scheduleWizardAutoSave()"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         UPLOAD INVOICE COPY & DOCUMENTS
+         ============================================================ -->
+    <div class="form-card mb-4 p-4 bg-white rounded border">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fs-6 fw-bold mb-0 text-primary"><span class="k-icon k-i-upload"></span> Upload Invoice Copy &amp; Supplier Delivery Documents</h4>
+                <p class="small text-muted mb-0">Upload scanned copies of the supplier invoice, delivery receipt, or waybill (PDF, JPG, PNG up to 10MB).</p>
+            </div>
+            <div>
+                <label class="btn-procurement-primary btn-sm mb-0" style="cursor:pointer;">
+                    <span class="k-icon k-i-upload"></span> Upload Document
+                    <input type="file" id="fileInvoiceUpload" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleInvoiceFileUpload(this)" />
+                </label>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0" id="tblInvoiceAttachments">
+                <thead class="table-light">
+                    <tr>
+                        <th>File Name</th>
+                        <th style="width: 130px;">Document Type</th>
+                        <th style="width: 100px;">File Size</th>
+                        <th style="width: 150px;">Uploaded By</th>
+                        <th style="width: 140px;">Upload Date</th>
+                        <th style="width: 140px;" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceAttachmentsTableBody">
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-muted" id="noInvoiceDocsRow">
+                            No invoice documents uploaded yet. Click <strong>Upload Document</strong> to attach.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         STEP SUMMARY / ACTIONS
+         ============================================================ -->
+    <div class="wizard-summary-bar mt-4">
+        <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(2)">
+            <span class="k-icon k-i-arrow-left"></span> Back to Inspect Items
+        </button>
+
+        <div class="wizard-action-group">
+            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                <span class="k-icon k-i-save"></span> Save Draft
+            </button>
+            <button type="button" class="btn-procurement-primary" onclick="proceedToStep4()">
+                Proceed to Review &amp; Submit <span class="k-icon k-i-arrow-right"></span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function syncStep3Form() {
+        if (!airWizardState) return;
+        $("#txtStep3Supplier").text(airWizardState.SupplierName || "N/A");
+        $("#txtStep3PONumber").text(airWizardState.PONumber || "N/A");
+        $("#txtStep3Department").text(airWizardState.DepartmentName || "N/A");
+
+        if (airWizardState.Invoice) {
+            if (airWizardState.Invoice.DrNo) $("#txtDrNo").val(airWizardState.Invoice.DrNo);
+            if (airWizardState.Invoice.InvoiceNo) $("#txtInvoiceNo").val(airWizardState.Invoice.InvoiceNo);
+            if (airWizardState.Invoice.InvoiceDate) {
+                var d = new Date(airWizardState.Invoice.InvoiceDate);
+                $("#txtInvoiceDate").val(d.toISOString().substring(0, 10));
+            }
+            if (airWizardState.Invoice.InvoiceAmount) $("#txtInvoiceAmount").val(airWizardState.Invoice.InvoiceAmount);
+            if (airWizardState.Invoice.InvoiceType) $("#ddlInvoiceType").val(airWizardState.Invoice.InvoiceType);
+            if (airWizardState.Invoice.BillingReference) $("#txtBillingReference").val(airWizardState.Invoice.BillingReference);
+            if (airWizardState.Invoice.Remarks) $("#txtInvoiceRemarks").val(airWizardState.Invoice.Remarks);
+        }
+
+        renderInvoiceAttachments();
+    }
+
+    function handleInvoiceFileUpload(input) {
+        if (!input.files || input.files.length === 0) return;
+        var formData = new FormData();
+        formData.append("file", input.files[0]);
+        formData.append("category", "InvoiceCopy");
+
+        $.ajax({
+            url: '@Url.Action("UploadAttachment", "AIRs")',
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success && res.document) {
+                    if (!airWizardState.Invoice) airWizardState.Invoice = { InvoiceAttachments: [] };
+                    if (!airWizardState.Invoice.InvoiceAttachments) airWizardState.Invoice.InvoiceAttachments = [];
+                    airWizardState.Invoice.InvoiceAttachments.push(res.document);
+                    renderInvoiceAttachments();
+                    scheduleWizardAutoSave();
+                } else {
+                    alert(res.message || "Failed to upload file.");
+                }
+            }
+        });
+    }
+
+    function renderInvoiceAttachments() {
+        var tbody = $("#invoiceAttachmentsTableBody");
+        tbody.empty();
+
+        var docs = airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments ? airWizardState.Invoice.InvoiceAttachments : [];
+        if (docs.length === 0) {
+            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted">No invoice documents uploaded yet. Click <strong>Upload Document</strong> to attach.</td></tr>');
+            return;
+        }
+
+        docs.forEach(function (doc, idx) {
+            var row = "<tr>" +
+                      "  <td class='fw-semibold'><span class='k-icon k-i-file-pdf text-danger'></span> " + doc.FileName + "</td>" +
+                      "  <td><span class='badge bg-light text-dark border'>" + (doc.DocumentType || "Invoice") + "</span></td>" +
+                      "  <td class='small text-muted font-monospace'>" + doc.FileSize + "</td>" +
+                      "  <td class='small'>" + (doc.UploadedBy || "Current User") + "</td>" +
+                      "  <td class='small text-muted'>" + new Date(doc.UploadedDt).toLocaleDateString() + "</td>" +
+                      "  <td class='text-center'>" +
+                      "    <button type='button' class='btn btn-xs btn-outline-secondary me-1' onclick='viewDocument(\"" + doc.FilePath + "\")' title='View'><span class='k-icon k-i-eye'></span></button>" +
+                      "    <button type='button' class='btn btn-xs btn-outline-danger' onclick='removeInvoiceAttachment(" + idx + ")' title='Remove'><span class='k-icon k-i-trash'></span></button>" +
+                      "  </td>" +
+                      "</tr>";
+            tbody.append(row);
+        });
+    }
+
+    function removeInvoiceAttachment(idx) {
+        if (airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments) {
+            airWizardState.Invoice.InvoiceAttachments.splice(idx, 1);
+            renderInvoiceAttachments();
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function viewDocument(path) {
+        if (path) window.open(path.replace("~/", "/"), "_blank");
+    }
+
+    function proceedToStep4() {
+        var invoiceNo = $("#txtInvoiceNo").val();
+        if (!invoiceNo || !invoiceNo.trim()) {
+            alert("Please enter the Sales Invoice Number.");
+            $("#txtInvoiceNo").focus();
+            return;
+        }
+        collectWizardFormData();
+        goToWizardStep(4);
+    }
+
+    // Hook to sync step 3 on display
+    $(document).on("click", "#airStepper", function () {
+        if (currentWizardStep === 3) syncStep3Form();
+    });
+</script>
