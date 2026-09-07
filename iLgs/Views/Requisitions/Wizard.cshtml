@@ -1,0 +1,53 @@
+@using Kendo.Mvc.UI
+@{
+    ViewBag.Title = "Create RIS";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+<link rel="stylesheet" href="@Url.Content("~/Content/requisitions.css")" />
+<div class="epsms-procurement po-wizard ris-feature" id="risWizard"
+     data-departments="@Url.Action("EligibleDepartments", "Requisitions")"
+     data-load="@Url.Action("WizardData", "Requisitions")"
+     data-submit="@Url.Action("SubmitWizard", "Requisitions")"
+     data-index="@Url.Action("Index", "Requisitions")">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="risSubmissionKey" value="@ViewBag.SubmissionKey" />
+    <div class="breadcrumbs"><a href="@Url.Action("Index", "Requisitions")">Requisitions</a> &gt; Create RIS</div>
+    <div class="wizard-header"><div><h1>Create Requisition and Issue Slips</h1><p class="subtitle">Select a PO, enter quantities by PR, then review and post.</p></div><a class="btn-procurement-secondary" href="@Url.Action("Index", "Requisitions")">Cancel &amp; Exit</a></div>
+    <div class="ris-steps" aria-label="Wizard progress"><span data-step="1" class="active">1. Department &amp; PO</span><span data-step="2">2. Requisition Entry</span><span data-step="3">3. Review &amp; Post</span></div>
+    <div id="wizardError" class="alert alert-danger ris-error" role="alert" style="display:none"></div>
+    <section id="risStep1" class="wizard-card">
+        <h2>Select Purchase Order</h2>
+        <p class="ris-hint">Select a department to see POs with available supply quantities. A partially issued PO remains available.</p>
+        <label for="wizardDepartment">Department / Office</label><input id="wizardDepartment" style="width:380px;max-width:100%" />
+        <script>function risCandidateFilters(){return {department:$("#wizardDepartment").val()};}</script>
+        @(Html.Kendo().Grid<iLgs.Models.RisCandidateVM>().Name("risCandidates").AutoBind(false)
+            .Columns(c =>
+            {
+                c.Bound(x => x.PoNo).Title("PO No.").Width(140);
+                c.Bound(x => x.PoDate).Format("{0:MMM dd, yyyy}").Width(120);
+                c.Bound(x => x.Supplier).Width(180);
+                c.Bound(x => x.PrNo).Title("PR Reference(s)").Width(150);
+                c.Bound(x => x.Department).Width(180);
+                c.Bound(x => x.ItemCount).Title("Supply Allocations").Width(100).HtmlAttributes(new {style="text-align:right"}).HeaderHtmlAttributes(new {style="text-align:right"});
+                c.Bound(x => x.PreviousQty).Title("Posted Qty").Format("{0:n2}").Width(110).HtmlAttributes(new {style="text-align:right"}).HeaderHtmlAttributes(new {style="text-align:right"});
+                c.Bound(x => x.RemainingQty).Title("Remaining Qty").Format("{0:n2}").Width(120).HtmlAttributes(new {style="text-align:right"}).HeaderHtmlAttributes(new {style="text-align:right"});
+                c.Bound(x => x.Status).Title("Completion").Width(110);
+            }).Selectable(s => s.Mode(GridSelectionMode.Single)).Sortable().Filterable().Scrollable().NoRecords()
+            .Pageable(p => p.Refresh(true)).DataSource(d => d.Ajax().PageSize(10).Read(r => r.Action("Candidates","Requisitions").Data("risCandidateFilters"))))
+        <div class="ris-actions"><span></span><button type="button" id="risNext1" class="btn-procurement-primary">Next: Requisition Entry</button></div>
+    </section>
+    <section id="risStep2" class="wizard-card" style="display:none">
+        <h2>Requisition Entry — <span class="ris-po"></span></h2>
+        <p class="ris-hint">Enter requested and issued quantities per PR. Use zero to omit an allocation. Issued quantity cannot exceed requested quantity or current availability.</p>
+        <div id="risEntryGroups"></div>
+        <div class="ris-actions"><button type="button" id="risBack2" class="btn-procurement-secondary">Back</button><button type="button" id="risNext2" class="btn-procurement-primary">Next: Review</button></div>
+    </section>
+    <section id="risStep3" class="wizard-card" style="display:none">
+        <h2>Review &amp; Post — <span class="ris-po"></span></h2>
+        <p class="ris-hint">Each participating PR creates its own RIS. All groups are posted together.</p>
+        <div id="risReviewGroups"></div>
+        <div class="ris-actions"><button type="button" id="risBack3" class="btn-procurement-secondary">Back</button><button type="button" id="risPostAll" class="btn-procurement-primary">Post RIS</button></div>
+    </section>
+    <div id="risPostConfirm" style="display:none"><p>Post all reviewed PR groups now?</p><button type="button" class="k-button" id="risCancelPost">Cancel</button> <button type="button" class="k-button k-primary" id="risConfirmPost">Post RIS</button></div>
+</div>
+<script src="@Url.Content("~/Scripts/requisitions-wizard.js")"></script>

@@ -610,6 +610,7 @@
                         GSOCategory: item.gsoCategory,
                         TechnicalDescription: item.technicalDescription,
                         AdditionalSpecs: item.additionalSpecs || {},
+                        AllFields: item.allFields || item.additionalSpecs || {},
                         SetLotItems: item.setLotItems || [],
                         Allocations: (item.sourcePRs || []).map(function (source) {
                             return { PRId: source.prId || null, RequestItemId: source.requestItemId, PRNumber: source.prNo, Quantity: Number(source.allocatedQty || 0) };

@@ -49,11 +49,13 @@ namespace iLgs.Ai.Services.Air
             var query = _db.AIRs.AsNoTracking().Include(a => a.Order).Include(a => a.AIRItems);
 
             var list = await query.OrderByDescending(a => a.InsertedDt ?? a.AIRDate).ToListAsync();
+            var inventoryPostedIds = await GetInventoryPostedAirIdsAsync();
             var result = new List<AIRGridItemViewModel>();
 
             foreach (var a in list)
             {
                 var overallStatus = ResolveOverallStatus(a);
+                var inventoryPosted = inventoryPostedIds.Contains(a.Id);
 
                 // Drafts belong in the wizard-progress grid, not the AIR history grid.
                 if (string.Equals(overallStatus, AirStatuses.Draft, StringComparison.OrdinalIgnoreCase))
@@ -99,6 +101,8 @@ namespace iLgs.Ai.Services.Air
                     CanStartAcceptance = acceptanceQueue && overallStatus == AirStatuses.SubmittedForAcceptance && a.IsInspected == true && a.AcceptanceStartedDt == null && a.PostedDt == null,
                     CanContinueAcceptance = acceptanceQueue && (overallStatus == AirStatuses.AcceptanceInProgress || overallStatus == AirStatuses.Unposted || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase)) && a.PostedDt == null,
                     CanPost = false,
+                    InventoryPosted = inventoryPosted,
+                    CanPostToInventory = acceptanceQueue && overallStatus == AirStatuses.Posted && a.AcceptanceStatus == AirAcceptanceStatuses.Accepted && !inventoryPosted,
                     CanPrint = a.PostedDt != null,
                     CanViewAcceptance = a.AcceptanceStartedDt != null || a.AcceptedDate != null || a.PostedDt != null || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase) || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase),
                     CanUnpost = acceptanceQueue && a.PostedDt != null && !string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase),
@@ -109,6 +113,36 @@ namespace iLgs.Ai.Services.Air
             }
 
             return result;
+        }
+
+        private async Task<HashSet<Guid>> GetInventoryPostedAirIdsAsync()
+        {
+            int columnCount = await _db.Database.SqlQuery<int>(
+                "SELECT COUNT(*) FROM sys.columns " +
+                "WHERE object_id = OBJECT_ID('dbo.PsCardItems') " +
+                "AND name = 'AIRItemId'")
+                .SingleAsync();
+
+            if (columnCount == 0)
+            {
+                var historicalIds = await _db.DocumentStatusHistories.AsNoTracking()
+                    .Where(h =>
+                        h.DocumentType == DocumentTypes.AcceptanceInspectionReport &&
+                        h.Action == "AIR_INVENTORY_POSTED")
+                    .Select(h => h.DocumentId)
+                    .ToListAsync();
+
+                return new HashSet<Guid>(historicalIds);
+            }
+
+            var currentIds = await _db.Database.SqlQuery<Guid>(
+                "SELECT DISTINCT ai.AirId " +
+                "FROM dbo.PsCardItems pci " +
+                "INNER JOIN dbo.AIRItems ai ON ai.Id = pci.AIRItemId " +
+                "WHERE ai.AirId IS NOT NULL")
+                .ToListAsync();
+
+            return new HashSet<Guid>(currentIds);
         }
 
         public async Task<List<AIRWizardDraftListItemViewModel>> GetMyDraftsAsync(string user)

@@ -242,6 +242,12 @@
                 return;
             }
 
+            if (currentWizardStep === 3 &&
+                step !== 3 &&
+                typeof captureVisibleStep3AdditionalSpecs === "function") {
+                captureVisibleStep3AdditionalSpecs();
+            }
+
             /*
              * Step 1 validation.
              */

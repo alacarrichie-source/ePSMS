@@ -52,6 +52,8 @@
         col.Bound(p => p.FileName).Width(100);
         col.Bound(p => p.InsertedBy).Width(50);
         col.Bound(p => p.InsertedDt).Width(50);
+        col.Bound(p => p.UpdatedBy).Width(50);
+        col.Bound(p => p.UpdatedDt).Width(50);
         col.Command(command =>
         {
             command.Edit();

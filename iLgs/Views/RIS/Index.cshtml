@@ -1,99 +1,84 @@
 ﻿@{
-    ViewBag.Title = "Requisition and Issue Slip";
+    ViewBag.Title = "Requisition and Issue Slips";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
+<div class="epsms-ris ris-index">
+    <div class="ris-page-header">
+        <div>
+            <h1>Requisition and Issue Slips</h1>
+            <p>Manage requisitions, track their status, and prepare items for issuance.</p>
+        </div>
+        <div class="ris-header-actions">
+            <button type="button" class="k-button" id="risRefresh"><span class="k-icon k-i-reload"></span>Refresh</button>
+            <button type="button" class="k-button" id="risExport"><span class="k-icon k-i-excel"></span>Export</button>
+            <button type="button" class="k-button k-primary" id="risCreate"><span class="k-icon k-i-plus"></span>Create RIS</button>
+        </div>
+    </div>
+
+    <div class="ris-kpis">
+        <div class="ris-kpi"><span>Total RIS</span><strong id="kpiTotal">0</strong></div>
+        <div class="ris-kpi"><span>Draft</span><strong id="kpiDraft">0</strong></div>
+        <div class="ris-kpi"><span>Unposted / For Posting</span><strong id="kpiUnposted">0</strong></div>
+        <div class="ris-kpi ris-kpi-posted"><span>Posted</span><strong id="kpiPosted">0</strong></div>
+    </div>
+
+    <div class="ris-filter-panel">
+        <div class="ris-filter-field ris-filter-search"><label for="risSearch">Search</label><input id="risSearch" class="k-textbox" placeholder="RIS no., office, purpose, requested by" /></div>
+        <div class="ris-filter-field"><label for="risStatus">Status</label><select id="risStatus"><option>All</option><option>Draft</option><option>Unposted</option><option>Posted</option></select></div>
+        <div class="ris-filter-field"><label for="risDepartment">Department / Office</label><select id="risDepartment"><option value="">All departments</option></select></div>
+        <div class="ris-filter-field"><label for="risFund">Fund</label><select id="risFund"><option value="">All funds</option></select></div>
+        <div class="ris-filter-field"><label for="risFrom">From date</label><input id="risFrom" /></div>
+        <div class="ris-filter-field"><label for="risTo">To date</label><input id="risTo" /></div>
+        <div class="ris-filter-actions"><button type="button" class="k-button k-primary" id="risApply">Apply Filters</button><button type="button" class="k-button" id="risReset">Reset</button></div>
+    </div>
+
+    <div class="ris-grid-surface">
 @(Html.Kendo().Grid<iLgs.Models.RIS_VM>()
     .Name("grid")
-    .HtmlAttributes(new { @class = "max-grid" })
+    .HtmlAttributes(new { @class = "ris-master-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.CtrlNo).Width(50);
-        col.Bound(c => c.Fund).Width(50);
-        col.Bound(c => c.RisNo).Width(70);
-        col.Bound(c => c.RisDate).Width(50);
-        col.Bound(c => c.PoNo).Width(70);
-        col.Bound(c => c.PoDate).Width(50);
-        col.Bound(c => c.PrNo).Width(70);
-        col.Bound(c => c.Office).Width(70);
-        //col.Bound(c => c.FPP).Width(70);
-        col.Bound(c => c.RequestedBy).Width(70);
-        col.Bound(c => c.ApprovedBy).Width(70);
-        col.Bound(c => c.IssuedBy).Width(70);
-        col.Bound(c => c.ReceivedBy).Width(70);
-        col.Bound(c => c.PostedBy).Width(50);
-        //col.Bound(c => c.IsPosted).Width(30);
+        col.Bound(c => c.RisNo).Title("RIS No.").ClientTemplate("#= RisNo ? kendo.htmlEncode(RisNo) : '<span class=\"ris-pending\">Pending RIS No.</span>' #").Width(145);
+        col.Bound(c => c.RisDate).Title("RIS Date").Format("{0:MMM dd, yyyy}").Width(115);
+        col.Bound(c => c.Office).Title("Department / Office").ClientTemplate("<span class=\"ris-wrap\">#= Office ? kendo.htmlEncode(Office) : '' #</span>").Width(210);
+        col.Bound(c => c.Fund).Width(120);
+        col.Bound(c => c.RequestedBy).Title("Requested By").Width(170);
+        col.Bound(c => c.TotalQtyRequested).Title("Total Qty Requested").Format("{0:n2}").HtmlAttributes(new { @class = "ris-number" }).HeaderHtmlAttributes(new { @class = "ris-number" }).Width(135);
+        col.Bound(c => c.Status).ClientTemplate("<span class=\"ris-status ris-status-#= Status.toLowerCase() #\">#= Status #</span>").Width(100);
+        col.Bound(c => c.UpdatedDt).Title("Last Updated").Format("{0:MMM dd, yyyy hh:mm tt}").Width(165);
         col.Command(command =>
         {
-            command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted"); 
-            //command.Custom("Issue").IconClass("k-icon k-i-book").Click("onClickIssue").Visible("CheckPostedBy");
-        }).Width(120);
-    })
-    .ToolBar(t =>
-    {
-        t.Create().Text("Add New Record");
-        t.Custom().Text("Print - Issuance by GSO").IconClass("k-icon k-i-print").Name("btnPrintRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Print - Issuance by Department").IconClass("k-icon k-i-print").Name("btnPrintRIS2").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Issue").IconClass("k-icon k-i-unlock").Name("btnIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Remove Issuance").IconClass("k-icon k-i-unlock").Name("btnRemoveIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Search();
+            command.Edit().Text("Edit").Visible("CanEditRis");
+            command.Custom("Manage").Text("Manage Requisition").Click("manageRis").Visible("CanEditRis");
+            command.Custom("PostRIS").Text("Post").Click("postRisRow").Visible("CanPostRis");
+            command.Custom("ViewRIS").Text("View").Click("manageRis").Visible("CanUnpostRis");
+            command.Custom("UnpostRIS").Text("Unpost").Click("unpostRisRow").Visible("CanUnpostRis");
+            command.Custom("PrintRIS").Text("Print").Click("printRisRow").Visible("CanUnpostRis");
+            command.Custom("Delete").Text("Delete").Click("onGridDeleteClick").Visible("CanDeleteRis");
+        }).Title("Actions").Width(270);
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISTemplate").Window(w => w.Width(800).Title("Requisition and Issue Slip")))
-    .Search(s =>
-    {
-        s.Field(o => o.CtrlNo, "contains");
-        s.Field(o => o.RisNo, "contains");
-        s.Field(o => o.Fund, "contains");
-        s.Field(o => o.Office, "contains");
-        //s.Field(o => o.FPP, "contains");
-        s.Field(o => o.RequestedBy, "contains");
-        s.Field(o => o.IssuedBy, "contains");
-        s.Field(o => o.ApprovedBy, "contains");
-        s.Field(o => o.ReceivedBy, "contains");
-        s.Field(o => o.PostedBy, "contains");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(true)
-        .ButtonCount(5)
-    )
+    .Pageable(pager => pager.PageSizes(new[] { 10, 25, 50, 100 }).Refresh(true).ButtonCount(5))
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    //.Scrollable(s => s.Height(430))
     .Scrollable()
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
+    .Excel(excel => excel.FileName("RIS-Master-Index.xlsx").Filterable(true).AllPages(true))
     .ClientDetailTemplateId("Details")
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(20)
+    .DataSource(dataSource => dataSource.Ajax().PageSize(25)
         .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-        })
-        .Sort(s => s.Add(a => a.InsertedDt).Descending())
-        .Read(read => read.Action("RISRead", "RIS"))
-        .Create(create => create.Action("RISCreate", "RIS"))
-        .Update(update => update.Action("RISUpdate", "RIS"))
-        .Destroy(destroy => destroy.Action("RISDestroy", "RIS"))
-    )
-    .Events(events => events
-        .Change("onChangeGrid")
-        .Edit("onEditGrid")
-        .DataBound("onDataBoundGrid")
-        )
+        .Model(model => { model.Id(p => p.Id); model.Field(p => p.Id).DefaultValue(Guid.Empty); })
+        .Sort(s => s.Add(a => a.UpdatedDt).Descending())
+        .Read(read => read.Action("Read", "Requisitions").Data("risGridReadData"))
+        .Create(create => create.Action("Create", "Requisitions"))
+        .Update(update => update.Action("Update", "Requisitions"))
+        .Destroy(destroy => destroy.Action("Delete", "Requisitions")))
+    .Events(events => events.Change("onChangeGrid").Edit("onEditGrid").DataBound("onDataBoundGrid"))
 )
-
+    </div>
+</div>
 <script id="Details" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
             .Name("tabStrip_#=Id#")
@@ -112,7 +97,7 @@
             {
                 items.Add().Text("Items")
                     .Selected(true)
-                    .LoadContentFrom("_RISItem", "RIS", new { risId = "#=Id#" });
+                    .LoadContentFrom("Items", "Requisitions", new { risId = "#=Id#" });
                 //items.Add().Text("Groups")
                 //    .Selected(false)
                 //    .LoadContentFrom("_RISItemUnitGroup", "RIS", new { risId = "#=Id#" });
@@ -120,6 +105,8 @@
 </script>
 
 <div id="windowcontainer"></div>
+
+@(Html.Kendo().Notification().Name("risNotification"))
 
 <style>
     .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
@@ -426,7 +413,7 @@
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GetModelDefault", "RIS")',
+                url: '@Url.Action("GetModelDefault", "Requisitions")',
                 success: function (result) {
                     //var date = kendo.toString(kendo.parseDate(result.model.RisDate), 'MM/dd/yyyy');
                     //var datePicker = $("#RisDate").data("kendoDatePicker");
@@ -454,14 +441,16 @@
             //}
         }
 
+        var department = $("#RisWizardDepartment").data("kendoDropDownList");
         var combo = $("#OrderRequestId").data("kendoMultiColumnComboBox");
-        if (combo) {
-            //combo.enable(false);
-            // Refresh PR Nos, without this the DataPrNoList returns Empty and not actual value
-            //combo.dataSource.read(DataOrderRequestId());
-            combo.dataSource.read(DataOrderRequestId()).then(function () {
-                combo.value(e.model.PoNo);
-            });
+        if (department && combo) {
+            department.value(e.model.Office || "");
+            combo.enable(!!department.value());
+            if (department.value()) {
+                combo.dataSource.read(DataOrderRequestId()).then(function () {
+                    combo.value(e.model.OrderRequestId || "");
+                });
+            }
         }
     }
 
@@ -504,14 +493,12 @@
         // Allow Kendo/browser to visually update the selection
         setTimeout(function () {
 
-            if (!confirm("Are you sure you want to delete this record?")) {
-                return;
-            }
+            risConfirm("Delete RIS", "Delete this draft RIS? Source purchase and requisition records will be preserved.", function () {
+                selectedGrid.dataSource.remove(dataItem);
+                selectedGrid.dataSource.sync();
+            });
 
-            selectedGrid.dataSource.remove(dataItem);
-            selectedGrid.dataSource.sync();
-
-        }, 0);        
+        }, 0);
     }
 
     function onRequestEndOld(e) {
@@ -703,8 +690,18 @@
         }
         return {
             risId: selectedId,
+            department: $("#RisWizardDepartment").val() || $("#Office").val(),
             text: text
         };
+    }
+
+    function onRisWizardDepartmentChange() {
+        var po = $("#OrderRequestId").data("kendoMultiColumnComboBox");
+        if (po) {
+            po.value("");
+            po.dataSource.read();
+            po.enable(!!this.value());
+        }
     }
 
     function onSelectOrderRequestId(e) {
@@ -949,7 +946,7 @@
             if (confirm(msg)) {
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("PostRIS", "RIS")',
+                    url: '@Url.Action("Post", "Requisitions")',
                     data: { risId: selectedId },
                     async: true,
                     beforeSend: function () {
@@ -978,7 +975,7 @@
         if (confirm(msg)) {
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("UnpostRIS", "RIS")',
+                url: '@Url.Action("Unpost", "Requisitions")',
                 data: { risId: selectedId },
                 async: true,
                 beforeSend: function () {
@@ -1001,7 +998,7 @@
 
     $(".k-grid-btnPrintRIS").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("RISRpt", "RIS")?ctrlNo=' + selectedCtrlNo;
+        var url = '@Url.Action("Print", "Requisitions")?ctrlNo=' + selectedCtrlNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -1049,7 +1046,7 @@
         });
 
         mywindow.refresh({
-            url: '@Url.Action("_PrintRisDepartment", "RIS")?ctrlNo=' + selectedCtrlNo
+            url: '@Url.Action("PrintDepartment", "Requisitions")?ctrlNo=' + selectedCtrlNo
         });
         mywindow.center().open();
     });
@@ -1475,3 +1472,25 @@
 
 
 
+
+<style>
+.epsms-ris.ris-index{padding:18px;background:#f4f6f8;min-height:calc(100vh - 90px);color:#263238}.ris-page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:14px}.ris-page-header h1{margin:0 0 4px;font-size:24px;font-weight:600;color:#20364d}.ris-page-header p{margin:0;color:#6c7885}.ris-header-actions{display:flex;gap:7px;flex-wrap:wrap}.ris-kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:12px}.ris-kpi{background:#fff;border:1px solid #dfe5ea;border-left:3px solid #8594a3;border-radius:3px;padding:10px 13px;display:flex;justify-content:space-between;align-items:center}.ris-kpi span{color:#65717d;font-size:11px;font-weight:600;text-transform:uppercase}.ris-kpi strong{font-size:21px;color:#2d4053}.ris-kpi-posted{border-left-color:#2e8b57}.ris-filter-panel{background:#fff;border:1px solid #dfe5ea;border-radius:3px;padding:12px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}.ris-filter-field{min-width:135px;flex:1 1 135px}.ris-filter-search{flex-basis:260px}.ris-filter-field label{display:block;margin-bottom:4px;font-size:11px;font-weight:600;color:#596774}.ris-filter-field .k-widget,.ris-filter-field .k-textbox{width:100%}.ris-filter-actions,.ris-confirm-actions{display:flex;gap:6px}.ris-grid-surface{background:#fff;border:1px solid #dfe5ea;border-radius:3px;padding:1px;overflow:hidden}.ris-master-grid{border:0}.ris-master-grid .k-grid-header th{font-size:11px;font-weight:600;text-transform:uppercase}.ris-master-grid td{font-size:12px;vertical-align:middle}.ris-wrap{white-space:normal;line-height:1.3}.ris-number{text-align:right!important}.ris-pending{color:#7a858f;font-style:italic}.ris-status{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600}.ris-status-draft{color:#56616c;background:#e9edf0}.ris-status-unposted{color:#8a5a00;background:#fff1cc}.ris-status-posted{color:#176b3a;background:#dff3e7}.ris-master-grid .k-command-cell .k-button{margin:1px 2px 1px 0;padding:3px 7px;font-size:11px}.ris-confirm-actions{justify-content:flex-end;padding-top:16px}@@media(max-width:900px){.ris-page-header{flex-direction:column}.ris-kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script>
+function risGridReadData(){return{search:$("#risSearch").val(),status:$("#risStatus").val(),department:$("#risDepartment").val(),fund:$("#risFund").val(),fromDate:$("#risFrom").val(),toDate:$("#risTo").val()};}
+function CanEditRis(x){return x.CanEdit===true;} function CanDeleteRis(x){return x.CanDelete===true;} function CanPostRis(x){return x.CanPost===true;} function CanUnpostRis(x){return x.CanUnpost===true;}
+function selectRisRow(grid,e){var row=$(e.currentTarget).closest("tr");grid.select(row);return grid.dataItem(row);}
+function manageRis(e){e.preventDefault();var row=$(e.currentTarget).closest("tr");selectRisRow(this,e);this.expandRow(row);}
+function postRisRow(e){e.preventDefault();var x=selectRisRow(this,e);risCommand("Post RIS","Post this RIS and assign its permanent RIS number?","@Url.Action("Post", "Requisitions")",x.Id);}
+function unpostRisRow(e){e.preventDefault();var x=selectRisRow(this,e);risCommand("Unpost RIS","Reverse posting and return this RIS to an editable state?","@Url.Action("Unpost", "Requisitions")",x.Id);}
+function printRisRow(e){e.preventDefault();var x=selectRisRow(this,e);window.open("@Url.Action("Print", "Requisitions")?ctrlNo="+encodeURIComponent(x.CtrlNo),"_blank");}
+function risConfirm(title,message,ok){var h=$("<div><div class='ris-confirm-message'></div><div class='ris-confirm-actions'><button class='k-button ris-no'>Cancel</button><button class='k-button k-primary ris-yes'>Continue</button></div></div>");h.find(".ris-confirm-message").text(message);$("body").append(h);var w=h.kendoWindow({title:title,modal:true,visible:false,resizable:false,width:430,deactivate:function(){this.destroy();}}).data("kendoWindow");h.on("click",".ris-no",function(){w.close();});h.on("click",".ris-yes",function(){w.close();ok();});w.center().open();}
+function risCommand(title,message,url,id){risConfirm(title,message,function(){window.kendo.ui.progress($(document.body),true);$.post(url,{risId:id}).done(function(r){if(r.Errors&&r.Errors.length){alert($.isArray(r.Errors)?r.Errors.join("\n"):r.Errors);}else{$("#grid").data("kendoGrid").dataSource.read();refreshRisSummary();$("#risNotification").data("kendoNotification").show(title + " completed successfully.","success");}}).fail(function(x){alert(x.responseText||"The operation could not be completed.");}).always(function(){window.kendo.ui.progress($(document.body),false);});});}
+function refreshRisSummary(){$.getJSON("@Url.Action("Summary", "Requisitions")",risGridReadData(),function(x){$("#kpiTotal").text(x.Total);$("#kpiDraft").text(x.Draft);$("#kpiUnposted").text(x.Unposted);$("#kpiPosted").text(x.Posted);});}
+$(function(){
+ $("#risStatus,#risDepartment,#risFund").kendoDropDownList();$("#risFrom,#risTo").kendoDatePicker({format:"MMM dd, yyyy"});
+ $.getJSON("@Url.Action("FilterOptions", "Requisitions")",function(x){var d=$("#risDepartment").data("kendoDropDownList"),f=$("#risFund").data("kendoDropDownList");d.setDataSource([{text:"All departments",value:""}].concat($.map(x.Departments,function(v){return{text:v,value:v};})));d.setOptions({dataTextField:"text",dataValueField:"value"});f.setDataSource([{text:"All funds",value:""}].concat($.map(x.Funds,function(v){return{text:v,value:v};})));f.setOptions({dataTextField:"text",dataValueField:"value"});});
+ $("#risApply").click(function(){$("#grid").data("kendoGrid").dataSource.page(1);refreshRisSummary();});$("#risReset").click(function(){$("#risSearch").val("");$("#risStatus").data("kendoDropDownList").select(0);$("#risDepartment").data("kendoDropDownList").select(0);$("#risFund").data("kendoDropDownList").select(0);$("#risFrom").data("kendoDatePicker").value(null);$("#risTo").data("kendoDatePicker").value(null);$("#risApply").click();});
+ $("#risRefresh").click(function(){$("#grid").data("kendoGrid").dataSource.read();refreshRisSummary();});$("#risCreate").click(function(){$("#grid").data("kendoGrid").addRow();});$("#risExport").click(function(){$("#grid").data("kendoGrid").saveAsExcel();});$("#risSearch").keydown(function(e){if(e.which===13)$("#risApply").click();});refreshRisSummary();
+});
+</script>

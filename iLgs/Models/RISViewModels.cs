@@ -11,10 +11,10 @@ namespace iLgs.Models
     {
         public RIS_VM Ris { get; set; }
         public List<RisItemVM> RisItems { get; set; }
-    }    
-    
+    }
+
     public class RIS_VM
-    {        
+    {
         public string Mode { get; set; }
         public System.Guid Id { get; set; }
 
@@ -31,7 +31,7 @@ namespace iLgs.Models
         [Required]
         [Display(Name = "RIS Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> RisDate { get; set; }        
+        public Nullable<System.DateTime> RisDate { get; set; }
 
         [Required]
         [Display(Name = "Requested by")]
@@ -91,7 +91,7 @@ namespace iLgs.Models
         public bool IsPosted { get; set; }
         public bool IssuanceSw { get; set; }
 
-        public List<RisItemVM> RisItems { get; set; }        
+        public List<RisItemVM> RisItems { get; set; }
 
         // Transients
 
@@ -114,6 +114,23 @@ namespace iLgs.Models
         public string FPP { get; set; }
 
         public string Purpose { get; set; }
+
+        [Display(Name = "Total Qty Requested")]
+        public decimal TotalQtyRequested { get; set; }
+
+        public string Status { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
+        public bool CanPost { get; set; }
+        public bool CanUnpost { get; set; }
+    }
+
+    public class RisSummaryViewModel
+    {
+        public int Total { get; set; }
+        public int Draft { get; set; }
+        public int Unposted { get; set; }
+        public int Posted { get; set; }
     }
 
     //public class RisItemCommonVM
@@ -122,13 +139,13 @@ namespace iLgs.Models
     //    public string Description { get; set; }
 
     //    [Display(Name = "Other Description")]
-    //    public string OtherDesc { get; set; } 
+    //    public string OtherDesc { get; set; }
 
     //    [Display(Name = "Stock/Property No.")]
-    //    public string PsNo { get; set; } // Generic (Without Brand)        
+    //    public string PsNo { get; set; } // Generic (Without Brand)
 
     //    [Display(Name = "Stock/Property No.")]
-    //    public string PsNoDisplay { get; set; } // For printing 
+    //    public string PsNoDisplay { get; set; } // For printing
 
     //    [Display(Name = "Item Name")]
     //    public string ItemName { get; set; }
@@ -162,11 +179,11 @@ namespace iLgs.Models
     //    public string PpmpCode { get; set; }
     //}
 
-    public class RisItemVM 
-    {        
+    public class RisItemVM
+    {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
-        public Nullable<System.Guid> OrderItemRequestId { get; set; }        
+        public Nullable<System.Guid> OrderItemRequestId { get; set; }
 
         [Display(Name = "Qty Req.")]
         public Nullable<decimal> QtyRequest { get; set; }
@@ -193,7 +210,7 @@ namespace iLgs.Models
         public string PsItem { get; set; }
         public string Unit { get; set; }
         public string SetLotNo { get; set; }
-        
+
         [Display(Name = "Item No.")]
         public string ItemNo { get; set; }
 
@@ -261,7 +278,7 @@ namespace iLgs.Models
     //        public string EngineNo { get; set; }
 
     //        [Display(Name = "Chassis No.")]
-    //        public string ChassisNo { get; set; }         
+    //        public string ChassisNo { get; set; }
     //    }
     //}
 
@@ -281,7 +298,7 @@ namespace iLgs.Models
     //        public string SerialNo { get; set; }
     //        public string Others { get; set; }
     //        public string Color { get; set; }
-    //    }        
+    //    }
     //}
 
     //public class RisItemEntryVM : RisItemVM
@@ -318,9 +335,9 @@ namespace iLgs.Models
     //    // Transients
     //    public bool IsEnabled { get; set; }
     //}
-    
+
     //public class RisIssuedVM
-    //{        
+    //{
     //    public System.Guid Id { get; set; }
     //    public Nullable<System.Guid> RisItemId { get; set; }
     //    public Nullable<System.Guid> OrderItemRequestId { get; set; }
@@ -450,7 +467,7 @@ namespace iLgs.Models
         public string Unit { get; set; }
 
         [Display(Name = "Qty")]
-        public Nullable<int> QtyRequest { get; set; }        
+        public Nullable<int> QtyRequest { get; set; }
 
         public string GridItems { get; set; }
         internal sealed class Metadata
@@ -462,7 +479,7 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }            
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
         }
     }
 
@@ -484,7 +501,7 @@ namespace iLgs.Models
     //    public Nullable<System.DateTime> InsertedDt { get; set; }
     //}
 
-    public class RisPrintVM 
+    public class RisPrintVM
     {
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
@@ -496,6 +513,6 @@ namespace iLgs.Models
         [Display(Name = "As Of")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AsOfDate { get; set; }
-        
+
     }
 }

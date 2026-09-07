@@ -388,6 +388,8 @@ namespace iLgs.Ai.Models
         public bool CanViewAcceptance { get; set; }
         public bool CanUnpost { get; set; }
         public bool CanDelete { get; set; }
+        public bool InventoryPosted { get; set; }
+        public bool CanPostToInventory { get; set; }
     }
 
     public class AIRAcceptanceWizardViewModel

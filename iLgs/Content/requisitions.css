@@ -1,0 +1,27 @@
+.ris-feature .header-bar,.ris-feature .wizard-header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+.ris-feature .ris-filter{display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:14px;margin-bottom:14px}
+.ris-feature .ris-filter label{display:flex;flex-direction:column;gap:5px}
+.ris-feature .ris-kpis{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+.ris-feature .ris-kpis div{flex:1;min-width:130px;background:white;border:1px solid #dce3e9;padding:12px;color:#526171}
+.ris-feature .ris-kpis strong{float:right;font-size:20px;color:#174f7d}
+.ris-feature .ris-steps{display:flex;gap:10px;margin:18px 0;padding:12px;background:#f3f6f9}
+.ris-feature .ris-steps span{padding:7px 14px;color:#64748b}
+.ris-feature .ris-steps .active{background:#e1edf8;color:#174f7d;font-weight:600;border-radius:4px}
+.ris-feature .ris-group{border:1px solid #dce3e9;border-radius:5px;margin:14px 0;background:white}
+.ris-feature .ris-group summary{padding:14px;background:#f3f6fa;font-weight:600;cursor:pointer}
+.ris-feature .ris-group-body{padding:16px}
+.ris-feature .ris-fields{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:12px;margin:0 0 18px}
+.ris-feature .ris-field label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:#526171}
+.ris-feature .ris-field input,.ris-feature .ris-field textarea{width:100%;max-width:none}
+.ris-feature .ris-field-full{grid-column:1/-1}
+.ris-feature .ris-items{width:100%;border-collapse:collapse;min-width:1000px}
+.ris-feature .ris-items th,.ris-feature .ris-items td{padding:8px;border:1px solid #dee5ec;font-size:12px}
+.ris-feature .ris-items th{background:#f4f6f8}
+.ris-feature .ris-items .num{text-align:right;width:105px}
+.ris-feature .ris-items .k-numerictextbox{width:105px}
+.ris-feature .ris-items input{text-align:right}
+.ris-feature .ris-actions{display:flex;justify-content:space-between;margin:18px 0}
+.ris-feature .ris-hint{color:#64748b;margin:8px 0}
+.ris-feature .ris-value{white-space:pre-wrap;overflow-wrap:anywhere}
+.ris-feature .ris-error{white-space:pre-wrap}
+@media(max-width:900px){.ris-feature .ris-fields{grid-template-columns:repeat(2,minmax(130px,1fr))}.ris-feature .header-bar{align-items:start;flex-direction:column}}

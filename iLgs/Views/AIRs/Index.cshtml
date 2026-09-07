@@ -37,6 +37,9 @@
                 "# if (CanPrint) { #" +
                     "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
                 "# } #" +
+                "# if (CanPostToInventory) { #" +
+                    "<button type='button' class='btn-procurement-primary btn-sm' onclick='postAirToInventory(\"#=Id#\")'><span class='k-icon k-i-plus'></span> Post to Inventory</button>" +
+                "# } else if (InventoryPosted) { #<span class='status-badge status-posted'>Inventory Posted</span># } #" +
                 "# if (CanUnpost) { #" +
                     "<button type='button' class='btn-procurement-secondary btn-sm text-warning border-warning' onclick='openUnpostModalGrid(\"#=Id#\")' title='Unpost AIR Acceptance'><span class='k-icon k-i-undo text-warning'></span> Unpost</button>" +
                 "# } #" +
@@ -607,6 +610,20 @@ else
 
         function openAirDetails(airId) {
             window.location.href = '@detailsUrl?id=' + airId;
+        }
+
+        function postAirToInventory(airId) {
+            if (!confirm("Post this AIR's accepted quantities to the Stock/Property Card?")) return;
+            $.ajax({
+                url: '@Url.Action("PostToInventory", "AIRs")', type: 'POST',
+                data: { id: airId, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val() },
+                success: function (r) {
+                    if (!r.success) { alert(r.message || "Inventory posting failed."); return; }
+                    alert(r.alreadyPosted ? "This AIR was already posted to inventory." : "Inventory posting completed. Receipts: " + r.receiptCount + ", tracked assets: " + r.assetCount + ".");
+                    var grid = $("#AIRsGrid").data("kendoGrid"); if (grid) grid.dataSource.read();
+                },
+                error: function () { alert("A network error occurred while posting inventory."); }
+            });
         }
     </script>
 }

@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using iLgs.Ai.Service;
 using iLgs.Ai.Service.PurchaseOrder;
 using System.Net;
+using iLgs.Services.Items;
 
 namespace iLgs.Controllers
 {
@@ -344,7 +345,22 @@ namespace iLgs.Controllers
                     redirectUrl = Url.Action("Index", "PurchaseOrders")
                 });
             }
-            catch (Exception) { return Json(new { success = false, message = "The Purchase Orders could not be posted. Please review the data and try again." }); }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "The Purchase Orders could not be posted. Please review the data and try again."
+                });
+            }
         }
 
         private static List<POGroupDraftViewModel> DeserializeGroups(string json)
@@ -393,6 +409,11 @@ namespace iLgs.Controllers
                     return "Upload the signed PO copy for " + name + ".";
                 foreach (var item in group.Items)
                 {
+                    if (!item.ItemCodeId.HasValue ||
+                        !await _db.ItemCodes.AnyAsync(code => code.Id == item.ItemCodeId.Value))
+                    {
+                        return "Select a valid Article for every item in " + name + ".";
+                    }
                     if (item.Allocations == null || !item.Allocations.Any()) return "Source PR allocations are missing for an item in " + name + ".";
                     if (item.Allocations.Any(a => !a.RequestItemId.HasValue || a.Quantity <= 0) || item.Allocations.Sum(a => a.Quantity) != item.Quantity)
                         return "A source PR allocation is invalid for an item in " + name + ".";
@@ -543,10 +564,13 @@ namespace iLgs.Controllers
         /// </summary>
         private POGroupReportPayload BuildActualPOPayload(Guid poId)
         {
+            var itemCodeService = new ItemCodeService(_db);
             var po = _db.Orders
                   .AsNoTracking()
                   .Include(x => x.OrderItems.Select(i => i.ItemCode.ItemType))
+                  .Include(x => x.OrderItems.Select(i => i.AllField))
                   .Include(x => x.OrderItems.Select(i => i.OrderItemRequests))
+                  .Include(x => x.OrderItems.Select(i => i.OrderSubItems))
                   .SingleOrDefault(x => x.Id == poId);
 
             if (po == null)
@@ -608,11 +632,17 @@ namespace iLgs.Controllers
 
             foreach (var item in po.OrderItems.OrderBy(x => x.ItemNo))
             {
+                var allFields =
+                    PurchaseOrderAiService.GetAllFieldDictionary(
+                        item.AllField,
+                        itemCodeService.GetPartialView(item.ItemCodeId));
                 var reportItem = new POItemReportPayload
                 {
                     Id = item.Id,
                     ItemNo = item.ItemNo.ToString(),
-                    ItemCode = item.ItemCode.Code,
+                    ItemCode = item.ItemCode != null
+                        ? item.ItemCode.Code
+                        : item.PpmpCode,
                     ItemCodeId = item.ItemCodeId,
                     PpmpCode = item.PpmpCode,
                     StockNo = item.PsNo,
@@ -622,12 +652,51 @@ namespace iLgs.Controllers
                     Unit = item.Unit,
                     UnitCost = item.UnitCost ?? 0,
 
-                    Category = item.ItemCode.ItemType.Category,
+                    Category = item.ItemCode != null && item.ItemCode.ItemType != null
+                        ? item.ItemCode.ItemType.Category
+                        : String.Empty,
                     //Account = item.ItemCode.ItemType.Account,
                     //SubAccount = item.SubAccount,
                     //GSOCategory = item.GSOCategory,
                     TechnicalDescription =
                         item.OtherDesc,
+
+                    AllFields = allFields,
+
+                    AdditionalSpecs =
+                        allFields.Count == 0
+                            ? null
+                            : new AdditionalSpecsReportPayload
+                            {
+                                Id = item.AllField.Id,
+                                Multipliers = allFields.ContainsKey("Multipliers")
+                                    ? allFields["Multipliers"]
+                                    : null,
+                                Brand = allFields.ContainsKey("Brand")
+                                    ? allFields["Brand"]
+                                    : null,
+                                Model_ = allFields.ContainsKey("Model_")
+                                    ? allFields["Model_"]
+                                    : null,
+                                Dimension = allFields.ContainsKey("Dimension")
+                                    ? allFields["Dimension"]
+                                    : null,
+                                Size = allFields.ContainsKey("Size")
+                                    ? allFields["Size"]
+                                    : null,
+                                Weight = allFields.ContainsKey("Weight")
+                                    ? allFields["Weight"]
+                                    : null,
+                                Materials = allFields.ContainsKey("Materials")
+                                    ? allFields["Materials"]
+                                    : null,
+                                Capacity = allFields.ContainsKey("Capacity")
+                                    ? allFields["Capacity"]
+                                    : null,
+                                Color = allFields.ContainsKey("Color")
+                                    ? allFields["Color"]
+                                    : null
+                            },
 
                     SetLotItems =
                         new List<SetLotItemReportPayload>(),
@@ -635,38 +704,6 @@ namespace iLgs.Controllers
                     Allocations =
                         new List<AllocationReportPayload>()
                 };
-
-
-                // ========================================================
-                // ADDITIONAL SPECS
-                // ========================================================
-                //
-                // Map this from whichever extension/specification entity
-                // contains the item's final saved specification.
-                //
-                // Example:
-                //
-                // if (item.AdditionalSpecs != null)
-                // {
-                //     reportItem.AdditionalSpecs =
-                //         new AdditionalSpecsReportPayload
-                //         {
-                //             Id = item.AdditionalSpecs.Id,
-                //             Multipliers =
-                //                 item.AdditionalSpecs.Multipliers,
-                //             Brand = item.AdditionalSpecs.Brand,
-                //             Model_ = item.AdditionalSpecs.Model_,
-                //             Dimension =
-                //                 item.AdditionalSpecs.Dimension,
-                //             Size = item.AdditionalSpecs.Size,
-                //             Weight = item.AdditionalSpecs.Weight,
-                //             Materials =
-                //                 item.AdditionalSpecs.Materials,
-                //             Capacity =
-                //                 item.AdditionalSpecs.Capacity,
-                //             Color = item.AdditionalSpecs.Color
-                //         };
-                // }
 
 
                 // ========================================================

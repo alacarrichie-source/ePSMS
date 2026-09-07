@@ -275,9 +275,17 @@
                                 Origin: "Local"
                             },
 
-                        additionalSpecs: it.AdditionalSpecs
-                            ? $.extend({}, it.AdditionalSpecs)
-                            : {},
+                        allFields: it.AllFields
+                            ? $.extend({}, it.AllFields)
+                            : (it.AdditionalSpecs
+                                ? $.extend({}, it.AdditionalSpecs)
+                                : {}),
+
+                        additionalSpecs: it.AllFields
+                            ? $.extend({}, it.AllFields)
+                            : (it.AdditionalSpecs
+                                ? $.extend({}, it.AdditionalSpecs)
+                                : {}),
 
                         setLotItems: it.SetLotItems
                             ? JSON.parse(JSON.stringify(it.SetLotItems))
@@ -394,7 +402,7 @@
                 if (savedItem) {
                     ["itemNo", "itemCodeId", "itemCode", "psType", "article", "gsoCategory", "category", "account",
                         "subAccount", "stockNo", "description", "technicalDescription", "unit",
-                        "attributes", "additionalSpecs", "setLotItems"].forEach(function (fieldName) {
+                        "attributes", "allFields", "additionalSpecs", "setLotItems"].forEach(function (fieldName) {
                             if (savedItem[fieldName] !== undefined && savedItem[fieldName] !== null) {
                                 item[fieldName] = savedItem[fieldName];
                             }
@@ -528,6 +536,7 @@
         var missing = getStep3GroupMissingFields(group);
         if (!missing.length) return;
 
+        captureVisibleStep3AdditionalSpecs();
         activeStep3GroupIndex = groupIndex;
         var first = missing[0];
         renderStep3GroupTabs();
@@ -576,6 +585,7 @@
 
     // Switch active group
     function selectStep3Group(index) {
+        captureVisibleStep3AdditionalSpecs();
         activeStep3GroupIndex = index;
         renderStep3GroupTabs();
         loadActiveGroupForm();
@@ -816,6 +826,12 @@
             select: function (e) {
                 var selected = this.dataItem(e.item);
                 if (!selected) return;
+                var previousItemCodeId = item.itemCodeId ? String(item.itemCodeId).toLowerCase() : "";
+                var selectedItemCodeId = selected.Id ? String(selected.Id).toLowerCase() : "";
+                if (previousItemCodeId !== selectedItemCodeId) {
+                    item.allFields = {};
+                    item.additionalSpecs = {};
+                }
                 item.itemCodeId = selected.Id;
                 item.itemCode = selected.Code || "";
                 item.psType = selected.Type || "";
@@ -833,6 +849,8 @@
                     item.itemCodeId = null;
                     item.article = "";
                     item.gsoCategory = "";
+                    item.allFields = {};
+                    item.additionalSpecs = {};
                     renderStep3GroupTabs();
                     scheduleWizardAutoSave();
                 }
@@ -875,22 +893,33 @@
         var item = findStep3Item(itemId);
         var container = $("#step3AdditionalSpecs_" + itemId);
         if (!item || !container.length) return;
-        item.additionalSpecs = item.additionalSpecs || {};
+        item.allFields = item.allFields || item.additionalSpecs || {};
         container.find(":input[name]").each(function () {
             var name = this.name || "";
             var marker = ".AllField.";
             var markerIndex = name.indexOf(marker);
             if (markerIndex < 0) return;
             var fieldName = name.substring(markerIndex + marker.length);
+            if (fieldName === "Id") return;
             var value = $(this).is(":checkbox") ? $(this).is(":checked") : $(this).val();
-            item.additionalSpecs[fieldName] = value == null ? "" : String(value);
+            item.allFields[fieldName] = value == null ? "" : String(value);
         });
+        item.additionalSpecs = $.extend({}, item.allFields);
         scheduleWizardAutoSave();
+    }
+
+    function captureVisibleStep3AdditionalSpecs() {
+        $("#step3ItemsAccordionContainer .step3-dynamic-specs").each(function () {
+            var itemId = $(this).attr("data-item-id");
+            if (itemId) {
+                captureStep3AdditionalSpecs(itemId);
+            }
+        });
     }
 
     function restoreStep3AdditionalSpecs(item) {
         var container = $("#step3AdditionalSpecs_" + item.id);
-        var specs = item.additionalSpecs || {};
+        var specs = item.allFields || item.additionalSpecs || {};
         Object.keys(specs).forEach(function (fieldName) {
             var control = container.find("[name$='.AllField." + fieldName + "']");
             if (!control.length) return;
@@ -963,7 +992,7 @@
                 Qty: Number(item.qty || 0),
                 UnitCost: Number(item.unitCost || 0)
             };
-            $.each(item.additionalSpecs || {}, function (fieldName, value) {
+            $.each(item.allFields || item.additionalSpecs || {}, function (fieldName, value) {
                 requestData["AllField." + fieldName] = value;
             });
 

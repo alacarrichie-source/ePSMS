@@ -3,6 +3,7 @@ using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -31,7 +32,7 @@ namespace iLgs.Services.Requisition
         //IRisItemUnitGroupService UnitGroup { get; }
     }
 
-    public class RisService : BaseValidator, IRisService
+    public partial class RisService : BaseValidator, IRisService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions;
@@ -70,10 +71,10 @@ namespace iLgs.Services.Requisition
         //    _db = db;
         //    _exceptions = exceptions;
         //    _risVmExceptionService = risVmExceptionService;
-        //    _risExceptionService = risExceptionService;            
+        //    _risExceptionService = risExceptionService;
         //    _userService = userService;
         //    _validator = validator;
-        //}        
+        //}
 
         public IRisItemService RisItem => _risItemService;
         //public IRisItemUnitGroupService UnitGroup => _risItemUnitGroupService;
@@ -115,6 +116,12 @@ namespace iLgs.Services.Requisition
             PoNo = s.OrderRequest.Order.PoNo,
             PoDate = s.OrderRequest.Order.PoDate,
             PrNo = s.OrderRequest.Request.PrNo,
+            TotalQtyRequested = s.RisItems.Sum(i => (decimal?)i.QtyRequest) ?? 0,
+            Status = s.PostedDt != null ? "Posted" : "Draft",
+            CanEdit = s.PostedDt == null,
+            CanDelete = s.PostedDt == null,
+            CanPost = s.PostedDt == null && s.RisItems.Any(),
+            CanUnpost = s.PostedDt != null
         };
 
         public async ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId)
@@ -156,17 +163,16 @@ namespace iLgs.Services.Requisition
             return _db.RISses.Where(w => w.RisNo == risNo).Select(Projection).FirstOrDefaultAsync();
         }
 
-        public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
+        private ValueTask<RISs> PostCoreAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnPost(risId);
 
-            var entity = await _db.RISses.AsNoTracking().Include(i => i.OrderRequest.Order).FirstOrDefaultAsync(f => f.Id == risId);
-
-            if (string.IsNullOrWhiteSpace(entity.RisNo))
-            {
-                throw new InvalidValueException("RIS No is required when posting.");
-            }
+            // This entity must be tracked.  The former AsNoTracking query caused
+            // the PostedBy/PostedDt changes below to be silently discarded.
+            var entity = await _db.RISses
+                .Include(i => i.OrderRequest.Order)
+                .FirstOrDefaultAsync(f => f.Id == risId);
 
             if (!entity.RisDate.HasValue)
             {
@@ -212,14 +218,14 @@ namespace iLgs.Services.Requisition
 
             if (entity.IssuedDate.HasValue)
             {
-                if (entity.ApprovedDate.Value.Date < entity.RequestedDate.Value.Date)
+                if (entity.IssuedDate.Value.Date < entity.ApprovedDate.Value.Date)
                 {
-                    throw new InvalidValueException("Approved Date must be on or after the Requested Date.");
+                    throw new InvalidValueException("Issued Date must be on or after the Approved Date.");
                 }
             }
             else
             {
-                throw new InvalidValueException("Approved Date is required.");
+                throw new InvalidValueException("Issued Date is required.");
             }
 
             if (entity.ReceivedDate.HasValue)
@@ -256,6 +262,11 @@ namespace iLgs.Services.Requisition
 
             ///await ValidateUploadAsync(airId, entity.AIRNo);
 
+            if (string.IsNullOrWhiteSpace(entity.RisNo))
+            {
+                entity.RisNo = NextRisNo(entity.RisDate.Value);
+            }
+
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
@@ -289,7 +300,7 @@ namespace iLgs.Services.Requisition
             //}
         });
 
-        public ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date) =>
+        private ValueTask<RISs> UnpostCoreAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnUnpost(risId);
@@ -315,55 +326,41 @@ namespace iLgs.Services.Requisition
             //        db.Entry(psCode).State = EntityState.Deleted;
             //        await db.SaveChangesAsync();
             //    }
-            //}            
+            //}
         });
 
         public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
-        {            
-            model.Id = Guid.NewGuid();
-            if (string.IsNullOrWhiteSpace(model.RisNo))
+        {
+            if (model == null)
             {
-                model.RisNo = NextRisNo((DateTime)model.RisDate);
+                throw new NullException();
             }
 
-            model.CtrlNo = NextCtrlNo(date);
+            if (!model.RisDate.HasValue)
+            {
+                throw new InvalidValueException("RIS Date is required.");
+            }
+
+            model.Id = Guid.NewGuid();
+            model.RisNo = null;
+
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            _validator.ValidateOnCreate(model);
-
-            var entity = new RISs();
-
-            MapModelToEntityFields(entity, model, Mode.ADD);
-
-            // Get all the contents of the RequestItems (Purchased Request Items) under OrderRequestId (Purchase Request)
-
-            var orderItemRequests = await _db.OrderItemRequests.AsNoTracking()
-                .Where(w => w.OrderItem.Order.OrderRequests
-                    .Any(a => a.Id == model.OrderRequestId // OrderItemRequest coming from model.OrderRequestId
-                        && a.Request.RequestItems.Any(b => b.Id == w.RequestItemId) // and RequestItem must come from this OrderItemRequests.RequestItemId
-                    )
-                ).ToListAsync();
-            foreach (var orderItemRequest in orderItemRequests)
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                var risItem = new RisItem()
-                {
-                    Id = Guid.NewGuid(),
-                    RisId = model.Id,
-                    OrderItemRequestId = orderItemRequest.Id,                    
-                    QtyRequest = orderItemRequest.QtyApplied,
-                    QtyIssue = orderItemRequest.QtyApplied,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date,
-                };
+                LockRisTransactions();
+                model.CtrlNo = NextCtrlNo(date);
+                _validator.ValidateOnCreate(model);
 
-                entity.RisItems.Add(risItem);
-            }
+                var entity = new RISs();
+                MapModelToEntityFields(entity, model, Mode.ADD);
+
+                // Header creation is intentionally separate from allocation.
+                // OrderItemRequest records are selected later in Manage Requisition.
 
 
             //foreach (var unitGroup in order.OrderItemUnitGroups)
@@ -417,13 +414,14 @@ namespace iLgs.Services.Requisition
             //    entity.RisItemUnitGroups.Add(risItemUnitGroup);
             //}
 
-            _db.RISses.Add(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
+                _db.RISses.Add(entity);
+                await _db.SaveChangesAsync();
+                transaction.Commit();
+                return model;
+            }
         });
 
-        public ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
+        private ValueTask<RIS_VM> DeleteCoreAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
         {
             //await ValidateOnDelete(model);
@@ -434,15 +432,37 @@ namespace iLgs.Services.Requisition
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.RISses.FindAsync(model.Id);
+            using (var transaction = _db.Database.BeginTransaction())
+            {
+                LockRisTransactions();
+                var entity = await _db.RISses.FindAsync(model.Id);
+                if (entity == null)
+                {
+                    throw new RecordNotFoundException(model.Id);
+                }
 
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            await _db.SaveChangesAsync();
-
-            _db.RISses.Remove(entity);
-            await _db.SaveChangesAsync();
+                // RIS owns only these links. Source OrderItemRequest/OrderItem records remain untouched.
+                await _db.Entry(entity).ReloadAsync();
+                if (entity.PostedDt.HasValue || !string.IsNullOrWhiteSpace(entity.PostedBy))
+                    throw new InvalidValueException("Posted RIS cannot be deleted.");
+                if (!string.IsNullOrWhiteSpace(entity.RisNo) &&
+                    await _db.RSMIItems.AnyAsync(x => x.RisNo == entity.RisNo))
+                    throw new InvalidValueException("This RIS is referenced by an RSMI. Resolve that dependency before deleting.");
+                var groupLinks = await _db.RisItemUnitGroupDescriptionItems
+                    .Where(x => x.RisItem.RisId == model.Id ||
+                        x.RisItemUnitGroupDescription.RisItemUnitGroup.RisId == model.Id).ToListAsync();
+                _db.RisItemUnitGroupDescriptionItems.RemoveRange(groupLinks);
+                var descriptions = await _db.RisItemUnitGroupDescriptions
+                    .Where(x => x.RisItemUnitGroup.RisId == model.Id).ToListAsync();
+                _db.RisItemUnitGroupDescriptions.RemoveRange(descriptions);
+                var groups = await _db.RisItemUnitGroups.Where(x => x.RisId == model.Id).ToListAsync();
+                _db.RisItemUnitGroups.RemoveRange(groups);
+                var allocations = await _db.RisItems.Where(x => x.RisId == model.Id).ToListAsync();
+                _db.RisItems.RemoveRange(allocations);
+                _db.RISses.Remove(entity);
+                await _db.SaveChangesAsync();
+                transaction.Commit();
+            }
 
             return model;
         });
@@ -511,7 +531,7 @@ namespace iLgs.Services.Requisition
             // yyyy-mm-9999
             // 123456789012
 
-            var data = _db.RISses.Where(w => w.RisDate.Value.Year == date.Year).OrderByDescending(o => o.RisNo).FirstOrDefault();
+            var data = _db.RISses.Where(w => w.RisDate.Value.Year == date.Year && w.RisNo != null && w.RisNo != "").OrderByDescending(o => o.RisNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";
@@ -620,6 +640,6 @@ namespace iLgs.Services.Requisition
         //    }
         //}
 
-        #endregion        
+        #endregion
     }
 }

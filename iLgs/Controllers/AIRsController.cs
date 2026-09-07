@@ -35,12 +35,13 @@ namespace iLgs.Controllers
         //private readonly AppManEntities _db;
         private readonly IAirService _airService;
         private readonly ICodextnService _codextnService;
-        private readonly IOrderService _orderService;        
+        private readonly IOrderService _orderService;
         private readonly IAirUploadService _uploadService;
         //private readonly string[] _menuId = { "airs_inspection", "airs_acceptance" };
         private string _menuId = string.Empty;
         private readonly IAirInspectionService _airInspectionService;
         private readonly IAirAcceptanceService _airAcceptanceService;
+        private readonly IAIRInventoryPostingService _airInventoryPostingService;
         private readonly IDocumentStorageService _docService;
 
         public AIRsController()
@@ -48,10 +49,11 @@ namespace iLgs.Controllers
             //_db = new AppManEntities();
             _airService = new AirService(_db);
             _codextnService = new CodextnService(_db);
-            _orderService = new OrderService(_db);            
+            _orderService = new OrderService(_db);
             _uploadService = new AirUploadService(_db);
             _airInspectionService = new AirInspectionService(_db, new DocumentHistoryService(_db));
             _airAcceptanceService = new AirAcceptanceService(_db, new DocumentHistoryService(_db));
+            _airInventoryPostingService = new AIRInventoryPostingService(_db, new DocumentHistoryService(_db));
             _docService = new DocumentStorageService();
         }
 
@@ -176,7 +178,7 @@ namespace iLgs.Controllers
             }
 
             TempData["airs"] = _menuId;
-            TempData["AllowIndexAccess"] = true; 
+            TempData["AllowIndexAccess"] = true;
             ViewBag.AirGroup = (int)AirGroup.INSPECTION;
             return View("Index");
         }
@@ -546,6 +548,20 @@ namespace iLgs.Controllers
         // POST: AIRs/UnpostAcceptance
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<ActionResult> PostToInventory(Guid id)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "airs_acceptance");
+                if (!access.AllowPost) return Json(new { success = false, message = "Access Denied: posting permission is required." });
+                var result = await _airInventoryPostingService.PostCompletedAirAsync(id, ControllerContext.HttpContext.User.Identity.Name);
+                return Json(new { success = true, alreadyPosted = result.AlreadyPosted, receiptCount = result.ReceiptCount, assetCount = result.AssetCount });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UnpostAcceptance(AIRActionRequestViewModel model)
         {
             var access = await Access(User.Identity.GetUserId(), "airs_acceptance");
@@ -627,7 +643,7 @@ namespace iLgs.Controllers
         {
             var userId = User.Identity.GetUserId();
             var data = await _airService.GetAllAsync(userId, (AirGroup)airGroup);
-            
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -680,7 +696,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.CreateAsync(model, user, date);                    
+                    model = await _airService.CreateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -787,7 +803,7 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-                    model = await _airService.DeleteAsync(model, user, date);                    
+                    model = await _airService.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -808,7 +824,7 @@ namespace iLgs.Controllers
             if (airId != null)
             {
                 model = await _airService.GetVmByIdAsync((Guid)airId);
-                model.Mode = "E";                
+                model.Mode = "E";
             }
             else
             {
@@ -847,10 +863,10 @@ namespace iLgs.Controllers
                         ModelState.AddModelError("Access Error", "Access Denied!");
                     }
                 }
-                
+
                 if (model != null && ModelState.IsValid)
                 {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;                    
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
                     if (entity == null)
@@ -860,7 +876,7 @@ namespace iLgs.Controllers
                     else
                     {
                         model = await _airService.UpdateAsync(model, user, date);
-                    }                                        
+                    }
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -938,7 +954,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirInvoice.CreateAsync(model, user, date);                    
+                    model = await _airService.AirInvoice.CreateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -980,7 +996,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirInvoice.UpdateAsync(model, user, date);                    
+                    model = await _airService.AirInvoice.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1021,7 +1037,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirInvoice.DeleteAsync(model, user, date);                                        
+                    model = await _airService.AirInvoice.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -1112,7 +1128,7 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", e.Message);
             }
-            
+
             var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
                        .Select(ms => new
                        {
@@ -1148,7 +1164,7 @@ namespace iLgs.Controllers
 
         public ActionResult _AIRItemRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
         {
-            var data = _airService.AirItem.GetByAirId(airId);            
+            var data = _airService.AirItem.GetByAirId(airId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -1171,7 +1187,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.CreateAsync(model, user, date);                    
+                    model = await _airService.AirItem.CreateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1213,7 +1229,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.UpdateAsync(model, user, date);                    
+                    model = await _airService.AirItem.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1254,7 +1270,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.DeleteAsync(model, user, date);                                        
+                    model = await _airService.AirItem.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -1294,7 +1310,7 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1336,7 +1352,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1355,7 +1371,7 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", e.Message);
             }
-            
+
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
@@ -1378,7 +1394,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -1421,7 +1437,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1463,7 +1479,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1504,7 +1520,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);                    
+                    model = await _airService.AirItem.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -1822,7 +1838,7 @@ namespace iLgs.Controllers
                 if (!access.AllowPost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
-                }                
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -1938,9 +1954,9 @@ namespace iLgs.Controllers
         [HttpPost]
         public ActionResult GetItemExtnTemplate(Guid? id)
         {
-            string itemExtnName = _airService.AirItem.GetItemExtnName(id);            
+            string itemExtnName = _airService.AirItem.GetItemExtnName(id);
 
-            return Json(new { Errors = "", ItemExtnName = itemExtnName}, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
 
         }
 
@@ -1999,7 +2015,7 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        
+
         #endregion
 
         #region UNIT GROUP DESCRIPTION

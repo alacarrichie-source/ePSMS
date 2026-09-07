@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 using System.Data;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using iLgs.Services.Items;
+using iLgs.Utilities;
+using System.Globalization;
+using System.Reflection;
 
 namespace iLgs.Ai.Services.PurchaseOrder
 {
@@ -30,10 +34,32 @@ namespace iLgs.Ai.Services.PurchaseOrder
     public class PurchaseOrderAiService : IPurchaseOrderAiService
     {
         private readonly AppManEntities _db;
+        private readonly IItemCodeService _itemCodeService;
+
+        private static readonly Dictionary<string, string[]> AllFieldNamesByPartial =
+            new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "_FieldAlcohol", new[] { "GenericName", "DosageVolume", "Multipliers", "Brand" } },
+                { "_FieldDrugs", new[] { "GenericName", "DosageStrength", "DosageForm", "Multipliers", "Brand" } },
+                { "_FieldLand", new[] { "Area" } },
+                { "_FieldMultiple", new[] { "Multipliers" } },
+                { "_FieldMultiple_A", new[] { "Multipliers", "Brand" } },
+                { "_FieldBrand", new[] { "Multipliers", "Brand", "Model_", "Dimension", "Size", "Weight", "Materials", "Capacity", "Color" } },
+                { "_FieldBrand_A", new[] { "Brand", "Model_", "Dimension", "Size", "Weight", "Materials", "Capacity", "Color" } },
+                { "_FieldBrand_B", new[] { "Brand", "Model_", "Weight", "Color" } },
+                { "_FieldSerial", new[] { "Multipliers", "Brand", "Model_", "Dimension", "Size", "Weight", "Materials", "Capacity", "Color", "PropNo", "SerialNo" } },
+                { "_FieldSerial_A", new[] { "Multipliers", "Brand", "Model_", "Dimension", "Size", "Weight", "Materials", "Capacity", "Color", "MVFileNo", "BodyNo", "PlateNo" } },
+                { "_FieldSerial_B", new[] { "Multipliers", "PropNo", "SerialNo" } },
+                { "_FieldSerial_C", new[] { "Multipliers", "MVFileNo", "BodyNo", "PlateNo" } },
+                { "_FieldSerial_D", new[] { "Brand", "Model_", "Dimension", "Size", "Weight", "Materials", "Capacity", "Color", "PropNo", "SerialNo" } },
+                { "_FieldSerial_E", new[] { "MVFileNo", "BodyNo", "PlateNo" } },
+                { "_FieldSerial_F", new[] { "PropNo", "SerialNo" } }
+            };
 
         public PurchaseOrderAiService(AppManEntities db)
         {
             _db = db;
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         // ==========================================
@@ -258,6 +284,9 @@ namespace iLgs.Ai.Services.PurchaseOrder
             var po = await _db.Orders
                 .Include(p => p.Supplier)
                 .Include(p => p.OrderItems.Select(i => i.ItemCode.ItemType))
+                .Include(p => p.OrderItems.Select(i => i.AllField))
+                .Include(p => p.OrderItems.Select(i => i.OrderSubItems))
+                .Include(p => p.OrderRequests.Select(r => r.Request))
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (po == null) return null;
@@ -268,11 +297,11 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 PONumber = po.PoNo,
                 PODate = po.PoDate,
                 SupplierId = po.SupplierId,
-                SupplierName = po.Supplier.Name,
-                SupplierTIN = po.Supplier.TIN,
-                SupplierAddress = po.Supplier.Address,
+                SupplierName = po.Supplier != null ? po.Supplier.Name : po.SupName,
+                SupplierTIN = po.Supplier != null ? po.Supplier.TIN : po.SupTIN,
+                SupplierAddress = po.Supplier != null ? po.Supplier.Address : po.SupAddress,
                 SupplierContactPerson = "",
-                SupplierContactNumber = po.Supplier.ContactNos,
+                SupplierContactNumber = po.Supplier != null ? po.Supplier.ContactNos : po.SupContactNo,
                 DeliveryPeriodDays = po.DeliveryDate,
                 PlaceOfDelivery = po.DeliveryPlace,
                 PaymentTerms = po.TermPayment,
@@ -295,17 +324,21 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     Quantity = (int)(li.Qty ?? 0),
                     Unit = li.Unit,
                     UnitCost = li.UnitCost ?? 0,
-                    GSOCategory = li.ItemCode.ItemType.Description,
+                    GSOCategory = li.ItemCode != null && li.ItemCode.ItemType != null
+                        ? li.ItemCode.ItemType.Description
+                        : String.Empty,
                     TechnicalDescription = li.OtherDesc,
-                    SetLotItems = li.OrderItemRequests
-                        .SelectMany(oir => oir.RequestItem.RequestSubItems)
+                    AllFields = GetAllFieldValues(
+                        li.AllField,
+                        _itemCodeService.GetPartialView(li.ItemCodeId)),
+                    SetLotItems = li.OrderSubItems
                         .OrderBy(s => s.ItemNo)
                         .Select(s => new POSetLotItemViewModel
                         {
                             ItemNo = s.ItemNo,
                             ItemName = s.Description,
                             Unit = s.Unit,
-                            Qty = (int)(s.Qty ?? 0),
+                            Qty = (int)(s.QtyPerSet),
                             EstimatedCost = s.UnitCost ?? 0
                         }).ToList()
                 }).ToList(),
@@ -407,6 +440,16 @@ namespace iLgs.Ai.Services.PurchaseOrder
                                 UpdatedDt = date,
                             };
 
+                            var allField = await CreateValidatedAllFieldAsync(
+                                itemDraft,
+                                lineItem.Id,
+                                user,
+                                date);
+                            if (allField != null)
+                            {
+                                lineItem.AllField = allField;
+                            }
+
                             if (itemDraft.SetLotItems != null)
                             {
                                 var subItemIndex = 0;
@@ -483,6 +526,225 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     throw;
                 }
             }
+        }
+
+        private async Task<AllField> CreateValidatedAllFieldAsync(
+            POLineItemDraftViewModel itemDraft,
+            Guid orderItemId,
+            string user,
+            DateTime? date)
+        {
+            var submittedFields = itemDraft.AllFields;
+            if ((submittedFields == null || submittedFields.Count == 0) &&
+                itemDraft.AdditionalSpecs != null)
+            {
+                submittedFields = itemDraft.AdditionalSpecs;
+            }
+
+            if (submittedFields == null || submittedFields.Count == 0)
+            {
+                return null;
+            }
+            if (!itemDraft.ItemCodeId.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "An Article must be selected before its additional information can be saved.");
+            }
+
+            var partialView = await _itemCodeService.GetPartialViewAsync(itemDraft.ItemCodeId);
+            var partialName = NormalizePartialName(partialView);
+            string[] allowedNames;
+            if (!AllFieldNamesByPartial.TryGetValue(partialName, out allowedNames))
+            {
+                throw new InvalidOperationException(
+                    "The selected Article does not support the submitted additional information.");
+            }
+
+            var allowed = new HashSet<string>(allowedNames, StringComparer.OrdinalIgnoreCase);
+            foreach (var submitted in submittedFields)
+            {
+                if (String.Equals(submitted.Key, "Id", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                if (!allowed.Contains(submitted.Key) &&
+                    !String.IsNullOrWhiteSpace(submitted.Value))
+                {
+                    throw new InvalidOperationException(
+                        "The field '" + submitted.Key +
+                        "' is not valid for the selected Article.");
+                }
+            }
+
+            var allField = new AllField
+            {
+                Id = orderItemId,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            foreach (var fieldName in allowedNames)
+            {
+                string value;
+                if (!submittedFields.TryGetValue(fieldName, out value))
+                {
+                    continue;
+                }
+                SetAllFieldValue(allField, fieldName, value);
+            }
+
+            return allField;
+        }
+
+        private static string NormalizePartialName(string partialView)
+        {
+            if (String.IsNullOrWhiteSpace(partialView))
+            {
+                return String.Empty;
+            }
+
+            var normalized = partialView.Replace("\\", "/");
+            var slashIndex = normalized.LastIndexOf('/');
+            if (slashIndex >= 0)
+            {
+                normalized = normalized.Substring(slashIndex + 1);
+            }
+            if (normalized.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(0, normalized.Length - 7);
+            }
+            return normalized;
+        }
+
+        private static void SetAllFieldValue(
+            AllField allField,
+            string fieldName,
+            string value)
+        {
+            var property = typeof(AllField).GetProperty(
+                fieldName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+            if (property == null || !property.CanWrite)
+            {
+                throw new InvalidOperationException(
+                    "The additional-information field is not supported.");
+            }
+
+            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ??
+                property.PropertyType;
+            if (String.IsNullOrWhiteSpace(value) &&
+                propertyType != typeof(string))
+            {
+                property.SetValue(allField, null);
+                return;
+            }
+
+            object convertedValue;
+            if (propertyType == typeof(string))
+            {
+                convertedValue = value;
+            }
+            else if (propertyType == typeof(int))
+            {
+                int number;
+                if (!Int32.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                {
+                    throw new InvalidOperationException(
+                        "The value for '" + fieldName + "' must be a whole number.");
+                }
+                convertedValue = number;
+            }
+            else if (propertyType == typeof(decimal))
+            {
+                decimal number;
+                if (!Decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out number) &&
+                    !Decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out number))
+                {
+                    throw new InvalidOperationException(
+                        "The value for '" + fieldName + "' must be numeric.");
+                }
+                convertedValue = number;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "The value type for '" + fieldName + "' is not supported.");
+            }
+
+            property.SetValue(allField, convertedValue);
+        }
+
+        public static List<POAllFieldValueViewModel> GetAllFieldValues(
+            AllField allField)
+        {
+            return GetAllFieldValues(allField, null);
+        }
+
+        private static List<POAllFieldValueViewModel> GetAllFieldValues(
+            AllField allField,
+            string partialView)
+        {
+            var values = new List<POAllFieldValueViewModel>();
+            if (allField == null)
+            {
+                return values;
+            }
+
+            IEnumerable<string> fieldNames;
+            if (String.IsNullOrWhiteSpace(partialView))
+            {
+                fieldNames = AllFieldNamesByPartial
+                    .SelectMany(partial => partial.Value)
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+            }
+            else
+            {
+                string[] applicableFieldNames;
+                if (!AllFieldNamesByPartial.TryGetValue(
+                    NormalizePartialName(partialView),
+                    out applicableFieldNames))
+                {
+                    return values;
+                }
+                fieldNames = applicableFieldNames;
+            }
+
+            foreach (var fieldName in fieldNames)
+            {
+                var property = typeof(AllField).GetProperty(fieldName);
+                var rawValue = property != null ? property.GetValue(allField) : null;
+                if (rawValue == null || String.IsNullOrWhiteSpace(Convert.ToString(rawValue, CultureInfo.CurrentCulture)))
+                {
+                    continue;
+                }
+
+                values.Add(new POAllFieldValueViewModel
+                {
+                    FieldName = fieldName,
+                    Label = Utility.GetDisplayName<AllField>(fieldName),
+                    Value = Convert.ToString(rawValue, CultureInfo.CurrentCulture)
+                });
+            }
+            return values;
+        }
+
+        public static Dictionary<string, string> GetAllFieldDictionary(
+            AllField allField)
+        {
+            return GetAllFieldDictionary(allField, null);
+        }
+
+        public static Dictionary<string, string> GetAllFieldDictionary(
+            AllField allField,
+            string partialView)
+        {
+            return GetAllFieldValues(allField, partialView)
+                .ToDictionary(
+                    field => field.FieldName,
+                    field => field.Value,
+                    StringComparer.OrdinalIgnoreCase);
         }
 
         public async Task<bool> PostPOAsync(Guid id, string user, string bacResolutionNo)

@@ -66,7 +66,7 @@
                 //a.Add(p => p.QtyIssue).Sum();
             })
             .Sort(s => s.Add(a => a.ItemNoIndex))
-            .Read(read => read.Action("_RISItemRead", "RIS", new { risId = @ViewData["risId"] }))
+            .Read(read => read.Action("ItemsRead", "Requisitions", new { risId = @ViewData["risId"] }))
         //.Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
         )
         .Events(events => events

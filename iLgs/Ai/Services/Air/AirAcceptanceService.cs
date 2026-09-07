@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using iLgs.Ai.Models;
@@ -753,30 +755,48 @@ namespace iLgs.Ai.Services.Air
             await _db.SaveChangesAsync();
         }
 
-        private async Task ValidateDownstreamDependenciesAsync(AIR air)
+        private async Task ValidateDownstreamDependenciesAsync(
+            AIR air,
+            List<InventoryReceiptLink> receiptLinks)
         {
             var airNo = air.AIRNo;
             var ctrlNo = air.CtrlNo;
-            var airItemIds = air.AIRItems.Select(i => i.Id).ToList();
+            var receiptIds = receiptLinks.Select(r => r.Id).ToList();
 
-            // 1. PsCardItems (Stock Card / Property Card entries)
-            bool hasPsCardItems = await _db.PsCardItems.AsNoTracking().AnyAsync(p =>
-                (!string.IsNullOrEmpty(airNo) && p.AirNo == airNo) ||
-                (!string.IsNullOrEmpty(ctrlNo) && p.AirNo == ctrlNo));
-            if (hasPsCardItems)
+            if (receiptIds.Any())
             {
-                throw new InvalidOperationException("This AIR Acceptance cannot be unposted because downstream inventory/accountability transactions (Stock/Property Card entries) already exist. Reverse or remove the dependent transactions first.");
+                bool hasTransfers = await _db.PsCardItemTransfers.AsNoTracking().AnyAsync(t =>
+                    t.PsCardItemId.HasValue &&
+                    receiptIds.Contains(t.PsCardItemId.Value) &&
+                    (t.ParentId.HasValue || t.PsCardItemTransferIssuances.Any()));
+
+                if (hasTransfers)
+                {
+                    throw new InvalidOperationException(
+                        "This AIR Acceptance cannot be unposted because one or more generated inventory receipts have already been transferred or issued.");
+                }
+
+                bool hasAccountability = await _db.PsCardItemExtns.AsNoTracking().AnyAsync(e =>
+                    e.PsCardItemId.HasValue &&
+                    receiptIds.Contains(e.PsCardItemId.Value) &&
+                    (e.IcsParItems.Any() || e.RpcPpeItems.Any()));
+
+                if (hasAccountability)
+                {
+                    throw new InvalidOperationException(
+                        "This AIR Acceptance cannot be unposted because PAR/ICS or RPCPPE records already use its property items.");
+                }
+
+                bool hasUnitGroups = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking().AnyAsync(i =>
+                    i.PsCardItemId.HasValue && receiptIds.Contains(i.PsCardItemId.Value));
+
+                if (hasUnitGroups)
+                {
+                    throw new InvalidOperationException(
+                        "This AIR Acceptance cannot be unposted because unit-group records already use its inventory receipts.");
+                }
             }
 
-            // 2. PsCardItemExtns (Extensions linked to AIRItemExtns)
-            bool hasPsCardItemExtns = await _db.AIRItemExtns.AsNoTracking().AnyAsync(e => 
-                e.AIRItemId.HasValue && airItemIds.Contains(e.AIRItemId.Value) && e.PsCardItemExtns.Any());
-            if (hasPsCardItemExtns)
-            {
-                throw new InvalidOperationException("This AIR Acceptance cannot be unposted because downstream inventory/accountability transactions (Property Card Extension items) already exist. Reverse or remove the dependent transactions first.");
-            }
-
-            // 3. CustodianReportItems
             bool hasCustodianReports = await _db.CustodianReportItems.AsNoTracking().AnyAsync(c =>
                 (!string.IsNullOrEmpty(airNo) && c.AirNo == airNo) ||
                 (!string.IsNullOrEmpty(ctrlNo) && c.AirNo == ctrlNo));
@@ -785,7 +805,6 @@ namespace iLgs.Ai.Services.Air
                 throw new InvalidOperationException("This AIR Acceptance cannot be unposted because downstream inventory/accountability transactions (Custodian Report entries) already exist. Reverse or remove the dependent transactions first.");
             }
 
-            // 4. RPCI Items (Report on Physical Count of Inventories)
             bool hasRpci = await _db.RPCIItems.AsNoTracking().AnyAsync(r =>
                 (!string.IsNullOrEmpty(airNo) && r.AirNo == airNo) ||
                 (!string.IsNullOrEmpty(ctrlNo) && r.AirNo == ctrlNo));
@@ -794,7 +813,6 @@ namespace iLgs.Ai.Services.Air
                 throw new InvalidOperationException("This AIR Acceptance cannot be unposted because downstream inventory/accountability transactions (RPCI inventory items) already exist. Reverse or remove the dependent transactions first.");
             }
 
-            // 5. RpcPpe Items (Report on Physical Count of PPE)
             bool hasRpcPpe = await _db.RpcPpeItems.AsNoTracking().AnyAsync(r =>
                 (!string.IsNullOrEmpty(airNo) && r.AirNo == airNo) ||
                 (!string.IsNullOrEmpty(ctrlNo) && r.AirNo == ctrlNo));
@@ -807,48 +825,187 @@ namespace iLgs.Ai.Services.Air
         public async Task UnpostAcceptanceAsync(Guid airId, string reason, string user)
         {
             if (string.IsNullOrWhiteSpace(reason))
-                throw new InvalidOperationException("Reason for unposting is required.");
-
-            using (var tx = _db.Database.BeginTransaction())
             {
-                var air = await _db.AIRs
-                    .Include(a => a.AIRItems.Select(i => i.AIRItemExtns))
-                    .FirstOrDefaultAsync(a => a.Id == airId);
-
-                if (air == null) throw new InvalidOperationException("AIR record not found.");
-
-                // Concurrency & state validation
-                if (string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("This AIR Acceptance has been deleted and cannot be unposted.");
-
-                if (air.PostedDt == null || !string.Equals(air.OverallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Only a Posted Acceptance can be unposted. Current status: " + (air.OverallStatus ?? "Unknown") + ".");
-
-                // Validate downstream dependencies
-                await ValidateDownstreamDependenciesAsync(air);
-
-                var prevStatus = air.OverallStatus;
-                air.OverallStatus = AirStatuses.Unposted;
-                air.AcceptanceStatus = AirAcceptanceStatuses.Unposted;
-                air.PostedDt = null;
-                air.PostedBy = null;
-                air.UpdatedBy = user;
-                air.UpdatedDt = DateTime.Now;
-
-                _historyService.AddStatusHistory(
-                    DocumentTypes.AcceptanceInspectionReport,
-                    air.Id,
-                    air.AIRNo ?? air.CtrlNo,
-                    prevStatus,
-                    AirStatuses.Unposted,
-                    "AIR_ACCEPTANCE_UNPOSTED",
-                    reason.Trim(),
-                    user
-                );
-
-                await _db.SaveChangesAsync();
-                tx.Commit();
+                throw new InvalidOperationException("Reason for unposting is required.");
             }
+
+            using (var tx = _db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var air = await _db.AIRs
+                        .Include(a => a.AIRItems.Select(i => i.AIRItemExtns))
+                        .FirstOrDefaultAsync(a => a.Id == airId);
+
+                    if (air == null)
+                    {
+                        throw new InvalidOperationException("AIR record not found.");
+                    }
+
+                    if (string.Equals(
+                        air.AcceptanceStatus,
+                        AirAcceptanceStatuses.Deleted,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException(
+                            "This AIR Acceptance has been deleted and cannot be unposted.");
+                    }
+
+                    if (air.PostedDt == null ||
+                        !string.Equals(
+                            air.OverallStatus,
+                            AirStatuses.Posted,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException(
+                            "Only a Posted Acceptance can be unposted. Current status: " +
+                            (air.OverallStatus ?? "Unknown") + ".");
+                    }
+
+                    await ValidateInventoryLinkSupportAsync();
+
+                    var receiptLinks = await GetInventoryReceiptLinksAsync(
+                        air.AIRItems.Select(i => i.Id).ToList());
+
+                    await ValidateDownstreamDependenciesAsync(air, receiptLinks);
+                    await ReverseInventoryReceiptsAsync(receiptLinks);
+
+                    var prevStatus = air.OverallStatus;
+                    air.OverallStatus = AirStatuses.Unposted;
+                    air.AcceptanceStatus = AirAcceptanceStatuses.Unposted;
+                    air.PostedDt = null;
+                    air.PostedBy = null;
+                    air.UpdatedBy = user;
+                    air.UpdatedDt = DateTime.Now;
+
+                    _historyService.AddStatusHistory(
+                        DocumentTypes.AcceptanceInspectionReport,
+                        air.Id,
+                        air.AIRNo ?? air.CtrlNo,
+                        prevStatus,
+                        AirStatuses.Unposted,
+                        "AIR_ACCEPTANCE_UNPOSTED",
+                        string.Format(
+                            "{0} Reversed {1} inventory receipt(s).",
+                            reason.Trim(),
+                            receiptLinks.Count),
+                        user);
+
+                    await _db.SaveChangesAsync();
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        private async Task ValidateInventoryLinkSupportAsync()
+        {
+            int columnCount = await _db.Database.SqlQuery<int>(
+                "SELECT COUNT(*) FROM sys.columns " +
+                "WHERE object_id = OBJECT_ID('dbo.PsCardItems') " +
+                "AND name = 'AIRItemId'")
+                .SingleAsync();
+
+            if (columnCount == 0)
+            {
+                throw new InvalidOperationException(
+                    "Apply database script 20260907_01_AIRInventoryPosting.sql first.");
+            }
+        }
+
+        private async Task<List<InventoryReceiptLink>> GetInventoryReceiptLinksAsync(
+            List<Guid> airItemIds)
+        {
+            if (!airItemIds.Any())
+            {
+                return new List<InventoryReceiptLink>();
+            }
+
+            var parameters = new List<SqlParameter>();
+            var parameterNames = new List<string>();
+
+            for (int index = 0; index < airItemIds.Count; index++)
+            {
+                string parameterName = "@airItemId" + index;
+                parameterNames.Add(parameterName);
+                parameters.Add(new SqlParameter(parameterName, airItemIds[index]));
+            }
+
+            string sql =
+                "SELECT Id, PsCardId FROM dbo.PsCardItems " +
+                "WHERE AIRItemId IN (" + string.Join(",", parameterNames) + ")";
+
+            return await _db.Database.SqlQuery<InventoryReceiptLink>(
+                sql,
+                parameters.Cast<object>().ToArray())
+                .ToListAsync();
+        }
+
+        private async Task ReverseInventoryReceiptsAsync(
+            List<InventoryReceiptLink> receiptLinks)
+        {
+            if (!receiptLinks.Any())
+            {
+                return;
+            }
+
+            var receiptIds = receiptLinks
+                .Select(r => r.Id)
+                .Distinct()
+                .ToList();
+
+            var affectedCardIds = receiptLinks
+                .Where(r => r.PsCardId.HasValue)
+                .Select(r => r.PsCardId.Value)
+                .Distinct()
+                .ToList();
+
+            var receipts = await _db.PsCardItems
+                .Where(i => receiptIds.Contains(i.Id))
+                .ToListAsync();
+
+            if (receipts.Count != receiptIds.Count)
+            {
+                throw new InvalidOperationException(
+                    "One or more AIR inventory receipts changed while the acceptance was being unposted.");
+            }
+
+            _db.PsCardItems.RemoveRange(receipts);
+            await _db.SaveChangesAsync();
+
+            var emptyCards = await _db.PsCards
+                .Include(c => c.AllField)
+                .Where(c =>
+                    affectedCardIds.Contains(c.Id) &&
+                    !c.PsCardItems.Any())
+                .ToListAsync();
+
+            var cardFields = emptyCards
+                .Where(c => c.AllField != null)
+                .Select(c => c.AllField)
+                .ToList();
+
+            if (cardFields.Any())
+            {
+                _db.AllFields.RemoveRange(cardFields);
+                await _db.SaveChangesAsync();
+            }
+
+            if (emptyCards.Any())
+            {
+                _db.PsCards.RemoveRange(emptyCards);
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        private class InventoryReceiptLink
+        {
+            public Guid Id { get; set; }
+            public Guid? PsCardId { get; set; }
         }
 
         public async Task DeleteAcceptanceAsync(Guid airId, string reason, string user)

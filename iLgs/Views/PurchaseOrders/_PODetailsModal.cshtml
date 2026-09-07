@@ -204,6 +204,24 @@
                                     </div>
                                 }
 
+                                @if (item.AllFields != null && item.AllFields.Any())
+                                {
+                                    <div class="sub-items-box">
+                                        <div class="sub-items-title">
+                                            Additional Information
+                                        </div>
+                                        <dl class="po-info-list">
+                                            @foreach (var field in item.AllFields)
+                                            {
+                                                <div>
+                                                    <dt>@field.Label</dt>
+                                                    <dd>@field.Value</dd>
+                                                </div>
+                                            }
+                                        </dl>
+                                    </div>
+                                }
+
 
                                 @if (item.SetLotItems != null &&
                     item.SetLotItems.Any())

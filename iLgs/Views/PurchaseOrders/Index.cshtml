@@ -102,7 +102,7 @@
             .Columns(columns =>
             {
                 columns.Bound(p => p.PONumber).Title("PO No.").Width(150).ClientTemplate(
-                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick='openPODetails(#=Id#)'>#=PONumber#</a>"
+                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick=\"openPODetails('#=Id#')\">#=PONumber#</a>"
                 );
                 columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(130);
                 columns.Bound(p => p.SupplierName).Title("Supplier").Width(220);
@@ -135,7 +135,7 @@
                             "<button type='button' " +
                                 "class='k-button k-button-sm k-button-flat-primary' " +
                                 "title='View Details' " +
-                                "onclick='openPODetails(#=Id#)'>" +
+                                "onclick=\"openPODetails('#=Id#')\">" +
                                 "<span class='k-icon k-i-eye'></span>" +
                             "</button>" +
 

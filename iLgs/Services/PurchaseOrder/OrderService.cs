@@ -253,8 +253,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<Order> GetByPoNoAsync(string poNo) => _orderExceptionService.TryCatch(async () =>
         {
             return await _db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
-        });
-
+        });        
 
         public IQueryable<PrItemSelectionVM> GetPrItemSelection(Guid? orderId)
         {

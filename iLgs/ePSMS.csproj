@@ -321,6 +321,7 @@
     <Compile Include="Ai\Models\AIRWizardViewModel.cs" />
     <Compile Include="Ai\Services\Air\AirInspectionService.cs" />
     <Compile Include="Ai\Services\Air\AirAcceptanceService.cs" />
+    <Compile Include="Ai\Services\Air\AIRInventoryPostingService.cs" />
     <Compile Include="Ai\Models\POWizardViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderDetailViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderGridModel.cs" />
@@ -1208,6 +1209,7 @@
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
     <Compile Include="Controllers\RISController.cs" />
+    <Compile Include="Controllers\RequisitionsController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
     <Compile Include="Controllers\RSMIController.cs" />
@@ -1291,6 +1293,8 @@
     <Compile Include="Models\ReportViewModels.cs" />
     <Compile Include="Models\RequestViewModels.cs" />
     <Compile Include="Models\RISViewModels.cs" />
+    <Compile Include="Models\RisWizardViewModels.cs" />
+    <Compile Include="Services\Requisition\RisWizardService.cs" />
     <Compile Include="Models\RsmiViewModels.cs" />
     <Compile Include="Models\StockViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -4513,6 +4517,11 @@
     <Content Include="Views\Requests\_Review.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
     <Content Include="Views\RIS\Index.cshtml" />
+    <Content Include="Views\Requisitions\Index.cshtml" />
+    <Content Include="Views\Requisitions\Wizard.cshtml" />
+    <Content Include="Views\Requisitions\ViewRis.cshtml" />
+    <Content Include="Content\requisitions.css" />
+    <Content Include="Scripts\requisitions-wizard.js" />
     <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
     <Content Include="Views\RIS\_RISItem.cshtml" />
     <Content Include="Views\RIS\_RISItemAddEdit.cshtml" />

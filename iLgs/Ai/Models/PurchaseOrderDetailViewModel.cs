@@ -45,6 +45,7 @@ namespace iLgs.Ai.Models
         public POLineItemDetailViewModel()
         {
             SetLotItems = new List<POSetLotItemViewModel>();
+            AllFields = new List<POAllFieldValueViewModel>();
         }
 
         public Guid Id { get; set; }
@@ -58,7 +59,15 @@ namespace iLgs.Ai.Models
         public decimal TotalCost => Quantity * UnitCost;
         public string GSOCategory { get; set; }
         public string TechnicalDescription { get; set; }
+        public List<POAllFieldValueViewModel> AllFields { get; set; }
         public List<POSetLotItemViewModel> SetLotItems { get; set; }
+    }
+
+    public class POAllFieldValueViewModel
+    {
+        public string FieldName { get; set; }
+        public string Label { get; set; }
+        public string Value { get; set; }
     }
 
     public class POSetLotItemViewModel

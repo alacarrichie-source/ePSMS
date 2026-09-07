@@ -658,6 +658,7 @@ namespace iLgs.Ai.Service.PurchaseOrder
         public string TechnicalDescription { get; set; }
 
         public AdditionalSpecsReportPayload AdditionalSpecs { get; set; }
+        public Dictionary<string, string> AllFields { get; set; }
         public List<SetLotItemReportPayload> SetLotItems { get; set; }
         public List<AllocationReportPayload> Allocations { get; set; }
     }

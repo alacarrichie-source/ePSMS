@@ -1,0 +1,58 @@
+@model iLgs.Models.RIS_VM
+@using System
+@{
+    ViewBag.Title = "View RIS";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+    var fields = new[] {
+        new { Label = "RIS Number", Value = Model.RisNo },
+        new { Label = "Control Number", Value = Model.CtrlNo },
+        new { Label = "RIS Date", Value = Model.RisDate.HasValue ? Model.RisDate.Value.ToString("MMM dd, yyyy") : "" },
+        new { Label = "PO Number", Value = Model.PoNo },
+        new { Label = "PR Number", Value = Model.PrNo },
+        new { Label = "Department / Fund", Value = Model.Office + " / " + Model.Fund },
+        new { Label = "Purpose", Value = Model.Purpose },
+        new { Label = "Requested By / Designation", Value = Model.RequestedBy + " / " + Model.RequestedByDesignation },
+        new { Label = "Requested Date", Value = Model.RequestedDate.HasValue ? Model.RequestedDate.Value.ToString("MMM dd, yyyy") : "" },
+        new { Label = "Approved By / Designation", Value = Model.ApprovedBy + " / " + Model.ApprovedByDesignation },
+        new { Label = "Approved Date", Value = Model.ApprovedDate.HasValue ? Model.ApprovedDate.Value.ToString("MMM dd, yyyy") : "" },
+        new { Label = "Issued By / Designation", Value = Model.IssuedBy + " / " + Model.IssuedByDesignation },
+        new { Label = "Issued Date", Value = Model.IssuedDate.HasValue ? Model.IssuedDate.Value.ToString("MMM dd, yyyy") : "" },
+        new { Label = "Received By / Designation", Value = Model.ReceivedBy + " / " + Model.ReceivedByDesignation },
+        new { Label = "Received Date", Value = Model.ReceivedDate.HasValue ? Model.ReceivedDate.Value.ToString("MMM dd, yyyy") : "" },
+        new { Label = "Posted By", Value = Model.PostedBy },
+        new { Label = "Posted Date", Value = Model.PostedDt.HasValue ? Model.PostedDt.Value.ToString("MMM dd, yyyy hh:mm tt") : "" }
+    };
+    decimal requested = 0;
+    decimal issued = 0;
+}
+<link rel="stylesheet" href="@Url.Content("~/Content/requisitions.css")" />
+<div class="epsms-procurement po-wizard ris-feature">
+    <div class="breadcrumbs"><a href="@Url.Action("Index","Requisitions")">Requisitions</a> &gt; View RIS</div>
+    <div class="header-bar">
+        <div><h1>RIS @(Model.RisNo ?? Model.CtrlNo)</h1><span class="status-badge @(Model.IsPosted ? "status-posted" : "status-draft")">@Model.Status</span><p class="subtitle">Read-only requisition and issuance details.</p></div>
+        <div class="action-toolbar">
+            @if (Model.IsPosted) { <a class="btn-procurement-secondary" target="_blank" rel="noopener" href="@Url.Action("Print","Requisitions",new {ctrlNo=Model.CtrlNo})">Print RIS</a> }
+            <a class="btn-procurement-primary" href="@Url.Action("Index","Requisitions")">Back to Requisitions</a>
+        </div>
+    </div>
+    <div class="wizard-card">
+        <div class="ris-fields">
+        @foreach(var field in fields) {
+            <div class="ris-field"><label>@field.Label</label><div class="ris-value">@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</div></div>
+        }
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered ris-items">
+                <thead><tr><th>Item No.</th><th>Description</th><th>Unit</th><th class="num">Qty Requested</th><th class="num">Qty Issued</th><th>Remarks</th></tr></thead>
+                <tbody>
+                @foreach(var item in Model.RisItems) {
+                    requested += item.QtyRequest ?? 0;
+                    issued += item.QtyIssue ?? 0;
+                    <tr><td>@item.ItemNo</td><td>@item.Description</td><td>@item.Unit</td><td class="num">@((item.QtyRequest ?? 0).ToString("N2"))</td><td class="num">@((item.QtyIssue ?? 0).ToString("N2"))</td><td>@item.Remarks</td></tr>
+                }
+                </tbody>
+                <tfoot><tr><th colspan="3">Total</th><th class="num">@requested.ToString("N2")</th><th class="num">@issued.ToString("N2")</th><td></td></tr></tfoot>
+            </table>
+        </div>
+    </div>
+</div>

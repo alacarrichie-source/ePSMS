@@ -16,6 +16,25 @@
     @*<p>Posted : @Model.IsPosted </p>
     <p>Ris : @Model.RisNo </p>
     @Html.TextBoxFor(m => m.IsPosted)*@ 
+        <div class="ris-wizard-progress">
+            <span class="active">1. Department &amp; PO</span><span>2. Master Details</span><span>3. Review &amp; Post</span>
+        </div>
+        <div class="row k-mb-2 ris-wizard-department">
+            <div class="col-md-12">
+                <label for="RisWizardDepartment">Department / Office</label>
+                <div class="col-md-12">
+                    @(Html.Kendo().DropDownList()
+                        .Name("RisWizardDepartment")
+                        .OptionLabel("Select department / office")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .Value(Model.Office)
+                        .DataSource(source => source.Read(read => read.Action("EligibleDepartments", "Requisitions")))
+                        .Events(e => e.Change("onRisWizardDepartmentChange"))
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
         <fieldset>
             <div class="row k-mb-2">
                 <div class="col-md-6">
@@ -45,7 +64,9 @@
                     <div class="col-md-12">
                         @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderRequestId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select PO No.")
+                            .Placeholder("Select qualifying PO No.")
+                            .AutoBind(false)
+                            .CascadeFrom("RisWizardDepartment")
                             .DataTextField("PoNo")
                             .DataValueField("Id")
                             .ValuePrimitive(true)
@@ -54,7 +75,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNosWithoutRis", "Getters").Data("DataOrderRequestId");
+                                    read.Action("EligiblePurchaseOrders", "Requisitions").Data("DataOrderRequestId");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -63,7 +84,8 @@
                                 c.Add().Field("PoNo").Title("PO No.").Width("25%");
                                 c.Add().Template("#= kendo.toString(kendo.parseDate(PoDate), 'MM/dd/yyyy') #").Title("Date").Width("20%");
                                 c.Add().Field("PrNo").Title("PR No.").Width("25%");
-                                c.Add().Field("Department").Title("Department").Width("30%");
+                                c.Add().Field("Department").Title("Department").Width("25%");
+                                c.Add().Field("RemainingQty").Title("Remaining Qty").Width("15%");
                             })
                             .Events(e => { e.Select("onSelectOrderRequestId"); })
                     //.Suggest(true)

@@ -137,13 +137,13 @@
                 <div class="kpi-unit-label">Requisitions in Pipeline</div>
             </div>
             <div class="kpi-badges-row">
-                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-draft" title="Awaiting department approval">
+                <a href="@Url.Action("Index", "Requisitions")" class="kpi-sub-badge badge-draft" title="Awaiting department approval">
                     Approval @Model.KpiSummary.RisPendingApproval
                 </a>
-                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-submitted" title="Approved, ready for supply release">
+                <a href="@Url.Action("Index", "Requisitions")" class="kpi-sub-badge badge-submitted" title="Approved, ready for supply release">
                     Issuance @Model.KpiSummary.RisPendingIssuance
                 </a>
-                <a href="@Url.Action("Index", "RIS")" class="kpi-sub-badge badge-posted" title="Issued and posted">
+                <a href="@Url.Action("Index", "Requisitions")" class="kpi-sub-badge badge-posted" title="Issued and posted">
                     Posted @Model.KpiSummary.RisPosted
                 </a>
             </div>

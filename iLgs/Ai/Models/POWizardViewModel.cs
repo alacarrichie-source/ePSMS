@@ -84,6 +84,7 @@ namespace iLgs.Ai.Models
         {
             Allocations = new List<POItemAllocationDraftViewModel>();
             SetLotItems = new List<POSetLotItemViewModel>();
+            AllFields = new Dictionary<string, string>();
         }
 
         public Guid Id { get; set; }
@@ -103,6 +104,7 @@ namespace iLgs.Ai.Models
         public string GSOCategory { get; set; }
         public string TechnicalDescription { get; set; }
         public Dictionary<string, string> AdditionalSpecs { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> AllFields { get; set; }
 
         //public int SourcePRItemId { get; set; }
 
