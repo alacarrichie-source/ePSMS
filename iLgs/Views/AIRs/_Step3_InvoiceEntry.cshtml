@@ -1,13 +1,14 @@
-﻿@using Kendo.Mvc.UI
+﻿@model iLgs.Ai.Models.AIRWizardViewModel
+@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
 
     <div class="wizard-card-header">
         <div>
-            <h2>Step 3: Supplier Invoice &amp; Delivery Receipt Details</h2>
+            <h2>Step 3: Inspection Details &amp; Invoices</h2>
             <p class="subtitle">
-                Capture the supplier delivery receipt, sales invoice number, billing reference, and upload digital copies of supplier documents.
+                Review inspection parameters, record supplier sales invoices, and attach supporting delivery documents.
             </p>
         </div>
     </div>
@@ -33,83 +34,156 @@
     </div>
 
     <!-- ============================================================
-         INVOICE / DR DETAILS FORM
+         INSPECTION HEADER & COMMITTEE DETAILS ENTRY
          ============================================================ -->
-    <div class="form-card mb-4 p-4 bg-white rounded border">
-        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-file-txt"></span> Invoice &amp; Billing Information</h4>
+    <div class="form-card mb-4 p-3 bg-light rounded border">
+        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Inspection Header &amp; Committee Details</h4>
         <div class="row g-3">
             <div class="col-md-4">
-                <label for="txtDrNo" class="form-label small fw-bold">Delivery Receipt (DR) No.</label>
-                <input type="text" id="txtDrNo" class="form-control-custom w-100" placeholder="e.g. DR-2026-0492" onchange="scheduleWizardAutoSave()" />
+                <label for="txtInspectionDate" class="form-label small fw-bold">Inspection Date <span class="text-danger">*</span></label>
+                @if (Model.IsSubmittedView)
+                {
+                    <input type="date" id="txtInspectionDate" class="form-control-custom w-100 bg-light" value="@(Model != null && Model.InspectionDate.HasValue ? Model.InspectionDate.Value.ToString("yyyy-MM-dd") : "")" readonly="readonly" disabled="disabled" />
+                }
+                else
+                {
+                    <input type="date" id="txtInspectionDate" class="form-control-custom w-100" value="@(Model != null && Model.InspectionDate.HasValue ? Model.InspectionDate.Value.ToString("yyyy-MM-dd") : "")" onchange="scheduleWizardAutoSave()" />
+                }
             </div>
             <div class="col-md-4">
-                <label for="txtInvoiceNo" class="form-label small fw-bold">Sales Invoice No. <span class="text-danger">*</span></label>
-                <input type="text" id="txtInvoiceNo" class="form-control-custom w-100" placeholder="e.g. SI-88910" onchange="scheduleWizardAutoSave()" />
+                <label for="txtInspectionCommittee" class="form-label small fw-bold">Inspection Committee / Team Members <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="text" id="txtInspectionCommittee" class="form-control-custom w-100 @(Model.IsSubmittedView ? "bg-light" : "")" value="@(Model != null ? Model.InspectionCommittee : "")" placeholder="Names of assisting committee members..." @(Model.IsSubmittedView ? "readonly='readonly' disabled='disabled'" : "onchange='scheduleWizardAutoSave()'") />
             </div>
             <div class="col-md-4">
-                <label for="txtInvoiceDate" class="form-label small fw-bold">Invoice Date <span class="text-danger">*</span></label>
-                <input type="date" id="txtInvoiceDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="scheduleWizardAutoSave()" />
-            </div>
-
-            <div class="col-md-4">
-                <label for="txtInvoiceAmount" class="form-label small fw-bold">Invoice Total Amount (PHP)</label>
-                <input type="number" step="0.01" id="txtInvoiceAmount" class="form-control-custom w-100 font-monospace fw-bold" placeholder="0.00" onchange="scheduleWizardAutoSave()" />
+                <label for="txtInspectionLocation" class="form-label small fw-bold">Inspection Location <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="text" id="txtInspectionLocation" class="form-control-custom w-100 @(Model.IsSubmittedView ? "bg-light" : "")" value="@(Model != null ? Model.InspectionLocation : "")" placeholder="e.g. GSO Warehouse, City Hall" @(Model.IsSubmittedView ? "readonly='readonly' disabled='disabled'" : "onchange='scheduleWizardAutoSave()'") />
             </div>
             <div class="col-md-4">
-                <label for="ddlInvoiceType" class="form-label small fw-bold">Invoice Type</label>
-                <select id="ddlInvoiceType" class="form-control-custom w-100" onchange="scheduleWizardAutoSave()">
-                    <option value="Sales Invoice">Sales Invoice (SI)</option>
-                    <option value="Official Receipt">Official Receipt (OR)</option>
-                    <option value="Billing Statement">Billing Statement</option>
-                    <option value="Delivery Receipt">Delivery Receipt Only</option>
-                    <option value="Other">Other / Commercial Invoice</option>
-                </select>
+                <label for="InspectorName" class="form-label small fw-bold">Inspector Name <span class="text-danger">*</span></label>
+                @if (Model.IsSubmittedView)
+                {
+                    <input type="text" id="InspectorName" class="form-control-custom w-100 bg-light" value="@(Model != null ? Model.InspectorName : "")" readonly="readonly" disabled="disabled" />
+                }
+                else
+                {
+                    @(Html.Kendo().MultiColumnComboBox()
+                        .Name("InspectorName")
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;", id = "InspectorName" })
+                        .Placeholder("Select Officer")
+                        .DataTextField("Description")
+                        .DataValueField("Description")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetOfficers", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Description").Title("Name").Width("60%");
+                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                        })
+                        .Events(e => e.Select("onInspectorSelect").Change("onInspectorChange"))
+                        .Suggest(true)
+                    )
+                }
             </div>
             <div class="col-md-4">
-                <label for="txtBillingReference" class="form-label small fw-bold">Billing Reference</label>
-                <input type="text" id="txtBillingReference" class="form-control-custom w-100" placeholder="e.g. Charge Invoice / Ref No." onchange="scheduleWizardAutoSave()" />
+                <label for="txtInspectorDesignation" class="form-label small fw-bold">Designation</label>
+                <input type="text" id="txtInspectorDesignation" class="form-control-custom w-100 @(Model.IsSubmittedView ? "bg-light" : "")" value="@(Model != null ? Model.InspectorDesignation : "")" placeholder="e.g. Inspection Officer I" @(Model.IsSubmittedView ? "readonly='readonly' disabled='disabled'" : "onchange='scheduleWizardAutoSave()'") />
             </div>
-
-            <div class="col-12">
-                <label for="txtInvoiceRemarks" class="form-label small fw-bold">Invoice &amp; Payment Remarks</label>
-                <textarea id="txtInvoiceRemarks" class="form-control-custom w-100" rows="2" placeholder="Payment terms, withholding tax deductions, partial billing notes..." onchange="scheduleWizardAutoSave()"></textarea>
+            <div class="col-md-4">
+                <label for="txtGeneralRemarks" class="form-label small fw-bold">General Inspection Remarks</label>
+                <input type="text" id="txtGeneralRemarks" class="form-control-custom w-100 @(Model.IsSubmittedView ? "bg-light" : "")" value="@(Model != null ? Model.GeneralRemarks : "")" placeholder="Physical condition, batch notes, delivery notes..." @(Model.IsSubmittedView ? "readonly='readonly' disabled='disabled'" : "onchange='scheduleWizardAutoSave()'") />
             </div>
         </div>
     </div>
 
     <!-- ============================================================
-         UPLOAD INVOICE COPY & DOCUMENTS
+         INVOICE RECORDS SECTION
          ============================================================ -->
     <div class="form-card mb-4 p-4 bg-white rounded border">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="fs-6 fw-bold mb-0 text-primary"><span class="k-icon k-i-upload"></span> Upload Invoice Copy &amp; Supplier Delivery Documents</h4>
-                <p class="small text-muted mb-0">Upload scanned copies of the supplier invoice, delivery receipt, or waybill (PDF, JPG, PNG up to 10MB).</p>
+                <h4 class="fs-6 fw-bold mb-1 text-primary"><span class="k-icon k-i-file-txt"></span> Invoice Records</h4>
+                <div class="small text-muted">
+                    Invoices: <strong id="lblInvoiceCount" class="text-dark">0</strong>
+                    <span class="mx-2">&bull;</span>
+                    Combined Invoice Amount: <strong class="text-primary font-monospace">PHP <span id="lblCombinedInvoiceAmount">0.00</span></strong>
+                </div>
             </div>
-            <div>
-                <label class="btn-procurement-primary btn-sm mb-0" style="cursor:pointer;">
-                    <span class="k-icon k-i-upload"></span> Upload Document
-                    <input type="file" id="fileInvoiceUpload" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleInvoiceFileUpload(this)" />
-                </label>
-            </div>
+            @if (!Model.IsSubmittedView)
+            {
+                <div>
+                    <button type="button" class="btn-procurement-primary btn-sm" onclick="openAddInvoiceModal()">
+                        <span class="k-icon k-i-plus"></span> Add Invoice
+                    </button>
+                </div>
+            }
         </div>
 
         <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle mb-0" id="tblInvoiceAttachments">
-                <thead class="table-light">
+            <table class="table table-bordered table-hover align-middle mb-0" id="tblInvoiceRecords">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th>Sales Invoice No.</th>
+                        <th style="width: 140px;">Invoice Date</th>
+                        <th style="width: 170px;" class="text-end">Total Amount (PHP)</th>
+                        <th style="width: 220px;">Invoice Document</th>
+                        <th style="width: 140px;" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceRecordsTableBody" class="small">
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-muted" id="noInvoicesRow">
+                            No invoice records added yet. Click <strong>+ Add Invoice</strong> to record a sales invoice.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         UPLOAD ADDITIONAL SUPPLIER DELIVERY DOCUMENTS
+         ============================================================ -->
+    <div class="form-card mb-4 p-4 bg-white rounded border">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fs-6 fw-bold mb-0 text-primary"><span class="k-icon k-i-upload"></span> Upload Additional Supplier Delivery Documents</h4>
+                <p class="small text-muted mb-0">Upload general supplier documents not tied to a single invoice (e.g. delivery receipts, packing lists, waybills &ndash; PDF, JPG, PNG up to 10MB).</p>
+            </div>
+            @if (!Model.IsSubmittedView)
+            {
+                <div>
+                    <label class="btn-procurement-primary btn-sm mb-0" style="cursor:pointer;">
+                        <span class="k-icon k-i-upload"></span> Upload Files
+                        <input type="file" id="fileSupplierGeneralDoc" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleSupplierGeneralDocUpload(this)" />
+                    </label>
+                </div>
+            }
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0" id="tblSupplierAttachments">
+                <thead class="table-light small">
                     <tr>
                         <th>File Name</th>
-                        <th style="width: 130px;">Document Type</th>
+                        <th style="width: 150px;">Document Type</th>
                         <th style="width: 100px;">File Size</th>
                         <th style="width: 150px;">Uploaded By</th>
                         <th style="width: 140px;">Upload Date</th>
-                        <th style="width: 140px;" class="text-center">Actions</th>
+                        <th style="width: 100px;" class="text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="invoiceAttachmentsTableBody">
+                <tbody id="supplierAttachmentsTableBody" class="small">
                     <tr>
-                        <td colspan="6" class="p-4 text-center text-muted" id="noInvoiceDocsRow">
-                            No invoice documents uploaded yet. Click <strong>Upload Document</strong> to attach.
+                        <td colspan="6" class="p-4 text-center text-muted" id="noSupplierDocsRow">
+                            No additional supplier documents uploaded yet. Click <strong>Upload Files</strong> to attach.
                         </td>
                     </tr>
                 </tbody>
@@ -126,9 +200,12 @@
         </button>
 
         <div class="wizard-action-group">
-            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
-                <span class="k-icon k-i-save"></span> Save Draft
-            </button>
+            @if (!Model.IsSubmittedView)
+            {
+                <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                    <span class="k-icon k-i-save"></span> Save Draft
+                </button>
+            }
             <button type="button" class="btn-procurement-primary" onclick="proceedToStep4()">
                 Proceed to Review &amp; Submit <span class="k-icon k-i-arrow-right"></span>
             </button>
@@ -137,30 +214,284 @@
 
 </div>
 
+<!-- ============================================================
+     ADD / EDIT INVOICE MODAL (KENDO WINDOW)
+     ============================================================ -->
+@(Html.Kendo().Window()
+    .Name("invoiceModalWindow")
+    .Title("Sales Invoice")
+    .Width(540)
+    .Modal(true)
+    .Visible(false)
+    .Draggable(true)
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div class="p-3">
+            <input type="hidden" id="modalInvoiceIndex" value="-1" />
+
+            <div id="modalInvoiceError" class="alert alert-danger py-2 px-3 small mb-3" style="display:none;"></div>
+
+            <div class="mb-3">
+                <label for="txtModalInvoiceNo" class="form-label small fw-bold">Sales Invoice No. <span class="text-danger">*</span></label>
+                <input type="text" id="txtModalInvoiceNo" class="form-control-custom w-100" placeholder="e.g. SI-10001" style="text-transform: uppercase;" />
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="txtModalInvoiceDate" class="form-label small fw-bold">Invoice Date <span class="text-danger">*</span></label>
+                    <input type="date" id="txtModalInvoiceDate" class="form-control-custom w-100" />
+                </div>
+                <div class="col-md-6">
+                    <label for="txtModalInvoiceAmount" class="form-label small fw-bold">Invoice Total Amount (PHP) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" min="0.01" id="txtModalInvoiceAmount" class="form-control-custom w-100 font-monospace text-end fw-bold" placeholder="0.00" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Supporting Invoice Document</label>
+                <div id="modalInvoiceDocContainer">
+                    <div id="modalInvoiceDocBadge" class="p-2 bg-light rounded border d-flex justify-content-between align-items-center mb-2" style="display:none;">
+                        <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                            <span class="k-icon k-i-file-pdf text-danger fs-5"></span>
+                            <span id="modalInvoiceDocName" class="small fw-semibold text-truncate">--</span>
+                            <span id="modalInvoiceDocSize" class="badge bg-secondary font-monospace" style="font-size:10px;">--</span>
+                        </div>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="previewModalInvoiceDoc()" title="View / Download">
+                                <span class="k-icon k-i-eye"></span>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-danger" onclick="clearModalInvoiceDoc()" title="Remove">
+                                <span class="k-icon k-i-trash"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="btn btn-outline-primary btn-sm mb-0 d-inline-flex align-items-center gap-1" style="cursor:pointer;" id="lblModalUploadBtn">
+                            <span class="k-icon k-i-upload"></span> <span id="lblModalUploadText">Attach Document</span>
+                            <input type="file" id="fileModalInvoiceDoc" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleModalInvoiceDocUpload(this)" />
+                        </label>
+                    </div>
+                    <div class="form-text small text-muted">Attach scanned copy of this invoice (PDF, JPG, PNG up to 10MB).</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
+                <button type="button" class="btn-procurement-secondary btn-sm" onclick="closeInvoiceModal()">Cancel</button>
+                <button type="button" class="btn-procurement-primary btn-sm" onclick="saveInvoiceModal()"><span class="k-icon k-i-check"></span> Save Invoice</button>
+            </div>
+        </div>
+    </text>)
+)
+
 <script type="text/javascript">
+    var currentModalDoc = null;
+
+    function onInspectorSelect(e) {
+        var dataItem = e.dataItem;
+        if (dataItem) {
+            var name = dataItem.Description || "";
+            var designation = dataItem.Desc2 || "";
+            $("#txtInspectorDesignation").val(designation);
+            if (airWizardState) {
+                airWizardState.InspectorName = name;
+                airWizardState.InspectorDesignation = designation;
+            }
+            if (typeof scheduleWizardAutoSave === "function") {
+                scheduleWizardAutoSave();
+            }
+        }
+    }
+
+    function onInspectorChange(e) {
+        var cb = this;
+        var val = (cb && typeof cb.value === "function") ? cb.value() : $("#InspectorName").val();
+        var dataItem = (cb && typeof cb.dataItem === "function") ? cb.dataItem() : null;
+        var designation = (dataItem && dataItem.Desc2) ? dataItem.Desc2 : $("#txtInspectorDesignation").val();
+        $("#txtInspectorDesignation").val(designation);
+        if (airWizardState) {
+            airWizardState.InspectorName = val;
+            airWizardState.InspectorDesignation = designation;
+        }
+        if (typeof scheduleWizardAutoSave === "function") {
+            scheduleWizardAutoSave();
+        }
+    }
+
     function syncStep3Form() {
         if (!airWizardState) return;
         $("#txtStep3Supplier").text(airWizardState.SupplierName || "N/A");
         $("#txtStep3PONumber").text(airWizardState.PONumber || "N/A");
         $("#txtStep3Department").text(airWizardState.DepartmentName || "N/A");
 
-        if (airWizardState.Invoice) {
-            if (airWizardState.Invoice.DrNo) $("#txtDrNo").val(airWizardState.Invoice.DrNo);
-            if (airWizardState.Invoice.InvoiceNo) $("#txtInvoiceNo").val(airWizardState.Invoice.InvoiceNo);
-            if (airWizardState.Invoice.InvoiceDate) {
-                var d = new Date(airWizardState.Invoice.InvoiceDate);
-                $("#txtInvoiceDate").val(d.toISOString().substring(0, 10));
-            }
-            if (airWizardState.Invoice.InvoiceAmount) $("#txtInvoiceAmount").val(airWizardState.Invoice.InvoiceAmount);
-            if (airWizardState.Invoice.InvoiceType) $("#ddlInvoiceType").val(airWizardState.Invoice.InvoiceType);
-            if (airWizardState.Invoice.BillingReference) $("#txtBillingReference").val(airWizardState.Invoice.BillingReference);
-            if (airWizardState.Invoice.Remarks) $("#txtInvoiceRemarks").val(airWizardState.Invoice.Remarks);
+        if (typeof setLocalDateValue === "function") {
+            setLocalDateValue("#txtInspectionDate", airWizardState.InspectionDate);
+        } else if (airWizardState.InspectionDate) {
+            $("#txtInspectionDate").val(airWizardState.InspectionDate.substring ? airWizardState.InspectionDate.substring(0, 10) : airWizardState.InspectionDate);
+        } else {
+            $("#txtInspectionDate").val("");
         }
 
-        renderInvoiceAttachments();
+        var cb = $("#InspectorName").data("kendoMultiColumnComboBox");
+        if (cb) {
+            cb.value(airWizardState.InspectorName || "");
+            cb.text(airWizardState.InspectorName || "");
+        } else {
+            $("#InspectorName").val(airWizardState.InspectorName || "");
+        }
+
+        if (airWizardState.InspectorDesignation !== undefined) $("#txtInspectorDesignation").val(airWizardState.InspectorDesignation || "");
+        if (airWizardState.InspectionLocation !== undefined && airWizardState.InspectionLocation !== null) {
+            $("#txtInspectionLocation").val(airWizardState.InspectionLocation);
+        } else if (!$("#txtInspectionLocation").val()) {
+            $("#txtInspectionLocation").val(airWizardState.DeliveryPlace || "");
+        }
+        if (airWizardState.InspectionCommittee !== undefined) $("#txtInspectionCommittee").val(airWizardState.InspectionCommittee || "");
+        if (airWizardState.GeneralRemarks !== undefined) $("#txtGeneralRemarks").val(airWizardState.GeneralRemarks || "");
+
+        if (!airWizardState.Invoices) {
+            airWizardState.Invoices = [];
+        }
+        if (!airWizardState.SupportingDocuments) {
+            airWizardState.SupportingDocuments = [];
+        }
+
+        renderInvoiceRecordsTable();
+        renderSupplierAttachments();
     }
 
-    function handleInvoiceFileUpload(input) {
+    function renderInvoiceRecordsTable() {
+        var tbody = $("#invoiceRecordsTableBody");
+        tbody.empty();
+
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
+        var invoices = airWizardState.Invoices || [];
+        var count = invoices.length;
+        var totalAmount = 0;
+
+        invoices.forEach(function (inv) {
+            var amt = parseFloat(inv.InvoiceTotalAmount || inv.Amount) || 0;
+            totalAmount += amt;
+        });
+
+        $("#lblInvoiceCount").text(count);
+        $("#lblCombinedInvoiceAmount").text(Number(totalAmount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        if (invoices.length === 0) {
+            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted" id="noInvoicesRow">No invoice records added yet. Click <strong>+ Add Invoice</strong> to record a sales invoice.</td></tr>');
+            return;
+        }
+
+        invoices.forEach(function (inv, idx) {
+            var invNo = inv.SalesInvoiceNo || inv.InvoiceNo || "N/A";
+            var invDate = "--";
+            if (inv.InvoiceDate) {
+                if (typeof formatDisplayDate === "function") {
+                    invDate = formatDisplayDate(inv.InvoiceDate);
+                } else {
+                    invDate = new Date(inv.InvoiceDate).toLocaleDateString();
+                }
+            }
+            var amt = parseFloat(inv.InvoiceTotalAmount || inv.Amount) || 0;
+            var amtFormatted = Number(amt).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            var docHtml = "<span class='text-muted font-italic'>No document</span>";
+            if (inv.SupportingDocument && inv.SupportingDocument.FileName) {
+                var doc = inv.SupportingDocument;
+                docHtml = "<a href='javascript:void(0)' onclick='viewDocument(\"" + (doc.FilePath || "") + "\")' class='text-decoration-none d-inline-flex align-items-center gap-1'>" +
+                          "  <span class='k-icon k-i-file-pdf text-danger'></span> " +
+                          "  <span class='fw-semibold text-truncate' style='max-width:140px;' title='" + doc.FileName + "'>" + doc.FileName + "</span>" +
+                          "  <span class='text-muted font-monospace' style='font-size:10px;'>(" + (doc.FileSize || "") + ")</span>" +
+                          "</a>";
+            }
+
+            var tr = "<tr>" +
+                     "  <td class='text-center fw-bold text-muted'>" + (idx + 1) + "</td>" +
+                     "  <td class='fw-bold text-primary font-monospace'>" + invNo + "</td>" +
+                     "  <td>" + invDate + "</td>" +
+                     "  <td class='text-end font-monospace fw-bold'>" + amtFormatted + "</td>" +
+                     "  <td>" + docHtml + "</td>" +
+                     "  <td class='text-center'>" +
+                     (isReadOnlyMode ? (doc ? ("<a href='javascript:void(0)' onclick='viewDocument(\"" + (doc.FilePath || "") + "\")' class='btn btn-xs btn-outline-secondary' title='View Document'><span class='k-icon k-i-eye'></span> View Doc</a>") : "<span class='text-muted small'>--</span>") :
+                     ("    <button type='button' class='btn btn-xs btn-outline-primary me-1' onclick='openEditInvoiceModal(" + idx + ")' title='Edit'><span class='k-icon k-i-edit'></span> Edit</button>" +
+                      "    <button type='button' class='btn btn-xs btn-outline-danger' onclick='deleteInvoiceRecord(" + idx + ")' title='Delete'><span class='k-icon k-i-trash'></span> Delete</button>")) +
+                     "  </td>" +
+                     "</tr>";
+            tbody.append(tr);
+        });
+    }
+
+    function openAddInvoiceModal() {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        $("#modalInvoiceIndex").val("-1");
+        $("#txtModalInvoiceNo").val("");
+        $("#txtModalInvoiceDate").val("");
+        $("#txtModalInvoiceAmount").val("");
+        $("#modalInvoiceError").hide().text("");
+        currentModalDoc = null;
+        updateModalDocBadge();
+
+        var win = $("#invoiceModalWindow").data("kendoWindow");
+        if (win) {
+            win.title("Add Sales Invoice");
+            win.center().open();
+        }
+    }
+
+    function openEditInvoiceModal(idx) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        var invoices = airWizardState.Invoices || [];
+        if (idx < 0 || idx >= invoices.length) return;
+        var inv = invoices[idx];
+
+        $("#modalInvoiceIndex").val(idx);
+        $("#txtModalInvoiceNo").val(inv.SalesInvoiceNo || inv.InvoiceNo || "");
+
+        if (inv.InvoiceDate) {
+            if (typeof setLocalDateValue === "function") {
+                setLocalDateValue("#txtModalInvoiceDate", inv.InvoiceDate);
+            } else {
+                var dStr = typeof inv.InvoiceDate === "string" ? inv.InvoiceDate.substring(0, 10) : "";
+                $("#txtModalInvoiceDate").val(dStr);
+            }
+        } else {
+            $("#txtModalInvoiceDate").val("");
+        }
+
+        var amt = parseFloat(inv.InvoiceTotalAmount || inv.Amount) || 0;
+        $("#txtModalInvoiceAmount").val(amt > 0 ? amt.toFixed(2) : "");
+
+        currentModalDoc = inv.SupportingDocument || null;
+        updateModalDocBadge();
+        $("#modalInvoiceError").hide().text("");
+
+        var win = $("#invoiceModalWindow").data("kendoWindow");
+        if (win) {
+            win.title("Edit Sales Invoice: " + (inv.SalesInvoiceNo || inv.InvoiceNo || ""));
+            win.center().open();
+        }
+    }
+
+    function closeInvoiceModal() {
+        var win = $("#invoiceModalWindow").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function updateModalDocBadge() {
+        if (currentModalDoc && currentModalDoc.FileName) {
+            $("#modalInvoiceDocName").text(currentModalDoc.FileName);
+            $("#modalInvoiceDocSize").text(currentModalDoc.FileSize || "");
+            $("#modalInvoiceDocBadge").show();
+            $("#lblModalUploadText").text("Replace Document");
+        } else {
+            $("#modalInvoiceDocBadge").hide();
+            $("#lblModalUploadText").text("Attach Document");
+        }
+    }
+
+    function handleModalInvoiceDocUpload(input) {
         if (!input.files || input.files.length === 0) return;
         var formData = new FormData();
         formData.append("file", input.files[0]);
@@ -174,48 +505,187 @@
             contentType: false,
             success: function (res) {
                 if (res.success && res.document) {
-                    if (!airWizardState.Invoice) airWizardState.Invoice = { InvoiceAttachments: [] };
-                    if (!airWizardState.Invoice.InvoiceAttachments) airWizardState.Invoice.InvoiceAttachments = [];
-                    airWizardState.Invoice.InvoiceAttachments.push(res.document);
-                    renderInvoiceAttachments();
+                    currentModalDoc = res.document;
+                    updateModalDocBadge();
+                } else {
+                    alert(res.message || "Failed to upload file.");
+                }
+            },
+            error: function () {
+                alert("An error occurred while uploading invoice document.");
+            }
+        });
+        // reset input so the same file can be selected again
+        input.value = "";
+    }
+
+    function clearModalInvoiceDoc() {
+        currentModalDoc = null;
+        updateModalDocBadge();
+    }
+
+    function previewModalInvoiceDoc() {
+        if (currentModalDoc && currentModalDoc.FilePath) {
+            viewDocument(currentModalDoc.FilePath);
+        }
+    }
+
+    function saveInvoiceModal() {
+        var errDiv = $("#modalInvoiceError");
+        errDiv.hide().text("");
+
+        var invoiceNo = ($("#txtModalInvoiceNo").val() || "").trim();
+        if (!invoiceNo) {
+            errDiv.text("Sales Invoice Number is required.").show();
+            $("#txtModalInvoiceNo").focus();
+            return;
+        }
+
+        var editIdx = parseInt($("#modalInvoiceIndex").val(), 10);
+        var invoices = airWizardState.Invoices || [];
+
+        // Check for duplicate invoice numbers within this AIR
+        var isDuplicate = invoices.some(function (inv, idx) {
+            if (idx === editIdx) return false;
+            var otherNo = (inv.SalesInvoiceNo || inv.InvoiceNo || "").trim();
+            return otherNo.toUpperCase() === invoiceNo.toUpperCase();
+        });
+
+        if (isDuplicate) {
+            errDiv.text("Sales Invoice Number '" + invoiceNo + "' already exists for this AIR. Each invoice number must be unique.").show();
+            $("#txtModalInvoiceNo").focus();
+            return;
+        }
+
+        var invoiceDateVal = typeof getLocalDateValue === "function" ? getLocalDateValue("#txtModalInvoiceDate") : ($("#txtModalInvoiceDate").val() || null);
+        if (!invoiceDateVal) {
+            errDiv.text("Invoice Date is required.").show();
+            $("#txtModalInvoiceDate").focus();
+            return;
+        }
+
+        var amountVal = parseFloat($("#txtModalInvoiceAmount").val());
+        if (isNaN(amountVal) || amountVal <= 0) {
+            errDiv.text("Invoice Total Amount is required and must be greater than zero.").show();
+            $("#txtModalInvoiceAmount").focus();
+            return;
+        }
+
+        if (editIdx >= 0 && editIdx < invoices.length) {
+            // Update existing row
+            var target = invoices[editIdx];
+            target.SalesInvoiceNo = invoiceNo;
+            target.InvoiceNo = invoiceNo;
+            target.InvoiceDate = invoiceDateVal;
+            target.InvoiceTotalAmount = amountVal;
+            target.Amount = amountVal;
+            target.SupportingDocument = currentModalDoc;
+        } else {
+            // Add new invoice row
+            var newInv = {
+                Id: generateGuid(),
+                AirId: airWizardState.AirId || null,
+                SalesInvoiceNo: invoiceNo,
+                InvoiceNo: invoiceNo,
+                InvoiceDate: invoiceDateVal,
+                InvoiceTotalAmount: amountVal,
+                Amount: amountVal,
+                SupportingDocument: currentModalDoc
+            };
+            invoices.push(newInv);
+        }
+
+        airWizardState.Invoices = invoices;
+        closeInvoiceModal();
+        renderInvoiceRecordsTable();
+        scheduleWizardAutoSave();
+    }
+
+    function deleteInvoiceRecord(idx) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        var invoices = airWizardState.Invoices || [];
+        if (idx < 0 || idx >= invoices.length) return;
+        var inv = invoices[idx];
+        var invNo = inv.SalesInvoiceNo || inv.InvoiceNo || "this invoice";
+
+        if (confirm("Are you sure you want to remove Sales Invoice '" + invNo + "'?")) {
+            invoices.splice(idx, 1);
+            airWizardState.Invoices = invoices;
+            renderInvoiceRecordsTable();
+            scheduleWizardAutoSave();
+        }
+    }
+
+    function handleSupplierGeneralDocUpload(input) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        if (!input.files || input.files.length === 0) return;
+        var formData = new FormData();
+        formData.append("file", input.files[0]);
+        formData.append("category", "GeneralDeliveryDoc");
+
+        $.ajax({
+            url: '@Url.Action("UploadAttachment", "AIRs")',
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success && res.document) {
+                    if (!airWizardState.SupportingDocuments) {
+                        airWizardState.SupportingDocuments = [];
+                    }
+                    res.document.DocumentType = "GeneralSupplierDoc";
+                    airWizardState.SupportingDocuments.push(res.document);
+                    renderSupplierAttachments();
                     scheduleWizardAutoSave();
                 } else {
                     alert(res.message || "Failed to upload file.");
                 }
+            },
+            error: function () {
+                alert("An error occurred while uploading the document.");
             }
         });
+        input.value = "";
     }
 
-    function renderInvoiceAttachments() {
-        var tbody = $("#invoiceAttachmentsTableBody");
+    function renderSupplierAttachments() {
+        var tbody = $("#supplierAttachmentsTableBody");
         tbody.empty();
 
-        var docs = airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments ? airWizardState.Invoice.InvoiceAttachments : [];
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
+        var docs = airWizardState.SupportingDocuments || [];
+
         if (docs.length === 0) {
-            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted">No invoice documents uploaded yet. Click <strong>Upload Document</strong> to attach.</td></tr>');
+            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted" id="noSupplierDocsRow">No additional supplier documents uploaded yet. Click <strong>Upload Files</strong> to attach.</td></tr>');
             return;
         }
 
         docs.forEach(function (doc, idx) {
             var row = "<tr>" +
                       "  <td class='fw-semibold'><span class='k-icon k-i-file-pdf text-danger'></span> " + doc.FileName + "</td>" +
-                      "  <td><span class='badge bg-light text-dark border'>" + (doc.DocumentType || "Invoice") + "</span></td>" +
-                      "  <td class='small text-muted font-monospace'>" + doc.FileSize + "</td>" +
+                      "  <td><span class='badge bg-light text-dark border'>" + (doc.DocumentType === "GeneralSupplierDoc" ? "Supplier Document" : (doc.DocumentType || "Document")) + "</span></td>" +
+                      "  <td class='small text-muted font-monospace'>" + (doc.FileSize || "--") + "</td>" +
                       "  <td class='small'>" + (doc.UploadedBy || "Current User") + "</td>" +
-                      "  <td class='small text-muted'>" + new Date(doc.UploadedDt).toLocaleDateString() + "</td>" +
+                      "  <td class='small text-muted'>" + (doc.UploadedDt ? new Date(doc.UploadedDt).toLocaleDateString() : "--") + "</td>" +
                       "  <td class='text-center'>" +
-                      "    <button type='button' class='btn btn-xs btn-outline-secondary me-1' onclick='viewDocument(\"" + doc.FilePath + "\")' title='View'><span class='k-icon k-i-eye'></span></button>" +
-                      "    <button type='button' class='btn btn-xs btn-outline-danger' onclick='removeInvoiceAttachment(" + idx + ")' title='Remove'><span class='k-icon k-i-trash'></span></button>" +
+                      (isReadOnlyMode ? ("<button type='button' class='btn btn-xs btn-outline-secondary' onclick='viewDocument(\"" + doc.FilePath + "\")' title='View'><span class='k-icon k-i-eye'></span> View</button>") :
+                      ("    <button type='button' class='btn btn-xs btn-outline-secondary me-1' onclick='viewDocument(\"" + doc.FilePath + "\")' title='View'><span class='k-icon k-i-eye'></span></button>" +
+                       "    <button type='button' class='btn btn-xs btn-outline-danger' onclick='removeSupplierGeneralDoc(" + idx + ")' title='Remove'><span class='k-icon k-i-trash'></span></button>")) +
                       "  </td>" +
                       "</tr>";
             tbody.append(row);
         });
     }
 
-    function removeInvoiceAttachment(idx) {
-        if (airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments) {
-            airWizardState.Invoice.InvoiceAttachments.splice(idx, 1);
-            renderInvoiceAttachments();
+    function removeSupplierGeneralDoc(idx) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        if (airWizardState.SupportingDocuments && idx >= 0 && idx < airWizardState.SupportingDocuments.length) {
+            airWizardState.SupportingDocuments.splice(idx, 1);
+            renderSupplierAttachments();
             scheduleWizardAutoSave();
         }
     }
@@ -224,14 +694,38 @@
         if (path) window.open(path.replace("~/", "/"), "_blank");
     }
 
+    function generateGuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
     function proceedToStep4() {
-        var invoiceNo = $("#txtInvoiceNo").val();
-        if (!invoiceNo || !invoiceNo.trim()) {
-            alert("Please enter the Sales Invoice Number.");
-            $("#txtInvoiceNo").focus();
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) { goToWizardStep(4); return; }
+        var inspDate = $("#txtInspectionDate").val();
+        if (!inspDate) {
+            alert("Please enter the Inspection Date before proceeding.");
+            $("#txtInspectionDate").focus();
             return;
         }
-        collectWizardFormData();
+
+        var inspectorCb = $("#InspectorName").data("kendoMultiColumnComboBox");
+        var inspName = inspectorCb ? inspectorCb.value() : $("#InspectorName").val();
+        if (!inspName || !inspName.trim()) {
+            alert("Please select or enter the Inspector Name before proceeding.");
+            return;
+        }
+
+        var invoices = airWizardState.Invoices || [];
+        if (invoices.length === 0) {
+            alert("Please add at least one Sales Invoice before proceeding to Review & Submit.");
+            return;
+        }
+
+        if (typeof collectWizardFormData === "function") {
+            collectWizardFormData();
+        }
         goToWizardStep(4);
     }
 
@@ -240,3 +734,4 @@
         if (currentWizardStep === 3) syncStep3Form();
     });
 </script>
+

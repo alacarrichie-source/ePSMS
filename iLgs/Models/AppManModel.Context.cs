@@ -133,6 +133,7 @@ namespace iLgs.Models
         public virtual DbSet<AccountCodeItem> AccountCodeItems { get; set; }
         public virtual DbSet<AccountCode> AccountCodes { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
+        public virtual DbSet<AIRSubItem> AIRSubItems { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
@@ -145,6 +146,10 @@ namespace iLgs.Models
         public virtual DbSet<OrderSubItem> OrderSubItems { get; set; }
         public virtual DbSet<RequestSubItem> RequestSubItems { get; set; }
         public virtual DbSet<DocumentStatusHistory> DocumentStatusHistories { get; set; }
+        public virtual DbSet<AIRDocument> AIRDocuments { get; set; }
+        public virtual DbSet<AIRItemAllocation> AIRItemAllocations { get; set; }
+        public virtual DbSet<AIRWizardProgress> AIRWizardProgresses { get; set; }
+        public virtual DbSet<AIRSubmissionSnapshot> AIRSubmissionSnapshots { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

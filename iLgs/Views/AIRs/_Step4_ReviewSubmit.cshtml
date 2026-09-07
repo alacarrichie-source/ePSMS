@@ -1,20 +1,30 @@
+﻿@model iLgs.Ai.Models.AIRWizardViewModel
 @using Kendo.Mvc.UI
 
 <div class="wizard-card step4-review-container">
     <div class="step4-header mb-4">
         <div>
             <div class="step4-title-row d-flex align-items-center gap-2 mb-1">
-                <h2 class="mb-0">Step 4: Review Inspection &amp; Submit for Acceptance</h2>
-                <span class="k-badge k-badge-solid k-badge-primary k-rounded-md">Ready for Submission</span>
+                <h2 class="mb-0">@(Model.IsSubmittedView ? "Step 4: Review Submitted Inspection" : "Step 4: Review Inspection & Submit for Acceptance")</h2>
+                @if (Model.IsSubmittedView)
+                {
+                    <span class="badge bg-success fs-6">Submitted</span>
+                }
+                else
+                {
+                    <span class="k-badge k-badge-solid k-badge-primary k-rounded-md">Ready for Submission</span>
+                }
             </div>
-            <p class="subtitle mb-0">Verify inspected delivery quantities, inspection committee details, and invoice attachments before official submission to Acceptance.</p>
+            <p class="subtitle mb-0">
+                @(Model.IsSubmittedView ? "Review the verified delivery quantities, inspection committee details, and invoice attachments exactly as submitted." : "Verify inspected delivery quantities, inspection committee details, and invoice attachments before official submission to Acceptance.")
+            </p>
         </div>
         <div class="step4-metrics d-flex align-items-center gap-3">
             <div id="step4ReadinessBadge" class="step4-readiness is-ready p-2 px-3 rounded border d-flex align-items-center gap-2 bg-light">
                 <span class="k-icon k-i-check text-success fs-5"></span>
                 <div>
-                    <strong class="d-block small text-success">Inspection Complete</strong>
-                    <span id="step4ValidationSummary" class="small text-muted">Ready to submit</span>
+                    <strong class="d-block small text-success">@(Model.IsSubmittedView ? "Inspection Submitted" : "Inspection Complete")</strong>
+                    <span id="step4ValidationSummary" class="small text-muted">@(Model.IsSubmittedView ? "Submitted & Certified" : "Ready to submit")</span>
                 </div>
             </div>
         </div>
@@ -69,13 +79,14 @@
         </div>
         <div class="col-md-6">
             <div class="p-3 bg-white rounded border h-100">
-                <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-user"></span> Physical Inspection &amp; Invoice Summary</h4>
+                <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-user"></span> Physical Inspection &amp; Invoices</h4>
                 <div class="small">
                     <div class="mb-1"><strong>Inspection Date:</strong> <span id="revInspectionDate">--</span></div>
                     <div class="mb-1"><strong>Inspector / Officer:</strong> <span id="revInspector">--</span></div>
                     <div class="mb-1"><strong>Inspection Location:</strong> <span id="revLocation">--</span></div>
-                    <div class="mb-1"><strong>Invoice No. &amp; Date:</strong> <span id="revInvoiceNoDate">--</span></div>
-                    <div><strong>Delivery Receipt (DR) No.:</strong> <span id="revDrNo">--</span></div>
+                    <div class="mb-1"><strong>Inspection Committee:</strong> <span id="revCommittee">--</span></div>
+                    <div class="mb-1"><strong>General Remarks:</strong> <span id="revRemarks">--</span></div>
+                    <div><strong>Invoices Recorded:</strong> <span id="revInvoiceSummaryCount" class="badge bg-primary">0 Invoice(s)</span> &ndash; Combined: <span id="revInvoiceSummaryTotal" class="fw-bold font-monospace text-primary">PHP 0.00</span></div>
                 </div>
             </div>
         </div>
@@ -113,6 +124,29 @@
     </div>
 
     <!-- ============================================================
+         INVOICE RECORDS RECAP
+         ============================================================ -->
+    <div class="mb-4">
+        <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-file-txt"></span> Recorded Sales Invoices</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th>Sales Invoice No.</th>
+                        <th style="width: 140px;">Invoice Date</th>
+                        <th style="width: 170px;" class="text-end">Total Amount (PHP)</th>
+                        <th>Supporting Document</th>
+                    </tr>
+                </thead>
+                <tbody id="revInvoicesTableBody" class="small">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
          ATTACHMENTS RECAP
          ============================================================ -->
     <div class="mb-4 p-3 bg-light rounded border">
@@ -123,32 +157,64 @@
     </div>
 
     <!-- ============================================================
-         CERTIFICATION CHECKBOX
+         CERTIFICATION CHECKBOX / CONFIRMATION
          ============================================================ -->
-    <div class="step4-certification p-3 bg-white rounded border mb-4">
-        <label for="chkInspectionCertification" class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
-            <input type="checkbox" id="chkInspectionCertification" class="mt-1" onchange="toggleCertification(this.checked)" />
-            <span class="small">
-                <strong>Inspector Physical Verification Certification:</strong> I hereby certify that the physical goods and supplies listed above have been inspected, counted, and verified as to delivery quantity in accordance with the specified Purchase Order terms and delivery receipts. Final acceptance and disposition will be determined by the Acceptance Officer.
-            </span>
-        </label>
-    </div>
+    @if (Model.IsSubmittedView)
+    {
+        <div class="step4-certification p-3 bg-light rounded border mb-4">
+            <div class="d-flex align-items-center gap-2 text-success">
+                <span class="k-icon k-i-check-circle fs-5"></span>
+                <div>
+                    <strong>Inspector Physical Verification Certified</strong>
+                    <div class="small text-muted">
+                        Physical goods were verified and certified upon submission by @(!string.IsNullOrEmpty(Model.SubmittedBy) ? Model.SubmittedBy : "Inspector") on @(Model.SubmittedDt.HasValue ? Model.SubmittedDt.Value.ToString("MMM dd, yyyy hh:mm tt") : "--").
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="step4-certification p-3 bg-white rounded border mb-4">
+            <label for="chkInspectionCertification" class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                <input type="checkbox" id="chkInspectionCertification" class="mt-1" onchange="toggleCertification(this.checked)" />
+                <span class="small">
+                    <strong>Inspector Physical Verification Certification:</strong> I hereby certify that the physical goods and supplies listed above have been inspected, counted, and verified as to delivery quantity in accordance with the specified Purchase Order terms and delivery receipts. Final acceptance and disposition will be determined by the Acceptance Officer.
+                </span>
+            </label>
+        </div>
+    }
 
     <!-- ============================================================
          FINAL ACTIONS BAR
          ============================================================ -->
     <div class="wizard-summary-bar wizard-final-actions">
         <button type="button" class="btn-procurement-secondary" onclick="goToWizardStep(3)">
-            <span class="k-icon k-i-arrow-left"></span> Back to Invoice Entry
+            <span class="k-icon k-i-arrow-left"></span> Back to Inspection Details
         </button>
 
         <div class="wizard-action-group">
-            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
-                <span class="k-icon k-i-save"></span> Save as Draft
-            </button>
-            <button type="button" id="btnSubmitForAcceptance" class="btn-procurement-primary" onclick="submitInspectionFinal()" disabled="disabled">
-                <span class="k-icon k-i-check"></span> Submit for Acceptance
-            </button>
+            @if (Model.IsSubmittedView)
+            {
+                <a href="@(ViewBag.ReturnUrl ?? Url.Action("Index", "AIRs"))" class="btn-procurement-secondary">
+                    <span class="k-icon k-i-arrow-left"></span> @(ViewBag.ReturnLabel ?? "Back to Inspection List")
+                </a>
+                if (Model.CanWithdraw)
+                {
+                    <button type="button" class="btn btn-warning" onclick="openWithdrawModal()">
+                        <span class="k-icon k-i-undo"></span> Withdraw Submission
+                    </button>
+                }
+            }
+            else
+            {
+                <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                    <span class="k-icon k-i-save"></span> Save as Draft
+                </button>
+                <button type="button" id="btnSubmitForAcceptance" class="btn-procurement-primary" onclick="submitInspectionFinal()" disabled="disabled">
+                    <span class="k-icon k-i-check"></span> Submit for Acceptance
+                </button>
+            }
         </div>
     </div>
 
@@ -156,7 +222,7 @@
 
 <script type="text/javascript">
     function collectWizardFormData() {
-        if (!airWizardState) return;
+        if (!airWizardState || (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly)) return;
 
         // Step 1 inputs
         if ($("#ddlPoDisposition").length && $("#ddlPoDisposition").val()) {
@@ -164,7 +230,11 @@
         }
 
         // Step 2 inputs
-        airWizardState.InspectionDate = $("#txtInspectionDate").val() || new Date();
+        var inspDateVal = typeof getLocalDateValue === "function" ? getLocalDateValue("#txtInspectionDate") : ($("#txtInspectionDate").val() || null);
+        airWizardState.InspectionDate = inspDateVal;
+        if (inspDateVal) {
+            airWizardState.AirDate = inspDateVal;
+        }
         airWizardState.InspectionLocation = $("#txtInspectionLocation").val() || "";
 
         var inspectorCb = $("#InspectorName").data("kendoMultiColumnComboBox");
@@ -179,14 +249,8 @@
         airWizardState.GeneralRemarks = $("#txtGeneralRemarks").val() || "";
 
         // Step 3 inputs
-        if (!airWizardState.Invoice) airWizardState.Invoice = {};
-        airWizardState.Invoice.DrNo = $("#txtDrNo").val();
-        airWizardState.Invoice.InvoiceNo = $("#txtInvoiceNo").val();
-        airWizardState.Invoice.InvoiceDate = $("#txtInvoiceDate").val() || new Date();
-        airWizardState.Invoice.InvoiceAmount = parseFloat($("#txtInvoiceAmount").val()) || null;
-        airWizardState.Invoice.InvoiceType = $("#ddlInvoiceType").val();
-        airWizardState.Invoice.BillingReference = $("#txtBillingReference").val();
-        airWizardState.Invoice.Remarks = $("#txtInvoiceRemarks").val();
+        if (!airWizardState.Invoices) airWizardState.Invoices = [];
+        if (!airWizardState.SupportingDocuments) airWizardState.SupportingDocuments = [];
     }
 
     function renderStep4Review() {
@@ -194,18 +258,57 @@
 
         // PO details
         $("#revPONumber").text(airWizardState.PONumber || "N/A");
-        $("#revPODate").text(airWizardState.PODate ? new Date(airWizardState.PODate).toLocaleDateString() : "N/A");
+        $("#revPODate").text(typeof formatDisplayDate === "function" ? formatDisplayDate(airWizardState.PODate) : (airWizardState.PODate ? new Date(airWizardState.PODate).toLocaleDateString() : "--"));
         $("#revSupplier").text(airWizardState.SupplierName || "N/A");
         $("#revDepartment").text(airWizardState.DepartmentName || "N/A");
         $("#revDeliveryPlace").text(airWizardState.DeliveryPlace || "N/A");
         $("#revDisposition").text(airWizardState.Disposition || "N/A");
 
-        // Inspection & Invoice
-        $("#revInspectionDate").text(airWizardState.InspectionDate ? new Date(airWizardState.InspectionDate).toLocaleDateString() : new Date().toLocaleDateString());
+        // Inspection & Invoices
+        $("#revInspectionDate").text(typeof formatDisplayDate === "function" ? formatDisplayDate(airWizardState.InspectionDate) : (airWizardState.InspectionDate ? new Date(airWizardState.InspectionDate).toLocaleDateString() : "--"));
         $("#revInspector").text(airWizardState.InspectorName ? (airWizardState.InspectorName + (airWizardState.InspectorDesignation ? " (" + airWizardState.InspectorDesignation + ")" : "")) : "Not specified");
         $("#revLocation").text(airWizardState.InspectionLocation || "N/A");
-        $("#revInvoiceNoDate").text((airWizardState.Invoice.InvoiceNo || "N/A") + " (Date: " + (airWizardState.Invoice.InvoiceDate ? new Date(airWizardState.Invoice.InvoiceDate).toLocaleDateString() : "N/A") + ")");
-        $("#revDrNo").text(airWizardState.Invoice.DrNo || "None specified");
+        $("#revCommittee").text(airWizardState.InspectionCommittee || "None");
+        $("#revRemarks").text(airWizardState.GeneralRemarks || "None");
+
+        // Invoices recap
+        var revInvBody = $("#revInvoicesTableBody");
+        revInvBody.empty();
+        var invoices = airWizardState.Invoices || [];
+        var totalInvAmt = 0;
+
+        if (invoices.length === 0) {
+            revInvBody.html('<tr><td colspan="5" class="p-3 text-center text-muted">No sales invoices recorded.</td></tr>');
+        } else {
+            invoices.forEach(function (inv, idx) {
+                var amt = parseFloat(inv.InvoiceTotalAmount || inv.Amount) || 0;
+                totalInvAmt += amt;
+                var invDate = "--";
+                if (inv.InvoiceDate) {
+                    invDate = typeof formatDisplayDate === "function" ? formatDisplayDate(inv.InvoiceDate) : new Date(inv.InvoiceDate).toLocaleDateString();
+                }
+                var docBadge = "<span class='text-muted font-italic'>No document</span>";
+                if (inv.SupportingDocument && inv.SupportingDocument.FileName) {
+                    docBadge = "<a href='javascript:void(0)' onclick='viewDocument(\"" + (inv.SupportingDocument.FilePath || "") + "\")' class='text-decoration-none d-inline-flex align-items-center gap-1'>" +
+                               "  <span class='k-icon k-i-file-pdf text-danger'></span> " +
+                               "  <span class='fw-semibold'>" + inv.SupportingDocument.FileName + "</span>" +
+                               "  <span class='text-muted font-monospace'>(" + (inv.SupportingDocument.FileSize || "") + ")</span>" +
+                               "</a>";
+                }
+
+                var row = "<tr>" +
+                          "  <td class='text-center text-muted'>" + (idx + 1) + "</td>" +
+                          "  <td class='fw-bold text-primary font-monospace'>" + (inv.SalesInvoiceNo || inv.InvoiceNo || "--") + "</td>" +
+                          "  <td>" + invDate + "</td>" +
+                          "  <td class='text-end font-monospace fw-bold'>" + Number(amt).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                          "  <td>" + docBadge + "</td>" +
+                          "</tr>";
+                revInvBody.append(row);
+            });
+        }
+
+        $("#revInvoiceSummaryCount").text(invoices.length + " Invoice(s)");
+        $("#revInvoiceSummaryTotal").text("PHP " + Number(totalInvAmt).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
         // Items table
         var tbody = $("#revItemsTableBody");
@@ -240,9 +343,11 @@
                 var isInventory = (i.Disposition === "Inventory");
                 var dispBadge = "<span class='badge " + (isInventory ? "bg-primary" : "bg-secondary") + "'>" + (i.Disposition || "N/A") + "</span>";
 
-                var invDetailsCell = "";
+                                var invDetailsCell = "";
                 if (isInventory) {
-                    if (inspectNow > 0) {
+                    if (i.IsSetLot && !i.ParentRequiresInventory) {
+                        invDetailsCell = "<span class='badge bg-light text-muted border'>0 required (Components)</span>";
+                    } else if (inspectNow > 0) {
                         var reqCount = Math.floor(inspectNow);
                         var compCount = (i.InventoryDetails || []).filter(function (d) {
                             return typeof checkInventoryDetailCompleted === "function" ? checkInventoryDetailCompleted(i.ItemExtnName, d) : d.IsCompleted;
@@ -284,6 +389,27 @@
                         var subInspect = sub.InspectNowQty || 0;
                         var subTotal = (sub.PreviousInspectedQty || 0) + subInspect;
                         var subRem = (sub.ExpectedQty || 0) - subTotal;
+
+                        var subInvBadge = "";
+                        if (isInventory && sub.RequiresInventory) {
+                            if (subInspect > 0) {
+                                var sReq = Math.floor(subInspect);
+                                var sComp = (sub.InventoryDetails || []).filter(function (d) {
+                                    return typeof checkInventoryDetailCompleted === "function" ? checkInventoryDetailCompleted(sub.ItemExtnName, d) : d.IsCompleted;
+                                }).length;
+                                if (sComp >= sReq && sReq > 0) {
+                                    subInvBadge = "<span class='badge bg-success'><span class='k-icon k-i-check'></span> " + sComp + " / " + sReq + " Complete</span>";
+                                } else {
+                                    subInvBadge = "<span class='badge bg-danger'><span class='k-icon k-i-close'></span> " + sComp + " / " + sReq + " Incomplete</span>";
+                                    allInventoryValid = false;
+                                }
+                            } else {
+                                subInvBadge = "<span class='text-muted small'>--</span>";
+                            }
+                        } else {
+                            subInvBadge = "<span class='badge bg-light text-muted border'>Not Required</span>";
+                        }
+
                         var subTr = "<tr class='table-sm text-secondary' style='background:#f8fafc; font-size:11px;'>" +
                                     "  <td class='text-end'>&rdquor;</td>" +
                                     "  <td colspan='4' class='ps-3'>&bull; " + (sub.Description || "") + " (" + (sub.SubItemNo || "") + ")</td>" +
@@ -292,6 +418,8 @@
                                     "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(subInspect).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                                     "  <td class='text-end font-monospace'>" + Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
                                     "  <td class='text-end font-monospace'>" + Number(subRem).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
+                                    "  <td>" + dispBadge + "</td>" +
+                                    "  <td class='text-center'>" + subInvBadge + "</td>" +
                                     "  <td>" + (sub.Remarks || "--") + "</td>" +
                                     "</tr>";
                         tbody.append(subTr);
@@ -310,7 +438,13 @@
         docsContainer.empty();
         var allDocs = [];
         if (airWizardState.SupportingDocuments) allDocs = allDocs.concat(airWizardState.SupportingDocuments);
-        if (airWizardState.Invoice && airWizardState.Invoice.InvoiceAttachments) allDocs = allDocs.concat(airWizardState.Invoice.InvoiceAttachments);
+        if (airWizardState.Invoices) {
+            airWizardState.Invoices.forEach(function (inv) {
+                if (inv.SupportingDocument && inv.SupportingDocument.FileName) {
+                    allDocs.push(inv.SupportingDocument);
+                }
+            });
+        }
 
         if (allDocs.length === 0) {
             docsContainer.html("<span class='text-muted font-italic'>No attachments uploaded.</span>");
@@ -325,6 +459,14 @@
         }
 
         // Readiness & Completion state
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
+        if (isReadOnlyMode) {
+            $("#step4ReadinessBadge").removeClass("border-danger bg-danger bg-opacity-10").addClass("is-ready");
+            $("#step4ValidationSummary").html("<span class='text-success fw-bold'>Submitted & Certified</span>");
+            $("#chkInspectionCertification").prop("disabled", true).prop("checked", true);
+            return;
+        }
+
         if (!allInventoryValid) {
             $("#step4ReadinessBadge").removeClass("is-ready").addClass("border-danger bg-danger bg-opacity-10");
             $("#step4ValidationSummary").html("<span class='text-danger fw-bold'>Inventory details incomplete. Return to Step 2.</span>");
@@ -342,3 +484,4 @@
         $("#btnSubmitForAcceptance").prop("disabled", !checked);
     }
 </script>
+

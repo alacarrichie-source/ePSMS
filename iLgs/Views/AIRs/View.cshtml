@@ -1,0 +1,640 @@
+﻿@model iLgs.Ai.Models.AIRSubmissionViewViewModel
+@using Kendo.Mvc.UI
+@using iLgs.Ai.Models
+
+@{
+    ViewBag.Title = "Acceptance & Inspection Report - " + (Model != null ? Model.AirNo : "");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var payload = Model != null ? Model.ReviewPayload : null;
+    var items = (payload != null && payload.Items != null) ? payload.Items : new List<AIRLineItemViewModel>();
+    var invoices = (payload != null && payload.Invoices != null) ? payload.Invoices : new List<AIRInvoiceViewModel>();
+    var docs = (payload != null && payload.SupportingDocuments != null) ? payload.SupportingDocuments : new List<AIRDocumentViewModel>();
+
+    decimal grandOrdered = 0;
+    decimal grandPrev = 0;
+    decimal grandInspectNow = 0;
+    decimal grandRemaining = 0;
+    decimal grandTotal = 0;
+
+    foreach (var itm in items)
+    {
+        grandOrdered += itm.OrderedQty;
+        grandPrev += itm.PreviousInspectedQty;
+        grandInspectNow += itm.InspectNowQty;
+        grandTotal += (itm.PreviousInspectedQty + itm.InspectNowQty);
+        var rem = itm.OrderedQty - (itm.PreviousInspectedQty + itm.InspectNowQty);
+        if (rem < 0) { rem = 0; }
+        grandRemaining += rem;
+    }
+
+    decimal totalInvoiceAmount = 0;
+    foreach (var inv in invoices)
+    {
+        totalInvoiceAmount += inv.InvoiceTotalAmount;
+    }
+}
+
+<div class="epsms-procurement po-wizard">
+    @Html.AntiForgeryToken()
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
+        <a href="@Url.Action("Index", "AIRs")">Acceptance &amp; Inspection Reports</a> &gt;
+        <span>View Inspection (@(Model != null ? Model.AirNo : ""))</span>
+    </div>
+
+    <!-- Header Bar -->
+    <div class="header-bar mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="mb-0">Acceptance &amp; Inspection Report: @(Model != null ? Model.AirNo : "")</h1>
+                @if (Model != null)
+                {
+                    if (Model.OverallStatus == "Posted")
+                    {
+                        <span class="status-badge status-posted"><span class="k-icon k-i-check"></span> Posted</span>
+                    }
+                    else if (Model.OverallStatus == "Submitted for Acceptance")
+                    {
+                        <span class="status-badge status-submitted"><span class="k-icon k-i-clock"></span> Submitted for Acceptance</span>
+                    }
+                    else if (Model.OverallStatus == "Acceptance In Progress")
+                    {
+                        <span class="status-badge status-submitted" style="background:#eff6ff;color:#1d4ed8;"><span class="k-icon k-i-gears"></span> Acceptance In Progress</span>
+                    }
+                    else if (Model.OverallStatus == "Returned for Revision")
+                    {
+                        <span class="status-badge status-returned"><span class="k-icon k-i-warning"></span> Returned for Revision</span>
+                    }
+                    else if (Model.OverallStatus == "Withdrawn")
+                    {
+                        <span class="status-badge" style="background:#fef2f2;color:#991b1b;"><span class="k-icon k-i-undo"></span> Withdrawn</span>
+                    }
+                    else
+                    {
+                        <span class="status-badge">@Model.OverallStatus</span>
+                    }
+                }
+                <span class="badge bg-secondary font-monospace" style="font-size: 11px;">
+                    <span class="k-icon k-i-lock"></span> Immutable Snapshot (Version @(Model != null ? Model.CurrentVersionNo : 1))
+                </span>
+            </div>
+            <p class="subtitle mb-0">
+                Submitted on <strong>@(Model != null ? Model.SubmittedDt.ToString("MMMM dd, yyyy h:mm tt") : "--")</strong>
+                by <strong>@(Model != null && !string.IsNullOrEmpty(Model.SubmittedBy) ? Model.SubmittedBy : "Inspector")</strong>.
+                This is a certified read-only presentation of the exact submitted payload.
+            </p>
+        </div>
+
+        <div class="action-toolbar d-flex align-items-center gap-2">
+            @if (Model != null && Model.AvailableVersions != null && Model.AvailableVersions.Count > 1)
+            {
+                <div class="d-flex align-items-center gap-1 me-2">
+                    <label for="ddlSnapshotVersion" class="small fw-bold text-muted mb-0">Version:</label>
+                    <select id="ddlSnapshotVersion" class="form-control-custom form-control-sm" onchange="onSnapshotVersionChange(this.value)">
+                        @foreach (var v in Model.AvailableVersions)
+                        {
+                            <option value="@v.SnapshotId" @(v.IsCurrent ? "selected='selected'" : "")>
+                                Version @v.VersionNo (@v.SubmittedDt.ToString("MMM dd, yyyy")) @(v.IsCurrent ? "(Viewing)" : "")
+                            </option>
+                        }
+                    </select>
+                </div>
+            }
+
+            @if (payload != null && !string.IsNullOrEmpty(payload.CtrlNo))
+            {
+                <a href="@Url.Action("AIRRpt", "AIRs", new { ctrlNo = payload.CtrlNo })" target="_blank" class="btn-procurement-secondary btn-sm" title="Print Official AIR Report">
+                    <span class="k-icon k-i-print"></span> Print AIR
+                </a>
+            }
+
+            @if (Model != null && Model.CanWithdraw)
+            {
+                <button type="button" class="btn-procurement-secondary btn-sm" onclick="openWithdrawModal('@Model.AIRId')" title="Recall this submission">
+                    <span class="k-icon k-i-undo"></span> Withdraw Submission
+                </button>
+            }
+
+            <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-primary btn-sm">
+                <span class="k-icon k-i-arrow-left"></span> Back to Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Review Container (Pure Read-Only) -->
+    <div class="wizard-card p-4 bg-white rounded border">
+
+        <!-- ============================================================
+             SUMMARY METRICS CARDS
+             ============================================================ -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Total Ordered Qty</span>
+                    <strong class="fs-5">@grandOrdered.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Previous Posted Inspected</span>
+                    <strong class="fs-5 text-secondary">@grandPrev.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary text-center">
+                    <span class="text-primary small fw-bold d-block mb-1">Inspected This Transaction</span>
+                    <strong class="fs-5 text-primary">@grandInspectNow.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Remaining After Inspection</span>
+                    <strong class="fs-5 text-danger">@grandRemaining.ToString("N2")</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             HEADER & PO REVIEW CARDS
+             ============================================================ -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-cart"></span> Purchase Order Reference</h4>
+                    <div class="small">
+                        <div class="mb-1"><strong>PO Number:</strong> <span class="text-primary font-monospace fw-bold">@(payload != null && !string.IsNullOrEmpty(payload.PONumber) ? payload.PONumber : "N/A")</span></div>
+                        <div class="mb-1"><strong>PO Date:</strong> <span>@(payload != null && payload.PODate.HasValue ? payload.PODate.Value.ToString("MMM dd, yyyy") : "--")</span></div>
+                        <div class="mb-1"><strong>Supplier:</strong> <span class="fw-semibold">@(payload != null && !string.IsNullOrEmpty(payload.SupplierName) ? payload.SupplierName : "N/A")</span></div>
+                        <div class="mb-1"><strong>Target Department:</strong> <span>@(payload != null && !string.IsNullOrEmpty(payload.DepartmentName) ? payload.DepartmentName : "N/A")</span></div>
+                        <div class="mb-1"><strong>Place of Delivery:</strong> <span>@(payload != null && !string.IsNullOrEmpty(payload.DeliveryPlace) ? payload.DeliveryPlace : "N/A")</span></div>
+                        <div><strong>Intended Disposition:</strong> <span class="badge bg-secondary">@(payload != null && !string.IsNullOrEmpty(payload.Disposition) ? payload.Disposition : "N/A")</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <h4 class="fs-6 fw-bold text-primary mb-2"><span class="k-icon k-i-user"></span> Physical Inspection Details</h4>
+                    <div class="small">
+                        <div class="mb-1"><strong>Inspection Date:</strong> <span class="fw-bold">@(payload != null && payload.InspectionDate.HasValue ? payload.InspectionDate.Value.ToString("MMM dd, yyyy") : "--")</span></div>
+                        <div class="mb-1"><strong>Inspector / Officer:</strong> <span>@(payload != null && !string.IsNullOrEmpty(payload.InspectorName) ? (payload.InspectorName + (!string.IsNullOrEmpty(payload.InspectorDesignation) ? " (" + payload.InspectorDesignation + ")" : "")) : "Not specified")</span></div>
+                        <div class="mb-1"><strong>Inspection Location:</strong> <span>@(payload != null && !string.IsNullOrEmpty(payload.InspectionLocation) ? payload.InspectionLocation : "N/A")</span></div>
+                        <div class="mb-1"><strong>Inspection Committee:</strong> <span class="text-secondary">@(payload != null && !string.IsNullOrEmpty(payload.InspectionCommittee) ? payload.InspectionCommittee : "None")</span></div>
+                        <div class="mb-1"><strong>General Remarks:</strong> <span class="text-secondary">@(payload != null && !string.IsNullOrEmpty(payload.GeneralRemarks) ? payload.GeneralRemarks : "None")</span></div>
+                        <div><strong>Invoices Recorded:</strong> <span class="badge bg-primary">@invoices.Count Invoice(s)</span> &ndash; Combined: <span class="fw-bold font-monospace text-primary">PHP @totalInvoiceAmount.ToString("N2")</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             INSPECTED ITEMS BREAKDOWN TABLE
+             ============================================================ -->
+        <div class="mb-4">
+            <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-list-unordered"></span> Inspected Delivery Quantities Breakdown</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width:50px;" class="text-center">#</th>
+                            <th style="width:110px;">PR Number</th>
+                            <th style="width:130px;">Department</th>
+                            <th>Description</th>
+                            <th style="width:55px;">Unit</th>
+                            <th style="width:80px;" class="text-end">Ordered</th>
+                            <th style="width:80px;" class="text-end">Prev. Insp.</th>
+                            <th style="width:95px;" class="text-end text-primary fw-bold">Inspect Now</th>
+                            <th style="width:80px;" class="text-end">Total Insp.</th>
+                            <th style="width:80px;" class="text-end">Remaining</th>
+                            <th style="width:110px;">Disposition</th>
+                            <th style="width:140px;" class="text-center">Inventory Details</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (items.Count == 0)
+                        {
+                            <tr><td colspan="13" class="p-3 text-center text-muted">No items in this inspection snapshot.</td></tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                var itm = items[i];
+                                var totalInsp = itm.PreviousInspectedQty + itm.InspectNowQty;
+                                var remAfter = itm.OrderedQty - totalInsp;
+                                if (remAfter < 0) { remAfter = 0; }
+                                var isInspected = itm.InspectNowQty > 0;
+                                var isInventory = itm.Disposition == "Inventory";
+
+                                <tr class="@(isInspected ? "table-light fw-semibold" : "text-muted")">
+                                    <td class="text-center text-muted">@(!string.IsNullOrEmpty(itm.ItemNo) ? itm.ItemNo : (i + 1).ToString())</td>
+                                    <td class="fw-semibold text-primary">@(!string.IsNullOrEmpty(itm.PRNumber) ? itm.PRNumber : "--")</td>
+                                    <td class="text-muted">@(!string.IsNullOrEmpty(itm.Department) ? itm.Department : "--")</td>
+                                    <td>@(!string.IsNullOrEmpty(itm.Description) ? itm.Description : "Item")</td>
+                                    <td>@itm.Unit</td>
+                                    <td class="text-end font-monospace">@itm.OrderedQty.ToString("N2")</td>
+                                    <td class="text-end font-monospace text-muted">@itm.PreviousInspectedQty.ToString("N2")</td>
+                                    <td class="text-end font-monospace text-primary fw-bold">@itm.InspectNowQty.ToString("N2")</td>
+                                    <td class="text-end font-monospace">@totalInsp.ToString("N2")</td>
+                                    <td class="text-end font-monospace @(remAfter > 0 ? "text-danger" : "text-success")">@remAfter.ToString("N2")</td>
+                                    <td>
+                                        <span class="badge @(isInventory ? "bg-primary" : "bg-secondary")">@itm.Disposition</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (isInventory && itm.InspectNowQty > 0 && itm.InventoryDetails != null && itm.InventoryDetails.Count > 0)
+                                        {
+                                            <button type="button" class="btn btn-xs btn-outline-primary" onclick="viewItemInventoryDetails(@i)" title="View recorded serial numbers and physical inventory details">
+                                                <span class="k-icon k-i-eye"></span> @itm.InventoryDetails.Count Unit(s)
+                                            </button>
+                                        }
+                                        else if (isInventory && itm.InspectNowQty > 0)
+                                        {
+                                            <span class="badge bg-light text-muted border">None recorded</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-muted border">Not Required</span>
+                                        }
+                                    </td>
+                                    <td class="small">@(!string.IsNullOrEmpty(itm.Remarks) ? itm.Remarks : "--")</td>
+                                </tr>
+
+                                @* Sub-items for Set/Lot *@
+                                if (itm.IsSetLot && itm.SubItems != null && itm.SubItems.Count > 0)
+                                {
+                                    for (int sIdx = 0; sIdx < itm.SubItems.Count; sIdx++)
+                                    {
+                                        var sub = itm.SubItems[sIdx];
+                                        var subTotal = sub.PreviousInspectedQty + sub.InspectNowQty;
+                                        var subRem = sub.ExpectedQty - subTotal;
+                                        if (subRem < 0) { subRem = 0; }
+
+                                        <tr class="table-sm bg-light text-secondary" style="font-size: 11px;">
+                                            <td class="text-center text-muted">&bull;</td>
+                                            <td colspan="2" class="text-muted"><span class="badge bg-light text-dark border">Component</span></td>
+                                            <td colspan="2" class="ps-3">&mdash; @sub.Description (@sub.Unit)</td>
+                                            <td class="text-end font-monospace text-muted">@sub.ExpectedQty.ToString("N2")</td>
+                                            <td class="text-end font-monospace text-muted">@sub.PreviousInspectedQty.ToString("N2")</td>
+                                            <td class="text-end font-monospace text-primary fw-bold">@sub.InspectNowQty.ToString("N2")</td>
+                                            <td class="text-end font-monospace text-muted">@subTotal.ToString("N2")</td>
+                                            <td class="text-end font-monospace text-muted">@subRem.ToString("N2")</td>
+                                            <td><span class="badge bg-light text-muted border">Sub-item</span></td>
+                                            <td class="text-center">
+                                                @if (isInventory && sub.RequiresInventory && sub.InventoryDetails != null && sub.InventoryDetails.Count > 0)
+                                                {
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary" onclick="viewSubItemInventoryDetails(@i, @sIdx)">
+                                                        <span class="k-icon k-i-eye"></span> @sub.InventoryDetails.Count Unit(s)
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">&mdash;</span>
+                                                }
+                                            </td>
+                                            <td class="text-muted small">@sub.ItemExtnName</td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold small">
+                        <tr>
+                            <td colspan="5" class="text-end">Grand Totals:</td>
+                            <td class="text-end font-monospace">@grandOrdered.ToString("N2")</td>
+                            <td class="text-end font-monospace text-muted">@grandPrev.ToString("N2")</td>
+                            <td class="text-end font-monospace text-primary">@grandInspectNow.ToString("N2")</td>
+                            <td class="text-end font-monospace">@grandTotal.ToString("N2")</td>
+                            <td class="text-end font-monospace @(grandRemaining > 0 ? "text-danger" : "text-success")">@grandRemaining.ToString("N2")</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             INVOICE RECORDS RECAP
+             ============================================================ -->
+        <div class="mb-4">
+            <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-file-txt"></span> Recorded Sales Invoices</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Sales Invoice No.</th>
+                            <th style="width: 140px;">Invoice Date</th>
+                            <th style="width: 170px;" class="text-end">Total Amount (PHP)</th>
+                            <th>Supporting Invoice Document</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (invoices.Count == 0)
+                        {
+                            <tr><td colspan="5" class="p-3 text-center text-muted">No sales invoices recorded in this snapshot.</td></tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < invoices.Count; i++)
+                            {
+                                var inv = invoices[i];
+                                <tr>
+                                    <td class="text-center text-muted">@(i + 1)</td>
+                                    <td class="fw-bold text-primary font-monospace">@(!string.IsNullOrEmpty(inv.SalesInvoiceNo) ? inv.SalesInvoiceNo : "--")</td>
+                                    <td>@(inv.InvoiceDate.HasValue ? inv.InvoiceDate.Value.ToString("MMM dd, yyyy") : "--")</td>
+                                    <td class="text-end font-monospace fw-bold">@inv.InvoiceTotalAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (inv.SupportingDocument != null && !string.IsNullOrEmpty(inv.SupportingDocument.FileName))
+                                        {
+                                            <a href="@Url.Content(inv.SupportingDocument.FilePath ?? "")" target="_blank" class="text-decoration-none d-inline-flex align-items-center gap-1">
+                                                <span class="k-icon k-i-file-pdf text-danger"></span>
+                                                <span class="fw-semibold">@inv.SupportingDocument.FileName</span>
+                                                <span class="text-muted font-monospace">(@inv.SupportingDocument.FileSize)</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted font-italic">No document attached</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             ATTACHMENTS RECAP
+             ============================================================ -->
+        <div class="mb-4">
+            <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-attachment"></span> Additional Supplier Delivery Documents</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>File Name</th>
+                            <th style="width: 160px;">Document Type</th>
+                            <th style="width: 100px;">File Size</th>
+                            <th style="width: 150px;">Uploaded By</th>
+                            <th style="width: 140px;">Upload Date</th>
+                            <th style="width: 90px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (docs.Count == 0)
+                        {
+                            <tr><td colspan="6" class="p-3 text-center text-muted">No additional delivery documents uploaded in this snapshot.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var d in docs)
+                            {
+                                <tr>
+                                    <td class="fw-semibold"><span class="k-icon k-i-file-pdf text-danger"></span> @d.FileName</td>
+                                    <td><span class="badge bg-light text-dark border">@(!string.IsNullOrEmpty(d.DocumentType) ? d.DocumentType : "Document")</span></td>
+                                    <td class="small text-muted font-monospace">@d.FileSize</td>
+                                    <td class="small">@d.UploadedBy</td>
+                                    <td class="small text-muted">@(d.UploadedDt != default(DateTime) ? d.UploadedDt.ToString("MMM dd, yyyy") : "--")</td>
+                                    <td class="text-center">
+                                        <a href="@Url.Content(d.FilePath ?? "")" target="_blank" class="btn btn-xs btn-outline-secondary" title="View / Download">
+                                            <span class="k-icon k-i-eye"></span> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             PHYSICAL VERIFICATION CERTIFICATION NOTICE
+             ============================================================ -->
+        <div class="step4-certification p-3 bg-light rounded border mb-4 d-flex align-items-center gap-3">
+            <span class="k-icon k-i-check-circle text-success fs-3"></span>
+            <div class="small">
+                <strong>Inspector Physical Verification Certified:</strong>
+                Goods and supplies delivered were verified, counted, and inspected as recorded at submission time.
+                Submission recorded by <strong>@(Model != null && !string.IsNullOrEmpty(Model.SubmittedBy) ? Model.SubmittedBy : "Inspector")</strong>
+                on <strong>@(Model != null ? Model.SubmittedDt.ToString("MMM dd, yyyy h:mm tt") : "--")</strong>.
+            </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+            <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-secondary">
+                <span class="k-icon k-i-arrow-left"></span> Back to Inspection Reports
+            </a>
+            <div class="d-flex gap-2">
+                @if (payload != null && !string.IsNullOrEmpty(payload.CtrlNo))
+                {
+                    <a href="@Url.Action("AIRRpt", "AIRs", new { ctrlNo = payload.CtrlNo })" target="_blank" class="btn-procurement-secondary">
+                        <span class="k-icon k-i-print"></span> Print Report
+                    </a>
+                }
+                @if (Model != null && Model.CanWithdraw)
+                {
+                    <button type="button" class="btn-procurement-secondary" onclick="openWithdrawModal('@Model.AIRId')">
+                        <span class="k-icon k-i-undo"></span> Withdraw Submission
+                    </button>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================
+     READ-ONLY INVENTORY DETAILS MODAL (KENDO WINDOW)
+     ============================================================ -->
+@(Html.Kendo().Window()
+    .Name("readonlyInventoryModal")
+    .Title("Physical Inventory Details (Read-Only)")
+    .Width(760)
+    .Modal(true)
+    .Visible(false)
+    .Draggable(true)
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div class="p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fs-6 fw-bold mb-0 text-primary" id="modalInvItemTitle">Item Details</h5>
+                    <span class="small text-muted" id="modalInvItemSubtitle">Snapshot records</span>
+                </div>
+                <span class="badge bg-light text-muted border font-monospace">Read-Only</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 40px;" class="text-center">#</th>
+                            <th>Property / Serial No.</th>
+                            <th>Engine / Chasis / Plate / Model</th>
+                            <th>PIN / Address / Project</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblReadonlyInventoryBody" class="small">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn-procurement-secondary btn-sm" onclick="$('#readonlyInventoryModal').data('kendoWindow').close()">Close</button>
+            </div>
+        </div>
+    </text>)
+)
+
+<!-- ============================================================
+     WITHDRAW SUBMISSION MODAL
+     ============================================================ -->
+@(Html.Kendo().Window()
+    .Name("withdrawActionWindow")
+    .Title("AIR Submission Withdrawal")
+    .Width(500)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div class="p-3">
+            <p class="mb-3 text-muted">Provide a reason for recalling this inspection submission. A new revision draft will be created.</p>
+            <input type="hidden" id="withdrawAirId" value="@(Model != null ? Model.AIRId.ToString() : "")" />
+            <div class="form-group mb-3">
+                <label for="withdrawReason" class="font-weight-bold mb-1">Reason / Explanation <span class="text-danger">*</span></label>
+                <textarea id="withdrawReason" class="form-control-custom w-100" rows="4" placeholder="Enter detailed withdrawal reason..."></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button type="button" class="btn-procurement-secondary" onclick="$('#withdrawActionWindow').data('kendoWindow').close()">Cancel</button>
+                <button type="button" id="btnConfirmWithdraw" class="btn-procurement-primary" onclick="submitWithdrawFromView()">Confirm Withdrawal</button>
+            </div>
+        </div>
+    </text>)
+)
+
+@section scripts {
+    <script type="text/javascript">
+        var snapshotItemsData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items));
+
+        function onSnapshotVersionChange(snapshotId) {
+            if (!snapshotId) return;
+            var airId = '@(Model != null ? Model.AIRId.ToString() : "")';
+            window.location.href = '@Url.Action("Inspection", "AIRs")?id=' + airId + '&snapshotId=' + snapshotId;
+        }
+
+        function viewItemInventoryDetails(itemIdx) {
+            if (!snapshotItemsData || itemIdx < 0 || itemIdx >= snapshotItemsData.length) return;
+            var itm = snapshotItemsData[itemIdx];
+            renderReadonlyInventoryModal(itm.Description || ("Item #" + (itm.ItemNo || (itemIdx + 1))), itm.InventoryDetails || []);
+        }
+
+        function viewSubItemInventoryDetails(itemIdx, subIdx) {
+            if (!snapshotItemsData || itemIdx < 0 || itemIdx >= snapshotItemsData.length) return;
+            var itm = snapshotItemsData[itemIdx];
+            if (!itm.SubItems || subIdx < 0 || subIdx >= itm.SubItems.length) return;
+            var sub = itm.SubItems[subIdx];
+            renderReadonlyInventoryModal((itm.Description || "Item") + " - Sub-item: " + (sub.Description || "Component"), sub.InventoryDetails || []);
+        }
+
+        function renderReadonlyInventoryModal(title, details) {
+            $("#modalInvItemTitle").text(title);
+            $("#modalInvItemSubtitle").text(details.length + " unit record(s) in this submission snapshot");
+            var tbody = $("#tblReadonlyInventoryBody");
+            tbody.empty();
+
+            if (!details || details.length === 0) {
+                tbody.html('<tr><td colspan="4" class="p-3 text-center text-muted">No inventory unit records saved in this snapshot.</td></tr>');
+            } else {
+                details.forEach(function (d, idx) {
+                    var serialPart = d.SerialNo || d.PropertyNo || "--";
+                    var enginePart = [];
+                    if (d.EngineNo) enginePart.push("Engine: " + d.EngineNo);
+                    if (d.ChasisNo) enginePart.push("Chassis: " + d.ChasisNo);
+                    if (d.PlateNo) enginePart.push("Plate: " + d.PlateNo);
+                    if (d.Brand) enginePart.push("Brand: " + d.Brand);
+                    if (d.Model) enginePart.push("Model: " + d.Model);
+                    var engineText = enginePart.length > 0 ? enginePart.join(", ") : "--";
+
+                    var extraPart = [];
+                    if (d.PIN) extraPart.push("PIN: " + d.PIN);
+                    if (d.Address) extraPart.push("Address: " + d.Address);
+                    if (d.ProjectName) extraPart.push("Project: " + d.ProjectName);
+                    var extraText = extraPart.length > 0 ? extraPart.join(", ") : "--";
+
+                    var tr = "<tr>" +
+                             "  <td class='text-center text-muted fw-bold'>" + (idx + 1) + "</td>" +
+                             "  <td class='font-monospace fw-bold text-primary'>" + serialPart + "</td>" +
+                             "  <td>" + engineText + "</td>" +
+                             "  <td>" + extraText + "</td>" +
+                             "</tr>";
+                    tbody.append(tr);
+                });
+            }
+
+            var win = $("#readonlyInventoryModal").data("kendoWindow");
+            if (win) {
+                win.center().open();
+            }
+        }
+
+        function openWithdrawModal(airId) {
+            $("#withdrawAirId").val(airId);
+            $("#withdrawReason").val("");
+            var win = $("#withdrawActionWindow").data("kendoWindow");
+            if (win) win.center().open();
+        }
+
+        function submitWithdrawFromView() {
+            var airId = $("#withdrawAirId").val();
+            var reason = $("#withdrawReason").val();
+
+            if (!reason || !reason.trim()) {
+                alert("Please provide a reason for withdrawal.");
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            $("#btnConfirmWithdraw").prop("disabled", true).text("Processing...");
+
+            $.ajax({
+                url: '@Url.Action("WithdrawSubmission", "AIRs")',
+                type: "POST",
+                data: {
+                    __RequestVerificationToken: token,
+                    AirId: airId,
+                    Reason: reason
+                },
+                success: function (res) {
+                    if (res.success) {
+                        $("#withdrawActionWindow").data("kendoWindow").close();
+                        if (res.draftId) {
+                            if (confirm((res.message || "Submission withdrawn successfully.") + "\n\nWould you like to open the newly created revision draft now?")) {
+                                window.location.href = '@Url.Action("Wizard", "AIRs")?id=' + res.draftId;
+                                return;
+                            }
+                        } else {
+                            alert(res.message || "Submission withdrawn successfully.");
+                        }
+                        window.location.href = '@Url.Action("Index", "AIRs")';
+                    } else {
+                        alert(res.message || "Failed to process withdrawal.");
+                    }
+                },
+                error: function () {
+                    alert("A network error occurred. Please try again.");
+                },
+                complete: function () {
+                    $("#btnConfirmWithdraw").prop("disabled", false).text("Confirm Withdrawal");
+                }
+            });
+        }
+    </script>
+}

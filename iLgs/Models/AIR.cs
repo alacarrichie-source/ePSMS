@@ -19,6 +19,8 @@ namespace iLgs.Models
         {
             this.AIRInvoices = new HashSet<AIRInvoice>();
             this.AIRItems = new HashSet<AIRItem>();
+            this.AIRDocuments = new HashSet<AIRDocument>();
+            this.AIRSubmissionSnapshots = new HashSet<AIRSubmissionSnapshot>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,11 +45,41 @@ namespace iLgs.Models
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
         public string CtrlNo { get; set; }
+        public string InspectionStatus { get; set; }
+        public string AcceptanceStatus { get; set; }
+        public string OverallStatus { get; set; }
+        public string DrNo { get; set; }
+        public Nullable<decimal> InvoiceAmount { get; set; }
+        public string InvoiceType { get; set; }
+        public string BillingReference { get; set; }
+        public string InspectionLocation { get; set; }
+        public string InspectorName { get; set; }
+        public string InspectorDesignation { get; set; }
+        public string InspectionCommittee { get; set; }
+        public string AcceptanceStartedBy { get; set; }
+        public Nullable<System.DateTime> AcceptanceStartedDt { get; set; }
+        public string AcceptedBy { get; set; }
+        public string AcceptedByDesignation { get; set; }
+        public string AcceptanceRemarks { get; set; }
+        public bool WithdrawalRequested { get; set; }
+        public string WithdrawalRequestedBy { get; set; }
+        public Nullable<System.DateTime> WithdrawalRequestedDt { get; set; }
+        public string WithdrawalReason { get; set; }
+        public string RevisionComments { get; set; }
+        public string ReturnedBy { get; set; }
+        public Nullable<System.DateTime> ReturnedDt { get; set; }
+        public string WithdrawnBy { get; set; }
+        public Nullable<System.DateTime> WithdrawnDt { get; set; }
+        public string Disposition { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRInvoice> AIRInvoices { get; set; }
         public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIRDocument> AIRDocuments { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIRSubmissionSnapshot> AIRSubmissionSnapshots { get; set; }
     }
 }

@@ -250,6 +250,14 @@
         <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="3" PointY="12.75" />
         <AssociationConnector Association="AppManModel.FK_AIRItemExtns_AIRItems" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
+        <EntityTypeShape EntityType="AppManModel.AIRDocument" Width="1.5" PointX="3.375" PointY="8.875" />
+        <EntityTypeShape EntityType="AppManModel.AIRItemAllocation" Width="1.5" PointX="5.625" PointY="19" />
+        <EntityTypeShape EntityType="AppManModel.AIRWizardProgress" Width="1.5" PointX="0.75" PointY="0.75" />
+        <AssociationConnector Association="AppManModel.FK_AIRDocuments_AIRs" />
+        <AssociationConnector Association="AppManModel.FK_AIRItemAllocations_AIRItems" />
+        <EntityTypeShape EntityType="AppManModel.AIRSubmissionSnapshot" Width="1.5" PointX="3" PointY="4.625" />
+        <AssociationConnector Association="AppManModel.FK_AIRSubmissionSnapshots_AIRs" />
+        <AssociationConnector Association="AppManModel.FK_AIRSubmissionSnapshots_AIRWizardProgress" />
         </Diagram>
       <Diagram DiagramId="612c7e6c53344422a811e5e97ae783b1" Name="Custodians" ZoomLevel="94" >
         <EntityTypeShape EntityType="AppManModel.CustodianDisposal" Width="1.5" PointX="3" PointY="55" />

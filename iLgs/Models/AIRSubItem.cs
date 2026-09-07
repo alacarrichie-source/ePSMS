@@ -12,31 +12,36 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class AIRItemExtn
+    public partial class AIRSubItem
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public AIRItemExtn()
+        public AIRSubItem()
         {
-            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
+            this.AIRItemExtns = new HashSet<AIRItemExtn>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> AIRItemId { get; set; }
-        public Nullable<System.Guid> AIRSubItemId { get; set; }
-        public string SetLotNo { get; set; }
-        public Nullable<int> SetLotQtyNo { get; set; }
-        public Nullable<int> ContentNo { get; set; }
-        public Nullable<int> CustItemNo { get; set; }
-        public Nullable<bool> IsAutoGen { get; set; }
+        public System.Guid AirItemId { get; set; }
+        public System.Guid OrderSubItemId { get; set; }
+        public Nullable<System.Guid> OrderSubItemRequestId { get; set; }
+        public string SubItemNo { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public decimal ExpectedQty { get; set; }
+        public decimal InspectedQty { get; set; }
+        public decimal AcceptedQty { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public Nullable<int> TContentNo { get; set; }
+        public Nullable<decimal> QtyPerParent { get; set; }
+        public string CategoryCode { get; set; }
+        public string ItemExtnName { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
+        public virtual ICollection<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual AIRItem AIRItem { get; set; }
-        public virtual AIRSubItem AIRSubItem { get; set; }
     }
 }

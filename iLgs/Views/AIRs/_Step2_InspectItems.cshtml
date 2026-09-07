@@ -1,3 +1,4 @@
+﻿@model iLgs.Ai.Models.AIRWizardViewModel
 @using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
@@ -5,88 +6,10 @@
 
     <div class="wizard-card-header">
         <div>
-            <h2>Step 2: Inspect Items &amp; Record Deliveries</h2>
+            <h2>Step 2: Inspect Items</h2>
             <p class="subtitle">
                 Enter physically verified quantities delivered against each Purchase Order item. For items designated as Inventory, enter physical inventory details per inspected unit.
             </p>
-        </div>
-    </div>
-
-    <!-- ============================================================
-         INSPECTION METADATA PANEL
-         Field order: Inspection Date -> Inspection Committee -> Inspection Location (optional) -> Inspector Name -> Designation -> Remarks
-         ============================================================ -->
-    <div class="form-card mb-4 p-3 bg-light rounded border">
-        <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Inspection Header &amp; Committee Details</h4>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label for="txtInspectionDate" class="form-label small fw-bold">Inspection Date <span class="text-danger">*</span></label>
-                <input type="date" id="txtInspectionDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="scheduleWizardAutoSave()" />
-            </div>
-            <div class="col-md-4">
-                <label for="txtInspectionCommittee" class="form-label small fw-bold">Inspection Committee / Team Members <span class="text-muted fw-normal">(Optional)</span></label>
-                <input type="text" id="txtInspectionCommittee" class="form-control-custom w-100" placeholder="Names of assisting committee members..." onchange="scheduleWizardAutoSave()" />
-            </div>
-            <div class="col-md-4">
-                <label for="txtInspectionLocation" class="form-label small fw-bold">Inspection Location <span class="text-muted fw-normal">(Optional)</span></label>
-                <input type="text" id="txtInspectionLocation" class="form-control-custom w-100" placeholder="e.g. GSO Warehouse, City Hall" onchange="scheduleWizardAutoSave()" />
-            </div>
-            <div class="col-md-4">
-                <label for="InspectorName" class="form-label small fw-bold">Inspector Name <span class="text-danger">*</span></label>
-                @(Html.Kendo().MultiColumnComboBox()
-                    .Name("InspectorName")
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;", id = "InspectorName" })
-                    .Placeholder("Select Officer")
-                    .DataTextField("Description")
-                    .DataValueField("Description")
-                    .Filter(FilterType.Contains)
-                    .DataSource(source =>
-                    {
-                        source.Read(read =>
-                        {
-                            read.Action("GetOfficers", "Getters");
-                        })
-                        .ServerFiltering(true);
-                    })
-                    .Columns(c =>
-                    {
-                        c.Add().Field("Description").Title("Name").Width("60%");
-                        c.Add().Field("Desc2").Title("Designation").Width("40%");
-                    })
-                    .Events(e => e.Select("onInspectorSelect").Change("onInspectorChange"))
-                    .Suggest(true)
-                )
-            </div>
-            <div class="col-md-4">
-                <label for="txtInspectorDesignation" class="form-label small fw-bold">Designation</label>
-                <input type="text" id="txtInspectorDesignation" class="form-control-custom w-100" placeholder="e.g. Inspection Officer I" onchange="scheduleWizardAutoSave()" />
-            </div>
-            <div class="col-md-4">
-                <label for="txtGeneralRemarks" class="form-label small fw-bold">General Inspection Remarks</label>
-                <input type="text" id="txtGeneralRemarks" class="form-control-custom w-100" placeholder="Physical condition, batch notes, delivery notes..." onchange="scheduleWizardAutoSave()" />
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================================
-         SUPPORTING DOCUMENTS / PHOTOS UPLOADER
-         ============================================================ -->
-    <div class="mb-4 p-3 bg-white rounded border">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-                <h4 class="fs-6 fw-bold mb-0 text-dark"><span class="k-icon k-i-attachment"></span> Supporting Inspection Documents &amp; Delivery Photos</h4>
-                <p class="small text-muted mb-0">Attach physical delivery photos, technical verification sheets, or delivery receipts (PDF, JPG, PNG).</p>
-            </div>
-            <div>
-                <label class="btn-procurement-secondary btn-sm mb-0" style="cursor:pointer;">
-                    <span class="k-icon k-i-upload"></span> Attach Files
-                    <input type="file" id="fileInspectionDoc" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="handleInspectionFileUpload(this)" />
-                </label>
-            </div>
-        </div>
-
-        <div id="inspectionDocsList" class="d-flex flex-wrap gap-2 mt-2">
-            <span class="small text-muted font-italic" id="noDocsPlaceholder">No supporting documents attached yet.</span>
         </div>
     </div>
 
@@ -146,11 +69,14 @@
         </button>
 
         <div class="wizard-action-group">
-            <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
-                <span class="k-icon k-i-save"></span> Save Draft
-            </button>
+            @if (!Model.IsSubmittedView)
+            {
+                <button type="button" class="btn-procurement-secondary" onclick="saveDraftExplicit()">
+                    <span class="k-icon k-i-save"></span> Save Draft
+                </button>
+            }
             <button type="button" class="btn-procurement-primary" onclick="proceedToStep3()">
-                Proceed to Invoice Entry <span class="k-icon k-i-arrow-right"></span>
+                Proceed to Inspection Details <span class="k-icon k-i-arrow-right"></span>
             </button>
         </div>
     </div>
@@ -160,36 +86,7 @@
 <script type="text/javascript">
     var activeModalItemIdx = -1;
 
-    function onInspectorSelect(e) {
-        var dataItem = e.dataItem;
-        if (dataItem) {
-            var name = dataItem.Description || "";
-            var designation = dataItem.Desc2 || "";
-            $("#txtInspectorDesignation").val(designation);
-            if (airWizardState) {
-                airWizardState.InspectorName = name;
-                airWizardState.InspectorDesignation = designation;
-            }
-            if (typeof scheduleWizardAutoSave === "function") {
-                scheduleWizardAutoSave();
-            }
-        }
-    }
 
-    function onInspectorChange(e) {
-        var cb = this;
-        var val = cb.value() || "";
-        var dataItem = cb.dataItem();
-        var designation = (dataItem && dataItem.Desc2) ? dataItem.Desc2 : $("#txtInspectorDesignation").val();
-        $("#txtInspectorDesignation").val(designation);
-        if (airWizardState) {
-            airWizardState.InspectorName = val;
-            airWizardState.InspectorDesignation = designation;
-        }
-        if (typeof scheduleWizardAutoSave === "function") {
-            scheduleWizardAutoSave();
-        }
-    }
 
     function checkInventoryDetailCompleted(extnName, d) {
         if (!d) return false;
@@ -224,25 +121,86 @@
             itm.RequiredInventoryCount = req;
             if (!itm.InventoryDetails) itm.InventoryDetails = [];
 
-            if (itm.InventoryDetails.length > req) {
-                itm.InventoryDetails = itm.InventoryDetails.slice(0, req);
-            } else {
-                while (itm.InventoryDetails.length < req) {
-                    var uIdx = itm.InventoryDetails.length + 1;
-                    itm.InventoryDetails.push({
-                        UnitIndex: uIdx,
-                        UnitNumber: uIdx,
-                        Condition: "Brand New",
-                        IsCompleted: false
+            if (itm.Allocations && itm.Allocations.length > 0) {
+                var reconciledDetails = [];
+                var globalUnitNo = 1;
+
+                itm.Allocations.forEach(function (alloc) {
+                    var allocQty = Math.floor(alloc.QtyInspected || 0);
+                    var allocOirId = (alloc.OrderItemRequestId || "").toLowerCase();
+
+                    var existingForAlloc = itm.InventoryDetails.filter(function (d) {
+                        return d.OrderItemRequestId && d.OrderItemRequestId.toLowerCase() === allocOirId;
                     });
+
+                    if (existingForAlloc.length === 0 && itm.Allocations.length === 1) {
+                        existingForAlloc = itm.InventoryDetails.slice(0);
+                    }
+
+                    if (existingForAlloc.length > allocQty) {
+                        existingForAlloc = existingForAlloc.slice(0, allocQty);
+                    } else {
+                        while (existingForAlloc.length < allocQty) {
+                            existingForAlloc.push({
+                                OrderItemRequestId: alloc.OrderItemRequestId,
+                                RequestId: alloc.RequestId || null,
+                                RequestItemId: alloc.RequestItemId || null,
+                                PRNumber: alloc.PRNumber || "",
+                                DepartmentId: alloc.DepartmentId || null,
+                                DepartmentName: alloc.Department || "",
+                                IsCompleted: false
+                            });
+                        }
+                    }
+
+                    existingForAlloc.forEach(function (d) {
+                        d.OrderItemRequestId = alloc.OrderItemRequestId;
+                        d.RequestId = alloc.RequestId || d.RequestId || null;
+                        d.RequestItemId = alloc.RequestItemId || d.RequestItemId || null;
+                        d.PRNumber = alloc.PRNumber || d.PRNumber || "";
+                        d.DepartmentId = alloc.DepartmentId || d.DepartmentId || null;
+                        d.DepartmentName = alloc.Department || d.DepartmentName || "";
+                        d.ContentNo = globalUnitNo;
+                        d.TContentNo = globalUnitNo;
+                        d.UnitIndex = globalUnitNo;
+                        d.UnitNumber = globalUnitNo;
+                        d.IsCompleted = checkInventoryDetailCompleted(itm.ItemExtnName, d);
+                        globalUnitNo++;
+                        reconciledDetails.push(d);
+                    });
+                });
+
+                itm.InventoryDetails = reconciledDetails;
+            } else {
+                if (itm.InventoryDetails.length > req) {
+                    itm.InventoryDetails = itm.InventoryDetails.slice(0, req);
+                } else {
+                    while (itm.InventoryDetails.length < req) {
+                        var uIdx = itm.InventoryDetails.length + 1;
+                        itm.InventoryDetails.push({
+                            UnitIndex: uIdx,
+                            UnitNumber: uIdx,
+                            ContentNo: uIdx,
+                            TContentNo: uIdx,
+                            PRNumber: itm.PRNumber || "",
+                            DepartmentName: itm.Department || "",
+                            IsCompleted: false
+                        });
+                    }
                 }
+                itm.InventoryDetails.forEach(function (d, i) {
+                    d.UnitIndex = i + 1;
+                    d.UnitNumber = i + 1;
+                    d.ContentNo = i + 1;
+                    d.TContentNo = i + 1;
+                    d.PRNumber = d.PRNumber || itm.PRNumber || "";
+                    d.DepartmentName = d.DepartmentName || itm.Department || "";
+                    d.IsCompleted = checkInventoryDetailCompleted(itm.ItemExtnName, d);
+                });
             }
 
             var compCount = 0;
-            itm.InventoryDetails.forEach(function (d, i) {
-                d.UnitIndex = i + 1;
-                d.UnitNumber = i + 1;
-                d.IsCompleted = checkInventoryDetailCompleted(itm.ItemExtnName, d);
+            itm.InventoryDetails.forEach(function (d) {
                 if (d.IsCompleted) compCount++;
             });
             itm.CompletedInventoryCount = compCount;
@@ -251,7 +209,6 @@
             itm.CompletedInventoryCount = 0;
         }
     }
-
     function renderStep2Items(data) {
         if (!data || !data.Items || data.Items.length === 0) {
             $("#inspectItemsTableBody").html("<tr><td colspan='16' class='p-4 text-center text-muted'>No items found for this Purchase Order.</td></tr>");
@@ -259,23 +216,9 @@
             return;
         }
 
-        // Populate Inspector MultiColumnComboBox
-        var cb = $("#InspectorName").data("kendoMultiColumnComboBox");
-        if (cb) {
-            cb.value(data.InspectorName || "");
-            cb.text(data.InspectorName || "");
-        } else {
-            $("#InspectorName").val(data.InspectorName || "");
-        }
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (data && (data.IsSubmittedView || data.IsReadOnly));
 
-        if (data.InspectorDesignation !== undefined) $("#txtInspectorDesignation").val(data.InspectorDesignation || "");
-        if (data.InspectionLocation !== undefined && data.InspectionLocation !== null) {
-            $("#txtInspectionLocation").val(data.InspectionLocation);
-        } else if (!$("#txtInspectionLocation").val()) {
-            $("#txtInspectionLocation").val(data.DeliveryPlace || "");
-        }
-        if (data.InspectionCommittee !== undefined) $("#txtInspectionCommittee").val(data.InspectionCommittee || "");
-        if (data.GeneralRemarks !== undefined) $("#txtGeneralRemarks").val(data.GeneralRemarks || "");
+
 
         var html = "";
         data.Items.forEach(function (item, idx) {
@@ -285,13 +228,33 @@
             }
             reconcileItemInventoryDetails(item);
 
+            var hasMultipleAllocations = item.Allocations && item.Allocations.length > 1;
+            var hasSingleAllocation = item.Allocations && item.Allocations.length === 1;
             var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
-            var expandBtn = isSet ? "<button type='button' class='btn btn-xs btn-link p-0 text-decoration-none' onclick='toggleSubItemsRow(" + idx + ")'><span id='expandIcon_" + idx + "' class='k-icon k-i-arrow-chevron-right'></span></button>" : "";
+            var canExpand = hasMultipleAllocations || isSet;
+
+            var expandBtn = "";
+            if (canExpand) {
+                var initialIcon = hasMultipleAllocations ? "k-i-arrow-chevron-down" : "k-i-arrow-chevron-right";
+                expandBtn = "<button type='button' class='btn btn-xs btn-link p-0 text-decoration-none' onclick='toggleItemBreakdown(" + idx + ")' title='Toggle breakdown'><span id='expandIcon_" + idx + "' class='k-icon " + initialIcon + "'></span></button>";
+            }
 
             var prCellContent = "";
             var deptCellContent = "";
 
-            if (item.Sources && item.Sources.length > 1) {
+            if (hasMultipleAllocations) {
+                prCellContent = "<span class='badge bg-primary text-white mb-1'>" + item.Allocations.length + " PR Allocations</span>";
+                var prNums = item.Allocations.map(function (a) { return a.PRNumber; }).filter(function (p) { return !!p; });
+                if (prNums.length > 0) {
+                    prCellContent += "<div class='small text-muted text-truncate' style='max-width:130px;' title='" + prNums.join(", ") + "'>" + prNums.join(", ") + "</div>";
+                }
+                var depts = item.Allocations.map(function (a) { return a.Department; }).filter(function (d) { return !!d; });
+                deptCellContent = "<span class='small text-muted text-truncate d-block' style='max-width:140px;' title='" + depts.join(", ") + "'>" + (depts.length > 0 ? depts.join(", ") : "Multiple Depts") + "</span>";
+            } else if (hasSingleAllocation) {
+                var a0 = item.Allocations[0];
+                prCellContent = "<span class='small fw-bold text-primary'>" + (a0.PRNumber || item.PRNumber || "--") + "</span>";
+                deptCellContent = "<span class='small text-muted text-truncate d-block' style='max-width:140px;' title='" + (a0.Department || item.Department || "--") + "'>" + (a0.Department || item.Department || "--") + "</span>";
+            } else if (item.Sources && item.Sources.length > 1) {
                 prCellContent = item.Sources.map(function (s) {
                     var qtyFormatted = Number(s.Qty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     return "<div class='small fw-bold text-primary'>" + (s.PRNumber || "--") + " <span class='text-muted fw-normal'>(" + qtyFormatted + ")</span></div>";
@@ -331,18 +294,29 @@
 
             // Inspect Now Input
             html += "<td class='text-end'>";
-            html += "  <input type='number' step='any' min='0' max='" + item.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold text-primary inspect-now-input' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' oninput='onItemInspectNowChange(" + idx + ", this.value)' />";
+            if (isReadOnlyMode) {
+                html += "  <span class='fw-bold font-monospace text-primary fs-6'>" + Number(item.InspectNowQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</span>";
+            } else if (hasMultipleAllocations) {
+                html += "  <input type='number' step='any' readonly class='form-control-custom text-end fw-bold text-primary inspect-now-input bg-light' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' title='Auto-calculated from PR allocations below' />";
+                html += "  <div class='small text-muted' style='font-size:10px;'>Sum of PRs</div>";
+            } else {
+                html += "  <input type='number' step='any' min='0' max='" + item.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold text-primary inspect-now-input' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' oninput='onItemInspectNowChange(" + idx + ", this.value)' />";
+            }
             html += "</td>";
 
             html += "<td class='text-end font-monospace fw-bold' id='lblTotalInspected_" + idx + "'>" + Number(item.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
 
             // Disposition Selector
             html += "<td>";
-            html += "  <select class='form-control-custom w-100 form-control-sm' id='ddlItemDisposition_" + idx + "' onchange='onItemDispositionChange(" + idx + ", this.value)'>";
-            html += "    <option value='Inventory'" + (item.Disposition === 'Inventory' ? " selected" : "") + ">Inventory</option>";
-            html += "    <option value='For Distribution'" + (item.Disposition === 'For Distribution' ? " selected" : "") + ">For Distribution</option>";
-            html += "    <option value='N/A'" + (item.Disposition === 'N/A' ? " selected" : "") + ">N/A</option>";
-            html += "  </select>";
+            if (isReadOnlyMode) {
+                html += "  <span class='badge bg-light text-dark border px-2 py-1'>" + (item.Disposition || "N/A") + "</span>";
+            } else {
+                html += "  <select class='form-control-custom w-100 form-control-sm' id='ddlItemDisposition_" + idx + "' onchange='onItemDispositionChange(" + idx + ", this.value)'>";
+                html += "    <option value='Inventory'" + (item.Disposition === 'Inventory' ? " selected" : "") + ">Inventory</option>";
+                html += "    <option value='For Distribution'" + (item.Disposition === 'For Distribution' ? " selected" : "") + ">For Distribution</option>";
+                html += "    <option value='N/A'" + (item.Disposition === 'N/A' ? " selected" : "") + ">N/A</option>";
+                html += "  </select>";
+            }
             html += "</td>";
 
             // Inventory Details Cell
@@ -351,50 +325,113 @@
             html += "</td>";
 
             // Remarks
-            html += "<td><input type='text' class='form-control-custom w-100 item-remarks-input' id='txtRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Item notes...' onchange='onItemRemarksChange(" + idx + ", this.value)' /></td>";
+            if (isReadOnlyMode) {
+                html += "<td><span class='small'>" + (item.Remarks ? item.Remarks : "<span class='text-muted'>--</span>") + "</span></td>";
+            } else {
+                html += "<td><input type='text' class='form-control-custom w-100 item-remarks-input' id='txtRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Item notes...' onchange='onItemRemarksChange(" + idx + ", this.value)' /></td>";
+            }
 
             // History
             html += "<td class='text-center'><button type='button' class='btn btn-xs btn-outline-secondary' onclick='openItemHistory(\"" + item.OrderItemId + "\")' title='View Inspection History'><span class='k-icon k-i-history'></span></button></td>";
             html += "</tr>";
 
-            // If Set/Lot, render collapsible child sub-items table
-            if (isSet) {
-                html += "<tr id='subItemsRow_" + idx + "' style='display:none;' class='table-light'>";
+            // If multiple allocations OR Set/Lot, render expandable breakdown container row
+            if (canExpand) {
+                html += "<tr id='breakdownRow_" + idx + "' style='" + (hasMultipleAllocations ? "" : "display:none;") + "' class='table-light'>";
                 html += "  <td></td>";
                 html += "  <td colspan='15' class='p-3'>";
-                html += "    <div class='p-2 bg-white rounded border'>";
-                html += "      <div class='fw-bold small text-secondary mb-2'><span class='k-icon k-i-layers'></span> Set/Lot Components for: " + (item.Description || "Item") + "</div>";
-                html += "      <table class='table table-sm table-bordered mb-0'>";
-                html += "        <thead class='table-light small'>";
-                html += "          <tr>";
-                html += "            <th style='width:90px;'>Sub-No.</th>";
-                html += "            <th>Component Description</th>";
-                html += "            <th style='width:60px;'>Unit</th>";
-                html += "            <th style='width:90px;' class='text-end'>Expected</th>";
-                html += "            <th style='width:90px;' class='text-end'>Prev. Insp.</th>";
-                html += "            <th style='width:90px;' class='text-end'>Remaining</th>";
-                html += "            <th style='width:110px;' class='text-end text-primary'>Inspect Now</th>";
-                html += "            <th style='width:90px;' class='text-end'>Total Insp.</th>";
-                html += "            <th>Remarks</th>";
-                html += "          </tr>";
-                html += "        </thead>";
-                html += "        <tbody>";
-                item.SubItems.forEach(function (sub, sIdx) {
+
+                // 1. Render Per-PR Allocations Breakdown if multiple allocations exist
+                if (hasMultipleAllocations) {
+                    html += "    <div class='p-2 bg-white rounded border mb-3'>";
+                    html += "      <div class='d-flex justify-content-between align-items-center mb-2'>";
+                    html += "        <div class='fw-bold small text-primary'><span class='k-icon k-i-list-unordered'></span> Purchase Request Allocations Breakdown for Item #" + (item.ItemNo || (idx + 1)) + ":</div>";
+                    html += "        <span class='badge bg-light text-secondary border small'>Enter inspection quantities per PR allocation</span>";
+                    html += "      </div>";
+                    html += "      <table class='table table-sm table-bordered mb-0 align-middle'>";
+                    html += "        <thead class='table-light small'>";
                     html += "          <tr>";
-                    html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
-                    html += "            <td>" + (sub.Description || "") + "</td>";
-                    html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
-                    html += "            <td class='text-end font-monospace small'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                    html += "            <td class='text-end font-monospace small text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                    html += "            <td class='text-end font-monospace small fw-bold text-danger' id='lblSubRemaining_" + idx + "_" + sIdx + "'>" + Number(sub.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                    html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + sub.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold form-control-sm' id='txtSubInspectNow_" + idx + "_" + sIdx + "' value='" + (sub.InspectNowQty || 0) + "' oninput='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
-                    html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                    html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Sub-item notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                    html += "            <th style='width:130px;'>PR Number</th>";
+                    html += "            <th>Department</th>";
+                    html += "            <th style='width:110px;' class='text-end'>Allocated Qty</th>";
+                    html += "            <th style='width:110px;' class='text-end'>Prev. Inspected</th>";
+                    html += "            <th style='width:110px;' class='text-end'>Remaining</th>";
+                    html += "            <th style='width:130px;' class='text-end text-primary'>Qty This Insp.</th>";
+                    html += "            <th style='width:110px;' class='text-end'>Total Insp.</th>";
+                    html += "            <th style='width:180px;'>Remarks</th>";
                     html += "          </tr>";
-                });
-                html += "        </tbody>";
-                html += "      </table>";
-                html += "    </div>";
+                    html += "        </thead>";
+                    html += "        <tbody>";
+                    item.Allocations.forEach(function (alloc, aIdx) {
+                        var allocTotal = (alloc.PreviousInspected || 0) + (alloc.QtyInspected || 0);
+                        html += "          <tr>";
+                        html += "            <td class='fw-bold small text-primary'>" + (alloc.PRNumber || "--") + "</td>";
+                        html += "            <td class='small'>" + (alloc.Department || "--") + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + Number(alloc.QtyAllocated || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-muted'>" + Number(alloc.PreviousInspected || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        html += "            <td class='text-end font-monospace small fw-bold text-danger' id='lblAllocRemaining_" + idx + "_" + aIdx + "'>" + Number(alloc.RemainingBefore || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        if (isReadOnlyMode) {
+                            html += "            <td class='text-end font-monospace small fw-bold text-primary'>" + Number(alloc.QtyInspected || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-end font-monospace small fw-bold' id='lblAllocTotal_" + idx + "_" + aIdx + "'>" + Number(allocTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td><span class='small'>" + (alloc.Remarks || "--") + "</span></td>";
+                        } else {
+                            html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + alloc.RemainingBefore + "' class='form-control-custom text-end fw-bold form-control-sm text-primary' id='txtAllocInspectNow_" + idx + "_" + aIdx + "' value='" + (alloc.QtyInspected || 0) + "' oninput='onAllocationInspectNowChange(" + idx + ", " + aIdx + ", this.value)' /></td>";
+                            html += "            <td class='text-end font-monospace small fw-bold' id='lblAllocTotal_" + idx + "_" + aIdx + "'>" + Number(allocTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtAllocRemarks_" + idx + "_" + aIdx + "' value='" + (alloc.Remarks || "") + "' placeholder='PR notes...' onchange='onAllocationRemarksChange(" + idx + ", " + aIdx + ", this.value)' /></td>";
+                        }
+                        html += "          </tr>";
+                    });
+                    html += "        </tbody>";
+                    html += "      </table>";
+                    html += "    </div>";
+                }
+
+                // 2. Render Set/Lot components table if Set/Lot
+                if (isSet) {
+                    html += "    <div class='p-2 bg-white rounded border'>";
+                    html += "      <div class='fw-bold small text-secondary mb-2'><span class='k-icon k-i-layers'></span> Set/Lot Components for: " + (item.Description || "Item") + "</div>";
+                    html += "      <table class='table table-sm table-bordered mb-0'>";
+                    html += "        <thead class='table-light small'>";
+                    html += "          <tr>";
+                    html += "            <th style='width:90px;'>Sub-No.</th>";
+                    html += "            <th>Component Description</th>";
+                    html += "            <th style='width:60px;'>Unit</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Expected</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Prev. Insp.</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Remaining</th>";
+                    html += "            <th style='width:110px;' class='text-end text-primary'>Inspect Now</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Total Insp.</th>";
+                    html += "            <th style='width:160px;' class='text-center'>Inventory Details</th>";
+                    html += "            <th>Remarks</th>";
+                    html += "          </tr>";
+                    html += "        </thead>";
+                    html += "        <tbody>";
+                    item.SubItems.forEach(function (sub, sIdx) {
+                        html += "          <tr>";
+                        html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
+                        html += "            <td>" + (sub.Description || "") + "</td>";
+                        html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        html += "            <td class='text-end font-monospace small fw-bold text-danger' id='lblSubRemaining_" + idx + "_" + sIdx + "'>" + Number(sub.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                        if (isReadOnlyMode) {
+                            html += "            <td class='text-end font-monospace small fw-bold text-primary'>" + Number(sub.InspectNowQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
+                            html += "            <td><span class='small'>" + (sub.Remarks || "--") + "</span></td>";
+                        } else {
+                            html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + sub.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold form-control-sm' id='txtSubInspectNow_" + idx + "_" + sIdx + "' value='" + (sub.InspectNowQty || 0) + "' oninput='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                            html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
+                            html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Sub-item notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                        }
+                        html += "          </tr>";
+                    });
+                    html += "        </tbody>";
+                    html += "      </table>";
+                    html += "    </div>";
+                }
+
                 html += "  </td>";
                 html += "</tr>";
             }
@@ -405,9 +442,27 @@
         recalculateGrandTotals();
     }
 
-    function renderInventoryDetailsButtonHtml(item, idx) {
+        function renderInventoryDetailsButtonHtml(item, idx) {
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
         if (item.Disposition !== "Inventory") {
             return "<span class='badge bg-light text-muted border'>Not Required</span>";
+        }
+        if (isReadOnlyMode) {
+            var comp = (item.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(item.ItemExtnName, d); }).length;
+            var req = Math.floor(item.InspectNowQty || 0);
+            if (comp > 0) {
+                return "<button type='button' class='btn btn-xs btn-outline-primary w-100 text-nowrap' onclick='openInventoryModal(" + idx + ")'><span class='k-icon k-i-eye'></span> View Details (" + comp + " / " + req + ")</button>";
+            } else {
+                return "<span class='badge bg-light text-muted border'>0 units</span>";
+            }
+        }
+        if (item.IsSetLot && !item.ParentRequiresInventory) {
+            var comp = (item.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(item.ItemExtnName, d); }).length;
+            if (comp > 0) {
+                return "<button type='button' class='btn btn-xs btn-outline-success w-100 text-nowrap' onclick='openInventoryModal(" + idx + ")'><span class='k-icon k-i-check'></span> Parent Details (" + comp + ")</button>";
+            } else {
+                return "<div class='d-flex align-items-center justify-content-center gap-1'><span class='badge bg-light text-muted border' title='Asset tracking is handled at component/sub-item level'>0 required</span> <button type='button' class='btn btn-link btn-xs text-muted p-0' onclick='openInventoryModal(" + idx + ")'>[Edit]</button></div>";
+            }
         }
         var inspectQty = item.InspectNowQty || 0;
         if (inspectQty <= 0) {
@@ -425,6 +480,36 @@
         }
     }
 
+    function renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) {
+        var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
+        if (item.Disposition !== "Inventory" || !sub.RequiresInventory) {
+            return "<span class='badge bg-light text-muted border'>Not Required</span>";
+        }
+        if (isReadOnlyMode) {
+            var comp = (sub.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(sub.ItemExtnName, d); }).length;
+            var req = Math.floor(sub.InspectNowQty || 0);
+            if (comp > 0) {
+                return "<button type='button' class='btn btn-xs btn-outline-primary w-100 text-nowrap' onclick='openInventoryModal(" + idx + ", " + sIdx + ")'><span class='k-icon k-i-eye'></span> View Details (" + comp + " / " + req + ")</button>";
+            } else {
+                return "<span class='badge bg-light text-muted border'>0 units</span>";
+            }
+        }
+        var inspectQty = sub.InspectNowQty || 0;
+        if (inspectQty <= 0) {
+            return "<span class='text-muted small'>Inspect Qty is 0</span>";
+        }
+        var req = Math.floor(inspectQty);
+        var comp = (sub.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(sub.ItemExtnName, d); }).length;
+        sub.RequiredInventoryCount = req;
+        sub.CompletedInventoryCount = comp;
+
+        if (comp >= req && req > 0) {
+            return "<button type='button' class='btn btn-xs btn-success w-100 text-nowrap' onclick='openInventoryModal(" + idx + ", " + sIdx + ")'><span class='k-icon k-i-check'></span> Details " + comp + " / " + req + "</button>";
+        } else {
+            return "<button type='button' class='btn btn-xs btn-warning text-dark w-100 text-nowrap' onclick='openInventoryModal(" + idx + ", " + sIdx + ")'><span class='k-icon k-i-edit'></span> Enter Details (" + comp + " / " + req + ")</button>";
+        }
+    }
+
     function updateInventoryDetailsButton(idx) {
         var item = airWizardState.Items[idx];
         if (!item) return;
@@ -434,7 +519,123 @@
         }
     }
 
+    function updateSubItemInventoryDetailsButton(idx, sIdx) {
+        var item = airWizardState.Items[idx];
+        if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
+        var container = $("#subInventoryDetailsCell_" + idx + "_" + sIdx);
+        if (container.length) {
+            container.html(renderSubItemInventoryDetailsButtonHtml(item, idx, item.SubItems[sIdx], sIdx));
+        }
+    }
+
+    function reconcileSubItemInventoryDetails(item, sub) {
+        if (!sub) return;
+        if (!sub.InventoryDetails) sub.InventoryDetails = [];
+
+        var parentDisp = (item && item.Disposition) ? item.Disposition : (airWizardState ? airWizardState.Disposition : "Inventory");
+        var subReqInv = sub.RequiresInventory && (parentDisp === "Inventory");
+
+        if (!subReqInv || (sub.InspectNowQty || 0) <= 0) {
+            sub.RequiredInventoryCount = 0;
+            sub.CompletedInventoryCount = 0;
+            return;
+        }
+
+        var req = Math.floor(sub.InspectNowQty);
+        sub.RequiredInventoryCount = req;
+
+        var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : 1;
+
+        if (item && item.Allocations && item.Allocations.length > 0) {
+            var reconciledDetails = [];
+            var globalUnitNo = 1;
+
+            item.Allocations.forEach(function (alloc) {
+                var allocQty = Math.floor((alloc.QtyInspected || 0) * subRatio);
+                var allocOirId = (alloc.OrderItemRequestId || "").toLowerCase();
+
+                var existingForAlloc = sub.InventoryDetails.filter(function (d) {
+                    return d.OrderItemRequestId && d.OrderItemRequestId.toLowerCase() === allocOirId;
+                });
+
+                if (existingForAlloc.length === 0 && item.Allocations.length === 1) {
+                    existingForAlloc = sub.InventoryDetails.slice(0);
+                }
+
+                if (existingForAlloc.length > allocQty) {
+                    existingForAlloc = existingForAlloc.slice(0, allocQty);
+                } else {
+                    while (existingForAlloc.length < allocQty) {
+                        existingForAlloc.push({
+                            OrderItemRequestId: alloc.OrderItemRequestId,
+                            RequestId: alloc.RequestId || null,
+                            RequestItemId: alloc.RequestItemId || null,
+                            PRNumber: alloc.PRNumber || "",
+                            DepartmentId: alloc.DepartmentId || null,
+                            DepartmentName: alloc.Department || "",
+                            AirSubItemId: sub.AirSubItemId || null,
+                            IsCompleted: false
+                        });
+                    }
+                }
+
+                existingForAlloc.forEach(function (d) {
+                    d.OrderItemRequestId = alloc.OrderItemRequestId;
+                    d.RequestId = alloc.RequestId || d.RequestId || null;
+                    d.RequestItemId = alloc.RequestItemId || d.RequestItemId || null;
+                    d.PRNumber = alloc.PRNumber || d.PRNumber || "";
+                    d.DepartmentId = alloc.DepartmentId || d.DepartmentId || null;
+                    d.DepartmentName = alloc.Department || d.DepartmentName || "";
+                    d.AirSubItemId = sub.AirSubItemId || d.AirSubItemId || null;
+                    d.ContentNo = globalUnitNo;
+                    d.TContentNo = globalUnitNo;
+                    d.UnitIndex = globalUnitNo;
+                    d.UnitNumber = globalUnitNo;
+                    d.IsCompleted = checkInventoryDetailCompleted(sub.ItemExtnName, d);
+                    globalUnitNo++;
+                    reconciledDetails.push(d);
+                });
+            });
+
+            sub.InventoryDetails = reconciledDetails;
+        } else {
+            if (sub.InventoryDetails.length > req) {
+                sub.InventoryDetails = sub.InventoryDetails.slice(0, req);
+            } else {
+                while (sub.InventoryDetails.length < req) {
+                    var uIdx = sub.InventoryDetails.length + 1;
+                    sub.InventoryDetails.push({
+                        UnitIndex: uIdx,
+                        UnitNumber: uIdx,
+                        ContentNo: uIdx,
+                        TContentNo: uIdx,
+                        PRNumber: (item ? item.PRNumber : "") || "",
+                        DepartmentName: (item ? item.Department : "") || "",
+                        AirSubItemId: sub.AirSubItemId || null,
+                        IsCompleted: false
+                    });
+                }
+            }
+            sub.InventoryDetails.forEach(function (d, i) {
+                d.UnitIndex = i + 1;
+                d.UnitNumber = i + 1;
+                d.ContentNo = i + 1;
+                d.TContentNo = i + 1;
+                d.PRNumber = d.PRNumber || (item ? item.PRNumber : "") || "";
+                d.DepartmentName = d.DepartmentName || (item ? item.Department : "") || "";
+                d.IsCompleted = checkInventoryDetailCompleted(sub.ItemExtnName, d);
+            });
+        }
+
+        var compCount = 0;
+        sub.InventoryDetails.forEach(function (d) {
+            if (d.IsCompleted) compCount++;
+        });
+        sub.CompletedInventoryCount = compCount;
+    }
     function onItemDispositionChange(idx, newDisp) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
         var item = airWizardState.Items[idx];
         if (!item) return;
 
@@ -443,9 +644,16 @@
             var hasData = (item.InventoryDetails || []).some(function (d) {
                 return d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted);
             });
+            if (!hasData && item.SubItems) {
+                hasData = item.SubItems.some(function (sub) {
+                    return (sub.InventoryDetails || []).some(function (d) {
+                        return d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted);
+                    });
+                });
+            }
 
             if (hasData) {
-                var confirmed = confirm("Changing disposition from Inventory to " + newDisp + " will discard entered inventory details for this item. Are you sure you want to proceed?");
+                var confirmed = confirm("Changing disposition from Inventory to " + newDisp + " will discard entered inventory details for this item and its sub-items. Are you sure you want to proceed?");
                 if (!confirmed) {
                     $("#ddlItemDisposition_" + idx).val("Inventory");
                     return;
@@ -454,18 +662,108 @@
             item.InventoryDetails = [];
             item.CompletedInventoryCount = 0;
             item.RequiredInventoryCount = 0;
+            if (item.SubItems) {
+                item.SubItems.forEach(function (sub) {
+                    sub.InventoryDetails = [];
+                    sub.CompletedInventoryCount = 0;
+                    sub.RequiredInventoryCount = 0;
+                });
+            }
         }
 
         item.Disposition = newDisp;
         if (newDisp === "Inventory") {
             reconcileItemInventoryDetails(item);
+            if (item.SubItems) {
+                item.SubItems.forEach(function (sub) {
+                    sub.RequiresInventory = !!(sub.ItemExtnName);
+                    reconcileSubItemInventoryDetails(item, sub);
+                });
+            }
         }
 
         updateInventoryDetailsButton(idx);
+        if (item.SubItems) {
+            item.SubItems.forEach(function (sub, sIdx) {
+                updateSubItemInventoryDetailsButton(idx, sIdx);
+            });
+        }
         scheduleWizardAutoSave();
     }
 
+    function onAllocationInspectNowChange(idx, aIdx, valStr) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        var val = parseFloat(valStr) || 0;
+        var item = airWizardState.Items[idx];
+        if (!item || !item.Allocations || !item.Allocations[aIdx]) return;
+        var alloc = item.Allocations[aIdx];
+
+        var maxAllowed = alloc.RemainingBefore;
+        if (val < 0) {
+            val = 0;
+            $("#txtAllocInspectNow_" + idx + "_" + aIdx).val(0);
+        } else if (val > maxAllowed) {
+            val = maxAllowed;
+            $("#txtAllocInspectNow_" + idx + "_" + aIdx).val(maxAllowed);
+            alert("Quantity for PR " + (alloc.PRNumber || "") + " cannot exceed Remaining quantity (" + maxAllowed + ").");
+        }
+
+        alloc.QtyInspected = val;
+
+        // Update allocation row total inspected
+        var allocTotal = (alloc.PreviousInspected || 0) + val;
+        $("#lblAllocTotal_" + idx + "_" + aIdx).text(Number(allocTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        // Recompute parent InspectNowQty as sum of all child allocations
+        var parentSum = 0;
+        item.Allocations.forEach(function (a) {
+            parentSum += (a.QtyInspected || 0);
+        });
+
+        var oldQty = item.InspectNowQty || 0;
+        item.InspectNowQty = parentSum;
+        $("#txtInspectNow_" + idx).val(parentSum);
+
+        var parentTotal = (item.PreviousInspectedQty || 0) + parentSum;
+        $("#lblTotalInspected_" + idx).text(Number(parentTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        // Reconcile inventory details count
+        reconcileItemInventoryDetails(item);
+        updateInventoryDetailsButton(idx);
+
+        // If parent item has Set/Lot sub-items, proportionally adjust sub-items
+        if (item.IsSetLot && item.SubItems) {
+            item.SubItems.forEach(function (sub, sIdx) {
+                var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
+                var subVal = parentSum * subRatio;
+                if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
+                sub.InspectNowQty = subVal;
+                $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
+                var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
+                $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                reconcileSubItemInventoryDetails(item, sub);
+                updateSubItemInventoryDetailsButton(idx, sIdx);
+            });
+        }
+
+        recalculateGrandTotals();
+        scheduleWizardAutoSave();
+    }
+
+    function onAllocationRemarksChange(idx, aIdx, val) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
+        if (airWizardState.Items[idx] && airWizardState.Items[idx].Allocations && airWizardState.Items[idx].Allocations[aIdx]) {
+            airWizardState.Items[idx].Allocations[aIdx].Remarks = val;
+            scheduleWizardAutoSave();
+        }
+    }
+
     function onItemInspectNowChange(idx, valStr) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
         var val = parseFloat(valStr) || 0;
         var item = airWizardState.Items[idx];
         if (!item) return;
@@ -485,8 +783,8 @@
         var currentDetails = item.InventoryDetails || [];
 
         // If reducing quantity on an Inventory item, check if entered details would be discarded
-        if (item.Disposition === "Inventory" && newRequired < currentDetails.length) {
-            var hasEnteredDataDiscarded = false;
+        var hasEnteredDataDiscarded = false;
+        if (item.Disposition === "Inventory" && item.ParentRequiresInventory && newRequired < currentDetails.length) {
             for (var k = newRequired; k < currentDetails.length; k++) {
                 var d = currentDetails[k];
                 if (d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted)) {
@@ -495,7 +793,7 @@
                 }
             }
             if (hasEnteredDataDiscarded) {
-                var confirmed = confirm("Reducing quantity to " + newRequired + " will discard entered inventory details for unit(s) " + (newRequired + 1) + " to " + currentDetails.length + ". Do you wish to proceed?");
+                var confirmed = confirm("Reducing quantity to " + newRequired + " will discard entered parent inventory details for unit(s) " + (newRequired + 1) + " to " + currentDetails.length + ". Do you wish to proceed?");
                 if (!confirmed) {
                     $("#txtInspectNow_" + idx).val(oldQty);
                     return;
@@ -503,7 +801,41 @@
             }
         }
 
+        // Check sub-item details discarded on reduction
+        if (item.IsSetLot && item.SubItems && item.Disposition === "Inventory") {
+            var subHasDiscard = false;
+            item.SubItems.forEach(function (sub) {
+                if (sub.RequiresInventory) {
+                    var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
+                    var newSubReq = Math.floor(val * subRatio);
+                    var currentSubDetails = sub.InventoryDetails || [];
+                    if (newSubReq < currentSubDetails.length) {
+                        for (var sk = newSubReq; sk < currentSubDetails.length; sk++) {
+                            var sd = currentSubDetails[sk];
+                            if (sd && (sd.SerialNo || sd.EngineNo || sd.ChasisNo || sd.PlateNo || sd.PIN || sd.Address || sd.ProjectName || sd.IsCompleted)) {
+                                subHasDiscard = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+            if (subHasDiscard && !hasEnteredDataDiscarded) {
+                var confirmedSub = confirm("Reducing quantity will discard entered inventory details for some sub-item units. Do you wish to proceed?");
+                if (!confirmedSub) {
+                    $("#txtInspectNow_" + idx).val(oldQty);
+                    return;
+                }
+            }
+        }
+
         item.InspectNowQty = val;
+
+        // If single allocation present, sync it
+        if (item.Allocations && item.Allocations.length === 1) {
+            item.Allocations[0].QtyInspected = val;
+        }
+
         var total = (item.PreviousInspectedQty || 0) + val;
         $("#lblTotalInspected_" + idx).text(Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
@@ -514,13 +846,16 @@
         // If parent item has sub-items, proportionally adjust sub-items inspect now
         if (item.IsSetLot && item.SubItems) {
             item.SubItems.forEach(function (sub, sIdx) {
-                var subRatio = (sub.ExpectedQty || 0) / (item.OrderedQty || 1);
+                var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
                 var subVal = val * subRatio;
                 if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
                 sub.InspectNowQty = subVal;
                 $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
                 var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
                 $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                reconcileSubItemInventoryDetails(item, sub);
+                updateSubItemInventoryDetailsButton(idx, sIdx);
             });
         }
 
@@ -528,8 +863,10 @@
         scheduleWizardAutoSave();
     }
 
-    function toggleSubItemsRow(idx) {
-        var row = $("#subItemsRow_" + idx);
+    var onInspectNowChange = onItemInspectNowChange;
+
+    function toggleItemBreakdown(idx) {
+        var row = $("#breakdownRow_" + idx);
         var icon = $("#expandIcon_" + idx);
         if (row.is(":visible")) {
             row.hide();
@@ -540,24 +877,55 @@
         }
     }
 
+    var toggleSubItemsRow = toggleItemBreakdown;
+
     function onSubItemInspectNowChange(idx, sIdx, valStr) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
         var val = parseFloat(valStr) || 0;
         var item = airWizardState.Items[idx];
-        if (!item || !item.SubItems[sIdx]) return;
+        if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
         var sub = item.SubItems[sIdx];
 
         if (val < 0) val = 0;
         if (val > sub.RemainingBeforeQty) val = sub.RemainingBeforeQty;
+
+        var oldSubQty = sub.InspectNowQty || 0;
+        var newSubReq = Math.floor(val);
+        var currentSubDetails = sub.InventoryDetails || [];
+
+        if (item.Disposition === "Inventory" && sub.RequiresInventory && newSubReq < currentSubDetails.length) {
+            var hasDataDiscard = false;
+            for (var k = newSubReq; k < currentSubDetails.length; k++) {
+                var d = currentSubDetails[k];
+                if (d && (d.SerialNo || d.EngineNo || d.ChasisNo || d.PlateNo || d.PIN || d.Address || d.ProjectName || d.IsCompleted)) {
+                    hasDataDiscard = true;
+                    break;
+                }
+            }
+            if (hasDataDiscard) {
+                var confirmed = confirm("Reducing sub-item quantity to " + newSubReq + " will discard entered inventory details for unit(s) " + (newSubReq + 1) + " to " + currentSubDetails.length + ". Do you wish to proceed?");
+                if (!confirmed) {
+                    $("#txtSubInspectNow_" + idx + "_" + sIdx).val(oldSubQty);
+                    return;
+                }
+            }
+        }
+
         sub.InspectNowQty = val;
         $("#txtSubInspectNow_" + idx + "_" + sIdx).val(val);
 
         var subTotal = (sub.PreviousInspectedQty || 0) + val;
         $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
+        reconcileSubItemInventoryDetails(item, sub);
+        updateSubItemInventoryDetailsButton(idx, sIdx);
         scheduleWizardAutoSave();
     }
 
     function onItemRemarksChange(idx, val) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
         if (airWizardState.Items[idx]) {
             airWizardState.Items[idx].Remarks = val;
             scheduleWizardAutoSave();
@@ -565,6 +933,8 @@
     }
 
     function onSubItemRemarksChange(idx, sIdx, val) {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) return;
+        if (typeof isReadOnly !== 'undefined' && isReadOnly) return;
         if (airWizardState.Items[idx] && airWizardState.Items[idx].SubItems[sIdx]) {
             airWizardState.Items[idx].SubItems[sIdx].Remarks = val;
             scheduleWizardAutoSave();
@@ -594,58 +964,10 @@
         $("#lblGrandTotalInspected").text(Number(grandTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     }
 
-    function handleInspectionFileUpload(input) {
-        if (!input.files || input.files.length === 0) return;
-        var formData = new FormData();
-        formData.append("file", input.files[0]);
-        formData.append("category", "InspectionDoc");
 
-        $.ajax({
-            url: '@Url.Action("UploadAttachment", "AIRs")',
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.success && res.document) {
-                    if (!airWizardState.SupportingDocuments) airWizardState.SupportingDocuments = [];
-                    airWizardState.SupportingDocuments.push(res.document);
-                    renderSupportingDocs();
-                    scheduleWizardAutoSave();
-                } else {
-                    alert(res.message || "Failed to upload file.");
-                }
-            }
-        });
-    }
 
-    function renderSupportingDocs() {
-        var container = $("#inspectionDocsList");
-        container.empty();
-        if (!airWizardState.SupportingDocuments || airWizardState.SupportingDocuments.length === 0) {
-            container.html("<span class='small text-muted font-italic'>No supporting documents attached yet.</span>");
-            return;
-        }
-
-        airWizardState.SupportingDocuments.forEach(function (doc, idx) {
-            var badge = "<span class='badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2'>" +
-                        "  <span class='k-icon k-i-file'></span> " +
-                        "  <span>" + doc.FileName + " (" + doc.FileSize + ")</span>" +
-                        "  <button type='button' class='btn-close btn-close-sm' onclick='removeSupportingDoc(" + idx + ")' title='Remove attachment'></button>" +
-                        "</span>";
-            container.append(badge);
-        });
-    }
-
-    function removeSupportingDoc(idx) {
-        if (airWizardState.SupportingDocuments) {
-            airWizardState.SupportingDocuments.splice(idx, 1);
-            renderSupportingDocs();
-            scheduleWizardAutoSave();
-        }
-    }
-
-    function proceedToStep3() {
+        function proceedToStep3() {
+        if (typeof isSubmittedView !== 'undefined' && isSubmittedView) { goToWizardStep(3); return; }
         var hasInspectQty = false;
         if (airWizardState.Items) {
             hasInspectQty = airWizardState.Items.some(function (i) { return (i.InspectNowQty || 0) > 0; });
@@ -655,185 +977,238 @@
             return;
         }
 
-        // Completion validation: Ensure all inventory items have Completed Count == Required Count
+        // Completion validation: Ensure all parent items and qualifying sub-items have Completed Count == Required Count
+        var incompleteErrors = [];
         if (airWizardState.Items) {
             for (var idx = 0; idx < airWizardState.Items.length; idx++) {
                 var itm = airWizardState.Items[idx];
                 if (itm.Disposition === "Inventory" && (itm.InspectNowQty || 0) > 0) {
-                    var req = Math.floor(itm.InspectNowQty);
-                    var comp = (itm.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(itm.ItemExtnName, d); }).length;
-                    if (comp < req) {
-                        alert("Item #" + (itm.ItemNo || (idx + 1)) + " (" + (itm.Description || "Item") + ") requires " + req + " inventory detail records, but only " + comp + " completed.\n\nPlease click [Enter Details] to complete inventory records before continuing.");
-                        return;
+                    if (itm.ParentRequiresInventory) {
+                        var req = Math.floor(itm.InspectNowQty);
+                        var comp = (itm.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(itm.ItemExtnName, d); }).length;
+                        if (comp < req) {
+                            incompleteErrors.push("Item #" + (itm.ItemNo || (idx + 1)) + " (" + (itm.Description || "Item") + "): " + comp + " of " + req + " completed");
+                        }
+                    }
+                    if (itm.SubItems && itm.SubItems.length > 0) {
+                        for (var sIdx = 0; sIdx < itm.SubItems.length; sIdx++) {
+                            var sub = itm.SubItems[sIdx];
+                            if (sub.RequiresInventory && (sub.InspectNowQty || 0) > 0) {
+                                var sReq = Math.floor(sub.InspectNowQty);
+                                var sComp = (sub.InventoryDetails || []).filter(function (d) { return checkInventoryDetailCompleted(sub.ItemExtnName, d); }).length;
+                                if (sComp < sReq) {
+                                    incompleteErrors.push("Item #" + (itm.ItemNo || (idx + 1)) + " (" + (itm.Description || "Item") + ") - Sub-item '" + (sub.Description || "Component") + "': " + sComp + " of " + sReq + " completed");
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
+        if (incompleteErrors.length > 0) {
+            alert("Inventory details are incomplete:\n\n" + incompleteErrors.join("\n") + "\n\nPlease click [Enter Details] to complete all required unit records before continuing.");
+            return;
+        }
+
         goToWizardStep(3);
     }
 
+        // ============================================================
     // ============================================================
-    // INVENTORY DETAILS MODAL LOGIC (Supports Vehicle, Land, Building, Other)
+    // INVENTORY DETAILS MODAL LOGIC (Grouped by PR / Department)
+    // Quick Tools, Condition, Brand, Model removed
     // ============================================================
-    function openInventoryModal(idx) {
+    var activeModalItemIdx = -1;
+    var activeModalSubItemIdx = null;
+
+    function openInventoryModal(idx, sIdx) {
         activeModalItemIdx = idx;
+        activeModalSubItemIdx = (sIdx !== undefined && sIdx !== null) ? sIdx : null;
+
         var item = airWizardState.Items[idx];
         if (!item) return;
 
-        reconcileItemInventoryDetails(item);
-        var extnName = item.ItemExtnName || "ItemExtnOther";
-        var reqCount = item.RequiredInventoryCount;
+        var isSub = (activeModalSubItemIdx !== null);
+        var targetObj = isSub ? item.SubItems[activeModalSubItemIdx] : item;
+        if (!targetObj) return;
+
+        if (isSub) {
+            reconcileSubItemInventoryDetails(item, targetObj);
+        } else {
+            reconcileItemInventoryDetails(targetObj);
+        }
+
+        var extnName = targetObj.ItemExtnName || "ItemExtnOther";
+        var reqCount = targetObj.RequiredInventoryCount;
 
         var extnTitle = "Other / General Equipment";
         if (extnName === "ItemExtnVehicle") extnTitle = "Motor Vehicle";
         else if (extnName === "ItemExtnLand") extnTitle = "Real Property / Land";
         else if (extnName === "ItemExtnBuilding") extnTitle = "Building / Structure";
 
+        var targetTitle = isSub 
+            ? (targetObj.Description || "Sub-Item") + " <span class='badge bg-info text-dark ms-1'>Sub-Item of " + (item.Description || "Parent") + "</span>"
+            : (targetObj.Description || "Parent Item");
+
         var html = "";
 
         // Header info bar inside modal
         html += "<div class='p-3 bg-light rounded border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2'>";
         html += "  <div>";
-        html += "    <div class='fw-bold fs-6 text-dark'>" + (item.Description || "Item") + "</div>";
-        html += "    <div class='small text-muted'>PR #" + (item.PRNumber || "--") + " &bull; Required Inventory Assets: <strong class='text-primary'>" + reqCount + " units</strong> &bull; Asset Model: <span class='badge bg-secondary'>" + extnTitle + "</span></div>";
+        html += "    <div class='fw-bold fs-6 text-dark'>" + targetTitle + "</div>";
+        html += "    <div class='small text-muted'>Required Inventory Assets: <strong class='text-primary'>" + reqCount + " units</strong> &bull; Asset Category: <span class='badge bg-secondary'>" + extnTitle + "</span></div>";
         html += "  </div>";
         html += "  <div class='d-flex align-items-center gap-2'>";
-        html += "    <span id='modalLiveCompletionBadge' class='badge " + (item.CompletedInventoryCount >= reqCount ? "bg-success" : "bg-warning text-dark") + " fs-6'>";
-        html += "      " + (item.CompletedInventoryCount || 0) + " of " + reqCount + " Completed";
+        html += "    <span id='modalLiveCompletionBadge' class='badge " + (targetObj.CompletedInventoryCount >= reqCount ? "bg-success" : "bg-warning text-dark") + " fs-6'>";
+        html += "      " + (targetObj.CompletedInventoryCount || 0) + " of " + reqCount + " Completed";
         html += "    </span>";
         html += "  </div>";
         html += "</div>";
 
-        // Batch tool helper bar
-        html += "<div class='p-2 bg-white rounded border mb-3 d-flex align-items-center flex-wrap gap-2 small'>";
-        html += "  <span class='fw-bold text-secondary'><span class='k-icon k-i-gear'></span> Quick Tools:</span>";
-        html += "  <div class='d-flex align-items-center gap-1'>";
-        html += "    <label class='mb-0 text-muted'>Set All Condition:</label>";
-        html += "    <select id='batchConditionSelect' class='form-control-custom form-control-sm' style='width:120px;'>";
-        html += "      <option value='Brand New'>Brand New</option>";
-        html += "      <option value='Good'>Good</option>";
-        html += "      <option value='Fair'>Fair</option>";
-        html += "      <option value='Poor'>Poor</option>";
-        html += "      <option value='Unserviceable'>Unserviceable</option>";
-        html += "    </select>";
-        html += "    <button type='button' class='btn btn-xs btn-outline-primary' onclick='applyBatchCondition()'>Apply</button>";
-        html += "  </div>";
-        html += "  <span class='text-muted'>|</span>";
-        html += "  <div class='d-flex align-items-center gap-1'>";
-        html += "    <label class='mb-0 text-muted'>Sequential Serials:</label>";
-        html += "    <input type='text' id='batchSerialPrefix' class='form-control-custom form-control-sm' placeholder='Prefix (e.g. SN-)' style='width:90px;' />";
-        html += "    <input type='number' id='batchSerialStart' class='form-control-custom form-control-sm' placeholder='Start (1001)' style='width:85px;' />";
-        html += "    <button type='button' class='btn btn-xs btn-outline-primary' onclick='applyBatchSerials()'>Fill</button>";
-        html += "  </div>";
-        if (reqCount > 1) {
-            html += "  <span class='text-muted'>|</span>";
-            html += "  <button type='button' class='btn btn-xs btn-outline-secondary' onclick='copyUnit1ToAll()'><span class='k-icon k-i-copy'></span> Copy Unit 1 Common Fields</button>";
-        }
-        html += "</div>";
+        // Scrollable container for grouped PR tables
+        html += "<div style='max-height: 440px; overflow-y: auto;' class='pe-1'>";
 
-        // Extension-specific dynamic table
-        html += "<div class='table-responsive' style='max-height: 380px; overflow-y: auto;'>";
-        html += "  <table class='table table-sm table-bordered align-middle mb-0' id='tblModalInventoryUnits'>";
-        html += "    <thead class='table-light sticky-top small'>";
-        html += "      <tr>";
-        html += "        <th style='width:45px;' class='text-center'>Unit</th>";
-        html += "        <th style='width:110px;'>Condition</th>";
+        var allocationsToRender = (item.Allocations && item.Allocations.length > 0) 
+            ? item.Allocations 
+            : [{
+                OrderItemRequestId: null,
+                RequestId: null,
+                RequestItemId: null,
+                DepartmentId: null,
+                PRNumber: item.PRNumber || "--",
+                Department: item.Department || "--",
+                QtyAllocated: item.OrderedQty || reqCount,
+                QtyInspected: item.InspectNowQty || reqCount
+              }];
 
-        if (extnName === "ItemExtnVehicle") {
-            html += "    <th style='width:120px;'>Serial No.</th>";
-            html += "    <th style='width:120px;'>Conduction No.</th>";
-            html += "    <th style='width:120px;'>Engine No.</th>";
-            html += "    <th style='width:120px;'>Chassis No.</th>";
-            html += "    <th style='width:100px;'>Plate No.</th>";
-            html += "    <th style='width:90px;'>Color</th>";
-            html += "    <th style='width:90px;'>Year Model</th>";
-            html += "    <th style='width:100px;'>Series No.</th>";
-        } else if (extnName === "ItemExtnLand") {
-            html += "    <th style='width:120px;'>Property Index (PIN)</th>";
-            html += "    <th style='width:120px;'>TCT No.</th>";
-            html += "    <th style='width:100px;'>Lot No.</th>";
-            html += "    <th style='width:100px;'>Survey No.</th>";
-            html += "    <th style='width:100px;'>Area (sq.m.)</th>";
-            html += "    <th>Location / Address</th>";
-        } else if (extnName === "ItemExtnBuilding") {
-            html += "    <th style='width:120px;'>Ref / Serial No.</th>";
-            html += "    <th style='width:140px;'>Project Name</th>";
-            html += "    <th style='width:110px;'>Building Type</th>";
-            html += "    <th style='width:90px;'>No. Storeys</th>";
-            html += "    <th style='width:90px;'>Floor Area</th>";
-            html += "    <th>Location / Address</th>";
-        } else { // ItemExtnOther
-            html += "    <th style='width:150px;'>Serial No. <span class='text-danger'>*</span></th>";
-            html += "    <th style='width:120px;'>Brand</th>";
-            html += "    <th style='width:120px;'>Model</th>";
-            html += "    <th>Asset Remarks / Specifications</th>";
-        }
+        var subRatio = isSub ? ((targetObj.QtyPerParent > 0) ? targetObj.QtyPerParent : 1) : 1;
+        var globalRowIdx = 0;
 
-        html += "        <th style='width:70px;' class='text-center'>Status</th>";
-        html += "      </tr>";
-        html += "    </thead>";
-        html += "    <tbody id='modalInventoryTbody' class='small'>";
+        allocationsToRender.forEach(function (alloc) {
+            var allocQty = Math.floor((alloc.QtyInspected || 0) * subRatio);
+            var allocOirId = (alloc.OrderItemRequestId || "").toLowerCase();
 
-        item.InventoryDetails.forEach(function (u, uIdx) {
-            var isComp = checkInventoryDetailCompleted(extnName, u);
-            var cond = u.Condition || "Brand New";
+            // Find units belonging to this allocation
+            var allocUnits = targetObj.InventoryDetails.filter(function (d) {
+                if (alloc.OrderItemRequestId) {
+                    return d.OrderItemRequestId && d.OrderItemRequestId.toLowerCase() === allocOirId;
+                }
+                return true;
+            });
 
-            html += "    <tr id='unitRow_" + uIdx + "' data-unit-idx='" + uIdx + "'>";
-            html += "      <td class='text-center fw-bold bg-light'>#" + (uIdx + 1) + "</td>";
-            html += "      <td>";
-            html += "        <select class='form-control-custom form-control-sm w-100 unit-condition' onchange='onModalUnitFieldChange(" + uIdx + ")'>";
-            html += "          <option value='Brand New'" + (cond === "Brand New" ? " selected" : "") + ">Brand New</option>";
-            html += "          <option value='Good'" + (cond === "Good" ? " selected" : "") + ">Good</option>";
-            html += "          <option value='Fair'" + (cond === "Fair" ? " selected" : "") + ">Fair</option>";
-            html += "          <option value='Poor'" + (cond === "Poor" ? " selected" : "") + ">Poor</option>";
-            html += "          <option value='Unserviceable'" + (cond === "Unserviceable" ? " selected" : "") + ">Unserviceable</option>";
-            html += "        </select>";
-            html += "      </td>";
+            html += "<div class='card mb-3 border shadow-sm'>";
+            html += "  <div class='card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-1'>";
+            html += "    <div>";
+            html += "      <span class='fw-bold text-dark'>PR No.: </span><span class='badge bg-primary fs-7 me-3'>" + (alloc.PRNumber || "--") + "</span>";
+            html += "      <span class='fw-bold text-dark'>Department: </span><span class='text-secondary fw-semibold'>" + (alloc.Department || "--") + "</span>";
+            html += "    </div>";
+            html += "    <div class='d-flex align-items-center gap-1'>";
+            html += "      <span class='badge bg-light text-dark border'>Allocated: " + (alloc.QtyAllocated || 0) + "</span>";
+            html += "      <span class='badge bg-info text-dark'>Inspecting: " + allocQty + "</span>";
+            html += "    </div>";
+            html += "  </div>";
 
-            if (extnName === "ItemExtnVehicle") {
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-conduction' value='" + (u.ConductionNo || "") + "' placeholder='Conduction...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-engine' value='" + (u.EngineNo || "") + "' placeholder='Engine...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-chasis' value='" + (u.ChasisNo || "") + "' placeholder='Chassis...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-plate' value='" + (u.PlateNo || "") + "' placeholder='Plate...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-color' value='" + (u.Color || "") + "' placeholder='Color...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-year' value='" + (u.YearModel || "") + "' placeholder='Year...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-series' value='" + (u.SeriesNo || "") + "' placeholder='Series...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-            } else if (extnName === "ItemExtnLand") {
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-pin' value='" + (u.PIN || "") + "' placeholder='PIN...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-tct' value='" + (u.TctNo || "") + "' placeholder='TCT No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-lot' value='" + (u.LotNo || "") + "' placeholder='Lot No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-survey' value='" + (u.SurveyNo || "") + "' placeholder='Survey No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-area' value='" + (u.Area || "") + "' placeholder='Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Location address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-            } else if (extnName === "ItemExtnBuilding") {
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Ref / Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-project' value='" + (u.ProjectName || "") + "' placeholder='Project Name...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-buildingtype' value='" + (u.BuildingType || "") + "' placeholder='Type...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='number' class='form-control-custom form-control-sm w-100 unit-storeys' value='" + (u.NumStoreys || "") + "' placeholder='Storeys' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-floorarea' value='" + (u.FloorArea || "") + "' placeholder='Floor Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Building Address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-            } else { // ItemExtnOther
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial Number...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-brand' value='" + (u.Brand || item.Brand || "") + "' placeholder='Brand...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-model' value='" + (u.Model || "") + "' placeholder='Model...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
-                html += "  <td><input type='text' class='form-control-custom form-control-sm w-100 unit-remarks' value='" + (u.Remarks || "") + "' placeholder='Notes/Specs...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+            if (allocUnits.length === 0) {
+                html += "  <div class='card-body py-2 px-3 text-muted small fst-italic'>";
+                html += "    No units being inspected for this PR allocation in this transaction.";
+                html += "  </div>";
+            } else {
+                html += "  <div class='card-body p-0'>";
+                html += "    <div class='table-responsive'>";
+                html += "      <table class='table table-sm table-bordered align-middle mb-0'>";
+                html += "        <thead class='table-light small'>";
+                html += "          <tr>";
+                html += "            <th style='width:45px;' class='text-center'>#</th>";
+
+                if (extnName === "ItemExtnVehicle") {
+                    html += "        <th style='width:120px;'>Serial No.</th>";
+                    html += "        <th style='width:120px;'>Conduction No.</th>";
+                    html += "        <th style='width:120px;'>Engine No.</th>";
+                    html += "        <th style='width:120px;'>Chassis No.</th>";
+                    html += "        <th style='width:100px;'>Plate No.</th>";
+                    html += "        <th style='width:90px;'>Color</th>";
+                    html += "        <th style='width:90px;'>Year Model</th>";
+                    html += "        <th style='width:100px;'>Series No.</th>";
+                } else if (extnName === "ItemExtnLand") {
+                    html += "        <th style='width:120px;'>Property Index (PIN)</th>";
+                    html += "        <th style='width:120px;'>TCT No.</th>";
+                    html += "        <th style='width:100px;'>Lot No.</th>";
+                    html += "        <th style='width:100px;'>Survey No.</th>";
+                    html += "        <th style='width:90px;'>Area</th>";
+                    html += "        <th>Location Address</th>";
+                } else if (extnName === "ItemExtnBuilding") {
+                    html += "        <th style='width:120px;'>Ref / Serial</th>";
+                    html += "        <th style='width:140px;'>Project Name</th>";
+                    html += "        <th style='width:110px;'>Building Type</th>";
+                    html += "        <th style='width:75px;'>Storeys</th>";
+                    html += "        <th style='width:90px;'>Floor Area</th>";
+                    html += "        <th>Building Address</th>";
+                } else { // ItemExtnOther
+                    html += "        <th style='width:220px;'>Serial Number</th>";
+                    html += "        <th>Notes / Remarks</th>";
+                }
+
+                html += "            <th style='width:60px;' class='text-center'>Status</th>";
+                html += "          </tr>";
+                html += "        </thead>";
+                html += "        <tbody class='small'>";
+
+                allocUnits.forEach(function (u, localIdx) {
+                    var uIdx = globalRowIdx;
+                    globalRowIdx++;
+                    var isComp = checkInventoryDetailCompleted(extnName, u);
+
+                    html += "      <tr id='unitRow_" + uIdx + "' data-unit-idx='" + uIdx + "' data-oir-id='" + (alloc.OrderItemRequestId || "") + "' data-pr-no='" + (alloc.PRNumber || "") + "' data-dept-name='" + (alloc.Department || "") + "' data-req-id='" + (alloc.RequestId || "") + "' data-req-item-id='" + (alloc.RequestItemId || "") + "' data-dept-id='" + (alloc.DepartmentId || "") + "'>";
+                    html += "        <td class='text-center fw-bold bg-light'>" + (localIdx + 1) + "</td>";
+
+                    if (extnName === "ItemExtnVehicle") {
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-conduction' value='" + (u.ConductionNo || "") + "' placeholder='Conduction...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-engine' value='" + (u.EngineNo || "") + "' placeholder='Engine...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-chasis' value='" + (u.ChasisNo || "") + "' placeholder='Chassis...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-plate' value='" + (u.PlateNo || "") + "' placeholder='Plate...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-color' value='" + (u.Color || "") + "' placeholder='Color...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-year' value='" + (u.YearModel || "") + "' placeholder='Year...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-series' value='" + (u.SeriesNo || "") + "' placeholder='Series...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                    } else if (extnName === "ItemExtnLand") {
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-pin' value='" + (u.PIN || "") + "' placeholder='PIN...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-tct' value='" + (u.TctNo || "") + "' placeholder='TCT No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-lot' value='" + (u.LotNo || "") + "' placeholder='Lot No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-survey' value='" + (u.SurveyNo || "") + "' placeholder='Survey No...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-area' value='" + (u.Area || "") + "' placeholder='Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Location address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                    } else if (extnName === "ItemExtnBuilding") {
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Ref / Serial...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-project' value='" + (u.ProjectName || "") + "' placeholder='Project Name...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-buildingtype' value='" + (u.BuildingType || "") + "' placeholder='Type...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='number' class='form-control-custom form-control-sm w-100 unit-storeys' value='" + (u.NumStoreys || "") + "' placeholder='Storeys' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-floorarea' value='" + (u.FloorArea || "") + "' placeholder='Floor Area...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-address' value='" + (u.Address || "") + "' placeholder='Building Address...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                    } else { // ItemExtnOther
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-serial' value='" + (u.SerialNo || "") + "' placeholder='Serial Number...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                        html += "    <td><input type='text' class='form-control-custom form-control-sm w-100 unit-remarks' value='" + (u.Remarks || "") + "' placeholder='Notes/Specs...' oninput='onModalUnitFieldChange(" + uIdx + ")' /></td>";
+                    }
+
+                    html += "        <td class='text-center' id='unitStatusCell_" + uIdx + "'>";
+                    html += "          " + (isComp ? "<span class='badge bg-success'>OK</span>" : "<span class='badge bg-light text-muted border'>--</span>");
+                    html += "        </td>";
+                    html += "      </tr>";
+                });
+
+                html += "        </tbody>";
+                html += "      </table>";
+                html += "    </div>";
+                html += "  </div>";
             }
-
-            html += "      <td class='text-center' id='unitStatusCell_" + uIdx + "'>";
-            html += "        " + (isComp ? "<span class='badge bg-success'>OK</span>" : "<span class='badge bg-light text-muted border'>--</span>");
-            html += "      </td>";
-            html += "    </tr>";
+            html += "</div>";
         });
 
-        html += "    </tbody>";
-        html += "  </table>";
         html += "</div>";
 
         // Modal Action bar
         html += "<div class='d-flex justify-content-between align-items-center mt-3 pt-2 border-top'>";
-        html += "  <span class='small text-muted' id='modalFooterHint'>Enter physical serial numbers and identifiers for each physical asset.</span>";
+        html += "  <span class='small text-muted' id='modalFooterHint'>Enter physical serial numbers and identifiers for each physical asset grouped by PR.</span>";
         html += "  <div class='d-flex gap-2'>";
         html += "    <button type='button' class='btn-procurement-secondary btn-sm' onclick='closeInventoryModal()'>Cancel</button>";
         html += "    <button type='button' class='btn-procurement-primary btn-sm' onclick='saveInventoryModal()'><span class='k-icon k-i-check'></span> Save Details</button>";
@@ -844,15 +1219,26 @@
 
         var win = $("#inventoryDetailsWindow").data("kendoWindow");
         if (win) {
-            win.title("Inventory Details: " + (item.Description || "Item") + " (" + reqCount + " Units)");
+            var modalHeading = isSub ? ((targetObj.Description || "Sub-Item") + " - Sub-Item Inventory (" + reqCount + " Units)") : ((item.Description || "Item") + " (" + reqCount + " Units)");
+            win.title("Inventory Details: " + modalHeading);
             win.center().open();
+            var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
+            if (isReadOnlyMode) {
+                setTimeout(function () {
+                    $("#inventoryDetailsModalContent input, #inventoryDetailsModalContent select, #inventoryDetailsModalContent textarea").prop("disabled", true).addClass("bg-light");
+                    $("#inventoryDetailsModalContent button:contains('Save')").hide();
+                    $("#inventoryDetailsModalContent button:contains('Cancel')").text("Close");
+                }, 50);
+            }
         }
     }
 
     function onModalUnitFieldChange(uIdx) {
         var item = airWizardState.Items[activeModalItemIdx];
         if (!item) return;
-        var extnName = item.ItemExtnName || "ItemExtnOther";
+        var isSub = (activeModalSubItemIdx !== null);
+        var targetObj = isSub ? item.SubItems[activeModalSubItemIdx] : item;
+        var extnName = targetObj.ItemExtnName || "ItemExtnOther";
 
         var row = $("#unitRow_" + uIdx);
         var dummy = readUnitFromRow(row, extnName);
@@ -868,10 +1254,89 @@
         updateModalCompletionCounter();
     }
 
+    function updateModalCompletionCounter() {
+        var item = airWizardState.Items[activeModalItemIdx];
+        if (!item) return;
+        var isSub = (activeModalSubItemIdx !== null);
+        var targetObj = isSub ? item.SubItems[activeModalSubItemIdx] : item;
+        var extnName = targetObj.ItemExtnName || "ItemExtnOther";
+
+        var comp = 0;
+        $("tr[id^='unitRow_']").each(function () {
+            var dummy = readUnitFromRow($(this), extnName);
+            if (checkInventoryDetailCompleted(extnName, dummy)) comp++;
+        });
+
+        var req = targetObj.RequiredInventoryCount;
+        var badge = $("#modalLiveCompletionBadge");
+        if (comp >= req && req > 0) {
+            badge.removeClass("bg-warning text-dark").addClass("bg-success text-white").text(comp + " of " + req + " Completed");
+        } else {
+            badge.removeClass("bg-success text-white").addClass("bg-warning text-dark").text(comp + " of " + req + " Completed");
+        }
+    }
+
+    function saveInventoryModal() {
+        var item = airWizardState.Items[activeModalItemIdx];
+        if (!item) return;
+        var isSub = (activeModalSubItemIdx !== null);
+        var targetObj = isSub ? item.SubItems[activeModalSubItemIdx] : item;
+        var extnName = targetObj.ItemExtnName || "ItemExtnOther";
+
+        var details = [];
+        var compCount = 0;
+
+        $("tr[id^='unitRow_']").each(function (uIdx) {
+            var row = $(this);
+            var u = readUnitFromRow(row, extnName);
+            u.ContentNo = uIdx + 1;
+            u.TContentNo = uIdx + 1;
+            u.UnitIndex = uIdx + 1;
+            u.UnitNumber = uIdx + 1;
+            u.IsCompleted = checkInventoryDetailCompleted(extnName, u);
+
+            if (isSub) {
+                u.AirSubItemId = targetObj.AirSubItemId;
+                u.AirItemId = null;
+            } else {
+                u.AirItemId = item.AirItemId;
+                u.AirSubItemId = null;
+            }
+
+            // Retain existing ExtnId/Id if previously persisted
+            if (targetObj.InventoryDetails && targetObj.InventoryDetails[uIdx]) {
+                u.Id = targetObj.InventoryDetails[uIdx].Id;
+                u.ExtnId = targetObj.InventoryDetails[uIdx].ExtnId || targetObj.InventoryDetails[uIdx].Id;
+            }
+
+            if (u.IsCompleted) compCount++;
+            details.push(u);
+        });
+
+        targetObj.InventoryDetails = details;
+        targetObj.RequiredInventoryCount = targetObj.RequiredInventoryCount || details.length;
+        targetObj.CompletedInventoryCount = compCount;
+
+        if (isSub) {
+            updateSubItemInventoryDetailsButton(activeModalItemIdx, activeModalSubItemIdx);
+        } else {
+            updateInventoryDetailsButton(activeModalItemIdx);
+        }
+
+        closeInventoryModal();
+        scheduleWizardAutoSave();
+    }
+
     function readUnitFromRow(row, extnName) {
         var u = {
-            Condition: row.find(".unit-condition").val() || "Brand New"
+            OrderItemRequestId: row.attr("data-oir-id") || null,
+            PRNumber: row.attr("data-pr-no") || "",
+            DepartmentName: row.attr("data-dept-name") || "",
+            RequestId: row.attr("data-req-id") || null,
+            RequestItemId: row.attr("data-req-item-id") || null,
+            DepartmentId: row.attr("data-dept-id") || null
         };
+        extnName = extnName || "ItemExtnOther";
 
         if (extnName === "ItemExtnVehicle") {
             u.SerialNo = row.find(".unit-serial").val() || "";
@@ -889,7 +1354,6 @@
             u.SurveyNo = row.find(".unit-survey").val() || "";
             u.Area = row.find(".unit-area").val() || "";
             u.Address = row.find(".unit-address").val() || "";
-            u.SerialNo = u.PIN || u.TctNo || "";
         } else if (extnName === "ItemExtnBuilding") {
             u.SerialNo = row.find(".unit-serial").val() || "";
             u.ProjectName = row.find(".unit-project").val() || "";
@@ -899,132 +1363,9 @@
             u.Address = row.find(".unit-address").val() || "";
         } else { // ItemExtnOther
             u.SerialNo = row.find(".unit-serial").val() || "";
-            u.Brand = row.find(".unit-brand").val() || "";
-            u.Model = row.find(".unit-model").val() || "";
             u.Remarks = row.find(".unit-remarks").val() || "";
         }
-
         return u;
-    }
-
-    function updateModalCompletionCounter() {
-        var item = airWizardState.Items[activeModalItemIdx];
-        if (!item) return;
-        var extnName = item.ItemExtnName || "ItemExtnOther";
-
-        var comp = 0;
-        $("#modalInventoryTbody tr").each(function () {
-            var u = readUnitFromRow($(this), extnName);
-            if (checkInventoryDetailCompleted(extnName, u)) comp++;
-        });
-
-        var req = item.RequiredInventoryCount;
-        var badge = $("#modalLiveCompletionBadge");
-        if (comp >= req && req > 0) {
-            badge.removeClass("bg-warning text-dark").addClass("bg-success text-white").text(comp + " of " + req + " Completed");
-        } else {
-            badge.removeClass("bg-success text-white").addClass("bg-warning text-dark").text(comp + " of " + req + " Completed");
-        }
-    }
-
-    function applyBatchCondition() {
-        var val = $("#batchConditionSelect").val();
-        $("#modalInventoryTbody .unit-condition").val(val);
-        $("#modalInventoryTbody tr").each(function (uIdx) {
-            onModalUnitFieldChange(uIdx);
-        });
-    }
-
-    function applyBatchSerials() {
-        var prefix = $("#batchSerialPrefix").val() || "";
-        var startNo = parseInt($("#batchSerialStart").val());
-        if (isNaN(startNo)) {
-            alert("Please enter a valid starting serial number (e.g. 1001).");
-            return;
-        }
-
-        $("#modalInventoryTbody tr").each(function (idx) {
-            var serialInput = $(this).find(".unit-serial");
-            if (serialInput.length) {
-                serialInput.val(prefix + (startNo + idx));
-            }
-            onModalUnitFieldChange(idx);
-        });
-    }
-
-    function copyUnit1ToAll() {
-        var rows = $("#modalInventoryTbody tr");
-        if (rows.length < 2) return;
-
-        var row1 = rows.eq(0);
-        var item = airWizardState.Items[activeModalItemIdx];
-        var extnName = item.ItemExtnName || "ItemExtnOther";
-
-        if (extnName === "ItemExtnVehicle") {
-            var color = row1.find(".unit-color").val();
-            var year = row1.find(".unit-year").val();
-            var series = row1.find(".unit-series").val();
-            rows.slice(1).each(function () {
-                if (color) $(this).find(".unit-color").val(color);
-                if (year) $(this).find(".unit-year").val(year);
-                if (series) $(this).find(".unit-series").val(series);
-            });
-        } else if (extnName === "ItemExtnLand" || extnName === "ItemExtnBuilding") {
-            var addr = row1.find(".unit-address").val();
-            var proj = row1.find(".unit-project").val();
-            var bType = row1.find(".unit-buildingtype").val();
-            rows.slice(1).each(function () {
-                if (addr) $(this).find(".unit-address").val(addr);
-                if (proj) $(this).find(".unit-project").val(proj);
-                if (bType) $(this).find(".unit-buildingtype").val(bType);
-            });
-        } else {
-            var brand = row1.find(".unit-brand").val();
-            var model = row1.find(".unit-model").val();
-            var remarks = row1.find(".unit-remarks").val();
-            rows.slice(1).each(function () {
-                if (brand) $(this).find(".unit-brand").val(brand);
-                if (model) $(this).find(".unit-model").val(model);
-                if (remarks) $(this).find(".unit-remarks").val(remarks);
-            });
-        }
-
-        rows.each(function (idx) {
-            onModalUnitFieldChange(idx);
-        });
-    }
-
-    function saveInventoryModal() {
-        var item = airWizardState.Items[activeModalItemIdx];
-        if (!item) return;
-        var extnName = item.ItemExtnName || "ItemExtnOther";
-
-        var details = [];
-        var compCount = 0;
-
-        $("#modalInventoryTbody tr").each(function (uIdx) {
-            var u = readUnitFromRow($(this), extnName);
-            u.UnitIndex = uIdx + 1;
-            u.UnitNumber = uIdx + 1;
-            u.IsCompleted = checkInventoryDetailCompleted(extnName, u);
-
-            // Retain existing ExtnId if previously persisted
-            if (item.InventoryDetails && item.InventoryDetails[uIdx]) {
-                u.ExtnId = item.InventoryDetails[uIdx].ExtnId;
-                u.AirItemId = item.InventoryDetails[uIdx].AirItemId;
-            }
-
-            if (u.IsCompleted) compCount++;
-            details.push(u);
-        });
-
-        item.InventoryDetails = details;
-        item.RequiredInventoryCount = item.RequiredInventoryCount || details.length;
-        item.CompletedInventoryCount = compCount;
-
-        updateInventoryDetailsButton(activeModalItemIdx);
-        closeInventoryModal();
-        scheduleWizardAutoSave();
     }
 
     function closeInventoryModal() {
@@ -1033,5 +1374,7 @@
             win.close();
         }
         activeModalItemIdx = -1;
+        activeModalSubItemIdx = null;
     }
 </script>
+

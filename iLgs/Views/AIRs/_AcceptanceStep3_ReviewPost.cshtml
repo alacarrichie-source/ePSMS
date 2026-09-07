@@ -1,0 +1,452 @@
+﻿@model iLgs.Ai.Models.AIRAcceptanceWizardViewModel
+@using Kendo.Mvc.UI
+
+<div class="wizard-card step3-review-container">
+    <div class="step3-header mb-4">
+        <div>
+            <div class="step3-title-row d-flex align-items-center gap-2 mb-1">
+                <h2 class="mb-0">@(Model.IsReadOnly ? "Step 3: Acceptance Review Summary" : "Step 3: Review Acceptance & Post Official Report")</h2>
+                <span class="k-badge k-badge-solid @(Model.IsReadOnly ? "k-badge-info" : "k-badge-success") k-rounded-md">@(Model.IsReadOnly ? "Recorded" : "Ready to Post")</span>
+            </div>
+            <p class="subtitle mb-0">
+                @(Model.IsReadOnly
+                    ? "Review recorded government acceptance decisions, accepted delivery quantities, and official documents in read-only mode."
+                    : "Confirm official government acceptance decisions, verify the accepted delivery quantities breakdown, and attach supporting acceptance documents before committing official obligation.")
+            </p>
+        </div>
+        <div class="step3-metrics d-flex align-items-center gap-3">
+            <div class="step3-readiness is-ready p-2 px-3 rounded border d-flex align-items-center gap-2 bg-light">
+                <span class="k-icon k-i-check text-success fs-5"></span>
+                <div>
+                    <strong class="d-block small text-success">@(Model.IsReadOnly ? "Acceptance Recorded" : "Acceptance Verified")</strong>
+                    <span class="small text-muted">@(Model.IsReadOnly ? "Read-only historical review" : "Ready to obligate")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         OVERVIEW CARDS
+         ================================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded border h-100 shadow-sm">
+                <span class="small text-muted fw-bold d-block mb-1">Purchase Order</span>
+                <div class="fs-6 fw-bold text-primary" id="accRevPONo">--</div>
+                <div class="small text-dark" id="accRevSupplier">--</div>
+                <div class="small text-muted" id="accRevDept">--</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded border h-100 shadow-sm">
+                <span class="small text-muted fw-bold d-block mb-1">Inspection Record</span>
+                <div class="fs-6 fw-bold" id="accRevInspector">--</div>
+                <div class="small text-muted" id="accRevInspDate">--</div>
+                <div class="small text-muted" id="accRevInvoice">--</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-success bg-opacity-10 rounded border border-success h-100 shadow-sm">
+                <span class="small text-success fw-bold d-block mb-1">Acceptance Accountability</span>
+                <div class="fs-6 fw-bold text-dark" id="accRevOfficer">--</div>
+                <div class="small text-dark" id="accRevAccDate">--</div>
+                <div class="small text-muted" id="accRevOffice">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         ACCEPTED DELIVERY QUANTITIES BREAKDOWN
+         ================================================================ -->
+    <div class="card mb-4 border shadow-sm" style="border-radius: 8px; overflow: hidden;">
+        <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h4 class="fs-6 fw-bold text-dark mb-0"><span class="k-icon k-i-check-outline"></span> Accepted Delivery Quantities Breakdown</h4>
+                <p class="small text-muted mb-0">Officially accepted quantities confirmed during this transaction against Purchase Order allocations.</p>
+            </div>
+            <div id="accRevStatusBadgeContainer">
+                <!-- Status Badge -->
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0" id="tblAcceptedDeliveryBreakdown">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 65px;" class="text-center">Item No.</th>
+                            <th>Description</th>
+                            <th style="width: 55px;">Unit</th>
+                            <th style="width: 90px;" class="text-end">Ordered Qty</th>
+                            <th style="width: 95px;" class="text-end">Prev. Accepted</th>
+                            <th style="width: 115px;" class="text-end text-success fw-bold">Accepted This AIR</th>
+                            <th style="width: 95px;" class="text-end">Total Accepted</th>
+                            <th style="width: 85px;" class="text-end">Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accRevTableBody" class="small">
+                        <tr>
+                            <td colspan="8" class="p-4 text-center text-muted">
+                                Loading accepted delivery breakdown...
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="table-light fw-bold small" id="accRevTableFooter" style="display:none;">
+                        <tr>
+                            <td colspan="3" class="text-end">Grand Totals:</td>
+                            <td class="text-end font-monospace" id="lblRevGrandPOQty">0.00</td>
+                            <td class="text-end font-monospace text-muted" id="lblRevGrandPrevAccepted">0.00</td>
+                            <td class="text-end font-monospace text-success fs-6" id="lblRevGrandAcceptedThis">0.00</td>
+                            <td class="text-end font-monospace" id="lblRevGrandTotalAccepted">0.00</td>
+                            <td class="text-end font-monospace text-danger" id="lblRevGrandRemaining">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="small text-muted" id="accRevStatusText">
+                <!-- Status note -->
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-secondary">Acceptance Type:</span>
+                <span id="accRevStatusPill" class="badge bg-secondary">Pending Calculation</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         AIR SUPPORTING DOCUMENTS
+         ================================================================ -->
+    <div class="card mb-4 border shadow-sm" style="border-radius: 8px; overflow: hidden;">
+        <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h4 class="fs-6 fw-bold text-dark mb-0"><span class="k-icon k-i-file-add"></span> AIR Supporting Documents</h4>
+                <p class="small text-muted mb-0">Upload the signed AIR and other supporting acceptance documents before completing the acceptance.</p>
+            </div>
+            @if (!Model.IsReadOnly)
+            {
+                <div>
+                    <input type="file" id="fileAcceptanceDoc" style="display:none;" onchange="onAcceptanceDocFileSelected(this)" />
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="$('#fileAcceptanceDoc').click()">
+                        <span class="k-icon k-i-upload"></span> Upload Supporting Document
+                    </button>
+                </div>
+            }
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0" id="tblAcceptanceDocuments">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 45px;" class="text-center">#</th>
+                            <th>Document Name</th>
+                            <th style="width: 140px;">Document Type</th>
+                            <th style="width: 100px;">File Size</th>
+                            <th style="width: 150px;">Uploaded By</th>
+                            <th style="width: 130px;">Date Uploaded</th>
+                            <th style="width: 100px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="acceptanceDocumentsTableBody" class="small">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         CONFIRMATION SECTION
+         ================================================================ -->
+    @if (!Model.IsReadOnly)
+    {
+        <div class="step3-certification p-3 bg-white rounded border mb-4 shadow-sm" style="border-left: 4px solid #16a34a !important;">
+            <label for="chkAcceptanceCert" class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                <input type="checkbox" id="chkAcceptanceCert" class="mt-1" onchange="toggleAcceptanceCert(this.checked)" />
+                <span class="small">
+                    <strong>Acceptance Officer Official Certification:</strong> I certify that the items and quantities listed above in the <strong>Accepted Delivery Quantities Breakdown</strong> have been inspected and are hereby officially accepted on behalf of the Local Government Unit. All attached AIR documents and acceptance records are verified accurate and complete in compliance with COA and government procurement regulations.
+                </span>
+            </label>
+        </div>
+    }
+
+    <!-- ================================================================
+         ACTIONS BAR
+         ================================================================ -->
+    <div class="wizard-summary-bar wizard-final-actions">
+        <button type="button" class="btn-procurement-secondary" onclick="goToAcceptanceStep(2)">
+            <span class="k-icon k-i-arrow-left"></span> Back to Accept Items
+        </button>
+
+        <div class="wizard-action-group">
+            @if (Model.IsReadOnly)
+            {
+                if (Model.PostedDt != null)
+                {
+                    <a href="@Url.Action("AIRRpt", "AIRs", new { ctrlNo = Model.CtrlNo })" target="_blank" class="btn-procurement-secondary">
+                        <span class="k-icon k-i-print"></span> Print AIR
+                    </a>
+                }
+                else if (Model.IsUnposted)
+                {
+                    <a href="@Url.Action("AcceptanceWizard", "AIRs", new { id = Model.AirId })" class="btn-procurement-primary">
+                        <span class="k-icon k-i-edit"></span> Edit Acceptance
+                    </a>
+                }
+                <a href="@(ViewBag.ReturnUrl ?? Url.Action("Index", "AIRs"))" class="btn-procurement-secondary">
+                    <span class="k-icon k-i-check"></span> Close
+                </a>
+            }
+            else
+            {
+                <button type="button" class="btn-procurement-secondary text-danger border-danger" onclick="openReturnRevisionModal()">
+                    <span class="k-icon k-i-undo text-danger"></span> Return for Revision
+                </button>
+                <button type="button" id="btnPostAcceptance" class="btn-procurement-primary bg-success border-success" onclick="postAcceptanceFinal()" disabled="disabled">
+                    <span class="k-icon k-i-check"></span> @(Model.WasPreviouslyPosted ? "Repost Official Acceptance" : "Post Official Acceptance")
+                </button>
+            }
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function formatReviewNumber(val, decimals) {
+        if (val === undefined || val === null || isNaN(val)) return "0.00";
+        var dec = (decimals !== undefined) ? decimals : 2;
+        return Number(val).toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+
+    function collectAcceptanceFormData() {
+        if (!acceptanceState) return;
+        var accDateVal = $("#txtAcceptanceDate").val();
+        acceptanceState.AcceptanceDate = (accDateVal && accDateVal.trim() !== "") ? accDateVal.trim() : null;
+        acceptanceState.AcceptedBy = $("#txtAcceptedBy").val();
+        acceptanceState.AcceptedByDesignation = $("#txtAcceptedByDesignation").val();
+        acceptanceState.DepartmentOffice = $("#txtDepartmentOffice").val();
+        acceptanceState.AcceptanceRemarks = $("#txtAcceptanceRemarks").val();
+    }
+
+    function renderStep3AcceptanceReview() {
+        collectAcceptanceFormData();
+
+        // 1. Overview Cards
+        $("#accRevPONo").text(acceptanceState.PONumber || "N/A");
+        $("#accRevSupplier").text("Supplier: " + (acceptanceState.SupplierName || "N/A"));
+        $("#accRevDept").text("Dept: " + (acceptanceState.Department || "N/A"));
+
+        $("#accRevInspector").text(acceptanceState.InspectorName || "GSO Inspection Team");
+        var inspDateStr = acceptanceState.InspectionDate ? (typeof formatDisplayDate === "function" ? formatDisplayDate(acceptanceState.InspectionDate) : (acceptanceState.InspectionDate.substring ? acceptanceState.InspectionDate.substring(0, 10) : acceptanceState.InspectionDate)) : "--";
+        $("#accRevInspDate").text("Inspected: " + inspDateStr);
+        $("#accRevInvoice").text("Invoice: " + (acceptanceState.InvoiceNo || "N/A"));
+
+        $("#accRevOfficer").text((acceptanceState.AcceptedBy || "--") + (acceptanceState.AcceptedByDesignation ? " (" + acceptanceState.AcceptedByDesignation + ")" : ""));
+        var accDateStr = acceptanceState.AcceptanceDate ? (typeof formatDisplayDate === "function" ? formatDisplayDate(acceptanceState.AcceptanceDate) : (acceptanceState.AcceptanceDate.substring ? acceptanceState.AcceptanceDate.substring(0, 10) : acceptanceState.AcceptanceDate)) : "--";
+        $("#accRevAccDate").text("Date: " + accDateStr);
+        $("#accRevOffice").text("Office: " + (acceptanceState.DepartmentOffice || acceptanceState.Department || "GSO Warehouse"));
+
+        // 2. Accepted Delivery Quantities Breakdown Table
+        var tbody = $("#accRevTableBody");
+        tbody.empty();
+
+        if (!acceptanceState.Items || acceptanceState.Items.length === 0) {
+            tbody.html('<tr><td colspan="8" class="p-4 text-center text-muted">No items found.</td></tr>');
+            $("#accRevTableFooter").hide();
+            return;
+        }
+
+        var gPOQty = 0;
+        var gPrevAcc = 0;
+        var gQtyThis = 0;
+        var gTotAcc = 0;
+        var gRem = 0;
+        var allComplete = true;
+        var hasAnyAccepted = false;
+
+        acceptanceState.Items.forEach(function (item, idx) {
+            var poQty = Number(item.POQty != null ? item.POQty : (item.OrderedQty || 0));
+            var prevAcc = Number(item.PreviouslyAcceptedQty != null ? item.PreviouslyAcceptedQty : 0);
+            var qtyThis = Number(item.QtyThisAcceptance != null ? item.QtyThisAcceptance : (item.AcceptedQty || 0));
+            var totAcc = prevAcc + qtyThis;
+            var rem = Math.max(0, poQty - totAcc);
+
+            gPOQty += poQty;
+            gPrevAcc += prevAcc;
+            gQtyThis += qtyThis;
+            gTotAcc += totAcc;
+            gRem += rem;
+
+            if (totAcc > 0) hasAnyAccepted = true;
+            if (totAcc < poQty) allComplete = false;
+
+            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
+
+            var tr = "<tr class='" + (isSet ? "table-light fw-semibold" : "") + "'>" +
+                     "  <td class='text-center fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>" +
+                     "  <td>" +
+                     "    <div>" + (item.Description || "Item") + "</div>" +
+                     (isSet ? "    <span class='badge bg-info text-dark small'>Set / Lot (" + item.SubItems.length + " components)</span>" : "") +
+                     (item.ItemExtnName ? "    <span class='badge bg-light text-secondary border small ms-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>" : "") +
+                     "  </td>" +
+                     "  <td class='text-muted small'>" + (item.Unit || "unit") + "</td>" +
+                     "  <td class='text-end font-monospace'>" + formatReviewNumber(poQty) + "</td>" +
+                     "  <td class='text-end font-monospace text-muted'>" + formatReviewNumber(prevAcc) + "</td>" +
+                     "  <td class='text-end font-monospace fw-bold text-success fs-6'>" + formatReviewNumber(qtyThis) + "</td>" +
+                     "  <td class='text-end font-monospace fw-bold'>" + formatReviewNumber(totAcc) + "</td>" +
+                     "  <td class='text-end font-monospace fw-bold " + (rem > 0 ? "text-danger" : "text-muted") + "'>" + formatReviewNumber(rem) + "</td>" +
+                     "</tr>";
+            tbody.append(tr);
+
+            // If Set/Lot, render child components
+            if (isSet) {
+                item.SubItems.forEach(function (sub, sIdx) {
+                    var sExpected = Number(sub.ExpectedQty != null ? sub.ExpectedQty : (sub.POQty || 0));
+                    var sPrevAcc = Number(sub.PreviouslyAcceptedQty != null ? sub.PreviouslyAcceptedQty : 0);
+                    var sQtyThis = Number(sub.QtyThisAcceptance != null ? sub.QtyThisAcceptance : 0);
+                    var sTotAcc = sPrevAcc + sQtyThis;
+                    var sRem = Math.max(0, sExpected - sTotAcc);
+
+                    if (sTotAcc < sExpected) allComplete = false;
+
+                    var subTr = "<tr class='bg-white'>" +
+                                "  <td class='text-center small text-muted'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>" +
+                                "  <td class='ps-4 small text-secondary'>" +
+                                "    <span class='k-icon k-i-arrow-right small'></span> " + (sub.Description || "Component") +
+                                "  </td>" +
+                                "  <td class='text-muted small'>" + (sub.Unit || "") + "</td>" +
+                                "  <td class='text-end font-monospace small'>" + formatReviewNumber(sExpected) + "</td>" +
+                                "  <td class='text-end font-monospace small text-muted'>" + formatReviewNumber(sPrevAcc) + "</td>" +
+                                "  <td class='text-end font-monospace small fw-bold text-success'>" + formatReviewNumber(sQtyThis) + "</td>" +
+                                "  <td class='text-end font-monospace small fw-bold'>" + formatReviewNumber(sTotAcc) + "</td>" +
+                                "  <td class='text-end font-monospace small fw-bold " + (sRem > 0 ? "text-danger" : "text-muted") + "'>" + formatReviewNumber(sRem) + "</td>" +
+                                "</tr>";
+                    tbody.append(subTr);
+                });
+            }
+        });
+
+        // Update footer totals
+        $("#lblRevGrandPOQty").text(formatReviewNumber(gPOQty));
+        $("#lblRevGrandPrevAccepted").text(formatReviewNumber(gPrevAcc));
+        $("#lblRevGrandAcceptedThis").text(formatReviewNumber(gQtyThis));
+        $("#lblRevGrandTotalAccepted").text(formatReviewNumber(gTotAcc));
+        $("#lblRevGrandRemaining").text(formatReviewNumber(gRem));
+        $("#accRevTableFooter").show();
+
+        // Completion Status Indicator
+        var isComplete = (acceptanceState.Items.length > 0) && allComplete;
+        var isPartial = !isComplete && hasAnyAccepted;
+
+        var badgeContainer = $("#accRevStatusBadgeContainer");
+        var statusPill = $("#accRevStatusPill");
+        var statusText = $("#accRevStatusText");
+
+        if (isComplete) {
+            badgeContainer.html("<span class='badge bg-success fs-6'><span class='k-icon k-i-check-circle'></span> Complete Acceptance</span>");
+            statusPill.removeClass("bg-secondary bg-warning text-dark").addClass("bg-success").text("Complete Acceptance");
+            statusText.html("<strong class='text-success'><span class='k-icon k-i-check'></span> All Purchase Order items and required components are fully accepted.</strong> This acceptance satisfies the complete PO quantity.");
+        } else if (isPartial) {
+            badgeContainer.html("<span class='badge bg-warning text-dark fs-6'><span class='k-icon k-i-clock'></span> Partial Acceptance</span>");
+            statusPill.removeClass("bg-secondary bg-success").addClass("bg-warning text-dark").text("Partial Acceptance");
+            statusText.html("<strong class='text-warning text-dark'><span class='k-icon k-i-info'></span> Partial delivery accepted.</strong> Accumulated quantities leave uninspected or pending balances for subsequent AIR delivery.");
+        } else {
+            badgeContainer.html("<span class='badge bg-secondary fs-6'>Pending Acceptance</span>");
+            statusPill.removeClass("bg-success bg-warning text-dark").addClass("bg-secondary").text("Pending Acceptance");
+            statusText.html("<span class='text-muted'>No quantities accepted in this transaction.</span>");
+        }
+
+        // 3. AIR Supporting Documents
+        renderAcceptanceDocuments();
+    }
+
+    // ================================================================
+    // AIR SUPPORTING DOCUMENTS FUNCTIONS
+    // ================================================================
+    function onAcceptanceDocFileSelected(input) {
+        if (!input.files || input.files.length === 0) return;
+
+        var file = input.files[0];
+        var formData = new FormData();
+        formData.append("file", file);
+        formData.append("category", "AcceptanceDoc");
+
+        $.ajax({
+            url: '@Url.Action("UploadAttachment", "AIRs")',
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success && res.document) {
+                    if (!acceptanceState.SupportingDocuments) {
+                        acceptanceState.SupportingDocuments = [];
+                    }
+                    res.document.DocumentType = "SignedAIR";
+                    acceptanceState.SupportingDocuments.push(res.document);
+                    renderAcceptanceDocuments();
+                } else {
+                    alert(res.message || "Failed to upload document.");
+                }
+            },
+            error: function () {
+                alert("An error occurred while uploading the document.");
+            }
+        });
+
+        input.value = "";
+    }
+
+    function renderAcceptanceDocuments() {
+        var tbody = $("#acceptanceDocumentsTableBody");
+        tbody.empty();
+
+        var docs = acceptanceState.SupportingDocuments || [];
+        var isReadOnlyMode = (typeof isReadOnly !== 'undefined' && isReadOnly) || (acceptanceState && acceptanceState.IsReadOnly);
+
+        if (docs.length === 0) {
+            tbody.html('<tr><td colspan="7" class="p-4 text-center text-muted">No supporting documents uploaded yet.' + (isReadOnlyMode ? '' : ' Click <strong>Upload Supporting Document</strong> to attach the signed AIR or inspection records.') + '</td></tr>');
+            return;
+        }
+
+        docs.forEach(function (doc, idx) {
+            var row = "<tr>" +
+                      "  <td class='text-center text-muted fw-bold'>" + (idx + 1) + "</td>" +
+                      "  <td class='fw-semibold'>" +
+                      "    <a href='javascript:void(0)' onclick='viewDocument(\"" + (doc.FilePath || "") + "\")' class='text-decoration-none d-inline-flex align-items-center gap-1'>" +
+                      "      <span class='k-icon k-i-file-pdf text-danger'></span> " + doc.FileName +
+                      "    </a>" +
+                      "  </td>" +
+                      "  <td><span class='badge bg-light text-dark border'>" + (doc.DocumentType === "SignedAIR" ? "Signed AIR" : (doc.DocumentType || "Attachment")) + "</span></td>" +
+                      "  <td class='small text-muted font-monospace'>" + (doc.FileSize || "--") + "</td>" +
+                      "  <td class='small'>" + (doc.UploadedBy || "Current User") + "</td>" +
+                      "  <td class='small text-muted'>" + (doc.UploadedDt ? new Date(doc.UploadedDt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "--") + "</td>" +
+                      "  <td class='text-center'>" +
+                      "    <button type='button' class='btn btn-xs btn-outline-secondary' onclick='viewDocument(\"" + (doc.FilePath || "") + "\")' title='View Document'><span class='k-icon k-i-eye'></span></button>" +
+                      (isReadOnlyMode ? "" : ("    <button type='button' class='btn btn-xs btn-outline-danger ms-1' onclick='removeAcceptanceDoc(" + idx + ")' title='Remove Document'><span class='k-icon k-i-trash'></span></button>")) +
+                      "  </td>" +
+                      "</tr>";
+            tbody.append(row);
+        });
+    }
+
+    function removeAcceptanceDoc(idx) {
+        var isReadOnlyMode = (typeof isReadOnly !== 'undefined' && isReadOnly) || (acceptanceState && acceptanceState.IsReadOnly);
+        if (isReadOnlyMode) return;
+
+        if (acceptanceState.SupportingDocuments && idx >= 0 && idx < acceptanceState.SupportingDocuments.length) {
+            acceptanceState.SupportingDocuments.splice(idx, 1);
+            renderAcceptanceDocuments();
+        }
+    }
+
+    function viewDocument(path) {
+        if (path) {
+            window.open(path.replace("~/", "/"), "_blank");
+        }
+    }
+
+    function toggleAcceptanceCert(checked) {
+        $("#btnPostAcceptance").prop("disabled", !checked);
+    }
+</script>

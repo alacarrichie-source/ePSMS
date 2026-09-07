@@ -46,6 +46,19 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="AIRDocuments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AirId" Type="uniqueidentifier" />
+          <Property Name="DocumentType" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="FilePath" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="FileSize" Type="varchar" MaxLength="50" />
+          <Property Name="UploadedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="UploadedDt" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="AIRInvoices">
           <Key>
             <PropertyRef Name="Id" />
@@ -58,6 +71,23 @@
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="AIRItemAllocations">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AIRItemId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderItemRequestId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="QtyAllocated" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="QtyInspected" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="PRNumber" Type="nvarchar" MaxLength="50" />
+          <Property Name="Department" Type="nvarchar" MaxLength="200" />
+          <Property Name="Remarks" Type="nvarchar" MaxLength="500" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="100" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
         <EntityType Name="AIRItemExtnBuildings">
@@ -146,6 +176,7 @@
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="AIRSubItemId" Type="uniqueidentifier" />
         </EntityType>
         <EntityType Name="AIRItemExtnVehicles">
           <Key>
@@ -190,6 +221,11 @@
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="InspectedQty" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="AcceptedQty" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Disposition" Type="varchar" MaxLength="50" />
+          <Property Name="DestinationDepartment" Type="varchar" MaxLength="150" />
+          <Property Name="DestinationCustodian" Type="varchar" MaxLength="150" />
         </EntityType>
         <EntityType Name="AIRs">
           <Key>
@@ -217,6 +253,93 @@
           <Property Name="UpdatedDt" Type="datetime" />
           <Property Name="PostedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="PostedDt" Type="datetime" />
+          <Property Name="InspectionStatus" Type="varchar" MaxLength="50" />
+          <Property Name="AcceptanceStatus" Type="varchar" MaxLength="50" />
+          <Property Name="OverallStatus" Type="varchar" MaxLength="50" />
+          <Property Name="DrNo" Type="varchar" MaxLength="100" />
+          <Property Name="InvoiceAmount" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="InvoiceType" Type="varchar" MaxLength="50" />
+          <Property Name="BillingReference" Type="varchar" MaxLength="100" />
+          <Property Name="InspectionLocation" Type="varchar" MaxLength="200" />
+          <Property Name="InspectorName" Type="varchar" MaxLength="150" />
+          <Property Name="InspectorDesignation" Type="varchar" MaxLength="150" />
+          <Property Name="InspectionCommittee" Type="varchar" MaxLength="250" />
+          <Property Name="AcceptanceStartedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AcceptanceStartedDt" Type="datetime" />
+          <Property Name="AcceptedBy" Type="varchar" MaxLength="150" />
+          <Property Name="AcceptedByDesignation" Type="varchar" MaxLength="150" />
+          <Property Name="AcceptanceRemarks" Type="varchar(max)" />
+          <Property Name="WithdrawalRequested" Type="bit" Nullable="false" />
+          <Property Name="WithdrawalRequestedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="WithdrawalRequestedDt" Type="datetime" />
+          <Property Name="WithdrawalReason" Type="varchar(max)" />
+          <Property Name="RevisionComments" Type="varchar(max)" />
+          <Property Name="ReturnedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="ReturnedDt" Type="datetime" />
+          <Property Name="WithdrawnBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="WithdrawnDt" Type="datetime" />
+          <Property Name="Disposition" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="AIRSubItems">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AirItemId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderSubItemId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderSubItemRequestId" Type="uniqueidentifier" />
+          <Property Name="SubItemNo" Type="varchar" MaxLength="20" />
+          <Property Name="Description" Type="varchar" MaxLength="500" />
+          <Property Name="Unit" Type="varchar" MaxLength="50" />
+          <Property Name="ExpectedQty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="InspectedQty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="AcceptedQty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="Remarks" Type="varchar" MaxLength="500" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="QtyPerParent" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="CategoryCode" Type="varchar" MaxLength="50" />
+          <Property Name="ItemExtnName" Type="varchar" MaxLength="50" />
+          <Property Name="ItemCodeId" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="AIRSubmissionSnapshots">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AIRId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="WizardProgressId" Type="uniqueidentifier" />
+          <Property Name="VersionNo" Type="int" Nullable="false" />
+          <Property Name="PayloadJson" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="SubmittedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="SubmittedDt" Type="datetime" Nullable="false" />
+          <Property Name="CreatedDt" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AIRWizardProgress">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="DraftNo" Type="varchar" MaxLength="30" Nullable="false" />
+          <Property Name="OrderId" Type="uniqueidentifier" />
+          <Property Name="CreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+          <Property Name="UpdatedAt" Type="datetime" />
+          <Property Name="LastStep" Type="int" Nullable="false" />
+          <Property Name="WizardStateJson" Type="nvarchar(max)" />
+          <Property Name="IsCompleted" Type="bit" Nullable="false" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="Status" Type="varchar" MaxLength="30" Nullable="false" />
+          <Property Name="CurrentStep" Type="int" Nullable="false" />
+          <Property Name="AIRId" Type="uniqueidentifier" />
+          <Property Name="SourceAIRId" Type="uniqueidentifier" />
+          <Property Name="RevisionNo" Type="int" Nullable="false" />
+          <Property Name="SubmittedDt" Type="datetime" />
+          <Property Name="DiscardedDt" Type="datetime" />
+          <Property Name="DiscardedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="DiscardedReason" Type="nvarchar" MaxLength="500" />
         </EntityType>
         <EntityType Name="AllFields">
           <Key>
@@ -1894,7 +2017,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="DraftNo" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="DraftNo" Type="varchar" MaxLength="12" Nullable="false" />
           <Property Name="CreatedBy" Type="nvarchar" MaxLength="256" Nullable="false" />
           <Property Name="CreatedAt" Type="datetime" Nullable="false" />
           <Property Name="UpdatedAt" Type="datetime" />
@@ -2795,6 +2918,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_AIRDocuments_AIRs">
+          <End Role="AIRs" Type="Self.AIRs" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AIRDocuments" Type="Self.AIRDocuments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRs">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRDocuments">
+              <PropertyRef Name="AirId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_AIRInvoices_AIRs">
           <End Role="AIRs" Type="Self.AIRs" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -2806,6 +2943,32 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="AIRInvoices">
               <PropertyRef Name="AirId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItemAllocations_AIRItems">
+          <End Role="AIRItems" Type="Self.AIRItems" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AIRItemAllocations" Type="Self.AIRItemAllocations" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemAllocations">
+              <PropertyRef Name="AIRItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItemAllocations_OrderItemRequests">
+          <End Role="OrderItemRequests" Type="Self.OrderItemRequests" Multiplicity="1" />
+          <End Role="AIRItemAllocations" Type="Self.AIRItemAllocations" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItemRequests">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemAllocations">
+              <PropertyRef Name="OrderItemRequestId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2865,6 +3028,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_AIRItemExtns_AIRSubItems">
+          <End Role="AIRSubItems" Type="Self.AIRSubItems" Multiplicity="0..1" />
+          <End Role="AIRItemExtns" Type="Self.AIRItemExtns" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRSubItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemExtns">
+              <PropertyRef Name="AIRSubItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_AIRItemExtnVehicles_AIRItemExtns1">
           <End Role="AIRItemExtns" Type="Self.AIRItemExtns" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -2914,6 +3089,46 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="AIRs">
               <PropertyRef Name="OrderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRSubItems_AIRItems">
+          <End Role="AIRItems" Type="Self.AIRItems" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AIRSubItems" Type="Self.AIRSubItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubItems">
+              <PropertyRef Name="AirItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRSubmissionSnapshots_AIRs">
+          <End Role="AIRs" Type="Self.AIRs" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AIRSubmissionSnapshots" Type="Self.AIRSubmissionSnapshots" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRs">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubmissionSnapshots">
+              <PropertyRef Name="AIRId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRSubmissionSnapshots_AIRWizardProgress">
+          <End Role="AIRWizardProgress" Type="Self.AIRWizardProgress" Multiplicity="0..1" />
+          <End Role="AIRSubmissionSnapshots" Type="Self.AIRSubmissionSnapshots" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRWizardProgress">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubmissionSnapshots">
+              <PropertyRef Name="WizardProgressId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4875,7 +5090,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="AccountableOfficers" EntityType="Self.AccountableOfficers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AccountCodeItems" EntityType="Self.AccountCodeItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AccountCodes" EntityType="Self.AccountCodes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AIRDocuments" EntityType="Self.AIRDocuments" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRInvoices" EntityType="Self.AIRInvoices" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AIRItemAllocations" EntityType="Self.AIRItemAllocations" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRItemExtnBuildings" EntityType="Self.AIRItemExtnBuildings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRItemExtnLands" EntityType="Self.AIRItemExtnLands" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRItemExtnOthers" EntityType="Self.AIRItemExtnOthers" Schema="dbo" store:Type="Tables" />
@@ -4883,6 +5100,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="AIRItemExtnVehicles" EntityType="Self.AIRItemExtnVehicles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRItems" EntityType="Self.AIRItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AIRs" EntityType="Self.AIRs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AIRSubItems" EntityType="Self.AIRSubItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AIRSubmissionSnapshots" EntityType="Self.AIRSubmissionSnapshots" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AIRWizardProgress" EntityType="Self.AIRWizardProgress" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AllFields" EntityType="Self.AllFields" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
@@ -5076,9 +5296,21 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="ItemTypes" EntitySet="ItemTypes" />
             <End Role="AccountCodeItems" EntitySet="AccountCodeItems" />
           </AssociationSet>
+          <AssociationSet Name="FK_AIRDocuments_AIRs" Association="Self.FK_AIRDocuments_AIRs">
+            <End Role="AIRs" EntitySet="AIRs" />
+            <End Role="AIRDocuments" EntitySet="AIRDocuments" />
+          </AssociationSet>
           <AssociationSet Name="FK_AIRInvoices_AIRs" Association="Self.FK_AIRInvoices_AIRs">
             <End Role="AIRs" EntitySet="AIRs" />
             <End Role="AIRInvoices" EntitySet="AIRInvoices" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItemAllocations_AIRItems" Association="Self.FK_AIRItemAllocations_AIRItems">
+            <End Role="AIRItems" EntitySet="AIRItems" />
+            <End Role="AIRItemAllocations" EntitySet="AIRItemAllocations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItemAllocations_OrderItemRequests" Association="Self.FK_AIRItemAllocations_OrderItemRequests">
+            <End Role="OrderItemRequests" EntitySet="OrderItemRequests" />
+            <End Role="AIRItemAllocations" EntitySet="AIRItemAllocations" />
           </AssociationSet>
           <AssociationSet Name="FK_AIRItemExtnBuildings_AIRItemExtns1" Association="Self.FK_AIRItemExtnBuildings_AIRItemExtns1">
             <End Role="AIRItemExtns" EntitySet="AIRItemExtns" />
@@ -5096,6 +5328,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AIRItems" EntitySet="AIRItems" />
             <End Role="AIRItemExtns" EntitySet="AIRItemExtns" />
           </AssociationSet>
+          <AssociationSet Name="FK_AIRItemExtns_AIRSubItems" Association="Self.FK_AIRItemExtns_AIRSubItems">
+            <End Role="AIRSubItems" EntitySet="AIRSubItems" />
+            <End Role="AIRItemExtns" EntitySet="AIRItemExtns" />
+          </AssociationSet>
           <AssociationSet Name="FK_AIRItemExtnVehicles_AIRItemExtns1" Association="Self.FK_AIRItemExtnVehicles_AIRItemExtns1">
             <End Role="AIRItemExtns" EntitySet="AIRItemExtns" />
             <End Role="AIRItemExtnVehicles" EntitySet="AIRItemExtnVehicles" />
@@ -5111,6 +5347,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_AIRs_Orders" Association="Self.FK_AIRs_Orders">
             <End Role="Orders" EntitySet="Orders" />
             <End Role="AIRs" EntitySet="AIRs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRSubItems_AIRItems" Association="Self.FK_AIRSubItems_AIRItems">
+            <End Role="AIRItems" EntitySet="AIRItems" />
+            <End Role="AIRSubItems" EntitySet="AIRSubItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRSubmissionSnapshots_AIRs" Association="Self.FK_AIRSubmissionSnapshots_AIRs">
+            <End Role="AIRs" EntitySet="AIRs" />
+            <End Role="AIRSubmissionSnapshots" EntitySet="AIRSubmissionSnapshots" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRSubmissionSnapshots_AIRWizardProgress" Association="Self.FK_AIRSubmissionSnapshots_AIRWizardProgress">
+            <End Role="AIRWizardProgress" EntitySet="AIRWizardProgress" />
+            <End Role="AIRSubmissionSnapshots" EntitySet="AIRSubmissionSnapshots" />
           </AssociationSet>
           <AssociationSet Name="FK_AllFields_OrderItems" Association="Self.FK_AllFields_OrderItems">
             <End Role="OrderItems" EntitySet="OrderItems" />
@@ -6347,6 +6595,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AccountCodeItem" EntitySet="AccountCodeItems" />
           </AssociationSet>
           <EntitySet Name="AIRItems" EntityType="AppManModel.AIRItem" />
+          <EntitySet Name="AIRSubItems" EntityType="AppManModel.AIRSubItem" />
           <AssociationSet Name="FK_AIRItemExtns_AIRItems" Association="AppManModel.FK_AIRItemExtns_AIRItems">
             <End Role="AIRItem" EntitySet="AIRItems" />
             <End Role="AIRItemExtn" EntitySet="AIRItemExtns" />
@@ -6479,6 +6728,38 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RequestSubItem" EntitySet="RequestSubItems" />
           </AssociationSet>
           <EntitySet Name="DocumentStatusHistories" EntityType="AppManModel.DocumentStatusHistory" />
+          <EntitySet Name="AIRDocuments" EntityType="AppManModel.AIRDocument" />
+          <EntitySet Name="AIRItemAllocations" EntityType="AppManModel.AIRItemAllocation" />
+          <EntitySet Name="AIRWizardProgresses" EntityType="AppManModel.AIRWizardProgress" />
+          <AssociationSet Name="FK_AIRDocuments_AIRs" Association="AppManModel.FK_AIRDocuments_AIRs">
+            <End Role="AIR" EntitySet="AIRs" />
+            <End Role="AIRDocument" EntitySet="AIRDocuments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItemAllocations_AIRItems" Association="AppManModel.FK_AIRItemAllocations_AIRItems">
+            <End Role="AIRItem" EntitySet="AIRItems" />
+            <End Role="AIRItemAllocation" EntitySet="AIRItemAllocations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItemAllocations_OrderItemRequests" Association="AppManModel.FK_AIRItemAllocations_OrderItemRequests">
+            <End Role="OrderItemRequest" EntitySet="OrderItemRequests" />
+            <End Role="AIRItemAllocation" EntitySet="AIRItemAllocations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItemExtns_AIRSubItems" Association="AppManModel.FK_AIRItemExtns_AIRSubItems">
+            <End Role="AIRSubItem" EntitySet="AIRSubItems" />
+            <End Role="AIRItemExtn" EntitySet="AIRItemExtns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRSubItems_AIRItems" Association="AppManModel.FK_AIRSubItems_AIRItems">
+            <End Role="AIRItem" EntitySet="AIRItems" />
+            <End Role="AIRSubItem" EntitySet="AIRSubItems" />
+          </AssociationSet>
+          <EntitySet Name="AIRSubmissionSnapshots" EntityType="AppManModel.AIRSubmissionSnapshot" />
+          <AssociationSet Name="FK_AIRSubmissionSnapshots_AIRs" Association="AppManModel.FK_AIRSubmissionSnapshots_AIRs">
+            <End Role="AIR" EntitySet="AIRs" />
+            <End Role="AIRSubmissionSnapshot" EntitySet="AIRSubmissionSnapshots" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRSubmissionSnapshots_AIRWizardProgress" Association="AppManModel.FK_AIRSubmissionSnapshots_AIRWizardProgress">
+            <End Role="AIRWizardProgress" EntitySet="AIRWizardProgresses" />
+            <End Role="AIRSubmissionSnapshot" EntitySet="AIRSubmissionSnapshots" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -7637,6 +7918,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </Key>
           <Property Name="Id" Type="Guid" Nullable="false" />
           <Property Name="AIRItemId" Type="Guid" />
+          <Property Name="AIRSubItemId" Type="Guid" />
           <Property Name="SetLotNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="SetLotQtyNo" Type="Int32" />
           <Property Name="ContentNo" Type="Int32" />
@@ -7649,6 +7931,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="TContentNo" Type="Int32" />
           <NavigationProperty Name="PsCardItemExtns" Relationship="AppManModel.FK_PsCardItemExtns_AIRItemExtns" FromRole="AIRItemExtn" ToRole="PsCardItemExtn" />
           <NavigationProperty Name="AIRItem" Relationship="AppManModel.FK_AIRItemExtns_AIRItems" FromRole="AIRItemExtn" ToRole="AIRItem" />
+          <NavigationProperty Name="AIRSubItem" Relationship="AppManModel.FK_AIRItemExtns_AIRSubItems" FromRole="AIRItemExtn" ToRole="AIRSubItem" />
         </EntityType>
         <EntityType Name="AIRItemExtnBuilding" BaseType="AppManModel.AIRItemExtn">
           <Property Name="Address" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -7755,6 +8038,34 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="CtrlNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_AIRs_Orders" FromRole="AIR" ToRole="Order" />
           <NavigationProperty Name="AIRItems" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIR" ToRole="AIRItem" />
+          <Property Name="InspectionStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AcceptanceStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="OverallStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DrNo" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="InvoiceAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InvoiceType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="BillingReference" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="InspectionLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="InspectorName" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="InspectorDesignation" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="InspectionCommittee" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="AcceptanceStartedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AcceptanceStartedDt" Type="DateTime" Precision="3" />
+          <Property Name="AcceptedBy" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="AcceptedByDesignation" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="AcceptanceRemarks" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="WithdrawalRequested" Type="Boolean" Nullable="false" />
+          <Property Name="WithdrawalRequestedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="WithdrawalRequestedDt" Type="DateTime" Precision="3" />
+          <Property Name="WithdrawalReason" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="RevisionComments" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ReturnedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ReturnedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AIRDocuments" Relationship="AppManModel.FK_AIRDocuments_AIRs" FromRole="AIR" ToRole="AIRDocument" />
+          <Property Name="WithdrawnBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="WithdrawnDt" Type="DateTime" Precision="3" />
+          <Property Name="Disposition" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AIRSubmissionSnapshots" Relationship="AppManModel.FK_AIRSubmissionSnapshots_AIRs" FromRole="AIR" ToRole="AIRSubmissionSnapshot" />
         </EntityType>
         <Association Name="FK_AIRInvoices_AIRs">
           <End Type="AppManModel.AIR" Role="AIR" Multiplicity="0..1">
@@ -10820,6 +11131,39 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="AIRItemExtns" Relationship="AppManModel.FK_AIRItemExtns_AIRItems" FromRole="AIRItem" ToRole="AIRItemExtn" />
           <NavigationProperty Name="AIR" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIRItem" ToRole="AIR" />
           <NavigationProperty Name="OrderItemRequest" Relationship="AppManModel.FK_AIRItems_OrderItemRequests" FromRole="AIRItem" ToRole="OrderItemRequest" />
+          <Property Name="InspectedQty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcceptedQty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Disposition" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DestinationDepartment" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="DestinationCustodian" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AIRItemAllocations" Relationship="AppManModel.FK_AIRItemAllocations_AIRItems" FromRole="AIRItem" ToRole="AIRItemAllocation" />
+          <NavigationProperty Name="AIRSubItems" Relationship="AppManModel.FK_AIRSubItems_AIRItems" FromRole="AIRItem" ToRole="AIRSubItem" />
+        </EntityType>
+        <EntityType Name="AIRSubItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AirItemId" Type="Guid" Nullable="false" />
+          <Property Name="OrderSubItemId" Type="Guid" Nullable="false" />
+          <Property Name="OrderSubItemRequestId" Type="Guid" />
+          <Property Name="SubItemNo" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="Unit" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ExpectedQty" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="InspectedQty" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="AcceptedQty" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="QtyPerParent" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CategoryCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ItemExtnName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <NavigationProperty Name="AIRItemExtns" Relationship="AppManModel.FK_AIRItemExtns_AIRSubItems" FromRole="AIRSubItem" ToRole="AIRItemExtn" />
+          <NavigationProperty Name="AIRItem" Relationship="AppManModel.FK_AIRSubItems_AIRItems" FromRole="AIRSubItem" ToRole="AIRItem" />
         </EntityType>
         <Association Name="FK_AIRItemExtns_AIRItems">
           <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="0..1">
@@ -11317,6 +11661,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RequestItem" Relationship="AppManModel.FK_OrderItemRequests_RequestItems" FromRole="OrderItemRequest" ToRole="RequestItem" />
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_OrderItemRequests" FromRole="OrderItemRequest" ToRole="PsCardItem" />
           <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_OrderItemRequests" FromRole="OrderItemRequest" ToRole="RisItem" />
+          <NavigationProperty Name="AIRItemAllocations" Relationship="AppManModel.FK_AIRItemAllocations_OrderItemRequests" FromRole="OrderItemRequest" ToRole="AIRItemAllocation" />
         </EntityType>
         <Association Name="FK_AIRItems_OrderItemRequests">
           <End Type="AppManModel.OrderItemRequest" Role="OrderItemRequest" Multiplicity="0..1" />
@@ -11385,7 +11730,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="DraftNo" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="DraftNo" Type="String" Nullable="false" MaxLength="12" FixedLength="false" Unicode="false" />
           <Property Name="CreatedBy" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="UpdatedAt" Type="DateTime" Precision="3" />
@@ -11523,6 +11868,171 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="ApprovalLevel" Type="Int32" />
           <Property Name="ApprovingTeamId" Type="Guid" />
         </EntityType>
+        <EntityType Name="AIRDocument">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AirId" Type="Guid" />
+          <Property Name="DocumentType" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="FileName" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="FilePath" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="FileSize" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="UploadedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="UploadedDt" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="AIR" Relationship="AppManModel.FK_AIRDocuments_AIRs" FromRole="AIRDocument" ToRole="AIR" />
+        </EntityType>
+        <EntityType Name="AIRItemAllocation">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AIRItemId" Type="Guid" Nullable="false" />
+          <Property Name="OrderItemRequestId" Type="Guid" Nullable="false" />
+          <Property Name="QtyAllocated" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="QtyInspected" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="PRNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AIRItem" Relationship="AppManModel.FK_AIRItemAllocations_AIRItems" FromRole="AIRItemAllocation" ToRole="AIRItem" />
+          <NavigationProperty Name="OrderItemRequest" Relationship="AppManModel.FK_AIRItemAllocations_OrderItemRequests" FromRole="AIRItemAllocation" ToRole="OrderItemRequest" />
+        </EntityType>
+        <EntityType Name="AIRWizardProgress">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="DraftNo" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="OrderId" Type="Guid" />
+          <Property Name="CreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="UpdatedAt" Type="DateTime" Precision="3" />
+          <Property Name="LastStep" Type="Int32" Nullable="false" />
+          <Property Name="WizardStateJson" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsCompleted" Type="Boolean" Nullable="false" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Status" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="CurrentStep" Type="Int32" Nullable="false" />
+          <Property Name="AIRId" Type="Guid" />
+          <Property Name="SourceAIRId" Type="Guid" />
+          <Property Name="RevisionNo" Type="Int32" Nullable="false" />
+          <Property Name="SubmittedDt" Type="DateTime" Precision="3" />
+          <Property Name="DiscardedDt" Type="DateTime" Precision="3" />
+          <Property Name="DiscardedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="DiscardedReason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AIRSubmissionSnapshots" Relationship="AppManModel.FK_AIRSubmissionSnapshots_AIRWizardProgress" FromRole="AIRWizardProgress" ToRole="AIRSubmissionSnapshot" />
+        </EntityType>
+        <Association Name="FK_AIRDocuments_AIRs">
+          <End Type="AppManModel.AIR" Role="AIR" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AIRDocument" Role="AIRDocument" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIR">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRDocument">
+              <PropertyRef Name="AirId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItemAllocations_AIRItems">
+          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AIRItemAllocation" Role="AIRItemAllocation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemAllocation">
+              <PropertyRef Name="AIRItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItemAllocations_OrderItemRequests">
+          <End Type="AppManModel.OrderItemRequest" Role="OrderItemRequest" Multiplicity="1" />
+          <End Type="AppManModel.AIRItemAllocation" Role="AIRItemAllocation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItemRequest">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemAllocation">
+              <PropertyRef Name="OrderItemRequestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItemExtns_AIRSubItems">
+          <End Type="AppManModel.AIRSubItem" Role="AIRSubItem" Multiplicity="0..1" />
+          <End Type="AppManModel.AIRItemExtn" Role="AIRItemExtn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRSubItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItemExtn">
+              <PropertyRef Name="AIRSubItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRSubItems_AIRItems">
+          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AIRSubItem" Role="AIRSubItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubItem">
+              <PropertyRef Name="AirItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AIRSubmissionSnapshot">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AIRId" Type="Guid" Nullable="false" />
+          <Property Name="WizardProgressId" Type="Guid" />
+          <Property Name="VersionNo" Type="Int32" Nullable="false" />
+          <Property Name="PayloadJson" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SubmittedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="SubmittedDt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedDt" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="AIR" Relationship="AppManModel.FK_AIRSubmissionSnapshots_AIRs" FromRole="AIRSubmissionSnapshot" ToRole="AIR" />
+          <NavigationProperty Name="AIRWizardProgress" Relationship="AppManModel.FK_AIRSubmissionSnapshots_AIRWizardProgress" FromRole="AIRSubmissionSnapshot" ToRole="AIRWizardProgress" />
+        </EntityType>
+        <Association Name="FK_AIRSubmissionSnapshots_AIRs">
+          <End Type="AppManModel.AIR" Role="AIR" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AIRSubmissionSnapshot" Role="AIRSubmissionSnapshot" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIR">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubmissionSnapshot">
+              <PropertyRef Name="AIRId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRSubmissionSnapshots_AIRWizardProgress">
+          <End Type="AppManModel.AIRWizardProgress" Role="AIRWizardProgress" Multiplicity="0..1" />
+          <End Type="AppManModel.AIRSubmissionSnapshot" Role="AIRSubmissionSnapshot" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIRWizardProgress">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRSubmissionSnapshot">
+              <PropertyRef Name="WizardProgressId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -12331,6 +12841,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="SetLotQtyNo" ColumnName="SetLotQtyNo" />
                 <ScalarProperty Name="SetLotNo" ColumnName="SetLotNo" />
                 <ScalarProperty Name="AIRItemId" ColumnName="AIRItemId" />
+                <ScalarProperty Name="AIRSubItemId" ColumnName="AIRSubItemId" />
               </MappingFragment>
             </EntityTypeMapping>
             <EntityTypeMapping TypeName="IsTypeOf(AppManModel.AIRItemExtnBuilding)">
@@ -12425,6 +12936,32 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="AIRs">
             <EntityTypeMapping TypeName="AppManModel.AIR">
               <MappingFragment StoreEntitySet="AIRs">
+                <ScalarProperty Name="Disposition" ColumnName="Disposition" />
+                <ScalarProperty Name="WithdrawnDt" ColumnName="WithdrawnDt" />
+                <ScalarProperty Name="WithdrawnBy" ColumnName="WithdrawnBy" />
+                <ScalarProperty Name="ReturnedDt" ColumnName="ReturnedDt" />
+                <ScalarProperty Name="ReturnedBy" ColumnName="ReturnedBy" />
+                <ScalarProperty Name="RevisionComments" ColumnName="RevisionComments" />
+                <ScalarProperty Name="WithdrawalReason" ColumnName="WithdrawalReason" />
+                <ScalarProperty Name="WithdrawalRequestedDt" ColumnName="WithdrawalRequestedDt" />
+                <ScalarProperty Name="WithdrawalRequestedBy" ColumnName="WithdrawalRequestedBy" />
+                <ScalarProperty Name="WithdrawalRequested" ColumnName="WithdrawalRequested" />
+                <ScalarProperty Name="AcceptanceRemarks" ColumnName="AcceptanceRemarks" />
+                <ScalarProperty Name="AcceptedByDesignation" ColumnName="AcceptedByDesignation" />
+                <ScalarProperty Name="AcceptedBy" ColumnName="AcceptedBy" />
+                <ScalarProperty Name="AcceptanceStartedDt" ColumnName="AcceptanceStartedDt" />
+                <ScalarProperty Name="AcceptanceStartedBy" ColumnName="AcceptanceStartedBy" />
+                <ScalarProperty Name="InspectionCommittee" ColumnName="InspectionCommittee" />
+                <ScalarProperty Name="InspectorDesignation" ColumnName="InspectorDesignation" />
+                <ScalarProperty Name="InspectorName" ColumnName="InspectorName" />
+                <ScalarProperty Name="InspectionLocation" ColumnName="InspectionLocation" />
+                <ScalarProperty Name="BillingReference" ColumnName="BillingReference" />
+                <ScalarProperty Name="InvoiceType" ColumnName="InvoiceType" />
+                <ScalarProperty Name="InvoiceAmount" ColumnName="InvoiceAmount" />
+                <ScalarProperty Name="DrNo" ColumnName="DrNo" />
+                <ScalarProperty Name="OverallStatus" ColumnName="OverallStatus" />
+                <ScalarProperty Name="AcceptanceStatus" ColumnName="AcceptanceStatus" />
+                <ScalarProperty Name="InspectionStatus" ColumnName="InspectionStatus" />
                 <ScalarProperty Name="CtrlNo" ColumnName="CtrlNo" />
                 <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
                 <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
@@ -14047,6 +14584,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="AIRItems">
             <EntityTypeMapping TypeName="AppManModel.AIRItem">
               <MappingFragment StoreEntitySet="AIRItems">
+                <ScalarProperty Name="DestinationCustodian" ColumnName="DestinationCustodian" />
+                <ScalarProperty Name="DestinationDepartment" ColumnName="DestinationDepartment" />
+                <ScalarProperty Name="Disposition" ColumnName="Disposition" />
+                <ScalarProperty Name="AcceptedQty" ColumnName="AcceptedQty" />
+                <ScalarProperty Name="InspectedQty" ColumnName="InspectedQty" />
                 <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
                 <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
                 <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
@@ -14064,6 +14606,31 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="OrderItemRequestId" ColumnName="OrderItemRequestId" />
                 <ScalarProperty Name="AirId" ColumnName="AirId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRSubItems">
+            <EntityTypeMapping TypeName="AppManModel.AIRSubItem">
+              <MappingFragment StoreEntitySet="AIRSubItems">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AirItemId" ColumnName="AirItemId" />
+                <ScalarProperty Name="OrderSubItemId" ColumnName="OrderSubItemId" />
+                <ScalarProperty Name="OrderSubItemRequestId" ColumnName="OrderSubItemRequestId" />
+                <ScalarProperty Name="SubItemNo" ColumnName="SubItemNo" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="ExpectedQty" ColumnName="ExpectedQty" />
+                <ScalarProperty Name="InspectedQty" ColumnName="InspectedQty" />
+                <ScalarProperty Name="AcceptedQty" ColumnName="AcceptedQty" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="QtyPerParent" ColumnName="QtyPerParent" />
+                <ScalarProperty Name="CategoryCode" ColumnName="CategoryCode" />
+                <ScalarProperty Name="ItemExtnName" ColumnName="ItemExtnName" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14358,6 +14925,77 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="DocumentNo" ColumnName="DocumentNo" />
                 <ScalarProperty Name="DocumentId" ColumnName="DocumentId" />
                 <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRDocuments">
+            <EntityTypeMapping TypeName="AppManModel.AIRDocument">
+              <MappingFragment StoreEntitySet="AIRDocuments">
+                <ScalarProperty Name="UploadedDt" ColumnName="UploadedDt" />
+                <ScalarProperty Name="UploadedBy" ColumnName="UploadedBy" />
+                <ScalarProperty Name="FileSize" ColumnName="FileSize" />
+                <ScalarProperty Name="FilePath" ColumnName="FilePath" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+                <ScalarProperty Name="AirId" ColumnName="AirId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRItemAllocations">
+            <EntityTypeMapping TypeName="AppManModel.AIRItemAllocation">
+              <MappingFragment StoreEntitySet="AIRItemAllocations">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="PRNumber" ColumnName="PRNumber" />
+                <ScalarProperty Name="QtyInspected" ColumnName="QtyInspected" />
+                <ScalarProperty Name="QtyAllocated" ColumnName="QtyAllocated" />
+                <ScalarProperty Name="OrderItemRequestId" ColumnName="OrderItemRequestId" />
+                <ScalarProperty Name="AIRItemId" ColumnName="AIRItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRWizardProgresses">
+            <EntityTypeMapping TypeName="AppManModel.AIRWizardProgress">
+              <MappingFragment StoreEntitySet="AIRWizardProgress">
+                <ScalarProperty Name="DiscardedReason" ColumnName="DiscardedReason" />
+                <ScalarProperty Name="DiscardedBy" ColumnName="DiscardedBy" />
+                <ScalarProperty Name="DiscardedDt" ColumnName="DiscardedDt" />
+                <ScalarProperty Name="SubmittedDt" ColumnName="SubmittedDt" />
+                <ScalarProperty Name="RevisionNo" ColumnName="RevisionNo" />
+                <ScalarProperty Name="SourceAIRId" ColumnName="SourceAIRId" />
+                <ScalarProperty Name="AIRId" ColumnName="AIRId" />
+                <ScalarProperty Name="CurrentStep" ColumnName="CurrentStep" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="IsCompleted" ColumnName="IsCompleted" />
+                <ScalarProperty Name="WizardStateJson" ColumnName="WizardStateJson" />
+                <ScalarProperty Name="LastStep" ColumnName="LastStep" />
+                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="OrderId" ColumnName="OrderId" />
+                <ScalarProperty Name="DraftNo" ColumnName="DraftNo" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRSubmissionSnapshots">
+            <EntityTypeMapping TypeName="AppManModel.AIRSubmissionSnapshot">
+              <MappingFragment StoreEntitySet="AIRSubmissionSnapshots">
+                <ScalarProperty Name="CreatedDt" ColumnName="CreatedDt" />
+                <ScalarProperty Name="SubmittedDt" ColumnName="SubmittedDt" />
+                <ScalarProperty Name="SubmittedBy" ColumnName="SubmittedBy" />
+                <ScalarProperty Name="PayloadJson" ColumnName="PayloadJson" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="WizardProgressId" ColumnName="WizardProgressId" />
+                <ScalarProperty Name="AIRId" ColumnName="AIRId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

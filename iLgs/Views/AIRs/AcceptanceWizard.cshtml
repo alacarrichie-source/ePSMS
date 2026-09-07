@@ -1,8 +1,8 @@
-@*AcceptanceWizard.cshtml*@
+﻿@*AcceptanceWizard.cshtml*@
 @model iLgs.Ai.Models.AIRAcceptanceWizardViewModel
 
 @{
-    ViewBag.Title = "Acceptance Wizard (" + (Model.AirNo ?? Model.CtrlNo) + ")";
+    ViewBag.Title = (Model.IsReadOnly ? "View Acceptance (" : "Acceptance Wizard (") + (Model.AirNo ?? Model.CtrlNo) + ")";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -14,9 +14,9 @@
     <div class="breadcrumbs">
         <a href="@Url.Action("Index", "Home")">Home</a>
         <span class="breadcrumb-separator">&gt;</span>
-        <a href="@Url.Action("Index", "AIRs")">Acceptance &amp; Inspection Reports</a>
+        <a href="@(ViewBag.ReturnUrl ?? Url.Action("Index", "AIRs"))">Acceptance &amp; Inspection Reports</a>
         <span class="breadcrumb-separator">&gt;</span>
-        <span>Official Acceptance Wizard</span>
+        <span>@(Model.IsReadOnly ? "View Acceptance" : "Official Acceptance Wizard")</span>
     </div>
 
     <!-- ================================================================
@@ -25,29 +25,135 @@
     <div class="wizard-header">
         <div class="wizard-header-content">
             <h1 class="page-title">
-                Official Acceptance Wizard — @(Model.AirNo ?? Model.CtrlNo)
+                @(Model.IsReadOnly ? "View Acceptance &mdash; " : "Official Acceptance Wizard &mdash; ") @(Model.AirNo ?? Model.CtrlNo)
             </h1>
             <p class="page-subtitle">
-                Review physical inspection records, officially accept delivered goods, allocate item disposition (Inventory vs. For Distribution), and post official obligation.
+                @(Model.IsReadOnly
+                    ? "Review recorded government acceptance, item delivery breakdown, and official accountability details in read-only mode."
+                    : "Review physical inspection records, officially accept delivered goods, attach signed acceptance documentation, and post official obligation.")
             </p>
         </div>
 
         <div class="wizard-header-actions">
-            <button type="button" class="btn-procurement-secondary text-danger border-danger" onclick="openReturnRevisionModal()">
-                <span class="k-icon k-i-undo text-danger"></span> Return for Revision
-            </button>
+            @if (Model.IsReadOnly)
+            {
+                if (Model.PostedDt != null)
+                {
+                    <a href="@Url.Action("AIRRpt", "AIRs", new { ctrlNo = Model.CtrlNo })" target="_blank" class="btn-procurement-secondary" title="Print AIR Report">
+                        <span class="k-icon k-i-print"></span> Print AIR
+                    </a>
+                }
+                else if (Model.IsUnposted)
+                {
+                    <a href="@Url.Action("AcceptanceWizard", "AIRs", new { id = Model.AirId })" class="btn-procurement-primary" title="Edit Acceptance">
+                        <span class="k-icon k-i-edit"></span> Edit Acceptance
+                    </a>
+                }
+                else if (Model.IsDeleted)
+                {
+                    <span class="badge bg-danger p-2" style="font-size: 13px; background-color: #dc2626; color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="k-icon k-i-close"></span> Acceptance Deleted
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary p-2" style="font-size: 13px; background-color: #64748b; color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="k-icon k-i-lock"></span> Read-Only Mode
+                    </span>
+                }
 
-            <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-secondary">
-                <span class="k-icon k-i-close"></span> Exit
-            </a>
+                <a href="@(ViewBag.ReturnUrl ?? Url.Action("Index", "AIRs"))" class="btn-procurement-secondary">
+                    <span class="k-icon k-i-arrow-left"></span> Back
+                </a>
+            }
+            else
+            {
+                <button type="button" class="btn-procurement-secondary text-danger border-danger" onclick="openReturnRevisionModal()">
+                    <span class="k-icon k-i-undo text-danger"></span> Return for Revision
+                </button>
+
+                <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-secondary">
+                    <span class="k-icon k-i-close"></span> Exit
+                </a>
+            }
         </div>
     </div>
 
+    @if (Model.IsUnposted)
+    {
+        <!-- UNPOSTED BANNER -->
+        <div class="card mb-4 border-warning shadow-sm" style="border-left: 5px solid #d97706; background: #fffbeb; padding: 14px 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="d-flex align-items-center gap-2 mb-1" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="k-icon k-i-warning" style="font-size: 20px; color: #d97706;"></span>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #b45309;">Acceptance &ndash; UNPOSTED</h4>
+            </div>
+            <p style="font-size: 13px; color: #78350f; margin: 0 0 8px 0;">
+                This AIR Acceptance was previously posted and has been unposted. It is reopened for editing, posting again, or deletion.
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #451a03; border-top: 1px solid #fde68a; padding-top: 8px;">
+                <span><strong>AIR No:</strong> <span style="font-weight: 700; color: #b45309;">@(!string.IsNullOrEmpty(Model.AirNo) ? Model.AirNo : Model.CtrlNo)</span></span>
+                <span>&bull;</span>
+                <span><strong>Status:</strong> <span class="badge" style="background: #fef3c7; color: #92400e; font-weight: 700; padding: 2px 6px; border-radius: 4px;">UNPOSTED</span></span>
+            </div>
+        </div>
+    }
+    else if (Model.IsDeleted)
+    {
+        <!-- DELETED BANNER -->
+        <div class="card mb-4 border-danger shadow-sm" style="border-left: 5px solid #dc2626; background: #fef2f2; padding: 14px 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="d-flex align-items-center gap-2 mb-1" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="k-icon k-i-close-circle" style="font-size: 20px; color: #dc2626;"></span>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #b91c1c;">Acceptance &ndash; DELETED</h4>
+            </div>
+            <p style="font-size: 13px; color: #7f1d1d; margin: 0 0 8px 0;">
+                The Acceptance for this AIR has been deleted. Physical inspection records remain intact for audit and reference purposes. No active acceptance actions can be performed.
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #450a0a; border-top: 1px solid #fecaca; padding-top: 8px;">
+                <span><strong>AIR No:</strong> <span style="font-weight: 700; color: #b91c1c;">@(!string.IsNullOrEmpty(Model.AirNo) ? Model.AirNo : Model.CtrlNo)</span></span>
+                <span>&bull;</span>
+                <span><strong>Status:</strong> <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700; padding: 2px 6px; border-radius: 4px;">DELETED</span></span>
+            </div>
+        </div>
+    }
+    else if (Model.IsReadOnly)
+    {
+        <!-- HISTORICAL BANNER -->
+        <div class="card mb-4 border-info shadow-sm" style="border-left: 5px solid #0284c7; background: #f0f9ff; padding: 14px 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="d-flex align-items-center gap-2 mb-1" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="k-icon k-i-info" style="font-size: 20px; color: #0284c7;"></span>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #0369a1;">Acceptance &ndash; @(Model.OverallStatus == "Posted" ? "Posted" : "Read Only")</h4>
+            </div>
+            <p style="font-size: 13px; color: #475569; margin: 0 0 8px 0;">
+                @(Model.OverallStatus == "Posted" ? "This AIR Acceptance has been officially accepted and posted." : "This view shows the recorded Acceptance data. No changes can be made from this screen.")
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #334155; border-top: 1px solid #bae6fd; padding-top: 8px;">
+                <span><strong>AIR No:</strong> <span style="font-weight: 700; color: #0284c7;">@(!string.IsNullOrEmpty(Model.AirNo) ? Model.AirNo : Model.CtrlNo)</span></span>
+                <span>&bull;</span>
+                <span><strong>Status:</strong> <span class="badge" style="background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px;">@(Model.OverallStatus ?? "Recorded")</span></span>
+                @if (!string.IsNullOrEmpty(Model.AcceptanceStartedBy))
+                {
+                    <span>&bull;</span>
+                    <span><strong>Started By:</strong> @Model.AcceptanceStartedBy (@(Model.AcceptanceStartedDt.HasValue ? Model.AcceptanceStartedDt.Value.ToString("MMM dd, yyyy") : "--"))</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.AcceptedBy))
+                {
+                    <span>&bull;</span>
+                    <span><strong>Accepted By:</strong> @Model.AcceptedBy (@(Model.AcceptanceDate.HasValue ? Model.AcceptanceDate.Value.ToString("MMM dd, yyyy") : "--"))</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.PostedBy))
+                {
+                    <span>&bull;</span>
+                    <span><strong>Completed By:</strong> @Model.PostedBy (@(Model.PostedDt.HasValue ? Model.PostedDt.Value.ToString("MMM dd, yyyy") : "--"))</span>
+                }
+            </div>
+        </div>
+    }
+
     <!-- ================================================================
-         STEPPER (PURE HTML/CSS - CONSISTENT WITH PO WIZARD)
+         STEPPER (PURE HTML/CSS - 3 STEPS)
          ================================================================ -->
     <div class="data-card" style="margin-bottom: 20px; padding: 14px 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1;">
-        <div class="wizard-stepper" style="display: flex; align-items: center; justify-content: space-between; max-width: 860px; margin: 0 auto;">
+        <div class="wizard-stepper" style="display: flex; align-items: center; justify-content: space-between; max-width: 680px; margin: 0 auto;">
             <!-- Step 1 Tab -->
             <div class="wizard-step-item active" id="stepIndicator1" onclick="goToAcceptanceStep(1)" style="display: flex; align-items: center; cursor: pointer;">
                 <div class="step-circle" id="circle1" style="width: 28px; height: 28px; border-radius: 50%; background-color: #2c3e50; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 4px #f1f5f9;">1</div>
@@ -58,21 +164,14 @@
             <!-- Step 2 Tab -->
             <div class="wizard-step-item" id="stepIndicator2" onclick="goToAcceptanceStep(2)" style="display: flex; align-items: center; cursor: pointer;">
                 <div class="step-circle" id="circle2" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</div>
-                <span class="step-label" id="label2" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Custodian &amp; Location</span>
+                <span class="step-label" id="label2" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Accept Items</span>
             </div>
             <div class="step-line" id="line2" style="flex: 1; height: 2px; background-color: #cbd5e1; margin: 0 10px;"></div>
 
-            <!-- Step 3 Tab -->
+            <!-- Step 3 Tab (Final Acceptance / Review & Post) -->
             <div class="wizard-step-item" id="stepIndicator3" onclick="goToAcceptanceStep(3)" style="display: flex; align-items: center; cursor: pointer;">
                 <div class="step-circle" id="circle3" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">3</div>
-                <span class="step-label" id="label3" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Item Disposition</span>
-            </div>
-            <div class="step-line" id="line3" style="flex: 1; height: 2px; background-color: #cbd5e1; margin: 0 10px;"></div>
-
-            <!-- Step 4 Tab -->
-            <div class="wizard-step-item" id="stepIndicator4" onclick="goToAcceptanceStep(4)" style="display: flex; align-items: center; cursor: pointer;">
-                <div class="step-circle" id="circle4" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">4</div>
-                <span class="step-label" id="label4" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">Review &amp; Post</span>
+                <span class="step-label" id="label3" style="margin-left: 8px; font-size: 12px; font-weight: 600; color: #64748b;">@(Model.IsReadOnly ? "Review Summary" : "Review & Post")</span>
             </div>
         </div>
     </div>
@@ -89,29 +188,49 @@
 
             <div id="acceptanceValidationSummary" class="validation-summary-errors" style="display:none;"></div>
 
-            <!-- STEP 1 -->
+            <!-- STEP 1: REVIEW INSPECTION -->
             <div id="accStepPane1" class="wizard-pane">
-                @Html.Partial("_AcceptanceStep1_Review")
+                @Html.Partial("_AcceptanceStep1_Review", Model)
             </div>
 
-            <!-- STEP 2 -->
+            <!-- STEP 2: ACCEPT ITEMS -->
             <div id="accStepPane2" class="wizard-pane" style="display:none;">
-                @Html.Partial("_AcceptanceStep2_Details")
+                @Html.Partial("_AcceptanceStep2_Details", Model)
             </div>
 
-            <!-- STEP 3 -->
+            <!-- STEP 3: REVIEW & POST (FINAL ACCEPTANCE) -->
             <div id="accStepPane3" class="wizard-pane" style="display:none;">
-                @Html.Partial("_AcceptanceStep3_Disposition")
-            </div>
-
-            <!-- STEP 4 -->
-            <div id="accStepPane4" class="wizard-pane" style="display:none;">
-                @Html.Partial("_AcceptanceStep4_ReviewPost")
+                @Html.Partial("_AcceptanceStep3_ReviewPost", Model)
             </div>
         }
     </div>
 
 </div>
+
+<!-- ITEM HISTORY MODAL -->
+@(Html.Kendo().Window()
+    .Name("itemHistoryModal")
+    .Title("Inspection & Acceptance History")
+    .Width(750)
+    .Height(450)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+    .Content(@<text><div id="itemHistoryModalContent" class="p-3"></div></text>)
+)
+
+<!-- INVENTORY DETAILS MODAL -->
+@(Html.Kendo().Window()
+    .Name("inventoryDetailsWindow")
+    .Title("Inventory Asset Details (Read-Only)")
+    .Width(1050)
+    .Height(620)
+    .Modal(true)
+    .Visible(false)
+    .Draggable(true)
+    .Actions(actions => actions.Close())
+    .Content(@<text><div id="inventoryDetailsModalContent" class="p-3"></div></text>)
+)
 
 <!-- RETURN FOR REVISION MODAL -->
 @(Html.Kendo().Window()
@@ -143,14 +262,60 @@
 @section scripts {
     <script type="text/javascript">
         var currentAccStep = 1;
+        var isReadOnly = @(Model.IsReadOnly ? "true" : "false");
         var acceptanceState = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+
+        function getLocalDateValue(selector) {
+            var raw = $(selector).val();
+            return (raw && raw.trim() !== "") ? raw.trim() : null;
+        }
+
+        function setLocalDateValue(selector, val) {
+            if (!val) {
+                $(selector).val("");
+                return;
+            }
+            if (typeof val === "string") {
+                var match = val.match(/^(\d{4}-\d{2}-\d{2})/);
+                if (match) {
+                    $(selector).val(match[1]);
+                    return;
+                }
+            }
+            var d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                var year = d.getFullYear();
+                var month = ("0" + (d.getMonth() + 1)).slice(-2);
+                var day = ("0" + d.getDate()).slice(-2);
+                $(selector).val(year + "-" + month + "-" + day);
+            } else {
+                $(selector).val("");
+            }
+        }
+
+        function formatDisplayDate(val) {
+            if (!val) return "--";
+            if (typeof val === "string") {
+                var match = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (match) {
+                    var localD = new Date(parseInt(match[1], 10), parseInt(match[2], 10) - 1, parseInt(match[3], 10));
+                    return localD.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" });
+                }
+            }
+            var d = new Date(val);
+            if (isNaN(d.getTime())) return "--";
+            return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" });
+        }
 
         $(document).ready(function () {
             goToAcceptanceStep(1);
+            if (isReadOnly) {
+                $("#acceptanceWizardForm input, #acceptanceWizardForm textarea, #acceptanceWizardForm select").prop("disabled", true);
+            }
         });
 
         function updateAcceptanceStepperUI(step) {
-            for (var i = 1; i <= 4; i++) {
+            for (var i = 1; i <= 3; i++) {
                 var circle = $('#circle' + i);
                 var label = $('#label' + i);
                 var line = $('#line' + i);
@@ -171,10 +336,10 @@
         }
 
         function goToAcceptanceStep(step) {
-            if (step < 1 || step > 4) return;
+            if (step < 1 || step > 3) return;
 
-            // Step 2 validation
-            if (step > 2) {
+            // Step 2 validation before advancing to Step 3
+            if (!isReadOnly && step > 2) {
                 var acceptedBy = $("#txtAcceptedBy").val();
                 if (!acceptedBy || !acceptedBy.trim()) {
                     showAccMessage("Please enter the name of the Authorized Acceptance Officer in Step 2.");
@@ -184,7 +349,7 @@
 
             hideAccMessage();
 
-            for (var i = 1; i <= 4; i++) {
+            for (var i = 1; i <= 3; i++) {
                 $("#accStepPane" + i).hide();
             }
             $("#accStepPane" + step).fadeIn(200);
@@ -192,12 +357,12 @@
             currentAccStep = step;
             updateAcceptanceStepperUI(step);
 
-            if (step === 3 && typeof renderStep3Dispositions === "function") {
-                renderStep3Dispositions();
+            if (step === 2 && typeof renderAccStep2Items === "function") {
+                renderAccStep2Items();
             }
 
-            if (step === 4 && typeof renderStep4AcceptanceReview === "function") {
-                renderStep4AcceptanceReview();
+            if (step === 3 && typeof renderStep3AcceptanceReview === "function") {
+                renderStep3AcceptanceReview();
             }
         }
 
@@ -208,6 +373,15 @@
 
         function hideAccMessage() {
             $("#acceptanceValidationSummary").hide();
+        }
+
+        function openItemHistory(orderItemId) {
+            if (!orderItemId) return;
+            var url = '@Url.Action("GetItemInspectionHistory", "AIRs")?orderItemId=' + orderItemId;
+            $.get(url, function (html) {
+                $("#itemHistoryModalContent").html(html);
+                $("#itemHistoryModal").data("kendoWindow").center().open();
+            });
         }
 
         function openReturnRevisionModal() {
@@ -242,7 +416,14 @@
             });
         }
 
+
+
         function postAcceptanceFinal() {
+            if (!$("#chkAcceptanceCert").is(":checked")) {
+                alert("Please review and check the official Acceptance Certification before posting.");
+                return;
+            }
+
             if (!confirm("Officially accept and post this Acceptance and Inspection Report? This will commit property allocations.")) return;
 
             if (typeof collectAcceptanceFormData === "function") collectAcceptanceFormData();

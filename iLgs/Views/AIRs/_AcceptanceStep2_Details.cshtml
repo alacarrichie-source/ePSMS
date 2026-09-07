@@ -1,24 +1,27 @@
-﻿@using Kendo.Mvc.UI
+﻿@model iLgs.Ai.Models.AIRAcceptanceWizardViewModel
+@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
 
     <div class="wizard-card-header">
         <div>
-            <h2>Step 2: Acceptance Details &amp; Quantity Decision</h2>
+            <h2>Step 2: Accept Items</h2>
             <p class="subtitle">
-                Record the official government acceptance of verified deliveries. Specify accepted quantities and officer accountability details.
+                Enter the quantities being accepted against the quantities already inspected. Only inspected quantities that have not yet been accepted may be accepted.
             </p>
         </div>
     </div>
 
-    <!-- Acceptance Officer Form -->
-    <div class="form-card mb-4 p-4 bg-white rounded border">
+    <!-- ================================================================
+         ACCEPTANCE OFFICER ACCOUNTABILITY CARD
+         ================================================================ -->
+    <div class="form-card mb-4 p-4 bg-white rounded border shadow-sm">
         <h4 class="fs-6 fw-bold mb-3 text-primary"><span class="k-icon k-i-user"></span> Acceptance Officer Accountability</h4>
         <div class="row g-3">
             <div class="col-md-3">
                 <label for="txtAcceptanceDate" class="form-label small fw-bold">Acceptance Date <span class="text-danger">*</span></label>
-                <input type="date" id="txtAcceptanceDate" class="form-control-custom w-100" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <input type="date" id="txtAcceptanceDate" class="form-control-custom w-100" value="@(Model.AcceptanceDate.HasValue ? Model.AcceptanceDate.Value.ToString("yyyy-MM-dd") : DateTime.Today.ToString("yyyy-MM-dd"))" />
             </div>
             <div class="col-md-3">
                 <label for="txtAcceptedBy" class="form-label small fw-bold">Accepted By (Officer Name) <span class="text-danger">*</span></label>
@@ -39,113 +42,1133 @@
         </div>
     </div>
 
-    <!-- Item Accepted Quantities Table -->
-    <div class="form-card mb-4 p-4 bg-white rounded border">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- ================================================================
+         ITEMS ACCEPTANCE TABLE
+         Includes: #, PR Number, Department, Item No., PPMP Code, Description,
+         Unit, PO Qty, Total Insp., Prev. Accepted, Available, Qty This Acceptance,
+         Total Accepted, Remaining, Disposition, Inventory Details, Remarks, Hist.
+         ================================================================ -->
+    <div class="form-card mb-4 p-4 bg-white rounded border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
                 <h4 class="fs-6 fw-bold mb-0 text-primary"><span class="k-icon k-i-check"></span> Officially Accepted Item Quantities</h4>
-                <p class="small text-muted mb-0">Accepted Quantity defaults to Inspected Quantity. If any items are rejected prior to acceptance, adjust the accepted quantity accordingly.</p>
+                <p class="small text-muted mb-0">Specify accepted quantities against physically inspected units. Accepted quantity cannot exceed the available inspected quantity.</p>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetAllAcceptedQuantities()">
-                <span class="k-icon k-i-reset"></span> Reset to Inspected
-            </button>
+            @if (!Model.IsReadOnly)
+            {
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="acceptAllAvailableQuantities()">
+                        <span class="k-icon k-i-check-outline"></span> Accept All Available
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetAllAcceptanceToZero()">
+                        <span class="k-icon k-i-reset"></span> Reset to Zero
+                    </button>
+                </div>
+            }
         </div>
 
         <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0" id="tblAcceptedQuantities">
+            <table class="table table-bordered table-hover align-middle mb-0" id="tblAcceptItems">
                 <thead class="table-light small">
                     <tr>
-                        <th style="width:70px;">Item No.</th>
+                        <th style="width: 35px;" class="text-center">#</th>
+                        <th style="width: 105px;">PR Number</th>
+                        <th style="width: 120px;">Department</th>
+                        <th style="width: 65px;">Item No.</th>
+                        <th style="width: 90px;">PPMP Code</th>
                         <th>Description</th>
-                        <th style="width:70px;">Unit</th>
-                        <th style="width:110px;" class="text-end">Inspected Qty</th>
-                        <th style="width:140px;" class="text-end text-success fw-bold">Accepted Qty</th>
-                        <th>Acceptance Item Remarks</th>
+                        <th style="width: 55px;">Unit</th>
+                        <th style="width: 80px;" class="text-end">PO Qty</th>
+                        <th style="width: 80px;" class="text-end">Total Insp.</th>
+                        <th style="width: 80px;" class="text-end">Prev. Accepted</th>
+                        <th style="width: 85px;" class="text-end text-primary fw-bold">Available</th>
+                        <th style="width: 110px;" class="text-end text-success fw-bold">Qty This Acceptance</th>
+                        <th style="width: 80px;" class="text-end">Total Accepted</th>
+                        <th style="width: 80px;" class="text-end">Remaining</th>
+                        <th style="width: 110px;" class="text-center">Disposition</th>
+                        <th style="width: 150px;" class="text-center">Inventory Details</th>
+                        <th style="width: 115px;">Remarks</th>
+                        <th style="width: 45px;" class="text-center">Hist.</th>
                     </tr>
                 </thead>
-                <tbody class="small" id="accItemsBody">
-                    <!-- Rendered via script -->
+                <tbody id="accItemsTableBody" class="small">
+                    <tr>
+                        <td colspan="18" class="p-4 text-center text-muted">
+                            Loading items for acceptance...
+                        </td>
+                    </tr>
                 </tbody>
+                <tfoot class="table-light fw-bold small" id="accItemsTableFooter" style="display:none;">
+                    <tr>
+                        <td colspan="7" class="text-end">Grand Totals:</td>
+                        <td class="text-end font-monospace" id="lblGrandPOQty">0.00</td>
+                        <td class="text-end font-monospace" id="lblGrandTotalInspected">0.00</td>
+                        <td class="text-end font-monospace text-muted" id="lblGrandPrevAccepted">0.00</td>
+                        <td class="text-end font-monospace text-primary" id="lblGrandAvailable">0.00</td>
+                        <td class="text-end font-monospace text-success fs-6" id="lblGrandQtyThisAcceptance">0.00</td>
+                        <td class="text-end font-monospace" id="lblGrandTotalAccepted">0.00</td>
+                        <td class="text-end font-monospace text-danger" id="lblGrandRemaining">0.00</td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
 
-    <!-- Step Actions -->
+    <!-- ================================================================
+         ACCEPTANCE SUMMARY CARD
+         ================================================================ -->
+    <div class="card mb-4 border shadow-sm" style="border-radius: 8px; overflow: hidden;">
+        <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="fw-bold text-dark"><span class="k-icon k-i-aggregate-fields"></span> Acceptance Summary</div>
+            <div id="acceptanceStatusBadgeContainer">
+                <span class="badge bg-secondary fs-6" id="badgeAcceptanceStatus">Evaluating...</span>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div class="row g-3 text-center">
+                <div class="col-md-2 col-4">
+                    <div class="small text-muted mb-1">PO Quantity</div>
+                    <div class="fs-6 fw-bold text-dark font-monospace" id="summaryPOQty">0.00</div>
+                </div>
+                <div class="col-md-2 col-4">
+                    <div class="small text-muted mb-1">Total Inspected</div>
+                    <div class="fs-6 fw-bold text-dark font-monospace" id="summaryTotalInspected">0.00</div>
+                </div>
+                <div class="col-md-2 col-4">
+                    <div class="small text-muted mb-1">Previously Accepted</div>
+                    <div class="fs-6 fw-bold text-muted font-monospace" id="summaryPrevAccepted">0.00</div>
+                </div>
+                <div class="col-md-2 col-4">
+                    <div class="small text-success mb-1 fw-semibold">Qty This Acceptance</div>
+                    <div class="fs-6 fw-bold text-success font-monospace" id="summaryThisAcceptance">0.00</div>
+                </div>
+                <div class="col-md-2 col-4">
+                    <div class="small text-primary mb-1 fw-semibold">Total Accepted</div>
+                    <div class="fs-6 fw-bold text-primary font-monospace" id="summaryTotalAccepted">0.00</div>
+                </div>
+                <div class="col-md-2 col-4">
+                    <div class="small text-danger mb-1 fw-semibold">Remaining</div>
+                    <div class="fs-6 fw-bold text-danger font-monospace" id="summaryRemaining">0.00</div>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="small text-muted" id="summaryStatusText">
+                    Checking acceptance requirements against Purchase Order items...
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small fw-bold text-secondary">Acceptance Type:</span>
+                    <span id="summaryStatusPill" class="badge bg-secondary fs-6">Pending Calculation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         STEP ACTIONS
+         ================================================================ -->
     <div class="wizard-summary-bar mt-4">
         <button type="button" class="btn-procurement-secondary" onclick="goToAcceptanceStep(1)">
-            <span class="k-icon k-i-arrow-left"></span> Back to Review
+            <span class="k-icon k-i-arrow-left"></span> Back to Review Inspection
         </button>
         <button type="button" class="btn-procurement-primary" onclick="proceedToAcceptanceStep3()">
-            Proceed to Item Disposition <span class="k-icon k-i-arrow-right"></span>
+            @(Model.IsReadOnly ? "Proceed to Final Summary " : "Proceed to Review & Post ") <span class="k-icon k-i-arrow-right"></span>
         </button>
     </div>
 
 </div>
 
 <script type="text/javascript">
+    var expandedItemRows = {};
+    var activeModalItemIdx = -1;
+    var activeModalSubItemIdx = null;
+
+    function formatNumber(val, decimals) {
+        if (val === undefined || val === null || isNaN(val)) return "0.00";
+        var dec = (decimals !== undefined) ? decimals : 2;
+        return Number(val).toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+
+    function checkInventoryDetailCompleted(extnName, d) {
+        if (!d) return false;
+        extnName = extnName || "ItemExtnOther";
+        if (extnName === "ItemExtnVehicle") {
+            return !!((d.ConductionNo && d.ConductionNo.trim()) ||
+                      (d.EngineNo && d.EngineNo.trim()) ||
+                      (d.ChasisNo && d.ChasisNo.trim()) ||
+                      (d.PlateNo && d.PlateNo.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else if (extnName === "ItemExtnLand") {
+            return !!((d.PIN && d.PIN.trim()) ||
+                      (d.TctNo && d.TctNo.trim()) ||
+                      (d.Address && d.Address.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else if (extnName === "ItemExtnBuilding") {
+            return !!((d.ProjectName && d.ProjectName.trim()) ||
+                      (d.Address && d.Address.trim()) ||
+                      (d.SerialNo && d.SerialNo.trim()));
+        } else {
+            return !!((d.SerialNo && d.SerialNo.trim()) || (d.Remarks && d.Remarks.trim()));
+        }
+    }
+
     function renderAccStep2Items() {
-        var tbody = $("#accItemsBody");
+        var tbody = $("#accItemsTableBody");
         tbody.empty();
 
-        if (!acceptanceState.Items || acceptanceState.Items.length === 0) {
-            tbody.html('<tr><td colspan="6" class="p-4 text-center text-muted">No items available.</td></tr>');
+        if (!acceptanceState || !acceptanceState.Items || acceptanceState.Items.length === 0) {
+            tbody.html('<tr><td colspan="18" class="p-4 text-center text-muted">No items available for acceptance.</td></tr>');
+            $("#accItemsTableFooter").hide();
             return;
         }
 
+        var isReadOnlyMode = (typeof isReadOnly !== 'undefined' && isReadOnly) || (acceptanceState && acceptanceState.IsReadOnly);
+
+        var html = "";
         acceptanceState.Items.forEach(function (item, idx) {
-            var tr = "<tr>" +
-                     "  <td class='fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>" +
-                     "  <td>" + (item.Description || "Item") + "</td>" +
-                     "  <td class='text-muted'>" + (item.Unit || "") + "</td>" +
-                     "  <td class='text-end font-monospace text-primary fw-bold'>" + Number(item.InspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>" +
-                     "  <td class='text-end'>" +
-                     "    <input type='number' step='any' min='0' max='" + item.InspectedQty + "' class='form-control-custom text-end fw-bold text-success' id='txtAccQty_" + idx + "' value='" + (item.AcceptedQty != null ? item.AcceptedQty : item.InspectedQty) + "' onchange='onAcceptedQtyChange(" + idx + ", this.value)' />" +
-                     "  </td>" +
-                     "  <td><input type='text' class='form-control-custom w-100' id='txtAccRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Condition / remarks...' onchange='onAccItemRemarksChange(" + idx + ", this.value)' /></td>" +
-                     "</tr>";
-            tbody.append(tr);
+            // Reconcile item formulas
+            var poQty = Number(item.POQty != null ? item.POQty : (item.OrderedQty || 0));
+            var totInsp = Number(item.TotalInspectedQty != null ? item.TotalInspectedQty : (item.InspectedQty || 0));
+            var prevAcc = Number(item.PreviouslyAcceptedQty != null ? item.PreviouslyAcceptedQty : 0);
+            var avail = Math.max(0, totInsp - prevAcc);
+
+            item.POQty = poQty;
+            item.TotalInspectedQty = totInsp;
+            item.PreviouslyAcceptedQty = prevAcc;
+            item.AvailableForAcceptanceQty = avail;
+
+            // Default QtyThisAcceptance if not set
+            if (item.QtyThisAcceptance === undefined || item.QtyThisAcceptance === null) {
+                if (item.AcceptedQty != null) {
+                    item.QtyThisAcceptance = Math.min(avail, Math.max(0, Number(item.AcceptedQty)));
+                } else {
+                    item.QtyThisAcceptance = avail;
+                }
+            } else {
+                item.QtyThisAcceptance = Math.min(avail, Math.max(0, Number(item.QtyThisAcceptance)));
+            }
+
+            var qtyThisAcc = Number(item.QtyThisAcceptance || 0);
+            var totAcc = prevAcc + qtyThisAcc;
+            var rem = Math.max(0, poQty - totAcc);
+
+            item.TotalAcceptedQty = totAcc;
+            item.RemainingQty = rem;
+            item.AcceptedQty = qtyThisAcc; // Sync for Step 3/4 and backend payload
+
+            var hasMultipleAllocations = item.Allocations && item.Allocations.length > 1;
+            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
+            var canExpand = hasMultipleAllocations || isSet;
+            var isExpanded = !!expandedItemRows[idx];
+
+            var expandBtn = "";
+            if (canExpand) {
+                var initialIcon = isExpanded ? "k-i-arrow-chevron-down" : "k-i-arrow-chevron-right";
+                expandBtn = "<button type='button' class='btn btn-xs btn-link p-0 text-decoration-none' onclick='toggleItemBreakdown(" + idx + ")' title='Toggle breakdown'><span id='expandIcon_" + idx + "' class='k-icon " + initialIcon + "'></span></button>";
+            }
+
+            var prCellContent = "";
+            var deptCellContent = "";
+
+            if (hasMultipleAllocations) {
+                prCellContent = "<span class='badge bg-primary text-white mb-1'>" + item.Allocations.length + " PR Allocations</span>";
+                var prNums = item.Allocations.map(function (a) { return a.PRNumber; }).filter(function (p) { return !!p; });
+                if (prNums.length > 0) {
+                    prCellContent += "<div class='small text-muted text-truncate' style='max-width:125px;' title='" + prNums.join(", ") + "'>" + prNums.join(", ") + "</div>";
+                }
+                var depts = item.Allocations.map(function (a) { return a.Department; }).filter(function (d) { return !!d; });
+                if (depts.length > 0) {
+                    deptCellContent = "<div class='small text-muted text-truncate' style='max-width:130px;' title='" + depts.join(", ") + "'>" + depts.join(", ") + "</div>";
+                }
+            } else if (item.Allocations && item.Allocations.length === 1) {
+                var a0 = item.Allocations[0];
+                prCellContent = "<span class='small fw-bold text-primary'>" + (a0.PRNumber || item.PRNumber || "--") + "</span>";
+                deptCellContent = "<span class='small text-muted text-truncate d-block' style='max-width:130px;' title='" + (a0.Department || item.Department || "--") + "'>" + (a0.Department || item.Department || "--") + "</span>";
+            } else {
+                prCellContent = "<span class='small fw-bold text-primary'>" + (item.PRNumber || acceptanceState.PRNumber || "--") + "</span>";
+                deptCellContent = "<span class='small text-muted text-truncate d-block' style='max-width:130px;' title='" + (item.Department || acceptanceState.Department || "--") + "'>" + (item.Department || acceptanceState.Department || "--") + "</span>";
+            }
+
+            html += "<tr id='accItemRow_" + idx + "' data-item-idx='" + idx + "' class='" + (isSet ? "table-set-parent" : "") + "'>";
+            html += "<td class='text-center'>" + expandBtn + "</td>";
+            html += "<td>" + prCellContent + "</td>";
+            html += "<td>" + deptCellContent + "</td>";
+            html += "<td class='fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>";
+            html += "<td class='small text-muted'>" + (item.PPMPCode || "--") + "</td>";
+            html += "<td>";
+            html += "  <div class='fw-semibold text-dark'>" + (item.Description || "Item") + "</div>";
+            if (isSet) {
+                html += "  <span class='badge bg-info text-dark small me-1'>Set / Lot (" + item.SubItems.length + " components)</span>";
+            }
+            if (item.ItemExtnName) {
+                html += "  <span class='badge bg-light text-secondary border small mt-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>";
+            }
+            html += "</td>";
+            html += "<td class='text-muted small'>" + (item.Unit || "unit") + "</td>";
+            html += "<td class='text-end font-monospace'>" + formatNumber(poQty) + "</td>";
+            html += "<td class='text-end font-monospace text-dark'>" + formatNumber(totInsp) + "</td>";
+            html += "<td class='text-end font-monospace text-muted'>" + formatNumber(prevAcc) + "</td>";
+            html += "<td class='text-end font-monospace fw-bold text-primary' id='lblItemAvail_" + idx + "'>" + formatNumber(avail) + "</td>";
+
+            // Qty This Acceptance (editable input or read-only badge)
+            html += "<td class='text-end'>";
+            if (isReadOnlyMode) {
+                html += "  <span class='fw-bold font-monospace text-success fs-6'>" + formatNumber(qtyThisAcc) + "</span>";
+            } else if (hasMultipleAllocations) {
+                html += "  <input type='number' step='any' readonly class='form-control-custom text-end fw-bold text-success bg-light border-success' id='txtQtyThisAcceptance_" + idx + "' value='" + qtyThisAcc + "' title='Auto-calculated from PR allocations below' />";
+                html += "  <div class='small text-muted' style='font-size:10px;'>Sum of PRs</div>";
+            } else {
+                html += "  <input type='number' step='any' min='0' max='" + avail + "' class='form-control-custom text-end fw-bold text-success border-success' id='txtQtyThisAcceptance_" + idx + "' value='" + qtyThisAcc + "' oninput='onItemAcceptNowChange(" + idx + ", this.value)' />";
+            }
+            html += "</td>";
+
+            html += "<td class='text-end font-monospace fw-bold' id='lblItemTotalAcc_" + idx + "'>" + formatNumber(totAcc) + "</td>";
+            html += "<td class='text-end font-monospace fw-bold " + (rem > 0 ? "text-danger" : "text-muted") + "' id='lblItemRem_" + idx + "'>" + formatNumber(rem) + "</td>";
+
+            // Disposition (Read-only badge established during inspection)
+            var disp = item.Disposition || acceptanceState.Disposition || "Inventory";
+            var dispBadgeClass = (disp === "Inventory") ? "bg-primary text-white" : (disp === "For Distribution" || disp === "ForDistribution" ? "bg-success text-white" : "bg-light text-dark border");
+            html += "<td class='text-center'><span class='badge " + dispBadgeClass + " px-2 py-1 small'>" + disp + "</span></td>";
+
+            // Inventory Details Cell (Read-Only review button)
+            html += "<td class='text-center' id='accInvDetailsCell_" + idx + "'>";
+            html += renderAcceptanceInventoryDetailsButtonHtml(item, idx);
+            html += "</td>";
+
+            // Acceptance Remarks
+            if (isReadOnlyMode) {
+                html += "<td><span class='small text-muted'>" + (item.Remarks ? item.Remarks : "--") + "</span></td>";
+            } else {
+                html += "<td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtItemRemarks_" + idx + "' value='" + (item.Remarks || "") + "' placeholder='Acceptance remarks...' onchange='onItemRemarksChange(" + idx + ", this.value)' /></td>";
+            }
+
+            // Hist.
+            html += "<td class='text-center'><button type='button' class='btn btn-xs btn-outline-secondary' onclick='openItemHistory(\"" + item.OrderItemId + "\")' title='View History'><span class='k-icon k-i-history'></span></button></td>";
+            html += "</tr>";
+
+            // Breakdown row for multiple allocations OR Set/Lot components
+            if (canExpand) {
+                html += "<tr id='breakdownRow_" + idx + "' style='" + (isExpanded ? "" : "display:none;") + "' class='table-light'>";
+                html += "  <td></td>";
+                html += "  <td colspan='17' class='p-3'>";
+
+                // 1. Multiple PR Allocations Table
+                if (hasMultipleAllocations) {
+                    html += "    <div class='p-2 bg-white rounded border mb-3 shadow-sm'>";
+                    html += "      <div class='d-flex justify-content-between align-items-center mb-2'>";
+                    html += "        <div class='fw-bold small text-primary'><span class='k-icon k-i-list-unordered'></span> PR Allocations Breakdown for Item #" + (item.ItemNo || (idx + 1)) + ":</div>";
+                    html += "        <span class='badge bg-light text-secondary border small'>Enter acceptance quantities per PR allocation</span>";
+                    html += "      </div>";
+                    html += "      <table class='table table-sm table-bordered mb-0'>";
+                    html += "        <thead class='table-light small'>";
+                    html += "          <tr>";
+                    html += "            <th style='width:120px;'>PR Number</th>";
+                    html += "            <th>Department</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Allocated</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Total Insp.</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Prev. Accepted</th>";
+                    html += "            <th style='width:90px;' class='text-end text-primary'>Available</th>";
+                    html += "            <th style='width:110px;' class='text-end text-success fw-bold'>Accept Now</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Total Accepted</th>";
+                    html += "            <th style='width:90px;' class='text-end'>Remaining</th>";
+                    html += "            <th>Remarks</th>";
+                    html += "          </tr>";
+                    html += "        </thead>";
+                    html += "        <tbody>";
+
+                    item.Allocations.forEach(function (alloc, aIdx) {
+                        var aTotInsp = Number(alloc.QtyInspected || 0);
+                        var aPrevAcc = Number(alloc.PreviousAccepted || 0);
+                        var aAvail = Math.max(0, aTotInsp - aPrevAcc);
+
+                        alloc.TotalInspected = aTotInsp;
+                        alloc.PreviousAccepted = aPrevAcc;
+                        alloc.AvailableForAcceptance = aAvail;
+
+                        if (alloc.QtyThisAcceptance === undefined || alloc.QtyThisAcceptance === null) {
+                            alloc.QtyThisAcceptance = Math.min(aAvail, aTotInsp);
+                        } else {
+                            alloc.QtyThisAcceptance = Math.min(aAvail, Math.max(0, Number(alloc.QtyThisAcceptance)));
+                        }
+
+                        var aQtyThis = Number(alloc.QtyThisAcceptance || 0);
+                        var aTotAcc = aPrevAcc + aQtyThis;
+                        var aAllocated = Number(alloc.QtyAllocated || 0);
+                        var aRem = Math.max(0, aAllocated - aTotAcc);
+
+                        alloc.TotalAccepted = aTotAcc;
+                        alloc.RemainingQty = aRem;
+
+                        html += "          <tr>";
+                        html += "            <td class='fw-bold small text-primary'>" + (alloc.PRNumber || "--") + "</td>";
+                        html += "            <td class='small text-muted'>" + (alloc.Department || "--") + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + formatNumber(aAllocated) + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + formatNumber(aTotInsp) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-muted'>" + formatNumber(aPrevAcc) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-primary fw-bold' id='lblAllocAvail_" + idx + "_" + aIdx + "'>" + formatNumber(aAvail) + "</td>";
+
+                        if (isReadOnlyMode) {
+                            html += "            <td class='text-end font-monospace small fw-bold text-success'>" + formatNumber(aQtyThis) + "</td>";
+                        } else {
+                            html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + aAvail + "' class='form-control-custom text-end fw-bold form-control-sm text-success border-success' id='txtAllocAcceptNow_" + idx + "_" + aIdx + "' value='" + aQtyThis + "' oninput='onAllocAcceptNowChange(" + idx + ", " + aIdx + ", this.value)' /></td>";
+                        }
+
+                        html += "            <td class='text-end font-monospace small fw-bold' id='lblAllocTotAcc_" + idx + "_" + aIdx + "'>" + formatNumber(aTotAcc) + "</td>";
+                        html += "            <td class='text-end font-monospace small fw-bold " + (aRem > 0 ? "text-danger" : "text-muted") + "' id='lblAllocRem_" + idx + "_" + aIdx + "'>" + formatNumber(aRem) + "</td>";
+
+                        if (isReadOnlyMode) {
+                            html += "            <td><span class='small text-muted'>" + (alloc.Remarks || "--") + "</span></td>";
+                        } else {
+                            html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtAllocRemarks_" + idx + "_" + aIdx + "' value='" + (alloc.Remarks || "") + "' placeholder='Allocation notes...' onchange='onAllocRemarksChange(" + idx + ", " + aIdx + ", this.value)' /></td>";
+                        }
+                        html += "          </tr>";
+                    });
+
+                    html += "        </tbody>";
+                    html += "      </table>";
+                    html += "    </div>";
+                }
+
+                // 2. Set/Lot Components Table
+                if (isSet) {
+                    html += "    <div class='p-2 bg-white rounded border shadow-sm'>";
+                    html += "      <div class='d-flex justify-content-between align-items-center mb-2'>";
+                    html += "        <div class='fw-bold small text-secondary'><span class='k-icon k-i-layers'></span> Set/Lot Components for: <strong>" + (item.Description || "Item") + "</strong></div>";
+                    html += "        <span class='badge bg-light text-secondary border small'>Component acceptance must correspond to accepted parent set</span>";
+                    html += "      </div>";
+                    html += "      <table class='table table-sm table-bordered mb-0'>";
+                    html += "        <thead class='table-light small'>";
+                    html += "          <tr>";
+                    html += "            <th style='width:80px;'>Sub-No.</th>";
+                    html += "            <th>Component Description</th>";
+                    html += "            <th style='width:55px;'>Unit</th>";
+                    html += "            <th style='width:80px;' class='text-end'>Expected</th>";
+                    html += "            <th style='width:80px;' class='text-end'>Total Insp.</th>";
+                    html += "            <th style='width:80px;' class='text-end'>Prev. Accepted</th>";
+                    html += "            <th style='width:80px;' class='text-end text-primary fw-bold'>Available</th>";
+                    html += "            <th style='width:110px;' class='text-end text-success fw-bold'>Accept Now</th>";
+                    html += "            <th style='width:80px;' class='text-end'>Total Accepted</th>";
+                    html += "            <th style='width:80px;' class='text-end'>Remaining</th>";
+                    html += "            <th style='width:150px;' class='text-center'>Inventory Details</th>";
+                    html += "            <th>Remarks</th>";
+                    html += "          </tr>";
+                    html += "        </thead>";
+                    html += "        <tbody>";
+
+                    item.SubItems.forEach(function (sub, sIdx) {
+                        var sExpected = Number(sub.ExpectedQty != null ? sub.ExpectedQty : (sub.POQty || 0));
+                        var sTotInsp = Number(sub.TotalInspectedQty != null ? sub.TotalInspectedQty : 0);
+                        var sPrevAcc = Number(sub.PreviouslyAcceptedQty != null ? sub.PreviouslyAcceptedQty : 0);
+                        var sAvail = Math.max(0, sTotInsp - sPrevAcc);
+
+                        sub.ExpectedQty = sExpected;
+                        sub.TotalInspectedQty = sTotInsp;
+                        sub.PreviouslyAcceptedQty = sPrevAcc;
+                        sub.AvailableForAcceptanceQty = sAvail;
+
+                        // Default component Accept Now
+                        if (sub.QtyThisAcceptance === undefined || sub.QtyThisAcceptance === null) {
+                            var ratio = (poQty > 0) ? (qtyThisAcc / poQty) : 0;
+                            var subRatioTarget = (sub.QtyPerParent > 0) ? (qtyThisAcc * sub.QtyPerParent) : (sExpected * ratio);
+                            sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, subRatioTarget));
+                        } else {
+                            sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, Number(sub.QtyThisAcceptance)));
+                        }
+
+                        var sQtyThis = Number(sub.QtyThisAcceptance || 0);
+                        var sTotAcc = sPrevAcc + sQtyThis;
+                        var sRem = Math.max(0, sExpected - sTotAcc);
+
+                        sub.TotalAcceptedQty = sTotAcc;
+                        sub.RemainingQty = sRem;
+
+                        html += "          <tr>";
+                        html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
+                        html += "            <td>" + (sub.Description || "") + "</td>";
+                        html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + formatNumber(sExpected) + "</td>";
+                        html += "            <td class='text-end font-monospace small'>" + formatNumber(sTotInsp) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-muted'>" + formatNumber(sPrevAcc) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-primary fw-bold' id='lblSubAvail_" + idx + "_" + sIdx + "'>" + formatNumber(sAvail) + "</td>";
+
+                        if (isReadOnlyMode) {
+                            html += "            <td class='text-end font-monospace small fw-bold text-success'>" + formatNumber(sQtyThis) + "</td>";
+                        } else {
+                            html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + sAvail + "' class='form-control-custom text-end fw-bold form-control-sm text-success border-success' id='txtSubAcceptNow_" + idx + "_" + sIdx + "' value='" + sQtyThis + "' oninput='onSubItemAcceptNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                        }
+
+                        html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotAcc_" + idx + "_" + sIdx + "'>" + formatNumber(sTotAcc) + "</td>";
+                        html += "            <td class='text-end font-monospace small fw-bold " + (sRem > 0 ? "text-danger" : "text-muted") + "' id='lblSubRem_" + idx + "_" + sIdx + "'>" + formatNumber(sRem) + "</td>";
+                        html += "            <td class='text-center' id='accSubInvDetailsCell_" + idx + "_" + sIdx + "'>" + renderAcceptanceSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
+
+                        if (isReadOnlyMode) {
+                            html += "            <td><span class='small text-muted'>" + (sub.Remarks || "--") + "</span></td>";
+                        } else {
+                            html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Sub-item notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                        }
+                        html += "          </tr>";
+                    });
+
+                    html += "        </tbody>";
+                    html += "      </table>";
+                    html += "    </div>";
+                }
+
+                html += "  </td>";
+                html += "</tr>";
+            }
         });
+
+        tbody.html(html);
+        $("#accItemsTableFooter").show();
+        recalculateAccGrandTotals();
     }
 
-    function onAcceptedQtyChange(idx, valStr) {
-        var val = parseFloat(valStr) || 0;
+    function toggleItemBreakdown(idx) {
+        var row = $("#breakdownRow_" + idx);
+        var icon = $("#expandIcon_" + idx);
+        if (row.is(":visible")) {
+            row.hide();
+            icon.removeClass("k-i-arrow-chevron-down").addClass("k-i-arrow-chevron-right");
+            expandedItemRows[idx] = false;
+        } else {
+            row.show();
+            icon.removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
+            expandedItemRows[idx] = true;
+        }
+    }
+
+    function onItemAcceptNowChange(idx, valStr) {
         var item = acceptanceState.Items[idx];
         if (!item) return;
 
-        if (val < 0) {
-            val = 0;
-            $("#txtAccQty_" + idx).val(0);
-        } else if (val > item.InspectedQty) {
-            val = item.InspectedQty;
-            $("#txtAccQty_" + idx).val(item.InspectedQty);
-            alert("Accepted quantity cannot exceed Inspected quantity (" + item.InspectedQty + ").");
+        var val = parseFloat(valStr);
+        if (isNaN(val) || val < 0) val = 0;
+
+        var avail = item.AvailableForAcceptanceQty || 0;
+        if (val > avail) {
+            val = avail;
+            $("#txtQtyThisAcceptance_" + idx).val(val);
+            alert("Accepted quantity cannot exceed the available inspected quantity (" + formatNumber(avail) + ").");
         }
 
+        item.QtyThisAcceptance = val;
         item.AcceptedQty = val;
+        var prevAcc = item.PreviouslyAcceptedQty || 0;
+        item.TotalAcceptedQty = prevAcc + val;
+        item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
+
+        $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
+        var lblRem = $("#lblItemRem_" + idx);
+        lblRem.text(formatNumber(item.RemainingQty));
+        if (item.RemainingQty > 0) lblRem.removeClass("text-muted").addClass("text-danger");
+        else lblRem.removeClass("text-danger").addClass("text-muted");
+
+        // If Set/Lot, proportionally synchronize child component quantities
+        if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+            var pRatio = (item.POQty > 0) ? (val / item.POQty) : 0;
+            item.SubItems.forEach(function (sub, sIdx) {
+                var sAvail = sub.AvailableForAcceptanceQty || 0;
+                var targetSub = (sub.QtyPerParent > 0) ? (val * sub.QtyPerParent) : (sub.ExpectedQty * pRatio);
+                sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, Math.round(targetSub * 100) / 100));
+                sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + sub.QtyThisAcceptance;
+                sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
+
+                $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(sub.QtyThisAcceptance);
+                $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
+                var subRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
+                subRemLbl.text(formatNumber(sub.RemainingQty));
+                if (sub.RemainingQty > 0) subRemLbl.removeClass("text-muted").addClass("text-danger");
+                else subRemLbl.removeClass("text-danger").addClass("text-muted");
+            });
+        }
+
+        recalculateAccGrandTotals();
     }
 
-    function onAccItemRemarksChange(idx, val) {
-        if (acceptanceState.Items[idx]) {
+    function onSubItemAcceptNowChange(idx, sIdx, valStr) {
+        var item = acceptanceState.Items[idx];
+        if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
+
+        var sub = item.SubItems[sIdx];
+        var val = parseFloat(valStr);
+        if (isNaN(val) || val < 0) val = 0;
+
+        var avail = sub.AvailableForAcceptanceQty || 0;
+        if (val > avail) {
+            val = avail;
+            $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(val);
+            alert("Component accepted quantity cannot exceed available inspected quantity (" + formatNumber(avail) + ").");
+        }
+
+        sub.QtyThisAcceptance = val;
+        sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + val;
+        sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
+
+        $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
+        var subRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
+        subRemLbl.text(formatNumber(sub.RemainingQty));
+        if (sub.RemainingQty > 0) subRemLbl.removeClass("text-muted").addClass("text-danger");
+        else subRemLbl.removeClass("text-danger").addClass("text-muted");
+
+        // Verify parent Set/Lot consistency: parent sets cannot exceed supported component sets
+        var maxPossibleSets = 99999999;
+        item.SubItems.forEach(function (c) {
+            var qtyPer = c.QtyPerParent > 0 ? c.QtyPerParent : 1;
+            var compSets = Math.floor(((c.PreviouslyAcceptedQty || 0) + (c.QtyThisAcceptance || 0)) / qtyPer) - (item.PreviouslyAcceptedQty || 0);
+            if (compSets < maxPossibleSets) maxPossibleSets = compSets;
+        });
+        if (maxPossibleSets < 0) maxPossibleSets = 0;
+
+        if (item.QtyThisAcceptance > maxPossibleSets) {
+            item.QtyThisAcceptance = maxPossibleSets;
+            item.AcceptedQty = maxPossibleSets;
+            item.TotalAcceptedQty = (item.PreviouslyAcceptedQty || 0) + maxPossibleSets;
+            item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
+
+            $("#txtQtyThisAcceptance_" + idx).val(maxPossibleSets);
+            $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
+            var pRemLbl = $("#lblItemRem_" + idx);
+            pRemLbl.text(formatNumber(item.RemainingQty));
+            if (item.RemainingQty > 0) pRemLbl.removeClass("text-muted").addClass("text-danger");
+            else pRemLbl.removeClass("text-danger").addClass("text-muted");
+        }
+
+        recalculateAccGrandTotals();
+    }
+
+    function onAllocAcceptNowChange(idx, aIdx, valStr) {
+        var item = acceptanceState.Items[idx];
+        if (!item || !item.Allocations || !item.Allocations[aIdx]) return;
+
+        var alloc = item.Allocations[aIdx];
+        var val = parseFloat(valStr);
+        if (isNaN(val) || val < 0) val = 0;
+
+        var avail = alloc.AvailableForAcceptance || 0;
+        if (val > avail) {
+            val = avail;
+            $("#txtAllocAcceptNow_" + idx + "_" + aIdx).val(val);
+            alert("Allocation accepted quantity cannot exceed available inspected quantity (" + formatNumber(avail) + ").");
+        }
+
+        alloc.QtyThisAcceptance = val;
+        alloc.TotalAccepted = (alloc.PreviousAccepted || 0) + val;
+        alloc.RemainingQty = Math.max(0, (alloc.QtyAllocated || 0) - alloc.TotalAccepted);
+
+        $("#lblAllocTotAcc_" + idx + "_" + aIdx).text(formatNumber(alloc.TotalAccepted));
+        var allocRemLbl = $("#lblAllocRem_" + idx + "_" + aIdx);
+        allocRemLbl.text(formatNumber(alloc.RemainingQty));
+        if (alloc.RemainingQty > 0) allocRemLbl.removeClass("text-muted").addClass("text-danger");
+        else allocRemLbl.removeClass("text-danger").addClass("text-muted");
+
+        // Sum allocations into parent item
+        var sumAlloc = 0;
+        item.Allocations.forEach(function (a) {
+            sumAlloc += Number(a.QtyThisAcceptance || 0);
+        });
+        item.QtyThisAcceptance = sumAlloc;
+        item.AcceptedQty = sumAlloc;
+        item.TotalAcceptedQty = (item.PreviouslyAcceptedQty || 0) + sumAlloc;
+        item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
+
+        $("#txtQtyThisAcceptance_" + idx).val(sumAlloc);
+        $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
+        var lblRem = $("#lblItemRem_" + idx);
+        lblRem.text(formatNumber(item.RemainingQty));
+        if (item.RemainingQty > 0) lblRem.removeClass("text-muted").addClass("text-danger");
+        else lblRem.removeClass("text-danger").addClass("text-muted");
+
+        recalculateAccGrandTotals();
+    }
+
+    function onItemRemarksChange(idx, val) {
+        if (acceptanceState.Items && acceptanceState.Items[idx]) {
             acceptanceState.Items[idx].Remarks = val;
         }
     }
 
-    function resetAllAcceptedQuantities() {
-        if (!acceptanceState.Items) return;
-        acceptanceState.Items.forEach(function (item, idx) {
-            item.AcceptedQty = item.InspectedQty;
-            $("#txtAccQty_" + idx).val(item.InspectedQty);
-        });
+    function onSubItemRemarksChange(idx, sIdx, val) {
+        if (acceptanceState.Items && acceptanceState.Items[idx] && acceptanceState.Items[idx].SubItems && acceptanceState.Items[idx].SubItems[sIdx]) {
+            acceptanceState.Items[idx].SubItems[sIdx].Remarks = val;
+        }
     }
 
+    function onAllocRemarksChange(idx, aIdx, val) {
+        if (acceptanceState.Items && acceptanceState.Items[idx] && acceptanceState.Items[idx].Allocations && acceptanceState.Items[idx].Allocations[aIdx]) {
+            acceptanceState.Items[idx].Allocations[aIdx].Remarks = val;
+        }
+    }
+
+    function acceptAllAvailableQuantities() {
+        if (!acceptanceState || !acceptanceState.Items) return;
+        acceptanceState.Items.forEach(function (item, idx) {
+            var avail = item.AvailableForAcceptanceQty || 0;
+            item.QtyThisAcceptance = avail;
+            item.AcceptedQty = avail;
+            item.TotalAcceptedQty = (item.PreviouslyAcceptedQty || 0) + avail;
+            item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
+
+            $("#txtQtyThisAcceptance_" + idx).val(avail);
+            $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
+            var lblRem = $("#lblItemRem_" + idx);
+            lblRem.text(formatNumber(item.RemainingQty));
+            if (item.RemainingQty > 0) lblRem.removeClass("text-muted").addClass("text-danger");
+            else lblRem.removeClass("text-danger").addClass("text-muted");
+
+            if (item.Allocations && item.Allocations.length > 0) {
+                item.Allocations.forEach(function (alloc, aIdx) {
+                    var aAvail = alloc.AvailableForAcceptance || 0;
+                    alloc.QtyThisAcceptance = aAvail;
+                    alloc.TotalAccepted = (alloc.PreviousAccepted || 0) + aAvail;
+                    alloc.RemainingQty = Math.max(0, (alloc.QtyAllocated || 0) - alloc.TotalAccepted);
+                    $("#txtAllocAcceptNow_" + idx + "_" + aIdx).val(aAvail);
+                    $("#lblAllocTotAcc_" + idx + "_" + aIdx).text(formatNumber(alloc.TotalAccepted));
+                    var aRemLbl = $("#lblAllocRem_" + idx + "_" + aIdx);
+                    aRemLbl.text(formatNumber(alloc.RemainingQty));
+                    if (alloc.RemainingQty > 0) aRemLbl.removeClass("text-muted").addClass("text-danger");
+                    else aRemLbl.removeClass("text-danger").addClass("text-muted");
+                });
+            }
+
+            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+                item.SubItems.forEach(function (sub, sIdx) {
+                    var sAvail = sub.AvailableForAcceptanceQty || 0;
+                    sub.QtyThisAcceptance = sAvail;
+                    sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + sAvail;
+                    sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
+                    $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(sAvail);
+                    $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
+                    var sRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
+                    sRemLbl.text(formatNumber(sub.RemainingQty));
+                    if (sub.RemainingQty > 0) sRemLbl.removeClass("text-muted").addClass("text-danger");
+                    else sRemLbl.removeClass("text-danger").addClass("text-muted");
+                });
+            }
+        });
+
+        recalculateAccGrandTotals();
+    }
+
+    function resetAllAcceptanceToZero() {
+        if (!acceptanceState || !acceptanceState.Items) return;
+        acceptanceState.Items.forEach(function (item, idx) {
+            item.QtyThisAcceptance = 0;
+            item.AcceptedQty = 0;
+            item.TotalAcceptedQty = item.PreviouslyAcceptedQty || 0;
+            item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
+
+            $("#txtQtyThisAcceptance_" + idx).val(0);
+            $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
+            var lblRem = $("#lblItemRem_" + idx);
+            lblRem.text(formatNumber(item.RemainingQty));
+            if (item.RemainingQty > 0) lblRem.removeClass("text-muted").addClass("text-danger");
+            else lblRem.removeClass("text-danger").addClass("text-muted");
+
+            if (item.Allocations && item.Allocations.length > 0) {
+                item.Allocations.forEach(function (alloc, aIdx) {
+                    alloc.QtyThisAcceptance = 0;
+                    alloc.TotalAccepted = alloc.PreviousAccepted || 0;
+                    alloc.RemainingQty = Math.max(0, (alloc.QtyAllocated || 0) - alloc.TotalAccepted);
+                    $("#txtAllocAcceptNow_" + idx + "_" + aIdx).val(0);
+                    $("#lblAllocTotAcc_" + idx + "_" + aIdx).text(formatNumber(alloc.TotalAccepted));
+                    var aRemLbl = $("#lblAllocRem_" + idx + "_" + aIdx);
+                    aRemLbl.text(formatNumber(alloc.RemainingQty));
+                    if (alloc.RemainingQty > 0) aRemLbl.removeClass("text-muted").addClass("text-danger");
+                    else aRemLbl.removeClass("text-danger").addClass("text-muted");
+                });
+            }
+
+            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+                item.SubItems.forEach(function (sub, sIdx) {
+                    sub.QtyThisAcceptance = 0;
+                    sub.TotalAcceptedQty = sub.PreviouslyAcceptedQty || 0;
+                    sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
+                    $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(0);
+                    $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
+                    var sRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
+                    sRemLbl.text(formatNumber(sub.RemainingQty));
+                    if (sub.RemainingQty > 0) sRemLbl.removeClass("text-muted").addClass("text-danger");
+                    else sRemLbl.removeClass("text-danger").addClass("text-muted");
+                });
+            }
+        });
+
+        recalculateAccGrandTotals();
+    }
+
+    function recalculateAccGrandTotals() {
+        if (!acceptanceState || !acceptanceState.Items) return;
+
+        var gPOQty = 0;
+        var gTotInsp = 0;
+        var gPrevAcc = 0;
+        var gAvail = 0;
+        var gQtyThis = 0;
+        var gTotAcc = 0;
+        var gRem = 0;
+
+        var allItemsComplete = true;
+        var hasAnyAcceptance = false;
+
+        acceptanceState.Items.forEach(function (item) {
+            var poQty = Number(item.POQty || 0);
+            var totInsp = Number(item.TotalInspectedQty || 0);
+            var prevAcc = Number(item.PreviouslyAcceptedQty || 0);
+            var avail = Number(item.AvailableForAcceptanceQty || 0);
+            var qtyThis = Number(item.QtyThisAcceptance || 0);
+            var totAcc = prevAcc + qtyThis;
+            var rem = Math.max(0, poQty - totAcc);
+
+            gPOQty += poQty;
+            gTotInsp += totInsp;
+            gPrevAcc += prevAcc;
+            gAvail += avail;
+            gQtyThis += qtyThis;
+            gTotAcc += totAcc;
+            gRem += rem;
+
+            if (totAcc > 0) hasAnyAcceptance = true;
+
+            // Check individual item completion
+            if (totAcc < poQty) {
+                allItemsComplete = false;
+            }
+
+            // If Set/Lot, also check individual component completion
+            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+                item.SubItems.forEach(function (sub) {
+                    var sExp = Number(sub.ExpectedQty || 0);
+                    var sTot = Number(sub.TotalAcceptedQty || 0);
+                    if (sTot < sExp) {
+                        allItemsComplete = false;
+                    }
+                });
+            }
+        });
+
+        // Update footer
+        $("#lblGrandPOQty").text(formatNumber(gPOQty));
+        $("#lblGrandTotalInspected").text(formatNumber(gTotInsp));
+        $("#lblGrandPrevAccepted").text(formatNumber(gPrevAcc));
+        $("#lblGrandAvailable").text(formatNumber(gAvail));
+        $("#lblGrandQtyThisAcceptance").text(formatNumber(gQtyThis));
+        $("#lblGrandTotalAccepted").text(formatNumber(gTotAcc));
+        $("#lblGrandRemaining").text(formatNumber(gRem));
+
+        // Update summary card
+        $("#summaryPOQty").text(formatNumber(gPOQty));
+        $("#summaryTotalInspected").text(formatNumber(gTotInsp));
+        $("#summaryPrevAccepted").text(formatNumber(gPrevAcc));
+        $("#summaryThisAcceptance").text(formatNumber(gQtyThis));
+        $("#summaryTotalAccepted").text(formatNumber(gTotAcc));
+        $("#summaryRemaining").text(formatNumber(gRem));
+
+        // Save totals to state
+        acceptanceState.TotalPOQty = gPOQty;
+        acceptanceState.TotalInspectedQty = gTotInsp;
+        acceptanceState.TotalPreviouslyAcceptedQty = gPrevAcc;
+        acceptanceState.TotalAvailableQty = gAvail;
+        acceptanceState.TotalQtyThisAcceptance = gQtyThis;
+        acceptanceState.TotalAcceptedQty = gTotAcc;
+        acceptanceState.TotalRemainingQty = gRem;
+
+        // Auto-determination of Complete vs Partial Acceptance
+        var isComplete = (acceptanceState.Items.length > 0) && allItemsComplete;
+        var isPartial = !isComplete && hasAnyAcceptance;
+
+        acceptanceState.IsComplete = isComplete;
+        acceptanceState.IsPartial = isPartial;
+
+        var badgeContainer = $("#acceptanceStatusBadgeContainer");
+        var statusPill = $("#summaryStatusPill");
+        var statusText = $("#summaryStatusText");
+
+        if (isComplete) {
+            badgeContainer.html("<span class='badge bg-success fs-6'><span class='k-icon k-i-check-circle'></span> Complete Acceptance</span>");
+            statusPill.removeClass("bg-secondary bg-warning text-dark").addClass("bg-success").text("Complete Acceptance");
+            statusText.html("<strong class='text-success'><span class='k-icon k-i-check'></span> All Purchase Order items and required components are fully accepted.</strong> This transaction completes the Purchase Order.");
+        } else if (isPartial) {
+            badgeContainer.html("<span class='badge bg-warning text-dark fs-6'><span class='k-icon k-i-clock'></span> Partial Acceptance</span>");
+            statusPill.removeClass("bg-secondary bg-success").addClass("bg-warning text-dark").text("Partial Acceptance");
+            statusText.html("<strong class='text-warning text-dark'><span class='k-icon k-i-info'></span> Partial delivery accepted.</strong> Additional uninspected or pending quantities remain for this Purchase Order.");
+        } else {
+            badgeContainer.html("<span class='badge bg-secondary fs-6'>Pending Acceptance</span>");
+            statusPill.removeClass("bg-success bg-warning text-dark").addClass("bg-secondary").text("Pending Acceptance");
+            statusText.html("<span class='text-muted'>No quantities accepted in this transaction yet. Specify accepted quantities above.</span>");
+        }
+    }
+
+    // ================================================================
+    // INVENTORY DETAILS BUTTON & MODAL (READ-ONLY IN ACCEPTANCE)
+    // ================================================================
+    function renderAcceptanceInventoryDetailsButtonHtml(item, idx) {
+        var disp = item.Disposition || (acceptanceState ? acceptanceState.Disposition : "") || "Inventory";
+        if (disp !== "Inventory") {
+            return "<span class='badge bg-light text-muted border'>Not Required</span>";
+        }
+
+        var details = item.InventoryDetails || [];
+        var totalUnits = details.length;
+        var compUnits = details.filter(function (d) { return checkInventoryDetailCompleted(item.ItemExtnName, d); }).length;
+
+        if (totalUnits > 0) {
+            return "<button type='button' class='btn btn-xs btn-outline-primary w-100 text-nowrap' onclick='openInventoryModal(" + idx + ")'><span class='k-icon k-i-eye'></span> View Details (" + compUnits + " / " + totalUnits + ")</button>";
+        } else {
+            return "<span class='badge bg-light text-muted border'>0 units recorded</span>";
+        }
+    }
+
+    function renderAcceptanceSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) {
+        var parentDisp = item.Disposition || (acceptanceState ? acceptanceState.Disposition : "") || "Inventory";
+        if (!sub.RequiresInventory || parentDisp !== "Inventory") {
+            return "<span class='badge bg-light text-muted border'>Not Required</span>";
+        }
+
+        var details = sub.InventoryDetails || [];
+        var totalUnits = details.length;
+        var compUnits = details.filter(function (d) { return checkInventoryDetailCompleted(sub.ItemExtnName, d); }).length;
+
+        if (totalUnits > 0) {
+            return "<button type='button' class='btn btn-xs btn-outline-primary w-100 text-nowrap' onclick='openInventoryModal(" + idx + ", " + sIdx + ")'><span class='k-icon k-i-eye'></span> View Details (" + compUnits + " / " + totalUnits + ")</button>";
+        } else {
+            return "<span class='badge bg-light text-muted border'>0 units recorded</span>";
+        }
+    }
+
+    function openInventoryModal(idx, sIdx) {
+        activeModalItemIdx = idx;
+        activeModalSubItemIdx = (sIdx !== undefined && sIdx !== null) ? sIdx : null;
+
+        var item = acceptanceState.Items[idx];
+        if (!item) return;
+
+        var isSub = (activeModalSubItemIdx !== null);
+        var targetObj = isSub ? item.SubItems[activeModalSubItemIdx] : item;
+        if (!targetObj) return;
+
+        var extnName = targetObj.ItemExtnName || "ItemExtnOther";
+        var details = targetObj.InventoryDetails || [];
+        var totalCount = details.length;
+        var compCount = details.filter(function (d) { return checkInventoryDetailCompleted(extnName, d); }).length;
+
+        var extnTitle = "Other / General Equipment";
+        if (extnName === "ItemExtnVehicle") extnTitle = "Motor Vehicle";
+        else if (extnName === "ItemExtnLand") extnTitle = "Real Property / Land";
+        else if (extnName === "ItemExtnBuilding") extnTitle = "Building / Structure";
+
+        var targetTitle = isSub 
+            ? (targetObj.Description || "Sub-Item") + " <span class='badge bg-info text-dark ms-1'>Sub-Item of " + (item.Description || "Parent") + "</span>"
+            : (targetObj.Description || "Parent Item");
+
+        var html = "";
+
+        // Modal Header Info
+        html += "<div class='p-3 bg-light rounded border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2'>";
+        html += "  <div>";
+        html += "    <div class='fw-bold fs-6 text-dark'>" + targetTitle + "</div>";
+        html += "    <div class='small text-muted'>Inspected Units Recorded: <strong class='text-primary'>" + totalCount + " units</strong> &bull; Category: <span class='badge bg-secondary'>" + extnTitle + "</span> &bull; Mode: <span class='badge bg-info text-dark'>Read-Only Review</span></div>";
+        html += "  </div>";
+        html += "  <div class='d-flex align-items-center gap-2'>";
+        html += "    <span class='badge " + (compCount >= totalCount && totalCount > 0 ? "bg-success" : "bg-warning text-dark") + " fs-6'>";
+        html += "      " + compCount + " of " + totalCount + " Complete";
+        html += "    </span>";
+        html += "  </div>";
+        html += "</div>";
+
+        // Scrollable container
+        html += "<div style='max-height: 430px; overflow-y: auto;' class='pe-1'>";
+
+        if (details.length === 0) {
+            html += "<div class='p-4 text-center text-muted bg-light rounded border'>No physical inventory details were recorded during inspection for this item.</div>";
+        } else {
+            // Group details by PR
+            var prGroups = {};
+            details.forEach(function (d) {
+                var prKey = d.PRNumber || "Default PR";
+                if (!prGroups[prKey]) prGroups[prKey] = [];
+                prGroups[prKey].push(d);
+            });
+
+            var globalIdx = 0;
+            for (var prKey in prGroups) {
+                if (!prGroups.hasOwnProperty(prKey)) continue;
+                var units = prGroups[prKey];
+                var deptName = (units[0] && units[0].DepartmentName) ? units[0].DepartmentName : (item.Department || "--");
+
+                html += "<div class='card mb-3 border shadow-sm'>";
+                html += "  <div class='card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-1'>";
+                html += "    <div>";
+                html += "      <span class='fw-bold text-dark'>PR No.: </span><span class='badge bg-primary fs-7 me-3'>" + prKey + "</span>";
+                html += "      <span class='fw-bold text-dark'>Department: </span><span class='text-secondary fw-semibold'>" + deptName + "</span>";
+                html += "    </div>";
+                html += "    <span class='badge bg-light text-dark border'>Recorded Units: " + units.length + "</span>";
+                html += "  </div>";
+                html += "  <div class='card-body p-0'>";
+                html += "    <div class='table-responsive'>";
+                html += "      <table class='table table-sm table-bordered align-middle mb-0'>";
+                html += "        <thead class='table-light small'>";
+                html += "          <tr>";
+                html += "            <th style='width:45px;' class='text-center'>#</th>";
+
+                if (extnName === "ItemExtnVehicle") {
+                    html += "        <th style='width:120px;'>Serial No.</th>";
+                    html += "        <th style='width:120px;'>Conduction No.</th>";
+                    html += "        <th style='width:120px;'>Engine No.</th>";
+                    html += "        <th style='width:120px;'>Chassis No.</th>";
+                    html += "        <th style='width:100px;'>Plate No.</th>";
+                    html += "        <th style='width:90px;'>Color</th>";
+                    html += "        <th style='width:90px;'>Year</th>";
+                    html += "        <th>Series</th>";
+                } else if (extnName === "ItemExtnLand") {
+                    html += "        <th style='width:110px;'>PIN</th>";
+                    html += "        <th style='width:110px;'>TCT No.</th>";
+                    html += "        <th style='width:100px;'>Lot No.</th>";
+                    html += "        <th style='width:100px;'>Survey No.</th>";
+                    html += "        <th style='width:100px;'>Area</th>";
+                    html += "        <th>Address</th>";
+                } else if (extnName === "ItemExtnBuilding") {
+                    html += "        <th style='width:130px;'>Ref / Serial</th>";
+                    html += "        <th style='width:160px;'>Project Name</th>";
+                    html += "        <th style='width:110px;'>Type</th>";
+                    html += "        <th style='width:80px;'>Storeys</th>";
+                    html += "        <th style='width:100px;'>Floor Area</th>";
+                    html += "        <th>Address</th>";
+                } else { // ItemExtnOther
+                    html += "        <th style='width:220px;'>Serial Number</th>";
+                    html += "        <th>Notes / Remarks</th>";
+                }
+
+                html += "            <th style='width:60px;' class='text-center'>Status</th>";
+                html += "          </tr>";
+                html += "        </thead>";
+                html += "        <tbody class='small'>";
+
+                units.forEach(function (u, localIdx) {
+                    globalIdx++;
+                    var isComp = checkInventoryDetailCompleted(extnName, u);
+
+                    html += "      <tr>";
+                    html += "        <td class='text-center fw-bold bg-light'>" + (localIdx + 1) + "</td>";
+
+                    if (extnName === "ItemExtnVehicle") {
+                        html += "    <td><span class='font-monospace fw-bold text-dark'>" + (u.SerialNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.ConductionNo || "--") + "</span></td>";
+                        html += "    <td><span class='font-monospace'>" + (u.EngineNo || "--") + "</span></td>";
+                        html += "    <td><span class='font-monospace'>" + (u.ChasisNo || "--") + "</span></td>";
+                        html += "    <td><span class='badge bg-light text-dark border'>" + (u.PlateNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.Color || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.YearModel || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.SeriesNo || "--") + "</span></td>";
+                    } else if (extnName === "ItemExtnLand") {
+                        html += "    <td><span class='font-monospace'>" + (u.PIN || "--") + "</span></td>";
+                        html += "    <td><span class='font-monospace'>" + (u.TctNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.LotNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.SurveyNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.Area || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.Address || "--") + "</span></td>";
+                    } else if (extnName === "ItemExtnBuilding") {
+                        html += "    <td><span class='font-monospace'>" + (u.SerialNo || "--") + "</span></td>";
+                        html += "    <td><span class='fw-bold'>" + (u.ProjectName || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.BuildingType || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.NumStoreys || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.FloorArea || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.Address || "--") + "</span></td>";
+                    } else { // ItemExtnOther
+                        html += "    <td><span class='font-monospace fw-bold text-dark'>" + (u.SerialNo || "--") + "</span></td>";
+                        html += "    <td><span>" + (u.Remarks || "--") + "</span></td>";
+                    }
+
+                    html += "        <td class='text-center'>";
+                    html += "          " + (isComp ? "<span class='badge bg-success'>OK</span>" : "<span class='badge bg-light text-muted border'>--</span>");
+                    html += "        </td>";
+                    html += "      </tr>";
+                });
+
+                html += "        </tbody>";
+                html += "      </table>";
+                html += "    </div>";
+                html += "  </div>";
+                html += "</div>";
+            }
+        }
+
+        html += "</div>";
+
+        // Read-only Modal footer
+        html += "<div class='d-flex justify-content-between align-items-center mt-3 pt-2 border-top'>";
+        html += "  <span class='small text-muted'><span class='k-icon k-i-lock'></span> Inventory details entered during physical inspection (Read-Only Review).</span>";
+        html += "  <button type='button' class='btn-procurement-secondary btn-sm' onclick='closeInventoryModal()'>Close</button>";
+        html += "</div>";
+
+        $("#inventoryDetailsModalContent").html(html);
+        var win = $("#inventoryDetailsWindow").data("kendoWindow");
+        if (win) {
+            win.center().open();
+        }
+    }
+
+    function closeInventoryModal() {
+        var win = $("#inventoryDetailsWindow").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    // ================================================================
+    // VALIDATION & STEP ADVANCEMENT
+    // ================================================================
     function proceedToAcceptanceStep3() {
         var officer = $("#txtAcceptedBy").val();
         if (!officer || !officer.trim()) {
-            alert("Please enter the name of the Acceptance Officer.");
+            alert("Please enter the name of the Authorized Acceptance Officer.");
             $("#txtAcceptedBy").focus();
             return;
         }
-        collectAcceptanceFormData();
+
+        // Validate quantities client-side
+        if (acceptanceState.Items && acceptanceState.Items.length > 0) {
+            for (var i = 0; i < acceptanceState.Items.length; i++) {
+                var itm = acceptanceState.Items[i];
+                var avail = itm.AvailableForAcceptanceQty || 0;
+                var qtyThis = itm.QtyThisAcceptance || 0;
+
+                if (qtyThis < 0) {
+                    alert("Accepted quantity for Item #" + (itm.ItemNo || (i + 1)) + " cannot be negative.");
+                    $("#txtQtyThisAcceptance_" + i).focus();
+                    return;
+                }
+                if (qtyThis > avail) {
+                    alert("Accepted quantity for Item #" + (itm.ItemNo || (i + 1)) + " cannot exceed Available Inspected Quantity (" + formatNumber(avail) + ").");
+                    $("#txtQtyThisAcceptance_" + i).focus();
+                    return;
+                }
+                var poQty = itm.POQty || 0;
+                var totAcc = (itm.PreviouslyAcceptedQty || 0) + qtyThis;
+                if (totAcc > poQty) {
+                    alert("Total accepted quantity for Item #" + (itm.ItemNo || (i + 1)) + " cannot exceed original Purchase Order Quantity (" + formatNumber(poQty) + ").");
+                    $("#txtQtyThisAcceptance_" + i).focus();
+                    return;
+                }
+
+                // Check components
+                if (itm.IsSetLot && itm.SubItems && itm.SubItems.length > 0) {
+                    for (var s = 0; s < itm.SubItems.length; s++) {
+                        var sub = itm.SubItems[s];
+                        var sAvail = sub.AvailableForAcceptanceQty || 0;
+                        var sQtyThis = sub.QtyThisAcceptance || 0;
+                        if (sQtyThis < 0 || sQtyThis > sAvail) {
+                            alert("Component '" + (sub.Description || ("#" + (s + 1))) + "' accepted quantity (" + sQtyThis + ") exceeds available (" + sAvail + ").");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Synchronize form fields into acceptanceState
+        if (typeof collectAcceptanceFormData === "function") {
+            collectAcceptanceFormData();
+        }
+
         goToAcceptanceStep(3);
     }
 
@@ -153,3 +1176,4 @@
         renderAccStep2Items();
     });
 </script>
+

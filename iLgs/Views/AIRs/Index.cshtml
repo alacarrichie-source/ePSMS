@@ -1,16 +1,78 @@
-@*Index.cshtml*@
+﻿@*Index.cshtml*@
 @using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 @{
-    ViewBag.Title = "Acceptance & Inspection Reports";
+    var airGroup = ViewBag.AirGroup != null ? (int)ViewBag.AirGroup : (int)iLgs.Models.Enums.AirGroup.INSPECTION;
+    var isAcceptance = airGroup == (int)iLgs.Models.Enums.AirGroup.ACCEPTANCE;
+
+    ViewBag.Title = isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var resumeDraftUrl = Url.Action("Wizard", "AIRs");
     var acceptanceWizardUrl = Url.Action("AcceptanceWizard", "AIRs");
     var printUrl = Url.Action("AIRRpt", "AIRs");
+    var detailsUrl = isAcceptance ? Url.Action("Acceptance", "AIRs") : Url.Action("Inspection", "AIRs");
+    var viewAcceptanceUrl = Url.Action("ViewAcceptance", "AIRs");
+
+    string actionButtonsTemplate;
+    if (isAcceptance)
+    {
+        actionButtonsTemplate =
+            "<div class='grid-action-buttons'>" +
+                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openAirDetails(\"#=Id#\")' title='View Submitted Inspection'><span class='k-icon k-i-eye'></span> Inspection</button>" +
+                "# if (CanViewAcceptance) { #" +
+                    "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
+                "# } #" +
+                "# if (CanStartAcceptance) { #" +
+                    "<button type='button' class='btn-procurement-primary btn-sm' onclick='startAcceptance(\"#=Id#\")' title='Start Official Acceptance'><span class='k-icon k-i-play'></span> Start Acceptance</button>" +
+                "# } #" +
+                "# if (CanContinueAcceptance) { #" +
+                    "# if (OverallStatus == 'Unposted' || AcceptanceStatus == 'Unposted') { #" +
+                        "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Edit Acceptance'><span class='k-icon k-i-edit'></span> Edit Acceptance</a>" +
+                    "# } else { #" +
+                        "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Resume Acceptance Wizard'><span class='k-icon k-i-check-circle'></span> Resume Acceptance</a>" +
+                    "# } #" +
+                "# } #" +
+                "# if (CanPrint) { #" +
+                    "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                "# } #" +
+                "# if (CanUnpost) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-warning border-warning' onclick='openUnpostModalGrid(\"#=Id#\")' title='Unpost AIR Acceptance'><span class='k-icon k-i-undo text-warning'></span> Unpost</button>" +
+                "# } #" +
+                "# if (CanDelete) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick='openDeleteAcceptanceModalGrid(\"#=Id#\")' title='Delete AIR Acceptance'><span class='k-icon k-i-delete text-danger'></span> Delete Acceptance</button>" +
+                "# } #" +
+            "</div>";
+    }
+    else
+    {
+        actionButtonsTemplate =
+            "<div class='grid-action-buttons'>" +
+                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openAirDetails(\"#=Id#\")' title='View Submitted Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
+                "# if (CanViewAcceptance) { #" +
+                    "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
+                "# } #" +
+                "# if (CanWithdraw) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", false)' title='Withdraw Submission'><span class='k-icon k-i-undo'></span> Withdraw</button>" +
+                "# } #" +
+                "# if (CanRequestWithdrawal) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", true)' title='Request Withdrawal from Acceptance'><span class='k-icon k-i-undo'></span> Req. Recall</button>" +
+                "# } #" +
+                "# if (CanPrint) { #" +
+                    "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                "# } #" +
+            "</div>";
+    }
 }
 
+<style type="text/css">
+    .status-badge.status-unposted { border-color: #fde68a !important; background: #fffbeb !important; color: #b45309 !important; }
+    .status-badge.status-acceptance-progress { border-color: #bfdbfe !important; background: #eff6ff !important; color: #1d4ed8 !important; }
+    .status-badge.status-withdrawn { border-color: #fecaca !important; background: #fef2f2 !important; color: #991b1b !important; }
+    .status-badge.status-accepted { border-color: #bbf7d0 !important; background: #f0fdf4 !important; color: #166534 !important; }
+    .status-badge.status-deleted { border-color: #e2e8f0 !important; background: #f1f5f9 !important; color: #64748b !important; }
+</style>
 <div class="epsms-procurement po-wizard">
     @Html.AntiForgeryToken()
 
@@ -18,65 +80,81 @@
     <div class="breadcrumbs">
         <a href="@Url.Action("Index", "Home")">Home</a> &gt;
         <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
-        <span>Acceptance &amp; Inspection Reports (AIR)</span>
+        <span>@(isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports (AIR)")</span>
     </div>
 
     <!-- Header Bar -->
     <div class="header-bar">
         <div>
-            <h1>Acceptance &amp; Inspection Reports</h1>
-            <p class="subtitle">LGU property and supply physical inspection verification, official acceptance, and GAM Appendix 62 generation.</p>
+            <h1>@(isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports")</h1>
+            <p class="subtitle">@(isAcceptance ? "Official property and supply acceptance verification, inspection review, and approval." : "LGU property and supply physical inspection verification, official acceptance, and GAM Appendix 62 generation.")</p>
         </div>
-        <div class="action-toolbar">
-            <a href="@Url.Action("Wizard", "AIRs")" class="k-button k-button-solid-primary k-rounded-md">
-                <span class="k-icon k-i-check-outline"></span> Inspect Orders
-            </a>
-        </div>
+        @if (!isAcceptance)
+        {
+            <div class="action-toolbar">
+                <a href="@Url.Action("Wizard", "AIRs")" class="k-button k-button-solid-primary k-rounded-md">
+                    <span class="k-icon k-i-check-outline"></span> Inspect Orders
+                </a>
+            </div>
+        }
     </div>
 
-    <!-- My Drafts Card -->
-    <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">
-        <div class="wizard-drafts-header">
-            <div>
-                <h2 id="wizardDraftsHeading">My Inspection Drafts</h2>
-                <p>Continue an unfinished inspection wizard from where you stopped.</p>
+    @if (!isAcceptance)
+    {
+        <!-- My Drafts Card -->
+        <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">
+            <div class="wizard-drafts-header">
+                <div>
+                    <h2 id="wizardDraftsHeading">My Inspection Drafts</h2>
+                    <p>Continue an unfinished inspection wizard from where you stopped.</p>
+                </div>
+                <span class="k-icon k-i-save wizard-drafts-icon" aria-hidden="true"></span>
             </div>
-            <span class="k-icon k-i-save wizard-drafts-icon" aria-hidden="true"></span>
-        </div>
 
-        @(Html.Kendo().Grid<AIRWizardDraftListItemViewModel>()
-            .Name("MyAIRDraftsGrid")
-            .Columns(columns =>
-            {
-                columns.Bound(d => d.DraftNo).Title("Draft No.").Width(140);
-                columns.Bound(d => d.PONumber).Title("PO Reference").Width(150);
-                columns.Bound(d => d.SupplierName).Title("Supplier");
-                columns.Bound(d => d.CurrentStep).Title("Progress").Width(160)
-                    .ClientTemplate(
-                        "<span class='wizard-draft-step'>Step #=CurrentStep# of 4</span>" +
-                        "<span class='wizard-draft-step-name'>#=airDraftStepName(CurrentStep)#</span>");
-                columns.Bound(d => d.LastUpdatedAt).Title("Last Saved")
-                    .Format("{0:MMM dd, yyyy h:mm tt}").Width(180);
-                columns.Bound(d => d.Id).Title("Actions").Width(180)
-                    .Sortable(false).Filterable(false)
-                    .ClientTemplate(
-                        "<div class='wizard-draft-actions'>" +
-                            "<a class='btn-procurement-primary' href='" + resumeDraftUrl + "?id=#=Id#'>" +
-                                "<span class='k-icon k-i-arrow-right'></span> Resume" +
-                            "</a>" +
-                            "<button type='button' class='btn-procurement-secondary' onclick=\"discardAirDraft('#=Id#')\">Discard</button>" +
-                        "</div>");
-            })
-            .NoRecords(n => n.Template("<div class='p-3 text-muted text-center'>No active inspection drafts. Click <strong>Inspect Orders</strong> to begin.</div>"))
-            .Sortable()
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(5)
-                .Read(read => read.Action("MyDrafts_Read", "AIRs"))
-                .Sort(sort => sort.Add(d => d.LastUpdatedAt).Descending())
+            @(Html.Kendo().Grid<AIRWizardDraftListItemViewModel>()
+                .Name("MyAIRDraftsGrid")
+                .Columns(columns =>
+                {
+                    columns.Bound(d => d.DraftNo).Title("Draft No.").Width(160).ClientTemplate("<strong>#=DraftNo#</strong>");
+                    columns.Bound(d => d.DraftType).Title("Type").Width(170).ClientTemplate(
+                        "# if (IsRevision) { #" +
+                            "<span class='badge bg-warning text-dark'><span class='k-icon k-i-refresh'></span> Revision</span>" +
+                            "# if (SourceAIRNo) { #" +
+                                "<div class='text-muted small' style='font-size:11px;'>Src: <strong>#=SourceAIRNo#</strong></div>" +
+                            "# } #" +
+                        "# } else { #" +
+                            "<span class='badge bg-info text-dark'><span class='k-icon k-i-file-add'></span> New Inspection</span>" +
+                        "# } #"
+                    );
+                    columns.Bound(d => d.PONumber).Title("PO Reference").Width(140);
+                    columns.Bound(d => d.SupplierName).Title("Supplier");
+                    columns.Bound(d => d.CurrentStep).Title("Progress").Width(160)
+                        .ClientTemplate(
+                            "<span class='wizard-draft-step'>Step #=CurrentStep# of 4</span>" +
+                            "<span class='wizard-draft-step-name'>#=airDraftStepName(CurrentStep)#</span>");
+                    columns.Bound(d => d.LastUpdatedAt).Title("Last Saved")
+                        .Format("{0:MMM dd, yyyy h:mm tt}").Width(170);
+                    columns.Bound(d => d.Id).Title("Actions").Width(170)
+                        .Sortable(false).Filterable(false)
+                        .ClientTemplate(
+                            "<div class='wizard-draft-actions'>" +
+                                "<a class='btn-procurement-primary' href='" + resumeDraftUrl + "?id=#=Id#' title='Resume Draft'>" +
+                                    "<span class='k-icon k-i-arrow-right'></span> Resume" +
+                                "</a>" +
+                                "<button type='button' class='btn-procurement-secondary' onclick=\"discardAirDraft('#=Id#')\" title='Discard Draft'>Discard</button>" +
+                            "</div>");
+                })
+                .NoRecords(n => n.Template("<div class='p-3 text-muted text-center'>No active inspection drafts. Click <strong>Inspect Orders</strong> to begin.</div>"))
+                .Sortable()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(5)
+                    .Read(read => read.Action("MyDrafts_Read", "AIRs"))
+                    .Sort(sort => sort.Add(d => d.LastUpdatedAt).Descending())
+                )
             )
-        )
-    </section>
+        </section>
+    }
 
     <!-- Filter Panel -->
     <div class="filter-panel">
@@ -89,9 +167,10 @@
                 <label for="statusFilter">Workflow Status</label>
                 <select id="statusFilter" class="form-control-custom" onchange="onStatusFilter(this.value)">
                     <option value="All">All Transactions</option>
-                    <option value="Draft">Draft</option>
                     <option value="Submitted for Acceptance">Submitted for Acceptance</option>
                     <option value="Acceptance In Progress">Acceptance In Progress</option>
+                    <option value="Unposted">Unposted</option>
+                    <option value="Withdrawn">Withdrawn</option>
                     <option value="Returned for Revision">Returned for Revision</option>
                     <option value="Accepted">Accepted</option>
                     <option value="Posted">Posted</option>
@@ -115,60 +194,38 @@
                 columns.Bound(p => p.Department).Title("Department").Width(180);
                 columns.Bound(p => p.InvoiceNo).Title("Invoice / DR").Width(140);
                 columns.Bound(p => p.TotalInspectedQty).Title("Inspected Qty").Format("{0:n2}").Width(130)
-                    .HtmlAttributes(new { style = "text-align:right;", @class = "numeric-cell font-weight-bold" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;", @class = "numeric-header" });
+                    .HtmlAttributes(new { @class = "numeric-cell font-weight-bold" })
+                    .HeaderHtmlAttributes(new { @class = "numeric-header" });
                 columns.Bound(p => p.OverallStatus).Title("Status").Width(170).ClientTemplate(
                     "# if (OverallStatus == 'Posted') { #" +
                         "<span class='status-badge status-posted'><span class='k-icon k-i-check'></span> Posted</span>" +
+                    "# } else if (OverallStatus == 'Unposted' || AcceptanceStatus == 'Unposted') { #" +
+                        "<span class='status-badge status-unposted'><span class='k-icon k-i-undo'></span> Unposted</span>" +
                     "# } else if (OverallStatus == 'Submitted for Acceptance') { #" +
                         "<span class='status-badge status-submitted'><span class='k-icon k-i-clock'></span> Submitted</span>" +
                     "# } else if (OverallStatus == 'Acceptance In Progress') { #" +
-                        "<span class='status-badge status-submitted' style='background:\\#eff6ff;color:\\#1d4ed8;'><span class='k-icon k-i-gears'></span> Acceptance In Progress</span>" +
+                        "<span class='status-badge status-acceptance-progress'><span class='k-icon k-i-gears'></span> Acceptance In Progress</span>" +
                     "# } else if (OverallStatus == 'Returned for Revision') { #" +
                         "<span class='status-badge status-returned'><span class='k-icon k-i-warning'></span> Returned</span>" +
+                    "# } else if (OverallStatus == 'Withdrawn') { #" +
+                        "<span class='status-badge status-withdrawn'><span class='k-icon k-i-undo'></span> Withdrawn</span>" +
                     "# } else if (OverallStatus == 'Accepted') { #" +
-                        "<span class='status-badge status-posted' style='background:\\#f0fdf4;color:\\#166534;'><span class='k-icon k-i-check-circle'></span> Accepted</span>" +
+                        "<span class='status-badge status-accepted'><span class='k-icon k-i-check-circle'></span> Accepted</span>" +
+                    "# } else if (OverallStatus == 'Deleted' || AcceptanceStatus == 'Deleted') { #" +
+                        "<span class='status-badge status-deleted'><span class='k-icon k-i-close'></span> Deleted</span>" +
                     "# } else if (OverallStatus == 'Draft') { #" +
                         "<span class='status-badge status-draft'><span class='k-icon k-i-edit'></span> Draft</span>" +
                     "# } else { #" +
-                        "<span class='status-badge'>#=OverallStatus#</span>" +
+                        "<span class='status-badge'>#: OverallStatus #</span>" +
                     "# } #"
                 );
                 // ACTIONS
                 columns.Bound(p => p.Id)
                     .Title("Actions")
-                    .Width(220)
+                    .Width(isAcceptance ? 390 : 280)
                     .Sortable(false)
                     .Filterable(false)
-                    .ClientTemplate(
-                        "<div class='grid-action-buttons'>" +
-                            "# if (CanContinue) { #" +
-                                "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Continue Inspection'><span class='k-icon k-i-edit'></span> Continue</a>" +
-                            "# } #" +
-                            "# if (CanWithdraw) { #" +
-                                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", false)' title='Withdraw Submission'><span class='k-icon k-i-undo'></span> Withdraw</button>" +
-                            "# } #" +
-                            "# if (CanRequestWithdrawal) { #" +
-                                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", true)' title='Request Withdrawal from Acceptance'><span class='k-icon k-i-undo'></span> Req. Recall</button>" +
-                            "# } #" +
-                            "# if (CanRevise) { #" +
-                                "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Revise Inspection'><span class='k-icon k-i-refresh'></span> Revise AIR</a>" +
-                            "# } #" +
-                            "# if (CanStartAcceptance) { #" +
-                                "<button type='button' class='btn-procurement-primary btn-sm' onclick='startAcceptance(\"#=Id#\")' title='Start Official Acceptance'><span class='k-icon k-i-play'></span> Start Acceptance</button>" +
-                            "# } #" +
-                            "# if (CanContinueAcceptance) { #" +
-                                "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Open Acceptance Wizard'><span class='k-icon k-i-check-circle'></span> Accept</a>" +
-                            "# } #" +
-                            "# if (CanPost) { #" +
-                                "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Post Acceptance'><span class='k-icon k-i-check-circle'></span> Post</a>" +
-                            "# } #" +
-                            "# if (CanPrint) { #" +
-                                "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
-                            "# } #" +
-                            "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openAirDetails(\"#=Id#\")' title='View Details'><span class='k-icon k-i-eye'></span></button>" +
-                        "</div>"
-                    );
+                    .ClientTemplate(actionButtonsTemplate);
             })
             .Pageable(pager => pager
                 .Refresh(true)
@@ -188,30 +245,114 @@
     </div>
 </div>
 
-<!-- WITHDRAW / REQUEST WITHDRAWAL MODAL -->
-@(Html.Kendo().Window()
-    .Name("withdrawActionWindow")
-    .Title("AIR Submission Withdrawal")
-    .Width(500)
-    .Modal(true)
-    .Visible(false)
-    .Actions(actions => actions.Close())
-    .Content(@<text>
-        <div class="p-3">
-            <p id="withdrawModalSubtitle" class="mb-3 text-muted">Provide a reason for recalling this inspection submission.</p>
-            <input type="hidden" id="withdrawAirId" />
-            <input type="hidden" id="withdrawIsRequest" />
-            <div class="form-group mb-3">
-                <label for="withdrawReason" class="font-weight-bold mb-1">Reason / Explanation <span class="text-danger">*</span></label>
-                <textarea id="withdrawReason" class="form-control-custom w-100" rows="4" placeholder="Enter detailed reason..."></textarea>
+@if (!isAcceptance)
+{
+    <!-- WITHDRAW / REQUEST WITHDRAWAL MODAL -->
+    @(Html.Kendo().Window()
+        .Name("withdrawActionWindow")
+        .Title("AIR Submission Withdrawal")
+        .Width(500)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions => actions.Close())
+        .Content(@<text>
+            <div class="p-3">
+                <p id="withdrawModalSubtitle" class="mb-3 text-muted">Provide a reason for recalling this inspection submission.</p>
+                <input type="hidden" id="withdrawAirId" />
+                <input type="hidden" id="withdrawIsRequest" />
+                <div class="form-group mb-3">
+                    <label for="withdrawReason" class="font-weight-bold mb-1">Reason / Explanation <span class="text-danger">*</span></label>
+                    <textarea id="withdrawReason" class="form-control-custom w-100" rows="4" placeholder="Enter detailed reason..."></textarea>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn-procurement-secondary" onclick="$('#withdrawActionWindow').data('kendoWindow').close()">Cancel</button>
+                    <button type="button" id="btnConfirmWithdraw" class="btn-procurement-primary" onclick="submitWithdrawAction()">Confirm Recall</button>
+                </div>
             </div>
-            <div class="d-flex justify-content-end gap-2 mt-3">
-                <button type="button" class="btn-procurement-secondary" onclick="$('#withdrawActionWindow').data('kendoWindow').close()">Cancel</button>
-                <button type="button" id="btnConfirmWithdraw" class="btn-procurement-primary" onclick="submitWithdrawAction()">Confirm Recall</button>
+        </text>)
+    )
+}
+else
+{
+    <!-- UNPOST ACCEPTANCE MODAL -->
+    @(Html.Kendo().Window()
+        .Name("unpostAcceptanceModalGrid")
+        .Title("UNPOST AIR ACCEPTANCE")
+        .Width(520)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions => actions.Close())
+        .Content(@<text>
+            <div class="p-3">
+                <div class="alert alert-warning" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:12px;margin-bottom:15px;">
+                    <strong style="display:block;margin-bottom:4px;"><span class="k-icon k-i-warning"></span> This AIR Acceptance has already been posted.</strong>
+                    <span style="font-size:12px;line-height:1.4;display:block;">
+                        Unposting will reopen the Acceptance for correction.<br />
+                        The original posting and the unposting operation will remain recorded in the audit/history records.
+                    </span>
+                </div>
+
+                <input type="hidden" id="gridUnpostAirId" />
+
+                <div class="form-group mb-3">
+                    <label for="txtGridUnpostReason" class="font-weight-bold mb-1" style="font-size:13px;">
+                        Reason for Unposting <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="txtGridUnpostReason" class="form-control-custom w-100" rows="3" placeholder="Enter mandatory reason for unposting this acceptance..."></textarea>
+                    <div id="gridUnpostReasonError" class="text-danger mt-1" style="display:none;font-size:12px;">
+                        <span class="k-icon k-i-warning"></span> Reason for unposting is required.
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4" style="display:flex;justify-content:flex-end;gap:8px;">
+                    <button type="button" class="btn-procurement-secondary" onclick="$('#unpostAcceptanceModalGrid').data('kendoWindow').close()">Cancel</button>
+                    <button type="button" id="btnGridSubmitUnpost" class="btn-procurement-primary bg-warning text-dark border-warning" onclick="submitUnpostAcceptanceGrid()">
+                        <span class="k-icon k-i-undo"></span> Unpost Acceptance
+                    </button>
+                </div>
             </div>
-        </div>
-    </text>)
-)
+        </text>)
+    )
+
+    <!-- DELETE ACCEPTANCE MODAL -->
+    @(Html.Kendo().Window()
+        .Name("deleteAcceptanceModalGrid")
+        .Title("DELETE AIR ACCEPTANCE")
+        .Width(520)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions => actions.Close())
+        .Content(@<text>
+            <div class="p-3">
+                <div class="alert alert-danger" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:6px;padding:12px;margin-bottom:15px;">
+                    <strong style="display:block;margin-bottom:4px;"><span class="k-icon k-i-warning"></span> This Acceptance was previously posted and then unposted.</strong>
+                    <span style="font-size:12px;line-height:1.4;display:block;">
+                        Deleting it will remove it from the active AIR Acceptance workflow, but the Posting, Unposting, and Deletion history will remain available for audit purposes.
+                    </span>
+                </div>
+
+                <input type="hidden" id="gridDeleteAirId" />
+
+                <div class="form-group mb-3">
+                    <label for="txtGridDeleteReason" class="font-weight-bold mb-1" style="font-size:13px;">
+                        Reason for Deletion <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="txtGridDeleteReason" class="form-control-custom w-100" rows="3" placeholder="Enter mandatory reason for deleting this acceptance..."></textarea>
+                    <div id="gridDeleteReasonError" class="text-danger mt-1" style="display:none;font-size:12px;">
+                        <span class="k-icon k-i-warning"></span> Reason for deletion is required.
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4" style="display:flex;justify-content:flex-end;gap:8px;">
+                    <button type="button" class="btn-procurement-secondary" onclick="$('#deleteAcceptanceModalGrid').data('kendoWindow').close()">Cancel</button>
+                    <button type="button" id="btnGridSubmitDelete" class="btn-procurement-primary bg-danger border-danger text-white" onclick="submitDeleteAcceptanceGrid()">
+                        <span class="k-icon k-i-delete"></span> Delete Acceptance
+                    </button>
+                </div>
+            </div>
+        </text>)
+    )
+}
 
 @section scripts {
     <script type="text/javascript">
@@ -219,7 +360,7 @@
             switch (step) {
                 case 1: return "Select Purchase Orders";
                 case 2: return "Inspect Items";
-                case 3: return "Invoice Entry";
+                case 3: return "Inspection Details";
                 case 4: return "Review & Submit";
                 default: return "In Progress";
             }
@@ -227,7 +368,8 @@
 
         function getGridFilterData() {
             return {
-                statusFilter: $("#statusFilter").val() || "All"
+                statusFilter: $("#statusFilter").val() || "All",
+                acceptanceQueue: @(isAcceptance ? "true" : "false")
             };
         }
 
@@ -253,95 +395,218 @@
             });
         }
 
-        function discardAirDraft(id) {
-            if (!confirm("Are you sure you want to discard this inspection draft?")) return;
-            var token = $('input[name="__RequestVerificationToken"]').val();
-            $.post('@Url.Action("DiscardDraft", "AIRs")', { __RequestVerificationToken: token, id: id }, function (res) {
-                if (res.success) {
-                    $("#MyAIRDraftsGrid").data("kendoGrid").dataSource.read();
-                    $("#AIRsGrid").data("kendoGrid").dataSource.read();
-                } else {
-                    alert(res.message || "Unable to discard draft.");
-                }
-            });
-        }
-
-        function openWithdrawModal(airId, isRequest) {
-            $("#withdrawAirId").val(airId);
-            $("#withdrawIsRequest").val(isRequest ? "true" : "false");
-            $("#withdrawReason").val("");
-            var title = isRequest ? "Request Recall from Acceptance" : "Withdraw Inspection Submission";
-            var subtitle = isRequest ? "Acceptance is currently in progress. Your request will be forwarded to the Acceptance Officer." : "This will cancel the submission and return the AIR to Draft status.";
-            var win = $("#withdrawActionWindow").data("kendoWindow");
-            win.title(title);
-            $("#withdrawModalSubtitle").text(subtitle);
-            win.center().open();
-        }
-
-        function submitWithdrawAction() {
-            var airId = $("#withdrawAirId").val();
-            var isRequest = $("#withdrawIsRequest").val() === "true";
-            var reason = $("#withdrawReason").val();
-
-            if (!reason || !reason.trim()) {
-                alert("Please provide a reason.");
-                return;
+        @if (!isAcceptance)
+        {
+            <text>
+            function discardAirDraft(id) {
+                if (!confirm("Are you sure you want to discard this inspection draft?")) return;
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                $.post('@Url.Action("DiscardDraft", "AIRs")', { __RequestVerificationToken: token, id: id }, function (res) {
+                    if (res.success) {
+                        var draftsGrid = $("#MyAIRDraftsGrid").data("kendoGrid");
+                        if (draftsGrid) draftsGrid.dataSource.read();
+                        $("#AIRsGrid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(res.message || "Unable to discard draft.");
+                    }
+                });
             }
 
-            var url = isRequest ? '@Url.Action("RequestWithdrawal", "AIRs")' : '@Url.Action("WithdrawSubmission", "AIRs")';
-            var token = $('input[name="__RequestVerificationToken"]').val();
-
-            $("#btnConfirmWithdraw").prop("disabled", true).text("Processing...");
-
-            $.ajax({
-                url: url,
-                type: "POST",
-                data: {
-                    __RequestVerificationToken: token,
-                    AirId: airId,
-                    Reason: reason
-                },
-                success: function (res) {
-                    if (res.success) {
-                        $("#withdrawActionWindow").data("kendoWindow").close();
-                        $("#AIRsGrid").data("kendoGrid").dataSource.read();
-                        $("#MyAIRDraftsGrid").data("kendoGrid").dataSource.read();
-                        alert(res.message || "Action completed successfully.");
-                    } else {
-                        alert(res.message || "Failed to process withdrawal.");
-                    }
-                },
-                error: function () {
-                    alert("A network error occurred. Please try again.");
-                },
-                complete: function () {
-                    $("#btnConfirmWithdraw").prop("disabled", false).text("Confirm Recall");
+            function openWithdrawModal(airId, isRequest) {
+                $("#withdrawAirId").val(airId);
+                $("#withdrawIsRequest").val(isRequest ? "true" : "false");
+                $("#withdrawReason").val("");
+                var title = isRequest ? "Request Recall from Acceptance" : "Withdraw Inspection Submission";
+                var subtitle = isRequest ? "Acceptance is currently in progress. Your request will be forwarded to the Acceptance Officer." : "This will cancel the submission and return the AIR to Withdrawn status.";
+                var win = $("#withdrawActionWindow").data("kendoWindow");
+                if (win) {
+                    win.title(title);
+                    $("#withdrawModalSubtitle").text(subtitle);
+                    win.center().open();
                 }
-            });
+            }
+
+            function submitWithdrawAction() {
+                var airId = $("#withdrawAirId").val();
+                var isRequest = $("#withdrawIsRequest").val() === "true";
+                var reason = $("#withdrawReason").val();
+
+                if (!reason || !reason.trim()) {
+                    alert("Please provide a reason.");
+                    return;
+                }
+
+                var url = isRequest ? '@Url.Action("RequestWithdrawal", "AIRs")' : '@Url.Action("WithdrawSubmission", "AIRs")';
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $("#btnConfirmWithdraw").prop("disabled", true).text("Processing...");
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        __RequestVerificationToken: token,
+                        AirId: airId,
+                        Reason: reason
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            var win = $("#withdrawActionWindow").data("kendoWindow");
+                            if (win) win.close();
+                            $("#AIRsGrid").data("kendoGrid").dataSource.read();
+                            var draftsGrid = $("#MyAIRDraftsGrid").data("kendoGrid");
+                            if (draftsGrid) draftsGrid.dataSource.read();
+                            if (res.draftId) {
+                                if (confirm((res.message || "Submission withdrawn successfully.") + "\n\nA revision draft has been created in your Drafts section.\nWould you like to open it now?")) {
+                                    window.location.href = '@resumeDraftUrl?id=' + res.draftId;
+                                    return;
+                                }
+                            } else {
+                                alert(res.message || "Action completed successfully.");
+                            }
+                        } else {
+                            alert(res.message || "Failed to process withdrawal.");
+                        }
+                    },
+                    error: function () {
+                        alert("A network error occurred. Please try again.");
+                    },
+                    complete: function () {
+                        $("#btnConfirmWithdraw").prop("disabled", false).text("Confirm Recall");
+                    }
+                });
+            }
+            </text>
         }
-
-        function startAcceptance(airId) {
-            if (!confirm("Start official acceptance for this inspection report? Direct withdrawal will no longer be allowed.")) return;
-            var token = $('input[name="__RequestVerificationToken"]').val();
-            $.ajax({
-                url: '@Url.Action("StartAcceptance", "AIRs")',
-                type: "POST",
-                data: { __RequestVerificationToken: token, id: airId },
-                success: function (res) {
-                    if (res.success) {
-                        window.location.href = '@Url.Action("AcceptanceWizard", "AIRs")?id=' + airId;
-                    } else {
-                        alert(res.message || "Unable to start acceptance.");
+        else
+        {
+            <text>
+            function startAcceptance(airId) {
+                if (!confirm("Start official acceptance for this inspection report? Direct withdrawal will no longer be allowed.")) return;
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                $.ajax({
+                    url: '@Url.Action("StartAcceptance", "AIRs")',
+                    type: "POST",
+                    data: { __RequestVerificationToken: token, id: airId },
+                    success: function (res) {
+                        if (res.success) {
+                            window.location.href = '@Url.Action("AcceptanceWizard", "AIRs")?id=' + airId;
+                        } else {
+                            alert(res.message || "Unable to start acceptance.");
+                        }
+                    },
+                    error: function () {
+                        alert("A network error occurred. Please try again.");
                     }
-                },
-                error: function () {
-                    alert("A network error occurred. Please try again.");
+                });
+            }
+
+            function openUnpostModalGrid(airId) {
+                $("#gridUnpostAirId").val(airId);
+                $("#txtGridUnpostReason").val("");
+                $("#gridUnpostReasonError").hide();
+                var win = $("#unpostAcceptanceModalGrid").data("kendoWindow");
+                if (win) {
+                    win.center().open();
                 }
-            });
+            }
+
+            function submitUnpostAcceptanceGrid() {
+                var reason = $("#txtGridUnpostReason").val();
+                if (!reason || !reason.trim()) {
+                    $("#gridUnpostReasonError").show();
+                    return;
+                }
+                $("#gridUnpostReasonError").hide();
+
+                var airId = $("#gridUnpostAirId").val();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $("#btnGridSubmitUnpost").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Unposting...");
+
+                $.ajax({
+                    url: '@Url.Action("UnpostAcceptance", "AIRs")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        AirId: airId,
+                        Reason: reason.trim()
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            var win = $("#unpostAcceptanceModalGrid").data("kendoWindow");
+                            if (win) win.close();
+                            alert(res.message || "AIR Acceptance unposted successfully.");
+                            var grid = $("#AIRsGrid").data("kendoGrid");
+                            if (grid) grid.dataSource.read();
+                        } else {
+                            alert(res.message || "Failed to unpost AIR Acceptance.");
+                        }
+                    },
+                    error: function () {
+                        alert("A network error occurred while unposting acceptance.");
+                    },
+                    complete: function () {
+                        $("#btnGridSubmitUnpost").prop("disabled", false).html("<span class='k-icon k-i-undo'></span> Unpost Acceptance");
+                    }
+                });
+            }
+
+            function openDeleteAcceptanceModalGrid(airId) {
+                $("#gridDeleteAirId").val(airId);
+                $("#txtGridDeleteReason").val("");
+                $("#gridDeleteReasonError").hide();
+                var win = $("#deleteAcceptanceModalGrid").data("kendoWindow");
+                if (win) {
+                    win.center().open();
+                }
+            }
+
+            function submitDeleteAcceptanceGrid() {
+                var reason = $("#txtGridDeleteReason").val();
+                if (!reason || !reason.trim()) {
+                    $("#gridDeleteReasonError").show();
+                    return;
+                }
+                $("#gridDeleteReasonError").hide();
+
+                var airId = $("#gridDeleteAirId").val();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $("#btnGridSubmitDelete").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Deleting...");
+
+                $.ajax({
+                    url: '@Url.Action("DeleteAcceptance", "AIRs")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        AirId: airId,
+                        Reason: reason.trim()
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            var win = $("#deleteAcceptanceModalGrid").data("kendoWindow");
+                            if (win) win.close();
+                            alert(res.message || "AIR Acceptance deleted successfully.");
+                            var grid = $("#AIRsGrid").data("kendoGrid");
+                            if (grid) grid.dataSource.read();
+                        } else {
+                            alert(res.message || "Failed to delete AIR Acceptance.");
+                        }
+                    },
+                    error: function () {
+                        alert("A network error occurred while deleting acceptance.");
+                    },
+                    complete: function () {
+                        $("#btnGridSubmitDelete").prop("disabled", false).html("<span class='k-icon k-i-delete'></span> Delete Acceptance");
+                    }
+                });
+            }
+            </text>
         }
 
         function openAirDetails(airId) {
-            window.location.href = '@Url.Action("Wizard", "AIRs")?id=' + airId;
+            window.location.href = '@detailsUrl?id=' + airId;
         }
     </script>
 }

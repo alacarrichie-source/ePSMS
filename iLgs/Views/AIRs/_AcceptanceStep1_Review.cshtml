@@ -1,4 +1,5 @@
-﻿@using Kendo.Mvc.UI
+@model iLgs.Ai.Models.AIRAcceptanceWizardViewModel
+@using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
 <div class="wizard-card">
@@ -27,7 +28,16 @@
                 <span class="small text-muted fw-bold d-block mb-1">Inspection Officer &amp; Invoices</span>
                 <div class="fs-6 fw-bold">Inspector: @(string.IsNullOrWhiteSpace(Model.InspectorName) ? "GSO Inspection Team" : Model.InspectorName)</div>
                 <div class="small text-dark">Inspection Date: <strong>@(Model.InspectionDate.HasValue ? Model.InspectionDate.Value.ToString("MMM dd, yyyy") : "--")</strong></div>
-                <div class="small text-muted">Invoice No: @(Model.InvoiceNo ?? "N/A") | DR No: @(Model.DrNo ?? "N/A")</div>
+                                <div class="small text-muted">
+                    @if (Model.Invoices != null && Model.Invoices.Any())
+                    {
+                        <span>Invoices: <strong>@Model.Invoices.Count</strong> (Combined: <strong class="font-monospace text-primary">PHP @Model.Invoices.Sum(inv => inv.InvoiceTotalAmount).ToString("N2")</strong>)</span>
+                    }
+                    else
+                    {
+                        <span>Invoice No: @(Model.InvoiceNo ?? "N/A")</span>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -70,9 +80,58 @@
         </table>
     </div>
 
+    <!-- Invoices Table (Read-Only) -->
+    @if (Model.Invoices != null && Model.Invoices.Any())
+    {
+        <div class="mb-4">
+            <h4 class="fs-6 fw-bold text-dark mb-2"><span class="k-icon k-i-file-txt"></span> Recorded Sales Invoices</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Sales Invoice No.</th>
+                            <th style="width: 140px;">Invoice Date</th>
+                            <th style="width: 170px;" class="text-end">Total Amount (PHP)</th>
+                            <th>Supporting Document</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @{
+                            int invIdx = 1;
+                            foreach (var inv in Model.Invoices)
+                            {
+                                <tr>
+                                    <td class="text-center text-muted">@invIdx</td>
+                                    <td class="fw-bold text-primary font-monospace">@inv.SalesInvoiceNo</td>
+                                    <td>@(inv.InvoiceDate.HasValue ? inv.InvoiceDate.Value.ToString("MMM dd, yyyy") : "--")</td>
+                                    <td class="text-end font-monospace fw-bold">@inv.InvoiceTotalAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (inv.SupportingDocument != null && !string.IsNullOrEmpty(inv.SupportingDocument.FileName))
+                                        {
+                                            <a href="@Url.Content(inv.SupportingDocument.FilePath)" target="_blank" class="text-decoration-none">
+                                                <span class="k-icon k-i-file-pdf text-danger"></span> @inv.SupportingDocument.FileName
+                                                <span class="text-muted font-monospace">(@inv.SupportingDocument.FileSize)</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted font-italic">No document</span>
+                                        }
+                                    </td>
+                                </tr>
+                                invIdx++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
     <!-- Actions -->
     <div class="wizard-summary-bar mt-4">
-        <a href="@Url.Action("Index", "AIRs")" class="btn-procurement-secondary">
+        <a href="@(ViewBag.ReturnUrl ?? Url.Action("Index", "AIRs"))" class="btn-procurement-secondary">
             <span class="k-icon k-i-arrow-left"></span> Back to Index
         </a>
         <button type="button" class="btn-procurement-primary" onclick="goToAcceptanceStep(2)">
@@ -81,3 +140,4 @@
     </div>
 
 </div>
+

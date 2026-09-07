@@ -14,7 +14,14 @@ namespace iLgs.Models
 {
     public partial class AppManEntities
     {
+        public AppManEntities(string nameOrConnectionString) : base(nameOrConnectionString) { }
+
+        // -----------------------------------------------------------------------
+        // Additional DbSets not in EDMX (managed manually - do not regenerate)
+        // -----------------------------------------------------------------------
+
         #region Synchronous Methods
+
 
         public override int SaveChanges()
         {

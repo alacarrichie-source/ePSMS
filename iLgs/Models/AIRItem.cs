@@ -18,6 +18,8 @@ namespace iLgs.Models
         public AIRItem()
         {
             this.AIRItemExtns = new HashSet<AIRItemExtn>();
+            this.AIRItemAllocations = new HashSet<AIRItemAllocation>();
+            this.AIRSubItems = new HashSet<AIRSubItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -37,10 +39,19 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public Nullable<decimal> InspectedQty { get; set; }
+        public Nullable<decimal> AcceptedQty { get; set; }
+        public string Disposition { get; set; }
+        public string DestinationDepartment { get; set; }
+        public string DestinationCustodian { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual AIR AIR { get; set; }
         public virtual OrderItemRequest OrderItemRequest { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIRItemAllocation> AIRItemAllocations { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIRSubItem> AIRSubItems { get; set; }
     }
 }

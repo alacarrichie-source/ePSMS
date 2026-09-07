@@ -31,6 +31,8 @@
         public const string Posted = "Posted";
         public const string Cancelled = "Cancelled";
         public const string Withdrawn = "Withdrawn";
+        public const string Unposted = "Unposted";
+        public const string Deleted = "Deleted";
     }
 
     public static class AirInspectionStatuses
@@ -49,6 +51,15 @@
         public const string InProgress = "In Progress";
         public const string Accepted = "Accepted";
         public const string Declined = "Declined";
+        public const string Unposted = "Unposted";
+        public const string Deleted = "Deleted";
+    }
+
+    public static class AirWizardStatuses
+    {
+        public const string Draft = "Draft";
+        public const string Submitted = "Submitted";
+        public const string Discarded = "Discarded";
     }
 
     public static class AirDispositions
@@ -57,3 +68,5 @@
         public const string ForDistribution = "ForDistribution";
     }
 }
+
+
