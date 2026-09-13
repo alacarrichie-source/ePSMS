@@ -76,14 +76,16 @@ namespace iLgs.Services.Codes
 
         public decimal? GetSPHV(int? forYear)
         {
-            var asOfDate = new DateTime((int)forYear, 12, 31);
+            int year = forYear.HasValue && forYear.Value >= 1753 && forYear.Value <= 9999 ? forYear.Value : DateTime.Now.Year;
+            var asOfDate = new DateTime(year, 12, 31);
             var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_SPHV({0})", asOfDate).FirstOrDefault();
             return data ?? 5000;
         }
 
         public decimal? GetSPHV(DateTime? asOfDate)
         {
-            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_SPHV({0})", asOfDate).FirstOrDefault();
+            var date = asOfDate ?? DateTime.Now;
+            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_SPHV({0})", date).FirstOrDefault();
             return data ?? 5000;
         }
 

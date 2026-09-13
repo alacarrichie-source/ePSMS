@@ -1,0 +1,260 @@
+@{
+    Layout = null;
+}
+
+<div class="p-3" style="font-size: 13px; padding: 16px;">
+    <!-- ICS Header Details Card -->
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600;">ICS Number</span>
+                <div style="font-family: Consolas, monospace; font-weight: bold; color: #002576; font-size: 14px;">@ViewBag.IcsNo</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600;">Purchase Order</span>
+                <div style="font-family: Consolas, monospace; font-weight: bold; color: #334155;">@(ViewBag.PoNo ?? "N/A")</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600;">Accountable Custodian</span>
+                <div style="font-weight: 600; color: #1e293b;">@(ViewBag.Custodian ?? "Unassigned")</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600;">Department</span>
+                <div style="color: #475569;">@(ViewBag.Department ?? "General Services Office")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current AIR Attachment Status -->
+    @if (ViewBag.HasExistingUpload)
+    {
+        <div class="alert alert-success py-2 px-3 mb-3" style="display: flex; justify-content: space-between; align-items: center; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 6px; margin-bottom: 14px;">
+            <div>
+                <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span class="k-icon k-i-check-circle" style="color: #16a34a;"></span> Current Document Attached
+                </div>
+                <div style="font-size: 11px; color: #15803d; margin-top: 2px;">
+                    File: <span style="font-family: Consolas, monospace; font-weight: bold;">@ViewBag.ExistingFileName</span>
+                    @if (ViewBag.ExistingUploadDate != null)
+                    {
+                        <span>(@string.Format("{0:MM/dd/yyyy hh:mm tt}", ViewBag.ExistingUploadDate))</span>
+                    }
+                </div>
+            </div>
+            <a class="btn-procurement-secondary btn-sm" href="@Url.Action("ViewAirDocument", "IcsSet", new { icsId = ViewBag.IcsId })" target="_blank" title="View attached document in new window" style="white-space: nowrap;">
+                <span class="k-icon k-i-file-pdf"></span> View Document
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning py-2 px-3 mb-3" style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 6px; margin-bottom: 14px; font-size: 12px;">
+            <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <span class="k-icon k-i-warning" style="color: #d97706;"></span> AIR Document Not Uploaded
+            </div>
+            <div style="margin-top: 2px;">An official Acceptance and Inspection Report (AIR) file is required before this ICS can be officially posted.</div>
+        </div>
+    }
+
+    <!-- 1-Click PO AIR Reuse Option (if available) -->
+    @if (ViewBag.PoAirUploadId != null && !ViewBag.HasExistingUpload)
+    {
+        <div class="alert alert-info py-2 px-3 mb-3" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 6px; margin-bottom: 14px;">
+            <div>
+                <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span class="k-icon k-i-info" style="color: #2563eb;"></span> Existing AIR Document on PO
+                </div>
+                <div style="font-size: 11px; margin-top: 2px;">
+                    AIR No: <strong>@ViewBag.PoAirNo</strong> (@ViewBag.PoAirFileName)
+                </div>
+            </div>
+            <button type="button" class="btn-procurement-primary btn-sm" onclick="reuseExistingPoAir('@ViewBag.IcsId', '@ViewBag.PoAirUploadId')" style="white-space: nowrap;">
+                <span class="k-icon k-i-link-horizontal"></span> Link this AIR
+            </button>
+        </div>
+    }
+
+    <!-- Upload Form -->
+    <form id="formAirUpload" enctype="multipart/form-data">
+        <input type="hidden" id="uploadAirIcsId" name="icsId" value="@ViewBag.IcsId" />
+
+        <div class="form-group mb-3" style="margin-bottom: 14px;">
+            <label class="font-weight-bold mb-1" style="font-weight: 600; display: block; margin-bottom: 6px; color: #1e293b;">
+                @(ViewBag.HasExistingUpload ? "Replace with New Scanned Document:" : "Select Scanned AIR Document:")
+            </label>
+            <div class="air-dropzone" id="airDropZone" onclick="$('#airFileInput').click()" style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s ease;">
+                <span class="k-icon k-i-upload" style="font-size: 32px; color: #002576; margin-bottom: 6px; display: block;"></span>
+                <div id="airDropLabel" style="font-weight: 600; color: #1e293b; font-size: 13px;">Click to select file or drag &amp; drop here</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Supported formats: PDF, JPG, PNG (Max 10 MB). Scanned PDF preferred.</div>
+            </div>
+            <input type="file" id="airFileInput" name="airFile" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" onchange="onAirFileSelected(this)" />
+        </div>
+
+        <div id="airSelectedFileCard" style="display: none; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                    <span class="k-icon k-i-file-pdf" style="font-size: 20px; color: #ef4444;"></span>
+                    <div>
+                        <div id="airSelectedFileName" style="font-weight: 600; color: #1e293b; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 320px;"></div>
+                        <div id="airSelectedFileSize" style="font-size: 11px; color: #64748b;"></div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-link btn-sm text-danger p-0" onclick="clearSelectedAirFile()" title="Clear Selection" style="text-decoration: none;">
+                    <span class="k-icon k-i-close"></span>
+                </button>
+            </div>
+        </div>
+
+        <div id="airUploadProgressContainer" style="display: none; margin-bottom: 12px;">
+            <div class="progress" style="height: 6px; margin-bottom: 4px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                <div id="airProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%; height: 100%; background: #002576; transition: width 0.2s ease;"></div>
+            </div>
+            <div style="font-size: 11px; color: #64748b; text-align: right;" id="airUploadStatusText">Uploading document...</div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn-procurement-secondary" onclick="closeUploadAirModal()">Cancel</button>
+            <button type="button" id="btnSubmitAirUpload" class="btn-procurement-primary" onclick="submitAirUpload()" disabled>
+                <span class="k-icon k-i-upload"></span> @(ViewBag.HasExistingUpload ? "Replace AIR Document" : "Upload AIR Document")
+            </button>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    function onAirFileSelected(input) {
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var sizeKb = Math.round(file.size / 1024);
+            var sizeStr = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + " MB" : sizeKb + " KB";
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert("File size exceeds the 10 MB maximum limit. Please choose a smaller file.");
+                clearSelectedAirFile();
+                return;
+            }
+
+            $("#airSelectedFileName").text(file.name);
+            $("#airSelectedFileSize").text(sizeStr);
+            $("#airSelectedFileCard").show();
+            $("#airDropZone").hide();
+            $("#btnSubmitAirUpload").prop("disabled", false);
+        }
+    }
+
+    function clearSelectedAirFile() {
+        $("#airFileInput").val("");
+        $("#airSelectedFileCard").hide();
+        $("#airDropZone").show();
+        $("#btnSubmitAirUpload").prop("disabled", true);
+    }
+
+    // Drag and drop handlers
+    var dropZone = document.getElementById("airDropZone");
+    if (dropZone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.style.borderColor = "#002576";
+                dropZone.style.background = "#eff6ff";
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.style.borderColor = "#cbd5e1";
+                dropZone.style.background = "#f8fafc";
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', function (e) {
+            var dt = e.dataTransfer;
+            var files = dt.files;
+            if (files && files.length > 0) {
+                var fileInput = document.getElementById("airFileInput");
+                fileInput.files = files;
+                onAirFileSelected(fileInput);
+            }
+        }, false);
+    }
+
+    function submitAirUpload() {
+        var fileInput = document.getElementById("airFileInput");
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert("Please select a file to upload.");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("icsId", $("#uploadAirIcsId").val());
+        formData.append("airFile", fileInput.files[0]);
+        formData.append("description", "AIR");
+
+        $("#btnSubmitAirUpload").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Uploading...");
+        $("#airUploadProgressContainer").show();
+        $("#airProgressBar").css("width", "35%");
+
+        $.ajax({
+            url: '@Url.Action("UploadAirFile", "IcsSet")',
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            xhr: function () {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                        $("#airProgressBar").css("width", percentComplete + "%");
+                        $("#airUploadStatusText").text("Uploading... " + percentComplete + "%");
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function (res) {
+                if (res && res.success) {
+                    notifySuccess(res.message || "AIR document uploaded successfully.");
+                    closeUploadAirModal();
+                    refreshGeneratedSlipsGrid();
+                } else {
+                    alert(res.message || "Failed to upload AIR document.");
+                    $("#btnSubmitAirUpload").prop("disabled", false).html("<span class='k-icon k-i-upload'></span> Upload AIR Document");
+                    $("#airUploadProgressContainer").hide();
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Error during upload: " + (error || status));
+                $("#btnSubmitAirUpload").prop("disabled", false).html("<span class='k-icon k-i-upload'></span> Upload AIR Document");
+                $("#airUploadProgressContainer").hide();
+            }
+        });
+    }
+
+    function reuseExistingPoAir(icsId, sourceUploadId) {
+        if (!confirm("Link this existing AIR document to this ICS record?")) return;
+
+        $.ajax({
+            url: '@Url.Action("ReusePoAirFile", "IcsSet")',
+            type: "POST",
+            data: {
+                icsId: icsId,
+                sourceUploadId: sourceUploadId
+            },
+            success: function (res) {
+                if (res && res.success) {
+                    notifySuccess(res.message || "AIR document linked successfully.");
+                    closeUploadAirModal();
+                    refreshGeneratedSlipsGrid();
+                } else {
+                    alert(res.message || "Failed to link AIR document.");
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Error linking AIR document: " + (error || status));
+            }
+        });
+    }
+</script>

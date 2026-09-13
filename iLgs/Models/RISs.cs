@@ -17,7 +17,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public RISs()
         {
-            this.RisItemUnitGroups = new HashSet<RisItemUnitGroup>();
             this.RisItems = new HashSet<RisItem>();
         }
     
@@ -47,8 +46,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PostedDt { get; set; }
     
         public virtual OrderRequest OrderRequest { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItem> RisItems { get; set; }
     }

@@ -1,4 +1,4 @@
-@model iLgs.Models.PurchaseRequestReviewViewModel
+﻿@model iLgs.Models.PurchaseRequestReviewViewModel
 @using System.Globalization
 @using System.Linq
 @{
@@ -310,6 +310,12 @@
             </button>
             <button type="button" class="k-button k-button-solid-primary k-rounded-md" onclick="openReviewPostDialog()">
                 <span class="k-icon k-i-check"></span> Post
+            </button>
+        }
+        else if (Model.Status == "Posted" && ViewBag.AllowUnpost == true)
+        {
+            <button type="button" class="k-button k-button-solid-base k-rounded-md" onclick="unpostPurchaseRequest(this, '@Model.Id')">
+                <span class="k-icon k-i-unlock"></span> Unpost
             </button>
         }
     </div>

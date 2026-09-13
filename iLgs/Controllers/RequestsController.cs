@@ -1,3 +1,5 @@
+﻿using System.Collections;
+using System.Collections.Generic;
 using CrystalDecisions.CrystalReports.Engine;
 using iLgs.Ai.Services;
 using iLgs.Exceptions;
@@ -53,6 +55,9 @@ namespace iLgs.Controllers
             }
             TempData["requests"] = _menuId;
 
+            var postingAccess = await Access(User.Identity.GetUserId(), "requests_posting", _menuId);
+            ViewBag.AllowUnpost = postingAccess.IsAllowed && postingAccess.AllowUnpost;
+
             ViewBag.IsSubmitted = false;
             return View();
         }
@@ -67,6 +72,8 @@ namespace iLgs.Controllers
                 return View("Error");
             }
             TempData["requests"] = _menuId;
+
+            ViewBag.AllowUnpost = access.IsAllowed && access.AllowUnpost;
 
             ViewBag.IsSubmitted = true;
             return View("Index");
@@ -205,6 +212,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id);
                     model = await _requestService.UpdateAsync(model, user, date);
                 }
             }
@@ -336,6 +344,8 @@ namespace iLgs.Controllers
                 return HttpNotFound("Purchase Request not found.");
             }
 
+            var postingAccess = await Access(User.Identity.GetUserId(), "requests_posting", "requests");
+            ViewBag.AllowUnpost = postingAccess.IsAllowed && postingAccess.AllowUnpost;
             model.IsViewOnly = true;
             ViewBag.IsViewOnly = true;
             return PartialView("_Review", model);
@@ -349,27 +359,64 @@ namespace iLgs.Controllers
             if (!access.IsAllowed || !access.AllowPost)
                 return Json(new { success = false, message = "Posting access denied." });
 
-            if (!ModelState.IsValid || model.RequestId == Guid.Empty)
-                return Json(new { success = false, message = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage).FirstOrDefault() ?? "Please complete the required fields." });
+            ModelState.Remove(nameof(model.PrNumber));
+            ModelState.Remove("PrNumber");
+            ModelState.Remove("model.PrNumber");
 
-            var prNumber = model.PrNumber.Trim();
+            if (model.RequestId == Guid.Empty)
+                return Json(new { success = false, message = "Invalid Request ID." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage).Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
+                if (errors.Any())
+                    return Json(new { success = false, message = string.Join(" ", errors) });
+            }
+
+            var entity = await _db.Requests.FirstOrDefaultAsync(x => x.Id == model.RequestId);
+            if (entity == null)
+                return Json(new { success = false, message = "Purchase Request not found." });
+
+            var status = await GetRequestStatusAsync(entity);
+            if (status != PrStatuses.Submitted || entity.PostedDt.HasValue || !String.IsNullOrWhiteSpace(entity.PostedBy))
+                return Json(new { success = false, message = "Only a Submitted Purchase Request can be posted." });
+
+            if (String.IsNullOrWhiteSpace(entity.Availability) || String.IsNullOrWhiteSpace(entity.ApprovedBy))
+                return Json(new { success = false, message = "Cash availability and Approved By are required before posting." });
+
+            var prDate = model.PrDate.HasValue
+                ? model.PrDate.Value.Date
+                : (entity.PrDate.HasValue ? entity.PrDate.Value.Date : DateTime.Today);
+
+            // Allow empty PR Number: preserve existing PR Number if already present, otherwise auto generate
+            var prNumber = !String.IsNullOrWhiteSpace(model.PrNumber)
+                ? model.PrNumber.Trim()
+                : (!String.IsNullOrWhiteSpace(entity.PrNo) ? entity.PrNo.Trim() : _requestService.NextPrNo(prDate));
+
+            var validation = _requestService.ValidateOnPost(prNumber, prDate);
+            if (validation != null && validation.Count > 0)
+            {
+                var errorList = new List<string>();
+                foreach (DictionaryEntry entry in validation)
+                {
+                    if (entry.Value is IEnumerable<string> msgs)
+                        errorList.AddRange(msgs);
+                    else if (entry.Value != null)
+                        errorList.Add(entry.Value.ToString());
+                }
+                if (errorList.Any())
+                    return Json(new { success = false, message = string.Join(" ", errorList) });
+            }
+
+            if (await _db.Requests.AnyAsync(x => x.Id != entity.Id && x.PrNo == prNumber))
+                return Json(new { success = false, message = "PR Number already exists." });
+
             using (var transaction = _db.Database.BeginTransaction())
             {
-                var entity = await _db.Requests.FirstOrDefaultAsync(x => x.Id == model.RequestId);
-                var status = await GetRequestStatusAsync(entity);
-                if (entity == null || status != PrStatuses.Submitted || entity.PostedDt.HasValue || !String.IsNullOrWhiteSpace(entity.PostedBy))
-                    return Json(new { success = false, message = "Only a Submitted Purchase Request can be posted." });
-
-                if (await _db.Requests.AnyAsync(x => x.Id != entity.Id && x.PrNo == prNumber))
-                    return Json(new { success = false, message = "PR Number already exists." });
-
-                if (String.IsNullOrWhiteSpace(entity.Availability) || String.IsNullOrWhiteSpace(entity.ApprovedBy))
-                    return Json(new { success = false, message = "Cash availability and Approved By are required before posting." });
-
                 var now = DateTime.Now;
                 var user = User.Identity.Name;
                 entity.PrNo = prNumber;
-                entity.PrDate = model.PrDate.Value.Date;
+                entity.PrDate = prDate;
                 entity.PostedBy = user;
                 entity.PostedDt = now;
                 entity.UpdatedBy = user;
@@ -379,12 +426,12 @@ namespace iLgs.Controllers
                 foreach (var usage in usages) { usage.Type = "PR"; usage.Reference = prNumber; }
 
                 new DocumentHistoryService(_db).AddStatusHistory(DocumentTypes.PurchaseRequest, entity.Id,
-                    prNumber, PrStatuses.Submitted, PrStatuses.Posted, "Post", "Purchase Request reviewed and posted.", user);
+                    prNumber, status, PrStatuses.Posted, "Post", "Purchase Request reviewed and posted.", user);
                 await _db.SaveChangesAsync();
                 transaction.Commit();
             }
 
-            return Json(new { success = true });
+            return Json(new { success = true, prNumber = prNumber });
         }
 
         [HttpPost]
@@ -510,6 +557,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id);
                     model = await _requestService.DeleteAsync(model, user, date);
                 }
             }
@@ -588,6 +636,7 @@ namespace iLgs.Controllers
 
                 if (model != null && ModelState.IsValid)
                 {
+                    if (requestId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(requestId.Value); }
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
@@ -681,6 +730,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
+                    if (model.PrId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.PrId.Value); }
                     model = await _requestService.RequestItem.DeleteAsync(model, user, date);
                 }
             }
@@ -747,12 +797,40 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UnpostPurchaseRequest(Guid requestId)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "requests_posting", "requests");
+                if (!access.IsAllowed || !access.AllowUnpost)
+                {
+                    return Json(new { success = false, message = "Unpost access denied." });
+                }
+
+                var service = new PurchaseRequestLifecycleService(_db);
+                var pr = await service.UnpostAsync(requestId, User.Identity.Name, DateTime.Now);
+                var prNo = !string.IsNullOrWhiteSpace(pr.PrNo) ? pr.PrNo.Trim() : (!string.IsNullOrWhiteSpace(pr.CtrlNo) ? pr.CtrlNo.Trim() : "");
+
+                return Json(new
+                {
+                    success = true,
+                    message = string.Format("Purchase Request {0} has been unposted and returned to the review stage.", prNo)
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> UnpostRequest(Guid requestId)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests_posting");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests_posting", "requests");
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -764,7 +842,16 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _requestService.UnpostAsync(requestId, user, date);
+                    var service = new PurchaseRequestLifecycleService(_db);
+                    var pr = await service.UnpostAsync(requestId, user, date);
+                    var prNo = !string.IsNullOrWhiteSpace(pr.PrNo) ? pr.PrNo.Trim() : (!string.IsNullOrWhiteSpace(pr.CtrlNo) ? pr.CtrlNo.Trim() : "");
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = string.Format("Purchase Request {0} has been unposted and returned to the review stage.", prNo),
+                        Errors = ""
+                    }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -789,12 +876,13 @@ namespace iLgs.Controllers
                         select error.ErrorMessage;
 
             var errorList = query.ToList();
+            var firstError = errorList.FirstOrDefault() ?? "The operation was blocked.";
             if (errorList.Count() > 0)
             {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+                return Json(new { success = false, message = firstError, Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { success = true, message = "Purchase Request unposted.", Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

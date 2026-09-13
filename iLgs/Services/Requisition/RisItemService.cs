@@ -85,10 +85,10 @@ namespace iLgs.Services.Requisition
                 Remarks = s.Remarks,                
                 InsertedDt = s.InsertedDt,
                 IsPosted = s.RISs.PostedDt != null,
-                SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
+                //SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo,
                 Padding = (s.OrderItemRequest.OrderItem.ItemNo.Length - s.OrderItemRequest.OrderItem.ItemNo.Replace(".", "").Length) * 20,
-                IsSetLot = s.OrderItemRequest.OrderItem.Unit == "set" || s.OrderItemRequest.OrderItem.Unit == "lot" ? true : false,
-                IsSetLotItem = s.OrderItemRequest.OrderItem.ItemNo.Contains("."),
+                //IsSetLot = s.OrderItemRequest.OrderItem.Unit == "set" || s.OrderItemRequest.OrderItem.Unit == "lot" ? true : false,
+                //IsSetLotItem = s.OrderItemRequest.OrderItem.ItemNo.Contains("."),
                 RIS = s.RISs
             };
         }

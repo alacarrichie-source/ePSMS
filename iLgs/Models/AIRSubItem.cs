@@ -18,11 +18,12 @@ namespace iLgs.Models
         public AIRSubItem()
         {
             this.AIRItemExtns = new HashSet<AIRItemExtn>();
+            this.PsCardSubItems = new HashSet<PsCardSubItem>();
         }
     
         public System.Guid Id { get; set; }
         public System.Guid AirItemId { get; set; }
-        public System.Guid OrderSubItemId { get; set; }
+        public Nullable<System.Guid> OrderSubItemId { get; set; }
         public Nullable<System.Guid> OrderSubItemRequestId { get; set; }
         public string SubItemNo { get; set; }
         public string Description { get; set; }
@@ -39,9 +40,13 @@ namespace iLgs.Models
         public string CategoryCode { get; set; }
         public string ItemExtnName { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string SourceType { get; set; }
+        public Nullable<bool> IsRequiredForBundle { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual AIRItem AIRItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardSubItem> PsCardSubItems { get; set; }
     }
 }

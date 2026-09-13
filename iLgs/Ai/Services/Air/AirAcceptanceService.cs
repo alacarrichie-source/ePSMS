@@ -106,11 +106,13 @@ namespace iLgs.Ai.Services.Air
 
             var prevSubInspectedMap = otherPostedAirItems
                 .SelectMany(ai => ai.AIRSubItems)
+                .Where(s => s.OrderSubItemId.HasValue)
                 .GroupBy(s => s.OrderSubItemId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.InspectedQty));
 
             var prevSubAcceptedMap = otherPostedAirItems
                 .SelectMany(ai => ai.AIRSubItems)
+                .Where(s => s.OrderSubItemId.HasValue)
                 .GroupBy(s => s.OrderSubItemId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.AcceptedQty));
 
@@ -331,16 +333,22 @@ namespace iLgs.Ai.Services.Air
                     }
                 }
 
-                // Sub-items mapping (Set / Lot)
+                // Sub-items mapping
                 if (isSet)
                 {
-                    var dbSubItems = item.AIRSubItems.OrderBy(s => s.SubItemNo).ToList();
+                    var dbSubItems = item.AIRSubItems.OrderBy(s => {
+                        int n;
+                        var raw = (s.SubItemNo ?? "").Trim().TrimStart('#').Trim();
+                        return int.TryParse(raw, out n) ? n : 9999;
+                    }).ThenBy(s => s.SubItemNo).ToList();
                     foreach (var sub in dbSubItems)
                     {
                         decimal subExpected = sub.ExpectedQty;
-                        decimal prevSubInsp = prevSubInspectedMap.ContainsKey(sub.OrderSubItemId) ? prevSubInspectedMap[sub.OrderSubItemId] : 0;
+                        decimal prevSubInsp = (sub.OrderSubItemId.HasValue && prevSubInspectedMap.ContainsKey(sub.OrderSubItemId.Value))
+                            ? prevSubInspectedMap[sub.OrderSubItemId.Value] : 0;
                         decimal totalSubInsp = prevSubInsp + sub.InspectedQty;
-                        decimal prevSubAcc = prevSubAcceptedMap.ContainsKey(sub.OrderSubItemId) ? prevSubAcceptedMap[sub.OrderSubItemId] : 0;
+                        decimal prevSubAcc = (sub.OrderSubItemId.HasValue && prevSubAcceptedMap.ContainsKey(sub.OrderSubItemId.Value))
+                            ? prevSubAcceptedMap[sub.OrderSubItemId.Value] : 0;
                         decimal subAvail = Math.Max(0, totalSubInsp - prevSubAcc);
 
                         decimal subQtyThisAcc;
@@ -354,8 +362,17 @@ namespace iLgs.Ai.Services.Air
                         }
                         else
                         {
-                            decimal subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent.Value : 1;
-                            subQtyThisAcc = Math.Min(subAvail, qtyThisAcceptance * subRatio);
+                            var normSource = SubItemSourceTypes.Normalize(sub.SourceType, sub.OrderSubItemId.HasValue);
+                            if (normSource == SubItemSourceTypes.Ordered)
+                            {
+                                decimal subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent.Value : 1;
+                                subQtyThisAcc = Math.Min(subAvail, qtyThisAcceptance * subRatio);
+                            }
+                            else
+                            {
+                                // Freebies and inspection-added components default to their inspected available qty
+                                subQtyThisAcc = Math.Min(subAvail, sub.InspectedQty);
+                            }
                         }
 
                         string subCategory = sub.CategoryCode;
@@ -368,7 +385,7 @@ namespace iLgs.Ai.Services.Air
                             AirSubItemId = sub.Id,
                             OrderSubItemId = sub.OrderSubItemId,
                             OrderSubItemRequestId = sub.OrderSubItemRequestId,
-                            SubItemNo = sub.SubItemNo,
+                            SubItemNo = !string.IsNullOrWhiteSpace(sub.SubItemNo) ? sub.SubItemNo.Trim().TrimStart('#').Trim() : null,
                             Description = sub.Description,
                             Unit = sub.Unit,
                             ExpectedQty = subExpected,
@@ -376,11 +393,15 @@ namespace iLgs.Ai.Services.Air
                             TotalInspectedQty = totalSubInsp,
                             PreviouslyAcceptedQty = prevSubAcc,
                             QtyThisAcceptance = subQtyThisAcc,
+                            InspectedQty = sub.InspectedQty,
+                            AcceptedQty = subQtyThisAcc,
                             Remarks = sub.Remarks,
                             QtyPerParent = sub.QtyPerParent ?? 1,
                             CategoryCode = subCategory,
                             ItemExtnName = subExtnName,
-                            RequiresInventory = true
+                            RequiresInventory = true,
+                            SourceType = SubItemSourceTypes.Normalize(sub.SourceType, sub.OrderSubItemId.HasValue),
+                            IsRequiredForBundle = SubItemSourceTypes.ResolveBundleRequired(sub.SourceType, sub.IsRequiredForBundle, sub.OrderSubItemId.HasValue)
                         };
 
                         // Map sub-item inventory details
@@ -415,7 +436,7 @@ namespace iLgs.Ai.Services.Air
             // Determine Completion status
             bool isComplete = vm.Items.Any() && vm.Items.All(i =>
                 i.TotalAcceptedQty >= i.POQty &&
-                (!i.IsSetLot || i.SubItems.All(s => s.TotalAcceptedQty >= s.ExpectedQty)));
+                (!i.IsSetLot || !i.SubItems.Any() || i.SubItems.Where(s => s.IsRequiredForBundle).All(s => s.TotalAcceptedQty >= s.ExpectedQty)));
 
             bool isPartial = !isComplete && vm.Items.Any(i => i.TotalAcceptedQty > 0);
 
@@ -568,11 +589,13 @@ namespace iLgs.Ai.Services.Air
 
             var prevSubInspectedMap = otherPostedAirItems
                 .SelectMany(ai => ai.AIRSubItems)
+                .Where(s => s.OrderSubItemId.HasValue)
                 .GroupBy(s => s.OrderSubItemId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.InspectedQty));
 
             var prevSubAcceptedMap = otherPostedAirItems
                 .SelectMany(ai => ai.AIRSubItems)
+                .Where(s => s.OrderSubItemId.HasValue)
                 .GroupBy(s => s.OrderSubItemId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.AcceptedQty));
 
@@ -594,15 +617,15 @@ namespace iLgs.Ai.Services.Air
 
                 // Validation 1: Cannot be negative
                 if (itemVm.QtyThisAcceptance < 0)
-                    throw new InvalidOperationException($"Accepted quantity for Item #{itemVm.ItemNo} cannot be negative.");
+                    throw new InvalidOperationException(string.Format("Accepted quantity for Item #{0} cannot be negative.", itemVm.ItemNo));
 
                 // Validation 2: Cannot exceed AvailableForAcceptance
                 if (itemVm.QtyThisAcceptance > available)
-                    throw new InvalidOperationException($"Accepted quantity ({itemVm.QtyThisAcceptance}) for Item #{itemVm.ItemNo} cannot exceed available inspected quantity ({available}).");
+                    throw new InvalidOperationException(string.Format("Accepted quantity ({0}) for Item #{1} cannot exceed available inspected quantity ({2}).", itemVm.QtyThisAcceptance, itemVm.ItemNo, available));
 
                 // Validation 3: Total accepted cannot exceed PO Qty
                 if (prevAcc + itemVm.QtyThisAcceptance > poQty)
-                    throw new InvalidOperationException($"Total accepted quantity for Item #{itemVm.ItemNo} cannot exceed PO quantity ({poQty}).");
+                    throw new InvalidOperationException(string.Format("Total accepted quantity for Item #{0} cannot exceed PO quantity ({1}).", itemVm.ItemNo, poQty));
 
                 dbItem.AcceptedQty = itemVm.QtyThisAcceptance;
                 dbItem.Qty = itemVm.QtyThisAcceptance;
@@ -619,35 +642,29 @@ namespace iLgs.Ai.Services.Air
                 {
                     foreach (var subVm in itemVm.SubItems)
                     {
-                        var dbSub = dbItem.AIRSubItems.FirstOrDefault(s => s.Id == subVm.AirSubItemId || s.OrderSubItemId == subVm.OrderSubItemId);
+                        var dbSub = dbItem.AIRSubItems.FirstOrDefault(s =>
+                            (subVm.AirSubItemId.HasValue && s.Id == subVm.AirSubItemId.Value) ||
+                            (subVm.OrderSubItemId.HasValue && s.OrderSubItemId == subVm.OrderSubItemId));
                         if (dbSub == null) continue;
 
-                        decimal prevSubInsp = prevSubInspectedMap.ContainsKey(dbSub.OrderSubItemId) ? prevSubInspectedMap[dbSub.OrderSubItemId] : 0;
+                        decimal prevSubInsp = (dbSub.OrderSubItemId.HasValue && prevSubInspectedMap.ContainsKey(dbSub.OrderSubItemId.Value))
+                            ? prevSubInspectedMap[dbSub.OrderSubItemId.Value] : 0;
                         decimal totalSubInsp = prevSubInsp + dbSub.InspectedQty;
-                        decimal prevSubAcc = prevSubAcceptedMap.ContainsKey(dbSub.OrderSubItemId) ? prevSubAcceptedMap[dbSub.OrderSubItemId] : 0;
+                        decimal prevSubAcc = (dbSub.OrderSubItemId.HasValue && prevSubAcceptedMap.ContainsKey(dbSub.OrderSubItemId.Value))
+                            ? prevSubAcceptedMap[dbSub.OrderSubItemId.Value] : 0;
                         decimal subAvail = Math.Max(0, totalSubInsp - prevSubAcc);
 
                         if (subVm.QtyThisAcceptance < 0)
-                            throw new InvalidOperationException($"Accepted quantity for sub-item {subVm.SubItemNo} cannot be negative.");
+                            throw new InvalidOperationException(string.Format("Accepted quantity for sub-item {0} cannot be negative.", subVm.SubItemNo));
                         if (subVm.QtyThisAcceptance > subAvail)
-                            throw new InvalidOperationException($"Accepted quantity ({subVm.QtyThisAcceptance}) for sub-item {subVm.SubItemNo} cannot exceed available inspected quantity ({subAvail}).");
+                            throw new InvalidOperationException(string.Format("Accepted quantity ({0}) for sub-item {1} cannot exceed available inspected quantity ({2}).", subVm.QtyThisAcceptance, subVm.SubItemNo, subAvail));
 
+                        // Explicit update of acceptance-specific fields only
+                        // Protect Inspection-controlled fields (SourceType, IsRequiredForBundle, InspectedQty, Description)
                         dbSub.AcceptedQty = subVm.QtyThisAcceptance;
                         dbSub.Remarks = subVm.Remarks;
                         dbSub.UpdatedBy = user;
                         dbSub.UpdatedDt = DateTime.Now;
-                    }
-
-                    // Set/Lot consistency validation:
-                    // Ensure parent accepted set quantity does not exceed what components can satisfy
-                    foreach (var subVm in itemVm.SubItems)
-                    {
-                        decimal subRatio = (subVm.QtyPerParent > 0) ? subVm.QtyPerParent : 1;
-                        decimal requiredComponentQty = itemVm.QtyThisAcceptance * subRatio;
-                        if (subVm.QtyThisAcceptance < requiredComponentQty)
-                        {
-                            throw new InvalidOperationException($"Parent Set #{itemVm.ItemNo} accepts {itemVm.QtyThisAcceptance} set(s), which requires {requiredComponentQty} unit(s) of component '{subVm.Description}', but only {subVm.QtyThisAcceptance} were accepted.");
-                        }
                     }
                 }
             }
@@ -665,9 +682,13 @@ namespace iLgs.Ai.Services.Air
 
                 if (i.AIRSubItems != null && i.AIRSubItems.Any())
                 {
+                    // Only required bundle components affect complete acceptance
                     bool subComplete = i.AIRSubItems.All(s =>
                     {
-                        decimal prevSubAcc = prevSubAcceptedMap.ContainsKey(s.OrderSubItemId) ? prevSubAcceptedMap[s.OrderSubItemId] : 0;
+                        var isReq = SubItemSourceTypes.ResolveBundleRequired(s.SourceType, s.IsRequiredForBundle, s.OrderSubItemId.HasValue);
+                        if (!isReq) return true; // Optional components (e.g. Freebies) do not block complete acceptance
+                        decimal prevSubAcc = (s.OrderSubItemId.HasValue && prevSubAcceptedMap.ContainsKey(s.OrderSubItemId.Value))
+                            ? prevSubAcceptedMap[s.OrderSubItemId.Value] : 0;
                         return (prevSubAcc + s.AcceptedQty) >= s.ExpectedQty;
                     });
                     return parentComplete && subComplete;
@@ -779,22 +800,22 @@ namespace iLgs.Ai.Services.Air
                 bool hasAccountability = await _db.PsCardItemExtns.AsNoTracking().AnyAsync(e =>
                     e.PsCardItemId.HasValue &&
                     receiptIds.Contains(e.PsCardItemId.Value) &&
-                    (e.IcsParItems.Any() || e.RpcPpeItems.Any()));
+                    (e.IcsParItems.Any() || e.RpcPpeItems.Any() || e.IcsParItemComponents.Any()));
 
                 if (hasAccountability)
                 {
                     throw new InvalidOperationException(
-                        "This AIR Acceptance cannot be unposted because PAR/ICS or RPCPPE records already use its property items.");
+                        "This AIR Acceptance cannot be unposted because PAR/ICS, RPCPPE, or component-bundle records already use its property items.");
                 }
 
-                bool hasUnitGroups = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking().AnyAsync(i =>
-                    i.PsCardItemId.HasValue && receiptIds.Contains(i.PsCardItemId.Value));
+                //bool hasUnitGroups = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking().AnyAsync(i =>
+                //    i.PsCardItemId.HasValue && receiptIds.Contains(i.PsCardItemId.Value));
 
-                if (hasUnitGroups)
-                {
-                    throw new InvalidOperationException(
-                        "This AIR Acceptance cannot be unposted because unit-group records already use its inventory receipts.");
-                }
+                //if (hasUnitGroups)
+                //{
+                //    throw new InvalidOperationException(
+                //        "This AIR Acceptance cannot be unposted because unit-group records already use its inventory receipts.");
+                //}
             }
 
             bool hasCustodianReports = await _db.CustodianReportItems.AsNoTracking().AnyAsync(c =>
@@ -972,6 +993,38 @@ namespace iLgs.Ai.Services.Air
             {
                 throw new InvalidOperationException(
                     "One or more AIR inventory receipts changed while the acceptance was being unposted.");
+            }
+
+            var transfers = await _db.PsCardItemTransfers
+                .Where(t => t.PsCardItemId.HasValue && receiptIds.Contains(t.PsCardItemId.Value))
+                .ToListAsync();
+            var transferIds = transfers.Select(t => t.Id).ToList();
+            if (transferIds.Any())
+            {
+                var transferItems = await _db.PsCardItemTransferItems
+                    .Where(ti => ti.PsCardItemTransferId.HasValue && transferIds.Contains(ti.PsCardItemTransferId.Value))
+                    .ToListAsync();
+                if (transferItems.Any())
+                {
+                    _db.PsCardItemTransferItems.RemoveRange(transferItems);
+                }
+                _db.PsCardItemTransfers.RemoveRange(transfers);
+            }
+
+            var extensions = await _db.PsCardItemExtns
+                .Where(e => e.PsCardItemId.HasValue && receiptIds.Contains(e.PsCardItemId.Value))
+                .ToListAsync();
+            if (extensions.Any())
+            {
+                _db.PsCardItemExtns.RemoveRange(extensions);
+            }
+
+            var subItems = await _db.PsCardSubItems
+                .Where(s => s.PsCardItemId.HasValue && receiptIds.Contains(s.PsCardItemId.Value))
+                .ToListAsync();
+            if (subItems.Any())
+            {
+                _db.PsCardSubItems.RemoveRange(subItems);
             }
 
             _db.PsCardItems.RemoveRange(receipts);

@@ -1,4 +1,4 @@
-using iLgs.Models;
+﻿using iLgs.Models;
 using iLgs.Services.Items;
 using System;
 using System.Collections.Generic;
@@ -55,7 +55,7 @@ namespace iLgs.Ai.Services.Air
                         .Include(a => a.AIRItems.Select(i => i.AIRItemAllocations.Select(x => x.OrderItemRequest.OrderItem.AllField)))
                         .Include(a => a.AIRItems.Select(i => i.AIRItemAllocations.Select(x => x.OrderItemRequest.RequestItem.Request)))
                         .Include(a => a.AIRItems.Select(i => i.AIRItemExtns))
-                        .Include(a => a.AIRItems.Select(i => i.AIRSubItems))
+                        .Include(a => a.AIRItems.Select(i => i.AIRSubItems.Select(s => s.AIRItemExtns)))
                         .FirstOrDefaultAsync(a => a.Id == airId);
 
                     ValidateAirForPosting(air);
@@ -74,11 +74,6 @@ namespace iLgs.Ai.Services.Air
                         };
                     }
 
-                    if (air.AIRItems.Any(i => i.AIRSubItems.Any(s => s.AcceptedQty > 0)))
-                    {
-                        throw new InvalidOperationException(
-                            "Set/lot sub-item posting is not enabled yet; no records were created.");
-                    }
 
                     var groups = await _db.Database.SqlQuery<OrderItemGroupVM>(
                         "Exec OrderService_GetOrderItemGroup {0}, {1}",
@@ -92,10 +87,38 @@ namespace iLgs.Ai.Services.Air
 
                     foreach (var airItem in air.AIRItems.Where(i => (i.AcceptedQty ?? 0) > 0))
                     {
-                        var trackedItems = airItem.AIRItemExtns
+                        // 1. Collect all main item extensions (AIRSubItemId == null)
+                        var mainExtns = airItem.AIRItemExtns
+                            .Where(e => !e.AIRSubItemId.HasValue)
                             .OrderBy(e => e.ContentNo)
                             .ToList();
                         int trackedItemIndex = 0;
+
+                        // 2. Collect all subitem extensions (AIRSubItemId != null)
+                        var subExtnsList = new List<AIRItemExtn>();
+                        if (airItem.AIRSubItems != null && airItem.AIRSubItems.Any())
+                        {
+                            foreach (var sub in airItem.AIRSubItems)
+                            {
+                                var sList = (sub.AIRItemExtns != null && sub.AIRItemExtns.Any())
+                                    ? sub.AIRItemExtns.OrderBy(e => e.ContentNo).ToList()
+                                    : await _db.AIRItemExtns
+                                        .Where(e => e.AIRSubItemId == sub.Id)
+                                        .OrderBy(e => e.ContentNo)
+                                        .ToListAsync();
+
+                                subExtnsList.AddRange(sList);
+                            }
+                        }
+                        foreach (var dExt in airItem.AIRItemExtns.Where(e => e.AIRSubItemId.HasValue))
+                        {
+                            if (!subExtnsList.Any(e => e.Id == dExt.Id))
+                            {
+                                subExtnsList.Add(dExt);
+                            }
+                        }
+
+                        var subItemExtnIndexMap = new Dictionary<Guid, int>();
 
                         foreach (var portion in BuildReceiptPortions(airItem))
                         {
@@ -153,7 +176,56 @@ namespace iLgs.Ai.Services.Air
                                 user,
                                 postingDate);
 
-                            if (trackedItems.Any())
+                            // Step A: Post AIRSubItems first and build subItemMap (AIRSubItem.Id -> PsCardSubItem)
+                            var subItemMap = new Dictionary<Guid, PsCardSubItem>();
+                            if (airItem.AIRSubItems != null && airItem.AIRSubItems.Any())
+                            {
+                                decimal parentAccepted = airItem.AcceptedQty ?? 0;
+                                decimal portionRatio = parentAccepted > 0 ? (portion.Quantity / parentAccepted) : 1;
+
+                                foreach (var sub in airItem.AIRSubItems)
+                                {
+                                    decimal acceptedSubQty = sub.AcceptedQty;
+                                    if (acceptedSubQty <= 0)
+                                    {
+                                        continue;
+                                    }
+
+                                    decimal subQty = acceptedSubQty * portionRatio;
+                                    if (subQty <= 0)
+                                    {
+                                        continue;
+                                    }
+
+                                    var cardSub = new PsCardSubItem
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        PsCardItemId = cardItem.Id,
+                                        AIRSubItemId = sub.Id,
+                                        SubItemNo = !string.IsNullOrWhiteSpace(sub.SubItemNo) ? sub.SubItemNo.Trim().TrimStart('#').Trim() : null,
+                                        Description = sub.Description,
+                                        Qty = subQty,
+                                        QtyPerParent = sub.QtyPerParent,
+                                        Unit = sub.Unit,
+                                        UnitCost = null,
+                                        Remarks = sub.Remarks,
+                                        SourceType = !string.IsNullOrWhiteSpace(sub.SourceType)
+                                            ? SubItemSourceTypes.Normalize(sub.SourceType, sub.OrderSubItemId.HasValue)
+                                            : (sub.OrderSubItemId.HasValue ? SubItemSourceTypes.Ordered : SubItemSourceTypes.InspectionAdded),
+                                        IsRequiredForBundle = sub.IsRequiredForBundle ?? (SubItemSourceTypes.Normalize(sub.SourceType, sub.OrderSubItemId.HasValue) == SubItemSourceTypes.Ordered),
+                                        InsertedBy = user,
+                                        InsertedDt = postingDate,
+                                        UpdatedBy = user,
+                                        UpdatedDt = postingDate
+                                    };
+
+                                    cardItem.PsCardSubItems.Add(cardSub);
+                                    subItemMap[sub.Id] = cardSub;
+                                }
+                            }
+
+                            // Step B: Post main item physical details (AIRSubItemId == null -> PsCardSubItemId = null)
+                            if (mainExtns.Any())
                             {
                                 if (decimal.Truncate(portion.Quantity) != portion.Quantity)
                                 {
@@ -161,7 +233,7 @@ namespace iLgs.Ai.Services.Air
                                         "Tracked asset quantities must be whole numbers.");
                                 }
 
-                                var selectedItems = trackedItems
+                                var selectedItems = mainExtns
                                     .Skip(trackedItemIndex)
                                     .Take((int)portion.Quantity)
                                     .ToList();
@@ -172,8 +244,9 @@ namespace iLgs.Ai.Services.Air
                                         "Accepted property quantity does not have a complete physical-unit detail record.");
                                 }
 
-                                foreach (var sourceItem in selectedItems)
+                                for (int idx = 0; idx < selectedItems.Count; idx++)
                                 {
+                                    var sourceItem = selectedItems[idx];
                                     var targetItem = CloneExtension(
                                         sourceItem,
                                         cardItem.Id,
@@ -181,13 +254,70 @@ namespace iLgs.Ai.Services.Air
                                         postingDate,
                                         orderItem.UnitCost);
 
+                                    targetItem.PsCardSubItemId = null;
+                                    if (!targetItem.SetLotQtyNo.HasValue)
+                                    {
+                                        targetItem.SetLotQtyNo = trackedItemIndex + idx + 1;
+                                    }
+
                                     cardItem.PsCardItemExtns.Add(targetItem);
+
                                     receiptMovement.PsCardItemTransferItems.Add(
                                         CreateTransferItem(receiptMovement.Id, targetItem.Id, user, postingDate));
                                     assetCount++;
                                 }
 
                                 trackedItemIndex += selectedItems.Count;
+                            }
+
+                            // Step C: Post subitem physical details (AIRSubItemId != null -> PsCardSubItemId = mapped cardSub.Id)
+                            if (subItemMap.Any())
+                            {
+                                foreach (var subEntry in subItemMap)
+                                {
+                                    Guid airSubId = subEntry.Key;
+                                    PsCardSubItem cardSub = subEntry.Value;
+
+                                    var availableExtns = subExtnsList
+                                        .Where(e => e.AIRSubItemId == airSubId)
+                                        .OrderBy(e => e.ContentNo)
+                                        .ToList();
+
+                                    if (availableExtns.Any())
+                                    {
+                                        int subSkip = subItemExtnIndexMap.ContainsKey(airSubId) ? subItemExtnIndexMap[airSubId] : 0;
+                                        int remainingExtns = Math.Max(0, availableExtns.Count - subSkip);
+                                        int subCountToTake = (int)Math.Min(cardSub.Qty, remainingExtns);
+
+                                        var selectedSubExtns = availableExtns
+                                            .Skip(subSkip)
+                                            .Take(subCountToTake)
+                                            .ToList();
+
+                                        if (selectedSubExtns.Count != (int)cardSub.Qty)
+                                        {
+                                            throw new InvalidOperationException(
+                                                string.Format(
+                                                    "Accepted component '{0}' has {1} physical detail record(s), but {2} are required.",
+                                                    cardSub.Description,
+                                                    selectedSubExtns.Count,
+                                                    (int)cardSub.Qty));
+                                        }
+
+                                        subItemExtnIndexMap[airSubId] = subSkip + selectedSubExtns.Count;
+
+                                        foreach (var sExt in selectedSubExtns)
+                                        {
+                                            var targetSubExtn = CloneExtension(sExt, cardItem.Id, user, postingDate, null);
+                                            targetSubExtn.PsCardSubItemId = cardSub.Id;
+
+                                            cardItem.PsCardItemExtns.Add(targetSubExtn);
+                                            receiptMovement.PsCardItemTransferItems.Add(
+                                                CreateTransferItem(receiptMovement.Id, targetSubExtn.Id, user, postingDate));
+                                            assetCount++;
+                                        }
+                                    }
+                                }
                             }
 
                             cardItem.PsCardItemTransfers.Add(receiptMovement);
@@ -419,8 +549,8 @@ namespace iLgs.Ai.Services.Air
                 Unit = orderItem.Unit,
                 UnitCost = orderItem.UnitCost,
                 TUnitCost = orderItem.UnitCost,
-                Amount = (orderItem.UnitCost ?? 0) * portion.Quantity,
-                GTotalCost = (orderItem.UnitCost ?? 0) * portion.Quantity,
+                Amount = orderItem.Amount,
+                GTotalCost = orderItem.Amount,
                 DeptId = sourceRequest.DeptId,
                 DeptDisplay = sourceRequest.Department,
                 Description = orderItem.Description,
@@ -482,7 +612,7 @@ namespace iLgs.Ai.Services.Air
                 QtyBal = quantity,
                 Amount = cardItem.GTotalCost,
                 TranType = "I",
-                TransDate = air.AcceptedDate ?? air.AIRDate ?? postingDate,
+                TransDate = air.Order.PoDate,
                 InsertedBy = user,
                 InsertedDt = postingDate,
                 UpdatedBy = user,
@@ -609,6 +739,12 @@ namespace iLgs.Ai.Services.Air
             target.InsertedDt = postingDate;
             target.UpdatedBy = user;
             target.UpdatedDt = postingDate;
+
+            var otherTarget = target as PsCardItemExtnOther;
+            if (otherTarget != null && string.IsNullOrWhiteSpace(target.SeriesNo) && !string.IsNullOrWhiteSpace(otherTarget.SerialNo))
+            {
+                target.SeriesNo = otherTarget.SerialNo;
+            }
 
             return target;
         }

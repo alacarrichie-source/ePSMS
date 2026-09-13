@@ -17,7 +17,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public RequestItem()
         {
-            this.RequestItemUnitGroupDescriptionItems = new HashSet<RequestItemUnitGroupDescriptionItem>();
             this.OrderItemRequests = new HashSet<OrderItemRequest>();
             this.RequestSubItems = new HashSet<RequestSubItem>();
         }
@@ -42,8 +41,6 @@ namespace iLgs.Models
         public Nullable<System.Guid> PpmpItemId { get; set; }
     
         public virtual Request Request { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItemUnitGroupDescriptionItem> RequestItemUnitGroupDescriptionItems { get; set; }
         public virtual PPMPItem PPMPItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemRequest> OrderItemRequests { get; set; }

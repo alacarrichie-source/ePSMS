@@ -22,14 +22,14 @@ namespace iLgs.Services.PurchaseOrder
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<OrderItemVM> _vmExceptionService;
-        private readonly IOrderItemUnitGroupDescriptionItemSharedService _orderItemUnitGroupDescriptionItemSharedService;
+        //private readonly IOrderItemUnitGroupDescriptionItemSharedService _orderItemUnitGroupDescriptionItemSharedService;
         private readonly IOrderSharedService _orderSharedService;
 
         public OrderItemSharedService(AppManEntities db)
         {
             _db = db;
             _vmExceptionService = new ExceptionService<OrderItemVM>();
-            _orderItemUnitGroupDescriptionItemSharedService = new OrderItemUnitGroupDescriptionItemSharedService(_db);
+            //_orderItemUnitGroupDescriptionItemSharedService = new OrderItemUnitGroupDescriptionItemSharedService(_db);
             _orderSharedService = new OrderSharedService(_db);
         }
 

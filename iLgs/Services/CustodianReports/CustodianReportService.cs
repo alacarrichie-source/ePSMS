@@ -1723,7 +1723,7 @@ namespace iLgs.Services.CustodianReports
                     var account = itemCodes.FirstOrDefault(f => f.Id == psCardItemExtn.PsCardItem.PsCard.ItemCodeId);
                     var allField = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == psCardItemExtn.PsCardItem.PsCard.Id);
                     var icsParItems = await _db.IcsParItems.AsNoTracking()
-                        .Include(i => i.IcsPar.IcsParUnitGroups)
+                        //.Include(i => i.IcsPar.IcsParUnitGroups)
                         .Where(w => w.PsCardItemExtnId == transferItem.PsCardItemExtnId && w.IcsPar.RefDate.Value.Year <= forYear)
                         .OrderByDescending(o => o.IcsPar.RefDate).ToListAsync();
                     var pars = icsParItems.Where(w => w.IcsPar.RefType == "P");
@@ -1841,16 +1841,16 @@ namespace iLgs.Services.CustodianReports
                     //UploadedDt,
 
                     var icsParItem = icsParItems.FirstOrDefault();
-                    IcsParUnitGroupDescriptionItem icsParItmUnitGroupDescriptionItem = null;
-                    if (icsParItem != null)
-                    {
-                        icsParItmUnitGroupDescriptionItem = await _db.IcsParUnitGroupDescriptionItems.AsNoTracking()
-                            .Include(i => i.IcsPartUnitGroupDescription.IcsParUnitGroup)
-                            .FirstOrDefaultAsync(f => f.IcsParItemId == icsParItem.Id);
-                    }
-                    var psCardItemUnitGroupDescriptionItem = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking()
-                        .Include(i => i.PsCardItemUnitGroupDescription.PsCardItemUnitGroup)
-                        .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItemExtn.PsCardItemId);
+                    //IcsParUnitGroupDescriptionItem icsParItmUnitGroupDescriptionItem = null;
+                    //if (icsParItem != null)
+                    //{
+                    //    icsParItmUnitGroupDescriptionItem = await _db.IcsParUnitGroupDescriptionItems.AsNoTracking()
+                    //        .Include(i => i.IcsPartUnitGroupDescription.IcsParUnitGroup)
+                    //        .FirstOrDefaultAsync(f => f.IcsParItemId == icsParItem.Id);
+                    //}
+                    //var psCardItemUnitGroupDescriptionItem = await _db.PsCardItemUnitGroupDescriptionItems.AsNoTracking()
+                    //    .Include(i => i.PsCardItemUnitGroupDescription.PsCardItemUnitGroup)
+                    //    .FirstOrDefaultAsync(f => f.PsCardItemId == psCardItemExtn.PsCardItemId);
 
                     var custodianReportUpload = new CustodianReportUpload()
                     {
@@ -1859,15 +1859,15 @@ namespace iLgs.Services.CustodianReports
                         PsCardItemId = psCardItemExtn.PsCardItemId,
                         PsCardTransferId = transferItem.PsCardItemTransferId,
                         PsCardTransferItemId = transferItem.Id,
-                        PsCardUnitGroupId = psCardItemUnitGroupDescriptionItem?.PsCardItemUnitGroupDescription.UnitGroupId,
-                        PsCardUnitGroupDescriptionId = psCardItemUnitGroupDescriptionItem?.UnitGroupDescriptionId,
-                        PsCardUnitGroupDescriptionItemId = psCardItemUnitGroupDescriptionItem?.Id,
+                        //PsCardUnitGroupId = psCardItemUnitGroupDescriptionItem?.PsCardItemUnitGroupDescription.UnitGroupId,
+                        //PsCardUnitGroupDescriptionId = psCardItemUnitGroupDescriptionItem?.UnitGroupDescriptionId,
+                        //PsCardUnitGroupDescriptionItemId = psCardItemUnitGroupDescriptionItem?.Id,
                         PsCardItemExtnId = psCardItemExtn.Id,
                         IcsParId = icsParItem?.IcsParId,
                         IcsParItemId = icsParItem?.Id,
-                        IcsParUnitGroupId = icsParItmUnitGroupDescriptionItem?.IcsPartUnitGroupDescription.UnitGroupId,
-                        IcsParUnitGroupDescriptionId = icsParItmUnitGroupDescriptionItem?.UnitGroupDescriptionId,
-                        IcsParUnitGroupDescriptionItemId = icsParItmUnitGroupDescriptionItem?.Id,
+                        //IcsParUnitGroupId = icsParItmUnitGroupDescriptionItem?.IcsPartUnitGroupDescription.UnitGroupId,
+                        //IcsParUnitGroupDescriptionId = icsParItmUnitGroupDescriptionItem?.UnitGroupDescriptionId,
+                        //IcsParUnitGroupDescriptionItemId = icsParItmUnitGroupDescriptionItem?.Id,
                         DownloadedBy = user,
                         DownloadedDt = date
                     };

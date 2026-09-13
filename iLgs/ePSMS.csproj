@@ -322,6 +322,7 @@
     <Compile Include="Ai\Services\Air\AirInspectionService.cs" />
     <Compile Include="Ai\Services\Air\AirAcceptanceService.cs" />
     <Compile Include="Ai\Services\Air\AIRInventoryPostingService.cs" />
+    <Compile Include="Ai\Services\Air\SubItemSourceTypes.cs" />
     <Compile Include="Ai\Models\POWizardViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderDetailViewModel.cs" />
     <Compile Include="Ai\Models\PurchaseOrderGridModel.cs" />
@@ -443,10 +444,16 @@
     </Compile>
     <Compile Include="Models\DashboardViewModel.cs" />
     <Compile Include="Models\GridViewModels.cs" />
+    <Compile Include="Models\IcsParItemComponent.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\OrderSubItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderSubItemRequest.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardSubItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PurchaseOrderWizardProgress.cs">
@@ -555,15 +562,6 @@
     <Compile Include="Models\IcsParItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\IcsPartUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\IcsParUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\IcsParUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\IcsParUpdate.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -619,15 +617,6 @@
     <Compile Include="Models\OrderItemRequest.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\OrderItemUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\OrderItemUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\OrderRequest.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -652,9 +641,6 @@
     </Compile>
     <Compile Include="Models\PPMPViewModels.cs" />
     <Compile Include="Models\ProcurementViewModels.cs" />
-    <Compile Include="Models\PropertyCardItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsCard.cs">
@@ -702,15 +688,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemTransferViewModels.cs" />
-    <Compile Include="Models\PsCardItemUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsCardItemUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsCardItemUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PsCardViewModels.cs" />
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -718,28 +695,10 @@
     <Compile Include="Models\RequestItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\RequestItemUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RequestItemUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RequestItemUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\RequestSubItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RisItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemUnitGroup.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemUnitGroupDescription.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISs.cs">
@@ -4346,8 +4305,7 @@
     <Content Include="Views\AIRs\AcceptanceWizard.cshtml" />
     <Content Include="Views\AIRs\_AcceptanceStep1_Review.cshtml" />
     <Content Include="Views\AIRs\_AcceptanceStep2_Details.cshtml" />
-    <Content Include="Views\AIRs\_AcceptanceStep3_Disposition.cshtml" />
-    <Content Include="Views\AIRs\_AcceptanceStep4_ReviewPost.cshtml" />
+    <Content Include="Views\AIRs\_AcceptanceStep3_ReviewPost.cshtml" />
     <Content Include="Views\AIRs\_ItemHistoryModal.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemTemplate.cshtml" />
@@ -4607,6 +4565,28 @@
     <Content Include="Views\StockCard\_StockCardItem.cshtml" />
     <Content Include="Views\Rpci\EditorTemplates\_RpciItemTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_GeneratePAR.cshtml" />
+    <Content Include="Content\property-card-index.css" />
+    <Content Include="Scripts\property-card-index.js" />
+    <Content Include="Scripts\purchase-orders-existing.js" />
+    <Compile Include="Services\PurchaseOrder\PurchaseOrderLifecycleService.cs" />
+    <Compile Include="Services\PurchaseRequest\PurchaseRequestLifecycleService.cs" />
+    <Compile Include="Ai\Services\PurchaseOrder\PurchaseOrderAiService.Existing.cs" />
+    <Compile Include="Models\PropertyCardWorkspaceViewModels.cs" />
+    <Compile Include="Services\PropertyCard\PropertyCardWorkspaceService.cs" />
+    <Content Include="Views\PropertyCard\Workspace.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceUnits.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceAccountability.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceAccountabilityScope.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceDocuments.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceHistory.cshtml" />
+    <Content Include="Scripts\property-card-view.js" />
+    <Content Include="Content\property-card-view.css" />
+    <Content Include="Views\PropertyCard\_WorkspaceDocumentScope.cshtml" />
+    <Content Include="Scripts\property-card-legacy.js" />
+    <Content Include="Content\property-card-legacy.css" />
+    <Content Include="Views\PropertyCard\_ClientConfig.cshtml" />
+    <Content Include="Views\PropertyCard\_UnitTemplates.cshtml" />
+    <Content Include="Views\PropertyCard\_ValidationTemplate.cshtml" />
     <Content Include="Views\PropertyCard\Index.cshtml" />
     <Content Include="Views\PropertyCard\_PropertyCardItemAddEdit.cshtml" />
     <Content Include="Views\PropertyCard\_PropertyCardItem.cshtml" />
@@ -5138,7 +5118,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -155,6 +155,7 @@
             success: function (response) {
                 if (response.success) {
                 allocatedItems = response.items;
+                if(typeof existingOrderId !== "undefined" && existingOrderId){existingAllocationsChanged=true;allocatedItems.forEach(function(item){item.TargetGroupId=existingOrderId;});restoreStep2AssignmentsFromGroups();}
                 renderStep2Allocations();
                 scheduleWizardAutoSave();
                     wizardNext();

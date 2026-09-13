@@ -15,9 +15,9 @@ namespace iLgs.Services.PurchaseRequest
         bool IsPosted(Guid prId);
         bool IsPosted(Request request);
         bool IsPosted(RequestItem requestItem);
-        bool IsPosted(RequestItemUnitGroup requestItemUnitGroup);
-        bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription);
-        bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem);
+        //bool IsPosted(RequestItemUnitGroup requestItemUnitGroup);
+        //bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription);
+        //bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem);
         Task<bool> IsPostedAsync(Guid prId);
         Task<bool> GetAnyOrderAsync(Guid id);
         //Task<bool> GetAnyParsAsync(Guid id);
@@ -51,31 +51,31 @@ namespace iLgs.Services.PurchaseRequest
             return IsPosted(prId);
         }
 
-        public bool IsPosted(RequestItemUnitGroup requestItemUnitGroup)
-        {
-            var prId = (Guid)requestItemUnitGroup.PrId;
-            return IsPosted(prId);
-        }
+        //public bool IsPosted(RequestItemUnitGroup requestItemUnitGroup)
+        //{
+        //    var prId = (Guid)requestItemUnitGroup.PrId;
+        //    return IsPosted(prId);
+        //}
 
-        public bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription)
-        {
-            var prId = (Guid)_db.RequestItemUnitGroupDescriptions
-                .Include(i => i.RequestItemUnitGroup)
-                .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescription.RequestItemUnitGroupId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RequestItemUnitGroup.PrId;
-            return IsPosted(prId);
-        }
+        //public bool IsPosted(RequestItemUnitGroupDescription requestItemUnitGroupDescription)
+        //{
+        //    var prId = (Guid)_db.RequestItemUnitGroupDescriptions
+        //        .Include(i => i.RequestItemUnitGroup)
+        //        .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescription.RequestItemUnitGroupId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.RequestItemUnitGroup.PrId;
+        //    return IsPosted(prId);
+        //}
 
-        public bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem)
-        {
-            var prId = (Guid)_db.RequestItemUnitGroupDescriptionItems
-                .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
-                .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
-            return IsPosted(prId);
-        }
+        //public bool IsPosted(RequestItemUnitGroupDescriptionItem requestItemUnitGroupDescriptionItem)
+        //{
+        //    var prId = (Guid)_db.RequestItemUnitGroupDescriptionItems
+        //        .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
+        //        .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId;
+        //    return IsPosted(prId);
+        //}
         
         public async Task<bool> IsPostedAsync(Guid prId)
         {

@@ -170,14 +170,14 @@ namespace iLgs.Services.PropertyCard
             psCardItemExtn.UpdatedBy = user;
             psCardItemExtn.UpdatedDt = date;
 
-            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
-            if (unitGroup != null)
-            {
-                unitGroup.AddCost = totalAddCost;
-                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
-                unitGroup.UpdatedBy = user;
-                unitGroup.UpdatedDt = date;
-            }
+            //var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            //if (unitGroup != null)
+            //{
+            //    unitGroup.AddCost = totalAddCost;
+            //    unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+            //    unitGroup.UpdatedBy = user;
+            //    unitGroup.UpdatedDt = date;
+            //}
 
             await _db.SaveChangesAsync();
             
@@ -208,14 +208,14 @@ namespace iLgs.Services.PropertyCard
             psCardItemExtn.UpdatedBy = user;
             psCardItemExtn.UpdatedDt = date;
 
-            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
-            if (unitGroup != null)
-            {
-                unitGroup.AddCost = totalAddCost;
-                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
-                unitGroup.UpdatedBy = user;
-                unitGroup.UpdatedDt = date;
-            }
+            //var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            //if (unitGroup != null)
+            //{
+            //    unitGroup.AddCost = totalAddCost;
+            //    unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+            //    unitGroup.UpdatedBy = user;
+            //    unitGroup.UpdatedDt = date;
+            //}
 
             await _db.SaveChangesAsync();
 
@@ -249,14 +249,14 @@ namespace iLgs.Services.PropertyCard
             psCardItemExtn.UpdatedBy = user;
             psCardItemExtn.UpdatedDt = date;
 
-            var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
-            if (unitGroup != null)
-            {
-                unitGroup.AddCost = totalAddCost;
-                unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
-                unitGroup.UpdatedBy = user;
-                unitGroup.UpdatedDt = date;
-            }
+            //var unitGroup = psCardItemExtn.PsCardItem.PsCardItemUnitGroupDescriptionItems?.FirstOrDefault().PsCardItemUnitGroupDescription.PsCardItemUnitGroup;
+            //if (unitGroup != null)
+            //{
+            //    unitGroup.AddCost = totalAddCost;
+            //    unitGroup.GTotalCost = unitGroup.TotalCost + totalAddCost;
+            //    unitGroup.UpdatedBy = user;
+            //    unitGroup.UpdatedDt = date;
+            //}
 
             await _db.SaveChangesAsync();
 

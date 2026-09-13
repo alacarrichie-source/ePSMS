@@ -1,0 +1,29 @@
+<script>
+window.propertyCardConfig = {
+    isAdmin: @Html.Raw(System.Web.Helpers.Json.Encode(ViewBag.IsAdmin)),
+    imageId: null,
+    viewUrl: "@Url.Action("Workspace", "PropertyCard")",
+    urls: {
+        PropertyCard_StockCardRpt: "@Url.Action("StockCardRpt", "PropertyCard")",
+        PropertyCard_PostRecord: "@Url.Action("PostRecord", "PropertyCard")",
+        PropertyCard_UnpostRecord: "@Url.Action("UnpostRecord", "PropertyCard")",
+        PropertyCard__PropertyCardAddEdit: "@Url.Action("_PropertyCardAddEdit", "PropertyCard")",
+        PropertyCard_LoadFields: "@Url.Action("LoadFields", "PropertyCard")",
+        PropertyCard_GetItemExtnTemplate: "@Url.Action("GetItemExtnTemplate", "PropertyCard")",
+        StockCard_StockCardPoRpt: "@Url.Action("StockCardPoRpt", "PropertyCard")",
+        StockCard_PostItemRecord: "@Url.Action("PostItemRecord", "PropertyCard")",
+        StockCard_UnpostItemRecord: "@Url.Action("UnpostItemRecord", "PropertyCard")",
+        PropertyCard__PropertyCardItemAddEdit: "@Url.Action("_PropertyCardItemAddEdit", "PropertyCard")",
+        StockCard__PoTransfer: "@Url.Action("_PoTransfer", "PropertyCard")",
+        PropertyCard_GetDescription: "@Url.Action("GetDescription", "PropertyCard")",
+        PropertyCard_LoadItemFields: "@Url.Action("LoadItemFields", "PropertyCard")",
+        StockCard_GetEndSeries: "@Url.Action("GetEndSeries", "PropertyCard")",
+        CardUpload__ImagesAdd: "@Url.Action("_ImagesAdd", "CardUpload")",
+        CardUpload_PreviewUpload: "@Url.Action("PreviewUpload", "CardUpload")",
+        ItemCard__AddCost: "@Url.Action("_AddCost", "ItemCard")",
+        ItemCard_GetAddCost: "@Url.Action("GetAddCost", "ItemCard")",
+        ItemCard_GetPoNo: "@Url.Action("GetPoNo", "ItemCard")",
+        ItemCard__Images: "@Url.Action("_Images", "ItemCard")"
+    }
+};
+</script>

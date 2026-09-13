@@ -257,8 +257,8 @@
             item.AcceptedQty = qtyThisAcc; // Sync for Step 3/4 and backend payload
 
             var hasMultipleAllocations = item.Allocations && item.Allocations.length > 1;
-            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
-            var canExpand = hasMultipleAllocations || isSet;
+            var hasSubItems = item.SubItems && item.SubItems.length > 0;
+            var canExpand = hasMultipleAllocations || hasSubItems;
             var isExpanded = !!expandedItemRows[idx];
 
             var expandBtn = "";
@@ -289,7 +289,7 @@
                 deptCellContent = "<span class='small text-muted text-truncate d-block' style='max-width:130px;' title='" + (item.Department || acceptanceState.Department || "--") + "'>" + (item.Department || acceptanceState.Department || "--") + "</span>";
             }
 
-            html += "<tr id='accItemRow_" + idx + "' data-item-idx='" + idx + "' class='" + (isSet ? "table-set-parent" : "") + "'>";
+            html += "<tr id='accItemRow_" + idx + "' data-item-idx='" + idx + "' class='" + (hasSubItems ? "table-set-parent" : "") + "'>";
             html += "<td class='text-center'>" + expandBtn + "</td>";
             html += "<td>" + prCellContent + "</td>";
             html += "<td>" + deptCellContent + "</td>";
@@ -297,12 +297,6 @@
             html += "<td class='small text-muted'>" + (item.PPMPCode || "--") + "</td>";
             html += "<td>";
             html += "  <div class='fw-semibold text-dark'>" + (item.Description || "Item") + "</div>";
-            if (isSet) {
-                html += "  <span class='badge bg-info text-dark small me-1'>Set / Lot (" + item.SubItems.length + " components)</span>";
-            }
-            if (item.ItemExtnName) {
-                html += "  <span class='badge bg-light text-secondary border small mt-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>";
-            }
             html += "</td>";
             html += "<td class='text-muted small'>" + (item.Unit || "unit") + "</td>";
             html += "<td class='text-end font-monospace'>" + formatNumber(poQty) + "</td>";
@@ -429,27 +423,25 @@
                     html += "    </div>";
                 }
 
-                // 2. Set/Lot Components Table
-                if (isSet) {
+                // 2. Components Table (Direct display without redundant headers)
+                if (hasSubItems) {
                     html += "    <div class='p-2 bg-white rounded border shadow-sm'>";
-                    html += "      <div class='d-flex justify-content-between align-items-center mb-2'>";
-                    html += "        <div class='fw-bold small text-secondary'><span class='k-icon k-i-layers'></span> Set/Lot Components for: <strong>" + (item.Description || "Item") + "</strong></div>";
-                    html += "        <span class='badge bg-light text-secondary border small'>Component acceptance must correspond to accepted parent set</span>";
-                    html += "      </div>";
-                    html += "      <table class='table table-sm table-bordered mb-0'>";
+                    html += "      <table class='table table-sm table-bordered mb-0 align-middle'>";
                     html += "        <thead class='table-light small'>";
                     html += "          <tr>";
-                    html += "            <th style='width:80px;'>Sub-No.</th>";
+                    html += "            <th style='width:65px;' class='text-center'>Sub-No.</th>";
                     html += "            <th>Component Description</th>";
+                    html += "            <th style='width:95px;' class='text-center'>Source Type</th>";
+                    html += "            <th style='width:105px;' class='text-center' title='Mandatory for ICS/PAR bundling'>Bundle Req.</th>";
                     html += "            <th style='width:55px;'>Unit</th>";
-                    html += "            <th style='width:80px;' class='text-end'>Expected</th>";
+                    html += "            <th style='width:75px;' class='text-end'>Expected</th>";
                     html += "            <th style='width:80px;' class='text-end'>Total Insp.</th>";
                     html += "            <th style='width:80px;' class='text-end'>Prev. Accepted</th>";
                     html += "            <th style='width:80px;' class='text-end text-primary fw-bold'>Available</th>";
-                    html += "            <th style='width:110px;' class='text-end text-success fw-bold'>Accept Now</th>";
+                    html += "            <th style='width:105px;' class='text-end text-success fw-bold'>Accept Now</th>";
                     html += "            <th style='width:80px;' class='text-end'>Total Accepted</th>";
-                    html += "            <th style='width:80px;' class='text-end'>Remaining</th>";
-                    html += "            <th style='width:150px;' class='text-center'>Inventory Details</th>";
+                    html += "            <th style='width:75px;' class='text-end'>Remaining</th>";
+                    html += "            <th style='width:145px;' class='text-center'>Inventory Details</th>";
                     html += "            <th>Remarks</th>";
                     html += "          </tr>";
                     html += "        </thead>";
@@ -466,11 +458,19 @@
                         sub.PreviouslyAcceptedQty = sPrevAcc;
                         sub.AvailableForAcceptanceQty = sAvail;
 
+                        var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                        var isOrdered = (sType === "ORDERED");
+
                         // Default component Accept Now
                         if (sub.QtyThisAcceptance === undefined || sub.QtyThisAcceptance === null) {
-                            var ratio = (poQty > 0) ? (qtyThisAcc / poQty) : 0;
-                            var subRatioTarget = (sub.QtyPerParent > 0) ? (qtyThisAcc * sub.QtyPerParent) : (sExpected * ratio);
-                            sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, subRatioTarget));
+                            if (isOrdered) {
+                                var ratio = (poQty > 0) ? (qtyThisAcc / poQty) : 0;
+                                var subRatioTarget = (sub.QtyPerParent > 0) ? (qtyThisAcc * sub.QtyPerParent) : (sExpected * ratio);
+                                sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, subRatioTarget));
+                            } else {
+                                // For Freebies and inspection-added components, default to available inspected quantity
+                                sub.QtyThisAcceptance = Math.min(sAvail, sTotInsp);
+                            }
                         } else {
                             sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, Number(sub.QtyThisAcceptance)));
                         }
@@ -481,13 +481,36 @@
 
                         sub.TotalAcceptedQty = sTotAcc;
                         sub.RemainingQty = sRem;
+                        sub.AcceptedQty = sQtyThis; // Sync for Step 3 and backend payload
+
+                        var sBadge = "";
+                        if (sType === "FREEBIE") {
+                            sBadge = "<span class='badge bg-success text-white' title='Freebie / Promotional accessory'>Freebie</span>";
+                        } else if (sType === "INSPECTION_ADDED") {
+                            sBadge = "<span class='badge bg-warning text-dark' title='Discovered / Added during inspection'>Inspection Added</span>";
+                        } else {
+                            sBadge = "<span class='badge bg-primary text-white' title='Included in Purchase Order'>Ordered</span>";
+                        }
+
+                        // Bundle requirement is strictly read-only in Acceptance; ORDERED is always Required
+                        var isBundleReq = isOrdered || (sub.IsRequiredForBundle === true || sub.IsRequiredForBundle === "true");
+                        var reqBadgeHtml = isBundleReq
+                            ? "<span class='badge bg-info text-dark' title='Mandatory for bundle'>Required</span>"
+                            : "<span class='badge bg-light text-muted border' title='Optional component'>Optional</span>";
+
+                        if (sub.SubItemNo) {
+                            sub.SubItemNo = sub.SubItemNo.toString().replace(/^#+/, "").trim();
+                        }
+                        var displaySubNo = sub.SubItemNo || (sIdx + 1).toString();
 
                         html += "          <tr>";
-                        html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
-                        html += "            <td>" + (sub.Description || "") + "</td>";
+                        html += "            <td class='fw-bold small text-center'>" + displaySubNo + "</td>";
+                        html += "            <td><span class='fw-semibold text-dark'>" + (sub.Description || "") + "</span></td>";
+                        html += "            <td class='text-center'>" + sBadge + "</td>";
+                        html += "            <td class='text-center'>" + reqBadgeHtml + "</td>";
                         html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
                         html += "            <td class='text-end font-monospace small'>" + formatNumber(sExpected) + "</td>";
-                        html += "            <td class='text-end font-monospace small'>" + formatNumber(sTotInsp) + "</td>";
+                        html += "            <td class='text-end font-monospace small text-dark'>" + formatNumber(sTotInsp) + "</td>";
                         html += "            <td class='text-end font-monospace small text-muted'>" + formatNumber(sPrevAcc) + "</td>";
                         html += "            <td class='text-end font-monospace small text-primary fw-bold' id='lblSubAvail_" + idx + "_" + sIdx + "'>" + formatNumber(sAvail) + "</td>";
 
@@ -564,22 +587,28 @@
         if (item.RemainingQty > 0) lblRem.removeClass("text-muted").addClass("text-danger");
         else lblRem.removeClass("text-danger").addClass("text-muted");
 
-        // If Set/Lot, proportionally synchronize child component quantities
-        if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+        // If has components, proportionally synchronize child ORDERED components only
+        if (item.SubItems && item.SubItems.length > 0) {
             var pRatio = (item.POQty > 0) ? (val / item.POQty) : 0;
             item.SubItems.forEach(function (sub, sIdx) {
-                var sAvail = sub.AvailableForAcceptanceQty || 0;
-                var targetSub = (sub.QtyPerParent > 0) ? (val * sub.QtyPerParent) : (sub.ExpectedQty * pRatio);
-                sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, Math.round(targetSub * 100) / 100));
-                sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + sub.QtyThisAcceptance;
-                sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
+                var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                // Only ORDERED components synchronize with parent quantity changes
+                // Freebies and inspection-added components have independent quantities
+                if (sType === "ORDERED") {
+                    var sAvail = sub.AvailableForAcceptanceQty || 0;
+                    var targetSub = (sub.QtyPerParent > 0) ? (val * sub.QtyPerParent) : (sub.ExpectedQty * pRatio);
+                    sub.QtyThisAcceptance = Math.min(sAvail, Math.max(0, Math.round(targetSub * 100) / 100));
+                    sub.AcceptedQty = sub.QtyThisAcceptance;
+                    sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + sub.QtyThisAcceptance;
+                    sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
 
-                $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(sub.QtyThisAcceptance);
-                $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
-                var subRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
-                subRemLbl.text(formatNumber(sub.RemainingQty));
-                if (sub.RemainingQty > 0) subRemLbl.removeClass("text-muted").addClass("text-danger");
-                else subRemLbl.removeClass("text-danger").addClass("text-muted");
+                    $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(sub.QtyThisAcceptance);
+                    $("#lblSubTotAcc_" + idx + "_" + sIdx).text(formatNumber(sub.TotalAcceptedQty));
+                    var subRemLbl = $("#lblSubRem_" + idx + "_" + sIdx);
+                    subRemLbl.text(formatNumber(sub.RemainingQty));
+                    if (sub.RemainingQty > 0) subRemLbl.removeClass("text-muted").addClass("text-danger");
+                    else subRemLbl.removeClass("text-danger").addClass("text-muted");
+                }
             });
         }
 
@@ -602,6 +631,7 @@
         }
 
         sub.QtyThisAcceptance = val;
+        sub.AcceptedQty = val;
         sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + val;
         sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
 
@@ -611,29 +641,7 @@
         if (sub.RemainingQty > 0) subRemLbl.removeClass("text-muted").addClass("text-danger");
         else subRemLbl.removeClass("text-danger").addClass("text-muted");
 
-        // Verify parent Set/Lot consistency: parent sets cannot exceed supported component sets
-        var maxPossibleSets = 99999999;
-        item.SubItems.forEach(function (c) {
-            var qtyPer = c.QtyPerParent > 0 ? c.QtyPerParent : 1;
-            var compSets = Math.floor(((c.PreviouslyAcceptedQty || 0) + (c.QtyThisAcceptance || 0)) / qtyPer) - (item.PreviouslyAcceptedQty || 0);
-            if (compSets < maxPossibleSets) maxPossibleSets = compSets;
-        });
-        if (maxPossibleSets < 0) maxPossibleSets = 0;
-
-        if (item.QtyThisAcceptance > maxPossibleSets) {
-            item.QtyThisAcceptance = maxPossibleSets;
-            item.AcceptedQty = maxPossibleSets;
-            item.TotalAcceptedQty = (item.PreviouslyAcceptedQty || 0) + maxPossibleSets;
-            item.RemainingQty = Math.max(0, (item.POQty || 0) - item.TotalAcceptedQty);
-
-            $("#txtQtyThisAcceptance_" + idx).val(maxPossibleSets);
-            $("#lblItemTotalAcc_" + idx).text(formatNumber(item.TotalAcceptedQty));
-            var pRemLbl = $("#lblItemRem_" + idx);
-            pRemLbl.text(formatNumber(item.RemainingQty));
-            if (item.RemainingQty > 0) pRemLbl.removeClass("text-muted").addClass("text-danger");
-            else pRemLbl.removeClass("text-danger").addClass("text-muted");
-        }
-
+        // Component acceptance is independent. Do NOT artificially cap or reduce parent item quantity.
         recalculateAccGrandTotals();
     }
 
@@ -731,10 +739,11 @@
                 });
             }
 
-            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+            if (item.SubItems && item.SubItems.length > 0) {
                 item.SubItems.forEach(function (sub, sIdx) {
                     var sAvail = sub.AvailableForAcceptanceQty || 0;
                     sub.QtyThisAcceptance = sAvail;
+                    sub.AcceptedQty = sAvail;
                     sub.TotalAcceptedQty = (sub.PreviouslyAcceptedQty || 0) + sAvail;
                     sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
                     $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(sAvail);
@@ -779,9 +788,10 @@
                 });
             }
 
-            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+            if (item.SubItems && item.SubItems.length > 0) {
                 item.SubItems.forEach(function (sub, sIdx) {
                     sub.QtyThisAcceptance = 0;
+                    sub.AcceptedQty = 0;
                     sub.TotalAcceptedQty = sub.PreviouslyAcceptedQty || 0;
                     sub.RemainingQty = Math.max(0, (sub.ExpectedQty || 0) - sub.TotalAcceptedQty);
                     $("#txtSubAcceptNow_" + idx + "_" + sIdx).val(0);
@@ -835,13 +845,18 @@
                 allItemsComplete = false;
             }
 
-            // If Set/Lot, also check individual component completion
-            if (item.IsSetLot && item.SubItems && item.SubItems.length > 0) {
+            // If has components, check required bundle component completion
+            // Optional components (e.g. Freebies) do NOT block complete acceptance
+            if (item.SubItems && item.SubItems.length > 0) {
                 item.SubItems.forEach(function (sub) {
-                    var sExp = Number(sub.ExpectedQty || 0);
-                    var sTot = Number(sub.TotalAcceptedQty || 0);
-                    if (sTot < sExp) {
-                        allItemsComplete = false;
+                    var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                    var isReq = (sType === "ORDERED") || (sub.IsRequiredForBundle === true || sub.IsRequiredForBundle === "true");
+                    if (isReq) {
+                        var sExp = Number(sub.ExpectedQty || 0);
+                        var sTot = Number(sub.TotalAcceptedQty || 0);
+                        if (sTot < sExp) {
+                            allItemsComplete = false;
+                        }
                     }
                 });
             }
@@ -1156,7 +1171,7 @@
                         var sAvail = sub.AvailableForAcceptanceQty || 0;
                         var sQtyThis = sub.QtyThisAcceptance || 0;
                         if (sQtyThis < 0 || sQtyThis > sAvail) {
-                            alert("Component '" + (sub.Description || ("#" + (s + 1))) + "' accepted quantity (" + sQtyThis + ") exceeds available (" + sAvail + ").");
+                            alert("Component '" + (sub.Description || (s + 1).toString()) + "' accepted quantity (" + sQtyThis + ") exceeds available (" + sAvail + ").");
                             return;
                         }
                     }

@@ -1,0 +1,171 @@
+﻿@{
+    Layout = null;
+    var header = ViewBag.Header as iLgs.Models.IcsPar;
+    var items = ViewBag.Items as List<iLgs.Models.IcsParItemVM>;
+    var components = ViewBag.Components as List<iLgs.Models.ParBundleComponentDisplayVM> ?? new List<iLgs.Models.ParBundleComponentDisplayVM>();
+    if (items == null)
+    {
+        items = new List<iLgs.Models.IcsParItemVM>();
+    }
+    decimal grandTotal = 0;
+    foreach (var itm in items)
+    {
+        if (itm.TUnitCost.HasValue)
+        {
+            grandTotal += itm.TUnitCost.Value;
+        }
+    }
+}
+
+<div class="coa-slip-document p-3">
+    <!-- Official Header -->
+    <div class="coa-header text-center">
+        <div class="republic">Republic of the Philippines</div>
+        <div class="lgu-title">@(ViewBag.LguName ?? "CITY GOVERNMENT") PROPERTY &amp; SUPPLY OFFICE</div>
+        <div style="font-size: 11px; color: rgb(100, 116, 139);">Office of the General Services &bull; Property &amp; Supply Custodianship</div>
+        <div class="doc-title" style="font-size: 18px; font-weight: bold; margin-top: 6px; letter-spacing: 0.5px; color: rgb(15, 23, 42);">PROPERTY ACKNOWLEDGMENT RECEIPT</div>
+        <div style="font-size: 11px; color: rgb(100, 116, 139); font-style: italic;">(Pursuant to Section 59, Volume II, Government Accounting Manual)</div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="row mb-3" style="font-size: 12px; margin-top: 14px; margin-bottom: 12px;">
+        <div class="col-xs-6">
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block;">LGU Agency:</strong> <strong>@(ViewBag.LguName ?? "City Government")</strong></div>
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block;">Department:</strong> <span>@(header != null ? header.ReceivedDept : "")</span></div>
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block;">Location:</strong> <span>@(header != null ? header.Location : "")</span></div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block; text-align: left;">PAR Number:</strong> <span class="badge badge-info" style="font-size: 13px; font-weight: bold; background: rgb(0, 37, 118);">@(header != null ? header.RefNo : "")</span></div>
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block; text-align: left;">Date Issued:</strong> <span>@(header != null && header.RefDate.HasValue ? header.RefDate.Value.ToString("MMMM dd, yyyy") : "")</span></div>
+            <div><strong style="color: rgb(100, 116, 139); width: 100px; display:inline-block; text-align: left;">Status:</strong> <span class="badge @(header != null && header.PostedBy != null ? "badge-success" : "badge-warning")">@(header != null && header.PostedBy != null ? "Posted" : "Draft")</span></div>
+        </div>
+    </div>
+
+    <!-- Official Items Table -->
+    <table class="table table-bordered table-condensed" style="font-size: 11px; border-color: rgb(15, 23, 42); width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+            <tr style="background: rgb(241, 245, 249); font-weight: bold;">
+                <th style="width: 40px; text-align: center; border: 1px solid rgb(15, 23, 42);">Qty</th>
+                <th style="width: 60px; text-align: center; border: 1px solid rgb(15, 23, 42);">Unit</th>
+                <th style="width: 110px; text-align: right; border: 1px solid rgb(15, 23, 42);">Unit Cost</th>
+                <th style="width: 120px; text-align: right; border: 1px solid rgb(15, 23, 42);">Total Cost</th>
+                <th style="border: 1px solid rgb(15, 23, 42);">Item Description &amp; Specifications</th>
+                <th style="width: 150px; text-align: center; border: 1px solid rgb(15, 23, 42);">Property No.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (items.Any())
+            {
+                foreach (var itm in items)
+                {
+                    decimal unitCost = itm.TUnitCost.HasValue ? itm.TUnitCost.Value : 0;
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; border: 1px solid rgb(15, 23, 42);">1</td>
+                        <td style="text-align: center; border: 1px solid rgb(15, 23, 42);">Unit</td>
+                        <td style="text-align: right; font-family: Consolas, monospace; border: 1px solid rgb(15, 23, 42);">@(unitCost.ToString("N2"))</td>
+                        <td style="text-align: right; font-family: Consolas, monospace; font-weight: bold; border: 1px solid rgb(15, 23, 42);">@(unitCost.ToString("N2"))</td>
+                        <td style="border: 1px solid rgb(15, 23, 42);">
+                            <strong>@itm.Description</strong>
+                            @if (!string.IsNullOrEmpty(itm.SerialNo))
+                            {
+                                <div style="font-size: 11px; color: #1e293b;"><span style="color: #64748b;">Serial No:</span> <strong>@itm.SerialNo</strong></div>
+                            }
+                            @if (!string.IsNullOrEmpty(itm.PoNo))
+                            {
+                                <div style="font-size: 10px; color: rgb(100, 116, 139);">Ref PO: @itm.PoNo</div>
+                            }
+                            @{
+                                var itmComps = components.Where(c => c.IcsParItemId == itm.Id).ToList();
+                            }
+                            @if (itmComps.Any())
+                            {
+                                <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
+                                    <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #475569; margin-bottom: 4px;">Attached Bundle Components:</div>
+                                    <table class="table table-condensed" style="margin-bottom: 0; font-size: 10.5px; background: #f8fafc; border: 1px solid #e2e8f0; width: 100%;">
+                                        <thead>
+                                            <tr style="background: #e2e8f0; font-size: 9.5px; text-transform: uppercase; color: #475569;">
+                                                <th style="padding: 2px 6px;">Component</th>
+                                                <th style="padding: 2px 6px;">Serial / Instance</th>
+                                                <th style="padding: 2px 6px; text-align: center;">Qty</th>
+                                                <th style="padding: 2px 6px; text-align: center;">Type</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var comp in itmComps)
+                                            {
+                                                <tr>
+                                                    <td style="padding: 2px 6px;"><strong>@comp.Description</strong></td>
+                                                    <td style="padding: 2px 6px; font-family: Consolas, monospace;">
+                                                        @(comp.SerialNo ?? "-")
+                                                    </td>
+                                                    <td style="padding: 2px 6px; text-align: center; font-weight: bold;">
+                                                        @comp.Qty.ToString("G29") @comp.Unit
+                                                    </td>
+                                                    <td style="padding: 2px 6px; text-align: center;">
+                                                        @if (comp.SourceType == "FREEBIE")
+                                                        {
+                                                            <span class="badge" style="background:#0284c7; color:#fff; font-size:9px; padding:2px 5px;">FREEBIE</span>
+                                                        }
+                                                        else if (comp.SourceType == "INSPECTION_ADDED")
+                                                        {
+                                                            <span class="badge" style="background:#7c3aed; color:#fff; font-size:9px; padding:2px 5px;">INSP-ADDED</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge" style="background:#475569; color:#fff; font-size:9px; padding:2px 5px;">ORDERED</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </td>
+                        <td style="text-align: center; font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118); border: 1px solid rgb(15, 23, 42);">@itm.PropNo</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted p-2" style="border: 1px solid rgb(15, 23, 42); padding: 12px;">No line items found for this slip.</td>
+                </tr>
+            }
+            <tr style="font-weight: bold; background: rgb(248, 250, 252);">
+                <td colspan="3" style="text-align: right; text-transform: uppercase; border: 1px solid rgb(15, 23, 42);">Total Amount:</td>
+                <td style="text-align: right; font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118); border: 1px solid rgb(15, 23, 42);">@(grandTotal.ToString("N2"))</td>
+                <td colspan="2" style="border: 1px solid rgb(15, 23, 42);"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Official Signatory Box (COA Requirement) -->
+    <div class="row" style="margin-top: 18px;">
+        <div class="col-xs-6" style="width: 50%; float: left;">
+            <div class="signatory-box" style="border: 1px solid rgb(203, 213, 225); padding: 12px; border-radius: 4px;">
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: rgb(100, 116, 139);">Received from:</div>
+                <div style="font-size: 11px; color: rgb(100, 116, 139); margin-top: 2px;">I hereby certify that the property listed above was issued according to rules.</div>
+                <div class="text-center" style="text-align: center; margin-top: 14px;">
+                    <strong style="text-transform: uppercase; display:block;">@(header != null && !string.IsNullOrEmpty(header.IssuedBy) ? header.IssuedBy : "PROPERTY CUSTODIAN")</strong>
+                    <span style="font-size: 11px; color: rgb(100, 116, 139);">@(header != null && !string.IsNullOrEmpty(header.IssuedByPosition) ? header.IssuedByPosition : "Supply Officer")</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6" style="width: 50%; float: left;">
+            <div class="signatory-box" style="border: 1px solid rgb(203, 213, 225); padding: 12px; border-radius: 4px;">
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: rgb(100, 116, 139);">Received by:</div>
+                <div style="font-size: 11px; color: rgb(100, 116, 139); margin-top: 2px;">I acknowledge receipt of property and assume accountability thereof.</div>
+                <div class="text-center" style="text-align: center; margin-top: 14px;">
+                    <strong style="text-transform: uppercase; display:block;">@(header != null && !string.IsNullOrEmpty(header.ReceivedBy) ? header.ReceivedBy : "ACCOUNTABLE OFFICER")</strong>
+                    <span style="font-size: 11px; color: rgb(100, 116, 139);">@(header != null && !string.IsNullOrEmpty(header.ReceivedByPosition) ? header.ReceivedByPosition : "Accountable Person")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Button -->
+    <div style="clear: both; display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+        <button type="button" class="btn-procurement-secondary" onclick="closeViewParModal()">Close</button>
+    </div>
+</div>

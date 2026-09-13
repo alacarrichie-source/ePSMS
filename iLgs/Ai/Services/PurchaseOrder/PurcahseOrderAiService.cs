@@ -20,9 +20,12 @@ namespace iLgs.Ai.Services.PurchaseOrder
         IQueryable<PurchaseOrderGridViewModel> GetPurchaseOrdersGrid();
         Task<PurchaseOrderDetailViewModel> GetPODetailsAsync(Guid id);
         Task<List<Order>> CreatePOsFromWizardAsync(List<POGroupDraftViewModel> poGroups, string user, bool isDraft);
+        Task<POGroupDraftViewModel> GetExistingPOAsync(Guid id);
+        Task<Order> SaveExistingPOAsync(Guid id, POGroupDraftViewModel group, string user, bool post);
+        Task<string> ValidateWizardGroupsAsync(List<POGroupDraftViewModel> groups, bool posting, Guid? existingOrderId = null);
         Task<bool> PostPOAsync(Guid id, string user, string bacResolutionNo);
         Task<bool> CancelPOAsync(Guid id, string user, string reason);
-        Task<string> GeneratePONumberAsync();
+        Task<string> GeneratePONumberAsync(DateTime poDate);
 
         // NEW: Wizard Draft Functionalities
         Task<Guid> SaveWizardProgressAsync(Guid? draftId, string stateJson, List<Guid> prIds, int currentStep, string user);
@@ -31,7 +34,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
         Task<bool> DiscardWizardDraftAsync(Guid draftId, string user);
     }
 
-    public class PurchaseOrderAiService : IPurchaseOrderAiService
+    public partial class PurchaseOrderAiService : IPurchaseOrderAiService
     {
         private readonly AppManEntities _db;
         private readonly IItemCodeService _itemCodeService;
@@ -268,7 +271,9 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     SourcePRs = p.PrNo,
                     ItemCount = p.OrderItems.Count,
                     TotalAmount = p.OrderItems.Sum(s => s.Amount) ?? 0,
-                    Status = p.PostedDt != null ? "POSTED" : "DRAFT",
+                    Status = p.PostedDt != null ? "Posted" : "Draft",
+                    HasAIR = p.AIRs.Any(),
+                    HasPostedAIR = p.AIRs.Any(a => a.PostedDt != null),
                     CreatedBy = p.InsertedBy,
                     DeliveryPeriodDays = p.DeliveryDate,
                     PlaceOfDelivery = p.DeliveryPlace,
@@ -358,7 +363,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                     {
                         var date = (DateTime?)DateTime.Now;
                         var poNumber = String.IsNullOrWhiteSpace(grp.PONumber)
-                            ? await GeneratePONumberAsync()
+                            ? await GeneratePONumberAsync(grp.PODate.Date)
                             : grp.PONumber.Trim();
                         var po = new Order
                         {
@@ -367,7 +372,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                             PrNo = grp.PRNumber,
                             Department = grp.DepartmentName,
                             CtrlNo = grp.CtrlNo,
-                            PoDate = grp.PODate,
+                            PoDate = grp.PODate.Date,
                             SupplierId = grp.SupplierId,
                             SupName = grp.SupplierName,
                             SupBusiness = grp.SupBusiness,
@@ -749,27 +754,125 @@ namespace iLgs.Ai.Services.PurchaseOrder
 
         public async Task<bool> PostPOAsync(Guid id, string user, string bacResolutionNo)
         {
-            var po = await _db.Orders.FindAsync(id);
-            if (po == null || po.PostedDt != null) return false;
-
-            po.PostedBy = user;
-            po.PostedDt = DateTime.Now;
-            await _db.SaveChangesAsync();
+            var group = await GetExistingPOAsync(id);
+            if (!String.IsNullOrWhiteSpace(bacResolutionNo)) group.ResoNo = bacResolutionNo;
+            await SaveExistingPOAsync(id, group, user, true);
             return true;
         }
 
         public async Task<bool> CancelPOAsync(Guid id, string user, string reason)
         {
-            // Logic for cancellation (Reverting Qty, etc.)
-            return true;
+            await new iLgs.Services.PurchaseOrder.PurchaseOrderLifecycleService(_db).EnsureEditableAsync(id);
+            throw new InvalidOperationException("PO cancellation is not implemented. Use Delete for an eligible draft PO.");
         }
 
-        public async Task<string> GeneratePONumberAsync()
+        public async Task<string> ValidateWizardGroupsAsync(List<POGroupDraftViewModel> groups, bool posting, Guid? existingOrderId = null)
         {
-            var currentYear = DateTime.Now.Year;
-            var prefix = $"PO-{currentYear}-";
-            var count = await _db.Orders.CountAsync(p => p.PoNo.StartsWith(prefix)) + 1;
-            return $"{prefix}{count:D3}";
+            if (groups == null || groups.Count == 0 || groups.Any(g => g == null)) return "No valid PO groups were submitted.";
+            if (groups.Count > 50) return "Too many PO groups were submitted.";
+            var allocatedQuantities = new Dictionary<Guid, int>();
+            var poNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var group in groups)
+            {
+                var name = String.IsNullOrWhiteSpace(group.GroupName) ? "PO group" : group.GroupName;
+                if (group.Items == null || !group.Items.Any()) return name + " has no line items.";
+                if (group.Items.Any(i => i == null || i.Quantity <= 0 || i.UnitCost < 0 || String.IsNullOrWhiteSpace(i.Description)))
+                    return name + " contains an invalid line item.";
+                foreach (var line in group.Items) {
+                    if (line.Allocations == null || line.Allocations.Count == 0 ||
+                        line.Allocations.Any(a => a == null || !a.RequestItemId.HasValue || a.Quantity <= 0) ||
+                        line.Allocations.Sum(a => a.Quantity) != line.Quantity ||
+                        line.Allocations.GroupBy(a => a.RequestItemId).Any(a => a.Count() > 1))
+                        return "Every PO line must retain valid source PR allocations matching its quantity.";
+                    if (line.SetLotItems != null && line.SetLotItems.Any(s => s == null || s.Qty < 0 || s.EstimatedCost < 0))
+                        return "A set/lot component has an invalid quantity or cost.";
+                }
+                if (posting) {
+                if (String.IsNullOrWhiteSpace(group.PONumber))
+                    return "Enter the PO number for " + name + ".";
+                if (!existingOrderId.HasValue && !System.Text.RegularExpressions.Regex.IsMatch(group.PONumber.Trim(), @"^\d{4}-\d{2}-\d{4}$"))
+                    return "Enter the PO number for " + name + " in YYYY-MM-9999 format.";
+                if (!poNumbers.Add(group.PONumber.Trim()))
+                    return "The PO number " + group.PONumber.Trim() + " is used by more than one PO group.";
+                if (await _db.Orders.AnyAsync(o => o.PoNo == group.PONumber.Trim() && (!existingOrderId.HasValue || o.Id != existingOrderId.Value)))
+                    return "The PO number " + group.PONumber.Trim() + " already exists.";
+                if (!group.SupplierId.HasValue)
+                    return "Select a valid supplier for " + name + ".";
+                var supplier = await _db.Suppliers.FindAsync(group.SupplierId.Value);
+                if (supplier == null)
+                    return "Select a valid supplier for " + name + ".";
+                group.SupplierName = supplier.Name;
+                group.SupBusiness = supplier.BusinessName;
+                group.SupAddress = supplier.Address;
+                group.SupTIN = supplier.TIN;
+                group.SupEmail = supplier.Email;
+                group.SupZipCode = supplier.ZipCode;
+                group.SupContactNo = supplier.ContactNos;
+                if (String.IsNullOrWhiteSpace(group.PlaceOfDelivery) || String.IsNullOrWhiteSpace(group.TermDelivery) ||
+                    String.IsNullOrWhiteSpace(group.PaymentTerms) || String.IsNullOrWhiteSpace(group.ModeOfProcurement))
+                    return "Complete the delivery and procurement terms for " + name + ".";
+                if (group.POCopyDoc == null || (!group.POCopyDoc.ExistingUploadId.HasValue && String.IsNullOrWhiteSpace(group.POCopyDoc.FilePath)))
+                    return "Upload the signed PO copy for " + name + ".";
+                }
+                foreach (var item in group.Items)
+                {
+                    if (!item.ItemCodeId.HasValue ||
+                        !await _db.ItemCodes.AnyAsync(code => code.Id == item.ItemCodeId.Value))
+                    {
+                        return "Select a valid Article for every item in " + name + ".";
+                    }
+                    if (item.Allocations == null || !item.Allocations.Any()) return "Source PR allocations are missing for an item in " + name + ".";
+                    if (item.Allocations.Any(a => !a.RequestItemId.HasValue || a.Quantity <= 0) || item.Allocations.Sum(a => a.Quantity) != item.Quantity)
+                        return "A source PR allocation is invalid for an item in " + name + ".";
+                    foreach (var allocation in item.Allocations)
+                    {
+                        var requestItem = await _db.RequestItems.FindAsync(allocation.RequestItemId.Value);
+                        if (requestItem == null)
+                            return "A source Purchase Request item is no longer available.";
+                        var request = await _db.Requests.FindAsync(requestItem.PrId);
+                        if (request == null || request.PostedDt == null) return "A source Purchase Request is no longer approved.";
+                        if ((requestItem.UnitCost ?? 0) != item.UnitCost)
+                            return "A submitted unit cost no longer matches its approved Purchase Request.";
+                        var requestItemId = allocation.RequestItemId.Value;
+                        allocatedQuantities[requestItemId] = (allocatedQuantities.ContainsKey(requestItemId) ? allocatedQuantities[requestItemId] : 0) + allocation.Quantity;
+                        var usedElsewhere = await _db.OrderItemRequests.Where(a => a.RequestItemId == requestItemId &&
+                            (!existingOrderId.HasValue || a.OrderItem.OrderId != existingOrderId.Value))
+                            .Select(a => a.QtyApplied).SumAsync() ?? 0;
+                        if (allocatedQuantities[requestItemId] + usedElsewhere > (requestItem.Qty ?? 0))
+                            return "A Purchase Request item quantity has been over-allocated.";
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        public async Task<string> GeneratePONumberAsync(DateTime poDate)
+        {
+            //var currentYear = poDate.Year;
+            //var prefix = $"PO-{currentYear}-";
+            //var count = await _db.Orders.CountAsync(p => p.PoNo.StartsWith(prefix)) + 1;
+            //return $"{prefix}{count:D3}";
+
+            string yyyy = poDate.Year.ToString().Trim();
+            string mm = poDate.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var order = await _db.Orders.Where(w => w.CtrlNo.Substring(0, 4) == yyyy).OrderByDescending(o => o.CtrlNo).FirstOrDefaultAsync();
+            if (order == null)
+            {
+                return keyName + "-" + "0001";
+            }
+            else
+            {
+                var sequence = (int.Parse(order.CtrlNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
+            }
         }
     }
 

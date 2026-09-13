@@ -71,11 +71,12 @@ namespace iLgs.Services.AIRs_
             }
 
             var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
-            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemRequest.OrderItemId))).FirstOrDefault();
-            var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
+            //var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemRequest.OrderItemId))).FirstOrDefault();
+            //var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
             var airItemQty = (int)_db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
             var airItemExtnCount = _db.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == model.AIRItemId).Count();
-            var totalQty = airItemQty * groupQty;
+            //var totalQty = airItemQty * groupQty;
+            var totalQty = airItemQty;
 
             if (airItemExtnCount == totalQty)
             {
@@ -194,7 +195,7 @@ namespace iLgs.Services.AIRs_
             }
 
             var orderItem = await _db.OrderItems
-                .Include(i => i.Order.OrderItemUnitGroups)
+                //.Include(i => i.Order.OrderItemUnitGroups)
                 .Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == airItem.OrderItemRequestId).FirstOrDefaultAsync();
 
@@ -234,7 +235,7 @@ namespace iLgs.Services.AIRs_
             }
 
             var orderItem = await _db.OrderItems
-                .Include(i => i.Order.OrderItemUnitGroups)
+                //.Include(i => i.Order.OrderItemUnitGroups)
                 .Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == entity.AIRItem.OrderItemRequestId).FirstOrDefaultAsync();
 

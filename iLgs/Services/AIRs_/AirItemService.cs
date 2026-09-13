@@ -84,13 +84,13 @@ namespace iLgs.Services.AIRs_
                 ConstructionYear = s.ConstructionYear,
                 InvDist = s.InvDist,
                 InsertedDt = s.InsertedDt,
-                SetLotNo = s.OrderItemRequest.OrderItem.Order.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemRequest.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
+                //SetLotNo = s.OrderItemRequest.OrderItem.Order.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemRequest.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
                 ItemNo = s.OrderItemRequest.OrderItem.ItemNo,
                 ItemNoIndex = s.OrderItemRequest.OrderItem.ItemNoIndex,
                 Padding = (s.OrderItemRequest.OrderItem.ItemNo.Length - s.OrderItemRequest.OrderItem.ItemNo.Replace(".", "").Length) * 20,
                 OrderItemRequest = s.OrderItemRequest,
-                IsSetLot = s.OrderItemRequest.OrderItem.Unit == "set" || s.OrderItemRequest.OrderItem.Unit == "lot" ? true : false,
-                IsSetLotItem = s.OrderItemRequest.OrderItem.ItemNo.Contains("."),
+                //IsSetLot = s.OrderItemRequest.OrderItem.Unit == "set" || s.OrderItemRequest.OrderItem.Unit == "lot" ? true : false,
+                //IsSetLotItem = s.OrderItemRequest.OrderItem.ItemNo.Contains("."),
                 AIR = s.AIR
             };
         }
@@ -293,8 +293,9 @@ namespace iLgs.Services.AIRs_
 
         public void ValidateItemExtn(Guid? airItemId, Guid? orderItemId)
         {
-            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItemId))).FirstOrDefault();
-            var groupQty = orderItemUnitGroup != null ? orderItemUnitGroup.Qty : 1;
+            //var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItemId))).FirstOrDefault();
+            //var groupQty = orderItemUnitGroup != null ? orderItemUnitGroup.Qty : 1;
+            var groupQty = 1;
             var itemExtnName = GetItemExtnName(airItemId);
             var ctrlNo = _db.AIRs.Where(w => w.AIRItems.Any(a => a.Id == airItemId)).OrderBy(o => o.CtrlNo).FirstOrDefault().CtrlNo;
             if (itemExtnName == "ItemExtnVehicle")

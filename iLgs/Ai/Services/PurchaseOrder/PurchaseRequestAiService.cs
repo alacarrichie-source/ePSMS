@@ -31,7 +31,8 @@ namespace iLgs.Ai.Services.PurchaseOrder
         {
             return _db.Requests
                 //.Where(pr => pr.Status == PRStatus.Approved && pr.Items.Any(i => i.RemainingQty > 0))
-                .Where(pr => pr.PostedDt != null && pr.RequestItems.Any())
+                .Where(pr => pr.PostedDt != null && pr.RequestItems.Any(a => a.Qty > (a.OrderItemRequests.Sum(s => s.QtyApplied) ?? 0)) // Items without PO
+                )
                 .Select(pr => new PurchaseRequestGridViewModel
                 {
                     Id = pr.Id,

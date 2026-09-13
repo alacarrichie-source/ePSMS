@@ -81,10 +81,10 @@ namespace iLgs.Services.Validators
             //    throw new RecordRelationshipException($"Record is in use by PR No. {pr.PrNo}, cannot delete!");
             //}
 
-            if (await _db.RisItemUnitGroupDescriptionItems.AnyAsync(a => a.RisItemId == model.Id))
-            {
-                throw new RecordRelationshipException("Record is part of a group, cannot delete!");
-            }
+            //if (await _db.RisItemUnitGroupDescriptionItems.AnyAsync(a => a.RisItemId == model.Id))
+            //{
+            //    throw new RecordRelationshipException("Record is part of a group, cannot delete!");
+            //}
         }
 
         public async Task ValidateFieldsOnCreateUpdateAsync(RisItemVM model)

@@ -42,7 +42,7 @@
     <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @if (ViewBag.IsDemand)
+            @if (ViewBag.IsDemand || ViewBag.IsView)
             {
                 @(Html.Kendo().MultiColumnComboBox()
                         .Name("deptId")
@@ -689,6 +689,7 @@
             sectionId: $("#sectionId").val(),
             accountGroup: '@ViewBag.AccountGroup',
             isDemand: '@ViewBag.IsDemand',
+            isView: '@ViewBag.IsView',
             isSet: '@ViewBag.IsSet'
         };
     }

@@ -46,59 +46,82 @@ namespace iLgs.Services.AIRs_
                 return;
             }
 
-            var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                       .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                       .Where(w => w.OrderItemId == orderItem.Id)
-                       .FirstOrDefaultAsync();
-            //var qty = (int?)orderItem.Qty;
+            //var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+            //           .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+            //           .Where(w => w.OrderItemId == orderItem.Id)
+            //           .FirstOrDefaultAsync();
+            
             var qty = (int?)airItem.Qty;
             string category = orderItem.ItemCode.ItemType.Code;
             string itemExtnName = _airItemSharedService.GetItemExtnNameByCategory(category);
 
-            // create template based on number of qty
-            if (unitGroupDescriptionItem != null)
+            //// create template based on number of qty
+            //if (unitGroupDescriptionItem != null)
+            //{
+            //    var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+            //    var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+            //    var tQty = 0; // qty * groupQty;
+            //    for (int gQty = 1; gQty <= groupQty; gQty++)
+            //    {
+            //        for (int q = 1; q <= qty; q++)
+            //        {
+            //            tQty++;
+            //            var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
+            //            if (!airItemExtns.Any())
+            //            {
+            //                SetAirItmExtn(itemExtnName, setLotNo, gQty, tQty, qty, airItem, user, date);
+            //            }
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    for (int q = 1; q <= qty; q++)
+            //    {
+            //        var airItemExtns = _db.AIRItemExtns
+            //            .Where(w => w.AIRItemId == airItem.Id
+            //                && (w.SetLotNo == "" || w.SetLotNo == null)
+            //                && w.SetLotQtyNo == null
+            //                && w.ContentNo == q);
+            //        if (!airItemExtns.Any())
+            //        {
+            //            SetAirItmExtn(itemExtnName, "", null, q, qty, airItem, user, date);
+            //        }
+            //    }
+
+            //    // remove excess if any. This happens when the user edit the previous Qty. Ex, from 50 down to 10. Items 11 to 50 will be deleted.
+            //    var excessItems = _db.AIRItemExtns
+            //            .Where(w => w.AIRItemId == airItem.Id
+            //                && (w.SetLotNo == "" || w.SetLotNo == null)
+            //                && w.SetLotQtyNo == null
+            //                && w.ContentNo > qty);
+            //    if (excessItems.Any())
+            //    {
+            //        _db.AIRItemExtns.RemoveRange(excessItems);
+            //    }
+            //}
+            for (int q = 1; q <= qty; q++)
             {
-                var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                var tQty = 0; // qty * groupQty;
-                for (int gQty = 1; gQty <= groupQty; gQty++)
+                var airItemExtns = _db.AIRItemExtns
+                    .Where(w => w.AIRItemId == airItem.Id
+                        && (w.SetLotNo == "" || w.SetLotNo == null)
+                        && w.SetLotQtyNo == null
+                        && w.ContentNo == q);
+                if (!airItemExtns.Any())
                 {
-                    for (int q = 1; q <= qty; q++)
-                    {
-                        tQty++;
-                        var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
-                        if (!airItemExtns.Any())
-                        {
-                            SetAirItmExtn(itemExtnName, setLotNo, gQty, tQty, qty, airItem, user, date);
-                        }
-                    }
+                    SetAirItmExtn(itemExtnName, "", null, q, qty, airItem, user, date);
                 }
             }
-            else
-            {
-                for (int q = 1; q <= qty; q++)
-                {
-                    var airItemExtns = _db.AIRItemExtns
-                        .Where(w => w.AIRItemId == airItem.Id
-                            && (w.SetLotNo == "" || w.SetLotNo == null)
-                            && w.SetLotQtyNo == null
-                            && w.ContentNo == q);
-                    if (!airItemExtns.Any())
-                    {
-                        SetAirItmExtn(itemExtnName, "", null, q, qty, airItem, user, date);
-                    }
-                }
 
-                // remove excess if any. This happens when the user edit the previous Qty. Ex, from 50 down to 10. Items 11 to 50 will be deleted.
-                var excessItems = _db.AIRItemExtns
-                        .Where(w => w.AIRItemId == airItem.Id
-                            && (w.SetLotNo == "" || w.SetLotNo == null)
-                            && w.SetLotQtyNo == null
-                            && w.ContentNo > qty);
-                if (excessItems.Any())
-                {
-                    _db.AIRItemExtns.RemoveRange(excessItems);
-                }
+            // remove excess if any. This happens when the user edit the previous Qty. Ex, from 50 down to 10. Items 11 to 50 will be deleted.
+            var excessItems = _db.AIRItemExtns
+                    .Where(w => w.AIRItemId == airItem.Id
+                        && (w.SetLotNo == "" || w.SetLotNo == null)
+                        && w.SetLotQtyNo == null
+                        && w.ContentNo > qty);
+            if (excessItems.Any())
+            {
+                _db.AIRItemExtns.RemoveRange(excessItems);
             }
         }
 

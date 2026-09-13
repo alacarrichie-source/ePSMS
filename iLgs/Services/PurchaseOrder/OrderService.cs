@@ -45,7 +45,7 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderVM> ItemSelectionSaveAsync(Guid? orderId, string selectedIds, string user, DateTime date);
 
         IOrderItemService OrderItem { get; }
-        IOrderItemUnitGroupService UnitGroup { get; }
+        //IOrderItemUnitGroupService UnitGroup { get; }
     }
 
     public class OrderService : BaseValidator, IOrderService
@@ -66,7 +66,7 @@ namespace iLgs.Services.PurchaseOrder
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         private IOrderItemService _orderItemService;
-        private IOrderItemUnitGroupService _unitGroupService;
+        //private IOrderItemUnitGroupService _unitGroupService;
 
         public OrderService(AppManEntities db)
         {
@@ -87,7 +87,7 @@ namespace iLgs.Services.PurchaseOrder
             _priceCap = _priceCapService.GetPriceCap();
 
             _orderItemService = new OrderItemService(_db);
-            _unitGroupService = new OrderItemUnitGroupService(_db);
+            //_unitGroupService = new OrderItemUnitGroupService(_db);
         }
 
         //public OrderService(AppManEntities db,
@@ -120,7 +120,7 @@ namespace iLgs.Services.PurchaseOrder
         //}
 
         public IOrderItemService OrderItem => _orderItemService;
-        public IOrderItemUnitGroupService UnitGroup => _unitGroupService;
+        //public IOrderItemUnitGroupService UnitGroup => _unitGroupService;
 
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
         {
@@ -331,20 +331,20 @@ namespace iLgs.Services.PurchaseOrder
             return _orderSharedService.IsPosted(orderItem);
         }
 
-        public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
-        {
-            return _orderSharedService.IsPosted(orderItemUnitGroup);
-        }
+        //public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
+        //{
+        //    return _orderSharedService.IsPosted(orderItemUnitGroup);
+        //}
 
-        public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
-        {
-            return _orderSharedService.IsPosted(orderItemUnitGroupDescription);
-        }
+        //public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
+        //{
+        //    return _orderSharedService.IsPosted(orderItemUnitGroupDescription);
+        //}
 
-        public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
-        {
-            return _orderSharedService.IsPosted(orderItemUnitGroupDescriptionItem);
-        }
+        //public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
+        //{
+        //    return _orderSharedService.IsPosted(orderItemUnitGroupDescriptionItem);
+        //}
 
         private async Task<bool> IsPostedAsync(Guid orderId)
         {
@@ -483,7 +483,7 @@ namespace iLgs.Services.PurchaseOrder
             {
                 MapModelToEntityFields(order, model, Mode.EDIT, requestList);
 
-                await DeleteUnitGroupAsync(model.Id);
+                //await DeleteUnitGroupAsync(model.Id);
                 await DeleteOrderItemsAsync(model.Id); // delete existing orderitems            
                 ProcessOrderRequest(order, requestList, user, date);
 
@@ -510,7 +510,7 @@ namespace iLgs.Services.PurchaseOrder
             ValidateRecord(order, (Guid)orderId);
             await ValidateStatusAsync((Guid)model.Id);
 
-            await DeleteUnitGroupAsync(model.Id);
+            //await DeleteUnitGroupAsync(model.Id);
             var orderItems = _db.OrderItems.Where(w => w.OrderId == orderId);
             _db.OrderItems.RemoveRange(orderItems);
             await _db.SaveChangesAsync();            
@@ -671,57 +671,57 @@ namespace iLgs.Services.PurchaseOrder
                 order.OrderItems.Add(orderItem);                
             }
 
-            var setItems = order.OrderItems.Where(w => w.Unit == "set" || w.Unit == "lot").OrderBy(o => o.ItemNoIndex).ToList();
-            foreach (var setItem in setItems)
-            {
-                var unitGroupId = Guid.NewGuid();
-                var unitGroup = new OrderItemUnitGroup()
-                {
-                    Id = unitGroupId,
-                    OrderId = order.Id,
-                    SetLotNo = setItem.ItemNo,
-                    Qty = (int?)setItem.Qty,
-                    Unit = setItem.Unit,
-                    UnitCost = setItem.UnitCost,
-                    TotalCost = setItem.Amount,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
-                var unitGroupDescriptionId = Guid.NewGuid();
-                var unitGroupDescription = new OrderItemUnitGroupDescription()
-                {
-                    Id = unitGroupDescriptionId,
-                    OrderItemUnitGroupId = unitGroupId,
-                    Description = setItem.Description,
-                    OtherParticulars = setItem.OtherDesc,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
+            //var setItems = order.OrderItems.Where(w => w.Unit == "set" || w.Unit == "lot").OrderBy(o => o.ItemNoIndex).ToList();
+            //foreach (var setItem in setItems)
+            //{
+            //    var unitGroupId = Guid.NewGuid();
+            //    var unitGroup = new OrderItemUnitGroup()
+            //    {
+            //        Id = unitGroupId,
+            //        OrderId = order.Id,
+            //        SetLotNo = setItem.ItemNo,
+            //        Qty = (int?)setItem.Qty,
+            //        Unit = setItem.Unit,
+            //        UnitCost = setItem.UnitCost,
+            //        TotalCost = setItem.Amount,
+            //        InsertedBy = user,
+            //        InsertedDt = date,
+            //        UpdatedBy = user,
+            //        UpdatedDt = date
+            //    };
+            //    var unitGroupDescriptionId = Guid.NewGuid();
+            //    var unitGroupDescription = new OrderItemUnitGroupDescription()
+            //    {
+            //        Id = unitGroupDescriptionId,
+            //        OrderItemUnitGroupId = unitGroupId,
+            //        Description = setItem.Description,
+            //        OtherParticulars = setItem.OtherDesc,
+            //        InsertedBy = user,
+            //        InsertedDt = date,
+            //        UpdatedBy = user,
+            //        UpdatedDt = date
+            //    };
 
-                var setItemContents = order.OrderItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
-                    && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).OrderBy(o => o.ItemNoIndex).ToList();
-                foreach (var setItemContent in setItemContents)
-                {
-                    var orderItemId = setItemContent.Id;
-                    var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
-                        OrderItemId = orderItemId,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-                    unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
-                }
-                unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
-                order.OrderItemUnitGroups.Add(unitGroup);
-            }
+            //    var setItemContents = order.OrderItems.Where(w => w.ItemNoIndex.Substring(0, 3) == setItem.ItemNoIndex.Substring(0, 3)
+            //        && !(w.Unit == "set" || w.Unit == "lot" || w.Unit == "" || w.Unit == null)).OrderBy(o => o.ItemNoIndex).ToList();
+            //    foreach (var setItemContent in setItemContents)
+            //    {
+            //        var orderItemId = setItemContent.Id;
+            //        var unitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            OrderItemUnitGroupDescriptionId = unitGroupDescriptionId,
+            //            OrderItemId = orderItemId,
+            //            InsertedBy = user,
+            //            InsertedDt = date,
+            //            UpdatedBy = user,
+            //            UpdatedDt = date
+            //        };
+            //        unitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(unitGroupDescriptionItem);
+            //    }
+            //    unitGroup.OrderItemUnitGroupDescriptions.Add(unitGroupDescription);
+            //    order.OrderItemUnitGroups.Add(unitGroup);
+            //}
 
 
             //var setItems = requestItems.Where(w => w.Unit == "set" || w.Unit == "lot").ToList();
@@ -784,12 +784,12 @@ namespace iLgs.Services.PurchaseOrder
         //    await _db.SaveChangesAsync();
         //}
 
-        private async Task DeleteUnitGroupAsync(Guid? orderId)
-        {
-            var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == orderId);
-            _db.OrderItemUnitGroups.RemoveRange(unitGroups);            
-            await _db.SaveChangesAsync();
-        }
+        //private async Task DeleteUnitGroupAsync(Guid? orderId)
+        //{
+        //    var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == orderId);
+        //    _db.OrderItemUnitGroups.RemoveRange(unitGroups);            
+        //    await _db.SaveChangesAsync();
+        //}
 
         private async Task DeleteOrderItemsAsync(Guid? orderId)
         {
@@ -888,12 +888,12 @@ namespace iLgs.Services.PurchaseOrder
             ValidateIfNull(model);
             await ValidateStatusAsync(model.Id);
 
-            var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
-            if (unitGroups.Any())
-            {
-                _db.OrderItemUnitGroups.RemoveRange(unitGroups);
-                await _db.SaveChangesAsync();
-            }
+            //var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+            //if (unitGroups.Any())
+            //{
+            //    _db.OrderItemUnitGroups.RemoveRange(unitGroups);
+            //    await _db.SaveChangesAsync();
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -931,21 +931,7 @@ namespace iLgs.Services.PurchaseOrder
         });
 
         public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
-        {
-            var entity = await _db.Orders.FindAsync(orderId);
-
-            ValidateRecord(entity, orderId);
-            await ValidateOnUnpostAsync(entity);
-
-            entity.PostedBy = null;
-            entity.PostedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            await _db.SaveChangesAsync();
-
-            return entity;
-        });
+            await new PurchaseOrderLifecycleService(_db).UnpostAsync(orderId, user, date));
 
         private string NextPoNo(DateTime poDate)
         {
@@ -1189,16 +1175,16 @@ namespace iLgs.Services.PurchaseOrder
             //    }
             //}
 
-            var unitGroupItems = await _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItem)
-                .Where(w => w.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId == entity.Id).ToListAsync();
-            if (unitGroupItems.Any())
-            {
-                var rate = unitGroupItems.Sum(s => s.OrderItem.PriceRate) ?? 0;
-                if (rate != 100)
-                {
-                    throw new InvalidValueException("Total price rate of Set/Lot items must be 100%");
-                }
-            }
+            //var unitGroupItems = await _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItem)
+            //    .Where(w => w.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId == entity.Id).ToListAsync();
+            //if (unitGroupItems.Any())
+            //{
+            //    var rate = unitGroupItems.Sum(s => s.OrderItem.PriceRate) ?? 0;
+            //    if (rate != 100)
+            //    {
+            //        throw new InvalidValueException("Total price rate of Set/Lot items must be 100%");
+            //    }
+            //}
 
             string brandMsg = "";
             var orderItems = await _db.OrderItems
@@ -1207,31 +1193,31 @@ namespace iLgs.Services.PurchaseOrder
                 .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
             {
-                if (orderItem.Unit == "set" || orderItem.Unit == "lot")
-                {
-                    decimal? unitCost = 0;
-                    var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
-                    if (unitGroup != null)
-                    {
-                        unitCost = unitGroup.UnitCost;
-                        if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
-                        {
-                            if (unitCost < _priceCap)
-                            {
-                                throw new InvalidValueException($"Please use the Supplies Code for items with a group unit cost below {_priceCap:n0}.”");
-                            }
-                        }
-                        else
-                        {
-                            if (unitCost >= _priceCap)
-                            {
-                                throw new InvalidValueException($"Please use the Property Ccode for items with a group unit cost of {_priceCap:n0} and above.");
-                            }
-                        }
-                    }
-                }
-                else
-                {
+                //if (orderItem.Unit == "set" || orderItem.Unit == "lot")
+                //{
+                //    decimal? unitCost = 0;
+                //    var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
+                //    if (unitGroup != null)
+                //    {
+                //        unitCost = unitGroup.UnitCost;
+                //        if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+                //        {
+                //            if (unitCost < _priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use the Supplies Code for items with a group unit cost below {_priceCap:n0}.”");
+                //            }
+                //        }
+                //        else
+                //        {
+                //            if (unitCost >= _priceCap)
+                //            {
+                //                throw new InvalidValueException($"Please use the Property Ccode for items with a group unit cost of {_priceCap:n0} and above.");
+                //            }
+                //        }
+                //    }
+                //}
+                //else
+                //{
                     if (!orderItem.ItemCodeId.HasValue)
                     {
                         throw new InvalidValueException("Item code is not configured properly.");
@@ -1258,7 +1244,7 @@ namespace iLgs.Services.PurchaseOrder
                     {
                         throw new InvalidValueException("All items must have a valid Property/Stock No.");
                     }
-                }
+                //}
 
                 // validate unit cost
                 if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)

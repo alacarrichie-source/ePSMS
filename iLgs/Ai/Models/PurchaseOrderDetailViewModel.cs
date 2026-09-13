@@ -72,6 +72,7 @@ namespace iLgs.Ai.Models
 
     public class POSetLotItemViewModel
     {
+        public Guid? OrderSubItemId { get; set; }
         public Guid? RequestSubItemId { get; set; }
         public string ItemNo { get; set; }
         public string ItemName { get; set; }

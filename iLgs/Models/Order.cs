@@ -18,7 +18,6 @@ namespace iLgs.Models
         public Order()
         {
             this.AIRs = new HashSet<AIR>();
-            this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
             this.OrderRequests = new HashSet<OrderRequest>();
             this.PARs = new HashSet<PAR>();
             this.OrderItems = new HashSet<OrderItem>();
@@ -60,8 +59,6 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIR> AIRs { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderRequest> OrderRequests { get; set; }
         public virtual Supplier Supplier { get; set; }

@@ -1,0 +1,78 @@
+﻿@model iLgs.Models.PropertyCardWorkspaceVM
+@{
+    ViewBag.Title = "Property Card " + Model.Card.PsNo;
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+<link href="@Url.Content("~/Content/property-card-legacy.css?v=20260912_3")" rel="stylesheet" />
+<link href="@Url.Content("~/Content/property-card-view.css")" rel="stylesheet" />
+@Html.Partial("_ClientConfig")
+<script>
+propertyCardConfig.workspace = {
+    id: "@Model.Card.Id",
+    tabUrl: "@Url.Action("WorkspaceTab")",
+    positionUrl: "@Url.Action("WorkspacePosition")",
+    choicesUrl: "@Url.Action("WorkspaceChoices")",
+    unitsUrl: "@Url.Action("WorkspaceUnits")",
+    accountabilityUrl: "@Url.Action("WorkspaceAccountability")",
+    documentsUrl: "@Url.Action("WorkspaceDocuments")",
+    itemUploadUrl: "@Url.Action("_ImagesAdd", "ItemCard")",
+    cardNumber: @Html.Raw(System.Web.Helpers.Json.Encode(Model.Card.PsNo))
+};
+</script>
+<div id="pcWorkspace" class="epsms-property-workspace">
+    @Html.AntiForgeryToken()
+    <a class="pc-back" href="@Url.Action("Index")">← Back to Property Cards</a>
+    <header class="pc-workspace-header">
+        <div><p class="pc-eyebrow">PROPERTY CARD NO.</p><h1>@Model.Card.PsNo</h1><h2>@Model.Card.Item</h2><p>@Model.Card.ItemType · Fund @Model.Card.Fund</p></div>
+        <div class="pc-workspace-actions">
+            <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" id="pcEditCard">Edit Property Card</button>
+            <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" id="pcPrintCard">Print Property Card</button>
+            <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" id="pcRefreshCard">Refresh</button>
+        </div>
+    </header>
+    <div id="pcWorkspaceError" class="alert alert-danger" role="alert" hidden></div>
+    <div class="pc-position" aria-label="Inventory position">
+        <div><span>Received</span><strong data-pc-stat="Received">@Model.Position.Received.ToString("n0")</strong></div>
+        <div><span>Transfer In</span><strong data-pc-stat="TransferIn">@Model.Position.TransferIn.ToString("n0")</strong></div>
+        <div><span>Issued</span><strong data-pc-stat="Issued">@Model.Position.Issued.ToString("n0")</strong></div>
+        <div><span>Transfer Out</span><strong data-pc-stat="TransferOut">@Model.Position.TransferOut.ToString("n0")</strong></div>
+        <div class="pc-position-balance"><span>Available Balance</span><strong data-pc-stat="Balance">@Model.Position.Balance.ToString("n0")</strong></div>
+        <div><span>Balance Value</span><strong data-pc-stat="BalanceValue">@Model.Position.BalanceValue.ToString("n2")</strong></div>
+    </div>
+    <p class="pc-note">All acquisition records for this card. Received counts original receipts; balance and balance value follow the existing inventory calculations.</p>
+    <div id="pcWorkspaceTabs">
+        <ul><li class="k-state-active">Overview</li><li>Acquisitions</li><li>Individual Units</li>
+        <li>Accountability</li>
+        @*<li>History</li>*@
+        <li>Documents</li></ul>
+        <div>
+            <div class="pc-overview">
+                <section class="pc-panel"><h3>Property Information</h3><dl>
+                    <dt>Property Card No.</dt><dd>@Model.Card.PsNo</dd><dt>Article</dt><dd>@Model.Card.Item</dd>
+                    <dt>Account</dt><dd>@Model.Card.ItemType</dd><dt>Sub-account</dt><dd>@Model.Card.SubAccount</dd>
+                    <dt>Fund</dt><dd>@Model.Card.Fund</dd><dt>Description</dt><dd>@Model.Card.Description</dd>
+                    <dt>Created by</dt><dd>@Model.Card.InsertedBy</dd><dt>Created date</dt><dd>@(Model.Card.InsertedDt.HasValue ? Model.Card.InsertedDt.Value.ToString("MM/dd/yyyy") : "—")</dd>
+                </dl></section>
+                <section class="pc-panel"><h3>Acquisitions & Individual Units</h3><dl>
+                    <dt>Acquisition records</dt><dd data-pc-stat="AcquisitionCount">@Model.Position.AcquisitionCount</dd>
+                    <dt>Latest PO</dt><dd data-pc-text="LatestPo">@Model.Position.LatestPo</dd>
+                    <dt>Latest PO date</dt><dd data-pc-date="LatestPoDate">@(Model.Position.LatestPoDate.HasValue ? Model.Position.LatestPoDate.Value.ToString("MM/dd/yyyy") : "—")</dd>
+                    <dt>Latest acquisition date</dt><dd data-pc-date="LatestAcquisitionDate">@(Model.Position.LatestAcquisitionDate.HasValue ? Model.Position.LatestAcquisitionDate.Value.ToString("MM/dd/yyyy") : "—")</dd>
+                    <dt>Identifiable units</dt><dd data-pc-stat="UnitCount">@Model.Position.UnitCount</dd>
+                </dl><p class="pc-note">Property Card → Acquisitions → Individual Units. Review the selected unit's PAR/ICS records in Accountability.</p>
+                <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" data-pc-tab="Acquisitions">Open Acquisitions</button></section>
+            </div>
+        </div>
+        <div><div data-pc-tab-host="Acquisitions"></div></div>
+        <div><div data-pc-tab-host="Individual Units"></div></div>
+        <div><div data-pc-tab-host="Accountability"></div></div>
+        @*<div><div data-pc-tab-host="History"></div></div>*@
+        <div><div data-pc-tab-host="Documents"></div></div>
+    </div>
+</div>
+<div id="windowcontainer"></div>
+@Html.Partial("_UnitTemplates")
+@Html.Partial("_ValidationTemplate")
+<script id="pcAcquisitionDetails" type="text/x-kendo-template">#= pcAcquisitionDetailHtml(data) #</script>
+<script src="@Url.Content("~/Scripts/property-card-legacy.js?v=20260912_3")"></script>
+<script src="@Url.Content("~/Scripts/property-card-view.js?v=20260912_3")"></script>

@@ -75,14 +75,16 @@ namespace iLgs.Services.Codes
 
         public decimal? GetPriceCap(int? forYear)
         {
-            var asOfDate = new DateTime((int)forYear, 12, 31);
+            int year = forYear.HasValue && forYear.Value >= 1753 && forYear.Value <= 9999 ? forYear.Value : DateTime.Now.Year;
+            var asOfDate = new DateTime(year, 12, 31);
             var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_PriceCap({0})", asOfDate).FirstOrDefault();
             return data ?? 50000;
         }
 
         public decimal? GetPriceCap(DateTime? asOfDate)
         {
-            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_PriceCap({0})", asOfDate).FirstOrDefault();
+            var date = asOfDate ?? DateTime.Now;
+            var data = _db.Database.SqlQuery<decimal?>("Select dbo.fn_PriceCap({0})", date).FirstOrDefault();
             return data ?? 50000;
         }
 

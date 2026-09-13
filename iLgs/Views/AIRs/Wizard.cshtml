@@ -1,4 +1,4 @@
-@*Wizard.cshtml*@
+﻿@*Wizard.cshtml*@
 @model iLgs.Ai.Models.AIRWizardViewModel
 
 @{
@@ -239,6 +239,76 @@
     .Content(@<text><div id="inventoryDetailsModalContent" class="p-3"></div></text>)
 )
 
+<!-- ADD / EDIT RECEIVED COMPONENT MODAL -->
+@(Html.Kendo().Window()
+    .Name("componentModalWindow")
+    .Title("Received Component / Sub-Item")
+    .Width(620)
+    .Modal(true)
+    .Visible(false)
+    .Draggable(true)
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div class="p-3" id="componentModalContent">
+            <input type="hidden" id="compParentItemIdx" value="" />
+            <input type="hidden" id="compSubItemIdx" value="" />
+            
+            <div class="mb-3 p-2 bg-light rounded border">
+                <div class="small text-muted fw-bold">Parent Accountable Item:</div>
+                <div id="compParentItemDisplay" class="fw-semibold text-primary"></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold" for="txtCompDescription">Component Description <span class="text-danger">*</span></label>
+                    <input type="text" id="txtCompDescription" class="form-control-custom w-100" placeholder="e.g. Wireless Mouse, USB-C Dock, Laptop Bag..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold" for="txtCompUnit">Unit <span class="text-danger">*</span></label>
+                    <input type="text" id="txtCompUnit" class="form-control-custom w-100" value="pc" placeholder="unit, pc, set..." />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold" for="numCompQtyReceived">Quantity Received <span class="text-danger">*</span></label>
+                    <input type="number" id="numCompQtyReceived" step="any" min="0.01" class="form-control-custom w-100" placeholder="0.00" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold" for="ddlCompSourceType">Source Type <span class="text-danger">*</span></label>
+                    <select id="ddlCompSourceType" class="form-control-custom w-100">
+                        <option value="FREEBIE">FREEBIE (Freebie / Promotional)</option>
+                        <option value="INSPECTION_ADDED">INSPECTION_ADDED (Extra / Discovered)</option>
+                        <option value="ORDERED">ORDERED (Contract / PO Item)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3 p-2 border rounded" style="background:#f0f9ff; border-color:#bae6fd !important;">
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="chkCompRequiredForBundle" />
+                    <label class="form-check-label fw-bold text-dark ms-1" for="chkCompRequiredForBundle">
+                        Required for Bundle
+                    </label>
+                </div>
+                <div class="small text-muted ms-4" id="compBundleReqHelp">
+                    Marks this component as mandatory when the property is later grouped into ICS/PAR bundles.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold" for="txtCompRemarks">Remarks / Notes</label>
+                <textarea id="txtCompRemarks" class="form-control-custom w-100" rows="2" placeholder="Inspection findings, serials, or remarks..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
+                <button type="button" class="btn-procurement-secondary" onclick="$('#componentModalWindow').data('kendoWindow').close()">Cancel</button>
+                <button type="button" class="btn-procurement-primary" onclick="onSaveReceivedComponent()"><span class="k-icon k-i-check"></span> Save Component</button>
+            </div>
+        </div>
+    </text>)
+)
+
 <!-- WITHDRAW SUBMISSION MODAL (IF ELIGIBLE) -->
 @if (Model.IsSubmittedView && Model.CanWithdraw)
 {
@@ -458,6 +528,8 @@
                                 }).length;
                                 if (comp < req) {
                                     incompleteInventory.push("Item #" + (itm.ItemNo || (i + 1)) + " (" + (itm.Description || "Item") + "): " + comp + " of " + req + " parent units completed");
+                                } else if ((itm.InventoryDetails || []).length > req) {
+                                    incompleteInventory.push("Item #" + (itm.ItemNo || (i + 1)) + " (" + (itm.Description || "Item") + "): " + itm.InventoryDetails.length + " unit details exist for " + req + " units being inspected (excess details must be removed)");
                                 }
                             }
                             if (itm.SubItems && itm.SubItems.length > 0) {
@@ -470,6 +542,8 @@
                                         }).length;
                                         if (subComp < subReq) {
                                             incompleteInventory.push("Item #" + (itm.ItemNo || (i + 1)) + " - Sub-item '" + (sub.Description || "Component") + "': " + subComp + " of " + subReq + " units completed");
+                                        } else if ((sub.InventoryDetails || []).length > subReq) {
+                                            incompleteInventory.push("Item #" + (itm.ItemNo || (i + 1)) + " - Sub-item '" + (sub.Description || "Component") + "': " + sub.InventoryDetails.length + " unit details exist for " + subReq + " units being inspected (excess details must be removed)");
                                         }
                                     }
                                 }
@@ -590,6 +664,33 @@
                     var selDisp = $("#ddlItemDisposition_" + idx);
                     if (selDisp.length) {
                         item.Disposition = selDisp.val() || item.Disposition || airWizardState.Disposition || "Inventory";
+                    }
+                    if (item.Disposition === "I") item.Disposition = "Inventory";
+                    if (item.Disposition === "D") item.Disposition = "For Distribution";
+
+                    if (item.SubItems && item.SubItems.length > 0) {
+                        item.SubItems.forEach(function (sub, sIdx) {
+                            if (sub.SubItemNo) {
+                                sub.SubItemNo = sub.SubItemNo.toString().replace(/^#+/, "").trim();
+                            }
+                            var sInputQty = $("#txtSubInspectNow_" + idx + "_" + sIdx);
+                            if (sInputQty.length) {
+                                sub.InspectNowQty = parseFloat(sInputQty.val()) || 0;
+                            }
+                            var sInputRemarks = $("#txtSubRemarks_" + idx + "_" + sIdx);
+                            if (sInputRemarks.length) {
+                                sub.Remarks = sInputRemarks.val() || "";
+                            }
+                            var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                            if (sType === "ORDERED") {
+                                sub.IsRequiredForBundle = true;
+                            } else {
+                                var sChkBundle = $("#chkBundleReq_" + idx + "_" + sIdx);
+                                if (sChkBundle.length) {
+                                    sub.IsRequiredForBundle = sChkBundle.is(":checked");
+                                }
+                            }
+                        });
                     }
                 });
             }

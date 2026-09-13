@@ -1,4 +1,4 @@
-@{
+﻿@{
     var isSubmittedMode = ViewBag.IsSubmitted == true;
     ViewBag.Title = isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
@@ -186,8 +186,8 @@
 <div id="postPurchaseRequestWindow" style="display:none;">
     <div class="pr-return-form">
         <p>Confirm the official Purchase Request number and date before posting.</p>
-        <label for="reviewPostPrNumber">PR Number <span class="text-danger">*</span></label>
-        <input id="reviewPostPrNumber" class="k-textbox" maxlength="50" style="width:100%;" />
+        <label for="reviewPostPrNumber">PR Number</label>
+        <input id="reviewPostPrNumber" class="k-textbox" maxlength="50" style="width:100%;" placeholder="Auto-generate" />
         <label for="reviewPostPrDate">PR Date <span class="text-danger">*</span></label>
         <input id="reviewPostPrDate" style="width:100%;" />
         <div id="reviewPostError" class="text-danger" role="alert"></div>
@@ -284,6 +284,16 @@
         border: none;
         background: transparent;
     }
+
+    .k-button .k-icon.k-i-loading {
+        display: inline-block;
+        margin-right: 6px;
+        animation: pr-button-spin .8s linear infinite;
+    }
+    @@keyframes pr-button-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
@@ -305,9 +315,11 @@
     var purchaseRequestViewUrl = '@Url.Action("View", "Requests")';
     var startRevisionUrl = '@Url.Action("StartRevision", "Procurement")';
     var postPurchaseRequestUrl = '@Url.Action("PostPurchaseRequest", "Requests")';
+    var unpostPurchaseRequestUrl = '@Url.Action("UnpostPurchaseRequest", "Requests")';
     var returnForRevisionUrl = '@Url.Action("ReturnForRevision", "Requests")';
     var resubmitRequestUrl = '@Url.Action("ResubmitRequest", "Requests")';
     var isPrReviewMode = @Html.Raw(Json.Encode(ViewBag.IsSubmitted == true));
+    var canUnpostPr = @Html.Raw(Json.Encode(ViewBag.AllowUnpost == true));
     var reviewRequestId = null;
 
     var selectedGrid = null;
@@ -351,12 +363,17 @@
         } else if (item.Status === "Revising" && !isPrReviewMode) {
             html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
                 "onclick=\"startPurchaseRequestRevision('" + id + "')\">Continue Revision</button>";
-        } else if (item.Status === "Submitted" && isPrReviewMode) {
+        } else if (item.Status === "Submitted" && (isPrReviewMode || canUnpostPr)) {
             html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
                 "onclick=\"openPurchaseRequestReview('" + id + "')\"><span class='k-icon k-i-eye'></span> Review</button>";
+        } else if (item.Status === "Posted") {
+            if (canUnpostPr) {
+                html += "<button type='button' class='k-button k-button-sm k-button-solid-base' " +
+                    "onclick=\"unpostPurchaseRequest(this, '" + id + "')\">Unpost</button>";
+            }
         }
 
-        if (!(item.Status === "Submitted" && isPrReviewMode)) {
+        if (!(item.Status === "Submitted" && (isPrReviewMode || canUnpostPr))) {
             html += "<button type='button' class='k-button k-button-sm k-button-flat-primary' " +
                 "title='View Details' onclick=\"viewPurchaseRequest('" + id + "')\">" +
                 "<span class='k-icon k-i-eye'></span></button>";
@@ -465,6 +482,74 @@
             window.alert("The Purchase Request could not be resubmitted.");
         });
     }
+    function unpostPurchaseRequest(btn, id) {
+        var target = getPurchaseRequestRow(id);
+        var prNo = (target && target.item && target.item.PrNo) ? target.item.PrNo : (target && target.item && target.item.CtrlNo ? target.item.CtrlNo : "");
+        var confirmMsg = "Unpost PR " + (prNo ? prNo : "") + "? The Purchase Request will return to the review stage. If changes are required, use Return for Revision after unposting.";
+
+        var confirmPromise = (window.kendo && kendo.confirm)
+            ? kendo.confirm(confirmMsg)
+            : (window.confirm(confirmMsg) ? $.Deferred().resolve().promise() : $.Deferred().reject().promise());
+
+        confirmPromise.done(function () {
+            var $btn = $(btn);
+            if ($btn.data("processing") === true) {
+                return;
+            }
+            $btn.data("processing", true);
+            var originalHtml = $btn.html();
+            $btn.data("original-html", originalHtml);
+            $btn.addClass("k-state-disabled").prop("disabled", true).attr("aria-disabled", "true");
+            $btn.html("<span class='k-icon k-i-loading'></span> Unposting...");
+
+            $.ajax({
+                url: unpostPurchaseRequestUrl,
+                type: "POST",
+                data: {
+                    __RequestVerificationToken: $("input[name='__RequestVerificationToken']").first().val(),
+                    requestId: id
+                }
+            }).done(function (result) {
+                if (result && result.success) {
+                    if (window.kendo && kendo.alert) {
+                        kendo.alert(result.message || "Purchase Request has been unposted and returned to the review stage.");
+                    } else {
+                        window.alert(result.message || "Purchase Request has been unposted and returned to the review stage.");
+                    }
+                    refreshPrGrid();
+                    if (typeof closePurchaseRequestReview === "function") { closePurchaseRequestReview(); }
+                } else {
+                    var errorMsg = (result && result.message) ? result.message : ((result && result.Errors) ? (Array.isArray(result.Errors) ? result.Errors.join(" ") : result.Errors) : "The operation was blocked.");
+                    if (window.kendo && kendo.alert) {
+                        kendo.alert(errorMsg);
+                    } else {
+                        window.alert(errorMsg);
+                    }
+                    restoreUnpostButton($btn, originalHtml);
+                }
+            }).fail(function (xhr) {
+                var failMsg = "The unpost operation failed. Please try again.";
+                if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                    failMsg = xhr.responseJSON.message;
+                }
+                if (window.kendo && kendo.alert) {
+                    kendo.alert(failMsg);
+                } else {
+                    window.alert(failMsg);
+                }
+                restoreUnpostButton($btn, originalHtml);
+            });
+        });
+    }
+
+    function restoreUnpostButton($btn, originalHtml) {
+        if (!$btn || !$btn.length) return;
+        $btn.data("processing", false);
+        $btn.removeClass("k-state-disabled").prop("disabled", false).removeAttr("aria-disabled");
+        if (originalHtml) {
+            $btn.html(originalHtml);
+        }
+    }
 
     // --- Review & Details Modal Handlers ---
 
@@ -511,7 +596,11 @@
     function openReviewPostDialog() {
         $("#reviewPostError").text("");
         var target = getPurchaseRequestRow(reviewRequestId);
-        $("#reviewPostPrNumber").val(target && target.item.PrNo ? target.item.PrNo : "");
+        var prNo = target && target.item.PrNo ? target.item.PrNo : "";
+        $("#reviewPostPrNumber").val(prNo);
+        if (!prNo) {
+            $("#reviewPostPrNumber").attr("placeholder", "Auto-generate");
+        }
         var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
         if (!datePicker) {
             $("#reviewPostPrDate").kendoDatePicker({ format: "MM/dd/yyyy" });
@@ -531,8 +620,8 @@
         var prNumber = $.trim($("#reviewPostPrNumber").val());
         var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
         var prDate = datePicker ? datePicker.value() : null;
-        if (!prNumber || !prDate) {
-            $("#reviewPostError").text("PR Number and PR Date are required.");
+        if (!prDate) {
+            $("#reviewPostError").text("PR Date is required.");
             return;
         }
         setReviewButtonBusy("#confirmReviewPost", true);

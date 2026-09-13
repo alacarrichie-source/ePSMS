@@ -712,11 +712,11 @@ namespace iLgs.Services.AIRs_
                         var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemRequestId == orderItemRequest.Id).FirstOrDefaultAsync();
                         if (psCardItem == null)
                         {
-                            var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
-                            var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                            var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                            var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
-                            var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
+                            //var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
+                            //var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                            //var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                            //var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
+                            //var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
                             var psCardItemId = Guid.NewGuid();
                             psCardItem = new PsCardItem()
                             {
@@ -728,9 +728,11 @@ namespace iLgs.Services.AIRs_
                                 PoNo = orderItem.Order.PoNo,
                                 AirDate = entity.AIRDate,
                                 AirNo = entity.AIRNo,
-                                Qty = (int)orderItem.Qty * setQty,
+                                //Qty = (int)orderItem.Qty * setQty,
+                                Qty = (int)orderItem.Qty,
                                 QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty * setQty,
+                                //QtyBal = (int)orderItem.Qty * setQty,
+                                QtyBal = (int)orderItem.Qty,
                                 Amount = orderItem.Amount,
                                 Unit = orderItem.Unit,
                                 UnitCost = orderItem.UnitCost,
@@ -745,9 +747,9 @@ namespace iLgs.Services.AIRs_
                                 Type = oAf.Type,
                                 InvDist = oig.InvDist,
                                 FPP = orderItemRequest.RequestItem.Request.FPP,
-                                SetLotNo = setLotNo,
-                                SetLotAmount = setLotAmount,
-                                SetLotRemarks = setLotRemarks,
+                                //SetLotNo = setLotNo,
+                                //SetLotAmount = setLotAmount,
+                                //SetLotRemarks = setLotRemarks,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
@@ -764,9 +766,11 @@ namespace iLgs.Services.AIRs_
                             {
                                 Id = Guid.NewGuid(),
                                 PsCardItemId = psCardItem.Id,
-                                Qty = (int)orderItem.Qty * setQty,
+                                //Qty = (int)orderItem.Qty * setQty,
+                                Qty = (int)orderItem.Qty,
                                 QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty * setQty,
+                                //QtyBal = (int)orderItem.Qty * setQty,
+                                QtyBal = (int)orderItem.Qty,
                                 Amount = orderItem.Amount,
                                 TranType = "I",
                                 InsertedBy = user,
@@ -881,125 +885,125 @@ namespace iLgs.Services.AIRs_
 
             //await _db.SaveChangesAsync();
 
-            foreach (var psCardId in psCardIdList)
-            {
-                var psCardItemList = _db.PsCardItems.Include(i => i.OrderItemRequest).Where(w => w.PsCardId == psCardId).ToList();
-                foreach (var psCardItem in psCardItemList)
-                {
-                    // search unit group if any
-                    var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                        .Include(i => i.OrderItem)
-                        .Where(w => w.OrderItemId == psCardItem.OrderItemRequest.OrderItemId).FirstOrDefaultAsync();
-                    if (orderItemUnitGroupDescriptionItem != null)
-                    {
-                        // search in psCard unit group
-                        if (!await _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
-                        {
-                            var psCardItemUnitGroup = await _db.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
-                            if (psCardItemUnitGroup == null)
-                            {
-                                psCardItemUnitGroup = new PsCardItemUnitGroup()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    PoNo = psCardItem.PoNo,
-                                    SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
-                                    Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
-                                    Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
-                                    UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
-                                    TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                    AddCost = 0,
-                                    TUnitCost = 0,
-                                    GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    UnitGroupId = psCardItemUnitGroup.Id,
-                                    Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                    PsCardItemId = psCardItem.Id,
-                                    PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                    InsertedBy = user,
-                                    InsertedDt = date,
-                                    UpdatedBy = user,
-                                    UpdatedDt = date
-                                };
-                                psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                _db.PsCardItemUnitGroups.Add(psCardItemUnitGroup);
-                            }
-                            else
-                            {
-                                // if with psCardItemUnitGroup, check UnitGroupDescription
-                                var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
-                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
-                                    .FirstOrDefault();
-                                if (psCardItemUnitGroupDescription == null)
-                                {
-                                    psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        UnitGroupId = psCardItemUnitGroup.Id,
-                                        Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                        PsCardItemId = psCardItem.Id,
-                                        PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                        InsertedBy = user,
-                                        InsertedDt = date,
-                                        UpdatedBy = user,
-                                        UpdatedDt = date
-                                    };
-                                    psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                    _db.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
-                                }
-                                else
-                                {
-                                    // if with UnitGroupDescription, check UnitGroupDescriptionItem
-                                    var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
-                                        .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
-                                    if (psCardItemUnitGroupDescriptionItem == null)
-                                    {
-                                        psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
-                                        {
-                                            Id = Guid.NewGuid(),
-                                            UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
-                                            PsCardItemId = psCardItem.Id,
-                                            PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
-                                            InsertedBy = user,
-                                            InsertedDt = date,
-                                            UpdatedBy = user,
-                                            UpdatedDt = date
-                                        };
-                                        _db.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
-                                    }
-                                }
-                            }
-                            await _db.SaveChangesAsync();
-                        }
-                    }
-                }
-            }
+            //foreach (var psCardId in psCardIdList)
+            //{
+            //    var psCardItemList = _db.PsCardItems.Include(i => i.OrderItemRequest).Where(w => w.PsCardId == psCardId).ToList();
+            //    foreach (var psCardItem in psCardItemList)
+            //    {
+            //        // search unit group if any
+            //        var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+            //            .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+            //            .Include(i => i.OrderItem)
+            //            .Where(w => w.OrderItemId == psCardItem.OrderItemRequest.OrderItemId).FirstOrDefaultAsync();
+            //        if (orderItemUnitGroupDescriptionItem != null)
+            //        {
+            //            // search in psCard unit group
+            //            if (!await _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
+            //            {
+            //                var psCardItemUnitGroup = await _db.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
+            //                if (psCardItemUnitGroup == null)
+            //                {
+            //                    psCardItemUnitGroup = new PsCardItemUnitGroup()
+            //                    {
+            //                        Id = Guid.NewGuid(),
+            //                        PoNo = psCardItem.PoNo,
+            //                        SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
+            //                        Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
+            //                        Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
+            //                        UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
+            //                        TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+            //                        AddCost = 0,
+            //                        TUnitCost = 0,
+            //                        GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+            //                        InsertedBy = user,
+            //                        InsertedDt = date,
+            //                        UpdatedBy = user,
+            //                        UpdatedDt = date
+            //                    };
+            //                    var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
+            //                    {
+            //                        Id = Guid.NewGuid(),
+            //                        UnitGroupId = psCardItemUnitGroup.Id,
+            //                        Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
+            //                        InsertedBy = user,
+            //                        InsertedDt = date,
+            //                        UpdatedBy = user,
+            //                        UpdatedDt = date
+            //                    };
+            //                    var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+            //                    {
+            //                        Id = Guid.NewGuid(),
+            //                        UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+            //                        PsCardItemId = psCardItem.Id,
+            //                        PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
+            //                        InsertedBy = user,
+            //                        InsertedDt = date,
+            //                        UpdatedBy = user,
+            //                        UpdatedDt = date
+            //                    };
+            //                    psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+            //                    psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
+            //                    _db.PsCardItemUnitGroups.Add(psCardItemUnitGroup);
+            //                }
+            //                else
+            //                {
+            //                    // if with psCardItemUnitGroup, check UnitGroupDescription
+            //                    var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
+            //                        .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
+            //                        .FirstOrDefault();
+            //                    if (psCardItemUnitGroupDescription == null)
+            //                    {
+            //                        psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
+            //                        {
+            //                            Id = Guid.NewGuid(),
+            //                            UnitGroupId = psCardItemUnitGroup.Id,
+            //                            Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
+            //                            InsertedBy = user,
+            //                            InsertedDt = date,
+            //                            UpdatedBy = user,
+            //                            UpdatedDt = date
+            //                        };
+            //                        var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+            //                        {
+            //                            Id = Guid.NewGuid(),
+            //                            UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+            //                            PsCardItemId = psCardItem.Id,
+            //                            PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
+            //                            InsertedBy = user,
+            //                            InsertedDt = date,
+            //                            UpdatedBy = user,
+            //                            UpdatedDt = date
+            //                        };
+            //                        psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+            //                        _db.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
+            //                    }
+            //                    else
+            //                    {
+            //                        // if with UnitGroupDescription, check UnitGroupDescriptionItem
+            //                        var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
+            //                            .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
+            //                        if (psCardItemUnitGroupDescriptionItem == null)
+            //                        {
+            //                            psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+            //                            {
+            //                                Id = Guid.NewGuid(),
+            //                                UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+            //                                PsCardItemId = psCardItem.Id,
+            //                                PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
+            //                                InsertedBy = user,
+            //                                InsertedDt = date,
+            //                                UpdatedBy = user,
+            //                                UpdatedDt = date
+            //                            };
+            //                            _db.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+            //                        }
+            //                    }
+            //                }
+            //                await _db.SaveChangesAsync();
+            //            }
+            //        }
+            //    }
+            //}
             return entity;
         });
 
@@ -1124,27 +1128,27 @@ namespace iLgs.Services.AIRs_
 
                 foreach (var psCardItem in psCardItems)
                 {
-                    // check unit groups           
-                    var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
-                    if (unitGroupDescriptionItems.Any())
-                    {
-                        _db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
-                        await _db.SaveChangesAsync();
-                    }
+                    //// check unit groups           
+                    //var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
+                    //if (unitGroupDescriptionItems.Any())
+                    //{
+                    //    _db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
+                    //    await _db.SaveChangesAsync();
+                    //}
 
-                    var unitGroupDescriptions = _db.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
-                    if (unitGroupDescriptions.Any())
-                    {
-                        _db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
-                        await _db.SaveChangesAsync();
-                    }
+                    //var unitGroupDescriptions = _db.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
+                    //if (unitGroupDescriptions.Any())
+                    //{
+                    //    _db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
+                    //    await _db.SaveChangesAsync();
+                    //}
 
-                    var unitGroups = _db.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
-                    if (unitGroups.Any())
-                    {
-                        _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
-                        await _db.SaveChangesAsync();
-                    }
+                    //var unitGroups = _db.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
+                    //if (unitGroups.Any())
+                    //{
+                    //    _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
+                    //    await _db.SaveChangesAsync();
+                    //}
 
                     if (psCardItem.PsCardItemTransfers.Any())
                     {
@@ -1345,7 +1349,7 @@ namespace iLgs.Services.AIRs_
         {
             // include items during add except null ItemCodeId (set/lot items)
             var orderItemRequests = await _db.OrderItemRequests
-                .Include(i => i.OrderItem.Order.OrderItemUnitGroups)
+                //.Include(i => i.OrderItem.Order.OrderItemUnitGroups)
                 .Include(i => i.OrderItem.ItemCode.ItemType)
                 .Include(i => i.AIRItems)
                 .Where(w => w.OrderItem.OrderId == model.OrderId && (w.AIRItems.Sum(s => s.Qty) ?? 0) < w.QtyApplied)

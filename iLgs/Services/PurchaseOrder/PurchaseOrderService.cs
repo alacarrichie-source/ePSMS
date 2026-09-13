@@ -128,6 +128,7 @@ namespace iLgs.Services.PurchaseOrder
 
         public PurchaseOrderItemViewModel InsertItem(string poId, PurchaseOrderItemViewModel item, string user, DateTime date)
         {
+            new PurchaseOrderLifecycleService(_context).EnsureEditable(Guid.Parse(poId));
             var entity = new OrderItem
             {
                 Id = Guid.NewGuid(),
@@ -164,6 +165,7 @@ namespace iLgs.Services.PurchaseOrder
         {
             var entity = _context.OrderItems.FirstOrDefault(f => f.Id == Guid.Parse(item.Id));
             if (entity == null) throw new KeyNotFoundException($"Item '{item.Id}' not found.");
+            new PurchaseOrderLifecycleService(_context).EnsureEditable(entity.OrderId.Value);
             
             entity.PpmpCode = item.CatalogCode;
             entity.Description = item.Description;
@@ -191,6 +193,7 @@ namespace iLgs.Services.PurchaseOrder
             var entity = _context.OrderItems.Find(orderItemId);
             if (entity == null) return false;
 
+            new PurchaseOrderLifecycleService(_context).EnsureEditable(entity.OrderId.Value);
             string poId = entity.OrderId.ToString();
             _context.OrderItems.Remove(entity);
             _context.SaveChanges();
@@ -207,6 +210,7 @@ namespace iLgs.Services.PurchaseOrder
             var po = _context.Orders.Find(orderId);
             if (po == null) return false;
 
+            new PurchaseOrderLifecycleService(_context).EnsureEditable(po.Id);
             _context.Orders.Remove(po);
             _context.SaveChanges();
             return true;

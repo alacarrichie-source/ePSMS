@@ -15,9 +15,9 @@ namespace iLgs.Services.PurchaseOrder
         bool IsPosted(Guid orderId);
         bool IsPosted(Order order);
         bool IsPosted(OrderItem orderItem);
-        bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
-        bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
-        bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
+        //bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
+        //bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
+        //bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
         Task<bool> IsPostedAsync(Guid orderId);
         Task<bool> GetAnyAirsAsync(Guid id);
         Task<bool> GetAnyParsAsync(Guid id);
@@ -36,7 +36,7 @@ namespace iLgs.Services.PurchaseOrder
         public bool IsPosted(Guid orderId)
         {
             var entity = _db.Orders.Find(orderId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+            return entity != null && (entity.PostedDt.HasValue || !string.IsNullOrWhiteSpace(entity.PostedBy));
         }
 
         public bool IsPosted(Order order)
@@ -50,31 +50,31 @@ namespace iLgs.Services.PurchaseOrder
             return IsPosted(orderId);
         }
 
-        public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
-        {
-            var orderId = (Guid)orderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
-        }
+        //public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
+        //{
+        //    var orderId = (Guid)orderItemUnitGroup.OrderId;
+        //    return IsPosted(orderId);
+        //}
 
-        public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
-        {
-            var orderId = (Guid)_db.OrderItemUnitGroupDescriptions
-                .Include(i => i.OrderItemUnitGroup)
-                .Where(w => w.OrderItemUnitGroupId == orderItemUnitGroupDescription.OrderItemUnitGroupId)
-                .AsNoTracking()
-                .FirstOrDefault()?.OrderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
-        }
+        //public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
+        //{
+        //    var orderId = (Guid)_db.OrderItemUnitGroupDescriptions
+        //        .Include(i => i.OrderItemUnitGroup)
+        //        .Where(w => w.OrderItemUnitGroupId == orderItemUnitGroupDescription.OrderItemUnitGroupId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.OrderItemUnitGroup.OrderId;
+        //    return IsPosted(orderId);
+        //}
 
-        public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
-        {
-            var orderId = (Guid)_db.OrderItemUnitGroupDescriptionItems
-                .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                .Where(w => w.OrderItemUnitGroupDescriptionId == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescriptionId)
-                .AsNoTracking()
-                .FirstOrDefault()?.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
-        }
+        //public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
+        //{
+        //    var orderId = (Guid)_db.OrderItemUnitGroupDescriptionItems
+        //        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+        //        .Where(w => w.OrderItemUnitGroupDescriptionId == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescriptionId)
+        //        .AsNoTracking()
+        //        .FirstOrDefault()?.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId;
+        //    return IsPosted(orderId);
+        //}
 
         public async Task<bool> IsPostedAsync(Guid orderId)
         {
@@ -84,20 +84,8 @@ namespace iLgs.Services.PurchaseOrder
 
         public async Task ValidateStatusAsync(Guid orderId)
         {
-            if (await IsPostedAsync(orderId))
-            {
-                throw new RecordAlreadyPostedException("PO Number is already Posted. Cannot update.");
-            }
-
-            if (await GetAnyAirsAsync(orderId))
-            {
-                throw new RecordRelationshipException("PO Number already has an AIR. Cannot update.");
-            }
-
-            if (await GetAnyParsAsync(orderId))
-            {
-                throw new RecordRelationshipException("PO Number already has PAR. Cannot update.");
-            }
+            try { await new PurchaseOrderLifecycleService(_db).EnsureEditableAsync(orderId); }
+            catch (InvalidOperationException ex) { throw new RecordRelationshipException(ex.Message); }
         }
 
         public async Task<bool> GetAnyAirsAsync(Guid id)

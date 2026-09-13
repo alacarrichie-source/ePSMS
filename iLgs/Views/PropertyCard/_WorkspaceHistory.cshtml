@@ -1,0 +1,14 @@
+﻿<section class="pc-tab-section"><h3>Transaction Records</h3><p>Recorded links and audit dates, newest first. Updates may modify existing records; this is not a complete immutable event timeline.</p>
+@(Html.Kendo().Grid<iLgs.Models.PropertyCardHistoryVM>().Name("pcHistoryGrid")
+.Columns(c => {
+    c.Bound(x => x.InsertedDt).Title("Recorded").Format("{0:MM/dd/yyyy HH:mm}").Width(150);
+    c.Bound(x => x.PoNo).Title("PO No.").Width(140);
+    c.Bound(x => x.PropNo).Title("Property No.").Width(160);
+    c.Bound(x => x.Remarks).Title("Transaction").Width(160);
+    c.Bound(x => x.InsertedBy).Title("Recorded by").Width(130);
+    c.Bound(x => x.UpdatedDt).Title("Last Updated").Format("{0:MM/dd/yyyy HH:mm}").Width(150);
+})
+.Pageable(p => p.PageSizes(new int[] {20,40,80}).Refresh(true)).Sortable().Filterable().Scrollable().NoRecords()
+.DataSource(d => d.Ajax().PageSize(20).Sort(s => s.Add(x => x.InsertedDt).Descending())
+.Read(r => r.Action("WorkspaceHistoryRead","PropertyCard",new { id = ViewData["cardId"] })).Events(e => e.Error("pcWorkspaceDataError"))))
+</section>

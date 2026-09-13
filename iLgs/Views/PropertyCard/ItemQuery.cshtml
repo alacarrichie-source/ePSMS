@@ -136,7 +136,7 @@
             //a.Add(p => p.BalanceAmount).Sum();
             //a.Add(p => p.IssueAmount).Sum();
         })
-        .Read(read => read.Action("ItemQueryRead", "StockCard"))
+        .Read(read => read.Action("ItemQueryRead", "PropertyCard"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -160,7 +160,7 @@
         {
             items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=AccountCode#" });
+            .LoadContentFrom("_StockCardItem", "PropertyCard", new { cardId = "#=Id#", category = "#=AccountCode#" });
         })
        .ToClientTemplate()
     )
@@ -211,10 +211,10 @@
             a.Add(p => p.Qty).Sum();
             a.Add(p => p.Amount).Sum();
         })
-        .Read(read => read.Action("IssuanceRead", "StockCard", new { cardItemId = "#=Id#" }))
-        .Create(create => create.Action("IssuanceCreate", "StockCard"))
-        .Update(update => update.Action("IssuanceUpdate", "StockCard"))
-        .Destroy(destroy => destroy.Action("IssuanceDestroy", "StockCard"))
+        .Read(read => read.Action("IssuanceRead", "PropertyCard", new { cardItemId = "#=Id#" }))
+        .Create(create => create.Action("IssuanceCreate", "PropertyCard"))
+        .Update(update => update.Action("IssuanceUpdate", "PropertyCard"))
+        .Destroy(destroy => destroy.Action("IssuanceDestroy", "PropertyCard"))
     )
     .Events(events => events
         .Change("onChangeGridIssuance")
@@ -273,10 +273,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnVehicleRead", "StockCard", new { psCardItemId = "#=Id#" }))
-        .Create(create => create.Action("_ItemExtnVehicleCreate", "StockCard"))
-        .Update(update => update.Action("_ItemExtnVehicleUpdate", "StockCard"))
-        .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "StockCard"))
+        .Read(read => read.Action("_ItemExtnVehicleRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnVehicleCreate", "PropertyCard"))
+        .Update(update => update.Action("_ItemExtnVehicleUpdate", "PropertyCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "PropertyCard"))
     )
     .Events(events => events
         .Change("onChangeGridItemExtn")
@@ -319,10 +319,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnOtherRead", "StockCard", new { psCardItemId = "#=Id#" }))
-        .Create(create => create.Action("_ItemExtnOtherCreate", "StockCard"))
-        .Update(update => update.Action("_ItemExtnOtherUpdate", "StockCard"))
-        .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "StockCard"))
+        .Read(read => read.Action("_ItemExtnOtherRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnOtherCreate", "PropertyCard"))
+        .Update(update => update.Action("_ItemExtnOtherUpdate", "PropertyCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "PropertyCard"))
     )
     .Events(events => events
         .Change("onChangeGridItemExtn")
@@ -798,7 +798,7 @@
     // GRID STOCKS
     function onClickBtnPrint(e) {
         e.preventDefault();
-        var url = '@Url.Action("StockCardRpt", "StockCard")?stockNo=' + selectedStockNo;
+        var url = '@Url.Action("StockCardRpt", "PropertyCard")?stockNo=' + selectedStockNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -833,7 +833,7 @@
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
 
-        var url = '@Url.Action("StockCardRpt", "StockCard")?selectedId=' + selectedId;
+        var url = '@Url.Action("StockCardRpt", "PropertyCard")?selectedId=' + selectedId;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -1006,7 +1006,7 @@
             //height: height
         });
         mywindow.refresh({
-            url: '@Url.Action("_StockCardAddEdit", "StockCard")',
+            url: '@Url.Action("_StockCardAddEdit", "PropertyCard")',
             data: {
                 cardId: recId
             },
@@ -1069,7 +1069,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadFields", "StockCard")';
+        var url = '@Url.Action("LoadFields", "PropertyCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1192,7 +1192,7 @@
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetItemExtnTemplate", "StockCard")',
+            url: '@Url.Action("GetItemExtnTemplate", "PropertyCard")',
             data: { id: dataItem.Id},
             success: function (result) {
                 if (result.Errors == "") {
@@ -1280,7 +1280,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadItemFields", "StockCard")';
+        var url = '@Url.Action("LoadItemFields", "PropertyCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1387,7 +1387,7 @@
             width: width
         });
         mywindow.refresh({
-            url: '@Url.Action("_StockCardItemAddEdit", "StockCard")',
+            url: '@Url.Action("_StockCardItemAddEdit", "PropertyCard")',
             data: {
                 cardId: selectedId,
                 cardrItemId: recId
@@ -1544,7 +1544,7 @@
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetDescription", "StockCard")',
+            url: '@Url.Action("GetDescription", "PropertyCard")',
             data: data,
             beforeSend: function () {
                 window.kendo.ui.progress($(document.body), true);
@@ -1644,7 +1644,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadItemFields", "StockCard")';
+        var url = '@Url.Action("LoadItemFields", "PropertyCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1774,7 +1774,7 @@
     {
         var begSeries = $("#BegSerial").val();
         var itemId = $("#PsCardItemId").val();
-        var url = '@Url.Action("GetEndSeries", "StockCard")';
+        var url = '@Url.Action("GetEndSeries", "PropertyCard")';
         $.ajax({
             url: url,
             type: 'GET',

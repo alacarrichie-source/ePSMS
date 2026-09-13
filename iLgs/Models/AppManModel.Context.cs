@@ -60,11 +60,7 @@ namespace iLgs.Models
         public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
         public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
-        public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
-        public virtual DbSet<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
-        public virtual DbSet<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<IcsParUnitGroup> IcsParUnitGroups { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<IcsParUpdate> IcsParUpdates { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
@@ -103,29 +99,18 @@ namespace iLgs.Models
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
         public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
-        public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
-        public virtual DbSet<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
-        public virtual DbSet<RequestItemUnitGroupDescriptionItem> RequestItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<RequestItemUnitGroupDescription> RequestItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
-        public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<SubAccountView> SubAccountViews { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
-        public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<OrderRequest> OrderRequests { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<PPMP> PPMPs { get; set; }
@@ -133,8 +118,6 @@ namespace iLgs.Models
         public virtual DbSet<AccountCodeItem> AccountCodeItems { get; set; }
         public virtual DbSet<AccountCode> AccountCodes { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
-        public virtual DbSet<AIRSubItem> AIRSubItems { get; set; }
-        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<PPMPItemUsage> PPMPItemUsages { get; set; }
@@ -150,6 +133,9 @@ namespace iLgs.Models
         public virtual DbSet<AIRItemAllocation> AIRItemAllocations { get; set; }
         public virtual DbSet<AIRWizardProgress> AIRWizardProgresses { get; set; }
         public virtual DbSet<AIRSubmissionSnapshot> AIRSubmissionSnapshots { get; set; }
+        public virtual DbSet<PsCardSubItem> PsCardSubItems { get; set; }
+        public virtual DbSet<AIRSubItem> AIRSubItems { get; set; }
+        public virtual DbSet<IcsParItemComponent> IcsParItemComponents { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

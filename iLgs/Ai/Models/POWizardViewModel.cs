@@ -39,6 +39,7 @@ namespace iLgs.Ai.Models
             AdditionalDocs = new List<PODocumentViewModel>();
         }
 
+        public Guid? ExistingOrderId { get; set; }
         public string GroupId { get; set; } // e.g. "grp-1"
         public string GroupName { get; set; } // e.g. "PO Group 1"
         public string PONumber { get; set; }
@@ -155,6 +156,8 @@ namespace iLgs.Ai.Models
 
     public class PODocumentViewModel
     {
+        public Guid? ExistingUploadId { get; set; }
+        public string PreviewUrl { get; set; }
         public int Id { get; set; }
         public string FileName { get; set; }
         public string FilePath { get; set; }

@@ -413,75 +413,75 @@ namespace iLgs.Models
 
     //}
 
-    [MetadataType(typeof(RisItemUnitGroupVM.Metadata))]
-    public class RisItemUnitGroupVM : RisItemUnitGroup
-    {
-        internal sealed class Metadata
-        {
-            public System.Guid Id { get; set; }
-            public Nullable<System.Guid> RisId { get; set; }
+    //[MetadataType(typeof(RisItemUnitGroupVM.Metadata))]
+    //public class RisItemUnitGroupVM : RisItemUnitGroup
+    //{
+    //    internal sealed class Metadata
+    //    {
+    //        public System.Guid Id { get; set; }
+    //        public Nullable<System.Guid> RisId { get; set; }
 
-            [Display(Name = "Group No.")]
-            public string SetLotNo { get; set; }
+    //        [Display(Name = "Group No.")]
+    //        public string SetLotNo { get; set; }
 
-            [Display(Name = "Set/Lot Qty")]
-            public Nullable<int> Qty { get; set; }
+    //        [Display(Name = "Set/Lot Qty")]
+    //        public Nullable<int> Qty { get; set; }
 
-            [Display(Name = "Unit of Measurement")]
-            public string Unit { get; set; }
-            public string InsertedBy { get; set; }
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
-            public Nullable<System.DateTime> InsertedDt { get; set; }
-            public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }
-        }
-    }
+    //        [Display(Name = "Unit of Measurement")]
+    //        public string Unit { get; set; }
+    //        public string InsertedBy { get; set; }
+    //        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+    //        public Nullable<System.DateTime> InsertedDt { get; set; }
+    //        public string UpdatedBy { get; set; }
+    //        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    //    }
+    //}
 
-    [MetadataType(typeof(RisItemUnitGroupDescriptionVM.Metadata))]
-    public class RisItemUnitGroupDescriptionVM : RisItemUnitGroupDescription
-    {
-        internal sealed class Metadata
-        {
-            public System.Guid Id { get; set; }
-            public Nullable<System.Guid> UnitGroupId { get; set; }
-            public string Description { get; set; }
-            public string InsertedBy { get; set; }
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
-            public Nullable<System.DateTime> InsertedDt { get; set; }
-            public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }
-        }
-    }
+    //[MetadataType(typeof(RisItemUnitGroupDescriptionVM.Metadata))]
+    //public class RisItemUnitGroupDescriptionVM : RisItemUnitGroupDescription
+    //{
+    //    internal sealed class Metadata
+    //    {
+    //        public System.Guid Id { get; set; }
+    //        public Nullable<System.Guid> UnitGroupId { get; set; }
+    //        public string Description { get; set; }
+    //        public string InsertedBy { get; set; }
+    //        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+    //        public Nullable<System.DateTime> InsertedDt { get; set; }
+    //        public string UpdatedBy { get; set; }
+    //        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    //    }
+    //}
 
-    [MetadataType(typeof(RisItemUnitGroupDescriptionItemVM.Metadata))]
-    public class RisItemUnitGroupDescriptionItemVM : RisItemUnitGroupDescriptionItem
-    {
-        public string Category { get; set; }
+    //[MetadataType(typeof(RisItemUnitGroupDescriptionItemVM.Metadata))]
+    //public class RisItemUnitGroupDescriptionItemVM : RisItemUnitGroupDescriptionItem
+    //{
+    //    public string Category { get; set; }
 
-        [Display(Name = "Stock/Prop No.")]
-        public string PsNo { get; set; }
-        public string ItemName { get; set; }
-        public string Description { get; set; }
+    //    [Display(Name = "Stock/Prop No.")]
+    //    public string PsNo { get; set; }
+    //    public string ItemName { get; set; }
+    //    public string Description { get; set; }
 
-        [Display(Name = "Unit of Measurement")]
-        public string Unit { get; set; }
+    //    [Display(Name = "Unit of Measurement")]
+    //    public string Unit { get; set; }
 
-        [Display(Name = "Qty")]
-        public Nullable<int> QtyRequest { get; set; }
+    //    [Display(Name = "Qty")]
+    //    public Nullable<int> QtyRequest { get; set; }
 
-        public string GridItems { get; set; }
-        internal sealed class Metadata
-        {
-            public System.Guid Id { get; set; }
-            public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
-            public Nullable<System.Guid> RisItemId { get; set; }
-            public string InsertedBy { get; set; }
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
-            public Nullable<System.DateTime> InsertedDt { get; set; }
-            public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }
-        }
-    }
+    //    public string GridItems { get; set; }
+    //    internal sealed class Metadata
+    //    {
+    //        public System.Guid Id { get; set; }
+    //        public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
+    //        public Nullable<System.Guid> RisItemId { get; set; }
+    //        public string InsertedBy { get; set; }
+    //        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+    //        public Nullable<System.DateTime> InsertedDt { get; set; }
+    //        public string UpdatedBy { get; set; }
+    //        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    //    }
+    //}
 
     //public class RisItemUnitGroupAvailableVM
     //{

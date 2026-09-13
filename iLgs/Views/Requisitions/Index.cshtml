@@ -1,124 +1,357 @@
-@using Kendo.Mvc.UI
+﻿@using Kendo.Mvc.UI
 @{
     ViewBag.Title = "Requisition and Issue Slips";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 <link rel="stylesheet" href="@Url.Content("~/Content/requisitions.css")" />
-<script>
-    function risFilters() {
-        function date(id) { var picker = $(id).data("kendoDatePicker"); return picker && picker.value() ? kendo.toString(picker.value(), "yyyy-MM-dd") : ""; }
-        return { search: $("#risSearch").val(), status: $("#risStatus").val(),
-            department: $("#risDepartment").val(), fund: $("#risFund").val(),
-            fromDate: date("#risFrom"), toDate: date("#risTo") };
-    }
-    function risActions(x) {
-        var view = '@Url.Action("ViewRis", "Requisitions")' + '?id=' + encodeURIComponent(x.Id);
-        var html = '<a class="k-button" href="' + view + '">View RIS</a> ';
-        if (x.IsPosted) {
-            html += '<a class="k-button" target="_blank" rel="noopener" href="@Url.Action("Print", "Requisitions")?ctrlNo=' + encodeURIComponent(x.CtrlNo || '') + '">Print</a> ';
-            html += '<button type="button" class="k-button ris-command" data-action="Unpost" data-id="' + x.Id + '">Unpost</button>';
-        } else {
-            html += '<button type="button" class="k-button ris-command" data-action="Post" data-id="' + x.Id + '">Post</button> ';
-            html += '<button type="button" class="k-button ris-command" data-action="Delete" data-id="' + x.Id + '">Delete</button>';
-        }
-        return html;
-    }
-    function risReadError(e) { $("#risError").text(e.xhr ? "Unable to load RIS records." : "Unable to load RIS records. Please refresh.").show(); }
-</script>
-<div class="epsms-procurement po-wizard ris-feature">
+
+<div class="epsms-workflow epsms-requisitions epsms-procurement po-wizard">
     @Html.AntiForgeryToken()
-    <div class="breadcrumbs"><a href="@Url.Action("Index", "Home")">Home</a> &gt; Requisition and Issue Slips</div>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="@Url.Action("Index", "Procurement")">Procurement</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span>Requisition and Issue Slips (RIS)</span>
+    </div>
+
+    <!-- Header Bar -->
     <div class="header-bar">
-        <div><h1>Requisition and Issue Slips</h1><p class="subtitle">Manage requisitions and track supply issuance.</p></div>
+        <div>
+            <h1>Requisition and Issue Slips</h1>
+            <p class="subtitle">LGU supply and material requisitions, stock issuance tracking, and GAM Appendix 63 generation.</p>
+        </div>
         <div class="action-toolbar">
-            <button class="k-button" id="risRefresh" type="button">Refresh</button>
-            <button class="k-button" id="risExport" type="button">Export</button>
-            <a class="btn-procurement-primary" href="@Url.Action("Wizard", "Requisitions")">Create RIS</a>
+            <button class="k-button k-button-solid-base k-rounded-md" id="risRefresh" type="button">
+                <span class="k-icon k-i-refresh"></span> Refresh
+            </button>
+            <button class="k-button k-button-solid-base k-rounded-md" id="risExport" type="button">
+                <span class="k-icon k-i-excel"></span> Export
+            </button>
+            <a class="k-button k-button-solid-primary k-rounded-md" href="@Url.Action("Wizard", "Requisitions")">
+                <span class="k-icon k-i-plus"></span> Create RIS
+            </a>
         </div>
     </div>
-    <div id="risError" class="alert alert-danger" role="alert" style="display:none"></div>
-    <div class="ris-kpis"><div>Total RIS <strong id="risTotal">—</strong></div><div>Draft <strong id="risDraft">—</strong></div><div>Posted <strong id="risPosted">—</strong></div></div>
-    <div class="filter-panel ris-filter">
-        <label>Search <input id="risSearch" class="k-textbox" placeholder="RIS, office, purpose, requested by" /></label>
-        <label>Status <select id="risStatus"><option value="">All</option><option>Draft</option><option>Posted</option></select></label>
-        <label>Department <input id="risDepartment" /></label>
-        <label>Fund <input id="risFund" /></label>
-        <label>From date <input id="risFrom" /></label>
-        <label>To date <input id="risTo" /></label>
-        <button class="k-button" id="risApply" type="button">Apply Filters</button>
-        <button class="k-button" id="risReset" type="button">Reset</button>
+
+    <div id="risError" class="alert alert-danger" role="alert" style="display:none; margin-bottom: 16px;"></div>
+
+    <!-- KPI Summary Cards Grid -->
+    <div class="pr-metrics-grid">
+        <div class="pr-metric-card active" id="cardMetricAll" onclick="filterByCardStatus('')" title="View all RIS transactions">
+            <div class="pr-metric-label">All Transactions</div>
+            <div class="pr-metric-val" id="risTotal">--</div>
+            <div class="pr-metric-sub">Total recorded RIS</div>
+        </div>
+        <div class="pr-metric-card metric-draft" id="cardMetricDraft" onclick="filterByCardStatus('Draft')" title="Filter to Draft RIS records">
+            <div class="pr-metric-label">Draft</div>
+            <div class="pr-metric-val" id="risDraft">--</div>
+            <div class="pr-metric-sub">Pending posting</div>
+        </div>
+        <div class="pr-metric-card metric-posted" id="cardMetricPosted" onclick="filterByCardStatus('Posted')" title="Filter to Posted RIS records">
+            <div class="pr-metric-label">Posted</div>
+            <div class="pr-metric-val" id="risPosted">--</div>
+            <div class="pr-metric-sub">Issued &amp; Obligated</div>
+        </div>
     </div>
+
+    <!-- Filter Panel -->
+    <div class="filter-panel pr-filter-panel">
+        <div class="filter-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; margin-bottom: 12px; align-items: end;">
+            <div>
+                <label for="risSearch" class="fw-bold small text-secondary">Search Requisitions</label>
+                <input id="risSearch" class="form-control-custom w-100" placeholder="Search by RIS No, Department, Purpose, Requested by..." />
+            </div>
+            <div>
+                <label for="risStatus" class="fw-bold small text-secondary">Workflow Status</label>
+                <select id="risStatus" style="width: 100%;">
+                    <option value="">All Transactions</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Posted">Posted</option>
+                </select>
+            </div>
+            <div>
+                <label for="risDepartment" class="fw-bold small text-secondary">Department / Office</label>
+                <input id="risDepartment" style="width: 100%;" />
+            </div>
+        </div>
+        <div class="filter-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 14px; align-items: end;">
+            <div>
+                <label for="risFund" class="fw-bold small text-secondary">Fund</label>
+                <input id="risFund" style="width: 100%;" />
+            </div>
+            <div>
+                <label for="risFrom" class="fw-bold small text-secondary">From Date</label>
+                <input id="risFrom" style="width: 100%;" />
+            </div>
+            <div>
+                <label for="risTo" class="fw-bold small text-secondary">To Date</label>
+                <input id="risTo" style="width: 100%;" />
+            </div>
+            <div class="d-flex gap-2">
+                <button class="k-button k-button-solid-primary k-rounded-md" id="risApply" type="button">
+                    <span class="k-icon k-i-filter"></span> Apply
+                </button>
+                <button class="k-button k-button-solid-base k-rounded-md" id="risReset" type="button">
+                    <span class="k-icon k-i-undo"></span> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Card: Kendo Grid -->
     <div class="data-card">
-    @(Html.Kendo().Grid<iLgs.Models.RIS_VM>().Name("risGrid")
-        .Columns(c =>
-        {
-            c.Bound(x => x.RisNo).Title("RIS No.").Width(150);
-            c.Bound(x => x.RisDate).Format("{0:MMM dd, yyyy}").Width(130);
-            c.Bound(x => x.PoNo).Title("PO No.").Width(140);
-            c.Bound(x => x.PrNo).Title("PR No.").Width(140);
-            c.Bound(x => x.Office).Title("Department").Width(190);
-            c.Bound(x => x.Fund).Width(110);
-            c.Bound(x => x.RequestedBy).Width(160);
-            c.Bound(x => x.TotalQtyRequested).Title("Qty Requested").Format("{0:n2}").Width(125)
-                .HtmlAttributes(new { style = "text-align:right" }).HeaderHtmlAttributes(new { style = "text-align:right" });
-            c.Bound(x => x.Status).Width(95).ClientTemplate("<span class='status-badge #= IsPosted ? 'status-posted' : 'status-draft' #'>#: Status #</span>");
-            c.Bound(x => x.UpdatedDt).Title("Last Updated").Format("{0:MMM dd, yyyy hh:mm tt}").Width(180);
-            c.Bound(x => x.Id).Title("Actions").Sortable(false).Filterable(false).Width(260).ClientTemplate("#= risActions(data) #");
-        })
-        .Pageable(p => p.Refresh(true).PageSizes(new[] {10,25,50,100})).Sortable().Filterable().Scrollable().NoRecords()
-        .Excel(e => e.FileName("RIS-Ledger.xlsx").AllPages(true).Filterable(true))
-        .DataSource(d => d.Ajax().PageSize(25).Read(r => r.Action("Read", "Requisitions").Data("risFilters"))
-            .Sort(s => s.Add(x => x.UpdatedDt).Descending()).Events(e => e.Error("risReadError"))))
+        @(Html.Kendo().Grid<iLgs.Models.RIS_VM>()
+            .Name("risGrid")
+            .Columns(c =>
+            {
+                c.Bound(x => x.RisNo).Title("RIS No.").Width(150).ClientTemplate(
+                    "<a href='" + Url.Action("ViewRis", "Requisitions") + "?id=#=Id#' class='fw-bold text-primary'>#= RisNo ? RisNo : (CtrlNo ? CtrlNo : '--') #</a>"
+                );
+                c.Bound(x => x.RisDate).Title("RIS Date").Format("{0:MMM dd, yyyy}").Width(125);
+                c.Bound(x => x.PoNo).Title("PO No.").Width(130).HtmlAttributes(new { @class = "font-monospace" });
+                c.Bound(x => x.PrNo).Title("PR No.").Width(130).HtmlAttributes(new { @class = "font-monospace" });
+                c.Bound(x => x.Office).Title("Department").Width(180);
+                c.Bound(x => x.Fund).Title("Fund").Width(110);
+                c.Bound(x => x.RequestedBy).Title("Requested By").Width(160);
+                c.Bound(x => x.TotalQtyRequested).Title("Qty Requested").Format("{0:n2}").Width(125)
+                    .HtmlAttributes(new { @class = "text-end font-monospace fw-bold" })
+                    .HeaderHtmlAttributes(new { @class = "text-end" });
+                c.Bound(x => x.Status).Title("Status").Width(110).ClientTemplate(
+                    "# if (IsPosted || Status == 'Posted') { #" +
+                        "<span class='status-badge status-posted'><span class='k-icon k-i-check'></span> Posted</span>" +
+                    "# } else { #" +
+                        "<span class='status-badge status-draft'><span class='k-icon k-i-edit'></span> Draft</span>" +
+                    "# } #"
+                );
+                c.Bound(x => x.UpdatedDt).Title("Last Updated").Format("{0:MMM dd, yyyy hh:mm tt}").Width(175);
+                c.Bound(x => x.Id).Title("Actions").Sortable(false).Filterable(false).Width(240)
+                    .ClientTemplate("#= risActions(data) #");
+            })
+            .Pageable(p => p.Refresh(true).PageSizes(new[] { 10, 25, 50, 100 }).ButtonCount(5))
+            .Sortable()
+            .Filterable()
+            .Scrollable()
+            .NoRecords(n => n.Template("<div class='p-4 text-center text-muted'>No Requisition and Issue Slips found matching criteria.</div>"))
+            .Excel(e => e.FileName("RIS-Ledger.xlsx").AllPages(true).Filterable(true))
+            .DataSource(d => d.Ajax().PageSize(25).Read(r => r.Action("Read", "Requisitions").Data("risFilters"))
+                .Sort(s => s.Add(x => x.UpdatedDt).Descending()).Events(e => e.Error("risReadError")))
+        )
     </div>
+
+    <!-- Notification Widget -->
     <span id="risNotification"></span>
-    <div id="risConfirm" style="display:none"><p id="risConfirmText"></p><button type="button" class="k-button" id="risNo">Cancel</button> <button type="button" class="k-button k-primary" id="risYes">Continue</button></div>
+
+    <!-- Standard Action Confirmation Modal (AIR Style) -->
+    @(Html.Kendo().Window()
+        .Name("risConfirmWindow")
+        .Title("CONFIRM RIS ACTION")
+        .Width(480)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions => actions.Close())
+        .Content(@<text>
+            <div class="p-3">
+                <div id="risConfirmAlert" class="alert alert-warning mb-3" style="border-radius:6px; padding:12px;">
+                    <strong id="risConfirmHeader" style="display:block; margin-bottom:4px;"></strong>
+                    <span id="risConfirmMessage" style="font-size:12px; line-height:1.4; display:block;"></span>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-4" style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn-procurement-secondary" onclick="$('#risConfirmWindow').data('kendoWindow').close()">Cancel</button>
+                    <button type="button" id="btnRisExecuteAction" class="btn-procurement-primary">Confirm</button>
+                </div>
+            </div>
+        </text>)
+    )
 </div>
+
 <script>
-$(function () {
-    var pending = null, busy = false;
-    $("#risStatus").kendoDropDownList();
-    $("#risFrom,#risTo").kendoDatePicker({format:"MMM dd, yyyy"});
-    $("#risDepartment").kendoDropDownList({optionLabel:"All departments"});
-    $("#risFund").kendoDropDownList({optionLabel:"All funds"});
-    $.getJSON('@Url.Action("FilterOptions","Requisitions")',function(r){
-        $("#risDepartment").data("kendoDropDownList").setDataSource(r.Departments);
-        $("#risFund").data("kendoDropDownList").setDataSource(r.Funds);
-    }).fail(function(){ $("#risError").text("Unable to load filter options.").show(); });
-    function summary() {
-        $.getJSON('@Url.Action("Summary","Requisitions")',risFilters(),function(r){
-            $("#risTotal").text(r.Total);$("#risDraft").text(r.Draft);$("#risPosted").text(r.Posted);
-        }).fail(function(){ $("#risTotal,#risDraft,#risPosted").text("—"); });
+    function risFilters() {
+        function date(id) {
+            var picker = $(id).data("kendoDatePicker");
+            return picker && picker.value() ? kendo.toString(picker.value(), "yyyy-MM-dd") : "";
+        }
+        return {
+            search: $("#risSearch").val(),
+            status: $("#risStatus").val(),
+            department: $("#risDepartment").val(),
+            fund: $("#risFund").val(),
+            fromDate: date("#risFrom"),
+            toDate: date("#risTo")
+        };
     }
-    $("#risGrid").data("kendoGrid").dataSource.bind("requestEnd",function(e){if(e.type==="read")summary();});
-    $("#risReset").click(function(){
-        $("#risSearch").val("");$("#risStatus").data("kendoDropDownList").value("");
-        $("#risDepartment").data("kendoDropDownList").value("");$("#risFund").data("kendoDropDownList").value("");
-        $("#risFrom").data("kendoDatePicker").value(null);$("#risTo").data("kendoDatePicker").value(null);$("#risApply").click();
+
+    function risActions(x) {
+        var view = '@Url.Action("ViewRis", "Requisitions")' + '?id=' + encodeURIComponent(x.Id);
+        var html = '<div class="grid-action-buttons">';
+        html += '<a class="btn-procurement-secondary btn-sm" href="' + view + '" title="View RIS Details"><span class="k-icon k-i-eye"></span> View</a> ';
+        if (x.IsPosted) {
+            html += '<a class="btn-procurement-secondary btn-sm" target="_blank" rel="noopener" href="@Url.Action("Print", "Requisitions")?ctrlNo=' + encodeURIComponent(x.CtrlNo || '') + '" title="Print Official RIS Report"><span class="k-icon k-i-print"></span> Print</a> ';
+            html += '<button type="button" class="btn-procurement-secondary btn-sm text-warning border-warning ris-command" data-action="Unpost" data-id="' + x.Id + '" data-no="' + (x.RisNo || x.CtrlNo || 'RIS') + '" title="Unpost RIS"><span class="k-icon k-i-undo text-warning"></span> Unpost</button>';
+        } else {
+            html += '<button type="button" class="btn-procurement-primary btn-sm ris-command" data-action="Post" data-id="' + x.Id + '" data-no="' + (x.RisNo || x.CtrlNo || 'RIS') + '" title="Post RIS"><span class="k-icon k-i-check"></span> Post</button> ';
+            html += '<button type="button" class="btn-procurement-secondary btn-sm text-danger border-danger ris-command" data-action="Delete" data-id="' + x.Id + '" data-no="' + (x.RisNo || x.CtrlNo || 'RIS') + '" title="Delete RIS"><span class="k-icon k-i-delete text-danger"></span> Delete</button>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function risReadError(e) {
+        $("#risError").text(e.xhr ? "Unable to load RIS records from server." : "Unable to load RIS records. Please refresh.").show();
+    }
+
+    function filterByCardStatus(status) {
+        $(".pr-metric-card").removeClass("active");
+        if (!status) {
+            $("#cardMetricAll").addClass("active");
+        } else if (status === "Draft") {
+            $("#cardMetricDraft").addClass("active");
+        } else if (status === "Posted") {
+            $("#cardMetricPosted").addClass("active");
+        }
+        var statusDdl = $("#risStatus").data("kendoDropDownList");
+        if (statusDdl) {
+            statusDdl.value(status);
+        }
+        $("#risApply").click();
+    }
+
+    $(function () {
+        var pending = null, busy = false;
+
+        $("#risStatus").kendoDropDownList({
+            change: function () {
+                var val = this.value();
+                $(".pr-metric-card").removeClass("active");
+                if (!val) $("#cardMetricAll").addClass("active");
+                else if (val === "Draft") $("#cardMetricDraft").addClass("active");
+                else if (val === "Posted") $("#cardMetricPosted").addClass("active");
+            }
+        });
+        $("#risFrom, #risTo").kendoDatePicker({ format: "MMM dd, yyyy" });
+        $("#risDepartment").kendoDropDownList({ optionLabel: "All departments" });
+        $("#risFund").kendoDropDownList({ optionLabel: "All funds" });
+
+        $.getJSON('@Url.Action("FilterOptions", "Requisitions")', function (r) {
+            $("#risDepartment").data("kendoDropDownList").setDataSource(r.Departments);
+            $("#risFund").data("kendoDropDownList").setDataSource(r.Funds);
+        }).fail(function () {
+            $("#risError").text("Unable to load filter options.").show();
+        });
+
+        function loadSummary() {
+            $.getJSON('@Url.Action("Summary", "Requisitions")', risFilters(), function (r) {
+                $("#risTotal").text(r.Total);
+                $("#risDraft").text(r.Draft);
+                $("#risPosted").text(r.Posted);
+            }).fail(function () {
+                $("#risTotal, #risDraft, #risPosted").text("--");
+            });
+        }
+
+        $("#risGrid").data("kendoGrid").dataSource.bind("requestEnd", function (e) {
+            if (e.type === "read") loadSummary();
+        });
+
+        $("#risReset").click(function () {
+            $("#risSearch").val("");
+            $("#risStatus").data("kendoDropDownList").value("");
+            $("#risDepartment").data("kendoDropDownList").value("");
+            $("#risFund").data("kendoDropDownList").value("");
+            $("#risFrom").data("kendoDatePicker").value(null);
+            $("#risTo").data("kendoDatePicker").value(null);
+            $(".pr-metric-card").removeClass("active");
+            $("#cardMetricAll").addClass("active");
+            $("#risApply").click();
+        });
+
+        loadSummary();
+        $("#risNotification").kendoNotification({
+            position: { top: 30, right: 30 },
+            autoHideAfter: 4000
+        });
+
+        var win = $("#risConfirmWindow").data("kendoWindow");
+
+        $("#risApply").click(function () {
+            $("#risGrid").data("kendoGrid").dataSource.query({
+                page: 1,
+                pageSize: 25,
+                sort: [{ field: "UpdatedDt", dir: "desc" }]
+            });
+        });
+
+        $("#risSearch").keydown(function (e) {
+            if (e.which === 13) $("#risApply").click();
+        });
+
+        $("#risRefresh").click(function () {
+            $("#risGrid").data("kendoGrid").dataSource.read();
+        });
+
+        $("#risExport").click(function () {
+            $("#risGrid").data("kendoGrid").saveAsExcel();
+        });
+
+        $("#risGrid").on("click", ".ris-command", function () {
+            if (busy) return;
+            var action = $(this).attr("data-action");
+            var id = $(this).attr("data-id");
+            var no = $(this).attr("data-no") || "RIS";
+            pending = { action: action, id: id, no: no };
+
+            var alertBox = $("#risConfirmAlert");
+            var header = $("#risConfirmHeader");
+            var message = $("#risConfirmMessage");
+            var execBtn = $("#btnRisExecuteAction");
+
+            alertBox.removeClass("alert-warning alert-danger alert-info");
+            execBtn.removeClass("btn-procurement-primary text-warning border-warning text-danger border-danger");
+
+            if (action === "Post") {
+                alertBox.addClass("alert-info").css({ "background": "#eff6ff", "border": "1px solid #bfdbfe", "color": "#1e40af" });
+                header.html("<span class='k-icon k-i-check text-primary'></span> Post RIS &ndash; " + no);
+                message.text("Posting this RIS will officially obligate and issue the allocated supply quantities from inventory.");
+                execBtn.addClass("btn-procurement-primary").html("<span class='k-icon k-i-check'></span> Post RIS");
+            } else if (action === "Unpost") {
+                alertBox.addClass("alert-warning").css({ "background": "#fffbeb", "border": "1px solid #fde68a", "color": "#92400e" });
+                header.html("<span class='k-icon k-i-warning text-warning'></span> Unpost RIS &ndash; " + no);
+                message.text("Unposting this RIS will revert its status to Draft and restore the issued quantities to remaining availability.");
+                execBtn.addClass("btn-procurement-primary bg-warning text-dark border-warning").html("<span class='k-icon k-i-undo'></span> Unpost RIS");
+            } else if (action === "Delete") {
+                alertBox.addClass("alert-danger").css({ "background": "#fef2f2", "border": "1px solid #fecaca", "color": "#991b1b" });
+                header.html("<span class='k-icon k-i-delete text-danger'></span> Delete RIS &ndash; " + no);
+                message.text("Are you sure you want to permanently delete this Draft RIS? This action cannot be undone.");
+                execBtn.addClass("btn-procurement-primary text-danger border-danger").css("background", "#dc2626").html("<span class='k-icon k-i-delete'></span> Delete RIS");
+            }
+
+            win.center().open();
+        });
+
+        $("#btnRisExecuteAction").click(function () {
+            if (!pending || busy) return;
+            busy = true;
+            win.close();
+            $("#risError").hide();
+
+            var targetUrl = '@Url.Action("Index", "Requisitions")'.replace(/\/Index\/?$/i, "") + "/" + pending.action;
+            $.post(targetUrl, {
+                risId: pending.id,
+                __RequestVerificationToken: $(".epsms-requisitions input[name=__RequestVerificationToken]").val()
+            }).done(function (r) {
+                if (r.Errors && r.Errors.length) {
+                    $("#risError").text($.isArray(r.Errors) ? r.Errors.join("; ") : r.Errors).show();
+                } else {
+                    $("#risNotification").data("kendoNotification").show("RIS operation completed successfully.", "success");
+                    $("#risRefresh").click();
+                }
+            }).fail(function () {
+                $("#risError").text("The operation failed. Refresh to check the RIS state before trying again.").show();
+            }).always(function () {
+                busy = false;
+            });
+        });
     });
-    summary();
-    $("#risNotification").kendoNotification();
-    var win = $("#risConfirm").kendoWindow({title:"Confirm RIS action", modal:true, visible:false, width:420}).data("kendoWindow");
-    $("#risApply").click(function(){ $("#risGrid").data("kendoGrid").dataSource.query({page:1,pageSize:25,sort:[{field:"UpdatedDt",dir:"desc"}]}); });
-    $("#risSearch").keydown(function(e){if(e.which===13)$("#risApply").click();});
-    $("#risRefresh").click(function(){ $("#risGrid").data("kendoGrid").dataSource.read(); });
-    $("#risExport").click(function(){ $("#risGrid").data("kendoGrid").saveAsExcel(); });
-    $("#risGrid").on("click",".ris-command",function(){
-        if (busy) return;
-        pending={action:$(this).attr("data-action"),id:$(this).attr("data-id")};
-        $("#risConfirmText").text(pending.action + " this RIS?");
-        win.center().open();
-    });
-    $("#risNo").click(function(){win.close();});
-    $("#risYes").click(function(){
-        if (!pending || busy) return;
-        busy=true; win.close(); $("#risError").hide();
-        $.post('@Url.Action("Index", "Requisitions")'.replace(/\/Index\/?$/i,"") + "/" + pending.action,
-            {risId:pending.id,__RequestVerificationToken:$(".ris-feature input[name=__RequestVerificationToken]").val()})
-        .done(function(r){
-            if(r.Errors && r.Errors.length) $("#risError").text($.isArray(r.Errors)?r.Errors.join("; "):r.Errors).show();
-            else {$("#risNotification").data("kendoNotification").show("RIS operation completed.","success");$("#risRefresh").click();}
-        }).fail(function(){ $("#risError").text("The operation failed. Refresh to check the RIS state before trying again.").show(); })
-        .always(function(){busy=false;});
-    });
-});
 </script>

@@ -165,7 +165,7 @@ namespace iLgs.Services.Dashboard
 
                 // Inventory & Cards
                 model.KpiSummary.StockCardCount = await _db.PsCards.AsNoTracking().CountAsync();
-                model.KpiSummary.PropertyCardCount = await _db.PropertyCardItems.AsNoTracking().CountAsync();
+                //model.KpiSummary.PropertyCardCount = await _db.PropertyCardItems.AsNoTracking().CountAsync();
                 model.KpiSummary.ParCount = await _db.PARs.AsNoTracking().CountAsync();
                 model.KpiSummary.IcsCount = await _db.IcsPars.AsNoTracking().CountAsync();
             }

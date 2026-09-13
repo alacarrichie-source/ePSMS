@@ -284,6 +284,8 @@ namespace iLgs.Ai.Models
         }
 
         public string Remarks { get; set; }
+        public string SourceType { get; set; } = "ORDERED";
+        public bool IsRequiredForBundle { get; set; } = false;
 
         // Sub-Item Inventory Extension & Details
         public decimal QtyPerParent { get; set; }
@@ -390,6 +392,15 @@ namespace iLgs.Ai.Models
         public bool CanDelete { get; set; }
         public bool InventoryPosted { get; set; }
         public bool CanPostToInventory { get; set; }
+
+        // Compatibility Aliases for Kendo Grid Column Field Bindings
+        public string Status { get { return OverallStatus; } set { OverallStatus = value; } }
+        public string InspectionStatusText { get { return InspectionStatus ?? OverallStatus; } set { InspectionStatus = value; } }
+        public string PoNo { get { return PONumber; } set { PONumber = value; } }
+        public string PO_Number { get { return PONumber; } set { PONumber = value; } }
+        public string DepartmentName { get { return Department; } set { Department = value; } }
+        public string Dept { get { return Department; } set { Department = value; } }
+        public string Supplier { get { return SupplierName; } set { SupplierName = value; } }
     }
 
     public class AIRAcceptanceWizardViewModel
@@ -465,7 +476,7 @@ namespace iLgs.Ai.Models
         }
 
         public Guid? AirSubItemId { get; set; }
-        public Guid OrderSubItemId { get; set; }
+        public Guid? OrderSubItemId { get; set; }
         public Guid? OrderSubItemRequestId { get; set; }
         public string SubItemNo { get; set; }
         public string Description { get; set; }
@@ -487,6 +498,18 @@ namespace iLgs.Ai.Models
 
         public decimal QtyThisAcceptance { get; set; }
 
+        public decimal InspectedQty
+        {
+            get { return TotalInspectedQty; }
+            set { TotalInspectedQty = value; }
+        }
+
+        public decimal AcceptedQty
+        {
+            get { return QtyThisAcceptance; }
+            set { QtyThisAcceptance = value; }
+        }
+
         public decimal TotalAcceptedQty
         {
             get { return PreviouslyAcceptedQty + QtyThisAcceptance; }
@@ -502,6 +525,8 @@ namespace iLgs.Ai.Models
         }
 
         public string Remarks { get; set; }
+        public string SourceType { get; set; } = "ORDERED";
+        public bool IsRequiredForBundle { get; set; } = false;
 
         // Sub-Item Inventory Extension & Details (read-only view)
         public decimal QtyPerParent { get; set; }

@@ -1,4 +1,4 @@
-using Kendo.Mvc.UI;
+﻿using Kendo.Mvc.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -170,7 +170,6 @@ namespace iLgs.Models
     {
         [Required]
         public Guid RequestId { get; set; }
-        [Required(ErrorMessage = "PR Number is required.")]
         [StringLength(50)]
         public string PrNumber { get; set; }
         [Required(ErrorMessage = "PR Date is required.")]

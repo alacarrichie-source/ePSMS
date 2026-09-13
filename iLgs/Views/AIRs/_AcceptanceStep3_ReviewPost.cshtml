@@ -280,14 +280,12 @@
             if (totAcc > 0) hasAnyAccepted = true;
             if (totAcc < poQty) allComplete = false;
 
-            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
+            var hasSubItems = item.SubItems && item.SubItems.length > 0;
 
-            var tr = "<tr class='" + (isSet ? "table-light fw-semibold" : "") + "'>" +
+            var tr = "<tr class='" + (hasSubItems ? "table-light fw-semibold" : "") + "'>" +
                      "  <td class='text-center fw-bold'>" + (item.ItemNo || (idx + 1)) + "</td>" +
                      "  <td>" +
-                     "    <div>" + (item.Description || "Item") + "</div>" +
-                     (isSet ? "    <span class='badge bg-info text-dark small'>Set / Lot (" + item.SubItems.length + " components)</span>" : "") +
-                     (item.ItemExtnName ? "    <span class='badge bg-light text-secondary border small ms-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>" : "") +
+                     "    <div class='fw-semibold text-dark'>" + (item.Description || "Item") + "</div>" +
                      "  </td>" +
                      "  <td class='text-muted small'>" + (item.Unit || "unit") + "</td>" +
                      "  <td class='text-end font-monospace'>" + formatReviewNumber(poQty) + "</td>" +
@@ -298,8 +296,8 @@
                      "</tr>";
             tbody.append(tr);
 
-            // If Set/Lot, render child components
-            if (isSet) {
+            // If has components, render child components
+            if (hasSubItems) {
                 item.SubItems.forEach(function (sub, sIdx) {
                     var sExpected = Number(sub.ExpectedQty != null ? sub.ExpectedQty : (sub.POQty || 0));
                     var sPrevAcc = Number(sub.PreviouslyAcceptedQty != null ? sub.PreviouslyAcceptedQty : 0);
@@ -307,12 +305,31 @@
                     var sTotAcc = sPrevAcc + sQtyThis;
                     var sRem = Math.max(0, sExpected - sTotAcc);
 
-                    if (sTotAcc < sExpected) allComplete = false;
+                    var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                    var isOrdered = (sType === "ORDERED");
+                    var isBundleReq = isOrdered || (sub.IsRequiredForBundle === true || sub.IsRequiredForBundle === "true");
+
+                    if (isBundleReq && sTotAcc < sExpected) allComplete = false;
+
+                    var sBadge = "";
+                    if (sType === "FREEBIE") {
+                        sBadge = "<span class='badge bg-success text-white me-1' style='font-size:10px;'>Freebie</span>";
+                    } else if (sType === "INSPECTION_ADDED") {
+                        sBadge = "<span class='badge bg-warning text-dark me-1' style='font-size:10px;'>Inspection Added</span>";
+                    } else {
+                        sBadge = "<span class='badge bg-primary text-white me-1' style='font-size:10px;'>Ordered</span>";
+                    }
+
+                    var reqBadge = isBundleReq
+                        ? "<span class='badge bg-info text-dark ms-1' style='font-size:10px;'>Required</span>"
+                        : "<span class='badge bg-light text-muted border ms-1' style='font-size:10px;'>Optional</span>";
+
+                    var displaySubNo = (sub.SubItemNo ? sub.SubItemNo.toString().replace(/^#+/, "").trim() : "") || (sIdx + 1).toString();
 
                     var subTr = "<tr class='bg-white'>" +
-                                "  <td class='text-center small text-muted'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>" +
+                                "  <td class='text-center small text-muted'>" + displaySubNo + "</td>" +
                                 "  <td class='ps-4 small text-secondary'>" +
-                                "    <span class='k-icon k-i-arrow-right small'></span> " + (sub.Description || "Component") +
+                                "    <span class='k-icon k-i-arrow-right small'></span> " + sBadge + (sub.Description || "Component") + reqBadge +
                                 "  </td>" +
                                 "  <td class='text-muted small'>" + (sub.Unit || "") + "</td>" +
                                 "  <td class='text-end font-monospace small'>" + formatReviewNumber(sExpected) + "</td>" +

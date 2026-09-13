@@ -117,12 +117,13 @@ namespace iLgs.Services.PropertyCard
 
         private int? GetTContentNo(Guid? psCardItemId)
         {
-            var unitGroup = _db.PsCardItemUnitGroups.FirstOrDefault(f => f.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems.Any(b => b.PsCardItemId == psCardItemId)));
-            if (unitGroup == null)
-            {
-                return 1;
-            }
-            return unitGroup.Qty;
+            //var unitGroup = _db.PsCardItemUnitGroups.FirstOrDefault(f => f.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems.Any(b => b.PsCardItemId == psCardItemId)));
+            //if (unitGroup == null)
+            //{
+            //    return 1;
+            //}
+            //return unitGroup.Qty;
+            return 1;
         }
 
         public IQueryable<PsCardItemTransferVM> GetByPsCardItemId(Guid? psCardItemId) => _vmExceptionService.TryCatch(() =>

@@ -1,0 +1,123 @@
+﻿@{
+    Layout = null;
+    var header = ViewBag.Header as iLgs.Models.IcsPar;
+    var items = ViewBag.Items as List<iLgs.Models.IcsParItemVM> ?? new List<iLgs.Models.IcsParItemVM>();
+    decimal grandTotal = 0;
+    foreach (var itm in items)
+    {
+        grandTotal += (itm.TUnitCost ?? 0);
+    }
+}
+
+<div class="coa-slip-document p-3">
+    <!-- Official Header -->
+    <div class="coa-header text-center">
+        <div class="republic">Republic of the Philippines</div>
+        <div class="lgu-title">@(ViewBag.LguName != null ? ViewBag.LguName : "CITY GOVERNMENT") PROPERTY &amp; SUPPLY OFFICE</div>
+        <div style="font-size: 11px; color: #64748b;">Office of the General Services &bull; Property &amp; Supply Custodianship</div>
+        <div class="doc-title">INVENTORY CUSTODIAN SLIP</div>
+        <div style="font-size: 11px; color: #64748b; font-style: italic;">(Pursuant to Section 59, Volume II, Government Accounting Manual)</div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="row mb-3" style="font-size: 12px;">
+        <div class="col-xs-6">
+            <div><strong style="color:#64748b; width: 100px; display:inline-block;">LGU Agency:</strong> <strong>@(ViewBag.LguName != null ? ViewBag.LguName : "City Government")</strong></div>
+            <div><strong style="color:#64748b; width: 100px; display:inline-block;">Department:</strong> <span>@(header != null ? header.ReceivedDept : "")</span></div>
+            <div><strong style="color:#64748b; width: 100px; display:inline-block;">Location:</strong> <span>@(header != null ? header.Location : "")</span></div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <div><strong style="color:#64748b; width: 100px; display:inline-block; text-align: left;">ICS Number:</strong> <span class="badge badge-info" style="font-size: 13px; font-weight: bold; background: #002576;">@(header != null ? header.RefNo : "")</span></div>
+            <div><strong style="color:#64748b; width: 100px; display:inline-block; text-align: left;">Date Issued:</strong> <span>@(header != null && header.RefDate.HasValue ? header.RefDate.Value.ToString("MMMM dd, yyyy") : "")</span></div>
+            <div><strong style="color:#64748b; width: 100px; display:inline-block; text-align: left;">Status:</strong> <span class="badge @(header != null && header.PostedBy != null ? "badge-success" : "badge-warning")">@(header != null && header.PostedBy != null ? "Posted" : "Unposted")</span></div>
+        </div>
+    </div>
+
+    <!-- Official Items Table -->
+    <table class="table table-bordered table-condensed" style="font-size: 11px; border-color: #0f172a;">
+        <thead>
+            <tr style="background: #f1f5f9; font-weight: bold;">
+                <th style="width: 40px; text-align: center; border-color: #0f172a;">Qty</th>
+                <th style="width: 60px; text-align: center; border-color: #0f172a;">Unit</th>
+                <th style="width: 100px; text-align: right; border-color: #0f172a;">Unit Cost</th>
+                <th style="width: 110px; text-align: right; border-color: #0f172a;">Total Cost</th>
+                <th style="border-color: #0f172a;">Item Description &amp; Specifications</th>
+                <th style="width: 140px; text-align: center; border-color: #0f172a;">Property No.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (items.Any())
+            {
+                foreach (var itm in items)
+                {
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; border-color: #0f172a;">1</td>
+                        <td style="text-align: center; border-color: #0f172a;">Unit</td>
+                        <td style="text-align: right; font-family: Consolas, monospace; border-color: #0f172a;">@((itm.TUnitCost ?? 0).ToString("N2"))</td>
+                        <td style="text-align: right; font-family: Consolas, monospace; font-weight: bold; border-color: #0f172a;">@((itm.TUnitCost ?? 0).ToString("N2"))</td>
+                        <td style="border-color: #0f172a;">
+                            <strong>@itm.Description</strong>
+                            @if (!string.IsNullOrEmpty(itm.PoNo))
+                            {
+                                <div style="font-size: 10px; color: #64748b;">Ref PO: @itm.PoNo</div>
+                            }
+                        </td>
+                        <td style="text-align: center; font-family: Consolas, monospace; font-weight: bold; color: #002576; border-color: #0f172a;">@itm.PropNo</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted p-2" style="border-color: #0f172a;">No line items found for this slip.</td>
+                </tr>
+            }
+            <tr style="font-weight: bold; background: #f8fafc;">
+                <td colspan="3" style="text-align: right; text-transform: uppercase; border-color: #0f172a;">Total Amount:</td>
+                <td style="text-align: right; font-family: Consolas, monospace; font-weight: bold; color: #002576; border-color: #0f172a;">@(grandTotal.ToString("N2"))</td>
+                <td colspan="2" style="border-color: #0f172a;"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Official Signatory Box (COA Requirement) -->
+    <div class="row" style="margin-top: 16px;">
+        <div class="col-xs-6">
+            <div class="signatory-box">
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">Received from:</div>
+                <div style="font-size: 11px; color: #64748b;">I hereby certify that the property listed above was issued according to rules.</div>
+                <div class="text-center mt-2">
+                    <strong style="text-transform: uppercase; display:block;">@(header != null && !string.IsNullOrEmpty(header.IssuedBy) ? header.IssuedBy : "PROPERTY CUSTODIAN")</strong>
+                    <span style="font-size: 11px; color: #64748b;">@(header != null && !string.IsNullOrEmpty(header.IssuedByPosition) ? header.IssuedByPosition : "Supply Officer")</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="signatory-box">
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">Received by:</div>
+                <div style="font-size: 11px; color: #64748b;">I acknowledge receipt of property and assume accountability thereof.</div>
+                <div class="text-center mt-2">
+                    <strong style="text-transform: uppercase; display:block;">@(header != null && !string.IsNullOrEmpty(header.ReceivedBy) ? header.ReceivedBy : "ACCOUNTABLE OFFICER")</strong>
+                    <span style="font-size: 11px; color: #64748b;">@(header != null && !string.IsNullOrEmpty(header.ReceivedByPosition) ? header.ReceivedByPosition : "")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Toolbar -->
+    <div class="d-flex align-items-center justify-content-between mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+        <span class="text-muted small">Reference: COA Circular No. 2020-006 &bull; Form Appendix 59</span>
+        <div class="d-flex gap-2">
+            @if (header != null && !string.IsNullOrEmpty(header.RefNo))
+            {
+                <button type="button" class="btn-procurement-primary" onclick="printOfficialIcs('@header.RefNo')">
+                    <span class="k-icon k-i-print"></span> Print Crystal Report
+                </button>
+            }
+            <button type="button" class="btn-procurement-secondary" onclick="closeViewIcsModal()">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+

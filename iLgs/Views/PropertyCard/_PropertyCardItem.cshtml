@@ -1,139 +1,34 @@
 ﻿@(Html.Kendo().Grid<iLgs.Models.PropertyCardItemVM>()
-        .Name("gridItems_" + @ViewData["cardId"])
-        .Columns(columns =>
-        {
-            columns.Bound(f => f.ParentId).Hidden();
-            columns.Group(group => group.Title("Reference")
-                .Columns(info =>
-                {
-                    info.Bound(f => f.PoNo).Width(50);
-                    info.Bound(f => f.PoDate).Width(50);
-                    //info.Bound(f => f.AirNo).Width(50);
-                    //info.Bound(f => f.AirDate).Width(50);
-                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-            );
-            columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
-            columns.Group(group =>
-            {
-                group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-                .Columns(col =>
-                {
-                    col.Group(g =>
-                    {
-                        g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        .Columns(info =>
-        {
-            info.Bound(f => f.Department).Width(70).Title("PO Owner");
-            info.Bound(f => f.Qty)
-.Width(50).Title("In")
-.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-.HeaderHtmlAttributes(new { style = "text-align:right;" });
-        });
-                    });
-                    col.Group(g =>
-                    {
-                        g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        .Columns(info =>
-        {
-            info.Bound(f => f.LocCode).Width(50).Title("Code");
-            info.Bound(f => f.Location).Width(50).Title("Location");
-            info.Bound(f => f.TransferIn)
-.Width(50).Title("Transit-In")
-.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-.ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-.HeaderHtmlAttributes(new { style = "text-align:right;" });
-        });
-                    });
-                });
-            });
-            columns.Group(group => group.Title("Released Quantity")
-                .Columns(info =>
-                {
-                    info.Bound(f => f.TransferOut)
-        .Width(50).Title("Intermediary<br><br>Transit-Out")
-        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.QtyIss)
-        .Width(50).Title("Issued")
-        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-            );
-            columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.Amount).Width(50)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
-            columns.Bound(f => f.InsertedBy).Width(50).Title("Created by");
-            columns.Bound(f => f.PostedBy).Width(50);
-            //columns.Bound(f => f.Remarks).Width(50);
-            columns.Command(commands =>
-            {
-                commands.Edit();
-                //commands.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
-                commands.Destroy();
-                commands.Custom("Post").IconClass("k-icon k-i-lock").SendDataKeys(true).Click("onClickBtnPostItem").Visible("IsNotPosted");
-                commands.Custom("Unpost").IconClass("k-icon k-i-unlock").SendDataKeys(true).Click("onClickBtnUnPostItem").Visible("IsPosted");
-                commands.Custom("Print PO - Original").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPo");
-                commands.Custom("Print PO - Update").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPoUpdate");
-                commands.Custom("Transfer").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickTransfer").Visible("IsNotPosted");
-            }).Width(120);
+    .Name("gridItems_" + ViewData["cardId"])
+    .HtmlAttributes(new { @class = "pc-acquisitions" })
+    .Columns(c => {
+        c.Bound(x => x.PoNo).Title("Reference").Width(180).ClientTemplate("#= pcAcquisitionReference(data) #");
+        c.Bound(x => x.UnitCost).Title("Acquisition").Width(175).ClientTemplate("#= pcAcquisitionCost(data) #");
+        c.Bound(x => x.Department).Title("PO Owner / Location").Width(200).ClientTemplate("#= pcAcquisitionLocation(data) #");
+        c.Bound(x => x.TransferIn).Title("Movement").Width(140).ClientTemplate("#= pcAcquisitionMovement(data) #");
+        c.Bound(x => x.QtyBal).Title("Balance").Width(100).ClientTemplate("<strong class='pc-balance'>#: kendo.toString(QtyBal || 0, 'n0') #</strong><br>#: Unit || '' #");
+        c.Bound(x => x.PostedDt).Title("Posting").Width(145).ClientTemplate("#= pcAcquisitionStatus(data) #");
+        c.Command(commands => {
+            commands.Custom("View Details").Click("pcShowAcquisitionDetails");
+            commands.Custom("More").Click("pcAcquisitionMore");
+        }).Width(160);
+    })
+    .ToolBar(t => t.Create().Text("Add Acquisition"))
+    .Editable(e => e.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").DisplayDeleteConfirmation(false).Window(w => w.Width(1000).Title("Property Card Acquisition")))
+    .Selectable().Navigatable().NoRecords().Sortable().Filterable().Scrollable().Resizable(r => r.Columns(true))
+    .Pageable(p => p.PageSizes(new int[] { 12, 20, 40, 80 }).Refresh(true))
+    .ClientDetailTemplateId("pcAcquisitionDetails")
+    .DataSource(d => d.Ajax().PageSize(20)
+        .Model(m => {
+            m.Id(x => x.TransferId);
+            m.Field(x => x.Id).DefaultValue(Guid.Empty);
+            m.Field(x => x.TransferId).DefaultValue(Guid.Empty);
+            m.Field(x => x.PsCardId).DefaultValue(ViewData["cardId"]);
         })
-        //.ToolBar(t =>
-        //{
-        //    t.Create();
-        //})
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(1000).Title("Property Card Item")))
-        .Selectable()
-        .Navigatable()
-        .NoRecords()
-        .Sortable()
-        //.ClientDetailTemplateId("IssuedItems")
-        .ClientDetailTemplateId("default-template")
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Model(model =>
-            {
-                model.Id(p => p.TransferId);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                model.Field(p => p.TransferId).DefaultValue(Guid.Empty).Editable(true);
-                //model.Field(p => p.Qty).DefaultValue(0);
-                //model.Field(p => p.QtyIss).DefaultValue(0);
-                //model.Field(p => p.QtyBal).DefaultValue(0);
-            })
-            .Sort(s => { s.Add(a => a.PoNo); s.Add(a => a.InsertedDt); })
-            .Aggregates(a =>
-            {
-                a.Add(p => p.Qty).Sum();
-                a.Add(p => p.TransferIn).Sum();
-                a.Add(p => p.QtyIss).Sum();
-                a.Add(p => p.TransferOut).Sum();
-                a.Add(p => p.QtyBal).Sum();
-                a.Add(p => p.Amount).Sum();
-            })
-            .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
-            .Read(read => read.Action("ItemRead", "PropertyCard").Data("DataStockCardItem"))
-            .Create("ItemCreate", "PropertyCard")
-            .Update("ItemUpdate", "PropertyCard")
-            .Destroy("ItemDestroy", "PropertyCard")
-        )
-        .Events(e => e
-            .Edit("onEditGridItems")
-            .Change("onChangeGridItems")
-            .DataBound("onDataBoundGridItems")
-            .Remove("onRemoveGridItems")
-            .DetailExpand("onDetailExpand")
-        //.Save("onSaveGridItems")
-        //.DetailExpand("onExpandGridItems")
-        )
+        .Sort(s => { s.Add(x => x.PoNo); s.Add(x => x.InsertedDt); })
+        .Aggregates(a => { a.Add(x => x.Qty).Sum(); a.Add(x => x.TransferIn).Sum(); a.Add(x => x.QtyIss).Sum(); a.Add(x => x.TransferOut).Sum(); a.Add(x => x.QtyBal).Sum(); a.Add(x => x.Amount).Sum(); })
+        .Events(e => e.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
+        .Read(r => r.Action("ItemRead", "PropertyCard", new { cardId = ViewData["cardId"] }))
+        .Create("ItemCreate", "PropertyCard").Update("ItemUpdate", "PropertyCard").Destroy("ItemDestroy", "PropertyCard"))
+    .Events(e => e.Edit("onEditGridItems").Change("onChangeGridItems").DataBound("onDataBoundGridItems").Remove("onRemoveGridItems"))
 )

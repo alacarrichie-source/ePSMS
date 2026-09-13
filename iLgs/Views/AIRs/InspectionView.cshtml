@@ -273,9 +273,33 @@
                                         var subRem = sub.ExpectedQty - subTotal;
                                         if (subRem < 0) { subRem = 0; }
 
+                                        var sType = (sub.SourceType ?? "ORDERED").ToUpper();
+                                        var isBundleReq = (sType == "ORDERED") || sub.IsRequiredForBundle;
+
                                         <tr class="table-sm bg-light text-secondary" style="font-size: 11px;">
                                             <td class="text-center text-muted">&bull;</td>
-                                            <td colspan="2" class="text-muted"><span class="badge bg-light text-dark border">Component</span></td>
+                                            <td colspan="2" class="text-muted">
+                                                @if (sType == "FREEBIE")
+                                                {
+                                                    <span class="badge bg-success text-white">Freebie</span>
+                                                }
+                                                else if (sType == "INSPECTION_ADDED")
+                                                {
+                                                    <span class="badge bg-warning text-dark">Inspection Added</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-primary text-white">Ordered</span>
+                                                }
+                                                @if (isBundleReq)
+                                                {
+                                                    <span class="badge bg-info text-dark ms-1" title="Mandatory when grouped into ICS/PAR bundles">Required</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-light text-muted border ms-1" title="Optional component">Optional</span>
+                                                }
+                                            </td>
                                             <td colspan="2" class="ps-3">&mdash; @sub.Description (@sub.Unit)</td>
                                             <td class="text-end font-monospace text-muted">@sub.ExpectedQty.ToString("N2")</td>
                                             <td class="text-end font-monospace text-muted">@sub.PreviousInspectedQty.ToString("N2")</td>

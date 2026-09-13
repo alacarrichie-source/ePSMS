@@ -252,6 +252,7 @@
     }
 
     function syncPOGroupSourcePRs() {
+        if(typeof existingOrderId !== "undefined" && existingOrderId && !existingAllocationsChanged) return;
         $.each(poGroups || [], function (_, group) {
             var seenByPrId = {};
             var sourcePRs = [];
@@ -302,6 +303,7 @@
     }
 
     function handleQuickAddGroup() {
+        if(typeof existingOrderId !== "undefined" && existingOrderId){showWizardMessage("Edit mode updates one existing PO. Create additional Purchase Orders from the registry.");return;}
         var nextGroupNum = getNextGroupNumber();
         var newGroupId = "grp-" + nextGroupNum + "-" + Date.now();
         var newGroup = {

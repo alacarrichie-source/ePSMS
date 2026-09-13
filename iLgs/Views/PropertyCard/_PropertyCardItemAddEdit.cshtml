@@ -7,7 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardId)
-    @Html.HiddenFor(model => model.OrderItemId)
+    @Html.HiddenFor(model => model.OrderItemRequestId)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -246,29 +246,29 @@
 <script type="text/javascript">
     $("#btnSave_" + '@ViewData["cardId"]').click(function (e) {
         e.preventDefault();
+        var btn = this;
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
+            if (!propertyCardButtonStart(btn, "Saving...")) {
+                return;
+            }
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("_CardItemSave", "PropertyCard")',
-                data: $("#form").serialize(),
-                beforeSend: function () {
-                    window.kendo.ui.progress($("#form"), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($("#form"), false);
-                    if (result.Errors == "") {
-                        $("#btnSave_" + '@ViewData["cardId"]').closest(".k-window-content").data("kendoWindow").close();
-                    }
-                    else {
-                        alert(result.Errors);
-                    }
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
+                data: $("#form").serialize()
+            }).done(function (result) {
+                if (result.Errors == "") {
+                    $("#btnSave_" + '@ViewData["cardId"]').closest(".k-window-content").data("kendoWindow").close();
                 }
+                else {
+                    alert(result.Errors);
+                }
+            }).fail(function (req) {
+                alert(req.responseText);
+            }).always(function () {
+                propertyCardButtonStop(btn);
             });
             disabled.attr('disabled', 'disabled');
         }
@@ -279,8 +279,3 @@
         $("#btnCancel_" + '@ViewData["cardId"]').closest(".k-window-content").data("kendoWindow").close();
     });
 </script>
-
-
-
-
-

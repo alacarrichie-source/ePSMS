@@ -173,7 +173,7 @@ namespace iLgs.Services.PropertyCard
                         .Include(i => i.PsCardItem.PsCard.ItemCode)
                         .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
                             && (w.PsCardItemId == psCardItemId
-                             && _db.PsCardItemUnitGroups.Any(a => a.PoNo == w.PsCardItem.PoNo)
+                             //&& _db.PsCardItemUnitGroups.Any(a => a.PoNo == w.PsCardItem.PoNo)
                             )
                         )
                         .AsQueryable();

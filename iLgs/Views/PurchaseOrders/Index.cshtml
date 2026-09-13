@@ -125,7 +125,7 @@
                 // ACTIONS
                 columns.Bound(p => p.Id)
                     .Title("Actions")
-                    .Width(140)
+                    .Width(260)
                     .Sortable(false)
                     .Filterable(false)
                     .ClientTemplate(
@@ -146,6 +146,13 @@
                                 "title='Print Form 101-A'>" +
                                 "<span class='k-icon k-i-print'></span>" +
                             "</a>" +
+
+                            "# if (Status.toUpperCase() != 'POSTED' && !HasAIR) { #" +
+                                "<a class='k-button k-button-sm' href='" + resumeDraftUrl + "?orderId=#=Id#'>Edit / Repost</a>" +
+                                "<button type='button' class='k-button k-button-sm' onclick=\"poLifecycleAction('#=Id#','delete')\">Delete</button>" +
+                            "# } else if (Status.toUpperCase() == 'POSTED' && !HasPostedAIR) { #" +
+                                "<button type='button' class='k-button k-button-sm' onclick=\"poLifecycleAction('#=Id#','unpost')\">Unpost</button>" +
+                            "# } #" +
 
                             // PDF
                             "<a href='" + pdfUrl + "/#=Id#' " +
@@ -176,6 +183,8 @@
 
 <!-- PO Details Modal Window -->
 <div id="poDetailsWindow"></div>
+<script src="@Url.Content("~/Scripts/purchase-orders-existing.js")"></script>
+<script>var poUnpostUrl="@Url.Action("UnpostPO")",poDeleteUrl="@Url.Action("DeletePO")";</script>
 
 <script>
     function wizardDraftStepName(step) {

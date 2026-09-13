@@ -226,12 +226,28 @@
             if (!item.Disposition) {
                 item.Disposition = data.Disposition || "Inventory";
             }
+            if (item.Disposition === "I") item.Disposition = "Inventory";
+            if (item.Disposition === "D") item.Disposition = "For Distribution";
+
+            // Initialize subitem inventory tracking flags
+            if (item.SubItems && item.SubItems.length > 0) {
+                item.SubItems.forEach(function (sub) {
+                    if (sub.RequiresInventory === undefined || sub.RequiresInventory === null) {
+                        sub.RequiresInventory = !!(sub.ItemExtnName || item.ItemExtnName);
+                    } else if (item.Disposition === "Inventory" && (sub.ItemExtnName || item.ItemExtnName)) {
+                        sub.RequiresInventory = true;
+                    }
+                    reconcileSubItemInventoryDetails(item, sub);
+                });
+            }
+
             reconcileItemInventoryDetails(item);
 
             var hasMultipleAllocations = item.Allocations && item.Allocations.length > 1;
             var hasSingleAllocation = item.Allocations && item.Allocations.length === 1;
-            var isSet = item.IsSetLot && item.SubItems && item.SubItems.length > 0;
-            var canExpand = hasMultipleAllocations || isSet;
+            var hasSubItems = item.SubItems && item.SubItems.length > 0;
+            var isSet = (item.IsSetLot && hasSubItems) || hasSubItems;
+            var canExpand = hasMultipleAllocations || hasSubItems || !isReadOnlyMode;
 
             var expandBtn = "";
             if (canExpand) {
@@ -280,12 +296,6 @@
             html += "<td class='small text-muted'>" + (item.PPMPCode || "--") + "</td>";
             html += "<td>";
             html += "  <div class='fw-semibold'>" + (item.Description || "Item") + "</div>";
-            if (isSet) {
-                html += "  <span class='badge bg-info text-dark small'>Set / Lot (" + item.SubItems.length + " components)</span>";
-            }
-            if (item.ItemExtnName) {
-                html += "  <span class='badge bg-light text-secondary border small mt-1'>" + item.ItemExtnName.replace("ItemExtn", "Type: ") + "</span>";
-            }
             html += "</td>";
             html += "<td class='text-muted small'>" + (item.Unit || "unit") + "</td>";
             html += "<td class='text-end font-monospace'>" + Number(item.OrderedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
@@ -300,7 +310,7 @@
                 html += "  <input type='number' step='any' readonly class='form-control-custom text-end fw-bold text-primary inspect-now-input bg-light' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' title='Auto-calculated from PR allocations below' />";
                 html += "  <div class='small text-muted' style='font-size:10px;'>Sum of PRs</div>";
             } else {
-                html += "  <input type='number' step='any' min='0' max='" + item.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold text-primary inspect-now-input' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' oninput='onItemInspectNowChange(" + idx + ", this.value)' />";
+                html += "  <input type='number' step='any' min='0' max='" + item.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold text-primary inspect-now-input' id='txtInspectNow_" + idx + "' value='" + (item.InspectNowQty || 0) + "' oninput='onItemInspectNowChange(" + idx + ", this.value)' onchange='onItemInspectNowChange(" + idx + ", this.value)' />";
             }
             html += "</td>";
 
@@ -386,49 +396,96 @@
                     html += "    </div>";
                 }
 
-                // 2. Render Set/Lot components table if Set/Lot
-                if (isSet) {
-                    html += "    <div class='p-2 bg-white rounded border'>";
-                    html += "      <div class='fw-bold small text-secondary mb-2'><span class='k-icon k-i-layers'></span> Set/Lot Components for: " + (item.Description || "Item") + "</div>";
-                    html += "      <table class='table table-sm table-bordered mb-0'>";
-                    html += "        <thead class='table-light small'>";
-                    html += "          <tr>";
-                    html += "            <th style='width:90px;'>Sub-No.</th>";
-                    html += "            <th>Component Description</th>";
-                    html += "            <th style='width:60px;'>Unit</th>";
-                    html += "            <th style='width:90px;' class='text-end'>Expected</th>";
-                    html += "            <th style='width:90px;' class='text-end'>Prev. Insp.</th>";
-                    html += "            <th style='width:90px;' class='text-end'>Remaining</th>";
-                    html += "            <th style='width:110px;' class='text-end text-primary'>Inspect Now</th>";
-                    html += "            <th style='width:90px;' class='text-end'>Total Insp.</th>";
-                    html += "            <th style='width:160px;' class='text-center'>Inventory Details</th>";
-                    html += "            <th>Remarks</th>";
-                    html += "          </tr>";
-                    html += "        </thead>";
-                    html += "        <tbody>";
-                    item.SubItems.forEach(function (sub, sIdx) {
+                // 2. Render Components table
+                if (isSet || hasSubItems || !isReadOnlyMode) {
+                    html += "    <div class='p-2 bg-white rounded border mt-2'>";
+                    if (!isReadOnlyMode) {
+                        html += "      <div class='d-flex justify-content-end mb-2'>";
+                        html += "        <button type='button' class='btn btn-xs btn-outline-success' onclick='onAddReceivedComponentClick(" + idx + ")'><span class='k-icon k-i-plus'></span> Add Received Component</button>";
+                        html += "      </div>";
+                    }
+
+                    if (!item.SubItems || item.SubItems.length === 0) {
+                        html += "      <div class='text-muted small fst-italic p-2 bg-light rounded text-center border'>No components added yet. Click &quot;+ Add Received Component&quot; to register freebies, promotional accessories, or discovered parts.</div>";
+                    } else {
+                        html += "      <table class='table table-sm table-bordered mb-0 align-middle'>";
+                        html += "        <thead class='table-light small'>";
                         html += "          <tr>";
-                        html += "            <td class='fw-bold small'>" + (sub.SubItemNo || ("#" + (sIdx + 1))) + "</td>";
-                        html += "            <td>" + (sub.Description || "") + "</td>";
-                        html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
-                        html += "            <td class='text-end font-monospace small'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                        html += "            <td class='text-end font-monospace small text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                        html += "            <td class='text-end font-monospace small fw-bold text-danger' id='lblSubRemaining_" + idx + "_" + sIdx + "'>" + Number(sub.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                        if (isReadOnlyMode) {
-                            html += "            <td class='text-end font-monospace small fw-bold text-primary'>" + Number(sub.InspectNowQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                            html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                            html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
-                            html += "            <td><span class='small'>" + (sub.Remarks || "--") + "</span></td>";
-                        } else {
-                            html += "            <td class='text-end'><input type='number' step='any' min='0' max='" + sub.RemainingBeforeQty + "' class='form-control-custom text-end fw-bold form-control-sm' id='txtSubInspectNow_" + idx + "_" + sIdx + "' value='" + (sub.InspectNowQty || 0) + "' oninput='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
-                            html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
-                            html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
-                            html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Sub-item notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                        html += "            <th style='width:70px;'>Sub-No.</th>";
+                        html += "            <th>Component Description</th>";
+                        html += "            <th style='width:95px;' class='text-center'>Source Type</th>";
+                        html += "            <th style='width:120px;' class='text-center' title='Mandatory for ICS/PAR bundling'>Bundle Req.</th>";
+                        html += "            <th style='width:55px;'>Unit</th>";
+                        html += "            <th style='width:80px;' class='text-end'>Expected</th>";
+                        html += "            <th style='width:80px;' class='text-end'>Prev. Insp.</th>";
+                        html += "            <th style='width:80px;' class='text-end'>Remaining</th>";
+                        html += "            <th style='width:105px;' class='text-end text-primary'>Inspect Now</th>";
+                        html += "            <th style='width:80px;' class='text-end'>Total Insp.</th>";
+                        html += "            <th style='width:150px;' class='text-center'>Inventory Details</th>";
+                        html += "            <th>Remarks</th>";
+                        if (!isReadOnlyMode) {
+                            html += "            <th style='width:75px;' class='text-center'>Actions</th>";
                         }
                         html += "          </tr>";
-                    });
-                    html += "        </tbody>";
-                    html += "      </table>";
+                        html += "        </thead>";
+                        html += "        <tbody>";
+                        item.SubItems.forEach(function (sub, sIdx) {
+                            var sType = (sub.SourceType || "ORDERED").toUpperCase();
+                            var isOrdered = (sType === "ORDERED");
+                            var sBadge = "";
+                            if (sType === "FREEBIE") {
+                                sBadge = "<span class='badge bg-success text-white' title='Freebie / Promotional accessory'>Freebie</span>";
+                            } else if (sType === "INSPECTION_ADDED") {
+                                sBadge = "<span class='badge bg-warning text-dark' title='Discovered / Added during inspection'>Inspection Added</span>";
+                            } else {
+                                sBadge = "<span class='badge bg-primary text-white' title='Included in Purchase Order'>Ordered</span>";
+                            }
+
+                            var isEffectiveBundleReq = isOrdered || (sub.IsRequiredForBundle === true || sub.IsRequiredForBundle === "true");
+                            var reqHtml = isEffectiveBundleReq
+                                ? "<span class='badge bg-info text-dark' title='Mandatory for bundle'>Required</span>"
+                                : "<span class='badge bg-light text-muted border' title='Optional component'>Optional</span>";
+
+                            var maxInspect = isOrdered ? ("max='" + (sub.RemainingBeforeQty || sub.ExpectedQty || 0) + "'") : "";
+
+                            if (sub.SubItemNo) {
+                                sub.SubItemNo = sub.SubItemNo.toString().replace(/^#+/, "").trim();
+                            }
+                            var displaySubNo = sub.SubItemNo || (sIdx + 1).toString();
+
+                            html += "          <tr>";
+                            html += "            <td class='fw-bold small text-center'>" + displaySubNo + "</td>";
+                            html += "            <td><span class='fw-semibold'>" + (sub.Description || "") + "</span></td>";
+                            html += "            <td class='text-center'>" + sBadge + "</td>";
+                            html += "            <td class='text-center'>" + reqHtml + "</td>";
+                            html += "            <td class='small text-muted'>" + (sub.Unit || "") + "</td>";
+                            html += "            <td class='text-end font-monospace small'>" + Number(sub.ExpectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-end font-monospace small text-muted'>" + Number(sub.PreviousInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            html += "            <td class='text-end font-monospace small fw-bold " + (isOrdered && sub.RemainingBeforeQty > 0 ? "text-danger" : "text-muted") + "' id='lblSubRemaining_" + idx + "_" + sIdx + "'>" + Number(sub.RemainingBeforeQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                            if (isReadOnlyMode) {
+                                html += "            <td class='text-end font-monospace small fw-bold text-primary'>" + Number(sub.InspectNowQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                                html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                                html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
+                                html += "            <td><span class='small'>" + (sub.Remarks || "--") + "</span></td>";
+                            } else {
+                                html += "            <td class='text-end'><input type='number' step='any' min='0' " + maxInspect + " class='form-control-custom text-end fw-bold form-control-sm' id='txtSubInspectNow_" + idx + "_" + sIdx + "' value='" + (sub.InspectNowQty || 0) + "' oninput='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' onchange='onSubItemInspectNowChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                                html += "            <td class='text-end font-monospace small fw-bold' id='lblSubTotal_" + idx + "_" + sIdx + "'>" + Number(sub.TotalInspectedQty || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td>";
+                                html += "            <td class='text-center' id='subInventoryDetailsCell_" + idx + "_" + sIdx + "'>" + renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) + "</td>";
+                                html += "            <td><input type='text' class='form-control-custom w-100 form-control-sm' id='txtSubRemarks_" + idx + "_" + sIdx + "' value='" + (sub.Remarks || "") + "' placeholder='Notes...' onchange='onSubItemRemarksChange(" + idx + ", " + sIdx + ", this.value)' /></td>";
+                                html += "            <td class='text-center text-nowrap'>";
+                                if (!isOrdered) {
+                                    html += "              <button type='button' class='btn btn-xs btn-outline-secondary me-1' onclick='onEditReceivedComponentClick(" + idx + ", " + sIdx + ")' title='Edit component'><span class='k-icon k-i-edit'></span></button>";
+                                    html += "              <button type='button' class='btn btn-xs btn-outline-danger' onclick='onDeleteReceivedComponentClick(" + idx + ", " + sIdx + ")' title='Remove component'><span class='k-icon k-i-delete'></span></button>";
+                                } else {
+                                    html += "              <span class='text-muted small'>&mdash;</span>";
+                                }
+                                html += "            </td>";
+                            }
+                            html += "          </tr>";
+                        });
+                        html += "        </tbody>";
+                        html += "      </table>";
+                    }
                     html += "    </div>";
                 }
 
@@ -444,7 +501,12 @@
 
         function renderInventoryDetailsButtonHtml(item, idx) {
         var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
-        if (item.Disposition !== "Inventory") {
+        var disp = item.Disposition;
+        if (disp === "I") disp = "Inventory";
+        if (disp === "D") disp = "For Distribution";
+        if (!disp) disp = (airWizardState ? airWizardState.Disposition : "") || "Inventory";
+        if (disp === "I") disp = "Inventory";
+        if (disp !== "Inventory") {
             return "<span class='badge bg-light text-muted border'>Not Required</span>";
         }
         if (isReadOnlyMode) {
@@ -482,7 +544,12 @@
 
     function renderSubItemInventoryDetailsButtonHtml(item, idx, sub, sIdx) {
         var isReadOnlyMode = (typeof isSubmittedView !== 'undefined' && isSubmittedView) || (typeof isReadOnly !== 'undefined' && isReadOnly) || (airWizardState && (airWizardState.IsSubmittedView || airWizardState.IsReadOnly));
-        if (item.Disposition !== "Inventory" || !sub.RequiresInventory) {
+        var disp = item.Disposition;
+        if (disp === "I") disp = "Inventory";
+        if (disp === "D") disp = "For Distribution";
+        if (!disp) disp = (airWizardState ? airWizardState.Disposition : "") || "Inventory";
+        if (disp === "I") disp = "Inventory";
+        if (disp !== "Inventory" || !sub.RequiresInventory) {
             return "<span class='badge bg-light text-muted border'>Not Required</span>";
         }
         if (isReadOnlyMode) {
@@ -528,6 +595,46 @@
         }
     }
 
+    function refreshInspectionItemState(idx) {
+        var item = airWizardState.Items[idx];
+        if (!item) return;
+
+        // 1. Sync disposition from DOM selector if present
+        var dispSelect = $("#ddlItemDisposition_" + idx);
+        if (dispSelect.length) {
+            var domDisp = dispSelect.val();
+            if (domDisp) {
+                item.Disposition = domDisp;
+            }
+        }
+        if (item.Disposition === "I") item.Disposition = "Inventory";
+        if (item.Disposition === "D") item.Disposition = "For Distribution";
+        if (!item.Disposition) item.Disposition = (airWizardState ? airWizardState.Disposition : "") || "Inventory";
+
+        // 2. Ensure subitems have inventory tracking flag set if parent is Inventory
+        if (item.SubItems && item.SubItems.length > 0) {
+            item.SubItems.forEach(function (sub) {
+                if (item.Disposition === "Inventory") {
+                    sub.RequiresInventory = !!(sub.ItemExtnName || item.ItemExtnName);
+                } else {
+                    sub.RequiresInventory = false;
+                }
+            });
+        }
+
+        // 3. Reconcile parent item inventory details
+        reconcileItemInventoryDetails(item);
+        updateInventoryDetailsButton(idx);
+
+        // 4. Reconcile sub-items and update their inventory details buttons
+        if (item.SubItems && item.SubItems.length > 0) {
+            item.SubItems.forEach(function (sub, sIdx) {
+                reconcileSubItemInventoryDetails(item, sub);
+                updateSubItemInventoryDetailsButton(idx, sIdx);
+            });
+        }
+    }
+
     function reconcileSubItemInventoryDetails(item, sub) {
         if (!sub) return;
         if (!sub.InventoryDetails) sub.InventoryDetails = [];
@@ -541,12 +648,14 @@
             return;
         }
 
-        var req = Math.floor(sub.InspectNowQty);
+        var req = Math.floor(sub.InspectNowQty || 0);
         sub.RequiredInventoryCount = req;
 
+        var sType = (sub.SourceType || "ORDERED").toUpperCase();
+        var isOrdered = (sType === "ORDERED");
         var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : 1;
 
-        if (item && item.Allocations && item.Allocations.length > 0) {
+        if (isOrdered && item && item.Allocations && item.Allocations.length > 0) {
             var reconciledDetails = [];
             var globalUnitNo = 1;
 
@@ -599,18 +708,25 @@
 
             sub.InventoryDetails = reconciledDetails;
         } else {
+            // Inserted sub-item (FREEBIE, INSPECTION_ADDED) or single-PR/non-allocated item:
+            // Exactly req units based directly on sub.InspectNowQty!
+            var firstAlloc = (item && item.Allocations && item.Allocations.length > 0) ? item.Allocations[0] : null;
             if (sub.InventoryDetails.length > req) {
                 sub.InventoryDetails = sub.InventoryDetails.slice(0, req);
             } else {
                 while (sub.InventoryDetails.length < req) {
                     var uIdx = sub.InventoryDetails.length + 1;
                     sub.InventoryDetails.push({
+                        OrderItemRequestId: firstAlloc ? firstAlloc.OrderItemRequestId : null,
+                        RequestId: firstAlloc ? firstAlloc.RequestId : (item ? item.RequestId : null),
+                        RequestItemId: firstAlloc ? firstAlloc.RequestItemId : (item ? item.RequestItemId : null),
                         UnitIndex: uIdx,
                         UnitNumber: uIdx,
                         ContentNo: uIdx,
                         TContentNo: uIdx,
-                        PRNumber: (item ? item.PRNumber : "") || "",
-                        DepartmentName: (item ? item.Department : "") || "",
+                        PRNumber: firstAlloc ? (firstAlloc.PRNumber || "") : ((item ? item.PRNumber : "") || ""),
+                        DepartmentId: firstAlloc ? firstAlloc.DepartmentId : null,
+                        DepartmentName: firstAlloc ? (firstAlloc.Department || "") : ((item ? item.Department : "") || ""),
                         AirSubItemId: sub.AirSubItemId || null,
                         IsCompleted: false
                     });
@@ -621,8 +737,9 @@
                 d.UnitNumber = i + 1;
                 d.ContentNo = i + 1;
                 d.TContentNo = i + 1;
-                d.PRNumber = d.PRNumber || (item ? item.PRNumber : "") || "";
-                d.DepartmentName = d.DepartmentName || (item ? item.Department : "") || "";
+                d.PRNumber = d.PRNumber || (firstAlloc ? firstAlloc.PRNumber : "") || (item ? item.PRNumber : "") || "";
+                d.DepartmentName = d.DepartmentName || (firstAlloc ? firstAlloc.Department : "") || (item ? item.Department : "") || "";
+                d.AirSubItemId = sub.AirSubItemId || d.AirSubItemId || null;
                 d.IsCompleted = checkInventoryDetailCompleted(sub.ItemExtnName, d);
             });
         }
@@ -671,23 +788,10 @@
             }
         }
 
+        if (newDisp === "I") newDisp = "Inventory";
+        if (newDisp === "D") newDisp = "For Distribution";
         item.Disposition = newDisp;
-        if (newDisp === "Inventory") {
-            reconcileItemInventoryDetails(item);
-            if (item.SubItems) {
-                item.SubItems.forEach(function (sub) {
-                    sub.RequiresInventory = !!(sub.ItemExtnName);
-                    reconcileSubItemInventoryDetails(item, sub);
-                });
-            }
-        }
-
-        updateInventoryDetailsButton(idx);
-        if (item.SubItems) {
-            item.SubItems.forEach(function (sub, sIdx) {
-                updateSubItemInventoryDetailsButton(idx, sIdx);
-            });
-        }
+        refreshInspectionItemState(idx);
         scheduleWizardAutoSave();
     }
 
@@ -728,26 +832,25 @@
         var parentTotal = (item.PreviousInspectedQty || 0) + parentSum;
         $("#lblTotalInspected_" + idx).text(Number(parentTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-        // Reconcile inventory details count
-        reconcileItemInventoryDetails(item);
-        updateInventoryDetailsButton(idx);
-
-        // If parent item has Set/Lot sub-items, proportionally adjust sub-items
-        if (item.IsSetLot && item.SubItems) {
+        // Proportionally adjust sub-items inspect now
+        if (item.SubItems && item.SubItems.length > 0) {
             item.SubItems.forEach(function (sub, sIdx) {
-                var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
-                var subVal = parentSum * subRatio;
-                if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
-                sub.InspectNowQty = subVal;
-                $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
-                var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
-                $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-
-                reconcileSubItemInventoryDetails(item, sub);
-                updateSubItemInventoryDetailsButton(idx, sIdx);
+                var isOrderedSub = (sub.SourceType || "ORDERED").toUpperCase() === "ORDERED";
+                if (isOrderedSub) {
+                    var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
+                    var subVal = parentSum * subRatio;
+                    if (sub.RemainingBeforeQty !== undefined && sub.RemainingBeforeQty !== null && sub.RemainingBeforeQty > 0) {
+                        if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
+                    }
+                    sub.InspectNowQty = subVal;
+                    $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
+                    var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
+                    $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                }
             });
         }
 
+        refreshInspectionItemState(idx);
         recalculateGrandTotals();
         scheduleWizardAutoSave();
     }
@@ -839,26 +942,25 @@
         var total = (item.PreviousInspectedQty || 0) + val;
         $("#lblTotalInspected_" + idx).text(Number(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-        // Reconcile inventory details count
-        reconcileItemInventoryDetails(item);
-        updateInventoryDetailsButton(idx);
-
-        // If parent item has sub-items, proportionally adjust sub-items inspect now
-        if (item.IsSetLot && item.SubItems) {
+        // Proportionally adjust sub-items inspect now
+        if (item.SubItems && item.SubItems.length > 0) {
             item.SubItems.forEach(function (sub, sIdx) {
-                var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
-                var subVal = val * subRatio;
-                if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
-                sub.InspectNowQty = subVal;
-                $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
-                var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
-                $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-
-                reconcileSubItemInventoryDetails(item, sub);
-                updateSubItemInventoryDetailsButton(idx, sIdx);
+                var isOrderedSub = (sub.SourceType || "ORDERED").toUpperCase() === "ORDERED";
+                if (isOrderedSub) {
+                    var subRatio = (sub.QtyPerParent > 0) ? sub.QtyPerParent : ((sub.ExpectedQty || 0) / (item.OrderedQty || 1) || 1);
+                    var subVal = val * subRatio;
+                    if (sub.RemainingBeforeQty !== undefined && sub.RemainingBeforeQty !== null && sub.RemainingBeforeQty > 0) {
+                        if (subVal > sub.RemainingBeforeQty) subVal = sub.RemainingBeforeQty;
+                    }
+                    sub.InspectNowQty = subVal;
+                    $("#txtSubInspectNow_" + idx + "_" + sIdx).val(subVal);
+                    var subTotal = (sub.PreviousInspectedQty || 0) + subVal;
+                    $("#lblSubTotal_" + idx + "_" + sIdx).text(Number(subTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                }
             });
         }
 
+        refreshInspectionItemState(idx);
         recalculateGrandTotals();
         scheduleWizardAutoSave();
     }
@@ -887,8 +989,11 @@
         if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
         var sub = item.SubItems[sIdx];
 
+        var isOrderedSub = (sub.SourceType || "ORDERED").toUpperCase() === "ORDERED";
         if (val < 0) val = 0;
-        if (val > sub.RemainingBeforeQty) val = sub.RemainingBeforeQty;
+        if (isOrderedSub && sub.RemainingBeforeQty !== undefined && sub.RemainingBeforeQty !== null && sub.RemainingBeforeQty > 0) {
+            if (val > sub.RemainingBeforeQty) val = sub.RemainingBeforeQty;
+        }
 
         var oldSubQty = sub.InspectNowQty || 0;
         var newSubReq = Math.floor(val);
@@ -1069,33 +1174,54 @@
         // Scrollable container for grouped PR tables
         html += "<div style='max-height: 440px; overflow-y: auto;' class='pe-1'>";
 
-        var allocationsToRender = (item.Allocations && item.Allocations.length > 0) 
-            ? item.Allocations 
-            : [{
-                OrderItemRequestId: null,
-                RequestId: null,
-                RequestItemId: null,
-                DepartmentId: null,
-                PRNumber: item.PRNumber || "--",
-                Department: item.Department || "--",
-                QtyAllocated: item.OrderedQty || reqCount,
-                QtyInspected: item.InspectNowQty || reqCount
-              }];
+        var isOrderedSub = isSub && ((targetObj.SourceType || "ORDERED").toUpperCase() === "ORDERED");
+        var allocationsToRender;
+        if (isSub && !isOrderedSub) {
+            var firstAlloc = (item.Allocations && item.Allocations.length > 0) ? item.Allocations[0] : null;
+            allocationsToRender = [{
+                OrderItemRequestId: firstAlloc ? firstAlloc.OrderItemRequestId : null,
+                RequestId: firstAlloc ? firstAlloc.RequestId : (item.RequestId || null),
+                RequestItemId: firstAlloc ? firstAlloc.RequestItemId : (item.RequestItemId || null),
+                DepartmentId: firstAlloc ? firstAlloc.DepartmentId : null,
+                PRNumber: firstAlloc ? (firstAlloc.PRNumber || "") : (item.PRNumber || "--"),
+                Department: firstAlloc ? (firstAlloc.Department || "") : (item.Department || "--"),
+                QtyAllocated: targetObj.ExpectedQty || reqCount,
+                QtyInspected: reqCount
+            }];
+        } else {
+            allocationsToRender = (item.Allocations && item.Allocations.length > 0) 
+                ? item.Allocations 
+                : [{
+                    OrderItemRequestId: null,
+                    RequestId: null,
+                    RequestItemId: null,
+                    DepartmentId: null,
+                    PRNumber: item.PRNumber || "--",
+                    Department: item.Department || "--",
+                    QtyAllocated: item.OrderedQty || reqCount,
+                    QtyInspected: item.InspectNowQty || reqCount
+                  }];
+        }
 
-        var subRatio = isSub ? ((targetObj.QtyPerParent > 0) ? targetObj.QtyPerParent : 1) : 1;
+        var subRatio = (isSub && isOrderedSub) ? ((targetObj.QtyPerParent > 0) ? targetObj.QtyPerParent : 1) : 1;
         var globalRowIdx = 0;
 
         allocationsToRender.forEach(function (alloc) {
-            var allocQty = Math.floor((alloc.QtyInspected || 0) * subRatio);
+            var allocQty = (isSub && !isOrderedSub) ? reqCount : Math.floor((alloc.QtyInspected || 0) * subRatio);
             var allocOirId = (alloc.OrderItemRequestId || "").toLowerCase();
 
             // Find units belonging to this allocation
-            var allocUnits = targetObj.InventoryDetails.filter(function (d) {
-                if (alloc.OrderItemRequestId) {
-                    return d.OrderItemRequestId && d.OrderItemRequestId.toLowerCase() === allocOirId;
-                }
-                return true;
-            });
+            var allocUnits;
+            if (isSub && !isOrderedSub) {
+                allocUnits = targetObj.InventoryDetails || [];
+            } else {
+                allocUnits = targetObj.InventoryDetails.filter(function (d) {
+                    if (alloc.OrderItemRequestId) {
+                        return d.OrderItemRequestId && d.OrderItemRequestId.toLowerCase() === allocOirId;
+                    }
+                    return true;
+                });
+            }
 
             html += "<div class='card mb-3 border shadow-sm'>";
             html += "  <div class='card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-1'>";
@@ -1375,6 +1501,189 @@
         }
         activeModalItemIdx = -1;
         activeModalSubItemIdx = null;
+    }
+
+    function onSubItemBundleReqChange(idx, sIdx, isChecked) {
+        if (!airWizardState.Items[idx] || !airWizardState.Items[idx].SubItems || !airWizardState.Items[idx].SubItems[sIdx]) return;
+        airWizardState.Items[idx].SubItems[sIdx].IsRequiredForBundle = isChecked;
+        var lbl = $("label[for='chkBundleReq_" + idx + "_" + sIdx + "']");
+        if (lbl.length > 0) {
+            lbl.html(isChecked ? "<span class='badge bg-info text-dark'>Required</span>" : "<span class='badge bg-light text-muted border'>Optional</span>");
+        }
+        scheduleWizardAutoSave();
+    }
+
+    function onAddReceivedComponentClick(itemIdx) {
+        var item = airWizardState.Items[itemIdx];
+        if (!item) return;
+
+        $("#compParentItemIdx").val(itemIdx);
+        $("#compSubItemIdx").val("");
+        $("#compParentItemDisplay").text("Item #" + (item.ItemNo || (itemIdx + 1)) + ": " + (item.Description || "Item"));
+        $("#txtCompDescription").val("");
+        $("#txtCompUnit").val("pc");
+        $("#numCompQtyReceived").val("");
+        $("#ddlCompSourceType").prop("disabled", false).val("FREEBIE");
+        $("#chkCompRequiredForBundle").prop("disabled", false).prop("checked", false);
+        $("#compBundleReqHelp").text("Marks this component as mandatory when the property is later grouped into ICS/PAR bundles.");
+        $("#txtCompRemarks").val("");
+
+        var win = $("#componentModalWindow").data("kendoWindow");
+        if (win) {
+            win.title("Add Received Component").center().open();
+        }
+    }
+
+    function onEditReceivedComponentClick(itemIdx, sIdx) {
+        var item = airWizardState.Items[itemIdx];
+        if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
+        var sub = item.SubItems[sIdx];
+
+        var sType = (sub.SourceType || "ORDERED").toUpperCase();
+        var isOrdered = (sType === "ORDERED");
+
+        $("#compParentItemIdx").val(itemIdx);
+        $("#compSubItemIdx").val(sIdx);
+        $("#compParentItemDisplay").text("Item #" + (item.ItemNo || (itemIdx + 1)) + ": " + (item.Description || "Item"));
+        $("#txtCompDescription").val(sub.Description || "");
+        $("#txtCompUnit").val(sub.Unit || "pc");
+        $("#numCompQtyReceived").val(sub.InspectNowQty || "");
+        $("#txtCompRemarks").val(sub.Remarks || "");
+
+        if (isOrdered) {
+            $("#ddlCompSourceType").val("ORDERED").prop("disabled", true);
+            $("#chkCompRequiredForBundle").prop("checked", true).prop("disabled", true);
+            $("#compBundleReqHelp").text("ORDERED components are always required for the accountable bundle.");
+        } else {
+            $("#ddlCompSourceType").prop("disabled", false).val(sub.SourceType || "FREEBIE");
+            $("#chkCompRequiredForBundle").prop("disabled", false).prop("checked", sub.IsRequiredForBundle === true || sub.IsRequiredForBundle === "true");
+            $("#compBundleReqHelp").text("Marks this component as mandatory when the property is later grouped into ICS/PAR bundles.");
+        }
+
+        var win = $("#componentModalWindow").data("kendoWindow");
+        if (win) {
+            win.title("Edit Received Component").center().open();
+        }
+    }
+
+    function onSaveReceivedComponent() {
+        var itemIdx = parseInt($("#compParentItemIdx").val());
+        var sIdxStr = $("#compSubItemIdx").val();
+        var item = airWizardState.Items[itemIdx];
+        if (!item) return;
+
+        var desc = $("#txtCompDescription").val().trim();
+        var unit = $("#txtCompUnit").val().trim();
+        var qty = parseFloat($("#numCompQtyReceived").val());
+        var sourceType = $("#ddlCompSourceType").val();
+        var isRequired = $("#chkCompRequiredForBundle").is(":checked");
+        var remarks = $("#txtCompRemarks").val().trim();
+
+        if (!desc) {
+            alert("Component Description is required.");
+            $("#txtCompDescription").focus();
+            return;
+        }
+        if (!unit) {
+            alert("Unit is required.");
+            $("#txtCompUnit").focus();
+            return;
+        }
+        if (isNaN(qty) || qty <= 0) {
+            alert("Quantity Received must be greater than zero.");
+            $("#numCompQtyReceived").focus();
+            return;
+        }
+
+        if (!item.SubItems) {
+            item.SubItems = [];
+        }
+
+        if (sIdxStr !== "") {
+            var sIdx = parseInt(sIdxStr);
+            var sub = item.SubItems[sIdx];
+            if (sub) {
+                var wasOrdered = (sub.SourceType || "").toUpperCase() === "ORDERED";
+                if (wasOrdered) {
+                    sourceType = "ORDERED";
+                    isRequired = true;
+                }
+                if (sub.SubItemNo) {
+                    sub.SubItemNo = sub.SubItemNo.toString().replace(/^#+/, "").trim();
+                }
+                sub.Description = desc;
+                sub.Unit = unit;
+                sub.InspectNowQty = qty;
+                sub.ExpectedQty = qty;
+                sub.SourceType = sourceType;
+                sub.IsRequiredForBundle = isRequired;
+                sub.Remarks = remarks;
+                reconcileSubItemInventoryDetails(item, sub);
+            }
+        } else {
+            var maxSeq = 0;
+            if (item.SubItems && item.SubItems.length > 0) {
+                item.SubItems.forEach(function (s) {
+                    if (s && s.SubItemNo !== undefined && s.SubItemNo !== null) {
+                        var cleanStr = s.SubItemNo.toString().replace(/[^0-9]/g, "");
+                        var num = parseInt(cleanStr, 10);
+                        if (!isNaN(num) && num > maxSeq) {
+                            maxSeq = num;
+                        }
+                    }
+                });
+            }
+            var nextNo = (maxSeq > 0 ? maxSeq + 1 : (item.SubItems.length + 1)).toString();
+
+            var newSub = {
+                AirSubItemId: null,
+                OrderSubItemId: "00000000-0000-0000-0000-000000000000",
+                OrderSubItemRequestId: null,
+                SubItemNo: nextNo,
+                Description: desc,
+                Unit: unit,
+                ExpectedQty: qty,
+                PreviousInspectedQty: 0,
+                InspectNowQty: qty,
+                Remarks: remarks,
+                QtyPerParent: 1,
+                CategoryCode: (item.CategoryCode || "E"),
+                ItemExtnName: (item.ItemExtnName || "ItemExtnOther"),
+                RequiresInventory: ((item.Disposition || "Inventory").toString().toUpperCase().indexOf("INV") >= 0),
+                InventoryDetails: [],
+                SourceType: sourceType,
+                IsRequiredForBundle: isRequired
+            };
+            item.SubItems.push(newSub);
+            item.IsSetLot = true;
+            reconcileSubItemInventoryDetails(item, newSub);
+        }
+
+        var win = $("#componentModalWindow").data("kendoWindow");
+        if (win) {
+            win.close();
+        }
+
+        renderStep2Items(airWizardState);
+        scheduleWizardAutoSave();
+        $("#breakdownRow_" + itemIdx).show();
+        $("#expandIcon_" + itemIdx).removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
+    }
+
+    function onDeleteReceivedComponentClick(itemIdx, sIdx) {
+        var item = airWizardState.Items[itemIdx];
+        if (!item || !item.SubItems || !item.SubItems[sIdx]) return;
+        var sub = item.SubItems[sIdx];
+
+        if (!confirm("Are you sure you want to remove component '" + (sub.Description || "Component") + "'?")) {
+            return;
+        }
+
+        item.SubItems.splice(sIdx, 1);
+        renderStep2Items(airWizardState);
+        scheduleWizardAutoSave();
+        $("#breakdownRow_" + itemIdx).show();
+        $("#expandIcon_" + itemIdx).removeClass("k-i-arrow-chevron-right").addClass("k-i-arrow-chevron-down");
     }
 </script>
 

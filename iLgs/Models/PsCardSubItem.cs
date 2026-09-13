@@ -12,29 +12,37 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class OrderItemUnitGroupDescription
+    public partial class PsCardSubItem
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public OrderItemUnitGroupDescription()
+        public PsCardSubItem()
         {
-            this.OrderItemUnitGroupDescriptionItems = new HashSet<OrderItemUnitGroupDescriptionItem>();
-            this.RisItemUnitGroupDescriptions = new HashSet<RisItemUnitGroupDescription>();
+            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
+            this.IcsParItemComponents = new HashSet<IcsParItemComponent>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> OrderItemUnitGroupId { get; set; }
-        public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
+        public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<System.Guid> AIRSubItemId { get; set; }
+        public string SubItemNo { get; set; }
         public string Description { get; set; }
-        public string OtherParticulars { get; set; }
+        public decimal Qty { get; set; }
+        public string Unit { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public string Remarks { get; set; }
+        public string SourceType { get; set; }
+        public Nullable<bool> IsRequiredForBundle { get; set; }
+        public Nullable<decimal> QtyPerParent { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
-        public virtual OrderItemUnitGroup OrderItemUnitGroup { get; set; }
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
+        public virtual ICollection<IcsParItemComponent> IcsParItemComponents { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
+        public virtual AIRSubItem AIRSubItem { get; set; }
     }
 }

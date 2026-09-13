@@ -15,8 +15,8 @@ namespace iLgs.Services.CustodianReports
     {
         new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand);
+        IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);                                             
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView);
         IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -191,7 +191,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
         
-        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand)
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
             if (deptId != null)
@@ -200,6 +200,10 @@ namespace iLgs.Services.CustodianReports
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
                     var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                    if (isDemand == true || isView == true)
+                    {
+                        userIsAdmin = true;
+                    }
                     data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();
                     if (data.Any() && isDemand == true)
                     {

@@ -164,7 +164,8 @@
     function initializeStep4PoDetails(group, groupIndex) {
         var poNumberElement = $('#' + step4FieldId('PoNo', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
         poNumberElement.kendoMaskedTextBox({ mask: '0000-00-0000', promptChar: ' ', value: group.poNumber || '',
-            change: function () { setStep4GroupField(groupIndex, 'poNumber', this.value()); }
+            change: function () { setStep4GroupField(groupIndex, 'poNumber', this.value()); },
+            enable: !(typeof existingOrderId !== 'undefined' && existingOrderId)
         });
         var poNumberWidget = poNumberElement.data('kendoMaskedTextBox');
         poNumberWidget.enable(true);
@@ -412,7 +413,7 @@
             validation: { allowedExtensions: extensions },
             async: { saveUrl: saveUrl, saveField: 'file', autoUpload: true, batch: false },
             upload: function (e) {
-                e.data = { __RequestVerificationToken: getAntiForgeryToken(), groupId: group.groupId };
+                e.data = { __RequestVerificationToken: getAntiForgeryToken(), groupId: group.groupId, orderId: typeof existingOrderId !== "undefined" ? existingOrderId : null };
             },
             success: function (e) {
                 if (e.operation !== 'upload') return;
@@ -434,11 +435,11 @@
     }
 
     function openStep4DocumentPreview(doc) {
-        if (!doc || !doc.FilePath) return;
+        if (!doc || (!doc.FilePath && !doc.PreviewUrl)) return;
         var fileName = doc.FileName || 'Document';
         var extension = fileName.split('.').pop().toLowerCase();
-        var previewUrl = '@Url.Action("PreviewDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath);
-        var downloadUrl = '@Url.Action("DownloadDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath) + '&name=' + encodeURIComponent(fileName);
+        var previewUrl = doc.PreviewUrl || '@Url.Action("PreviewDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath);
+        var downloadUrl = doc.PreviewUrl || '@Url.Action("DownloadDocument", "PurchaseOrders")' + '?path=' + encodeURIComponent(doc.FilePath) + '&name=' + encodeURIComponent(fileName);
         var content = $('#step4PreviewContent').empty();
         if (extension === 'pdf') {
             $('<iframe title="Document preview" style="width:100%;height:560px;border:0"></iframe>').attr('src', previewUrl).appendTo(content);
@@ -561,6 +562,7 @@
         return poGroups.map(function (group) {
             var sourcePRs = group.sourcePRs || [];
             return {
+                ExistingOrderId: typeof existingOrderId !== "undefined" ? existingOrderId : null,
                 GroupId: group.groupId,
                 GroupName: group.groupName,
                 PONumber: group.poNumber,
@@ -623,7 +625,8 @@
         });
     }
 
-    function submitPOs(isDraft) {        
+    function submitPOs(isDraft) {
+        if(typeof existingOrderId !== "undefined" && existingOrderId){saveExistingPurchaseOrder(!isDraft);return;}        
         if (isDraft) { saveWizardDraft(true); return; }
         if (!isDraft && !$("#chkStep4Certification").is(":checked")) { showWizardMessage("Confirm the compliance certification before posting."); return; }
         if (!isDraft && $("#btnPostPurchaseOrders").prop("disabled")) { showWizardMessage("Complete all required PO details and signed PO uploads before posting."); return; }

@@ -256,7 +256,7 @@ namespace iLgs.Models
         public string OriginalDescription { get; set; }
         public string OriginalOtherDesc { get; set; }
 
-        public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
+        //public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
 
         public string ParentItemNo { get; set; }        
 
@@ -470,7 +470,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
-        public RequestItemUnitGroupDescriptionItem RequestItemUnitGroupDescriptionItem { get; set; }
+        //public RequestItemUnitGroupDescriptionItem RequestItemUnitGroupDescriptionItem { get; set; }
 
         public string Category { get; set; }
 

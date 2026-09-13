@@ -20,31 +20,31 @@
     {
         actionButtonsTemplate =
             "<div class='grid-action-buttons'>" +
-                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openAirDetails(\"#=Id#\")' title='View Submitted Inspection'><span class='k-icon k-i-eye'></span> Inspection</button>" +
-                "# if (CanViewAcceptance) { #" +
+                "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Submitted Inspection'><span class='k-icon k-i-eye'></span> Inspection</button>" +
+                "# if (typeof CanViewAcceptance !== 'undefined' && CanViewAcceptance) { #" +
                     "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
                 "# } #" +
-                "# if (CanStartAcceptance) { #" +
-                    "<button type='button' class='btn-procurement-primary btn-sm' onclick='startAcceptance(\"#=Id#\")' title='Start Official Acceptance'><span class='k-icon k-i-play'></span> Start Acceptance</button>" +
+                "# if (typeof CanStartAcceptance !== 'undefined' && CanStartAcceptance) { #" +
+                    "<button type='button' class='btn-procurement-primary btn-sm' onclick=\"startAcceptance('#=Id#')\" title='Start Official Acceptance'><span class='k-icon k-i-play'></span> Start Acceptance</button>" +
                 "# } #" +
-                "# if (CanContinueAcceptance) { #" +
-                    "# if (OverallStatus == 'Unposted' || AcceptanceStatus == 'Unposted') { #" +
+                "# if (typeof CanContinueAcceptance !== 'undefined' && CanContinueAcceptance) { #" +
+                    "# if ((typeof OverallStatus !== 'undefined' && OverallStatus == 'Unposted') || (typeof AcceptanceStatus !== 'undefined' && AcceptanceStatus == 'Unposted')) { #" +
                         "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Edit Acceptance'><span class='k-icon k-i-edit'></span> Edit Acceptance</a>" +
                     "# } else { #" +
                         "<a class='btn-procurement-primary btn-sm' href='" + acceptanceWizardUrl + "?id=#=Id#' title='Resume Acceptance Wizard'><span class='k-icon k-i-check-circle'></span> Resume Acceptance</a>" +
                     "# } #" +
                 "# } #" +
-                "# if (CanPrint) { #" +
-                    "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                "# if (typeof CanPrint !== 'undefined' && CanPrint) { #" +
+                    "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#= (typeof CtrlNo !== 'undefined' && CtrlNo) ? CtrlNo : \"\" #' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
                 "# } #" +
-                "# if (CanPostToInventory) { #" +
-                    "<button type='button' class='btn-procurement-primary btn-sm' onclick='postAirToInventory(\"#=Id#\")'><span class='k-icon k-i-plus'></span> Post to Inventory</button>" +
-                "# } else if (InventoryPosted) { #<span class='status-badge status-posted'>Inventory Posted</span># } #" +
-                "# if (CanUnpost) { #" +
-                    "<button type='button' class='btn-procurement-secondary btn-sm text-warning border-warning' onclick='openUnpostModalGrid(\"#=Id#\")' title='Unpost AIR Acceptance'><span class='k-icon k-i-undo text-warning'></span> Unpost</button>" +
+                "# if (typeof CanPostToInventory !== 'undefined' && CanPostToInventory) { #" +
+                    "<button type='button' class='btn-procurement-primary btn-sm' onclick=\"postAirToInventory('#=Id#')\"><span class='k-icon k-i-plus'></span> Post to Inventory</button>" +
+                "# } else if (typeof InventoryPosted !== 'undefined' && InventoryPosted) { #<span class='status-badge status-posted'>Inventory Posted</span># } #" +
+                "# if (typeof CanUnpost !== 'undefined' && CanUnpost) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-warning border-warning' onclick=\"openUnpostModalGrid('#=Id#')\" title='Unpost AIR Acceptance'><span class='k-icon k-i-undo text-warning'></span> Unpost</button>" +
                 "# } #" +
-                "# if (CanDelete) { #" +
-                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick='openDeleteAcceptanceModalGrid(\"#=Id#\")' title='Delete AIR Acceptance'><span class='k-icon k-i-delete text-danger'></span> Delete Acceptance</button>" +
+                "# if (typeof CanDelete !== 'undefined' && CanDelete) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"openDeleteAcceptanceModalGrid('#=Id#')\" title='Delete AIR Acceptance'><span class='k-icon k-i-delete text-danger'></span> Delete Acceptance</button>" +
                 "# } #" +
             "</div>";
     }
@@ -52,18 +52,29 @@
     {
         actionButtonsTemplate =
             "<div class='grid-action-buttons'>" +
-                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openAirDetails(\"#=Id#\")' title='View Submitted Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
-                "# if (CanViewAcceptance) { #" +
-                    "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
-                "# } #" +
-                "# if (CanWithdraw) { #" +
-                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", false)' title='Withdraw Submission'><span class='k-icon k-i-undo'></span> Withdraw</button>" +
-                "# } #" +
-                "# if (CanRequestWithdrawal) { #" +
-                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openWithdrawModal(\"#=Id#\", true)' title='Request Withdrawal from Acceptance'><span class='k-icon k-i-undo'></span> Req. Recall</button>" +
-                "# } #" +
-                "# if (CanPrint) { #" +
-                    "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#=CtrlNo#' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                "# if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Draft') { #" +
+                    "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Edit / Continue Inspection'><span class='k-icon k-i-edit'></span> Edit / Continue Inspection</a>" +
+                    "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Submit for Acceptance'><span class='k-icon k-i-check'></span> Submit for Acceptance</a>" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"discardAirDraft('#=Id#')\" title='Discard Draft'><span class='k-icon k-i-delete text-danger'></span> Discard Draft</button>" +
+                "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Submitted for Acceptance') { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
+                    "# if (typeof CanWithdraw !== 'undefined' && CanWithdraw) { #" +
+                        "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openWithdrawModal('#=Id#', false)\" title='Withdraw Submission'><span class='k-icon k-i-undo'></span> Withdraw</button>" +
+                    "# } #" +
+                "# } else { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
+                    "# if (typeof CanViewAcceptance !== 'undefined' && CanViewAcceptance) { #" +
+                        "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
+                    "# } #" +
+                    "# if (typeof CanWithdraw !== 'undefined' && CanWithdraw) { #" +
+                        "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openWithdrawModal('#=Id#', false)\" title='Withdraw Submission'><span class='k-icon k-i-undo'></span> Withdraw</button>" +
+                    "# } #" +
+                    "# if (typeof CanRequestWithdrawal !== 'undefined' && CanRequestWithdrawal) { #" +
+                        "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openWithdrawModal('#=Id#', true)\" title='Request Withdrawal from Acceptance'><span class='k-icon k-i-undo'></span> Req. Recall</button>" +
+                    "# } #" +
+                    "# if (typeof CanPrint !== 'undefined' && CanPrint) { #" +
+                        "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#= (typeof CtrlNo !== 'undefined' && CtrlNo) ? CtrlNo : \"\" #' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                    "# } #" +
                 "# } #" +
             "</div>";
     }
@@ -170,6 +181,7 @@
                 <label for="statusFilter">Workflow Status</label>
                 <select id="statusFilter" class="form-control-custom" onchange="onStatusFilter(this.value)">
                     <option value="All">All Transactions</option>
+                    <option value="Draft">Draft</option>
                     <option value="Submitted for Acceptance">Submitted for Acceptance</option>
                     <option value="Acceptance In Progress">Acceptance In Progress</option>
                     <option value="Unposted">Unposted</option>
@@ -189,7 +201,7 @@
             .Columns(columns =>
             {
                 columns.Bound(p => p.AirNo).Title("AIR No.").Width(140).ClientTemplate(
-                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick='openAirDetails(\"#=Id#\")'>#=AirNo#</a>"
+                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick=\"openAirDetails('#=Id#')\">#= AirNo ? AirNo : '' #</a>"
                 );
                 columns.Bound(p => p.AirDate).Title("AIR Date").Format("{0:MMM dd, yyyy}").Width(120);
                 columns.Bound(p => p.PONumber).Title("PO No.").Width(140);
@@ -200,26 +212,26 @@
                     .HtmlAttributes(new { @class = "numeric-cell font-weight-bold" })
                     .HeaderHtmlAttributes(new { @class = "numeric-header" });
                 columns.Bound(p => p.OverallStatus).Title("Status").Width(170).ClientTemplate(
-                    "# if (OverallStatus == 'Posted') { #" +
+                    "# if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Posted') { #" +
                         "<span class='status-badge status-posted'><span class='k-icon k-i-check'></span> Posted</span>" +
-                    "# } else if (OverallStatus == 'Unposted' || AcceptanceStatus == 'Unposted') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && (OverallStatus == 'Unposted' || (typeof AcceptanceStatus !== 'undefined' && AcceptanceStatus == 'Unposted'))) { #" +
                         "<span class='status-badge status-unposted'><span class='k-icon k-i-undo'></span> Unposted</span>" +
-                    "# } else if (OverallStatus == 'Submitted for Acceptance') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Submitted for Acceptance') { #" +
                         "<span class='status-badge status-submitted'><span class='k-icon k-i-clock'></span> Submitted</span>" +
-                    "# } else if (OverallStatus == 'Acceptance In Progress') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Acceptance In Progress') { #" +
                         "<span class='status-badge status-acceptance-progress'><span class='k-icon k-i-gears'></span> Acceptance In Progress</span>" +
-                    "# } else if (OverallStatus == 'Returned for Revision') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Returned for Revision') { #" +
                         "<span class='status-badge status-returned'><span class='k-icon k-i-warning'></span> Returned</span>" +
-                    "# } else if (OverallStatus == 'Withdrawn') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Withdrawn') { #" +
                         "<span class='status-badge status-withdrawn'><span class='k-icon k-i-undo'></span> Withdrawn</span>" +
-                    "# } else if (OverallStatus == 'Accepted') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Accepted') { #" +
                         "<span class='status-badge status-accepted'><span class='k-icon k-i-check-circle'></span> Accepted</span>" +
-                    "# } else if (OverallStatus == 'Deleted' || AcceptanceStatus == 'Deleted') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && (OverallStatus == 'Deleted' || (typeof AcceptanceStatus !== 'undefined' && AcceptanceStatus == 'Deleted'))) { #" +
                         "<span class='status-badge status-deleted'><span class='k-icon k-i-close'></span> Deleted</span>" +
-                    "# } else if (OverallStatus == 'Draft') { #" +
+                    "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Draft') { #" +
                         "<span class='status-badge status-draft'><span class='k-icon k-i-edit'></span> Draft</span>" +
                     "# } else { #" +
-                        "<span class='status-badge'>#: OverallStatus #</span>" +
+                        "<span class='status-badge'>#: (typeof OverallStatus !== 'undefined' && OverallStatus) ? OverallStatus : '' #</span>" +
                     "# } #"
                 );
                 // ACTIONS
@@ -241,9 +253,19 @@
             .DataSource(dataSource => dataSource
                 .Ajax()
                 .PageSize(10)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty);
+                    model.Field(p => p.AirDate).DefaultValue(null);
+                    model.Field(p => p.PODate).DefaultValue(null);
+                    model.Field(p => p.TotalInspectedQty).DefaultValue(0);
+                })
                 .Read(read => read.Action("AIRs_Read", "AIRs").Data("getGridFilterData"))
                 .Sort(sort => sort.Add(p => p.AirDate).Descending())
+                .Events(e => e.Error("onInspectionError").RequestEnd("onInspectionRequestEnd"))
             )
+            .Events(e => e.DataBound("onInspectionDataBound"))
         )
     </div>
 </div>
@@ -369,6 +391,23 @@ else
             }
         }
 
+        function onInspectionRequestEnd(e) {
+            if (e.type === "read" && e.response) {
+                console.log("Inspection response:", e.response);
+            }
+        }
+
+        function onInspectionError(e) {
+            console.error("Inspection grid error:", e);
+        }
+
+        function onInspectionDataBound(e) {
+            var grid = e.sender;
+            var viewCount = grid.dataSource.view().length;
+            var totalCount = grid.dataSource.total();
+            console.log("Inspection rows:", viewCount, "Total:", totalCount);
+        }
+
         function getGridFilterData() {
             return {
                 statusFilter: $("#statusFilter").val() || "All",
@@ -402,7 +441,8 @@ else
         {
             <text>
             function discardAirDraft(id) {
-                if (!confirm("Are you sure you want to discard this inspection draft?")) return;
+                var confirmMsg = "Discard this AIR draft?\n\nThis will permanently abandon this inspection draft. Quantities recorded in this AIR will become available for inspection again.\n\nThis action cannot be undone.";
+                if (!confirm(confirmMsg)) return;
                 var token = $('input[name="__RequestVerificationToken"]').val();
                 $.post('@Url.Action("DiscardDraft", "AIRs")', { __RequestVerificationToken: token, id: id }, function (res) {
                     if (res.success) {

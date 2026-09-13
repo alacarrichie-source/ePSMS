@@ -1,0 +1,852 @@
+﻿/* ==========================================================================
+   ePSMS - Inventory Custodian Slip (ICS) Workspace Stylesheet
+   Theme: AIR Procurement / Property & Supply Design System
+   Scoped under: .epsms-ics
+   ========================================================================== */
+
+.epsms-ics {
+    padding: 16px 24px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Breadcrumbs */
+.epsms-ics .breadcrumbs {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.epsms-ics .breadcrumbs a {
+    color: #002576;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.epsms-ics .breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+/* Page Header Bar */
+.epsms-ics .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-ics .header-bar h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.epsms-ics .header-bar .subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin: 3px 0 0;
+}
+
+/* Summary Metric Chips Row */
+.epsms-ics .summary-cards-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 16px;
+}
+
+.epsms-ics .summary-metric-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-size: 12px;
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-ics .summary-metric-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.epsms-ics .summary-metric-card .metric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.epsms-ics .metric-dot.dot-gray { background-color: #64748b; }
+.epsms-ics .metric-dot.dot-amber { background-color: #f59e0b; }
+.epsms-ics .metric-dot.dot-blue { background-color: #3b82f6; }
+.epsms-ics .metric-dot.dot-green { background-color: #10b981; }
+.epsms-ics .metric-dot.dot-indigo { background-color: #6366f1; }
+
+.epsms-ics .summary-metric-card .metric-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.epsms-ics .summary-metric-card .metric-val {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.epsms-ics .summary-metric-card.metric-pending {
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+.epsms-ics .summary-metric-card.metric-pending .metric-val {
+    color: #b45309;
+}
+
+.epsms-ics .summary-metric-card.metric-partial {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+.epsms-ics .summary-metric-card.metric-partial .metric-val {
+    color: #1d4ed8;
+}
+
+.epsms-ics .summary-metric-card.metric-completed {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.epsms-ics .summary-metric-card.metric-completed .metric-val {
+    color: #15803d;
+}
+
+.epsms-ics .summary-metric-card.metric-remaining {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+}
+.epsms-ics .summary-metric-card.metric-remaining .metric-val {
+    color: #6d28d9;
+}
+
+/* Master-Detail Layout */
+.epsms-ics .ics-workspace-container {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    height: calc(100vh - 200px);
+    min-height: 560px;
+}
+
+.epsms-ics .ics-master-pane {
+    flex: 0 0 38%;
+    max-width: 440px;
+    min-width: 340px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+}
+
+.epsms-ics .ics-detail-pane {
+    flex: 1 1 60%;
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+}
+
+.epsms-ics .ics-master-pane .k-grid {
+    flex: 1 1 auto;
+    height: 100%;
+}
+
+.epsms-ics .ics-detail-pane .k-tabstrip {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.epsms-ics .ics-detail-pane .k-tabstrip-content,
+.epsms-ics .ics-detail-pane .k-content {
+    flex: 1 1 auto;
+    height: 100%;
+    overflow: auto;
+}
+
+/* Master Pane Header & Search */
+.epsms-ics .ics-master-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.epsms-ics .ics-master-header h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.epsms-ics .ics-master-header p {
+    font-size: 11px;
+    color: #64748b;
+    margin: 2px 0 0;
+}
+
+.epsms-ics .ics-master-search-bar {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.epsms-ics .ics-filter-pills {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    overflow-x: auto;
+}
+
+.epsms-ics .filter-pill-btn {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-ics .filter-pill-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.epsms-ics .filter-pill-btn.active {
+    background: #2c3e50;
+    border-color: #2c3e50;
+    color: #ffffff;
+}
+
+/* Master PO Item Cards (Inside Grid) */
+.epsms-ics .ics-po-item {
+    padding: 10px 12px;
+    border-left: 4px solid transparent;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.epsms-ics .ics-po-item:hover {
+    background-color: #f1f5f9;
+}
+
+.epsms-ics tr.k-state-selected .ics-po-item,
+.epsms-ics .ics-po-item.selected {
+    border-left-color: #002576;
+    background-color: #eff6ff;
+}
+
+.epsms-ics .ics-po-item .po-number {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #002576;
+}
+
+.epsms-ics .ics-po-item .po-department {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 12px;
+}
+
+.epsms-ics .ics-po-item .po-subtext {
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Detail Workspace Header Strip */
+.epsms-ics .ics-selected-po-strip {
+    padding: 14px 18px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-ics .ics-selected-po-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.epsms-ics .ics-selected-po-title-row .po-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #002576;
+    letter-spacing: -0.01em;
+}
+
+.epsms-ics .ics-po-metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.epsms-ics .ics-po-metadata-grid .meta-label {
+    font-size: 11px;
+    color: #64748b;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.epsms-ics .ics-po-metadata-grid .meta-val {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.epsms-ics .ics-po-metadata-grid .meta-val.price {
+    color: #002576;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+}
+
+/* Progress & Batch Trigger Banner */
+.epsms-ics .ics-progress-banner {
+    padding: 10px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.epsms-ics .ics-progress-banner .progress-info {
+    flex: 1 1 260px;
+}
+
+.epsms-ics .ics-progress-banner .progress-header-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #002576;
+    margin-bottom: 6px;
+}
+
+.epsms-ics .ics-progress-banner .progress {
+    height: 7px;
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin: 0;
+}
+
+.epsms-ics .ics-progress-banner .progress-bar {
+    background-color: #002576;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+/* TabStrip Styling */
+.epsms-ics .k-tabstrip-wrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.epsms-ics .k-tabstrip {
+    border: none !important;
+    background: transparent !important;
+}
+
+.epsms-ics .k-tabstrip-items {
+    padding: 0 16px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-ics .k-tabstrip-items .k-item {
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 10px 14px !important;
+}
+
+.epsms-ics .k-tabstrip-items .k-item.k-state-active {
+    border-bottom-color: #002576 !important;
+    color: #002576 !important;
+}
+
+.epsms-ics .k-tabstrip-content {
+    border: none !important;
+    padding: 14px 16px !important;
+    background: #ffffff !important;
+    flex: 1 1 auto;
+}
+
+/* Status Badges */
+.epsms-ics .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.epsms-ics .status-badge.status-accepted,
+.epsms-ics .status-badge.status-posted,
+.epsms-ics .status-badge.status-complete {
+    background: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+    color: #166534 !important;
+}
+
+.epsms-ics .status-badge.status-unposted,
+.epsms-ics .status-badge.status-pending {
+    background: #fffbeb !important;
+    border-color: #fde68a !important;
+    color: #b45309 !important;
+}
+
+.epsms-ics .status-badge.status-acceptance-progress,
+.epsms-ics .status-badge.status-partial {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
+}
+
+/* Workflow Buttons */
+.epsms-ics .btn-procurement-primary,
+.epsms-ics .btn-procurement-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 30px;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-ics .btn-procurement-primary {
+    border: 1px solid #2c3e50;
+    background: #2c3e50;
+    color: #ffffff !important;
+}
+
+.epsms-ics .btn-procurement-primary:hover {
+    border-color: #1f2937;
+    background: #1f2937;
+    color: #ffffff !important;
+}
+
+.epsms-ics .btn-procurement-secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569 !important;
+}
+
+.epsms-ics .btn-procurement-secondary:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+    color: #334155 !important;
+}
+
+.epsms-ics .btn-procurement-primary.btn-sm,
+.epsms-ics .btn-procurement-secondary.btn-sm {
+    min-height: 26px;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+/* Kendo Grid High Density Customization */
+.epsms-ics .k-grid {
+    font-size: 12px;
+    border-color: #e2e8f0;
+}
+
+.epsms-ics .k-grid-header th.k-header {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 8px 10px;
+    border-color: #e2e8f0;
+}
+
+.epsms-ics .k-grid tbody td {
+    padding: 6px 10px;
+    border-color: #f1f5f9;
+}
+
+/* Official COA Voucher Form (Modal View) */
+.coa-slip-document {
+    background: #ffffff;
+    border: 2px solid #0f172a;
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #0f172a;
+    font-family: 'Arial', sans-serif;
+}
+
+.coa-slip-document .coa-header {
+    text-align: center;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.coa-slip-document .coa-header .republic {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.coa-slip-document .coa-header .lgu-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 2px 0;
+    letter-spacing: 0.01em;
+}
+
+.coa-slip-document .coa-header .doc-title {
+    font-size: 18px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #002576;
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+}
+
+.coa-slip-document .signatory-box {
+    border: 1px solid #0f172a;
+    height: 120px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+/* Enhanced Kendo Grid Scroll & Flex Layout */
+.epsms-ics .ics-master-pane .k-grid,
+.epsms-ics .ics-detail-pane .k-grid {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 350px;
+}
+
+.epsms-ics .k-grid .k-grid-content {
+    min-height: 250px;
+}
+
+/* --- GENERATED SLIPS ACTIONS & AIR BADGES --- */
+.status-badge.status-air-uploaded {
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.status-badge.status-air-missing {
+    border-color: #fde68a !important;
+    background: #fffbeb !important;
+    color: #b45309 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Floating contextual row action dropdown menu */
+.ics-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+.ics-actions-menu {
+    position: fixed;
+    z-index: 10050;
+    min-width: 175px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
+    font-size: 12px;
+    display: none;
+}
+
+.ics-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    color: #1e293b;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ics-menu-item:hover {
+    background: #f1f5f9;
+    color: #002576;
+}
+
+.ics-menu-item.danger {
+    color: #dc2626;
+}
+
+.ics-menu-item.danger:hover {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.ics-menu-item .k-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+}
+
+.ics-menu-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+
+
+/* Visible row action button styles */
+.epsms-ics .ics-actions-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.epsms-ics .btn-procurement-info,
+.epsms-ics .btn-procurement-success,
+.epsms-ics .btn-procurement-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 26px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.epsms-ics .btn-procurement-info {
+    border: 1px solid #3b82f6;
+    background: #eff6ff;
+    color: #1d4ed8 !important;
+}
+
+.epsms-ics .btn-procurement-info:hover {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff !important;
+}
+
+.epsms-ics .btn-procurement-success {
+    border: 1px solid #16a34a;
+    background: #f0fdf4;
+    color: #15803d !important;
+}
+
+.epsms-ics .btn-procurement-success:hover {
+    border-color: #16a34a;
+    background: #16a34a;
+    color: #ffffff !important;
+}
+
+.epsms-ics .btn-procurement-danger {
+    border: 1px solid #f87171;
+    background: #fef2f2;
+    color: #b91c1c !important;
+}
+
+.epsms-ics .btn-procurement-danger:hover {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #ffffff !important;
+}
+
+.epsms-ics .btn-procurement-warning {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 26px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #b45309 !important;
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-ics .btn-procurement-warning:hover {
+    border-color: #d97706;
+    background: #d97706;
+    color: #ffffff !important;
+}
+
+
+/* AIR column layout */
+.epsms-ics .ics-air-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.epsms-ics .ics-air-cell .status-air-uploaded {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+
+/* Subgrid styling for Individual Accountable Items */
+.epsms-ics .item-units-detail-container {
+    padding: 10px 18px 12px 18px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-ics .item-units-grid-target .k-grid {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    font-size: 12px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.epsms-ics .item-units-grid-target .k-grid-header th.k-header {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 7px 12px;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.epsms-ics .item-units-grid-target .k-grid td {
+    padding: 7px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.epsms-ics .subgrid-issued-to-readonly {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 12px;
+}
+
+.epsms-ics .item-units-grid-target .k-combobox {
+    font-size: 12px;
+}
+
+.epsms-ics .item-units-grid-target .k-combobox .k-input {
+    height: 28px;
+    padding: 2px 6px;
+}
+
+/* ==========================================================================
+   ePSMS - Property Acknowledgment Receipt (PAR) Workspace Extensions
+   Scoped under: .epsms-par
+   ========================================================================== */
+.epsms-par .subgrid-issued-to-readonly {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 12px;
+}
+
+.epsms-par .item-units-grid-target .k-combobox {
+    font-size: 12px;
+}
+
+.epsms-par .item-units-grid-target .k-combobox .k-input {
+    height: 28px;
+    padding: 2px 6px;
+}

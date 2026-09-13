@@ -448,15 +448,15 @@ namespace iLgs.Services.Requisition
                 if (!string.IsNullOrWhiteSpace(entity.RisNo) &&
                     await _db.RSMIItems.AnyAsync(x => x.RisNo == entity.RisNo))
                     throw new InvalidValueException("This RIS is referenced by an RSMI. Resolve that dependency before deleting.");
-                var groupLinks = await _db.RisItemUnitGroupDescriptionItems
-                    .Where(x => x.RisItem.RisId == model.Id ||
-                        x.RisItemUnitGroupDescription.RisItemUnitGroup.RisId == model.Id).ToListAsync();
-                _db.RisItemUnitGroupDescriptionItems.RemoveRange(groupLinks);
-                var descriptions = await _db.RisItemUnitGroupDescriptions
-                    .Where(x => x.RisItemUnitGroup.RisId == model.Id).ToListAsync();
-                _db.RisItemUnitGroupDescriptions.RemoveRange(descriptions);
-                var groups = await _db.RisItemUnitGroups.Where(x => x.RisId == model.Id).ToListAsync();
-                _db.RisItemUnitGroups.RemoveRange(groups);
+                //var groupLinks = await _db.RisItemUnitGroupDescriptionItems
+                //    .Where(x => x.RisItem.RisId == model.Id ||
+                //        x.RisItemUnitGroupDescription.RisItemUnitGroup.RisId == model.Id).ToListAsync();
+                //_db.RisItemUnitGroupDescriptionItems.RemoveRange(groupLinks);
+                //var descriptions = await _db.RisItemUnitGroupDescriptions
+                //    .Where(x => x.RisItemUnitGroup.RisId == model.Id).ToListAsync();
+                //_db.RisItemUnitGroupDescriptions.RemoveRange(descriptions);
+                //var groups = await _db.RisItemUnitGroups.Where(x => x.RisId == model.Id).ToListAsync();
+                //_db.RisItemUnitGroups.RemoveRange(groups);
                 var allocations = await _db.RisItems.Where(x => x.RisId == model.Id).ToListAsync();
                 _db.RisItems.RemoveRange(allocations);
                 _db.RISses.Remove(entity);

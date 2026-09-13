@@ -1,58 +1,258 @@
-@model iLgs.Models.RIS_VM
+﻿@model iLgs.Models.RIS_VM
 @using System
+@using System.Collections.Generic
+
 @{
-    ViewBag.Title = "View RIS";
+    ViewBag.Title = "View RIS - " + (Model != null ? (Model.RisNo ?? Model.CtrlNo) : "");
     Layout = "~/Views/Shared/_AppLayout.cshtml";
-    var fields = new[] {
-        new { Label = "RIS Number", Value = Model.RisNo },
-        new { Label = "Control Number", Value = Model.CtrlNo },
-        new { Label = "RIS Date", Value = Model.RisDate.HasValue ? Model.RisDate.Value.ToString("MMM dd, yyyy") : "" },
-        new { Label = "PO Number", Value = Model.PoNo },
-        new { Label = "PR Number", Value = Model.PrNo },
-        new { Label = "Department / Fund", Value = Model.Office + " / " + Model.Fund },
-        new { Label = "Purpose", Value = Model.Purpose },
-        new { Label = "Requested By / Designation", Value = Model.RequestedBy + " / " + Model.RequestedByDesignation },
-        new { Label = "Requested Date", Value = Model.RequestedDate.HasValue ? Model.RequestedDate.Value.ToString("MMM dd, yyyy") : "" },
-        new { Label = "Approved By / Designation", Value = Model.ApprovedBy + " / " + Model.ApprovedByDesignation },
-        new { Label = "Approved Date", Value = Model.ApprovedDate.HasValue ? Model.ApprovedDate.Value.ToString("MMM dd, yyyy") : "" },
-        new { Label = "Issued By / Designation", Value = Model.IssuedBy + " / " + Model.IssuedByDesignation },
-        new { Label = "Issued Date", Value = Model.IssuedDate.HasValue ? Model.IssuedDate.Value.ToString("MMM dd, yyyy") : "" },
-        new { Label = "Received By / Designation", Value = Model.ReceivedBy + " / " + Model.ReceivedByDesignation },
-        new { Label = "Received Date", Value = Model.ReceivedDate.HasValue ? Model.ReceivedDate.Value.ToString("MMM dd, yyyy") : "" },
-        new { Label = "Posted By", Value = Model.PostedBy },
-        new { Label = "Posted Date", Value = Model.PostedDt.HasValue ? Model.PostedDt.Value.ToString("MMM dd, yyyy hh:mm tt") : "" }
-    };
+
+    var items = Model != null && Model.RisItems != null ? Model.RisItems : new List<iLgs.Models.RisItemVM>();
+
     decimal requested = 0;
     decimal issued = 0;
+    foreach (var item in items)
+    {
+        requested += item.QtyRequest ?? 0;
+        issued += item.QtyIssue ?? 0;
+    }
+
+    decimal fulfillmentRate = requested > 0 ? (issued / requested) * 100 : 0;
 }
+
 <link rel="stylesheet" href="@Url.Content("~/Content/requisitions.css")" />
-<div class="epsms-procurement po-wizard ris-feature">
-    <div class="breadcrumbs"><a href="@Url.Action("Index","Requisitions")">Requisitions</a> &gt; View RIS</div>
-    <div class="header-bar">
-        <div><h1>RIS @(Model.RisNo ?? Model.CtrlNo)</h1><span class="status-badge @(Model.IsPosted ? "status-posted" : "status-draft")">@Model.Status</span><p class="subtitle">Read-only requisition and issuance details.</p></div>
-        <div class="action-toolbar">
-            @if (Model.IsPosted) { <a class="btn-procurement-secondary" target="_blank" rel="noopener" href="@Url.Action("Print","Requisitions",new {ctrlNo=Model.CtrlNo})">Print RIS</a> }
-            <a class="btn-procurement-primary" href="@Url.Action("Index","Requisitions")">Back to Requisitions</a>
+
+<div class="epsms-workflow epsms-requisitions epsms-procurement po-wizard">
+    @Html.AntiForgeryToken()
+
+    <!-- Breadcrumbs (AIR Style) -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="@Url.Action("Index", "Procurement")">Procurement</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="@Url.Action("Index", "Requisitions")">Requisitions</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span>View RIS (@(Model != null ? (Model.RisNo ?? Model.CtrlNo) : ""))</span>
+    </div>
+
+    <!-- Header Bar (AIR Style) -->
+    <div class="header-bar mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="mb-0">Requisition &amp; Issue Slip: @(Model != null ? (Model.RisNo ?? Model.CtrlNo) : "")</h1>
+                @if (Model != null)
+                {
+                    if (Model.IsPosted || Model.Status == "Posted")
+                    {
+                        <span class="status-badge status-posted"><span class="k-icon k-i-check"></span> Posted</span>
+                    }
+                    else
+                    {
+                        <span class="status-badge status-draft"><span class="k-icon k-i-edit"></span> Draft</span>
+                    }
+                }
+                <span class="badge bg-secondary font-monospace" style="font-size: 11px;">
+                    <span class="k-icon k-i-lock"></span> Certified Record
+                </span>
+            </div>
+            <p class="subtitle mb-0">
+                @if (Model != null && Model.IsPosted && Model.PostedDt.HasValue)
+                {
+                    <span>Posted on <strong>@(Model.PostedDt.Value.ToString("MMMM dd, yyyy h:mm tt"))</strong> by <strong>@(string.IsNullOrEmpty(Model.PostedBy) ? "Authorized Officer" : Model.PostedBy)</strong>. Certified read-only issuance record.</span>
+                }
+                else
+                {
+                    <span>Recorded on <strong>@(Model != null && Model.RisDate.HasValue ? Model.RisDate.Value.ToString("MMMM dd, yyyy") : "--")</strong>. Official stock requisition and issuance slip.</span>
+                }
+            </p>
+        </div>
+
+        <div class="action-toolbar d-flex align-items-center gap-2">
+            @if (Model != null && (Model.IsPosted || Model.Status == "Posted"))
+            {
+                <a href="@Url.Action("Print", "Requisitions", new { ctrlNo = Model.CtrlNo })" target="_blank" rel="noopener" class="btn-procurement-secondary btn-sm" title="Print Official RIS Report">
+                    <span class="k-icon k-i-print"></span> Print RIS
+                </a>
+            }
+            <a href="@Url.Action("Index", "Requisitions")" class="btn-procurement-primary btn-sm">
+                <span class="k-icon k-i-arrow-left"></span> Back to Requisitions
+            </a>
         </div>
     </div>
-    <div class="wizard-card">
-        <div class="ris-fields">
-        @foreach(var field in fields) {
-            <div class="ris-field"><label>@field.Label</label><div class="ris-value">@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</div></div>
-        }
+
+    <!-- Review Container (Pure Read-Only, AIR Style) -->
+    <div class="wizard-card p-4 bg-white rounded border">
+
+        <!-- ============================================================
+             SUMMARY METRICS CARDS (AIR STYLE)
+             ============================================================ -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Total Supply Items</span>
+                    <strong class="fs-5">@items.Count</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Total Qty Requested</span>
+                    <strong class="fs-5 text-secondary">@requested.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary text-center">
+                    <span class="text-primary small fw-bold d-block mb-1">Total Qty Issued</span>
+                    <strong class="fs-5 text-primary">@issued.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block mb-1">Fulfillment Rate</span>
+                    <strong class="fs-5 @(fulfillmentRate >= 100 ? "text-success" : (fulfillmentRate > 0 ? "text-primary" : "text-danger"))">@fulfillmentRate.ToString("0.##")%</strong>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table table-bordered ris-items">
-                <thead><tr><th>Item No.</th><th>Description</th><th>Unit</th><th class="num">Qty Requested</th><th class="num">Qty Issued</th><th>Remarks</th></tr></thead>
-                <tbody>
-                @foreach(var item in Model.RisItems) {
-                    requested += item.QtyRequest ?? 0;
-                    issued += item.QtyIssue ?? 0;
-                    <tr><td>@item.ItemNo</td><td>@item.Description</td><td>@item.Unit</td><td class="num">@((item.QtyRequest ?? 0).ToString("N2"))</td><td class="num">@((item.QtyIssue ?? 0).ToString("N2"))</td><td>@item.Remarks</td></tr>
-                }
-                </tbody>
-                <tfoot><tr><th colspan="3">Total</th><th class="num">@requested.ToString("N2")</th><th class="num">@issued.ToString("N2")</th><td></td></tr></tfoot>
-            </table>
+
+        <!-- ============================================================
+             HEADER & PO REVIEW CARDS (AIR STYLE)
+             ============================================================ -->
+        <div class="row g-3 mb-4">
+            <!-- Card 1: Requisition & PO Reference -->
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <h4 class="fs-6 fw-bold text-primary mb-3">
+                        <span class="k-icon k-i-file-txt"></span> Requisition &amp; PO Reference
+                    </h4>
+                    <div class="small">
+                        <div class="mb-2"><strong>RIS Number:</strong> <span class="text-primary font-monospace fw-bold">@(Model != null && !string.IsNullOrEmpty(Model.RisNo) ? Model.RisNo : "--")</span></div>
+                        <div class="mb-2"><strong>Control Number:</strong> <span class="font-monospace">@(Model != null && !string.IsNullOrEmpty(Model.CtrlNo) ? Model.CtrlNo : "--")</span></div>
+                        <div class="mb-2"><strong>RIS Date:</strong> <span>@(Model != null && Model.RisDate.HasValue ? Model.RisDate.Value.ToString("MMM dd, yyyy") : "--")</span></div>
+                        <div class="mb-2"><strong>PO Number:</strong> <span class="font-monospace fw-semibold">@(Model != null && !string.IsNullOrEmpty(Model.PoNo) ? Model.PoNo : "--")</span></div>
+                        <div class="mb-2"><strong>PR Number:</strong> <span class="font-monospace fw-semibold">@(Model != null && !string.IsNullOrEmpty(Model.PrNo) ? Model.PrNo : "--")</span></div>
+                        <div class="mb-2"><strong>Department / Fund:</strong> <span>@(Model != null ? (Model.Office + " / " + (Model.Fund ?? "General")) : "--")</span></div>
+                        <div><strong>Purpose:</strong> <span class="text-secondary">@(Model != null && !string.IsNullOrEmpty(Model.Purpose) ? Model.Purpose : "None")</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Accountability & Certified Signatories -->
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <h4 class="fs-6 fw-bold text-primary mb-3">
+                        <span class="k-icon k-i-user"></span> Certified Signatories &amp; Accountability
+                    </h4>
+                    <div class="small">
+                        <div class="mb-2">
+                            <strong>Requested By:</strong>
+                            <span>@(Model != null && !string.IsNullOrEmpty(Model.RequestedBy) ? (Model.RequestedBy + (!string.IsNullOrEmpty(Model.RequestedByDesignation) ? " (" + Model.RequestedByDesignation + ")" : "")) : "--")</span>
+                            @if (Model != null && Model.RequestedDate.HasValue) { <span class="text-muted ms-1">&bull; @Model.RequestedDate.Value.ToString("MMM dd, yyyy")</span> }
+                        </div>
+                        <div class="mb-2">
+                            <strong>Approved By:</strong>
+                            <span>@(Model != null && !string.IsNullOrEmpty(Model.ApprovedBy) ? (Model.ApprovedBy + (!string.IsNullOrEmpty(Model.ApprovedByDesignation) ? " (" + Model.ApprovedByDesignation + ")" : "")) : "--")</span>
+                            @if (Model != null && Model.ApprovedDate.HasValue) { <span class="text-muted ms-1">&bull; @Model.ApprovedDate.Value.ToString("MMM dd, yyyy")</span> }
+                        </div>
+                        <div class="mb-2">
+                            <strong>Issued By:</strong>
+                            <span>@(Model != null && !string.IsNullOrEmpty(Model.IssuedBy) ? (Model.IssuedBy + (!string.IsNullOrEmpty(Model.IssuedByDesignation) ? " (" + Model.IssuedByDesignation + ")" : "")) : "--")</span>
+                            @if (Model != null && Model.IssuedDate.HasValue) { <span class="text-muted ms-1">&bull; @Model.IssuedDate.Value.ToString("MMM dd, yyyy")</span> }
+                        </div>
+                        <div class="mb-2">
+                            <strong>Received By:</strong>
+                            <span>@(Model != null && !string.IsNullOrEmpty(Model.ReceivedBy) ? (Model.ReceivedBy + (!string.IsNullOrEmpty(Model.ReceivedByDesignation) ? " (" + Model.ReceivedByDesignation + ")" : "")) : "--")</span>
+                            @if (Model != null && Model.ReceivedDate.HasValue) { <span class="text-muted ms-1">&bull; @Model.ReceivedDate.Value.ToString("MMM dd, yyyy")</span> }
+                        </div>
+                        <div class="pt-2 border-top">
+                            <strong>Posting Record:</strong>
+                            @if (Model != null && Model.IsPosted && Model.PostedDt.HasValue)
+                            {
+                                <span class="badge bg-success">Posted by @(string.IsNullOrEmpty(Model.PostedBy) ? "System" : Model.PostedBy) on @Model.PostedDt.Value.ToString("MMM dd, yyyy hh:mm tt")</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Draft &ndash; Not yet posted</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- ============================================================
+             ISSUED ITEMS BREAKDOWN TABLE (AIR STYLE)
+             ============================================================ -->
+        <div class="mb-2">
+            <h4 class="fs-6 fw-bold text-dark mb-2">
+                <span class="k-icon k-i-list-unordered"></span> Issued Supply Items Breakdown
+            </h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0 ris-items">
+                    <thead class="table-light small">
+                        <tr>
+                            <th style="width: 45px;" class="text-center">#</th>
+                            <th style="width: 80px;">Item No.</th>
+                            <th>Description</th>
+                            <th style="width: 70px;">Unit</th>
+                            <th style="width: 120px;" class="text-end">Qty Requested</th>
+                            <th style="width: 120px;" class="text-end text-primary fw-bold">Qty Issued</th>
+                            <th style="width: 110px;" class="text-center">Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (items.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="p-3 text-center text-muted">No items recorded in this requisition slip.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                var item = items[i];
+                                var req = item.QtyRequest ?? 0;
+                                var iss = item.QtyIssue ?? 0;
+                                var isFullyIssued = iss >= req && req > 0;
+                                var isPartial = iss > 0 && iss < req;
+
+                                <tr>
+                                    <td class="text-center text-muted">@(i + 1)</td>
+                                    <td class="font-monospace">@(item.ItemNo ?? "--")</td>
+                                    <td class="fw-semibold">@(item.Description ?? "--")</td>
+                                    <td class="text-secondary">@(item.Unit ?? "--")</td>
+                                    <td class="num text-end font-monospace">@req.ToString("N2")</td>
+                                    <td class="num text-end font-monospace fw-bold text-primary">@iss.ToString("N2")</td>
+                                    <td class="text-center">
+                                        @if (isFullyIssued)
+                                        {
+                                            <span class="status-badge status-posted"><span class="k-icon k-i-check"></span> Complete</span>
+                                        }
+                                        else if (isPartial)
+                                        {
+                                            <span class="status-badge status-partial"><span class="k-icon k-i-clock"></span> Partial</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-draft">Unfulfilled</span>
+                                        }
+                                    </td>
+                                    <td class="text-muted">@(string.IsNullOrEmpty(item.Remarks) ? "--" : item.Remarks)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold small">
+                        <tr>
+                            <td colspan="4" class="text-end">Grand Totals:</td>
+                            <td class="num text-end font-monospace">@requested.ToString("N2")</td>
+                            <td class="num text-end font-monospace text-primary">@issued.ToString("N2")</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>

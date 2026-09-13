@@ -19,7 +19,7 @@ namespace iLgs.Models
         {
             this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
-            this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
+            this.PsCardSubItems = new HashSet<PsCardSubItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -84,6 +84,7 @@ namespace iLgs.Models
         public Nullable<int> OtherQty { get; set; }
         public string PpmpCode { get; set; }
         public Nullable<System.Guid> PpmpItemId { get; set; }
+        public Nullable<System.Guid> AIRItemId { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
@@ -93,8 +94,9 @@ namespace iLgs.Models
         public virtual PsCard PsCard { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual OrderItemRequest OrderItemRequest { get; set; }
+        public virtual AIRItem AIRItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardSubItem> PsCardSubItems { get; set; }
     }
 }

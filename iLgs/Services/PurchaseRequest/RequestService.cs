@@ -6,6 +6,7 @@ using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -35,6 +36,9 @@ namespace iLgs.Services.PurchaseRequest
         //Task<bool> IsWithPOAsync(Guid? requestId);
         //Task<bool> IsPoPostedAsync(Guid? requestId);
         Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId);
+        IDictionary ValidateOnPost(string prNo, DateTime? prDate);
+        IDictionary ValidatePrNoAndDate(string prNo, DateTime? prDate);
+        string NextPrNo(DateTime prDate);
 
         ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
         ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date);
@@ -658,14 +662,22 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
-                if (string.IsNullOrEmpty(entity.PrNo))
-                {
-                    throw new InvalidValueException("PR Number is Required.");
-                }
-
                 if (!entity.PrDate.HasValue)
                 {
-                    throw new InvalidValueException("PR Date is Required.");
+                    entity.PrDate = date.Date;
+                }
+
+                if (string.IsNullOrEmpty(entity.PrNo))
+                {
+                    entity.PrNo = NextPrNo(entity.PrDate.Value);
+                }
+
+                var validation = ValidateOnPost(entity.PrNo, entity.PrDate);
+                if (validation != null && validation.Count > 0)
+                {
+                    var imex = new InvalidModelException();
+                    imex.AddData(validation);
+                    imex.ThrowIfContainsErrors();
                 }
 
                 if (string.IsNullOrEmpty(entity.Availability))
@@ -761,21 +773,7 @@ namespace iLgs.Services.PurchaseRequest
 
         public async ValueTask UnpostAsync(Guid requestId, string user, DateTime date)
         {
-            var entity = await _db.Requests.FindAsync(requestId);
-            if (entity != null)
-            {
-                if (string.IsNullOrEmpty(entity.PostedBy))
-                {
-                    throw new InvalidValueException("This record is not yet posted, please verify.");
-                }
-
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                //entity.UpdatedBy = user;
-                //entity.UpdatedDt = date;
-
-                await _db.SaveChangesAsync();
-            }
+            await new PurchaseRequestLifecycleService(_db).UnpostAsync(requestId, user, date);
         }
 
         public async ValueTask SubmitAsync(Guid requestId, string user, DateTime date)
@@ -826,27 +824,38 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
-        private string NextPrNo(DateTime prDate)
+        public string NextPrNo(DateTime prDate)
         {
             string yyyy = prDate.Year.ToString().Trim();
-            string mm = prDate.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+            string mm = prDate.Month.ToString().PadLeft(2, '0');
 
             string keyName = yyyy + "-" + mm;
             // yyyy-mm-9999
             // 123456789012
 
-            var data = _db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year).OrderByDescending(o => o.PrNo).FirstOrDefault();
-            if (data == null)
+            var data = _db.Requests
+                .Where(w => w.PrNo != null && w.PrNo.StartsWith(yyyy + "-") && w.PrNo.Length == 12)
+                .OrderByDescending(o => o.PrNo)
+                .FirstOrDefault();
+
+            int nextSeq = 1;
+            if (data != null && !string.IsNullOrWhiteSpace(data.PrNo))
             {
-                return keyName + "-" + "0001";
+                var parts = data.PrNo.Split('-');
+                if (parts.Length == 3 && int.TryParse(parts[2], out int lastSeq))
+                {
+                    nextSeq = lastSeq + 1;
+                }
             }
-            else
+
+            string candidate = keyName + "-" + nextSeq.ToString().PadLeft(4, '0');
+            while (_db.Requests.Any(a => a.PrNo == candidate))
             {
-                var sequence = (int.Parse(data.PrNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
+                nextSeq++;
+                candidate = keyName + "-" + nextSeq.ToString().PadLeft(4, '0');
             }
+
+            return candidate;
         }
 
         private string NextCtrlNo(DateTime date)
@@ -872,76 +881,86 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
-        private async Task ValidateOnCreateUpdateAsync(RequestVM model, Mode mode)
+        public IDictionary ValidateOnPost(string prNo, DateTime? prDate)
         {
-            _imex = new InvalidModelException();
-            if (!string.IsNullOrWhiteSpace(model.PrNo))
+            return ValidatePrNoAndDate(prNo, prDate);
+        }
+
+        public IDictionary ValidatePrNoAndDate(string prNo, DateTime? prDate)
+        {
+            InvalidModelException _imex = new InvalidModelException();
+            if (!string.IsNullOrWhiteSpace(prNo))
             {
-                if (model.PrNo.Trim().Length != 12)
+                prNo = prNo.Trim();
+                if (prNo.Length != 12)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Invalid value.");
+                    _imex.UpsertDataList("PR Number", "Invalid value.");
                 }
                 else
                 {
-                    if (!model.PrDate.HasValue)
+                    if (!prDate.HasValue)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), $"Field is required.");
+                        _imex.UpsertDataList("PR Date", "Field is required.");
                     }
                     else
                     {
-                        var refNoParts = model.PrNo.Split('-');
-                        var refNoYear = int.Parse(refNoParts[0]);
-                        var refNoMonth = int.Parse(refNoParts[1]);
-                        var refNoSeq = int.Parse(refNoParts[2]);
-                        if (refNoSeq == 0)
+                        var refNoParts = prNo.Split('-');
+                        if (refNoParts.Length != 3 ||
+                            !int.TryParse(refNoParts[0], out int refNoYear) ||
+                            !int.TryParse(refNoParts[1], out int refNoMonth) ||
+                            !int.TryParse(refNoParts[2], out int refNoSeq))
                         {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Invalid sequence number.");
+                            _imex.UpsertDataList("PR Number", "Invalid format. Expected format: YYYY-MM-####.");
+                        }
+                        else if (refNoSeq == 0)
+                        {
+                            _imex.UpsertDataList("PR Number", "Invalid sequence number.");
                         }
                         else
                         {
-                            if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
+                            if (refNoYear != prDate.Value.Year || refNoMonth != prDate.Value.Month)
                             {
-                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series year and month must match the PR date’s year and month.");
+                                _imex.UpsertDataList("PR Number", "Series year and month must match the PR date's year and month.");
                             }
-                            //else
-                            //{
-                            //    //var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
-                            //    var maxNo = _db.Requests.Where(w => w.PrDate.Value.Year == model.PrDate.Value.Year).Max(m => m.PrNo);
-                            //    if (!string.IsNullOrWhiteSpace(maxNo))
-                            //    {
-                            //        var maxSeq = int.Parse(maxNo.Split('-')[2]);
-                            //        if (refNoSeq <= maxSeq)
-                            //        {
-                            //            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Sequnce No. must be greater than {maxSeq}");
-                            //        }
-                            //    }
-                            //}
-                        }
-                    }
-
-                    if (mode == Mode.ADD)
-                    {
-                        if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo))
-                        {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
-                        }
-                    }
-                    else
-                    {
-                        if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo && a.Id != model.Id))
-                        {
-                            _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
                         }
                     }
                 }
             }
 
-            if (model.PrDate.HasValue)
+            if (prDate.HasValue)
             {
-                if (model.PrDate > model.UpdatedDt)
+                if (prDate.Value.Date > DateTime.Today)
                 {
-                    _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), $"Future date is not allowed.");
+                    _imex.UpsertDataList("PR Date", "Future date is not allowed.");
                 }
+            }
+            return _imex.Data;
+        }
+
+        private async Task ValidateOnCreateUpdateAsync(RequestVM model, Mode mode)
+        {
+            _imex = new InvalidModelException();
+            var validationResult = ValidatePrNoAndDate(model.PrNo, model.PrDate);
+            if (validationResult.Count == 0)
+            {
+                if (mode == Mode.ADD)
+                {
+                    if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
+                    }
+                }
+                else
+                {
+                    if (await _db.Requests.AnyAsync(a => a.PrNo == model.PrNo && a.Id != model.Id))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Already exists.");
+                    }
+                }
+            }                        
+            else
+            {
+                _imex.AddData(validationResult);
             }
 
             _imex.ThrowIfContainsErrors();

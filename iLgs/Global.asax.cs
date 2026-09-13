@@ -237,19 +237,19 @@ namespace iLgs
             // PURCHASE ORDER
             services.AddScoped<IOrderItemSharedService, OrderItemSharedService>();
             services.AddScoped<IOrderItemService, OrderItemService>();
-            services.AddScoped<IOrderItemUnitGroupDescriptionItemSharedService, OrderItemUnitGroupDescriptionItemSharedService>();
-            services.AddScoped<IOrderItemUnitGroupDescriptionItemService, OrderItemUnitGroupDescriptionItemService>();
-            services.AddScoped<IOrderItemUnitGroupDescriptionService, OrderItemUnitGroupDescriptionService>();
-            services.AddScoped<IOrderItemUnitGroupService, OrderItemUnitGroupService>();
+            //services.AddScoped<IOrderItemUnitGroupDescriptionItemSharedService, OrderItemUnitGroupDescriptionItemSharedService>();
+            //services.AddScoped<IOrderItemUnitGroupDescriptionItemService, OrderItemUnitGroupDescriptionItemService>();
+            //services.AddScoped<IOrderItemUnitGroupDescriptionService, OrderItemUnitGroupDescriptionService>();
+            //services.AddScoped<IOrderItemUnitGroupService, OrderItemUnitGroupService>();
             services.AddScoped<IOrderSharedService, OrderSharedService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IOrderUploadService, OrderUploadService>();
 
             // PURCHASE REQUEST
             services.AddScoped<IRequestItemService, RequestItemService>();
-            services.AddScoped<IRequestItemUnitGroupDescriptionItemService, RequestItemUnitGroupDescriptionItemService>();
-            services.AddScoped<IRequestItemUnitGroupDescriptionService, RequestItemUnitGroupDescriptionService>();
-            services.AddScoped<IRequestItemUnitGroupService, RequestItemUnitGroupService>();
+            //services.AddScoped<IRequestItemUnitGroupDescriptionItemService, RequestItemUnitGroupDescriptionItemService>();
+            //services.AddScoped<IRequestItemUnitGroupDescriptionService, RequestItemUnitGroupDescriptionService>();
+            //services.AddScoped<IRequestItemUnitGroupService, RequestItemUnitGroupService>();
             services.AddScoped<IRequestService, RequestService>();
 
             // REQUESITION
@@ -275,7 +275,7 @@ namespace iLgs
             services.AddScoped<IUploadService, UploadService>();
 
             // VALIDATORS
-            services.AddScoped<IRisItemUnitGroupValidator, RisItemUnitGroupValidator>();
+            //services.AddScoped<IRisItemUnitGroupValidator, RisItemUnitGroupValidator>();
             services.AddScoped<IRisItemValidator, RisItemValidator>();
             services.AddScoped<IRisValidator, RisValidator>();
 

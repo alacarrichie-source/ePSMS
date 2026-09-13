@@ -1,5 +1,11 @@
 ﻿@model iLgs.Models.GenerateIcsParVM
 
+<script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + (data ? data : '') + '</div>';
+    }
+</script>
+
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
     @Html.AntiForgeryToken()

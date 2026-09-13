@@ -17,7 +17,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Request()
         {
-            this.RequestItemUnitGroups = new HashSet<RequestItemUnitGroup>();
             this.RequestItems = new HashSet<RequestItem>();
             this.OrderRequests = new HashSet<OrderRequest>();
             this.PPMPItemUsages = new HashSet<PPMPItemUsage>();
@@ -49,8 +48,6 @@ namespace iLgs.Models
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }
         public virtual Codextn Codextn { get; set; }

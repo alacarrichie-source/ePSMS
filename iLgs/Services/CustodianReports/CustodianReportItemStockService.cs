@@ -14,8 +14,8 @@ namespace iLgs.Services.CustodianReports
     public interface ICustodianReportItemStockService : ICustodianReportItemService
     {
         new ValueTask<CustodianReportItemStockVM> GetByIdAsync(Guid id);
-        IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId, string userName);
-        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand);
+        IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId, string userName);                                               
+        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView);
         IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroupItemCodeId(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, Guid? itemCodeId);
         IQueryable<CustodianReportItemStockVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date);
@@ -183,13 +183,17 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand)
+        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName, bool? isDemand, bool? isView)
         {
             IQueryable<CustodianReportItemStockVM> data = null;
             if (deptId != null)
             {
                 var userId = _userService.GetByUserName(userName).Id;
                 var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                if (isDemand == true || isView == true)
+                {
+                    userIsAdmin = true;
+                }
                 data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, deptId, sectionId, accountGroup, "", null, null, "", userIsAdmin, "", userId).AsQueryable();                
                 if (data.Any() && isDemand == true)
                 {

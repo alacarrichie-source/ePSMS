@@ -25,6 +25,17 @@ namespace iLgs.Services.ParIcs
 
     public class IcsParSharedService : IIcsParSharedService
     {
+
+        private static string GetSerialNo(PsCardItemExtn extn)
+        {
+            if (extn == null) return null;
+            var other = extn as PsCardItemExtnOther;
+            if (other != null && !string.IsNullOrWhiteSpace(other.SerialNo)) return other.SerialNo;
+            var vehicle = extn as PsCardItemExtnVehicle;
+            if (vehicle != null) return !string.IsNullOrWhiteSpace(vehicle.PlateNo) ? vehicle.PlateNo : vehicle.ConductionNo;
+            return extn.SeriesNo;
+        }
+
         private readonly AppManEntities _db;
 
         public IcsParSharedService(AppManEntities db)
@@ -49,6 +60,43 @@ namespace iLgs.Services.ParIcs
             ValidateIfPosted(entity); ;
             await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
 
+            // Re-validate per-bundle completeness before posting
+            var icsParItems = await _db.IcsParItems
+                .Include(i => i.PsCardItemExtn)
+                .Where(w => w.IcsParId == entity.Id)
+                .ToListAsync();
+
+            foreach (var item in icsParItems)
+            {
+                if (item.PsCardItemExtn != null && item.PsCardItemExtn.PsCardItemId.HasValue)
+                {
+                    var cardItemId = item.PsCardItemExtn.PsCardItemId.Value;
+                    var requiredSubItems = await _db.PsCardSubItems
+                        .Where(s => s.PsCardItemId == cardItemId && s.IsRequiredForBundle == true)
+                        .ToListAsync();
+
+                    if (requiredSubItems.Any())
+                    {
+                        var itemComponents = await _db.IcsParItemComponents
+                            .Where(c => c.IcsParItemId == item.Id)
+                            .ToListAsync();
+
+                        foreach (var reqSub in requiredSubItems)
+                        {
+                            var reqQty = reqSub.QtyPerParent ?? 1;
+                            var allocatedQty = itemComponents
+                                .Where(c => c.PsCardSubItemId == reqSub.Id)
+                                .Sum(c => c.Qty);
+
+                            if (allocatedQty < reqQty)
+                            {
+                                throw new InvalidValueException(string.Format("Cannot post: Bundle for item '{0}' is incomplete. Component '{1}' requires {2:G29} but only has {3:G29} allocated.", GetSerialNo(item.PsCardItemExtn) ?? item.PsCardItemExtn.PropNo ?? "Unit", reqSub.Description, reqQty, allocatedQty));
+                            }
+                        }
+                    }
+                }
+            }
+
             entity.PostedBy = user;
             entity.PostedDt = date;
 
@@ -62,7 +110,7 @@ namespace iLgs.Services.ParIcs
             var entity = await _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefaultAsync();
             if (entity == null)
             {
-                throw new NotFoundException($"Ref No. {refNo} does not exists.");
+                throw new NotFoundException(string.Format("Ref No. {0} does not exists.", refNo));
             }
 
             ValidateIfNotPosted(entity);
@@ -86,11 +134,11 @@ namespace iLgs.Services.ParIcs
                 var cancelledBy = string.Join("/", icsParUpdates.Select(s => s.IcsPar.RefNo));
                 if (refType == "I")
                 {
-                    throw new RecordRelationshipException($"ICS No. {refNo} was already cancelled by ICS No. {cancelledBy}, cannot proceed.");
+                    throw new RecordRelationshipException(string.Format("ICS No. {0} was already cancelled by ICS No. {1}, cannot proceed.", refNo, cancelledBy));
                 }
                 else
                 {
-                    throw new RecordRelationshipException($"PAR No. {refNo} was already cancelled by PAR No. {cancelledBy}, cannot proceed.");
+                    throw new RecordRelationshipException(string.Format("PAR No. {0} was already cancelled by PAR No. {1}, cannot proceed.", refNo, cancelledBy));
                 }
             }
         }
@@ -99,7 +147,7 @@ namespace iLgs.Services.ParIcs
         {
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new RecordAlreadyPostedException($"Record was already posted by {entity.PostedBy} on {entity.PostedDt}, cannot proceed.");
+                throw new RecordAlreadyPostedException(string.Format("Record was already posted by {0} on {1}, cannot proceed.", entity.PostedBy, entity.PostedDt));
             }
         }
 
@@ -107,7 +155,7 @@ namespace iLgs.Services.ParIcs
         {
             if (string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new RecordAlreadyPostedException($"Record is not yet posted, please verify.");
+                throw new RecordAlreadyPostedException("Record is not yet posted, please verify.");
             }
         }
 
@@ -115,7 +163,7 @@ namespace iLgs.Services.ParIcs
         {
             if (!await IsWwithUploadAsync(icsParId))
             {
-                throw new InvalidValueException($"No uploaded files found, cannot post!");
+                throw new InvalidValueException("No uploaded files found, cannot post!");
             }
         }
 

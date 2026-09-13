@@ -16,6 +16,9 @@ using iLgs.Ai.Service;
 using iLgs.Ai.Service.PurchaseOrder;
 using System.Net;
 using iLgs.Services.Items;
+using iLgs.Services.PurchaseOrder;
+using iLgs.Models;
+using Microsoft.AspNet.Identity;
 
 namespace iLgs.Controllers
 {
@@ -112,6 +115,8 @@ namespace iLgs.Controllers
         {
             try
             {
+                var access = await Access(User.Identity.GetUserId(), "orders");
+                if (!access.AllowPost) return Json(new { success = false, message = "Post access denied." });
                 var success = await _poService.PostPOAsync(id, User.Identity.Name ?? "Admin", bacResolutionNo);
                 if (!success) return Json(new { success = false, message = "Unable to post PO." });
                 return Json(new { success = true, message = "Purchase Order posted successfully." });
@@ -132,12 +137,75 @@ namespace iLgs.Controllers
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }        
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UnpostPO(Guid id)
+        {
+            try {
+                var access = await Access(User.Identity.GetUserId(), "orders");
+                if (!access.AllowUnpost) return Json(new { success = false, message = "Unpost access denied." });
+                await new PurchaseOrderLifecycleService(_db).UnpostAsync(id, User.Identity.Name, DateTime.Now);
+                return Json(new { success = true, message = "Purchase Order successfully unposted. You may now edit and repost the PO.", editUrl = Url.Action("Wizard", new { orderId = id }) });
+            } catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SaveExistingPO(Guid id, string poGroupsJson, bool post = false)
+        {
+            try {
+                var access = await Access(User.Identity.GetUserId(), "orders");
+                if (!access.AllowEdit || (post && !access.AllowPost))
+                    return Json(new { success = false, message = "Edit/post access denied." });
+                var groups = DeserializeGroups(poGroupsJson);
+                if (groups == null || groups.Count != 1 || groups[0] == null)
+                    return Json(new { success = false, message = "Submit exactly one existing Purchase Order." });
+                var po = await _poService.SaveExistingPOAsync(id, groups[0], User.Identity.Name, post);
+                return Json(new { success = true, id = po.Id, message = post ? "The existing Purchase Order was reposted." : "Changes to the existing Purchase Order were saved.", redirectUrl = Url.Action("Index") });
+            } catch (InvalidOperationException ex) { return Json(new { success = false, message = ex.Message }); }
+              catch (Exception) { return Json(new { success = false, message = "The Purchase Order could not be saved. No changes were committed." }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeletePO(Guid id)
+        {
+            try {
+                var access = await Access(User.Identity.GetUserId(), "orders");
+                if (!access.AllowDelete) return Json(new { success = false, message = "Delete access denied." });
+                using (var transaction = _db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable)) {
+                    var lifecycle = new PurchaseOrderLifecycleService(_db);
+                    await lifecycle.LockAsync(id);
+                    await lifecycle.EnsureEditableAsync(id);
+                    await new OrderService(_db).DeleteAsync(new OrderVM { Id = id }, User.Identity.Name, DateTime.Now);
+                    transaction.Commit();
+                }
+                return Json(new { success = true, message = "Purchase Order deleted." });
+            } catch (Exception ex) { return Json(new { success = false, message = ex.GetBaseException().Message }); }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ExistingDocument(Guid orderId, Guid documentId)
+        {
+            var upload = await _db.Uploads.AsNoTracking().FirstOrDefaultAsync(x => x.Id == documentId && x.ImageId == orderId);
+            if (upload == null) return HttpNotFound();
+            var directory = (upload.VirtualDirectory ?? "").Replace('\\', '/');
+            if (directory.StartsWith("~/App_Data/Uploads/", StringComparison.OrdinalIgnoreCase)) {
+                var bytes = _docService.GetFileBytes(directory.TrimEnd('/') + "/" + upload.FileName);
+                return bytes == null ? (ActionResult)HttpNotFound() : File(bytes, MimeMapping.GetMimeMapping(upload.FileName));
+            }
+            var kind = directory.TrimEnd('/').Split('/').Last();
+            if (kind != "ORDERS" && kind != "CAFOA") return HttpNotFound();
+            return await new OrderUploadService(_db).Create(kind).GetUploadedFileAsync(documentId);
+        }
+
         // ==========================================
         // 2. 4-STEP PO CREATION WIZARD
         // ==========================================
 
         // UPDATED: Added logic to load existing draft state
-        public async Task<ActionResult> Wizard(Guid? draftId = null)
+        public async Task<ActionResult> Wizard(Guid? draftId = null, Guid? orderId = null)
         {
             ViewBag.Title = "Create Purchase Order Wizard";
             var model = new POWizardViewModel();
@@ -146,6 +214,25 @@ namespace iLgs.Controllers
             ViewBag.CurrentStep = 1;
             ViewBag.DraftId = null;
             ViewBag.DraftNo = null;
+
+            ViewBag.EditOrderId = null;
+            ViewBag.ExistingPOJson = null;
+            if (orderId.HasValue)
+            {
+                if (draftId.HasValue) return new HttpStatusCodeResult(400, "Choose an existing PO or a creation draft, not both.");
+                var access = await Access(User.Identity.GetUserId(), "orders");
+                if (!access.AllowEdit) return new HttpStatusCodeResult(403, "Edit access denied.");
+                try {
+                    var existing = await _poService.GetExistingPOAsync(orderId.Value);
+                    foreach (var doc in existing.AdditionalDocs.Concat(existing.POCopyDoc == null ? new PODocumentViewModel[0] : new[] { existing.POCopyDoc }))
+                        if (doc.ExistingUploadId.HasValue) doc.PreviewUrl = Url.Action("ExistingDocument", new { orderId = orderId.Value, documentId = doc.ExistingUploadId.Value });
+                    ViewBag.EditOrderId = orderId.Value;
+                    ViewBag.ExistingPOJson = JsonConvert.SerializeObject(existing);
+                    ViewBag.CurrentStep = 3;
+                    ViewBag.Title = "Edit Purchase Order " + existing.PONumber;
+                    return View("Wizard", model);
+                } catch (InvalidOperationException ex) { return new HttpStatusCodeResult(409, ex.Message); }
+            }
 
             // If a draftId is provided, we load the previously selected PRs
             // This populates the checkboxes in Step 1 automatically
@@ -216,7 +303,9 @@ namespace iLgs.Controllers
 
                 try
                 {
-                    JObject.Parse(wizardStateJson);
+                    var state = JObject.Parse(wizardStateJson);
+                    if (state["existingOrderId"] != null && state["existingOrderId"].Type != JTokenType.Null)
+                        return Json(new { success = false, message = "Existing POs must use SaveExistingPO, not a creation draft." });
                 }
                 catch (JsonException)
                 {
@@ -268,10 +357,11 @@ namespace iLgs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UploadPOCopy(string groupId, HttpPostedFileBase file)
+        public async Task<ActionResult> UploadPOCopy(string groupId, HttpPostedFileBase file, Guid? orderId = null)
         {
             try
             {
+                if (orderId.HasValue) await new PurchaseOrderLifecycleService(_db).EnsureEditableAsync(orderId.Value);
                 var doc = _docService.SaveUploadedFile(file, "POCopies", "POCopy");
                 return Json(new { success = true, document = doc, groupId = groupId });
             }
@@ -280,10 +370,11 @@ namespace iLgs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UploadAdditionalDoc(string groupId, HttpPostedFileBase file)
+        public async Task<ActionResult> UploadAdditionalDoc(string groupId, HttpPostedFileBase file, Guid? orderId = null)
         {
             try
             {
+                if (orderId.HasValue) await new PurchaseOrderLifecycleService(_db).EnsureEditableAsync(orderId.Value);
                 var doc = _docService.SaveUploadedFile(file, "SupportingDocs", "Additional");
                 return Json(new { success = true, document = doc, groupId = groupId });
             }
@@ -312,6 +403,11 @@ namespace iLgs.Controllers
             try
             {
                 var user = User.Identity.Name ?? "Admin";
+                if (poGroups.Any(g => g.ExistingOrderId.HasValue))
+                    return Json(new { success = false, message = "Use the existing PO save/repost action." });
+                var groupIds = poGroups.Select(g => { Guid value; return Guid.TryParse(g.GroupId, out value) ? value : Guid.Empty; }).ToList();
+                if (await _db.Orders.AnyAsync(o => groupIds.Contains(o.Id)))
+                    return Json(new { success = false, message = "An existing PO cannot be submitted as a new PO." });
                 if (!draftId.HasValue)
                     return Json(new { success = false, message = "Save the wizard draft before posting." });
 
@@ -370,70 +466,9 @@ namespace iLgs.Controllers
             catch (JsonException) { return null; }
         }
 
-        private async Task<string> ValidateWizardGroupsAsync(List<POGroupDraftViewModel> groups, bool posting)
+        private Task<string> ValidateWizardGroupsAsync(List<POGroupDraftViewModel> groups, bool posting)
         {
-            if (groups.Count > 50) return "Too many PO groups were submitted.";
-            var allocatedQuantities = new Dictionary<Guid, int>();
-            var poNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var group in groups)
-            {
-                var name = String.IsNullOrWhiteSpace(group.GroupName) ? "PO group" : group.GroupName;
-                if (group.Items == null || !group.Items.Any()) return name + " has no line items.";
-                if (group.Items.Any(i => i == null || i.Quantity <= 0 || i.UnitCost < 0 || String.IsNullOrWhiteSpace(i.Description)))
-                    return name + " contains an invalid line item.";
-                if (!posting) continue;
-                if (String.IsNullOrWhiteSpace(group.PONumber))
-                    return "Enter the PO number for " + name + ".";
-                if (!System.Text.RegularExpressions.Regex.IsMatch(group.PONumber.Trim(), @"^\d{4}-\d{2}-\d{4}$"))
-                    return "Enter the PO number for " + name + " in YYYY-MM-9999 format.";
-                if (!poNumbers.Add(group.PONumber.Trim()))
-                    return "The PO number " + group.PONumber.Trim() + " is used by more than one PO group.";
-                if (await _db.Orders.AnyAsync(o => o.PoNo == group.PONumber.Trim()))
-                    return "The PO number " + group.PONumber.Trim() + " already exists.";
-                if (!group.SupplierId.HasValue)
-                    return "Select a valid supplier for " + name + ".";
-                var supplier = await _db.Suppliers.FindAsync(group.SupplierId.Value);
-                if (supplier == null)
-                    return "Select a valid supplier for " + name + ".";
-                group.SupplierName = supplier.Name;
-                group.SupBusiness = supplier.BusinessName;
-                group.SupAddress = supplier.Address;
-                group.SupTIN = supplier.TIN;
-                group.SupEmail = supplier.Email;
-                group.SupZipCode = supplier.ZipCode;
-                group.SupContactNo = supplier.ContactNos;
-                if (String.IsNullOrWhiteSpace(group.PlaceOfDelivery) || String.IsNullOrWhiteSpace(group.TermDelivery) ||
-                    String.IsNullOrWhiteSpace(group.PaymentTerms) || String.IsNullOrWhiteSpace(group.ModeOfProcurement))
-                    return "Complete the delivery and procurement terms for " + name + ".";
-                if (group.POCopyDoc == null || String.IsNullOrWhiteSpace(group.POCopyDoc.FilePath))
-                    return "Upload the signed PO copy for " + name + ".";
-                foreach (var item in group.Items)
-                {
-                    if (!item.ItemCodeId.HasValue ||
-                        !await _db.ItemCodes.AnyAsync(code => code.Id == item.ItemCodeId.Value))
-                    {
-                        return "Select a valid Article for every item in " + name + ".";
-                    }
-                    if (item.Allocations == null || !item.Allocations.Any()) return "Source PR allocations are missing for an item in " + name + ".";
-                    if (item.Allocations.Any(a => !a.RequestItemId.HasValue || a.Quantity <= 0) || item.Allocations.Sum(a => a.Quantity) != item.Quantity)
-                        return "A source PR allocation is invalid for an item in " + name + ".";
-                    foreach (var allocation in item.Allocations)
-                    {
-                        var requestItem = await _db.RequestItems.FindAsync(allocation.RequestItemId.Value);
-                        if (requestItem == null)
-                            return "A source Purchase Request item is no longer available.";
-                        var request = await _db.Requests.FindAsync(requestItem.PrId);
-                        if (request == null || request.PostedDt == null) return "A source Purchase Request is no longer approved.";
-                        if ((requestItem.UnitCost ?? 0) != item.UnitCost)
-                            return "A submitted unit cost no longer matches its approved Purchase Request.";
-                        var requestItemId = allocation.RequestItemId.Value;
-                        allocatedQuantities[requestItemId] = (allocatedQuantities.ContainsKey(requestItemId) ? allocatedQuantities[requestItemId] : 0) + allocation.Quantity;
-                        if (allocatedQuantities[requestItemId] > (requestItem.Qty ?? 0))
-                            return "A Purchase Request item quantity has been over-allocated.";
-                    }
-                }
-            }
-            return null;
+            return _poService.ValidateWizardGroupsAsync(groups, posting);
         }
 
         // ==========================================

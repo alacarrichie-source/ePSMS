@@ -47,6 +47,110 @@ namespace iLgs.Controllers
             return View();
         }
 
+
+        private PropertyCardWorkspaceService WorkspaceService()
+        {
+            return new PropertyCardWorkspaceService(_db, _propertyCardService.PsCardItem);
+        }
+
+        private bool IsWorkspaceCard(Guid id)
+        {
+            return _db.PsCards.Any(x => x.Id == id && x.CardCategory == "P");
+        }
+
+        public ActionResult Workspace(Guid id)
+        {
+            var model = WorkspaceService().Get(id);
+            if (model == null) return HttpNotFound();
+            return View(model);
+        }
+
+        public ActionResult WorkspacePosition(Guid id)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            return Json(WorkspaceService().Position(id), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult WorkspaceTab(Guid id, string tab)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            ViewData["cardId"] = id;
+            switch (tab)
+            {
+                case "Acquisitions": return PartialView("_PropertyCardItem");
+                case "Individual Units": return PartialView("_WorkspaceUnits");
+                case "Accountability": return PartialView("_WorkspaceAccountability");
+                case "History": return PartialView("_WorkspaceHistory");
+                case "Documents": return PartialView("_WorkspaceDocuments");
+                default: return HttpNotFound();
+            }
+        }
+
+        public ActionResult WorkspaceHistoryRead([DataSourceRequest] DataSourceRequest request, Guid id)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            return new JsonNetResult { Data = WorkspaceService().History(id).ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+        public ActionResult WorkspaceChoices(Guid id, string kind, string text)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            IQueryable<PropertyCardUnitChoiceVM> choices;
+            if (kind == "acquisitions")
+            {
+                choices = _db.PsCardItemTransfers.Where(x => x.PsCardItem.PsCardId == id)
+                    .Select(x => new PropertyCardUnitChoiceVM {
+                        Id = x.Id, AcquisitionId = x.PsCardItemId, PoNo = x.PsCardItem.PoNo,
+                        Label = (x.PsCardItem.PoNo ?? "No PO") + " / " + (x.Codextn.Code ?? "Origin") + " / " + (x.Codextn.Description ?? "")
+                    });
+            }
+            else
+            {
+                choices = WorkspaceService().Units(id);
+                if (kind == "documents")
+                {
+                    var acquisitions = _db.PsCardItems.Where(x => x.PsCardId == id)
+                        .Select(x => new PropertyCardUnitChoiceVM {
+                            Id = x.GroupId ?? x.Id, AcquisitionId = x.Id, PoNo = x.PoNo,
+                            PropNo = null, CustItemNo = null, Label = "Acquisition / " + (x.PoNo ?? "No PO"), Location = null, Condition = null
+                        });
+                    choices = choices.Concat(acquisitions);
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(text)) choices = choices.Where(x => x.Label.Contains(text));
+            return Json(choices.OrderBy(x => x.Label).Take(100).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult WorkspaceUnits(Guid id, Guid transferId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var row = _propertyCardService.PsCardItem.GetTransitByCardId(id, null).FirstOrDefault(x => x.TransferId == transferId);
+            if (row == null) return HttpNotFound();
+            var template = _propertyCardService.GetItemExtnName(row.Id);
+            return new JsonNetResult { Data = new { Row = row, Template = template }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+        public ActionResult WorkspaceAccountability(Guid id, Guid unitId)
+        {
+            if (!IsWorkspaceCard(id) || !_db.PsCardItemExtns.Any(x => x.Id == unitId && x.PsCardItem.PsCardId == id)) return HttpNotFound();
+            ViewData["psCardItemExtnId"] = unitId;
+            ViewData["scopeLabel"] = WorkspaceService().Units(id).Where(x => x.Id == unitId).Select(x => x.Label).FirstOrDefault();
+            return PartialView("_WorkspaceAccountabilityScope");
+        }
+
+        public ActionResult WorkspaceDocuments(Guid id, Guid imageId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var unit = _db.PsCardItemExtns.Where(x => x.Id == imageId && x.PsCardItem.PsCardId == id).Select(x => x.PsCardItemId).FirstOrDefault();
+            var acquisition = _db.PsCardItems.Where(x => x.PsCardId == id && (x.Id == imageId || x.GroupId == imageId)).Select(x => (Guid?)x.Id).FirstOrDefault();
+            if (!unit.HasValue && !acquisition.HasValue) return HttpNotFound();
+            ViewData["imageId"] = imageId;
+            ViewData["psCardItemId"] = unit ?? acquisition;
+            ViewData["scopeLabel"] = unit.HasValue
+                ? WorkspaceService().Units(id).Where(x => x.Id == imageId).Select(x => x.Label).FirstOrDefault()
+                : "Acquisition / " + _db.PsCardItems.Where(x => x.Id == acquisition.Value).Select(x => x.PoNo).FirstOrDefault();
+            return PartialView("_WorkspaceDocumentScope");
+        }
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, string userName)
         {
             var data = _propertyCardService.GetAll(userName);

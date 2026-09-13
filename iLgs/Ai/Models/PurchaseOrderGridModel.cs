@@ -42,6 +42,8 @@ namespace iLgs.Ai.Models
         public string ModeOfProcurement { get; set; }
         public string BACResolutionNo { get; set; }
 
+        public bool HasAIR { get; set; }
+        public bool HasPostedAIR { get; set; }
         public bool HasPOCopy { get; set; }
         public int AdditionalDocsCount { get; set; }
     }

@@ -13,9 +13,9 @@ namespace iLgs.Services.Requisition
         bool IsPosted(Guid risId);
         bool IsPosted(RISs ris);
         bool IsPosted(RisItem risItem);
-        bool IsPosted(RisItemUnitGroup risItemUnitGroup);
-        bool IsPosted(RisItemUnitGroupDescription risItemunitGroupDescription);
-        bool IsPosted(RisItemUnitGroupDescriptionItem risItemunitGroupDescriptionItem);
+        //bool IsPosted(RisItemUnitGroup risItemUnitGroup);
+        //bool IsPosted(RisItemUnitGroupDescription risItemunitGroupDescription);
+        //bool IsPosted(RisItemUnitGroupDescriptionItem risItemunitGroupDescriptionItem);
 
         Task<bool> IsPostedAsync(Guid risId);        
     }
@@ -52,22 +52,22 @@ namespace iLgs.Services.Requisition
             return IsPosted(risId);
         }
 
-        public bool IsPosted(RisItemUnitGroup risItemUnitGroup)
-        {
-            var risId = (Guid)risItemUnitGroup.RisId;
-            return IsPosted(risId);
-        }
+        //public bool IsPosted(RisItemUnitGroup risItemUnitGroup)
+        //{
+        //    var risId = (Guid)risItemUnitGroup.RisId;
+        //    return IsPosted(risId);
+        //}
 
-        public bool IsPosted(RisItemUnitGroupDescription risItemUnitGroupDescription)
-        {
-            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.Id == risItemUnitGroupDescription.UnitGroupId).AsNoTracking().FirstOrDefault()?.RisId;
-            return IsPosted(risId);
-        }
+        //public bool IsPosted(RisItemUnitGroupDescription risItemUnitGroupDescription)
+        //{
+        //    var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.Id == risItemUnitGroupDescription.UnitGroupId).AsNoTracking().FirstOrDefault()?.RisId;
+        //    return IsPosted(risId);
+        //}
 
-        public bool IsPosted(RisItemUnitGroupDescriptionItem risItemUnitGroupDescriptionItem)
-        {
-            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.RisItemUnitGroupDescriptions.Any(a => a.Id == risItemUnitGroupDescriptionItem.UnitGroupDescriptionId)).AsNoTracking().FirstOrDefault()?.RisId;
-            return IsPosted(risId);
-        }        
+        //public bool IsPosted(RisItemUnitGroupDescriptionItem risItemUnitGroupDescriptionItem)
+        //{
+        //    var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.RisItemUnitGroupDescriptions.Any(a => a.Id == risItemUnitGroupDescriptionItem.UnitGroupDescriptionId)).AsNoTracking().FirstOrDefault()?.RisId;
+        //    return IsPosted(risId);
+        //}        
     }
 }

@@ -173,6 +173,7 @@
 
     // Called when stepping into Step 3
     function prepareStep3Data() {
+        if(typeof existingOrderId !== "undefined" && existingOrderId && !existingAllocationsChanged){renderStep3GroupTabs();loadActiveGroupForm();return;}
         if (!poGroups) poGroups = [];
         if (!allocatedItems) allocatedItems = [];
         if (typeof syncPOGroupSourcePRs === "function") syncPOGroupSourcePRs();
@@ -391,16 +392,21 @@
              * CONVERT MAP TO ARRAY
              * ============================================================
              */
+            var usedExistingIds = {};
             grp.items = Object.keys(consolidated).map(function (key, index) {
 
                 var item = consolidated[key];
                 var savedItem = existingItems.find(function (existing) {
+                    if (usedExistingIds[existing.id]) return false;
+                    if (typeof existingOrderId !== "undefined" && existingOrderId && (existing.sourcePRs || []).length === (item.sourcePRs || []).length &&
+                        (existing.sourcePRs || []).every(function(source){return (item.sourcePRs || []).some(function(other){return source.requestItemId === other.requestItemId;});})) return true;
                     return existing.id === item.id || ((existing.PPMPCode || existing.ppmpCode || "").toUpperCase() + "|" +
                         (existing.description || "").toUpperCase()) === key;
                 });
 
                 if (savedItem) {
-                    ["itemNo", "itemCodeId", "itemCode", "psType", "article", "gsoCategory", "category", "account",
+                    usedExistingIds[savedItem.id] = true;
+                    ["id", "itemNo", "itemCodeId", "itemCode", "psType", "article", "gsoCategory", "category", "account",
                         "subAccount", "stockNo", "description", "technicalDescription", "unit",
                         "attributes", "allFields", "additionalSpecs", "setLotItems"].forEach(function (fieldName) {
                             if (savedItem[fieldName] !== undefined && savedItem[fieldName] !== null) {

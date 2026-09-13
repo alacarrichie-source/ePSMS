@@ -5,7 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static iLgs.Models.Enums;
+using Mode = iLgs.Models.Enums.Mode;
 
 namespace iLgs.Services.PropertyCard
 {
@@ -93,12 +93,12 @@ namespace iLgs.Services.PropertyCard
         //    _semiExpendableService = semiExpendableService;
         //}
 
-        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle => _psCardItemExtnVehicleService;
-        public IPsCardItemExtnLandService PsCardItemExtnLand => _psCardItemExtnLandService;
-        public IPsCardItemExtnBldgService PsCardItemExtnBldg => _psCardItemExtnBldgService;
-        public IPsCardItemExtnOtherService PsCardItemExtnOther => _psCardItemExtnOtherService;
-        public IPsCardItemExtnUpdateService PsCardItemExtnUpdate => _psCardItemExtnUpdateService;
-        public IPsCardItemExtnAddCostService PsCardItemExtnAddCost => _psCardItemExtnAddCostService;
+        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService; } }
+        public IPsCardItemExtnLandService PsCardItemExtnLand { get { return _psCardItemExtnLandService; } }
+        public IPsCardItemExtnBldgService PsCardItemExtnBldg { get { return _psCardItemExtnBldgService; } }
+        public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService; } }
+        public IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get { return _psCardItemExtnUpdateService; } }
+        public IPsCardItemExtnAddCostService PsCardItemExtnAddCost { get { return _psCardItemExtnAddCostService; } }
 
         private decimal GetSPHV()
         {
@@ -110,7 +110,8 @@ namespace iLgs.Services.PropertyCard
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Include(i => i.PsCardItem.PsCard.ItemCode)
                         .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
-                            && w.PsCardItemId == psCardItemId)
+                            && w.PsCardItemId == psCardItemId
+                            && w.PsCardSubItemId == null)
                         .AsQueryable();
          
             return data;
@@ -121,8 +122,9 @@ namespace iLgs.Services.PropertyCard
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Include(i => i.PsCardItem.PsCard.ItemCode)
                         .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
+                            && w.PsCardSubItemId == null
                             && (w.PsCardItemId == psCardItemId
-                                && _db.PsCardItemUnitGroups.Any(a => a.PoNo == w.PsCardItem.PoNo)
+                                //&& _db.PsCardItemUnitGroups.Any(a => a.PoNo == w.PsCardItem.PoNo)
                             )
                         )
                         .AsQueryable();
@@ -280,7 +282,7 @@ namespace iLgs.Services.PropertyCard
 
                 // Reassemble the series and maintain the same padding (based on the length of the numeric part)
                 int paddingLength = numericPart.Length;  // Get the length of the original numeric part
-                return $"{prefix}{endNumber.ToString($"D{paddingLength}")}";  // Dynamically format the number with the same number of digits
+                return prefix + endNumber.ToString("D" + paddingLength);  // Dynamically format the number with the same number of digits
             }
 
             // If no match is found, return the start series as it is

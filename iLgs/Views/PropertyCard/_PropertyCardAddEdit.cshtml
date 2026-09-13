@@ -212,89 +212,57 @@
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
-        //var grid = $("#gridItemExtn").data("kendoGrid");
-
-        //// Get all data items (rows) in the Grid
-        //var dataItems = grid.dataItems();
-
-        //// Create an array to store the row values
-        //var rowValues = [];
-
-        //// Iterate over each data item (row) and extract the values
-        //for (var i = 0; i < dataItems.length; i++) {
-        //    var row = dataItems[i];
-        //    rowValues.push(row);
-        //}
-
-        //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+        var btn = this;
 
         UpdateDescription();
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
+            if (!propertyCardButtonStart(btn, "Saving...")) {
+                return;
+            }
             setTimeout(function () {
                 var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
                 var data = $("#form").serialize();
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("_PropertyCardSave", "PropertyCard")',
-                    data: data,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($("#form"), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($("#form"), false);
-                        if (result.Errors == "") {
-                            selectedId = result.Id;
-                            $("#IsDuplicateStockNo").val("true").trigger("change");
-                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                        }
-                        else {
-                            // Clear previous error messages
-                            $('#ErrorContent .errors').empty();
-
-                            result.Errors.forEach(function (error) {
-                                var key = error.Key;
-                                var messages = error.Message; // Use Message from the JSON
-
-                                // Check if messages exists and is an array
-                                if (Array.isArray(messages)) {
-                                    // Create the field name list item
-                                    var errorListItem = $('<li></li>').text(key);
-
-                                    // Create a nested unordered list for the messages
-                                    var messageList = $('<ul></ul>');
-
-                                    // Loop through each message and append it to the messageList
-                                    messages.forEach(function (message) {
-                                        messageList.append($('<li></li>').text(message));
-                                    });
-
-                                    // Append the message list to the error list item
-                                    errorListItem.append(messageList);
-
-                                    // Append the error list item to the .errors container
-                                    $('#ErrorContent .errors').append(errorListItem);
-                                } else {
-                                    console.error(`Expected messages to be an array for field ${key}`);
-                                }
-                            });
-
-                            // Show the error content
-                            $('#ErrorContent').removeClass('hidden');
-                        }
+                    data: data
+                }).done(function (result) {
+                    if (result.Errors == "") {
                         selectedId = result.Id;
-                    },
-                    error: function (req, status, errorObj) {
-                        alert(req.responseText);
-                        }
-                    });
+                        $("#IsDuplicateStockNo").val("true").trigger("change");
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        $('#ErrorContent .errors').empty();
+                        result.Errors.forEach(function (error) {
+                            var key = error.Key;
+                            var messages = error.Message;
+                            if (Array.isArray(messages)) {
+                                var errorListItem = $('<li></li>').text(key);
+                                var messageList = $('<ul></ul>');
+                                messages.forEach(function (message) {
+                                    messageList.append($('<li></li>').text(message));
+                                });
+                                errorListItem.append(messageList);
+                                $('#ErrorContent .errors').append(errorListItem);
+                            }
+                        });
+                        $('#ErrorContent').removeClass('hidden');
+                    }
+                    selectedId = result.Id;
+                }).fail(function (req) {
+                    alert(req.responseText);
+                }).always(function () {
+                    propertyCardButtonStop(btn);
+                });
                 disabled.attr('disabled', 'disabled');
-                }, 500);
-            }
-        });
+            }, 500);
+        }
+    });
 
-        $("#btnCancel").click(function (e) {
-            e.preventDefault();
-            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
     });
 </script>

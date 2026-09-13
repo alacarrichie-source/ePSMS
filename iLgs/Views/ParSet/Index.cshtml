@@ -1,733 +1,1150 @@
-﻿@*@model iLgs.Models.ParIcsPOGroupVM*@
+@* Index.cshtml - ePSMS Property Acknowledgment Receipt (PAR) Workspace *@
+@using Kendo.Mvc.UI
+
 @{
-    ViewBag.Title = "Property Acknowledgement Receipt";
+    ViewBag.Title = "Property Acknowledgment Receipts";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
+    var forYear = ViewBag.ForYear != null ? (int)ViewBag.ForYear : DateTime.Now.Year;
 }
 
+<link href="@Url.Content("~/Content/ics-workspace.css")" rel="stylesheet" type="text/css" />
 
-<br />
-<div class="row k-mb-2">
-    <div class="col-md-6">
-        @Html.Label("PO Year", htmlAttributes: new { @class = "col-md-2" })
-        <div class="col-md-2">
-            @(Html.Kendo().NumericTextBox()
-                .Name("forYear")
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                .Decimals(0)
-                .Spinners(false)
-                .Events(e => e.Change("onChangeForYear"))
-                .Format("0")
-                .Value(@ViewBag.ForYear)
-            )            
+<style type="text/css">
+    .epsms-par .item-units-detail-container {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        background: rgb(248, 250, 252);
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+    .epsms-par .item-units-detail-container .k-grid {
+        min-width: 1050px;
+        width: 100%;
+    }
+    .epsms-par .item-units-detail-container .k-grid-content {
+        overflow-x: auto !important;
+    }
+    .epsms-par .k-detail-cell {
+        overflow-x: auto !important;
+    }
+    .epsms-par #gridItems .k-grid-content {
+        overflow-x: auto !important;
+    }
+    .epsms-par #gridGeneratedSlips .k-grid-content {
+        overflow-x: auto !important;
+    }
+</style>
+
+<div class="epsms-ics epsms-par">
+    @Html.AntiForgeryToken()
+
+    <!-- SECTION 1: BREADCRUMBS & HEADER BAR -->
+    <div class="breadcrumbs">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <a href="javascript:void(0)">Property &amp; Supply</a> &gt;
+        <span>Property Acknowledgment Receipts</span>
+    </div>
+
+    <div class="header-bar">
+        <div>
+            <h1>Property Acknowledgment Receipts (PAR)</h1>
+            <p class="subtitle">Manage capital property accountability and PAR issuance from accepted Purchase Orders</p>
+        </div>
+        <div class="d-flex align-items-center" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; background: rgb(255, 255, 255); border: 1px solid rgb(203, 213, 225); border-radius: 6px; padding: 4px 10px;">
+                <span class="k-icon k-i-calendar" style="color: rgb(0, 37, 118);"></span>
+                <label for="forYear" style="margin: 0; font-weight: 600; font-size: 12px; color: rgb(71, 85, 105);">PO Year:</label>
+                @(Html.Kendo().NumericTextBox()
+                    .Name("forYear")
+                    .HtmlAttributes(new { style = "width: 85px; font-weight: bold;" })
+                    .Decimals(0)
+                    .Spinners(true)
+                    .Events(e => e.Change("onChangeForYear"))
+                    .Format("0")
+                    .Value(forYear)
+                )
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; background: rgb(255, 255, 255); border: 1px solid rgb(203, 213, 225); border-radius: 6px; padding: 4px 10px;">
+                <span class="k-icon k-i-filter" style="color: rgb(0, 37, 118);"></span>
+                <label for="Source" style="margin: 0; font-weight: 600; font-size: 12px; color: rgb(71, 85, 105);">Source:</label>
+                @(Html.Kendo().DropDownList()
+                    .Name("Source")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(new[] {
+                        new { Text = "All", Value = "0" },
+                        new { Text = "Manual", Value = "1" },
+                        new { Text = "Live Records", Value = "2" }
+                    })
+                    .Value("0")
+                    .HtmlAttributes(new { style = "width: 130px; font-weight: 500;" })
+                    .Events(e => e.Change("onChangeSource"))
+                )
+            </div>
+            <button type="button" class="btn-procurement-secondary" onclick="refreshWorkspace(true)" title="Refresh all data">
+                <span class="k-icon k-i-refresh"></span> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- SECTION 2: LIVE SUMMARY METRICS BAR -->
+    <div class="summary-cards-row">
+        <div class="summary-metric-card" id="cardTotalPos" title="Total eligible candidate Purchase Orders">
+            <span class="metric-dot dot-gray"></span>
+            <span class="metric-label">Total POs:</span>
+            <span class="metric-val" id="metricTotalPos">0</span>
+        </div>
+        <div class="summary-metric-card metric-pending" id="cardPending" title="POs awaiting accountable officer assignment or PAR generation">
+            <span class="metric-dot dot-amber"></span>
+            <span class="metric-label">Pending PAR:</span>
+            <span class="metric-val" id="metricPending">0</span>
+        </div>
+        <div class="summary-metric-card metric-partial" id="cardPartial" title="POs with partial PAR issuance completed">
+            <span class="metric-dot dot-blue"></span>
+            <span class="metric-label">Partially Processed:</span>
+            <span class="metric-val" id="metricPartial">0</span>
+        </div>
+        <div class="summary-metric-card metric-completed" id="cardCompleted" title="POs with all accountable property items issued">
+            <span class="metric-dot dot-green"></span>
+            <span class="metric-label">Completed:</span>
+            <span class="metric-val" id="metricCompleted">0</span>
+        </div>
+        <div class="summary-metric-card metric-remaining" id="cardRemaining" title="Total unissued accountable items across all POs">
+            <span class="metric-dot dot-indigo"></span>
+            <span class="metric-label">Remaining Items:</span>
+            <span class="metric-val" id="metricRemaining">0</span>
+        </div>
+    </div>
+
+    <!-- MAIN OPERATIONAL WORKSPACE (MASTER-DETAIL) -->
+    <div class="ics-workspace-container">
+
+        <!-- SECTION 3: MASTER PO PANE (LEFT ~38%) -->
+        <div class="ics-master-pane">
+            <div class="ics-master-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>Purchase Orders</h2>
+                    <p>Accepted orders with capital property</p>
+                </div>
+                <span class="badge badge-light border" id="poListCountBadge" style="font-size: 11px; font-weight: 600;">0 Orders</span>
+            </div>
+
+            <div class="ics-master-search-bar">
+                <div style="position: relative;">
+                    <span class="k-icon k-i-search" style="position: absolute; left: 10px; top: 9px; color: rgb(148, 163, 184);"></span>
+                    <input type="text" id="txtPoSearch" class="k-textbox" placeholder="Search PO #, Dept..."
+                           style="width: 100%; padding-left: 30px; font-size: 12px; height: 32px;" onkeyup="onFilterMasterList()" />
+                </div>
+                <div class="ics-filter-pills">
+                    <button type="button" class="filter-pill-btn active" data-filter="ALL" onclick="onSelectStatusFilter(this, 'ALL')">All</button>
+                    <button type="button" class="filter-pill-btn" data-filter="PENDING" onclick="onSelectStatusFilter(this, 'PENDING')">Pending</button>
+                    <button type="button" class="filter-pill-btn" data-filter="PARTIAL" onclick="onSelectStatusFilter(this, 'PARTIAL')">Partial</button>
+                    <button type="button" class="filter-pill-btn" data-filter="COMPLETED" onclick="onSelectStatusFilter(this, 'COMPLETED')">Complete</button>
+                </div>
+            </div>
+
+            <!-- Master PO Kendo Grid -->
+            <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column; min-height: 420px;">
+                @(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
+                    .Name("gridOrders")
+                    .HtmlAttributes(new { style = "height: calc(100vh - 280px); min-height: 420px; border: none;" })
+                    .Columns(col =>
+                    {
+                        col.Bound(c => c.PoNo).Title("Purchase Orders").ClientTemplate(
+                            "# var qBal = (typeof QtyBalance !== 'undefined' && QtyBalance !== null) ? QtyBalance : 0; #" +
+                            "# var qFin = (typeof QtyFinished !== 'undefined' && QtyFinished !== null) ? QtyFinished : 0; #" +
+                            "# var qTot = (typeof Qty !== 'undefined' && Qty !== null) ? Qty : 0; #" +
+                            "# var dept = (typeof Department !== 'undefined' && Department) ? Department : 'General Services'; #" +
+                            "# var sDate = (typeof SPoDate !== 'undefined' && SPoDate) ? SPoDate : ''; #" +
+                            "# var pct = (qTot > 0) ? Math.min(100, Math.round((qFin / qTot) * 100)) : 0; #" +
+                            "<div class='ics-po-item' id='po-item-#:Id#' onclick='onSelectPoRowByElement(this)'>" +
+                                "<div style='display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 2px;'>" +
+                                    "<span class='po-number'>#:PoNo#</span>" +
+                                    "# if (qBal == 0 && qTot > 0) { #" +
+                                        "<span class='status-badge status-accepted'>Complete</span>" +
+                                    "# } else if (qFin > 0) { #" +
+                                        "<span class='status-badge status-acceptance-progress'>Partial</span>" +
+                                    "# } else { #" +
+                                        "<span class='status-badge status-unposted'>Pending</span>" +
+                                    "# } #" +
+                                "</div>" +
+                                "<div class='po-department'>#:dept#</div>" +
+                                "<div style='display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgb(100, 116, 139); margin-top:4px;'>" +
+                                    "<span>PAR: <strong>#:qFin#</strong> / #:qTot#</span>" +
+                                    "<span>#:sDate#</span>" +
+                                "</div>" +
+                                "<div style='background:rgb(226, 232, 240); border-radius:3px; height:5px; margin-top:4px; overflow:hidden;'>" +
+                                    "<div style='background:rgb(0, 37, 118); height:100%; width:#:pct#%;'></div>" +
+                                "</div>" +
+                            "</div>"
+                        );
+                    })
+                    .Scrollable()
+                    .Sortable()
+                    .Selectable(s => s.Mode(GridSelectionMode.Single))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Events(events => events.Error("onGridOrdersError").RequestEnd("onGridOrdersRequestEnd"))
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty);
+                            model.Field(p => p.PoNo).DefaultValue(string.Empty);
+                            model.Field(p => p.PoDate).DefaultValue(null);
+                            model.Field(p => p.SPoDate).DefaultValue(string.Empty);
+                            model.Field(p => p.Department).DefaultValue(string.Empty);
+                            model.Field(p => p.Qty).DefaultValue(0);
+                            model.Field(p => p.QtyFinished).DefaultValue(0);
+                            model.Field(p => p.QtyBalance).DefaultValue(0);
+                        })
+                        .Sort(s => s.Add(a => a.PoNo).Descending())
+                        .Read(read => read.Action("Read", "ParSet").Data("DataGridOrders"))
+                    )
+                    .AutoBind(true)
+                    .Events(e => e.DataBound("onDataBoundOrdersGrid").Change("onChangeOrdersGrid"))
+                )
+            </div>
+        </div>
+
+        <!-- DETAIL WORKSPACE (RIGHT ~62%) -->
+        <div class="ics-detail-pane">
+
+            <!-- Empty State Placeholder -->
+            <div id="poEmptyState" class="p-5 text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 400px; padding: 40px; color: rgb(100, 116, 139);">
+                <span class="k-icon k-i-file-txt" style="font-size: 54px; color: rgb(203, 213, 225); margin-bottom: 16px;"></span>
+                <h3 style="font-size: 18px; font-weight: 700; color: rgb(51, 65, 85); margin-bottom: 6px;">No Purchase Order Selected</h3>
+                <p style="font-size: 13px; max-width: 440px; margin: 0 auto; line-height: 1.5;">
+                    Please select a Purchase Order from the master list on the left to inspect candidate property records, assign accountable officers, and generate Property Acknowledgment Receipts.
+                </p>
+            </div>
+
+            <!-- Active Selected PO Content Area -->
+            <div id="selectedPoWorkspace" style="display: none; flex-direction: column; height: 100%; overflow: hidden;">
+
+                <!-- SECTION 4: SELECTED PO COMPACT HEADER -->
+                <div class="ics-selected-po-card" style="padding: 14px 18px; background: rgb(255, 255, 255); border-bottom: 1px solid rgb(226, 232, 240);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                <h2 id="lblDetailPoNo" style="margin: 0; font-size: 20px; font-weight: 700; color: rgb(0, 37, 118); font-family: Consolas, monospace;">PO #</h2>
+                                <span id="badgeDetailPoStatus" class="status-badge status-unposted">Pending</span>
+                            </div>
+                            <div id="lblDetailDept" style="font-size: 13px; font-weight: 600; color: rgb(30, 41, 59);">Department</div>
+                            @*<div style="font-size: 12px; color: rgb(100, 116, 139); margin-top: 1px;">
+                                Supplier: <strong id="lblDetailSupplier" style="color: rgb(51, 65, 85);">--</strong>
+                            </div>*@
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn-procurement-secondary btn-sm" onclick="refreshCurrentPo(true)" title="Refresh current PO">
+                                <span class="k-icon k-i-refresh"></span> Refresh PO
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Grid Strip -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgb(226, 232, 240); font-size: 12px;">
+                        <div>
+                            <span style="color: rgb(100, 116, 139); display: block; font-size: 11px;">PO Date:</span>
+                            <strong id="lblDetailPoDate" style="color: rgb(15, 23, 42);">--</strong>
+                        </div>
+                        <div>
+                            <span style="color: rgb(100, 116, 139); display: block; font-size: 11px;">Fund Source:</span>
+                            <strong id="lblDetailFund" style="color: rgb(15, 23, 42);">General Fund</strong>
+                        </div>
+                        @*<div>
+                            <span style="color: rgb(100, 116, 139); display: block; font-size: 11px;">Procurement Mode:</span>
+                            <strong id="lblDetailMode" style="color: rgb(15, 23, 42);">--</strong>
+                        </div>*@
+                        <div>
+                            <span style="color: rgb(100, 116, 139); display: block; font-size: 11px;">Acquisition Value:</span>
+                            <strong id="lblDetailAcqValue" style="color: rgb(0, 37, 118); font-family: Consolas, monospace;">&#8369;0.00</strong>
+                        </div>
+                        <div>
+                            <span style="color: rgb(100, 116, 139); display: block; font-size: 11px;">Accountable Items:</span>
+                            <strong id="lblDetailItemStats" style="color: rgb(15, 23, 42);">0 Total / 0 Issued</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: PAR PROGRESS BAR -->
+                <div style="padding: 10px 18px; background: rgb(248, 250, 252); border-bottom: 1px solid rgb(226, 232, 240); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="flex: 1 1 320px; max-width: 480px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="font-weight: 600; color: rgb(51, 65, 85);">PAR Processing Progress:</span>
+                            <span id="lblProgressRatio" style="font-weight: 700; color: rgb(0, 37, 118);">0 of 0 Processed (0%)</span>
+                        </div>
+                        <div style="background: rgb(226, 232, 240); height: 10px; border-radius: 5px; overflow: hidden;">
+                            <div id="barProgressFill" style="background: rgb(0, 37, 118); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div style="font-size: 11px; color: rgb(100, 116, 139); margin-top: 3px;" id="lblProgressRemaining">
+                            0 Accountable Property Items Remaining
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: CONTEXTUAL DETAIL TABS (3 TABS: INDIVIDUAL ITEMS, ITEM SETS / LOTS, GENERATED SLIPS) -->
+                <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column;">
+                    @(Html.Kendo().TabStrip()
+                        .Name("parTabStrip")
+                        .HtmlAttributes(new { style = "height: 100%; border: none; display: flex; flex-direction: column;" })
+                        .SelectedIndex(0)
+                        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                        .Items(tabs =>
+                        {
+                            // TAB 1: INDIVIDUAL ACCOUNTABLE ITEMS
+                            tabs.Add().Text("Individual Accountable Items").Selected(true).Content(@<text>
+                                <div style="height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                                    <!-- Tab 1 Toolbar -->
+                                    <div style="padding: 8px 14px; background: rgb(255, 255, 255); border-bottom: 1px solid rgb(226, 232, 240); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 12px; font-weight: 600; color: rgb(51, 65, 85);">
+                                                <span class="k-icon k-i-list-unordered" style="color: rgb(0, 37, 118); margin-right: 4px;"></span> Accountable Property &amp; Equipment
+                                            </span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <button type="button" class="btn-procurement-secondary btn-sm" onclick="refreshItemsGrid()" title="Refresh item list">
+                                                <span class="k-icon k-i-refresh"></span> Refresh Items
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tab 1 Grid -->
+                                    <div style="flex: 1 1 auto; overflow: hidden; min-height: 350px;">
+                                        @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
+                                            .Name("gridItems")
+                                            .HtmlAttributes(new { style = "height: calc(100vh - 430px); min-height: 350px; border: none;" })
+                                            .Columns(col =>
+                                            {
+                                                col.Bound(c => c.CardNo).Title("Card Number").Width(100)
+                                                    .ClientTemplate(
+                                                        "# var cNo = (typeof CardNo !== 'undefined' && CardNo) ? CardNo : ((typeof StockNo !== 'undefined' && StockNo) ? StockNo : ''); #" +
+                                                        "# if (cNo) { #" +
+                                                            "<span style='font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118);'>#:cNo#</span>" +
+                                                        "# } else { #" +
+                                                            "<span class='text-muted' style='font-style: italic;'>-</span>" +
+                                                        "# } #"
+                                                    );
+
+                                                col.Bound(c => c.Description).Title("Description").Width(150)
+                                                    .HtmlAttributes(new { style = "white-space: normal; word-break: break-word;" });
+
+                                                col.Bound(c => c.Qty).Title("Qty").Width(70).Format("{0:n0}")
+                                                    .HtmlAttributes(new { style = "text-align: center; font-weight: 600;" });
+
+                                                col.Bound(c => c.Unit).Title("Unit").Width(70)
+                                                    .HtmlAttributes(new { style = "text-align: center;" });
+
+                                                col.Bound(c => c.UnitCost).Title("Unit Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: 600;" });
+
+                                                col.Bound(c => c.AddCost).Title("Additional Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace;" });
+
+                                                col.Bound(c => c.GTotalCost).Title("Acq. Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: 700; color: rgb(0, 37, 118);" });
+                                            })
+                                            .Scrollable()
+                                            .Resizable(x => x.Columns(true))
+                                            .Sortable()
+                                            .Selectable(s => s.Mode(GridSelectionMode.Single))
+                                            .ClientDetailTemplateId("itemUnitsTemplate")
+                                            .DataSource(dataSource => dataSource
+                                                .Ajax()
+                                                .Events(events => events.Error("GridError"))
+                                                .Model(model =>
+                                                {
+                                                    model.Id(p => p.Id);
+                                                    model.Field(p => p.Id).DefaultValue(Guid.Empty);
+                                                    model.Field(p => p.CardNo).DefaultValue("");
+                                                    model.Field(p => p.Description).DefaultValue("");
+                                                    model.Field(p => p.Qty).DefaultValue(0);
+                                                    model.Field(p => p.UnitCost).DefaultValue(0);
+                                                })
+                                                .Read(read => read.Action("_PoItemsRead", "ParSet").Data("DataGridItems"))
+                                            )
+                                            .AutoBind(false)
+                                            .Events(e => e.DataBound("onDataBoundItemsGrid").DetailInit("onDetailInitItemUnitsGrid").DetailExpand("onDetailExpandItemGrid"))
+                                        )
+                                    </div>
+                                </div>
+                            </text>);
+
+                            // TAB 2: GENERATED SLIPS
+                            tabs.Add().Text("Generated Slips").Content(@<text>
+                                <div style="height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                                    <div style="padding: 8px 14px; background: rgb(255, 255, 255); border-bottom: 1px solid rgb(226, 232, 240); display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="text-muted small">Official Property Acknowledgment Receipts issued for this Purchase Order</span>
+                                        <button type="button" class="btn-procurement-secondary btn-sm" onclick="refreshGeneratedSlipsGrid()">
+                                            <span class="k-icon k-i-refresh"></span> Refresh Slips
+                                        </button>
+                                    </div>
+                                    <div style="flex: 1 1 auto; overflow: hidden; min-height: 350px;">
+                                        @(Html.Kendo().Grid<dynamic>()
+                                            .Name("gridGeneratedSlips")
+                                            .Resizable(r => r.Columns(true))
+                                            .HtmlAttributes(new { style = "height: calc(100vh - 430px); min-height: 350px; border: none;" })
+                                            .Columns(col =>
+                                            {
+                                                col.Bound("RefNo").Title("PAR Number").Width(100)
+                                                    .ClientTemplate("<span style='font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118);'>#:RefNo#</span>");
+                                                col.Bound("RefDate").Title("PAR Date").Width(70).ClientTemplate(
+                                                    "#= RefDate ? kendo.toString(kendo.parseDate(RefDate), 'MM/dd/yyyy') : '' #"
+                                                );
+                                                col.Bound("ReceivedBy").Title("Accountable Officer").Width(150)
+                                                    .ClientTemplate(
+                                                        "# var rBy = (typeof ReceivedBy !== 'undefined' && ReceivedBy) ? ReceivedBy : ''; #" +
+                                                        "# var rPos = (typeof ReceivedByPosition !== 'undefined' && ReceivedByPosition) ? ReceivedByPosition : ''; #" +
+                                                        "<div><strong>#:rBy#</strong></div>" +
+                                                        "<div style='font-size:11px; color:rgb(100, 116, 139);'>#:rPos#</div>"
+                                                    );                                                
+                                                col.Bound("ReceivedDept").Title("Department").Width(70);
+                                                col.Bound("ItemCount").Title("Item Count").Width(50)
+                                                    .HtmlAttributes(new { style = "text-align: center; font-weight: 600;" });
+                                                col.Bound("TotalValue").Title("Total Value").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: bold;" });
+                                                col.Bound("Status").Title("Status").Width(70)
+                                                    .ClientTemplate(
+                                                        "# var slipSt = (typeof Status !== 'undefined' && Status) ? Status : ''; #" +
+                                                        "# if (slipSt == 'Posted') { #" +
+                                                            "<span class='status-badge status-accepted'>Posted</span>" +
+                                                        "# } else { #" +
+                                                            "<span class='status-badge status-unposted'>Draft</span>" +
+                                                        "# } #"
+                                                    );
+                                                col.Bound("HasAir").Title("AIR").Width(100).Sortable(false)
+                                                    .ClientTemplate(
+                                                        "# var hasAirDoc = (typeof HasAir !== 'undefined' && HasAir); #" +
+                                                        "# var isPosted = (typeof Status !== 'undefined' && Status == 'Posted'); #" +
+                                                        "# var airName = (typeof AirFileName !== 'undefined' && AirFileName) ? ((AirFileName.length > 37 && AirFileName.charAt(36) === '-') ? AirFileName.substring(37) : AirFileName) : 'Uploaded'; #" +
+                                                        "<div class='ics-air-cell'>" +
+                                                            "# if (hasAirDoc) { #" +
+                                                                "<span class='status-badge status-air-uploaded' style='cursor:pointer;' onclick='viewAirDocument(\"#:Id#\")' title='View: ' + airName>" +
+                                                                    "<span class='k-icon k-i-file-pdf'></span> #:airName#" +
+                                                                "</span> " +
+                                                                "<button type='button' class='btn-procurement-secondary btn-sm text-primary' onclick='viewAirDocument(\"#:Id#\")' title='View Attached AIR Document'>" +
+                                                                    "<span class='k-icon k-i-eye'></span> View" +
+                                                                "</button>" +
+                                                                "# if (!isPosted) { #" +
+                                                                    "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Replace Attached AIR Document'>" +
+                                                                        "<span class='k-icon k-i-refresh'></span> Replace" +
+                                                                    "</button>" +
+                                                                "# } #" +
+                                                            "# } else { #" +
+                                                                "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Upload AIR Document'>" +
+                                                                    "<span class='k-icon k-i-upload'></span> Upload AIR" +
+                                                                "</button>" +
+                                                            "# } #" +
+                                                        "</div>"
+                                                    );
+                                                col.Bound("RefNo").Title("Actions").Width(70).Sortable(false)
+                                                    .ClientTemplate("#=generatedSlipActionsTemplate(data)#");
+                                            })
+                                            .Scrollable()
+                                            .Sortable()
+                                            .DataSource(dataSource => dataSource
+                                                .Ajax()
+                                                .Events(events => events.Error("GridError"))
+                                                .Read(read => read.Action("_PoGeneratedSlipsRead", "ParSet").Data("DataGridGeneratedSlips"))
+                                            )
+                                            .AutoBind(false)
+                                        )
+                                    </div>
+                                </div>
+                            </text>);
+                        })
+                    )
+                </div>
+            </div>
         </div>
     </div>
 </div>
-<br />
 
-@(Html.Kendo().PanelBar()
-    .Name("panelbar")
-    .ExpandMode(PanelBarExpandMode.Multiple)
-    .Items(panelbar =>
-    {
-        panelbar.Add().Text("Purchase Orders")
-            .Expanded(true)
-            .Selected(true)
-            .Content(@<text>
-                <div class="div-render">
-                    @RenderOrders()
-                </div>
-            </text>);
-        panelbar.Add().Text("Order Items - Individual")
-            .Expanded(true)
-            .Content(@<text>
-                <div class="div-render">
-                    @RenderOrderItems()
-                </div>
-            </text>);
-        panelbar.Add().Text("Order Items - Set")
-            .Expanded(true)
-            .Content(@<text>
-                <div class="div-render">
-                    @RenderOrderItemSet()
-                </div>
-            </text>);
-        @*panelbar.Add().Text("Property Acknowledgement Receipt")
-            .Expanded(true)
-            .Content(@<text>
-                <div class="div-render">
-                    @RenderPars()
-                </div>
-            </text>);*@
-    })
-)
-
-@helper RenderOrders()
-{
-    @(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
-    .Name("grid")
-    .HtmlAttributes(new { style = "height: calc(30vh);" })
-    .Columns(col =>
-    {
-        col.Bound(c => c.PoNo).Width(50);
-        col.Bound(c => c.PoDate).Width(50);
-        col.Bound(c => c.AirNo).Width(50);
-        col.Bound(c => c.AirDate).Width(50);
-        col.Bound(c => c.Department).Width(150);
-        col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.QtyFinished).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.QtyBalance).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-    })
-    .ToolBar(t =>
-    {
-        t.Search();
-    })
-    .Search(s =>
-    {
-        s.Field(o => o.PoNo, "contains");
-        s.Field(o => o.AirNo, "contains");
-        s.Field(o => o.Department, "contains");
-        s.Field(o => o.QtyBalance, "equals");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(true)
-        .ButtonCount(5)
-    )
-    .Resizable(r => r.Columns(true))
-    .Filterable()
-    .Sortable()
-    .Scrollable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("GridError"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-        })
-        .Aggregates(a =>
-        {
-            a.Add(p => p.Qty).Sum();
-            a.Add(p => p.QtyFinished).Sum();
-            a.Add(p => p.QtyBalance).Sum();
-        })
-        .Sort(s => {
-            s.Add(a => a.PoNo);
-            //s.Add(a => a.QtyBalance).Descending();            
-            })
-        .Read(read => read.Action("Read", "ParSet").Data("DataGrid"))
-    ).AutoBind(true)
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Events(e => e
-        .Change("onChangeGrid")
-        .DataBound("onDataBoundGrid")
-    )
-    )
-}
-
-@helper RenderOrderItems()
-{
-    @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
-                    .Name("gridItems")
-                    .HtmlAttributes(new { style = "height: calc(30vh);" })
-                    .Columns(col =>
-                    {
-                        col.Bound(c => c.Article).Width(100);
-                        col.Bound(c => c.Description).Width(100);
-                        col.Bound(c => c.Unit).Width(30);
-                        col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        col.Bound(c => c.AddCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        col.Bound(c => c.GTotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        col.Bound(c => c.GeneratedItems).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}").Title("Generated<br>Items")
-                                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        col.Bound(c => c.IsForICS).Width(50).EditorTemplateName("_IsForICSTemplate")
-                            .ClientTemplate("#= IsForICS ? 'Y' : 'N' #")
-                            .Title("For ICS")
-                            .HtmlAttributes(new { style = "text-align:center;" })
-                            .HeaderHtmlAttributes(new { style = "text-align:center;" });
-                        // posting is per par number
-                        //col.Bound(c => c.ParPostedBy).Width(50);
-                        //col.Bound(c => c.ParPostedDt).Width(50);
-                        //col.Bound(c => c.SetLotNo).Width(50);
-                        //col.Bound(c => c.SetLotDesc).Width(50);
-                        col.Command(command =>
-                        {
-                            command.Edit().Visible("IsNoGenerated");
-                            //command.Custom("Uploads").Click("onClickUploads");
-                            command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickSetPars");
-                        }).Width(100);
-                    })
-                    .ToolBar(t =>
-                    {
-                    t.Template(@<text>
-                            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
-                            @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
-                            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))*@                            
-                        </text>);
-                    })
-                    .Resizable(r => r.Columns(true))
-                    .Sortable()
-                    .NoRecords()
-                    .Scrollable()
-                    //.ClientDetailTemplateId("UploadedFiles")
-                    .DataSource(dataSource => dataSource
-                        .Ajax()
-                        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems"))
-                        .Model(model =>
-                        {
-                            model.Id(p => p.Id);
-                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                            model.Field(p => p.Qty).Editable(false);
-                            model.Field(p => p.Unit).Editable(false);
-                            model.Field(p => p.UnitCost).Editable(false);
-                            model.Field(p => p.AddCost).Editable(false);
-                            model.Field(p => p.GTotalCost).Editable(false);
-                            model.Field(p => p.Article).Editable(false);
-                            model.Field(p => p.Description).Editable(false);
-                            model.Field(p => p.GeneratedItems).Editable(false);
-                            model.Field(p => p.ParPostedBy).Editable(false);
-                            model.Field(p => p.ParPostedDt).Editable(false);
-                            //model.Field(p => p.SetLotNo).Editable(false);
-                            //model.Field(p => p.SetLotDesc).Editable(false);
-                        })
-                        .Aggregates(a =>
-                        {
-                            a.Add(p => p.Qty).Sum();
-                            a.Add(p => p.GTotalCost).Sum();
-                            a.Add(p => p.GeneratedItems).Sum();
-                        })
-                        .Sort(s => s.Add(a => a.InsertedDt))
-                        .Read(read => read.Action("_PoItemsRead", "ParSet").Data("DataGridItems"))
-                        .Update(update => update.Action("_PoItemsUpdate", "ParSet"))
-                    ).AutoBind(false)
-                    .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(e => e
-            .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")
-        )
-    )
-}
-
-@helper RenderOrderItemSet()
-{
-    @(Html.Kendo().Grid<iLgs.Models.ParIcsItemSetVm>()
-        .Name("gridItemSet")
-        .HtmlAttributes(new { style = "height: calc(30vh);" })
-        .Columns(col =>
-        {
-            col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.AddCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.GTotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.SetPostedBy).Width(50);
-            //col.Bound(c => c.SetPostedDt).Width(50);
-        })
-        .ToolBar(t =>
-        {
-        t.Template(@<text>
-            @(Html.Kendo().Button().Content("Generate PAR").Icon("k-icon k-i-add").Name("btnParsAddItemSet").Events(e => e.Click("onClickBtnAddParSet")))
-            @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostParSet")))
-            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))*@
-            </text>);
-        })
-        .ClientDetailTemplateId("item-set-description-template")
-        .Resizable(r => r.Columns(true))
-        .Sortable()
-        .NoRecords()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError")
-            )
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-            })
-            .Aggregates(a =>
-            {
-                a.Add(p => p.Qty).Sum();
-                a.Add(p => p.GTotalCost).Sum();
-            })
-            .Sort(s => s.Add(a => a.InsertedDt))
-            .Read(read => read.Action("_PoItemSetRead", "ParSet").Data("DataGridItemSet"))
-        ).AutoBind(false)
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(e => e
-            //.Edit("onEditGridItemSet")
-            .Change("onChangeGridItemSet")
-            .DataBound("onDataBoundGridItemSet")
-            )
-    )
-}
-
-@helper RenderPars()
-{
-    @(Html.Kendo().Grid<iLgs.Models.IcsParItem>()
-                    .Name("gridItemsPar")
-                    .Columns(col =>
-                    {
-                        col.Bound(c => c.IcsPar.RefNo).Title("PAR No.").Width(70);
-                        col.Bound(c => c.IcsPar.RefDate).Title("PAR Date").Width(70)
-                            .ClientTemplate("#= kendo.toString(kendo.parseDate(IcsPar.RefDate), 'MM/dd/yyyy') #");                            
-                        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(70);
-                        col.Bound(c => c.IcsPar.Location).Width(70);
-                        col.Command(command =>
-                        {
-                            //command.Edit();
-                            command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
-                            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
-                            command.Custom("Print PAR").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
-                        }).Width(100);
-                    })
-                    .ToolBar(t =>
-                    {
-                    t.Template(@<text>
-            @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))*@
-            @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
-                @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
-                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
-                    </text>);
-                    })
-                    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
-                    .Resizable(r => r.Columns(true))
-                    .Sortable()
-                    .Scrollable()
-                    .NoRecords()
-                    .DataSource(dataSource => dataSource
-                        .Ajax()
-                        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridParItems")
-                        )
-                        .Model(model =>
-                        {
-                            model.Id(p => p.Id);
-                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                        })
-                        .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PsCardItemExtn.PropNo); })
-                        .Read(read => read.Action("_ParsRead", "ParSet").Data("DataGridItemPar"))
-                        //.Update(update => update.Action("_ParsUpdate", "ParSet"))
-                        .Destroy(destroy => destroy.Action("_ParsDestroy", "ParSet"))
-                    )
-                    .AutoBind(false)
-                    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    //.ToClientTemplate()
-    .Events(e => e
-        //.Edit("onEditGridItemsPar")
-        .Change("onChangeGridItemsPar")
-        .DataBound("onDataBoundGridItemsPar")
-    )
-    )
-}
-
-
-<script id="UploadedFiles" type="text/kendo-tmpl">    
-    @(Html.Kendo().TabStrip()
-        .Name("tabStrip_#=GroupId#")
-        .HtmlAttributes(new { @class = "no-text-tabstrip" })
-        .TabPosition(TabStripTabPosition.Top)
-        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
-        .SelectedIndex(0)
-        .Items(items =>
-        {
-            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "ParIcsUpload", new { imageId = "#=GroupId#" });
-        })
-        .ToClientTemplate())
-</script>
-
-
-<script id="Details" type="text/kendo-tmpl">
-    @(Html.Kendo().TabStrip()
-    .Name("tabStrip_#=Id#")
-    .HtmlAttributes(new { @class = "no-text-tabstrip" })
-    .TabPosition(TabStripTabPosition.Top)
-    .Animation(animation =>
-    {
-        animation.Open(config =>
-        {
-            config.Fade(FadeDirection.In);
-        });
-    })
-    .SelectedIndex(0)
-    .Items(items =>
-    {
-        items.Add().Text("PO No. #=PoNo# Items")
-                    .Selected(true)
-                   .LoadContentFrom("_PoItems", "ParSet", new { poNo = "#=PoNo#" });
-        //items.Add().Text("Issued Items")
-        //    .LoadContentFrom("_Issuance", "Pars", new { cardItemId = "#=Id#" });
-        //items.Add().Text("ICS")
-        //    .LoadContentFrom("_Ics", "PoIssuance", new { CardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
-    }).ToClientTemplate())
-</script>
-
-<script id="item-set-description-template" type="text/x-kendo-template">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescription>()
-        .Name("gridItemSetDescription_#=Id#")
-        .Columns(col =>
-        {
-            col.Bound(c => c.Description).Width(100);
-        })
-        .ClientDetailTemplateId("item-set-description-item-template")
-        .Sortable()
-        .NoRecords()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError")
-            )
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-            })
-            .Sort(s => s.Add(a => a.InsertedDt))
-            .Read(read => read.Action("_PoItemSetDescriptionRead", "ParSet", new { unitGroupId = "#=Id#" }))
-        )
-        .Resizable(r => r.Columns(true))
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(e => e
-            //.Edit("onEditGridItems")
-            .Change("onChangeGridItemSetDescription")
-            .DataBound("onDataBoundGridItemSetDescription")
-        ).ToClientTemplate()
-    )
-</script>
-
-<script id="item-set-description-item-template" type="text/x-kendo-template">
-    @(Html.Kendo().Grid<iLgs.Models.ParIcsItemVm>()
-        .Name("gridItemSetDescriptionItem_#=Id#")
-        .HtmlAttributes(new { style = "height: 100%;" })
-        .Columns(col =>
-        {
-            col.Bound(c => c.Article).Width(100);
-            col.Bound(c => c.Description).Width(100);
-            col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.AddCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.GTotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                    .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.TotalQty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                    .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.GeneratedItems).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}").Title("Generated<br>Items")
-                    .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.IsForICS).Width(50).EditorTemplateName("_IsForICSTemplate")
-            //            .ClientTemplate("\\#= IsForICS ? 'Y' : 'N' \\#")
-            //            .Title("For ICS");
-            col.Command(command =>
-            {
-                //command.Edit();
-                //command.Custom("Uploads").Click("onClickSetUploads");
-                command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickSetPars");
-            }).Width(100);
-        })
-        //.ClientDetailTemplateId("GeneratedItems")
-        //.ClientDetailTemplateId("UploadedFiles")
-        .Resizable(r => r.Columns(true))
-        .Sortable()
-        .NoRecords()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError")
-            )
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                model.Field(p => p.TotalQty).Editable(false);
-                model.Field(p => p.Unit).Editable(false);
-                model.Field(p => p.UnitCost).Editable(false);
-                model.Field(p => p.AddCost).Editable(false);
-                model.Field(p => p.GTotalCost).Editable(false);
-                model.Field(p => p.Article).Editable(false);
-                model.Field(p => p.Description).Editable(false);
-                model.Field(p => p.GeneratedItems).Editable(false);
-            })
-            .Aggregates(a =>
-            {
-                a.Add(p => p.TotalQty).Sum();
-                a.Add(p => p.GTotalCost).Sum();
-                a.Add(p => p.GeneratedItems).Sum();
-            })
-            .Sort(s => s.Add(a => a.InsertedDt))
-            .Read(read => read.Action("_PoItemSetDescriptionItemRead", "ParSet", new { unitGroupDescriptionId = "#=Id#" }))
-        //.Update(update => update.Action("_PoItemsUpdate", "ParSet"))        
-
-        ).Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(e => e
-            //.Edit("onEditGridItemSetDescriptionItem")
-            .Change("onChangeGridItemSetDescriptionItem")
-            .DataBound("onDataBoundGridItemSetDescriptionItem")
-            .DetailExpand("onDetailExpandGridItemSetDescriptionItem")
-            .DetailCollapse("onDetailCollapseGridItemSetDescriptionItem")
-        )
-        .ToClientTemplate()
-    )
-</script>
-
-@(Html.Kendo().Notification()
-        .Name("popupNotification")
-        .Events(e => e.Show("onShowNotification"))
-)
-
+<!-- KENDO WINDOW CONTAINER (FOR GENERATION / DIALOGS) -->
 <div id="windowcontainer"></div>
 
-<style>
-    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
-        width: auto;
-    }
+<!-- DELETE PAR CONFIRMATION MODAL -->
+<div id="windowDeletePar" style="display:none;">
+    <div class="p-3" style="font-size: 13px; padding: 18px;">
+        <div class="alert alert-danger mb-3" style="background: rgb(254, 242, 242); border: 1px solid rgb(254, 202, 202); color: rgb(153, 27, 27); border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+            <strong style="display:block; margin-bottom: 6px; font-size: 14px;">
+                <span class="k-icon k-i-delete"></span> Delete Generated PAR?
+            </strong>
+            <div>PAR No.: <strong id="deleteModalParNo" style="font-family: Consolas, monospace; color: rgb(127, 29, 29); font-size: 14px;"></strong></div>
+            <div style="font-size: 12px; margin-top: 6px; line-height: 1.4;">
+                This will permanently delete this generated PAR record. Affected items will be returned to <strong>Pending</strong> status.
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+            <button type="button" class="btn-procurement-secondary" onclick="closeDeleteParModal()">Cancel</button>
+            <button type="button" id="btnConfirmDeletePar" class="btn-procurement-primary" style="background: rgb(220, 38, 38); border-color: rgb(220, 38, 38); color: rgb(255, 255, 255);" onclick="executeDeletePar()">
+                <span class="k-icon k-i-delete"></span> Delete PAR
+            </button>
+        </div>
+    </div>
+</div>
 
-    .k-window-content {
-        overflow-x: hidden;
-    }
+<!-- POST PAR CONFIRMATION MODAL -->
+<div id="windowPostPar" style="display:none;">
+    <div class="p-3" style="font-size: 13px; padding: 18px;">
+        <div id="postParAlertBox" class="alert alert-info mb-3" style="background: rgb(240, 249, 255); border: 1px solid rgb(186, 230, 253); color: rgb(3, 105, 161); border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+            <strong style="display:block; margin-bottom: 6px; font-size: 14px;">
+                <span class="k-icon k-i-check-circle"></span> Post Official PAR?
+            </strong>
+            <div>PAR No.: <strong id="postModalParNo" style="font-family: Consolas, monospace; color: rgb(12, 74, 110); font-size: 14px;"></strong></div>
+            <div style="font-size: 12px; margin-top: 6px; line-height: 1.4;">
+                Once posted, this PAR will become an official transaction and property accountability will be formally transferred to the designated accountable officer.
+            </div>
+        </div>
+        <div id="postParMissingAirWarning" class="alert alert-warning mb-3" style="display:none; background: rgb(255, 251, 235); border: 1px solid rgb(253, 230, 138); color: rgb(146, 64, 14); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 12px;">
+            <strong style="display:block; margin-bottom: 4px;">
+                <span class="k-icon k-i-warning"></span> AIR Document Required
+            </strong>
+            <span>An Acceptance &amp; Inspection Report (AIR) document must be uploaded before posting this PAR.</span>
+            <div style="margin-top: 8px;">
+                <button type="button" class="btn-procurement-secondary btn-sm" onclick="openUploadFromPostModal()">
+                    <span class="k-icon k-i-upload"></span> Upload AIR Now
+                </button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+            <button type="button" class="btn-procurement-secondary" onclick="closePostParModal()">Cancel</button>
+            <button type="button" id="btnConfirmPostPar" class="btn-procurement-primary" onclick="executePostPar()">
+                <span class="k-icon k-i-check"></span> Post PAR
+            </button>
+        </div>
+    </div>
+</div>
 
-    .k-grid .k-grid-search {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-    }
+<!-- UNPOST PAR CONFIRMATION MODAL -->
+<div id="windowUnpostPar" style="display:none;">
+    <div class="p-3" style="font-size: 13px; padding: 18px;">
+        <div class="alert alert-warning mb-3" style="background: rgb(255, 251, 235); border: 1px solid rgb(253, 230, 138); color: rgb(146, 64, 14); border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+            <strong style="display:block; margin-bottom: 6px; font-size: 14px;">
+                <span class="k-icon k-i-undo"></span> Unpost PAR?
+            </strong>
+            <div>PAR No.: <strong id="unpostModalParNo" style="font-family: Consolas, monospace; color: rgb(180, 83, 9); font-size: 14px;"></strong></div>
+            <div style="font-size: 12px; margin-top: 6px; line-height: 1.4;">
+                This will return the PAR to an unposted state and may affect the PO's PAR completion/progress status.
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+            <button type="button" class="btn-procurement-secondary" onclick="closeUnpostParModal()">Cancel</button>
+            <button type="button" id="btnConfirmUnpostPar" class="btn-procurement-primary" style="background: rgb(217, 119, 6); border-color: rgb(217, 119, 6); color: rgb(255, 255, 255);" onclick="executeUnpostPar()">
+                <span class="k-icon k-i-undo"></span> Unpost
+            </button>
+        </div>
+    </div>
+</div>
 
-    .k-floating-label-container {
-        width: 100%;
-    }
+<!-- NOTIFICATION WIDGET -->
+@(Html.Kendo().Notification()
+    .Name("parNotification")
+    .Position(p => p.Pinned(true).Top(30).Right(30))
+    .Stacking(NotificationStackingSettings.Down)
+    .AutoHideAfter(5000)
+)
 
-    #span_ {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-        width: fit-content;
-    }
-
-    .no-text-tabstrip .k-item .k-link {
-        padding: 0; /* Remove padding */
-        text-indent: -9999px; /* Move the text outside the visible area */
-        overflow: hidden; /* Hide any overflow */
-    }
-
-    /*#grid .k-grid-content {
-        height: calc(100vh - 180px) !important;
-    }*/
-
-    #div-splitter {
-        /*overflow-y: auto;*/
-        height: calc(100vh - 180px) !important;
-    }
-
-    .h-pane-content {
-        height: 98%;
-        padding: 0 10px;
-    }
-
-    .div-pane {
-        height: 100%;
-        padding: 0 10px;
-    }
-
-    #main-div {
-        height: 100%;
-    }
-
-    .div-render {
-        padding: 0 10px 10px;
-    }
-
-    .disabled-row {
-        background-color: #f0f0f0; /* Light gray background */
-        /*color: #a0a0a0;*/ /* Gray text */
-        /*color: red;*/
-        opacity: 0.5;
-        /*pointer-events: none;*/ /* Prevent clicking */
-    }
-
-    /* Default style for PanelBar header */
-    #panelbar .k-link {
-        background-color: #f8f9fa; /* Default color for header */
-        color: #333; /* Default text color for header */
-    }
-
-    /* Style for the PanelBar header when hovered */
-    #panelbar .k-item:hover > .k-link {
-        background-color: #0056b3 !important; /* Desired hover color for the header */
-        color: white !important; /* Text color change for header */
-    }
-
-    /* Active state style for selected PanelBar item */
-    #panelbar > .k-item.k-state-active > .k-link {
-        background-color: rgba(13, 110, 253, .25); /* Active color for header */
-        color: black;
-    }
-
-    /* Prevent hover color from affecting div-render content */
-    .div-render {
-        background-color: transparent; /* Ensure no background color for content */
-    }
-
-    /* Kendo Grid styles should not change */
-    .k-grid, .k-grid-header, .k-grid-content {
-        background-color: inherit !important; /* Ensure grid background remains unaffected */
-        color: inherit !important; /* Ensure grid text color remains unaffected */
-    }
-
-    /* Specific styles for Kendo Grid headers to avoid hover interference */
-    .k-grid-header th {
-        background-color: inherit !important; /* Ensure header background remains unaffected */
-        color: inherit !important; /* Ensure text color remains unaffected */
-    }
-   
-</style>
-
-
-<script type="text/x-kendo-template" id="validationMessageTemplate">
-    # if (messages.length) { #
-    @*<li>
-            #=field#
-            <ul>
-                # for (var i = 0; i < messages.length; ++i) { #
-                <li>#= messages[i] #</li>
-                # } #
-            </ul>
-        </li>*@
-    # for (var i = 0; i < messages.length; ++i) { #
-    <li>#= messages[i] #</li>
-    # } #
-    # } #
+<!-- Kendo Detail Template for Individual Accountable Items Subgrid -->
+<script id="itemUnitsTemplate" type="text/x-kendo-tmpl">
+    <div class="item-units-detail-container">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(71, 85, 105); margin-bottom: 8px;">
+            <span class="k-icon k-i-list-bulleted" style="font-size: 12px; margin-right: 4px;"></span> Generated Accountable Units
+        </div>
+        <div class="item-units-grid-target"></div>
+    </div>
 </script>
 
-
+<!-- CLIENT-SIDE SCRIPTING -->
 <script type="text/javascript">
-    function onChangeForYear(e) {
-        refreshAllGrids();
-    }
-
-    function columnTemplate(data) {
-        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
-    }
+    var selectedPoId = null;
+    var selectedPoNo = null;
+    var selectedPoDate = null;
+    var selectedDeptId = null;
 
     $(document).ready(function () {
-        // When mouse enters the content area
-        $('#panelbar .div-render').on('mouseenter', function (event) {
-            // Add hover class to the closest PanelBar item (header)
-            $(this).closest('.k-item').addClass('hover-panel');
-            event.stopPropagation(); // Prevent the event from bubbling up
-        });
-
-        // When mouse leaves the content area
-        $('#panelbar .div-render').on('mouseleave', function (event) {
-            // Remove hover class from the closest PanelBar item (header)
-            $(this).closest('.k-item').removeClass('hover-panel');
-            event.stopPropagation(); // Prevent the event from bubbling up
-        });
-
-        // Optional: Keep hover style on click
-        $('#panelbar .div-render').on('click', function (event) {
-            // Remove hover from all panels
-            $('#panelbar .k-item').removeClass('hover-panel');
-            // Add hover style to the clicked panel
-            $(this).closest('.k-item').addClass('hover-panel');
-            event.stopPropagation(); // Prevent the event from bubbling up
-        });
+        fetchSummaryMetrics();
     });
 
-    function onSelectPoNo(e) {
-        var dataItem = this.dataItem(e.item.index());
-        //if (dataItem) {
-        //    $("#poDate").val(dataItem.PoDate).trigger("change");
-        //    $("#airNo").val(dataItem.AirNo).trigger("change");
-        //    $("#airDate").val(dataItem.AirDate).trigger("change");
-        //    $("#department").val(dataItem.Department).trigger("change");
-        //    $("#deptId").val(dataItem.DeptId).trigger("change");
-
-        //    $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
-        //    $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
-        //}
-
-        $("#PoDate").data("kendoDatePicker").value(dataItem.PoDate);
-        $("#AirDate").data("kendoDatePicker").value(dataItem.AirDate);
-
-        $("#AirNo").val(dataItem.AirNo).trigger("change");
-        $("#DeptId").val(dataItem.DeptId).trigger("change");
-        $("#Department").val(dataItem.Department).trigger("change");
-
-        $("#PoDate").data("kendoDatePicker").trigger("change");
-        $("#AirDate").data("kendoDatePicker").trigger("change");
-
-        $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, deptId: dataItem.DeptId });
-        $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, deptId: dataItem.DeptId });
+    // Helper: Safely get the active PO Year as an integer
+    function getSelectedYear() {
+        try {
+            var nt = $("#forYear").data("kendoNumericTextBox");
+            if (nt && typeof nt.value === "function") {
+                var val = nt.value();
+                if (val && !isNaN(val)) return parseInt(val, 10);
+            }
+            var raw = $("#forYear").val();
+            if (raw) {
+                var cleaned = ("" + raw).replace(/[^\d]/g, '');
+                if (cleaned.length > 0) {
+                    var p = parseInt(cleaned, 10);
+                    if (!isNaN(p) && p > 0) return p;
+                }
+            }
+        } catch (e) {
+            console.warn("Error reading forYear, defaulting:", e);
+        }
+        return @forYear;
     }
 
+    // Helper: Safely get the active Source filter as an integer (0: All, 1: Manual, 2: Live Records)
+    function getSelectedSource() {
+        try {
+            var ddl = $("#Source").data("kendoDropDownList");
+            if (ddl && typeof ddl.value === "function") {
+                var val = ddl.value();
+                if (val !== undefined && val !== null && val !== "") {
+                    var p = parseInt(val, 10);
+                    if (!isNaN(p) && (p === 1 || p === 2)) return p;
+                }
+            }
+            var raw = $("#Source").val();
+            if (raw !== undefined && raw !== null && raw !== "") {
+                var pr = parseInt(raw, 10);
+                if (!isNaN(pr) && (pr === 1 || pr === 2)) return pr;
+            }
+        } catch (e) {
+            console.warn("Error reading Source, defaulting to 0:", e);
+        }
+        return 0;
+    }
 
-    function onTileResize(e) {
-        if (e.container) {
-            // for widgets that do not auto resize
-            // https://docs.telerik.com/kendo-ui/styles-and-layout/using-kendo-in-responsive-web-pages
-            kendo.resize(e.container, true);
+    function onChangeForYear(e) {
+        refreshWorkspace(true);
+    }
+
+    function onChangeSource(e) {
+        refreshWorkspace(true);
+    }
+
+    // SECTION 2: FETCH SUMMARY METRICS
+    function fetchSummaryMetrics() {
+        var year = getSelectedYear();
+        var source = getSelectedSource();
+        $.ajax({
+            url: '@Url.Action("GetSummaryMetrics", "ParSet")',
+            type: "GET",
+            data: { forYear: year, source: source },
+            dataType: "json",
+            success: function (res) {
+                if (res && res.success) {
+                    $("#metricTotalPos").text(res.totalPos || 0);
+                    $("#metricPending").text(res.pending || 0);
+                    $("#metricPartial").text(res.partial || 0);
+                    $("#metricCompleted").text(res.completed || 0);
+                    $("#metricRemaining").text(res.remainingItems || 0);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.warn("Could not fetch summary metrics:", error);
+            }
+        });
+    }
+
+    function refreshWorkspace(reloadMaster) {
+        fetchSummaryMetrics();
+        if (reloadMaster) {
+            var ordersGrid = $("#gridOrders").data("kendoGrid");
+            if (ordersGrid) {
+                ordersGrid.dataSource.read();
+            }
+        }
+        if (selectedPoNo) {
+            refreshCurrentPo(false);
         }
     }
 
-    $(window).on("resize", function () {
-        kendo.resize($(".k-chart, .k-grid"));
-    });
+    // MASTER PO GRID DATA & EVENTS
+    function DataGridOrders() {
+        return {
+            forYear: getSelectedYear(),
+            source: getSelectedSource()
+        };
+    }
 
-    function onShowNotification(e) {
-        if (e.sender.getNotifications().length == 1) {
-            e.element.parent().css({ zIndex: 22222 });
+    function onGridOrdersRequestEnd(e) {
+        if (e.type === "read" && e.response) {
+            fetchSummaryMetrics();
         }
     }
 
-    function onError(e) {
-        // invalid because the responseText is a raw string, not JSON
-        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
-        var err = e.XMLHttpRequest.responseText;
-        alert(err);
-    };
+    function onGridOrdersError(e) {
+        var msg = "An error occurred loading purchase orders.";
+        if (e.errors) {
+            if (typeof e.errors === "string") msg = e.errors;
+            else if ($.isArray(e.errors)) msg = e.errors.join("; ");
+        }
+        notifyWarning(msg);
+    }
 
-    function error_handler(e, status) {
-        if ((e.errors)) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
+    function onDataBoundOrdersGrid(e) {
+        var grid = e.sender;
+        var data = grid.dataSource.view();
+        $("#poListCountBadge").text(data.length + " Orders");
+
+        if (data.length > 0) {
+            var targetRow = null;
+            if (selectedPoId) {
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].Id === selectedPoId) {
+                        targetRow = grid.tbody.find("tr[data-uid='" + data[i].uid + "']");
+                        break;
+                    }
+                }
+            }
+            if (!targetRow || targetRow.length === 0) {
+                targetRow = grid.tbody.find("tr:first");
+            }
+            if (targetRow.length > 0) {
+                grid.select(targetRow);
+                var item = grid.dataItem(targetRow);
+                selectPoFromDataItem(item, targetRow);
+            }
+        } else {
+            $("#selectedPoWorkspace").hide();
+            $("#poEmptyState").show();
+            selectedPoId = null;
+            selectedPoNo = null;
+            selectedPoDate = null;
+            selectedDeptId = null;
+        }
+    }
+
+    function onChangeOrdersGrid(e) {
+        var grid = e.sender;
+        var selected = grid.select();
+        if (selected.length > 0) {
+            var item = grid.dataItem(selected);
+            selectPoFromDataItem(item, selected);
+        }
+    }
+
+    function onSelectPoRowByElement(element) {
+        var tr = $(element).closest("tr");
+        var grid = $("#gridOrders").data("kendoGrid");
+        if (grid && tr.length > 0) {
+            grid.select(tr);
+        }
+    }
+
+    function selectPoFromDataItem(dataItem, tr) {
+        if (!dataItem) return;
+        selectedPoId = dataItem.Id;
+        selectedPoNo = dataItem.PoNo;
+        selectedPoDate = dataItem.PoDate;
+        selectedDeptId = dataItem.DeptId;
+
+        $(".ics-po-item").removeClass("active");
+        if (tr) {
+            $(tr).find(".ics-po-item").addClass("active");
+        }
+
+        $("#poEmptyState").hide();
+        $("#selectedPoWorkspace").css("display", "flex");
+
+        // Fetch PO header details
+        var poDateStr = selectedPoDate ? kendo.toString(kendo.parseDate(selectedPoDate), "yyyy-MM-dd") : null;
+        $.ajax({
+            url: '@Url.Action("GetPoDetails", "ParSet")',
+            type: "GET",
+            data: {
+                poNo: selectedPoNo,
+                poDate: poDateStr,
+                deptId: selectedDeptId,
+                source: getSelectedSource()
+            },
+            dataType: "json",
+            success: function (res) {
+                if (res && res.success) {
+                    renderSelectedPoHeader(res);
+                }
+            }
+        });
+
+        refreshItemsGrid();
+        refreshGeneratedSlipsGrid();
+    }
+
+    function renderSelectedPoHeader(d) {
+        $("#lblDetailPoNo").text(d.poNo || selectedPoNo);
+        $("#lblDetailDept").text(d.department || "General Services Office");
+        //$("#lblDetailSupplier").text(d.supplier || "--");
+        $("#lblDetailPoDate").text(d.poDate || "--");
+        $("#lblDetailFund").text(d.fund || "General Fund");
+        //$("#lblDetailMode").text(d.poMode || "--");
+        $("#lblDetailAcqValue").text(kendo.toString(d.acqValue || 0, "c2"));
+
+        var tot = d.totalItems || 0;
+        var fin = d.finishedItems || 0;
+        var bal = d.balanceItems || 0;
+        $("#lblDetailItemStats").text(tot + " Total / " + fin + " Issued");
+
+        var pct = tot > 0 ? Math.min(100, Math.round((fin / tot) * 100)) : 0;
+        $("#lblProgressRatio").text(fin + " of " + tot + " Processed (" + pct + "%)");
+        $("#barProgressFill").css("width", pct + "%");
+        $("#lblProgressRemaining").text(bal + " Accountable Property Items Remaining");
+
+        var statusClass = "status-unposted";
+        var statusText = "Pending";
+        if (bal === 0 && tot > 0) {
+            statusClass = "status-accepted";
+            statusText = "Complete";
+        } else if (fin > 0) {
+            statusClass = "status-acceptance-progress";
+            statusText = "Partial";
+        }
+        $("#badgeDetailPoStatus").attr("class", "status-badge " + statusClass).text(statusText);
+    }
+
+    function refreshCurrentPo(showProgress) {
+        if (!selectedPoNo) return;
+        if (showProgress) {
+            kendo.ui.progress($("#selectedPoWorkspace"), true);
+        }
+        var poDateStr = selectedPoDate ? kendo.toString(kendo.parseDate(selectedPoDate), "yyyy-MM-dd") : null;
+        $.ajax({
+            url: '@Url.Action("GetPoDetails", "ParSet")',
+            type: "GET",
+            data: {
+                poNo: selectedPoNo,
+                poDate: poDateStr,
+                deptId: selectedDeptId,
+                source: getSelectedSource()
+            },
+            dataType: "json",
+            success: function (res) {
+                if (showProgress) {
+                    kendo.ui.progress($("#selectedPoWorkspace"), false);
+                }
+                if (res && res.success) {
+                    renderSelectedPoHeader(res);
+                }
+            },
+            error: function () {
+                if (showProgress) {
+                    kendo.ui.progress($("#selectedPoWorkspace"), false);
+                }
+            }
+        });
+
+        refreshItemsGrid();
+        refreshGeneratedSlipsGrid();
+        fetchSummaryMetrics();
+    }
+
+    // SEARCH & FILTER PILLS
+    function onFilterMasterList() {
+        var filterVal = $.trim($("#txtPoSearch").val()).toLowerCase();
+        var activePill = $(".filter-pill-btn.active").data("filter") || "ALL";
+
+        var grid = $("#gridOrders").data("kendoGrid");
+        if (!grid) return;
+
+        var filters = [];
+        if (filterVal) {
+            filters.push({
+                logic: "or",
+                filters: [
+                    { field: "PoNo", operator: "contains", value: filterVal },
+                    { field: "Department", operator: "contains", value: filterVal }
+                ]
+            });
+        }
+
+        if (activePill === "PENDING") {
+            filters.push({ field: "QtyFinished", operator: "eq", value: 0 });
+            filters.push({ field: "Qty", operator: "gt", value: 0 });
+        } else if (activePill === "PARTIAL") {
+            filters.push({ field: "QtyFinished", operator: "gt", value: 0 });
+            filters.push({ field: "QtyBalance", operator: "gt", value: 0 });
+        } else if (activePill === "COMPLETED") {
+            filters.push({ field: "QtyBalance", operator: "eq", value: 0 });
+            filters.push({ field: "Qty", operator: "gt", value: 0 });
+        }
+
+        grid.dataSource.filter(filters.length > 0 ? { logic: "and", filters: filters } : {});
+    }
+
+    function onSelectStatusFilter(btn, filterType) {
+        $(".filter-pill-btn").removeClass("active");
+        $(btn).addClass("active");
+        onFilterMasterList();
+    }
+
+    // TAB 1: INDIVIDUAL ACCOUNTABLE ITEMS
+    function DataGridItems() {
+        return {
+            poNo: selectedPoNo,
+            poDate: selectedPoDate,
+            deptId: selectedDeptId
+        };
+    }
+
+    function refreshItemsGrid() {
+        var grid = $("#gridItems").data("kendoGrid");
+        if (grid) {
+            grid.dataSource.read();
+        }
+    }
+
+    var lastExpandedItemUid = null;
+    function onDetailExpandItemGrid(e) {
+        var itemUid = $(e.masterRow).attr("data-uid");
+        lastExpandedItemUid = itemUid;
+    }
+
+    function onDataBoundItemsGrid(e) {
+        var grid = e.sender;
+        var data = grid.dataSource.view();
+        if (data.length > 0) {
+            var targetRow = null;
+            if (lastExpandedItemUid) {
+                targetRow = grid.tbody.find("tr[data-uid='" + lastExpandedItemUid + "']");
+            }
+            if (!targetRow || targetRow.length === 0) {
+                targetRow = grid.tbody.find("tr.k-master-row:first");
+            }
+            if (targetRow && targetRow.length > 0) {
+                grid.expandRow(targetRow);
+            }
+        }
+    }
+
+    function onDetailInitItemUnitsGrid(e) {
+        var parentItemId = e.data.Id;
+        var $container = e.detailCell.find(".item-units-detail-container");
+        var $gridTarget = $container.find(".item-units-grid-target");
+
+        $gridTarget.kendoGrid({
+            dataSource: {
+                transport: {
+                    read: {
+                        url: '@Url.Action("_PoItemGeneratedUnitsRead", "ParSet")',
+                        type: 'POST',
+                        data: function () {
+                            return { psCardItemId: parentItemId };
+                        }
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total",
+                    errors: "Errors",
+                    model: {
+                        id: "PsCardItemExtnId",
+                        fields: {
+                            Id: { type: "string" },
+                            UnitNo: { type: "number" },
+                            PsCardItemExtnId: { type: "string" },
+                            SerialNo: { type: "string" },
+                            ParNo: { type: "string" },
+                            PropNo: { type: "string" },
+                            AccountableOfficer: { type: "string" },
+                            Position: { type: "string" },
+                            Status: { type: "string" },
+                            IsPosted: { type: "boolean" },
+                            Action: { type: "string" }
+                        }
+                    }
+                }
+            },
+            noRecords: {
+                template: "<div style='padding: 10px 14px; color: rgb(100, 116, 139); font-style: italic; font-size: 12px;'><span class='k-icon k-i-info'></span> No physical accountable units found.</div>"
+            },
+            scrollable: true,
+            sortable: false,
+            pageable: false,
+            resizable: true,
+            columns: [
+                {
+                    field: "UnitNo",
+                    title: "Unit #",
+                    width: 70,
+                    attributes: { style: "text-align: center; font-weight: 600; color: rgb(71, 85, 105);" },
+                    headerAttributes: { style: "text-align: center;" }
+                },
+                {
+                    field: "SerialNo",
+                    title: "Serial / (Ref. No.)",
+                    width: 150,
+                    template: "<span style='font-family: Consolas, monospace; color: rgb(51, 65, 85);'>#: SerialNo #</span>"
+                },
+                {
+                    field: "ParNo",
+                    title: "PAR No.",
+                    width: 150,
+                    template: function (dataItem) {
+                        if (dataItem.Status === "Posted" && dataItem.ParNo) {
+                            return "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(22, 101, 52);'>" + kendo.htmlEncode(dataItem.ParNo) + "</span>";
+                        } else if (dataItem.Status === "Draft" && dataItem.ParNo) {
+                            return "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(3, 105, 161);'>" + kendo.htmlEncode(dataItem.ParNo) + "</span>";
+                        } else {
+                            return "<span class='text-muted' style='font-style: italic;'>&mdash;</span>";
+                        }
+                    }
+                },
+                {
+                    field: "PropNo",
+                    title: "Property No.",
+                    width: 200,
+                    template: "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(0, 37, 118);'>#: PropNo #</span>"
+                },
+                {
+                    field: "AccountableOfficer",
+                    title: "Accountable Officer",
+                    width: 200,
+                    template: function (dataItem) {
+
+                        var officer = dataItem.AccountableOfficer || dataItem.IssuedTo;
+                        var position = dataItem.AccountableOfficerPosition || dataItem.Position;
+
+                        if (!officer || dataItem.Status === "Available") {
+                            return "<span class='text-muted' style='font-style: italic;'>&mdash;</span>";
+                        }
+
+                        var officerVal = kendo.htmlEncode(officer);
+                        var positionVal = position
+                            ? kendo.htmlEncode(position)
+                            : "";
+
+                        var officerColor = "";
+
+                        if (dataItem.Status === "Posted") {
+                            officerColor = "color: rgb(22, 101, 52);";
+                        } else if (dataItem.Status === "Draft") {
+                            officerColor = "color: rgb(3, 105, 161);";
+                        }
+
+                        var html =
+                            "<div>" +
+                            "<div style='font-weight: 600; " + officerColor + "'>" +
+                            officerVal +
+                            "</div>";
+
+                        if (positionVal) {
+                            html +=
+                                "<div style='font-size: 11px; color: rgb(100, 116, 139); margin-top: 2px;'>" +
+                                positionVal +
+                                "</div>";
+                        }
+
+                        html += "</div>";
+
+                        return html;
+                    }
+                },                
+                {
+                    field: "Action",
+                    title: "Action",
+                    width: 150,
+                    sortable: false,
+                    template: function (dataItem) {
+                        if (dataItem.Status === "Posted") {
+                            return "<button type='button' class='btn-procurement-secondary btn-sm par-view-unit' data-par-no='" + kendo.htmlEncode(dataItem.ParNo) + "' title='View Posted PAR'>" +
+                                "<span class='k-icon k-i-eye'></span> View PAR" +
+                                "</button>";
+                        } else if (dataItem.Status === "Draft") {
+                            return "<button type='button' class='btn-procurement-secondary btn-sm par-continue-unit' data-extn-id='" + kendo.htmlEncode(dataItem.PsCardItemExtnId) + "' title='Continue / Edit Draft PAR'>" +
+                                "<span class='k-icon k-i-edit'></span> Continue" +
+                                "</button>";
+                        } else {
+                            return "<button type='button' class='btn-procurement-primary btn-sm par-generate-unit' data-extn-id='" + kendo.htmlEncode(dataItem.PsCardItemExtnId) + "' title='Generate PAR for Unit'>" +
+                                "<span class='k-icon k-i-play'></span> Generate" +
+                                "</button>";
+                        }
+                    }
+                }
+            ],
+            dataBound: function (subEvt) {
+                var subGrid = subEvt.sender;
+                var data = subGrid.dataSource.data();
+                if (data.length === 0) {
+                    subGrid.element.find(".k-grid-header").hide();
+                } else {
+                    subGrid.element.find(".k-grid-header").show();
+                }
+            }
+        });
+    }
+
+    function initSubgridIssuedToCombos(subGrid) {
+        subGrid.element.find("input.subgrid-employee-combo").each(function () {
+            var $input = $(this);
+            var parItemId = $input.data("id");
+            if (!parItemId || $input.data("kendoComboBox")) return;
+
+            $input.kendoComboBox({
+                placeholder: "Search recipient / accountable officer...",
+                dataTextField: "Name",
+                dataValueField: "Name",
+                filter: "contains",
+                suggest: true,
+                autoBind: false,
+                minLength: 1,
+                dataSource: {
+                    serverFiltering: true,
+                    transport: {
+                        read: {
+                            url: '@Url.Action("GetEmployee", "Getters")',
+                            type: "GET",
+                            data: function (e) {
+                                var text = "";
+                                var cb = $input.data("kendoComboBox");
+                                if (cb) {
+                                    text = cb.text() || "";
+                                }
+                                return { text: text };
+                            }
+                        }
+                    }
+                },
+                template: "<div style='font-size: 12px; padding: 2px 0;'>" +
+                            "<div style='font-weight: 600; color: rgb(30, 41, 59);'>#: data.Name #</div>" +
+                            "# if (typeof data.Department !== 'undefined' && data.Department) { #" +
+                                "<div style='font-size: 11px; color: rgb(100, 116, 139);'>#: data.Department # # if (typeof data.Position !== 'undefined' && data.Position) { # (#: data.Position #) # } #</div>" +
+                            "# } #" +
+                          "</div>",
+                change: function (e) {
+                    var selectedName = this.text() || this.value();
+                    if (selectedName) {
+                        updateIssuedTo(parItemId, selectedName, this);
+                    }
                 }
             });
-            alert(message);
-        }
+        });
     }
-    //$(window).on("resize", function () {
-    //    var gridElement = $("#grid"),
-    //        dataArea = gridElement.find(".k-grid-content"),
-    //        gridHeight = gridElement.innerHeight(),
-    //        otherElements = gridElement.children().not(".k-grid-content"),
-    //        otherElementsHeight = 0;
-    //        otherElements.each(function () {
-    //            otherElementsHeight += $(this).outerHeight();
-    //        });
-    //    dataArea.height(gridHeight - otherElementsHeight);
-    //});
+
+    function updateIssuedTo(parItemId, newIssuedTo, comboWidget) {
+        if (!parItemId || !newIssuedTo) return;
+
+        $.ajax({
+            url: '@Url.Action("UpdateIssuedTo", "ParSet")',
+            type: 'POST',
+            data: {
+                parItemId: parItemId,
+                issuedTo: newIssuedTo
+            },
+            success: function (res) {
+                if (res && res.success) {
+                    notifySuccess(res.message || "Accountable Officer updated successfully.");
+                } else {
+                    var err = (res && res.message) ? res.message : "Failed to update Accountable Officer.";
+                    notifyWarning(err);
+                    alert(err);
+                    if (err.indexOf("already been posted") !== -1) {
+                        refreshWorkspace(true);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                notifyWarning("Error updating Accountable Officer: " + (error || status));
+                alert("Error updating Accountable Officer: " + (error || status));
+            }
+        });
+    }
+
 
     function GridError(args) {
         if (args.errors) {
@@ -736,1816 +1153,528 @@
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
                     alert(this.errors);
                     validationError = false;
-                    selectedGrid.dataSource.read();
                 }
             });
             if (validationError) {
-                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
-                $('#ErrorContent').removeClass('hidden');
-
-                selectedGrid.one("dataBinding", function (e) {
-                    e.preventDefault();
-                    var errors = selectedGrid.editable.element.find(".errors");
-
-                    errors.empty();
-                    $.each(args.errors, function (propertyName) {
-                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
-                        errors.append(renderedTemplate);
-                    });
-                });
+                alert("A server error occurred. Please refresh and try again.");
             }
         }
     }
 
-    function GridUploadError(e) {
-        if (e.errors) {
-            ////// Get the parent grid
-            //var parentGrid = $("#gridItems").data("kendoGrid");
-
-            //// Try to find the closest grid row
-            //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
-
-            //// Log the row for debugging
-            //console.log("Row element:", row);
-
-            //// Check if a valid row was found
-            //if (row.length === 0) {
-            //    console.warn("No valid row found. The event target may not be within a grid row.");
-
-            //    // Provide a fallback: Try getting the parent row from a specific known container
-            //    var knownContainer = $("#gridItems"); // Replace with your grid's container
-            //    row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
-
-            //    if (row.length === 0) {
-            //        console.warn("No rows found in the parent grid.");
-            //        return; // Exit if no rows are found
-            //    } else {
-            //        console.warn("Fallback: Found rows in the parent grid but not the specific one.");
-            //    }
-            //}
-
-            //// Get the dataItem for the parent grid
-            //var dataItem = parentGrid.dataItem(row);
-
-            //// Log the retrieved dataItem
-            //if (!dataItem) {
-            //    // Get the index of the row in the parent grid
-            //    var rowIndex = row.index();
-            //    console.log("Row index:", rowIndex);
-
-            //    // Attempt to access dataItem using the dataSource view
-            //    dataItem = parentGrid.dataSource.view()[rowIndex];
-
-            //    // Log the data item retrieved via index
-            //    console.log("Data Item found using index:", dataItem);
-            //}
-
-
-            //// Find the subgrid and refresh it
-            //var subgridName = "gridImages_" + dataItem.GroupId; // Adjust based on how you identify the subgrid
-            //var subgrid = $("#" + subgridName).data("kendoGrid");
-
-            //if (subgrid) {
-            //    subgrid.dataSource.read(); // Refresh the subgrid
-            //}
-
-            $.each(e.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
-                }
-            });
-        }
-    }
-
-    var selectedCardItemId = null;
-    var selectedGrid = null;
-    var selectedId = null;
-    var selectedItemId = null;
-    var selectedDepartment = null;
-
-    var selectedPoNo = null;
-    var selectedPoDate = null;
-    var selectedDeptId = null;
-    var postedBy = null;
-
-    function onChangeGrid(e) {
-        var selectedData = this.dataItem(this.select());
-        //var grid = $("#grid");
-
-        selectedId = selectedData.Id;
-        selectedItemId = null;
-        selectedDepartment = selectedData.Department;
-
-        selectedPoNo = selectedData.PoNo;
-        selectedPoDate = selectedData.PoDate;
-        selectedDeptId = selectedData.DeptId;
-
-        refreshGridItems();
-        //$("#gridItems").data("kendoGrid").dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-        //$("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-
-        //if (selectedData.IsWithPar == true) {
-        //    $(".k-grid-btnAddPars", grid).show();
-        //} else {
-        //    $(".k-grid-btnAddPars", grid).hide();
-        //}
-
-        //if (selectedData.IsWithIcs == true) {
-        //    $(".k-grid-btnAddIcs", grid).show();
-        //} else {
-        //    $(".k-grid-btnAddIcs", grid).hide();
-        //}
-
-    }
-
-    function DataGrid(e) {
-        return {
-            forYear: $("#forYear").val()
-        };
-    }
-
-    function refreshAllGrids() {
-        $("#grid").data("kendoGrid").dataSource.read()
-        refreshGridItems();
-    }
-
-    function refreshGridItems() {
-        $("#gridItems").data("kendoGrid").dataSource.read();
-        $("#gridItemSet").data("kendoGrid").dataSource.read();
-    }
-
-    function onDataBoundGrid(e) {
-        //if (selectedId) {
-        //    var dataItem = this.dataSource.get(selectedId);
-        //    if (dataItem) {
-        //        this.select($('[data-uid=' + dataItem.uid + ']'));
-        //    }
-        //} else {
-        //    var row = e.sender.tbody.find("tr:first");
-        //    this.select(row);
-        //}
-
-        var selectedRow = selectRowByConditions("grid", {
-            PoNo: selectedPoNo,
-            PoDate: selectedPoDate,
-            DeptId: selectedDeptId
-        });
-
-        if (!selectedRow) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-
-        //var trs = this.tbody.find('tr').each(function () {
-        //    var item = grid.dataItem($(this));
-        //    if (item.PostedBy) {
-        //        $(this).find('.k-grid-Issue').hide();
-        //        $(".k-grid-btnAddPars").hide()
-        //    }
-        //});
-
-        var grid = this;
-        var items = grid.items(); // Get all the rows (tr elements) in the grid
-        items.each(function (index, row) {
-            var dataItem = grid.dataItem(row); // Get the corresponding data item for each row
-            if (dataItem.QtyBalance === 0) {
-                $(row).addClass("disabled-row"); // Add a custom class to disabled rows
-                //$(row).find("input").attr("disabled", "disabled"); // Disable input elements
-                //$(row).find("a.k-button").removeClass("k-button").addClass("k-disabled"); // Disable buttons
-            }
-        });
-    }
-
-    function formatDate(date) {
-        if (date == null) return null;
-        var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based, so add 1
-        var day = date.getDate().toString().padStart(2, '0');
-        var year = date.getFullYear();
-
-        return month + '/' + day + '/' + year;
-    }
-
-
-    function onRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();
-            }
-        }
-    }
-
-    function resizeWindow() {
-        var mywindow = $("#window-par-item").data("kendoWindow");
-        if (mywindow) {
-            mywindow.setOptions({
-                width: "1000",
-                height: "auto"
-            });
-            mywindow.center(); // Optional: Center the window after resizing
-        }
-    }
-
-    $(".k-grid-btnAddPars").click(function (e) {
-        e.preventDefault();
-        GeneratePar("PAR");
-    });
-
-    $(".k-grid-btnAddIcs").click(function (e) {
-        e.preventDefault();
-        GeneratePar("ICS");
-    });
-
-    // Grid Item
-    function onRequestEndGridItems(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                var grid = $("#grid").data("kendoGrid");
-                var gridItem = $("#gridItems").data("kendoGrid");
-
-                grid.dataSource.read();
-                gridItem.dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-            }
-        }
-    }
-
-    function onChangeQty(e) {
-        e.preventDefault();
-        var qty = $("#Qty").data("kendoNumericTextBox").value();
-        var unitCost = $("#UnitCost").val();
-        $("#Amount").data("kendoNumericTextBox").value(qty * unitCost);
-        $("#Amount").data("kendoNumericTextBox").trigger("change");
-    }
-
-    function DataAccountableOfficer() {
-        var text = $("#Officer").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#Officer").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            department: selectedDepartment,
-            text: text
-        };
-    }
-
-    function DataOfficerId() {
-        var text = $("#OfficerId").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#OfficerId").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            deptId: $("#LocationId").val(),
-            text: text
-        };
-    }
-
-    function changeAmount(e) {
-        var qty = $("#Qty").data("kendoNumericTextBox").value();
-        var unitCost = $("#UnitCost").val();
-        var amount = qty * unitCost;
-
-        $("#Amount").data("kendoNumericTextBox").value(amount);
-        $("#Amount").data("kendoNumericTextBox").trigger("change");
-    }
-
-    function onSelectDeptId(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#DeptDisplay").val(dataItem.Description).trigger("change");
-    }
-
-    function onSelectLocationId(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#Location").val(dataItem.Description).trigger("change");
-    }
-
-    function onChangeOpt(e) {
-        var opt1 = $("[id='IssuedToSw_1']").is(":checked");
-        var opt2 = $("[id='IssuedToSw_2']").is(":checked");
-        //if (opt1 == true) {
-        //    $("#OptDept").removeClass("hidden");
-        //}
-        //if (opt2 == true) {
-        //    $("#OptDept").addClass("hidden");
-        //}
-    }
-
-    function UpdateBalance(e) {
-        var qtyBal = $("#QtyBal").data("kendoNumericTextBox").value();
-        var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
-
-        var balance = qtyBal - transferOut;
-
-        $("#RemBalance").data("kendoNumericTextBox").value(balance);
-        $("#RemBalance").data("kendoNumericTextBox").trigger("change");
-    }
-
-    // GRID PAR ITEMS
-    var selectedParItemId = null;
-    function onEditGridParItems(e) {
-        e.preventDefault();
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
-        var IsProperty = parentModel.IsProperty;
-
-        parentGrid.select(parentRow);
-        selectedGrid = e.sender;
-
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedParItemId = null;
-            e.model.set("PsCardItemId", parentModel.Id);
-        } else {
-            selectedParItemId = e.model.get("Id");
-            e.model.set("UnitCost", parentModel.UnitCost);
-            var rowitem = selectedGrid.dataSource.get(selectedParItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onChangeGridParItems(e) {
-        var selectedData = this.dataItem(this.select());
-        var cardItemId = selectedData.PsCardItemId;
-
-        selectedParItemId = selectedData.Id;
-        //postedBy = selectedData.PostedBy
-        //if (postedBy) {
-        //    $("#btnUnpost_" + cardItemId).show();
-        //    $("#btnPost_" + cardItemId).hide();
-        //} else {
-        //    $("#btnUnpost_" + cardItemId).hide();
-        //    $("#btnPost_" + cardItemId).show();
-        //}
-    }
-
-    function onDataBoundGridParItems(e) {
-        if (selectedParItemId) {
-            var dataItem = this.dataSource.get(selectedParItemId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-    }
-
-    function onClickDeleteGridParItems(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-
-    function onRequestEndGridParItems(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                var grid = $("#gridItems").data("kendoGrid");
-
-                grid.dataSource.read();
-            }
-        }
-    }
-
-    function onRequestEndGridParItemSet(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                var gridItemSet = $("#gridItemSet").data("kendoGrid");
-
-                gridItemSet.dataSource.read();
-            }
-        }
-    }
-
-    function onClickBtnPostPar(e) {
-        e.preventDefault();
-        selectedGrid = $("#gridItemsPar").data("kendoGrid");
-        var selectedRow  = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-
-        selectedGrid.select(selectedRow);
-        var refNo = dataItem.IcsPar.RefNo;
-        var postedBy = dataItem.IcsPar.PostedBy;
-
-        if (postedBy) {
-            alert("Record is already posted by " + postedBy);
-        }
-        else {
-            var msg = "Post PAR No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("PostPar", "ParSet")',
-                    data: { parNo: refNo },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Record Posted...", "info");
-                            //$("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function onClickBtnPostParSet(e) {
-        e.preventDefault();
-        selectedGrid = $("#gridItemsPar").data("kendoGrid");
-        var selectedRow = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-        selectedGrid.select(selectedRow);
-
-        var refNo = dataItem.RefNo;
-        var postedBy = dataItem.PostedBy;
-
-        if (postedBy) {
-            alert("Record is already posted by " + postedBy);
-        }
-        else {
-            var msg = "Post PAR No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("PostPar", "ParSet")',
-                    data: { parNo: refNo },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Record Posted...", "info");
-                            //$("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function onClickBtnUnpostPar(e) {
-        e.preventDefault();
-        selectedGrid = $("#gridItemsPar").data("kendoGrid");
-        var selectedRow = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-
-        selectedGrid.select(selectedRow);
-        var refNo = dataItem.IcsPar.RefNo;
-        var postedBy = dataItem.IcsPar.PostedBy;
-
-        if (!postedBy) {
-            alert("Record is not yet posted!");
-        }
-        else {
-            var msg = "Unpost PAR No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("UnpostPar", "ParSet")',
-                    data: { parNo: refNo },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Done...", "info");
-                            //$("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                            //.then(function () {
-                            //    //// Find the row with the specified Id.
-                            //    //var dataItem = grid.dataSource.get(selectedId);
-
-                            //    //// If the row is found, read geneared items.
-                            //    //if (dataItem) {
-                            //    //    selectedGrid.dataSource.read();
-                            //    //}
-                            //    var selectedRow = selectRowByConditions("grid", {
-                            //        PoNo: selectedPoNo,
-                            //        PoDate: selectedPoDate,
-                            //        DeptId: selectedDeptId
-                            //    });
-
-                            //    if (selectedRow) {
-                            //        selectedGrid.dataSource.read();
-                            //    }
-                            //});
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function onClickBtnUnpostParSet(e) {
-        e.preventDefault();
-        selectedGrid = $("#gridItemsPar").data("kendoGrid");
-        var selectedRow = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-
-        selectedGrid.select(selectedRow);
-        var refNo = dataItem.RefNo;
-        var postedBy = dataItem.PostedBy;
-
-        if (!postedBy) {
-            alert("Record is not yet posted!");
-        }
-        else {
-            var msg = "Unpost PAR No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("UnpostPar", "ParSet")',
-                    data: { parNo: refNo },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Done...", "info");
-                            //$("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                            //.then(function () {
-                            //    //// Find the row with the specified Id.
-                            //    //var dataItem = grid.dataSource.get(selectedId);
-
-                            //    //// If the row is found, read geneared items.
-                            //    //if (dataItem) {
-                            //    //    selectedGrid.dataSource.read();
-                            //    //}
-                            //    var selectedRow = selectRowByConditions("grid", {
-                            //        PoNo: selectedPoNo,
-                            //        PoDate: selectedPoDate,
-                            //        DeptId: selectedDeptId
-                            //    });
-
-                            //    if (selectedRow) {
-                            //        selectedGrid.dataSource.read();
-                            //    }
-                            //});
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function stripTime(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    function selectRowByConditions(gridId, conditions) {
-        var grid = $("#" + gridId).data("kendoGrid");
-        var rows = grid.items();  // Get all the rows
-        for (var i = 0; i < rows.length; i++) {
-            var row = $(rows[i]);
-            var dataItem = grid.dataItem(row);  // Get the data item for the current row
-            var match = true;
-
-            // Check all conditions
-            for (var condition in conditions) {
-                if (conditions.hasOwnProperty(condition)) {
-                    if (condition === "PoDate") {
-                        // Normalize dates before comparing
-                        var conditionDate = stripTime(new Date(conditions[condition]));
-                        var dataItemDate = stripTime(new Date(dataItem[condition]));
-
-                        if (conditionDate.getTime() !== dataItemDate.getTime()) {
-                            match = false;
-                            break;
-                        }
-                    } else if (dataItem[condition] !== conditions[condition]) {
-                        match = false;
-                        break;
-                    }
-                }
-            }
-
-            if (match) {
-                grid.select(row);  // Select the row
-                return row;  // Found and selected the row, return it
-            }
-        }
-
-        return null;  // No matching row found
-    }
-
-    function onClickBtnAddPar(e) {
-        e.preventDefault();
-        GeneratePar("P", selectedCardItemId);
-    }
-
-
-    function GeneratePar(refType, cardItemId) {
-        var myTitle = "Generate PAR - Individual";
-        var width = 1000;
-
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-            .kendoWindow({
-                actions: ["Minimize", "Close"],
-                draggable: true,
-                modal: true,
-                visible: false,
-                close: function () {
-                    var grid = $("#gridItems").data("kendoGrid");
-                    grid.dataSource.read();
-                    //.then(function () {
-                    //    // Find the row with the specified Id.
-                    //    var dataItem = grid.dataSource.get(selectedId);
-
-                    //    // If the row is found, read geneared items.
-                    //    if (dataItem) {
-
-                    //    }
-                    //});
-                },
-                deactivate: function () {
-                    this.destroy();
-                }
-            }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_GeneratePar", "ParSet")',
-            data: {
-                psCardItemId: cardItemId,
-                refType: refType
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        mywindow.open();
-    }
-
-    function onClickBtnAddParSet(e) {
-        e.preventDefault();
-        GenerateParSet("P", selectedItemSetId);
-    }
-
-    function GenerateParSet(refType, unitGroupId) {
-        var myTitle = "Generate PAR - Set";
-        var width = 1000;
-
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-            .kendoWindow({
-                actions: ["Minimize", "Close"],
-                draggable: true,
-                modal: true,
-                visible: false,
-                close: function () {
-                    var grid = $("#gridItems").data("kendoGrid");
-                    grid.dataSource.read();
-                    //.then(function () {
-                    //    // Find the row with the specified Id.
-                    //    var dataItem = grid.dataSource.get(selectedId);
-
-                    //    // If the row is found, read geneared items.
-                    //    if (dataItem) {
-
-                    //    }
-                    //});
-                },
-                deactivate: function () {
-                    this.destroy();
-                }
-            }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_GenerateParSet", "ParSet")',
-            data: {
-                unitGroupId: unitGroupId,
-                refType: refType
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        mywindow.open();
-    }
-
-    function onSelectGenerateParLocationId(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        //$("#IcsPar.LocationId").val(dataItem.Id).trigger("change");
-        $("#LocationCode").val(dataItem.Code).trigger("change");
-        $("#Location").val(dataItem.Description).trigger("change");
-    }
-    // END GRID PAR ITEMS
-
-    // GRID ICS ITEMS
-    var selectedIcsItemId = null;
-    function onEditGridIcsItems(e) {
-        e.preventDefault();
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
-        var IsProperty = parentModel.IsProperty;
-
-        parentGrid.select(parentRow);
-        selectedGrid = e.sender;
-
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedIcsItemId = null;
-            e.model.set("PsCardItemId", parentModel.Id);
-        } else {
-            selectedIcsItemId = e.model.get("Id");
-            e.model.set("UnitCost", parentModel.UnitCost);
-            var rowitem = selectedGrid.dataSource.get(selectedIcsItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onChangeGridIcsItems(e) {
-        var selectedData = this.dataItem(this.select());
-        var cardItemId = selectedData.PsCardItemId;
-
-        // the master row for this detail
-        //var parentRow = this.wrapper.closest("tr").prev();
-        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-        //var orderItemId = parentModel.OrderItemId;
-
-        selectedIcsItemId = selectedData.Id;
-        //postedBy = selectedData.PostedBy
-        //if (postedBy) {
-        //    $("#btnUnpost_" + cardItemId).show();
-        //    $("#btnPost_" + cardItemId).hide();
-        //} else {
-        //    $("#btnUnpost_" + cardItemId).hide();
-        //    $("#btnPost_" + cardItemId).show();
-        //}
-    }
-
-    function onDataBoundGridIcsItems(e) {
-        if (selectedIcsItemId) {
-            var dataItem = this.dataSource.get(selectedIcsItemId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
-        var cardItemId = parentModel.Id;
-
-        //if (parentModel.IsProperty)  {
-        //    $("#btnAddItem_" + cardItemId).show();
-        //} else {
-        //    $("#btnAddItem_" + cardItemId).hide();
-        //}
-
-        //var grid = $("#gridIssuedItems_" + cardItemId);
-        //if (this.dataSource.data().length == 0) {
-        //    $("#btnUnpost_" + cardItemId).hide();
-        //    $("#btnPost_" + cardItemId).hide();
-        //}
-    }
-
-    function onClickDeleteGridIcsItems(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-
-    function onRequestEndGridIcsItems(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                var grid = $("#grid").data("kendoGrid");
-
-                // Trigger a read operation on the data source.
-                grid.dataSource.read().then(function () {
-                    // Additional actions to be performed after the read operation.
-
-                    // Find the row with the specified Id.
-                    var dataItem = grid.dataSource.get(selectedId);
-
-                    // If the row is found, expand it.
-                    if (dataItem) {
-                        var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
-                        grid.expandRow(row);
-                    }
-                });
-            }
-        }
-    }
-
-    function onGridIcsItemClickAdd(e) {
-        e.preventDefault();
-        var cardItemId = $(e.sender.element).data("carditemid");
-        GeneratePar("I", cardItemId);
-    }
-
-    // END GRID ICS ITEMS
-
-
-    // GRID ITEMS
-    function DataGridItems() {
+    function DataGridGeneratedSlips() {
         return {
             poNo: selectedPoNo,
             poDate: selectedPoDate,
             deptId: selectedDeptId
-        }
-    }
-
-    var selectedCardItemGroupId = null;
-    function onChangeGridItems(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemId = selectedData.Id;
-        selectedCardItemId = selectedData.Id;
-        selectedCardItemGroupId = selectedData.Id;
-        //var parGrid = $("#gridItemsPar").data("kendoGrid");
-        //parGrid.dataSource.read();
-
-        //postedBy = selectedData.ParPostedBy
-        //if (postedBy) {
-        //    $("#btnUnpost_").show();
-        //    $("#btnPost_").hide();
-        //} else {
-        //    $("#btnUnpost_").hide();
-        //    $("#btnPost_").show();
-        //}
-
-        if (selectedData.IsForICS == true) {
-            $("#btnParsAddItem").hide();
-        }
-        else {
-            if (postedBy) {
-                $("#btnParsAddItem").hide();
-            }
-            else {
-                $("#btnParsAddItem").show();
-            }
-        }
-    }
-
-    function onDataBoundGridItems(e) {
-        var grid = this;
-        if (selectedItemId) {
-            var dataItem = grid.dataSource.get(selectedItemId);
-            //selectedCardItemGroupId = dataItem.GroupId;
-            if (dataItem) {
-                grid.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            grid.select(row);
-
-            // Attach a handler to the "detailExpand" event
-            grid.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
-        }
-
-        //grid.tbody.find("tr").each(function () {
-        //    var dataItem = grid.dataItem(this);
-        //    var qty = dataItem.Qty;
-
-        //    var button = $(this).find(".k-grid-PARs"); // Target the custom button
-        //    if (button.length > 0) {
-        //        button.text("PARs (" + qty + ")"); // Update button text
-        //    }
-        //});
-
-        if (grid.dataSource.data().length == 0) {
-            //$("#btnUnpost_").hide();
-            //$("#btnPost_").hide();
-            $("#btnParsAddItem").hide();
-        }
-        else {
-            var selectedRow = grid.select();
-            var dataItem = grid.dataItem(selectedRow);
-
-            if (dataItem.IsForICS == true) {
-                $("#btnParsAddItem").hide();
-            }
-            else {
-                $("#btnParsAddItem").show();
-                //if (dataItem.ParPostedBy) {
-                //    $("#btnParsAddItem").hide();
-                //}
-                //else {
-                //    $("#btnParsAddItem").show();
-                //}
-            }
-        }
-    }
-
-    function onEditGridItems(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-        if (!e.model.isNew()) {
-            selectedItemId = e.model.get("Id");
-            selectedCardItemGroupId = e.model.get("GroupId");
-            var rowitem = selectedGrid.dataSource.get(selectedItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onClickBtnPrint(e) {
-        e.preventDefault();
-
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        var url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.IcsPar.RefNo;
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    }
-    // END GRID ITEMS
-
-
-    // GRID ITEM SET
-    function DataGridItemSet()
-    {
-        return {
-            poNo: selectedPoNo,
-            poDate: selectedPoDate,
-            deptId: selectedDeptId
-        }
-    }
-
-    var setPostedBy = null;
-    var selectedItemSetId = null;
-    function onChangeGridItemSet(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemSetId = selectedData.Id;
-        //setPostedBy = selectedData.SetPostedBy
-        //if (setPostedBy) {
-        //    $("#btnUnpostItemSet_").show();
-        //    $("#btnPostItemSet_").hide();
-        //    $("#btnParsAddItemSet").hide();
-        //} else {
-        //    $("#btnUnpostItemSet_").hide();
-        //    $("#btnPostItemSet_").show();
-        //    $("#btnParsAddItemSet").show();
-        //}
-    }
-
-    function onDataBoundGridItemSet(e) {
-        var grid = e.sender;
-
-        if (selectedItemSetId) {
-            var dataItem = grid.dataSource.get(selectedItemSetId);
-            if (dataItem) {
-                var row = grid.tbody.find("[data-uid='" + dataItem.uid + "']");
-                grid.select(row);
-                grid.expandRow(row);  // Expand the selected row
-            }
-        } else {
-            var firstRow = grid.tbody.find("tr:first");
-            grid.select(firstRow);
-            grid.expandRow(firstRow); // Expand the first row
-        }
-
-        //if (this.dataSource.data().length == 0) {
-        //    $("#btnUnpostItemSet_").hide();
-        //    $("#btnPostItemSet_").hide();
-        //    $("#btnParsAddItemSet").hide();
-        //}
-        //else {
-        //    var selectedRow = this.select();
-        //    var dataItem = this.dataItem(selectedRow);
-        //    setPostedBy = dataItem.SetPostedBy
-        //    if (!setPostedBy) {
-        //        $("#btnParsAddItemSet").show();
-        //    }
-        //}
-    }
-
-    function onClickBtnPrintSet(e) {
-        e.preventDefault();
-
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        var url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.RefNo;
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    }
-    // END GRID ITEM SET
-
-
-    // GRID ITEM SET DESCRIPTION
-    var selectedItemSetDescriptionId = null;
-    function onChangeGridItemSetDescription(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemSetDescriptionId = selectedData.Id;
-    }
-
-    function onDataBoundGridItemSetDescription(e) {
-        //if (selectedItemSetDescriptionId) {
-        //    var dataItem = this.dataSource.get(selectedItemSetDescriptionId);
-        //    if (dataItem) {
-        //        this.select($('[data-uid=' + dataItem.uid + ']'));
-        //    }
-        //} else {
-
-        //    var firstRow = this.tbody.find("tr.k-master-row").first();
-        //    this.expandRow(firstRow);
-
-        //    // Attach a handler to the "detailExpand" event
-        //    //this.bind("detailExpand", function (e) {
-        //    //    // Select the expanded master row
-        //    //    this.select(e.masterRow);
-        //    //});
-        //}
-
-        var grid = e.sender;
-
-        if (selectedItemSetDescriptionId) {
-            var dataItem = grid.dataSource.get(selectedItemSetDescriptionId);
-            if (dataItem) {
-                var row = grid.tbody.find("[data-uid='" + dataItem.uid + "']");
-                grid.select(row);
-                grid.expandRow(row);  // Expand the selected row
-            }
-        } else {
-            var firstRow = grid.tbody.find("tr:first");
-            grid.select(firstRow);
-            grid.expandRow(firstRow); // Expand the first row
-        }
-
-        //// the master row for this detail
-        //var parentRow = this.wrapper.closest("tr").prev();
-        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-
-        //var poNo = parentModel.PoNo;
-    }
-    // END GRID ITEM SET
-
-
-    // GRID ITEM SET DESCRIPTION ITEM
-    var selectedItemSetDescriptionId = null;
-    //var selectedItemSetDescriptionItemGroupId = null;
-    function onChangeGridItemSetDescriptionItem(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemSetDescriptionId = selectedData.Id;
-        selectedCardItemId = selectedData.Id;
-        selectedCardItemGroupId = selectedData.Id
-        //selectedItemSetDescriptionItemGroupId = selectedData.GroupId;
-        //$("#gridItemsPar").data("kendoGrid").dataSource.read({ cardItemId: selectedItemSetDescriptionId });
-        //$("#gridItemsPar").data("kendoGrid").dataSource.read({ cardItemGroupId: selectedCardItemGroupId });
-    }
-
-    function onEditGridItemSetDescriptionItem(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-
-        if (!e.model.isNew()) {
-            selectedItemSetDescriptionId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedItemSetDescriptionId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onDataBoundGridItemSetDescriptionItem(e) {
-        if (selectedItemSetDescriptionId) {
-            var dataItem = this.dataSource.get(selectedItemSetDescriptionId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            //var firstRow = this.tbody.find("tr.k-master-row").first();
-            //this.expandRow(firstRow);
-
-            // Attach a handler to the "detailExpand" event
-            //this.bind("detailExpand", function (e) {
-            //    // Select the expanded master row
-            //    this.select(e.masterRow);
-            //});
-        }
-    }
-
-    function onDetailExpandGridItemSetDescriptionItem(e) {
-        // Find the corresponding row in the main grid and select it
-        var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
-        var mainGrid = mainGridRow.closest("[data-role=grid]").data("kendoGrid");
-        mainGrid.select(mainGridRow);
-
-        // Find the current row in the grid and select it
-        selectedGrid = e.sender;
-        var row = $(e.masterRow);
-        selectedGrid.select(row);
-    }
-
-    function onDetailCollapseGridItemSetDescriptionItem(e) {
-        // Find the corresponding row in the main grid and select it
-        var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
-        var mainGrid = mainGridRow.closest("[data-role=grid]").data("kendoGrid");
-        mainGrid.select(mainGridRow);
-
-        selectedGrid = e.sender; // Get the grid instance dynamically
-        var row = $(e.masterRow);
-        selectedGrid.select(row);
-    }
-    // GRID ITEM SET DESCRIPTION ITEM
-
-
-    // GRID ITEM PAR
-    function DataGridItemPar() {
-        return {
-            cardItemGroupId: selectedCardItemGroupId
         };
     }
 
-    function onEditGridItemsPar(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-
-        if (!e.model.isNew()) {
-            selectedItemParId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedItemParId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            RefreshDivs();
+    function refreshGeneratedSlipsGrid() {
+        var grid = $("#gridGeneratedSlips").data("kendoGrid");
+        if (grid) {
+            grid.dataSource.read();
         }
     }
 
-    function RefreshDivs() {
-        var fieldsContainer = $('#DIV_ALLFIELDS');
+    function notifySuccess(message) {
+        var notification = $("#parNotification").data("kendoNotification");
+        if (notification) {
+            notification.show(message, "success");
+        }
+    }
 
-        fieldsContainer.empty(); // Clear existing content
+    function notifyWarning(message) {
+        var notification = $("#parNotification").data("kendoNotification");
+        if (notification) {
+            notification.show(message, "warning");
+        } else {
+            alert(message);
+        }
+    }
 
-        var url = '@Url.Action("LoadFields", "ParSet")';
-        var data = $("#form").serialize();
+    function htmlEncodeValue(value) {
+        return kendo.htmlEncode(value === null || value === undefined ? "" : String(value));
+    }
+
+    function generatedSlipActionsTemplate(dataItem) {
+        var id = htmlEncodeValue(dataItem.Id);
+        var extnId = htmlEncodeValue(dataItem.MainPsCardItemExtnId);
+        var refNo = htmlEncodeValue(dataItem.RefNo);
+        var isPosted = dataItem.Status === "Posted";
+        var html = "<div class='ics-actions-cell'>";
+
+        html += "<button type='button' class='btn-procurement-secondary btn-sm par-view-slip' data-par-no='" + refNo + "' title='View Official PAR'><span class='k-icon k-i-eye'></span> View</button>";
+        html += "<button type='button' class='btn-procurement-secondary btn-sm par-print-slip' data-par-no='" + refNo + "' title='Print Official Report'><span class='k-icon k-i-print'></span> Print</button>";
+
+        if (isPosted) {
+            html += "<button type='button' class='btn-procurement-warning btn-sm par-unpost-slip' data-par-no='" + refNo + "' title='Unpost Official PAR'><span class='k-icon k-i-undo'></span> Unpost</button>";
+        } else {
+            html += "<button type='button' class='btn-procurement-secondary btn-sm par-edit-slip' data-par-id='" + id + "' data-extn-id='" + extnId + "' title='Continue / Edit Draft PAR'><span class='k-icon k-i-edit'></span> Edit</button>";
+            html += "<button type='button' class='btn-procurement-success btn-sm par-post-slip' data-par-no='" + refNo + "' title='Post Official PAR'><span class='k-icon k-i-check'></span> Post</button>";
+            html += "<button type='button' class='btn-procurement-danger btn-sm par-delete-slip' data-par-id='" + id + "' data-par-no='" + refNo + "' title='Delete Draft PAR'><span class='k-icon k-i-delete'></span> Delete</button>";
+        }
+
+        return html + "</div>";
+    }
+
+    function antiForgeryData(values) {
+        var data = values || {};
+        data.__RequestVerificationToken = $(".epsms-par input[name='__RequestVerificationToken']").first().val();
+        return data;
+    }
+
+    function ajaxFailureMessage(xhr, fallback) {
+        if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+            return xhr.responseJSON.message;
+        }
+        if (xhr && xhr.responseText) {
+            var responseText = $.trim($("<div>").html(xhr.responseText).text());
+            if (responseText) {
+                return responseText.length > 500 ? responseText.substring(0, 500) : responseText;
+            }
+        }
+        if (xhr && xhr.statusText && xhr.statusText !== "error") {
+            return xhr.statusText;
+        }
+        return fallback;
+    }
+
+    function setClickedButtonBusy($button, text) {
+        if (!$button || !$button.length) return;
+        $button.data("par-original-html", $button.html());
+        $button.prop("disabled", true).addClass("k-state-disabled").html("<span class='k-icon k-i-loading'></span> " + text);
+    }
+
+    function restoreClickedButton($button) {
+        if (!$button || !$button.length) return;
+        var originalHtml = $button.data("par-original-html");
+        $button.prop("disabled", false).removeClass("k-state-disabled");
+        if (originalHtml) {
+            $button.html(originalHtml).removeData("par-original-html");
+        }
+    }
+
+    function removeDynamicWindow(selector) {
+        var $element = $(selector);
+        var widget = $element.data("kendoWindow");
+        if (widget) {
+            widget.destroy();
+        }
+        $element.remove();
+    }
+
+    function openParEditorForUnit(mainPsCardItemExtnId, isDraft, icsParId, $trigger) {
+        if (!mainPsCardItemExtnId) {
+            notifyWarning("The accountable physical unit could not be identified.");
+            return;
+        }
+
+        setClickedButtonBusy($trigger, isDraft ? "Loading..." : "Loading...");
+        removeDynamicWindow("#windowGeneratePar");
+        $("#windowcontainer").append("<div id='windowGeneratePar'></div>");
+
+        var editorWindow = $("#windowGeneratePar").kendoWindow({
+            title: isDraft ? "Continue / Edit Draft PAR" : "Generate PAR",
+            width: 1000,
+            maxHeight: Math.max(500, $(window).height() - 40),
+            actions: ["Close"],
+            draggable: true,
+            modal: true,
+            visible: false,
+            deactivate: function () {
+                var $element = this.element;
+                this.destroy();
+                $element.remove();
+            }
+        }).data("kendoWindow");
 
         $.ajax({
-            url: url,
-            type: 'POST',
+            url: '@Url.Action("_GeneratePar", "ParSet")',
+            type: "GET",
+            cache: false,
+            data: {
+                mainPsCardItemExtnId: mainPsCardItemExtnId,
+                icsParId: icsParId || null,
+                refType: "P"
+            },
+            success: function (html) {
+                if (!html) {
+                    removeDynamicWindow("#windowGeneratePar");
+                    notifyWarning("Unable to load the Draft PAR.");
+                    return;
+                }
+                editorWindow.content(html);
+                editorWindow.center().open();
+            },
+            error: function (xhr, status, error) {
+                var message = ajaxFailureMessage(xhr, isDraft ? "Unable to load the Draft PAR." : "Unable to load the PAR editor.");
+                if (window.console && console.error) {
+                    console.error(message, xhr.status, status, error, xhr.responseText);
+                }
+                removeDynamicWindow("#windowGeneratePar");
+                notifyWarning(message);
+            },
+            complete: function () {
+                restoreClickedButton($trigger);
+            }
+        });
+    }
+
+    function openViewParModal(parNo) {
+        if (!parNo) {
+            notifyWarning("The PAR could not be identified.");
+            return;
+        }
+
+        removeDynamicWindow("#windowViewPar");
+        $("#windowcontainer").append("<div id='windowViewPar'></div>");
+        var win = $("#windowViewPar").kendoWindow({
+            title: "Property Acknowledgment Receipt - " + parNo,
+            width: 900,
+            modal: true,
+            visible: false,
+            actions: ["Close"],
+            deactivate: function () {
+                var $element = this.element;
+                this.destroy();
+                $element.remove();
+            }
+        }).data("kendoWindow");
+
+        $.ajax({
+            url: '@Url.Action("_ViewPar", "ParSet")',
+            type: "GET",
+            cache: false,
+            data: { parNo: parNo },
+            success: function (html) {
+                win.content(html);
+                win.center().open();
+            },
+            error: function (xhr, status, error) {
+                var message = ajaxFailureMessage(xhr, "Unable to load the PAR.");
+                if (window.console && console.error) {
+                    console.error(message, xhr.status, status, error, xhr.responseText);
+                }
+                removeDynamicWindow("#windowViewPar");
+                notifyWarning(message);
+            }
+        });
+    }
+
+    function closeViewParModal() {
+        var win = $("#windowViewPar").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function printOfficialPar(parNo) {
+        if (!parNo) {
+            notifyWarning("The PAR could not be identified.");
+            return;
+        }
+        window.open('@Url.Action("ParSetRpt", "IcsParRpt")' + '?parNo=' + encodeURIComponent(parNo), '_blank');
+    }
+
+    var pendingDeleteParId = null;
+    var pendingDeleteParNo = null;
+
+    function confirmDeletePar(icsParId, parNo) {
+        if (!icsParId) {
+            notifyWarning("The Draft PAR could not be identified.");
+            return;
+        }
+        pendingDeleteParId = icsParId;
+        pendingDeleteParNo = parNo || "";
+        $("#deleteModalParNo").text(pendingDeleteParNo);
+        $("#btnConfirmDeletePar").prop("disabled", false).html("<span class='k-icon k-i-delete'></span> Delete PAR");
+
+        var win = $("#windowDeletePar").data("kendoWindow");
+        if (!win) {
+            win = $("#windowDeletePar").kendoWindow({
+                title: "Delete Draft PAR",
+                width: 480,
+                modal: true,
+                visible: false
+            }).data("kendoWindow");
+        }
+        win.center().open();
+    }
+
+    function closeDeleteParModal() {
+        var win = $("#windowDeletePar").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function executeDeletePar() {
+        if (!pendingDeleteParId) return;
+        var $button = $("#btnConfirmDeletePar");
+        setClickedButtonBusy($button, "Deleting...");
+
+        $.ajax({
+            url: '@Url.Action("DeletePar", "ParSet")',
+            type: "POST",
+            data: antiForgeryData({ icsParId: pendingDeleteParId }),
+            success: function (response) {
+                restoreClickedButton($button);
+                if (response && response.success) {
+                    closeDeleteParModal();
+                    notifySuccess(response.message || "Draft PAR deleted.");
+                    pendingDeleteParId = null;
+                    pendingDeleteParNo = null;
+                    refreshWorkspace(true);
+                } else {
+                    notifyWarning(response && response.message ? response.message : "Unable to delete the Draft PAR.");
+                }
+            },
+            error: function (xhr, status, error) {
+                restoreClickedButton($button);
+                var message = ajaxFailureMessage(xhr, "Unable to delete the Draft PAR.");
+                if (window.console && console.error) {
+                    console.error(message, xhr.status, status, error, xhr.responseText);
+                }
+                notifyWarning(message);
+            }
+        });
+    }
+
+    var pendingPostParNo = null;
+    function confirmPostPar(parNo) {
+        if (!parNo) return;
+        pendingPostParNo = parNo;
+        $("#postModalParNo").text(parNo);
+        $("#postParAlertBox").show();
+        $("#postParMissingAirWarning").hide();
+        $("#btnConfirmPostPar").prop("disabled", false).html("<span class='k-icon k-i-check'></span> Post PAR");
+        var win = $("#windowPostPar").data("kendoWindow");
+        if (!win) {
+            win = $("#windowPostPar").kendoWindow({ title: "Post Property Acknowledgment Receipt", width: 500, modal: true, visible: false }).data("kendoWindow");
+        }
+        win.center().open();
+    }
+
+    function closePostParModal() {
+        var win = $("#windowPostPar").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function openUploadFromPostModal() {
+        var parNo = pendingPostParNo;
+        closePostParModal();
+        openUploadAirModal(null, parNo);
+    }
+
+    function executePostPar() {
+        if (!pendingPostParNo) return;
+        var $button = $("#btnConfirmPostPar");
+        setClickedButtonBusy($button, "Posting...");
+        $.ajax({
+            url: '@Url.Action("PostPar", "ParSet")',
+            type: "POST",
+            data: antiForgeryData({ parNo: pendingPostParNo }),
+            success: function (response) {
+                restoreClickedButton($button);
+                if (response && response.success) {
+                    closePostParModal();
+                    notifySuccess(response.message || "PAR posted.");
+                    refreshWorkspace(true);
+                } else {
+                    var message = response && response.message ? response.message : "Unable to post the PAR.";
+                    notifyWarning(message);
+                    if (message.indexOf("AIR") >= 0) {
+                        $("#postParAlertBox").hide();
+                        $("#postParMissingAirWarning").show();
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                restoreClickedButton($button);
+                var message = ajaxFailureMessage(xhr, "Unable to post the PAR.");
+                if (window.console && console.error) console.error(message, xhr.status, status, error, xhr.responseText);
+                notifyWarning(message);
+            }
+        });
+    }
+
+    var pendingUnpostParNo = null;
+    function confirmUnpostPar(parNo) {
+        if (!parNo) return;
+        pendingUnpostParNo = parNo;
+        $("#unpostModalParNo").text(parNo);
+        $("#btnConfirmUnpostPar").prop("disabled", false).html("<span class='k-icon k-i-undo'></span> Unpost");
+        var win = $("#windowUnpostPar").data("kendoWindow");
+        if (!win) {
+            win = $("#windowUnpostPar").kendoWindow({ title: "Unpost Property Acknowledgment Receipt", width: 500, modal: true, visible: false }).data("kendoWindow");
+        }
+        win.center().open();
+    }
+
+    function closeUnpostParModal() {
+        var win = $("#windowUnpostPar").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function executeUnpostPar() {
+        if (!pendingUnpostParNo) return;
+        var $button = $("#btnConfirmUnpostPar");
+        setClickedButtonBusy($button, "Unposting...");
+        $.ajax({
+            url: '@Url.Action("UnpostPar", "ParSet")',
+            type: "POST",
+            data: antiForgeryData({ parNo: pendingUnpostParNo }),
+            success: function (response) {
+                restoreClickedButton($button);
+                if (response && response.success) {
+                    closeUnpostParModal();
+                    notifySuccess(response.message || "PAR unposted.");
+                    refreshWorkspace(true);
+                } else {
+                    notifyWarning(response && response.message ? response.message : "Unable to unpost the PAR.");
+                }
+            },
+            error: function (xhr, status, error) {
+                restoreClickedButton($button);
+                var message = ajaxFailureMessage(xhr, "Unable to unpost the PAR.");
+                if (window.console && console.error) console.error(message, xhr.status, status, error, xhr.responseText);
+                notifyWarning(message);
+            }
+        });
+    }
+
+    function openUploadAirModal(id, parNo) {
+        if (!parNo) return;
+        removeDynamicWindow("#windowUploadAir");
+        $("#windowcontainer").append("<div id='windowUploadAir'></div>");
+        var win = $("#windowUploadAir").kendoWindow({
+            title: "Attach Acceptance & Inspection Report (AIR) - " + parNo,
+            width: 560,
+            modal: true,
+            visible: false,
+            deactivate: function () {
+                var $element = this.element;
+                this.destroy();
+                $element.remove();
+            }
+        }).data("kendoWindow");
+        $.ajax({
+            url: '@Url.Action("_UploadAir", "ParSet")',
+            type: "GET",
+            cache: false,
+            data: { parNo: parNo },
+            success: function (html) { win.content(html); win.center().open(); },
+            error: function (xhr) {
+                removeDynamicWindow("#windowUploadAir");
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to load the AIR upload form."));
+            }
+        });
+    }
+
+    function closeUploadAirModal() {
+        var win = $("#windowUploadAir").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function viewAirDocument(parId) {
+        if (!parId) return;
+        window.open('@Url.Action("ViewAirDocument", "ParSet")' + '?parId=' + encodeURIComponent(parId), '_blank');
+    }
+
+    function executeUploadAirFile(event) {
+        event.preventDefault();
+        var form = event.currentTarget;
+        var data = new FormData(form);
+        data.append("__RequestVerificationToken", $(".epsms-par input[name='__RequestVerificationToken']").first().val());
+        var $button = $(form).find("#btnSubmitAirUpload");
+        setClickedButtonBusy($button, "Uploading...");
+        $.ajax({
+            url: '@Url.Action("UploadAirFile", "ParSet")',
+            type: "POST",
             data: data,
-            success: function(data) {
-                fieldsContainer.html(data);
-                resizeWindow();
-            }
-        });
-    }
-
-    var selectedItemParId = null;
-    function onChangeGridItemsPar(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemParId = selectedData.Id;
-    }
-
-    function onDataBoundGridItemsPar(e) {
-        if (selectedItemParId) {
-            var dataItem = this.dataSource.get(selectedItemParId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        }
-    }
-
-    var selectedItemParSetId = null;
-    function onChangeGridItemsParSet(e) {
-        var selectedData = this.dataItem(this.select());
-
-        selectedItemParSetId = selectedData.Id;
-    }
-
-    function onDataBoundGridItemsParSet(e) {
-        if (selectedItemParSetId) {
-            var dataItem = this.dataSource.get(selectedItemParSetId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        }
-    }
-
-    function onClickDeleteGridParItems(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-
-    function onClickBtnEditParsItem(e) {
-        e.preventDefault();
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-
-        ParItem(dataItem.Id);
-    }
-
-    function ParItem(recId) {
-        var myTitle = "PAR Item - EDIT";
-        var width = 1000;
-        var height = 650;
-        $("#windowcontainer").append("<div id='window-par-item'></div>");
-        var mywindow = $("#window-par-item")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    close: function () {
-                        $("#gridItemsPar").data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    },
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_ParItemEdit", "ParSet")',
-            data: {
-                parItemId: recId
-            },
-            complete: function () {
-                RefreshDivs(); //item info edit not allowed here, use stock card.
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        mywindow.open();
-    }
-    // END GRID ITEM PAR
-
-    // GRID IMAGES
-    var selectedGridImagesItem = null;
-    function onEditGridImages(e) {
-        e.preventDefault();
-
-        //// the master row for this detail
-        //var parentRow = this.wrapper.closest("tr").prev();
-        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        ////var parentModel = parentGrid.dataItem(parentRow);
-        //parentGrid.select(parentRow);
-
-        var selectedGrid = e.sender; // local, grid is popup
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            e.model.set("ImageId", '@ViewData["imageId"]');
-        } else {
-            selectedGridImagesItem = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onDataBoundGridImages(e) {
-        if (selectedGridImagesItem) {
-            var dataItem = this.dataSource.get(selectedGridImagesItem);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-
-        @*var trs = this.tbody.find('tr').each(
-           function () {
-               var item = this.dataItem($(this));
-
-               if ('@ViewBag.isAllowed' == 'False') {
-                   $('.k-grid-Upload', $("#gridImages")).remove();
-               }
-           }
-          );*@
-    }
-    function onDeleteGridImages(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
-    }
-
-
-    function onClickUpload(e) {
-        var button = e.sender.element; // Use the sender's element;
-        // Retrieve the grid name from the data attribute
-        var imageId = $(button).data("imageid");
-        var description = $(button).data("description");
-        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId + '&description=' + description;
-        var myTitle = "Upload Images/Documents";
-        var width = 800;
-        var height = 650;
-
-        $("#windowcontainer").append("<div id='windowUpload'></div>");
-        var mywindow = $("#windowUpload")
-                .kendoWindow({
-                    actions: ["Minimize", "Maximize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-
-        mywindow.setOptions({ title: myTitle, width: width, height: height });
-        mywindow.refresh({ url: myUrl });
-        mywindow.center();
-        mywindow.open();
-    }
-
-    function UploadPara(e) {
-        var data = JSON.stringify({ model: $("#formUpload").serialize() });
-        //alert(additional);
-        //e.data = JSON.parse(additional);
-        //$('#chkSMS').is(':checked');
-        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
-    }
-
-    function onClickPreview(e) {
-        var selectedGrid = this; // local, grid is popup
-
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        selectedGridImagesItem = dataItem.Id;
-
-        var myUrl = '@Url.Action("PreviewUpload", "ParIcsUpload")?id=' + selectedGridImagesItem;
-        window.open(myUrl, "_blank");
-
-        //var myTitle = "Preview";
-        //var width = 800;
-        //var height = 650;
-
-
-        //$("#windowcontainer").append("<div id='windowPreview'></div>");
-        //var mywindow = $("#windowPreview")
-        //        .kendoWindow({
-        //            actions: ["Minimize", "Maximize", "Close"],
-        //            resizable: true,
-        //            draggable: true,
-        //            modal: true,
-        //            visible: false,
-        //            iframe: true,
-        //            deactivate: function () {
-        //                this.destroy();
-        //            }
-        //        }).data("kendoWindow");
-
-        //mywindow.setOptions({ title: myTitle, width: width, height: height });
-        //mywindow.refresh({ url: myUrl });
-        //mywindow.center();
-        //mywindow.open();
-    }
-
-    function onUploadSuccess(e)
-    {
-        $("#gridImages_").data("kendoGrid").dataSource.read();
-    }
-
-    // END GRID IMAGES
-    let isProgrammaticSelection = false;
-    function onChangeGridItemExtns(e) {
-        if (isProgrammaticSelection) return;
-        var grid = $("#gridSelections").data("kendoGrid");
-        var selectedRows = grid.select();
-
-        selectedRows.each(function () {
-            var dataItem = grid.dataItem(this);
-            var setLotNo = dataItem.SetLotNo;
-            var setLotQtyNo = dataItem.SetLotQtyNo;
-            var contentNo = dataItem.ContentNo;
-
-            isProgrammaticSelection = true;
-            // Select all rows matching the same GroupNo
-            grid.items().each(function () {
-                var item = grid.dataItem(this);
-                if (item.SetLotNo == setLotNo && item.SetLotQtyNo == setLotQtyNo) {
-                    grid.select(this); // Select row programmatically
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                restoreClickedButton($button);
+                if (response && response.success) {
+                    closeUploadAirModal();
+                    notifySuccess(response.message || "AIR document uploaded.");
+                    refreshWorkspace(true);
+                } else {
+                    notifyWarning(response && response.message ? response.message : "Unable to upload the AIR document.");
                 }
-            });
-
-            isProgrammaticSelection = false;
-        });
-    }
-
-    function onDataBoundGridItemExtns(e) {
-        var grid = $("#gridSelections").data("kendoGrid");
-
-        // Handle clicks on the checkbox column
-        grid.table.on("click", "tr.k-state-selected td.k-checkbox-cell", function (e) {
-            var row = $(e.target).closest("tr");
-            var dataItem = grid.dataItem(row);
-            var groupNo = dataItem.GroupNo;
-
-            if (!row.hasClass("k-state-selected")) {
-                // Select rows with matching GroupNo
-                grid.items().each(function () {
-                    var item = grid.dataItem(this);
-                    if (item.GroupNo === groupNo) {
-                        grid.select(this);
-                    }
-                });
-            } else {
-                // Deselect matching rows if unselected
-                grid.items().each(function () {
-                    var item = grid.dataItem(this);
-                    if (item.GroupNo === groupNo) {
-                        grid.clearSelection($(this));
-                    }
-                });
-            }
-        });
-    }
-
-    function onClickPars(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        selectedId = dataItem.Id;
-        var rowitem = selectedGrid.dataSource.get(selectedId);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedPars(dataItem.GroupId, "");
-    }
-
-    function GeneratedPars(groupId, postedBy) {
-        var myTitle = "Generated PARS";
-        var width = 1200;
-        var height = 1000;
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    deactivate: function () {
-                        refreshAllGrids();
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-            //height: height
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_Pars", "ParSet")',
-            data: {
-                cardItemGroupId: groupId,
-                postedBy: postedBy
             },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
+            error: function (xhr) {
+                restoreClickedButton($button);
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to upload the AIR document."));
             }
         });
-        //mywindow.center();
-        mywindow.open();
-        //resizeWindow();
     }
 
-    function onClickSetPars(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedParSet(dataItem.GroupId, "");
-    }
-
-    function GeneratedParSet(groupId, postedBy) {
-        var myTitle = "Generated PARS";
-        var width = 1200;
-        var height = 1000;
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    deactivate: function () {
-                        refreshAllGrids();
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-            //height: height
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_ParSet", "ParSet")',
-            data: {
-                cardItemGroupId: groupId,
-                postedBy: postedBy
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        //mywindow.center();
-        mywindow.open();
-        //resizeWindow();
-    }
-
-    function onClickUploads(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        //selectedId = dataItem.Id;
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        Uploads(dataItem.IcsParId, dataItem.PsCardItemExtn.PsCardItem.ParPostedBy);
-    }
-
-    function onClickSetUploads(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        Uploads(dataItem.Id, dataItem.PostedBy);
-    }
-
-
-    function Uploads(imageId, postedBy) {
-        var myTitle = "Uploads";
-        var width = 1000;
-        var height = 650;
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-            //height: height
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_Images", "ParIcsUpload")',
-            data: {
-                imageId: imageId,
-                postedBy: postedBy,
-                description: "PAR"
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        //mywindow.center();
-        mywindow.open();
-        //resizeWindow();
-    }
-
-    function InlineGridError(e) {
-        if (e.errors) {
-            let message = "Errors:\n";
-
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
-                    });
+    function executeReusePoAir(parId, sourceUploadId) {
+        $.ajax({
+            url: '@Url.Action("ReusePoAirFile", "ParSet")',
+            type: "POST",
+            data: antiForgeryData({ parId: parId, sourceUploadId: sourceUploadId }),
+            success: function (response) {
+                if (response && response.success) {
+                    closeUploadAirModal();
+                    notifySuccess(response.message || "AIR document linked.");
+                    refreshWorkspace(true);
+                } else {
+                    notifyWarning(response && response.message ? response.message : "Unable to link the AIR document.");
                 }
-            });
-
-            alert(message); // You can replace this with any other UI method to display errors
-
-            $("#gridItemsPar").data("kendoGrid").dataSource.read();
-        }
+            },
+            error: function (xhr) {
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to link the AIR document."));
+            }
+        });
     }
 
-    function IsPosted(dataItem) {
-        return dataItem.IcsPar.PostedDt != null;
-    }
+    $(document)
+        .off("click.parGenerateUnit", ".par-generate-unit")
+        .on("click.parGenerateUnit", ".par-generate-unit", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openParEditorForUnit($(this).attr("data-extn-id"), false, null, $(this));
+        })
+        .off("click.parContinueUnit", ".par-continue-unit")
+        .on("click.parContinueUnit", ".par-continue-unit", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openParEditorForUnit($(this).attr("data-extn-id"), true, null, $(this));
+        })
+        .off("click.parViewUnit", ".par-view-unit")
+        .on("click.parViewUnit", ".par-view-unit", function (e) {
+            e.preventDefault();
+            openViewParModal($(this).attr("data-par-no"));
+        })
+        .off("click.parEditSlip", ".par-edit-slip")
+        .on("click.parEditSlip", ".par-edit-slip", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openParEditorForUnit($(this).attr("data-extn-id"), true, $(this).attr("data-par-id"), $(this));
+        })
+        .off("click.parViewSlip", ".par-view-slip")
+        .on("click.parViewSlip", ".par-view-slip", function (e) {
+            e.preventDefault();
+            openViewParModal($(this).attr("data-par-no"));
+        })
+        .off("click.parPrintSlip", ".par-print-slip")
+        .on("click.parPrintSlip", ".par-print-slip", function (e) {
+            e.preventDefault();
+            printOfficialPar($(this).attr("data-par-no"));
+        })
+        .off("click.parPostSlip", ".par-post-slip")
+        .on("click.parPostSlip", ".par-post-slip", function (e) {
+            e.preventDefault();
+            confirmPostPar($(this).attr("data-par-no"));
+        })
+        .off("click.parUnpostSlip", ".par-unpost-slip")
+        .on("click.parUnpostSlip", ".par-unpost-slip", function (e) {
+            e.preventDefault();
+            confirmUnpostPar($(this).attr("data-par-no"));
+        })
+        .off("click.parDeleteSlip", ".par-delete-slip")
+        .on("click.parDeleteSlip", ".par-delete-slip", function (e) {
+            e.preventDefault();
+            confirmDeletePar($(this).attr("data-par-id"), $(this).attr("data-par-no"));
+        });
 
-    function IsNotPosted(dataItem) {
-        return !IsPosted(dataItem);
-    }
-
-    function IsSetPosted(dataItem) {
-        return dataItem.PostedDt != null;
-    }
-
-    function IsSetNotPosted(dataItem) {
-        return !IsSetPosted(dataItem);
-    }
-
-    function IsNoGenerated(dataItem) {
-        return dataItem.GeneratedItems == 0;
-    }
-
-    function onSelectIssuedBy(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#IcsPar_IssuedBy").val(dataItem.Description).trigger("change");
-        $("#IcsPar_IssuedByPosition").val(dataItem.Desc2).trigger("change");
-        $("#IcsPar_IssuedDept").val(dataItem.Desc3).trigger("change");
-    }
-
-    function onSelectEmployee(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#IcsPar_ReceivedBy").val(dataItem.Name).trigger("change");
-        $("#IcsPar_ReceivedByPosition").val(dataItem.Position).trigger("change");
-        $("#IcsPar_ReceivedDept").val(dataItem.Department).trigger("change");
-    }
-
-    function DataEmployeeId() {
-        var text = $("#IcsPar_ReceivedById").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#IcsPar_ReceivedById").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            text: text
-        };
-    }
 </script>
-
-
-
-

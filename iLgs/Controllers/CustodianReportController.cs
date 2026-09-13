@@ -156,6 +156,7 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
             ViewBag.IsSet = false;
+            ViewBag.IsView = false;
 
             return View();
         }
@@ -190,6 +191,7 @@ namespace iLgs.Controllers
             ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
             ViewBag.IsDemand = false;
             ViewBag.IsSet = true;
+            ViewBag.IsView = false;
 
             return View("Stock");
         }
@@ -216,6 +218,7 @@ namespace iLgs.Controllers
             var isAdmin = _userService.IsUserNameAdmin(userName);
             ViewBag.IsAdmin = isAdmin;
             ViewBag.IsSet = false;
+            ViewBag.IsView = false;
 
             return View("Stock");
         }
@@ -577,6 +580,33 @@ namespace iLgs.Controllers
             ViewBag.IsSet = false;
 
             return View("Transpo");
+        }
+
+        public async Task<ActionResult> StockView()
+        {
+            _menuId = "custodian_report_stock_view";
+            var access = await Access(User.Identity.GetUserId(), _menuId);
+            if (!access.IsAllowed)
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error");
+            }
+
+            TempData["custodian_report"] = _menuId;
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
+            ViewBag.Title = "Custodian Report - Supplies";
+            ViewBag.AnnexDUser = false;
+            ViewBag.ForYear = _custodianReportService.GetReportingYearEnd();
+            ViewBag.IsDemand = false;
+            ViewBag.IsView = true;
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = _userService.IsUserNameAdmin(userName);
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsSet = false;
+
+            return View("Stock");
         }
 
         public async Task<ActionResult> TranspoUpdate()
@@ -1075,10 +1105,10 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isSet)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView, bool? isSet)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
 
             if (isSet.HasValue && isSet == true)
             {
@@ -1227,10 +1257,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isSet)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, bool? isDemand, bool? isView, bool? isSet)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand);
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user, isDemand, isView);
 
             if (isSet.HasValue && isSet == true)
             {

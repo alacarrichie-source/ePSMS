@@ -1,27 +1,180 @@
-.ris-feature .header-bar,.ris-feature .wizard-header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
-.ris-feature .ris-filter{display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:14px;margin-bottom:14px}
-.ris-feature .ris-filter label{display:flex;flex-direction:column;gap:5px}
-.ris-feature .ris-kpis{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
-.ris-feature .ris-kpis div{flex:1;min-width:130px;background:white;border:1px solid #dce3e9;padding:12px;color:#526171}
-.ris-feature .ris-kpis strong{float:right;font-size:20px;color:#174f7d}
-.ris-feature .ris-steps{display:flex;gap:10px;margin:18px 0;padding:12px;background:#f3f6f9}
-.ris-feature .ris-steps span{padding:7px 14px;color:#64748b}
-.ris-feature .ris-steps .active{background:#e1edf8;color:#174f7d;font-weight:600;border-radius:4px}
-.ris-feature .ris-group{border:1px solid #dce3e9;border-radius:5px;margin:14px 0;background:white}
-.ris-feature .ris-group summary{padding:14px;background:#f3f6fa;font-weight:600;cursor:pointer}
-.ris-feature .ris-group-body{padding:16px}
-.ris-feature .ris-fields{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:12px;margin:0 0 18px}
-.ris-feature .ris-field label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:#526171}
-.ris-feature .ris-field input,.ris-feature .ris-field textarea{width:100%;max-width:none}
-.ris-feature .ris-field-full{grid-column:1/-1}
-.ris-feature .ris-items{width:100%;border-collapse:collapse;min-width:1000px}
-.ris-feature .ris-items th,.ris-feature .ris-items td{padding:8px;border:1px solid #dee5ec;font-size:12px}
-.ris-feature .ris-items th{background:#f4f6f8}
-.ris-feature .ris-items .num{text-align:right;width:105px}
-.ris-feature .ris-items .k-numerictextbox{width:105px}
-.ris-feature .ris-items input{text-align:right}
-.ris-feature .ris-actions{display:flex;justify-content:space-between;margin:18px 0}
-.ris-feature .ris-hint{color:#64748b;margin:8px 0}
-.ris-feature .ris-value{white-space:pre-wrap;overflow-wrap:anywhere}
-.ris-feature .ris-error{white-space:pre-wrap}
-@media(max-width:900px){.ris-feature .ris-fields{grid-template-columns:repeat(2,minmax(130px,1fr))}.ris-feature .header-bar{align-items:start;flex-direction:column}}
+﻿/* ================================================================
+   REQUISITIONS MODULE (RIS) SPECIFIC OVERRIDES
+   Scoped to .epsms-requisitions
+   Inherits base layout and wizard styling from .epsms-workflow
+   ================================================================ */
+
+.epsms-requisitions .ris-po-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+/* PR Accordion / Group Card */
+.epsms-requisitions .ris-group {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.epsms-requisitions .ris-group summary {
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e293b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.epsms-requisitions .ris-group summary:hover {
+    background: #f1f5f9;
+}
+
+.epsms-requisitions .ris-group-body {
+    padding: 20px;
+}
+
+/* Form Fields Layout */
+.epsms-requisitions .ris-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.epsms-requisitions .ris-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #475569;
+}
+
+.epsms-requisitions .ris-field input,
+.epsms-requisitions .ris-field textarea,
+.epsms-requisitions .ris-field .k-widget {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.epsms-requisitions .ris-field-full {
+    grid-column: 1 / -1;
+}
+
+.epsms-requisitions .ris-field-meta {
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+/* Allocation Items Table */
+.epsms-requisitions .ris-items {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.epsms-requisitions .ris-items th,
+.epsms-requisitions .ris-items td {
+    padding: 9px 10px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.epsms-requisitions .ris-items thead th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.epsms-requisitions .ris-items .num {
+    text-align: right !important;
+    white-space: nowrap;
+}
+
+.epsms-requisitions .ris-items .k-numerictextbox {
+    width: 110px !important;
+}
+
+.epsms-requisitions .ris-items .k-numerictextbox input {
+    text-align: right !important;
+    font-weight: 600;
+}
+
+.epsms-requisitions .ris-items tfoot td,
+.epsms-requisitions .ris-items tfoot th {
+    background: #f8fafc;
+    font-weight: 700;
+    border-top: 2px solid #cbd5e1;
+}
+
+/* Group Action Toolbar */
+.epsms-requisitions .ris-group-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.epsms-requisitions .ris-hint {
+    color: #64748b;
+    font-size: 13px;
+    margin: 4px 0 16px;
+    line-height: 1.5;
+}
+
+.epsms-requisitions .ris-value {
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 500;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    min-height: 32px;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Candidate PO Selection Row Highlight */
+.epsms-requisitions #risCandidates tr.k-state-selected {
+    background-color: #eff6ff !important;
+    color: #1e293b !important;
+}
+
+/* Responsive Overrides */
+@media (max-width: 992px) {
+    .epsms-requisitions .ris-fields {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .epsms-requisitions .ris-fields {
+        grid-template-columns: 1fr;
+    }
+}
