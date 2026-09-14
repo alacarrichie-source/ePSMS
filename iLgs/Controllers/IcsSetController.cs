@@ -291,6 +291,7 @@ namespace iLgs.Controllers
                     .AsNoTracking()
                     .Where(e =>
                         e.PsCardItemId.HasValue &&
+                        e.PsCardSubItemId == null &&
                         cardItemIds.Contains(e.PsCardItemId.Value))
                     .Select(e => new
                     {
@@ -315,12 +316,13 @@ namespace iLgs.Controllers
                     .AsNoTracking()
                     .Where(e =>
                         e.PsCardItemId.HasValue &&
+                        e.PsCardSubItemId == null &&
                         cardItemIds.Contains(e.PsCardItemId.Value))
                     .Select(e => new
                     {
                         e.PsCardItemId,
                         e.ContentNo,
-                        SerialNo = e.ConductionNo
+                        SerialNo = e.PlateNo
 
                     }).OrderBy(o => o.ContentNo)
                     .ToList();
@@ -332,6 +334,7 @@ namespace iLgs.Controllers
                     .AsNoTracking()
                     .Where(e =>
                         e.PsCardItemId.HasValue &&
+                        e.PsCardSubItemId == null &&
                         cardItemIds.Contains(e.PsCardItemId.Value))
                     .Select(e => new
                     {
@@ -436,52 +439,55 @@ namespace iLgs.Controllers
 
             var extns = await _db.PsCardItemExtns
                 .AsNoTracking()
-                .Where(e => e.PsCardItemId == psCardItemId)
+                .Where(e => e.PsCardItemId == psCardItemId && e.PsCardSubItemId == null)
                 .Include(e => e.IcsParItems.Select(i => i.IcsPar))
                 .ToListAsync();
 
             var vehicleExtns = await _db.PsCardItemExtns
                 .OfType<PsCardItemExtnVehicle>()
                 .AsNoTracking()
-                .Where(e => e.PsCardItemId == psCardItemId)
-                .Select(e => new { e.Id, SerialNo = e.ConductionNo ?? e.PlateNo })
+                .Where(e => e.PsCardItemId == psCardItemId && e.PsCardSubItemId == null)
+                .Select(e => new { e.Id, SerialNo = e.PlateNo })
                 .ToListAsync();
 
             var otherExtns = await _db.PsCardItemExtns
                 .OfType<PsCardItemExtnOther>()
                 .AsNoTracking()
-                .Where(e => e.PsCardItemId == psCardItemId)
+                .Where(e => e.PsCardItemId == psCardItemId && e.PsCardSubItemId == null)
                 .Select(e => new { e.Id, SerialNo = e.SerialNo })
                 .ToListAsync();
 
             var list = new List<object>();
             foreach (var e in extns)
             {
-                var ipi = e.IcsParItems.FirstOrDefault();
-                if (ipi == null)
-                {
-                    continue;
-                }
+                var ipi = e.IcsParItems
+                    .Where(i => i.IcsPar != null && i.IcsPar.RefType == "I")
+                    .OrderByDescending(i => i.IcsPar.PostedDt.HasValue)
+                    .ThenByDescending(i => i.IcsPar.InsertedDt)
+                    .FirstOrDefault();
+                var otherAccountability = e.IcsParItems.FirstOrDefault(i => i.IcsPar != null && i.IcsPar.RefType != "I");
 
                 string serial = vehicleExtns.FirstOrDefault(v => v.Id == e.Id)?.SerialNo
                     ?? otherExtns.FirstOrDefault(o => o.Id == e.Id)?.SerialNo
                     ?? e.SeriesNo;
 
-                bool isPosted = ipi.IcsPar != null && ipi.IcsPar.PostedDt != null;
-                string slipNo = ipi.IcsPar != null ? ipi.IcsPar.RefNo : "";
-                string issuedTo = !string.IsNullOrWhiteSpace(ipi.IssuedTo)
+                bool isPosted = ipi != null && ipi.IcsPar != null && ipi.IcsPar.PostedDt != null;
+                string slipNo = ipi != null && ipi.IcsPar != null ? ipi.IcsPar.RefNo : (otherAccountability != null ? otherAccountability.IcsPar.RefNo : "");
+                string issuedTo = ipi != null && !string.IsNullOrWhiteSpace(ipi.IssuedTo)
                     ? ipi.IssuedTo
-                    : (ipi.IcsPar != null ? ipi.IcsPar.ReceivedBy : "");
+                    : (ipi != null && ipi.IcsPar != null ? ipi.IcsPar.ReceivedBy : (e.UpcomingOfficer ?? ""));
 
                 list.Add(new
                 {
-                    Id = ipi.Id,
+                    Id = e.Id,
+                    IcsParItemId = ipi != null ? (Guid?)ipi.Id : null,
+                    IcsParId = ipi != null ? ipi.IcsParId : null,
                     PsCardItemExtnId = e.Id,
                     PropNo = !string.IsNullOrEmpty(e.PropNo) ? e.PropNo : "Unassigned",
                     SerialNo = !string.IsNullOrEmpty(serial) ? serial : "-",
                     IssuedTo = issuedTo ?? "",
                     IsPosted = isPosted,
-                    Status = isPosted ? "Posted" : "Draft",
+                    Status = ipi == null ? (otherAccountability == null ? "Available" : "Assigned") : (isPosted ? "Posted" : "Draft"),
                     IcsNo = slipNo
                 });
             }
@@ -1399,25 +1405,77 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
+        public async Task<ActionResult> _GenerateIcs(Guid? mainPsCardItemExtnId, Guid? icsParId, Guid? psCardItemId, string refType)
         {
             var date = DateTime.Now;
-            var psCardItem = await _icsParService.IcsService.GetByIdAsync(psCardItemId);
+            var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
+
+            if (icsParId.HasValue && icsParId.Value != Guid.Empty)
+            {
+                var draftItem = await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking()
+                    .SingleOrDefaultAsync(i => i.IcsParId == icsParId.Value && i.IcsPar.RefType == "I");
+                if (draftItem == null) return HttpNotFound("The Draft ICS was not found.");
+                if (draftItem.IcsPar.PostedDt != null)
+                    return Content("<div class='alert alert-warning' style='margin:15px'>This ICS is posted and can no longer be edited.</div>");
+                mainPsCardItemExtnId = draftItem.PsCardItemExtnId;
+            }
+
+            ParBundleBuilderInitVM bundleData = null;
+            if (mainPsCardItemExtnId.HasValue && mainPsCardItemExtnId.Value != Guid.Empty)
+            {
+                var posted = await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking()
+                    .FirstOrDefaultAsync(i => i.PsCardItemExtnId == mainPsCardItemExtnId.Value && i.IcsPar.RefType == "I" && i.IcsPar.PostedDt != null);
+                if (posted != null)
+                    return Content("<div class='alert alert-warning' style='margin:15px'>This physical unit is already assigned to posted ICS <b>" + (posted.IcsPar.RefNo ?? "") + "</b>.</div>");
+                bundleData = await _icsParService.IcsService.GetSingleUnitBundleDataAsync(mainPsCardItemExtnId.Value);
+                psCardItemId = bundleData.PsCardItemId;
+            }
+            else if (psCardItemId.HasValue && psCardItemId.Value != Guid.Empty)
+            {
+                bundleData = await _icsParService.IcsService.GetBundleBuilderDataAsync(psCardItemId.Value);
+            }
+
+            var psCardItem = psCardItemId.HasValue ? await _icsParService.IcsService.GetByIdAsync(psCardItemId) : null;
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,
-                Qty = psCardItem.IcsBalance,
+                MainPsCardItemExtnId = mainPsCardItemExtnId,
+                ExistingParId = bundleData != null ? bundleData.ExistingParId : null,
+                Qty = 1,
                 Date = date,
-                RefType = refType,
-                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date },
+                RefType = "I",
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued != null ? issued.Description : null, IssuedByPosition = issued != null ? issued.Desc2 : null, IssuedDept = issued != null ? issued.Desc3 : null },
                 IndSet = "I"
             };
 
+            if (psCardItem != null) { model.PoNo = psCardItem.PoNo; model.PoDate = psCardItem.PoDate; model.DeptId = psCardItem.DeptId; }
+            if (bundleData != null)
+            {
+                model.Date = bundleData.ExistingRefDate ?? date;
+                model.LocationId = bundleData.ExistingLocationId;
+                model.Location = bundleData.ExistingLocation;
+                model.LocationCode = bundleData.ExistingLocationCode;
+                model.IssuedTo = bundleData.ExistingIssuedTo;
+                model.Designation = bundleData.ExistingDesignation;
+                model.IcsPar.ReceivedById = bundleData.ExistingReceivedById;
+                model.IcsPar.ReceivedBy = bundleData.ExistingReceivedBy;
+                model.IcsPar.ReceivedByTitle = bundleData.ExistingReceivedByTitle;
+                model.IcsPar.ReceivedByTitle2 = bundleData.ExistingReceivedByTitle2;
+                model.IcsPar.ReceivedByPosition = bundleData.ExistingReceivedByPosition;
+                model.IcsPar.ReceivedDept = bundleData.ExistingReceivedDept;
+                model.IcsPar.ReceivedDate = bundleData.ExistingReceivedDate ?? date;
+                model.IcsPar.IssuedBy = bundleData.ExistingIssuedBy ?? model.IcsPar.IssuedBy;
+                model.IcsPar.IssuedByPosition = bundleData.ExistingIssuedByPosition ?? model.IcsPar.IssuedByPosition;
+                model.IcsPar.IssuedDept = bundleData.ExistingIssuedDept ?? model.IcsPar.IssuedDept;
+                model.IcsPar.IssuedDate = bundleData.ExistingIssuedDate ?? date;
+            }
+
             model.IcsPar.RefDate = model.Date;
             ViewData["psCardItemId"] = psCardItemId;
-            ViewBag.ItemExtnName = _psCardService.GetItemExtnName(psCardItemId);
+            ViewBag.ItemExtnName = psCardItemId.HasValue ? _psCardService.GetItemExtnName(psCardItemId) : null;
+            ViewBag.BundleBuilderData = bundleData;
 
-            return PartialView(model);
+            return PartialView("_GenerateIcs", model);
         }
 
         public ActionResult _GenerateIcsSet(Guid? unitGroupId, string refType)
@@ -1439,15 +1497,21 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateIcs(GenerateIcsParVM model)
         {
             try
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
                 Access access = await accessTask;
-                if (!access.AllowAdd)
+                var isDraftUpdate = model.ExistingParId.HasValue;
+                if (!isDraftUpdate && model.MainPsCardItemExtnId.HasValue)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    isDraftUpdate = await _db.IcsParItems.AnyAsync(i => i.PsCardItemExtnId == model.MainPsCardItemExtnId.Value && i.IcsPar.RefType == "I" && i.IcsPar.PostedDt == null);
+                }
+                if ((isDraftUpdate && !access.AllowEdit) || (!isDraftUpdate && !access.AllowAdd))
+                {
+                    ModelState.AddModelError("Access", isDraftUpdate ? "Access Denied: You cannot edit Draft ICS records." : "Access Denied: You cannot generate ICS records.");
                 }
 
                 if (ModelState.IsValid)
@@ -1455,14 +1519,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    if (model.IndSet == "I")
-                    {
-                        await _icsParService.IcsService.GenerateIcs(model, user, date);
-                    }
-                    else
-                    {
-                        await _icsParService.IcsService.GenerateIcsSet(model, user, date);
-                    }
+                    await _icsParService.IcsService.GenerateIcsBundle(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -1538,7 +1595,22 @@ namespace iLgs.Controllers
             return PartialView(model);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> PreviewIcsBatch(string poNo, DateTime? poDate, Guid? deptId)
+        {
+            try
+            {
+                var data = await _icsParService.IcsService.BuildBatchPreviewAsync(poNo, poDate, deptId);
+                return new JsonNetResult { Data = data, JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.InnerException != null ? ex.InnerException.Message : ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateIcsBatch(GenerateIcsParVM model)
         {
             try
@@ -1555,7 +1627,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsParService.IcsService.GenerateIcsBatch(model, user, date);
+                    await _icsParService.IcsService.GenerateIcsBatchBundles(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

@@ -17,6 +17,7 @@
     @Html.HiddenFor(model => model.DeptId)
     @Html.HiddenFor(model => model.RefType)
     @Html.HiddenFor(model => model.LocationCode)
+    @Html.HiddenFor(model => model.BundleDataJson)
     @*@Html.HiddenFor(model => model.IcsPar.RefDate)
     @Html.HiddenFor(model => model.IcsPar.LocationId)*@
     @Html.HiddenFor(model => model.IcsPar.ReceivedBy)
@@ -79,6 +80,11 @@
                     @Html.ValidationMessageFor(model => model.Location)
                 </div>
             </div>
+        </div>
+
+        <div id="icsBatchPreview" style="margin:18px 0;padding:14px;border:1px solid #dbe5f1;border-radius:8px;background:#f8fafc">
+            <div style="font-weight:700;color:#002576;margin-bottom:8px">Proposed component bundles</div>
+            <div class="batch-preview-content"><span class="k-icon k-i-loading"></span> Building deterministic assignments...</div>
         </div>
 
         <br />
@@ -277,7 +283,7 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Submit").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Generate Ready Drafts").Name("btnSave").Enable(false))
                     @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
                 </span>
             </div>
@@ -287,6 +293,39 @@
 
 
 <script type="text/javascript">
+    (function loadBatchPreview() {
+        $.get('@Url.Action("PreviewIcsBatch", "IcsSet")', {
+            poNo: $('#PoNo').val(),
+            poDate: $('#PoDate').val(),
+            deptId: $('#DeptId').val()
+        }).done(function (result) {
+            if (result.error) {
+                $('#icsBatchPreview .batch-preview-content').html("<div class='alert alert-danger'>" + kendo.htmlEncode(result.error) + "</div>");
+                return;
+            }
+            var bundles = result.Bundles || [];
+            var ready = $.grep(bundles, function (b) { return b.Status === 'Ready'; });
+            $('#BundleDataJson').val(JSON.stringify(ready));
+            var html = "<div style='margin-bottom:10px'><b>" + ready.length + " Ready</b> &middot; " + (bundles.length - ready.length) + " Incomplete</div>";
+            $.each(bundles, function (_, b) {
+                var ok = b.Status === 'Ready';
+                html += "<div style='background:white;border-left:4px solid " + (ok ? "#16a34a" : "#dc2626") + ";padding:10px 12px;margin:8px 0'>";
+                html += "<div style='display:flex;justify-content:space-between'><b>" + kendo.htmlEncode(b.MainDescription || 'Accountable unit') + " - " + kendo.htmlEncode(b.PropNo || 'Unassigned') + "</b><span class='status-badge'>" + b.Status + "</span></div>";
+                html += "<div style='color:#475569;margin:4px 0'>Officer: " + kendo.htmlEncode(b.IssuedTo || 'Not assigned') + (b.Designation ? " - " + kendo.htmlEncode(b.Designation) : "") + "</div><ul style='margin:5px 0'>";
+                $.each(b.Components || [], function (_, c) { html += "<li>" + kendo.htmlEncode(c.Description || 'Component') + (c.SerialNo ? " - " + kendo.htmlEncode(c.SerialNo) : "") + "</li>"; });
+                html += "</ul>";
+                if (!ok) html += "<div style='color:#b91c1c'><b>Missing:</b> " + $.map(b.MissingComponents || [], kendo.htmlEncode).join(', ') + "</div>";
+                html += "</div>";
+            });
+            if (!bundles.length) html = "<div class='alert alert-warning'>No eligible physical units were found.</div>";
+            $('#icsBatchPreview .batch-preview-content').html(html);
+            var btn = $('#btnSave').data('kendoButton');
+            if (btn) btn.enable(ready.length > 0);
+        }).fail(function (xhr) {
+            $('#icsBatchPreview .batch-preview-content').html("<div class='alert alert-danger'>Unable to build preview: " + kendo.htmlEncode(xhr.responseText || 'Request failed') + "</div>");
+        });
+    })();
+
     $("#btnSave").click(function (e) {
         e.preventDefault();
         var validator = $("#form").kendoValidator().data("kendoValidator");

@@ -1,6 +1,162 @@
-﻿@model iLgs.Models.GenerateIcsParVM
+@model iLgs.Models.GenerateIcsParVM
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+@{
+    var bundleInit = ViewBag.BundleBuilderData as iLgs.Models.ParBundleBuilderInitVM;
+    var hasComponents = bundleInit != null && bundleInit.Components != null && bundleInit.Components.Count > 0;
+    var bundleInitJson = bundleInit != null ? Newtonsoft.Json.JsonConvert.SerializeObject(bundleInit) : "null";
+    var isDraft = bundleInit != null && bundleInit.ExistingParId != null;
+    var mainExtnId = bundleInit != null && bundleInit.MainPsCardItemExtnId.HasValue ? bundleInit.MainPsCardItemExtnId.Value.ToString() : (Model.MainPsCardItemExtnId.HasValue ? Model.MainPsCardItemExtnId.Value.ToString() : "");
+}
+
+<script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + (data ? data : '') + '</div>';
+    }
+
+    function onSelectGenerateParLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+        if (dataItem) {
+            $("#LocationCode").val(dataItem.Code).trigger("change");
+            var locDesc = dataItem.Desc2 || dataItem.Description;
+            $("#Location").val(locDesc).trigger("change");
+        }
+    }
+
+    function onSelectEmployee(e) {
+        var dataItem = this.dataItem(e.item.index());
+        if (dataItem) {
+            $("#IcsPar_ReceivedBy").val(dataItem.Name).trigger("change");
+            $("#IcsPar_ReceivedByPosition").val(dataItem.Position).trigger("change");
+            $("#IcsPar_ReceivedDept").val(dataItem.Department).trigger("change");
+            if (!$("#IssuedTo").val()) {
+                $("#IssuedTo").val(dataItem.Name).trigger("change");
+            }
+            if (!$("#Designation").val()) {
+                $("#Designation").val(dataItem.Position).trigger("change");
+            }
+        }
+    }
+
+    function onSelectIssuedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+        if (dataItem) {
+            $("#IcsPar_IssuedBy").val(dataItem.Description).trigger("change");
+            $("#IcsPar_IssuedByPosition").val(dataItem.Desc2).trigger("change");
+            $("#IcsPar_IssuedDept").val(dataItem.Desc3).trigger("change");
+        }
+    }
+
+    function DataEmployeeId() {
+        var text = "";
+        var cb = $("#IcsPar_ReceivedById").data("kendoMultiColumnComboBox") || $("#ReceivedById").data("kendoMultiColumnComboBox");
+        if (cb) {
+            text = cb.text() || cb.value();
+        }
+        return { text: text };
+    }
+</script>
+
+<style>
+    .par-card-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .par-card-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #002576;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 6px;
+    }
+    .par-prop-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px 16px;
+        font-size: 12px;
+    }
+    .par-prop-item label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 2px;
+        display: block;
+        text-transform: uppercase;
+    }
+    .par-prop-val {
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .par-prop-mono {
+        font-family: Consolas, monospace;
+    }
+    .par-cost-highlight {
+        color: #002576;
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .badge-comp-req {
+        background: #002576;
+        color: #ffffff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+    .badge-comp-opt {
+        background: #64748b;
+        color: #ffffff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+    .badge-comp-freebie {
+        background: #0284c7;
+        color: #ffffff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+    .badge-comp-insp {
+        background: #7c3aed;
+        color: #ffffff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+    .serial-selector-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 6px 8px;
+        max-height: 85px;
+        overflow-y: auto;
+    }
+    .serial-selector-box label {
+        margin-right: 12px;
+        margin-bottom: 4px;
+        font-size: 11px;
+        font-weight: normal;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+</style>
+
+@using (Html.BeginForm("GenerateIcs", "IcsSet", FormMethod.Post, new { name = "formGenerateIcs", id = "formGenerateIcs" }))
 {
     @Html.AntiForgeryToken()
 
@@ -11,7 +167,6 @@
         </div>
     </div>
 
-    //@Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PoNo)
     @Html.HiddenFor(model => model.PoDate)
     @Html.HiddenFor(model => model.DeptId)
@@ -20,437 +175,802 @@
     @Html.HiddenFor(model => model.LocationCode)
     @Html.HiddenFor(model => model.SelectedIds)
     @Html.HiddenFor(model => model.IndSet)
-    @*@Html.HiddenFor(model => model.IcsPar.RefDate)
-    @Html.HiddenFor(model => model.IcsPar.LocationId)*@
+    @Html.HiddenFor(model => model.BundleDataJson)
+    @Html.HiddenFor(model => model.ExistingParId)
+    <input type="hidden" id="MainPsCardItemExtnId" name="MainPsCardItemExtnId" value="@mainExtnId" />
     @Html.HiddenFor(model => model.IcsPar.ReceivedBy)
 
-    <fieldset>
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.Date, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(model => model.Date).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Date)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.LocationId, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location Code")
-                            .DataTextField("Code")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetLocationSp", "Getters");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("10%");
-                                c.Add().Field("Desc3").Title("Main-Location").Width("50%").Template("#= columnTemplate(data.Desc3) #");
-                                c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
-                            })
-                            .Events(e => e.Select("onSelectGenerateParLocationId"))
-                            .Suggest(false)
-                    )
-                    @Html.ValidationMessageFor(model => model.LocationId)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.Location, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Location)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.ReceivedById, "LabelGuid")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.ReceivedById)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
-                            .Placeholder("Select Employee..")
-                            .DataTextField("Name")
-                            .DataValueField("Id")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetEmployee", "Getters").Data("DataEmployeeId");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Name").Title("Name").Width("30%").Template("#= columnTemplate(data.Name) #");
-                                c.Add().Field("Department").Title("Department").Width("30%").Template("#= columnTemplate(data.Department) #");
-                                c.Add().Field("Position").Title("Position").Width("30%").Template("#= columnTemplate(data.Position) #");
-                                c.Add().Field("Status").Title("Status").Width("10%").Template("#= columnTemplate(data.Status) #");
-                            })
-                            //.MinLength(3)
-                            .Events(e => { e.Select("onSelectEmployee"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedById)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle2, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle2)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.ReceivedByPosition, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByPosition)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.ReceivedDept, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDept)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.ReceivedDate, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(m => m.IcsPar.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDate)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedTo, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedTo)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.Designation, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Designation)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.IssuedBy, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.IssuedBy)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
-                            .Placeholder("Select Issued by")
-                            .DataTextField("Description")
-                            .DataValueField("Description")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetIssuedBy", "Getters");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Description").Title("Name").Width("40%").Template("#= columnTemplate(data.Description) #");
-                                c.Add().Field("Desc3").Title("Department").Width("30%").Template("#= columnTemplate(data.Desc3) #");
-                                c.Add().Field("Desc2").Title("Position").Width("30%").Template("#= columnTemplate(data.Desc2) #");
-                            })
-                            //.MinLength(3)
-                            .Events(e => { e.Select("onSelectIssuedBy"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.IcsPar.IssuedBy)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.IssuedByPosition, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.IssuedByPosition)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.IssuedDept, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.IssuedDept)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IcsPar.IssuedDate, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(m => m.IcsPar.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.IssuedDate)
-                </div>
-            </div>
-        </div>
-        <br />
-
-        <div class="row" style="padding-left:20px;padding-right:20px;">
-            @RenderGridSelections()
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Submit").Name("btnSave"))
-                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+    <!-- 1. ACCOUNTABILITY & ASSIGNMENT -->
+    <div class="par-card-section">
+        <div class="par-card-title">
+            <span><i class="fa fa-user text-primary"></i> 1. Accountability &amp; Assignment</span>
+            @if (isDraft)
+            {
+                <span class="status-badge status-unposted" style="font-size: 10px; font-weight: 600;">
+                    Draft ICS: @(bundleInit.ExistingParNo ?? "Pending")
                 </span>
+            }
+        </div>
+        <fieldset>
+            <!-- PAR Date & Location -->
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(model => model.Date, "LabelDate")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().DatePickerFor(model => model.Date).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.Date)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(model => model.LocationId, "LabelGuid")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                .Placeholder("Select Location Code")
+                                .DataTextField("Code")
+                                .DataValueField("Id")
+                                .ValuePrimitive(true)
+                                .Filter(FilterType.Contains)
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetLocationSp", "Getters");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Columns(c =>
+                                {
+                                    c.Add().Field("Code").Title("Code").Width("15%");
+                                    c.Add().Field("Desc3").Title("Main-Location").Width("45%").Template("#= columnTemplate(data.Desc3) #");
+                                    c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
+                                })
+                                .Events(e => e.Select("onSelectGenerateParLocationId"))
+                                .Suggest(false)
+                        )
+                        @Html.ValidationMessageFor(model => model.LocationId)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(model => model.Location, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(model => model.Location).HtmlAttributes(new { @readonly = "readonly", style = "background-color: #f8fafc; width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.Location)
+                    </div>
+                </div>
+            </div>
+
+            <br />
+
+            <!-- Accountable Officer / Received By -->
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.ReceivedById, "LabelGuid")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.ReceivedById)
+                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                .Placeholder("Select Received by..")
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                .ValuePrimitive(true)
+                                .Filter(FilterType.Contains)
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetEmployee", "Getters").Data("DataEmployeeId");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Columns(c =>
+                                {
+                                    c.Add().Field("Name").Title("Name").Width("30%").Template("#= columnTemplate(data.Name) #");
+                                    c.Add().Field("Department").Title("Department").Width("30%").Template("#= columnTemplate(data.Department) #");
+                                    c.Add().Field("Position").Title("Position").Width("30%").Template("#= columnTemplate(data.Position) #");
+                                    c.Add().Field("Status").Title("Status").Width("10%").Template("#= columnTemplate(data.Status) #");
+                                })
+                                .Events(e => { e.Select("onSelectEmployee"); })
+                        )
+                        @Html.ValidationMessageFor(m => m.IcsPar.ReceivedById)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle2, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle2)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.ReceivedByPosition, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByPosition)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.ReceivedDept, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDept)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.ReceivedDate, "LabelDate")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().DatePickerFor(m => m.IcsPar.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDate)
+                    </div>
+                </div>
+            </div>
+
+            <br />
+
+            <!-- End-User Assignment (Issued To / Designation) -->
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IssuedTo, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IssuedTo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.Designation, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.Designation)
+                    </div>
+                </div>
+            </div>
+
+            <br />
+
+            <!-- Issuing Officer (Issued By) -->
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.IssuedBy, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.IssuedBy)
+                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                .Placeholder("Select Issued by")
+                                .DataTextField("Description")
+                                .DataValueField("Description")
+                                .ValuePrimitive(true)
+                                .Filter(FilterType.Contains)
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetIssuedBy", "Getters");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Columns(c =>
+                                {
+                                    c.Add().Field("Description").Title("Name").Width("40%").Template("#= columnTemplate(data.Description) #");
+                                    c.Add().Field("Desc3").Title("Department").Width("30%").Template("#= columnTemplate(data.Desc3) #");
+                                    c.Add().Field("Desc2").Title("Position").Width("30%").Template("#= columnTemplate(data.Desc2) #");
+                                })
+                                .Events(e => { e.Select("onSelectIssuedBy"); })
+                        )
+                        @Html.ValidationMessageFor(m => m.IcsPar.IssuedBy)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.IssuedByPosition, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.IssuedByPosition)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.IssuedDept, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.IssuedDept)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.IcsPar.IssuedDate, "LabelDate")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().DatePickerFor(m => m.IcsPar.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.IcsPar.IssuedDate)
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <!-- 2. MAIN ACCOUNTABLE PROPERTY (SINGLE PHYSICAL UNIT) -->
+    <div class="par-card-section">
+        <div class="par-card-title">
+            <span><i class="fa fa-cube text-primary"></i> 2. Main Accountable Property</span>
+        </div>
+        <div class="par-prop-grid">
+            <div class="par-prop-item">
+                <label>Card Number</label>
+                <div class="par-prop-val par-prop-mono" style="color: #002576;">@(bundleInit != null ? bundleInit.StockNo : "-")</div>
+            </div>
+            <div class="par-prop-item" style="grid-column: span 2;">
+                <label>Description</label>
+                <div class="par-prop-val">@(bundleInit != null ? bundleInit.Description : "-")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Brand</label>
+                <div class="par-prop-val">@(bundleInit != null && !string.IsNullOrWhiteSpace(bundleInit.Brand) ? bundleInit.Brand : "-")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Model</label>
+                <div class="par-prop-val">@(bundleInit != null && !string.IsNullOrWhiteSpace(bundleInit.Model) ? bundleInit.Model : "-")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Serial / Vehicle No.</label>
+                <div class="par-prop-val par-prop-mono">@(bundleInit != null ? bundleInit.SerialNo : "-")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Property Number</label>
+                <div class="par-prop-val par-prop-mono" style="color: #0284c7;">@(bundleInit != null ? bundleInit.PropNo : "Unassigned")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Unit</label>
+                <div class="par-prop-val">@(bundleInit != null ? bundleInit.Unit : "unit")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Unit Cost</label>
+                <div class="par-prop-val par-prop-mono">@(bundleInit != null ? bundleInit.UnitCost.ToString("N2") : "0.00")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Additional Cost</label>
+                <div class="par-prop-val par-prop-mono">@(bundleInit != null ? bundleInit.AddCost.ToString("N2") : "0.00")</div>
+            </div>
+            <div class="par-prop-item">
+                <label>Total Acquisition Cost</label>
+                <div class="par-prop-val par-cost-highlight par-prop-mono">@(bundleInit != null ? bundleInit.AcqCost.ToString("N2") : "0.00")</div>
             </div>
         </div>
-    </fieldset>
-}
+    </div>
 
-@helper RenderGridSelections()
-{
-if (@ViewBag.ItemExtnName == "ItemExtnOther")
-{
-        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
-            .Name("gridSelections")
-            .Columns(col =>
-            {
-                col.Select().Width(30);
-                col.Bound(c => c.ContentNo).Width(50);
-                col.Bound(c => c.PsCardItem.PsCard.ItemCode.Description).Width(100);
-                col.Bound(c => c.SerialNo).Width(100);
-            })
-            .Filterable()
-            .NoRecords()
-            .Resizable(r => r.Columns(true))
-            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
-            .Sortable()
-            .Scrollable(s => s.Height(200))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .Events(events => events.Error("GridError"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                })
-                .Sort(s =>
-                        {
-                            s.Add(a => a.PsCardItem.PsCard.ItemCode.Description);
-                            s.Add(a => a.ContentNo);
-                        })
-                .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
-            )
-            .AutoBind(true)
-        )
-}
-else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
-{
-        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
-            .Name("gridSelections")
-            .Columns(col =>
-            {
-                col.Select().Width(30);
-                col.Bound(c => c.ContentNo).Width(50);
-                col.Bound(c => c.ConductionNo).Width(50);
-                //col.Bound(c => c.YearModel).Width(50);
-                //col.Bound(c => c.PlateNo).Width(50);
-                //col.Bound(c => c.BodyNo).Width(70);
-                //col.Bound(c => c.EngineNo).Width(70);
-                //col.Bound(c => c.ChasisNo).Width(70);
-                //col.Bound(c => c.Color).Width(50);
-                //col.Bound(c => c.CRN).Width(70);
-                //col.Bound(c => c.CRDate).Width(50);
-                //col.Bound(c => c.MVFileNo).Width(70);
-            })
-            .Filterable()
-            .NoRecords()
-            .Resizable(r => r.Columns(true))
-            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
-            .Sortable()
-            .Scrollable(s => s.Height(200))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .Events(events => events.Error("GridError"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                })
-                .Sort(s =>
-                        {
-                            s.Add(a => a.PsCardItem.PsCard.ItemCode.Description);
-                            s.Add(a => a.ContentNo);
-                        })
-                .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
-            )
-            .AutoBind(true)
-        )
-}
-}
+    <!-- 3. BUNDLE COMPONENTS -->
+    if (hasComponents)
+    {
+        <div class="par-card-section" id="bundleSectionWithComponents">
+            <div class="par-card-title">
+                <span><i class="fa fa-puzzle-piece text-primary"></i> 3. Bundle Components</span>
+                <button type="button" class="btn btn-xs btn-default" id="btnAutoAllocate" title="Automatically allocate available components">
+                    <i class="fa fa-magic"></i> Auto-Allocate Components
+                </button>
+            </div>
+            <table class="table table-bordered table-condensed" style="margin-bottom: 0; font-size: 12px;">
+                <thead>
+                    <tr style="background-color: #f8fafc;">
+                        <th style="width: 25%;">Component Description</th>
+                        <th style="width: 14%;">Requirement</th>
+                        <th style="width: 14%; text-align: center;">Available Pool</th>
+                        <th style="width: 32%;">Allocation Selection</th>
+                        <th style="width: 15%; text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var comp in bundleInit.Components)
+                    {
+                        var subId = comp.PsCardSubItemId.ToString();
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600; color: #1e293b;">@comp.Description</div>
+                                <div style="font-size: 11px; color: #64748b; font-family: Consolas, monospace;">Sub-Item: @(comp.SubItemNo ?? "-")</div>
+                            </td>
+                            <td>
+                                @if (comp.IsRequiredForBundle)
+                                {
+                                    <span class="badge-comp-req">Required: @comp.QtyPerParent @comp.Unit</span>
+                                }
+                                else if (comp.SourceType == "FREEBIE")
+                                {
+                                    <span class="badge-comp-freebie">Freebie</span>
+                                }
+                                else if (comp.SourceType == "INSPECTION")
+                                {
+                                    <span class="badge-comp-insp">Inspection</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-comp-opt">Optional</span>
+                                }
+                            </td>
+                            <td style="text-align: center; vertical-align: middle;">
+                                <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px;">
+                                    @comp.AvailableQty @comp.Unit
+                                </span>
+                            </td>
+                            <td>
+                                @if (comp.IsSerialized)
+                                {
+                                    <div class="serial-selector-box" data-sub-id="@subId">
+                                        @if (comp.AvailableSerials != null && comp.AvailableSerials.Count > 0)
+                                        {
+                                            foreach (var ser in comp.AvailableSerials)
+                                            {
+                                                var isPreselected = bundleInit.ExistingPreselectedSerialIds != null && bundleInit.ExistingPreselectedSerialIds.Contains(ser.Id);
+                                                <label>
+                                                    <input type="checkbox" class="chk-comp-serial" data-sub-id="@subId" data-serial-id="@ser.Id" value="@ser.Id" @(isPreselected ? "checked" : "") />
+                                                    <span style="font-family: Consolas, monospace;">@(string.IsNullOrWhiteSpace(ser.SerialNo) ? "unidentified" : ser.SerialNo)</span>
+                                                </label>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted" style="font-size: 11px; font-style: italic;">No serials available in pool</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <input type="number" class="form-control input-sm comp-qty-input" data-sub-id="@subId" value="0" min="0" max="@comp.AvailableQty" step="1" style="width: 80px; height: 26px; padding: 2px 6px; text-align: center; font-weight: 700;" />
+                                        <span class="text-muted">@comp.Unit</span>
+                                    </div>
+                                }
+                            </td>
+                            <td class="comp-status-cell" data-sub-id="@subId" style="text-align: center; vertical-align: middle;">
+                                <span class="badge badge-secondary" style="font-size: 10.5px;">Evaluating...</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="par-card-section" id="bundleSectionEmpty" style="padding: 12px 16px; background: #f8fafc;">
+            <div class="par-card-title" style="margin-bottom: 6px;">
+                <span><i class="fa fa-puzzle-piece text-primary"></i> 3. Bundle Components</span>
+            </div>
+            <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 8px;">
+                <i class="fa fa-info-circle text-info"></i>
+                <span>No bundle components are required for this property.</span>
+            </div>
+        </div>
+    }
 
+    <!-- 4. ACTION BUTTONS -->
+    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+        <button type="button" class="btn btn-default" id="btnCancel" style="min-width: 90px;">
+            <i class="fa fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="btnSave" style="min-width: 130px;">
+            <i class="fa fa-check"></i> @(isDraft ? "Update Draft" : "Generate ICS")
+        </button>
+    </div>
+}
 
 <script type="text/javascript">
-    //function onDataBoundGrid(e) {
-    //    var grid = this;
-    //    var selectedRows = this.select();
-    //    var totalSelectedRow = this.selectedKeyNames().length;
-    //    if (totalSelectedRow == 0) {
-    //        $("#btnSave").html("Generate");
-    //    } else {
-    //        $("#btnSave").html("Generate " + totalSelectedRow + " record(s)");
-    //    }
-    //    $("#btnSave").data('kendoButton').enable(totalSelectedRow != 0);
-    //}
+    var rawBundleInit = @Html.Raw(bundleInitJson);
 
-    //function onChangeGrid(e) {
-    //    var selectedRows = this.select();
-    //    //var totalSelectedRow = selectedRows.length;
-    //    var totalSelectedRow = this.selectedKeyNames().length;
-    //    if (totalSelectedRow == 0) {
-    //        $("#btnSave").html("Post records");
-    //    } else {
-    //        $("#btnSave").html("Post " + totalSelectedRow + " record(s)");
-    //    }
-    //    $("#btnSave").data('kendoButton').enable(totalSelectedRow != 0);
-    //}
+    var icsBundleState = {
+        mainPsCardItemExtnId: '@mainExtnId',
+        mainSerialNo: rawBundleInit ? rawBundleInit.SerialNo : '',
+        mainPropNo: rawBundleInit ? rawBundleInit.PropNo : '',
+        mainAcqCost: rawBundleInit ? rawBundleInit.AcqCost : 0,
+        componentAssignments: []
+    };
 
-    $("#btnSave").click(function (e) {
-        e.preventDefault();
+    function setSubmitEnabled(enabled) {
+        var $btn = $("#formGenerateIcs #btnSave");
+        $btn.prop("disabled", !enabled);
+        if (enabled) {
+            $btn.removeClass("disabled k-state-disabled");
+        } else {
+            $btn.addClass("disabled k-state-disabled");
+        }
+    }
 
-        var validator = $("#form").kendoValidator().data("kendoValidator");
-        if (validator.validate()) {
-            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+    function recalculateComponentAssignments() {
+        if (!rawBundleInit || !rawBundleInit.Components) return;
 
-            // Get reference to Grid object
-            var grid = $("#gridSelections").data("kendoGrid");
-            // Get selected rows
-            var sel = $("input:checked", grid.tbody).closest("tr");
-            // Get data item for each
+        icsBundleState.componentAssignments = [];
 
-            var selectedIds = grid.selectedKeyNames().join(",");
+        rawBundleInit.Components.forEach(function (comp) {
+            var subId = comp.PsCardSubItemId;
+            if (comp.IsSerialized) {
+                $(".chk-comp-serial[data-sub-id='" + subId + "']:checked").each(function () {
+                    var extnId = $(this).data("serial-id") || $(this).val();
+                    icsBundleState.componentAssignments.push({
+                        PsCardSubItemId: subId,
+                        PsCardItemExtnId: extnId,
+                        ComponentPsCardItemExtnId: extnId,
+                        Qty: 1
+                    });
+                });
+            } else {
+                var $qtyInput = $(".comp-qty-input[data-sub-id='" + subId + "']");
+                var val = parseFloat($qtyInput.val()) || 0;
+                if (val > 0) {
+                    icsBundleState.componentAssignments.push({
+                        PsCardSubItemId: subId,
+                        PsCardItemExtnId: null,
+                        ComponentPsCardItemExtnId: null,
+                        Qty: val
+                    });
+                }
+            }
+        });
+    }
 
-            $("#SelectedIds").val(selectedIds);
+    function updateBundleStatus() {
+        if (!rawBundleInit || !rawBundleInit.Components || rawBundleInit.Components.length === 0) {
+            setSubmitEnabled(true);
+            return;
+        }
 
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("GenerateIcs", "IcsSet")',
-                data: $("#form").serialize(),
-                async: true,
-                beforeSend: function () {
-                    window.kendo.ui.progress($("#form"), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($("#form"), false);
-                    if (result.Errors == "") {
-                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                    }
-                    else {
-                        alert(result.Errors);
-                    }
-                }, error: function (req, status, errorObj) {
-                    alert(req.responseText);
+        var isComplete = true;
+        var missingDetails = [];
+
+        rawBundleInit.Components.forEach(function (comp) {
+            var subId = comp.PsCardSubItemId;
+            var allocated = 0;
+            icsBundleState.componentAssignments.forEach(function (a) {
+                if (a.PsCardSubItemId === subId) {
+                    allocated += a.Qty;
                 }
             });
-            disabled.attr('disabled', 'disabled');
+
+            var statusCell = $("td.comp-status-cell[data-sub-id='" + subId + "']");
+            if (comp.IsRequiredForBundle) {
+                var needed = comp.QtyPerParent;
+                if (allocated >= needed) {
+                    statusCell.html("<span class='badge' style='background: #15803d; color: #fff;'>Complete (" + allocated + "/" + needed + ")</span>");
+                } else {
+                    isComplete = false;
+                    var missing = needed - allocated;
+                    missingDetails.push(comp.Description + " (" + allocated + "/" + needed + ", Missing " + missing + ")");
+                    statusCell.html("<span class='badge' style='background: #dc2626; color: #fff;'>Missing " + missing + "</span>");
+                }
+            } else {
+                if (allocated > 0) {
+                    statusCell.html("<span class='badge' style='background: #0284c7; color: #fff;'>Included (" + allocated + ")</span>");
+                } else {
+                    statusCell.html("<span class='badge' style='background: #94a3b8; color: #fff;'>Optional (0)</span>");
+                }
+            }
+        });
+
+        setSubmitEnabled(isComplete);
+    }
+
+    function autoAllocateCurrentBundle() {
+        if (!rawBundleInit || !rawBundleInit.Components) return;
+
+        rawBundleInit.Components.forEach(function (comp) {
+            var subId = comp.PsCardSubItemId;
+            var needed = comp.IsRequiredForBundle ? comp.QtyPerParent : 0;
+
+            if (comp.IsSerialized) {
+                var currentCount = 0;
+                $(".chk-comp-serial[data-sub-id='" + subId + "']").each(function () {
+                    if (needed > 0 && currentCount < needed) {
+                        $(this).prop("checked", true);
+                        currentCount++;
+                    } else {
+                        $(this).prop("checked", false);
+                    }
+                });
+            } else {
+                var targetQty = Math.min(comp.AvailableQty, needed > 0 ? needed : 0);
+                $(".comp-qty-input[data-sub-id='" + subId + "']").val(targetQty);
+            }
+        });
+
+        recalculateComponentAssignments();
+        updateBundleStatus();
+    }
+
+    window.initBundleBuilder = function () {
+        if (!rawBundleInit) return;
+
+        // Pre-populate ComboBox display texts for draft edit
+        if (rawBundleInit.ExistingLocationCode) {
+            var locCb = $("#LocationId").data("kendoMultiColumnComboBox");
+            if (locCb && !locCb.text()) {
+                locCb.text(rawBundleInit.ExistingLocationCode);
+            }
         }
-    });
+        if (rawBundleInit.ExistingReceivedBy) {
+            var empCb = $("#IcsPar_ReceivedById").data("kendoMultiColumnComboBox");
+            if (empCb && !empCb.text()) {
+                empCb.text(rawBundleInit.ExistingReceivedBy);
+            }
+        }
 
-    $("#btnCancel").click(function (e) {
+        // Pre-select existing components if editing a draft PAR
+        if (rawBundleInit.ExistingPreselectedSerialIds && rawBundleInit.ExistingPreselectedSerialIds.length > 0) {
+            rawBundleInit.ExistingPreselectedSerialIds.forEach(function (serialId) {
+                var sid = serialId.toLowerCase();
+                $(".chk-comp-serial").each(function () {
+                    var val = ($(this).val() || $(this).data("serial-id") || "").toLowerCase();
+                    if (val === sid) {
+                        $(this).prop("checked", true);
+                    }
+                });
+            });
+        }
+
+        if (rawBundleInit.ExistingPreselectedQuantities) {
+            for (var subKey in rawBundleInit.ExistingPreselectedQuantities) {
+                var qty = rawBundleInit.ExistingPreselectedQuantities[subKey];
+                $(".comp-qty-input[data-sub-id='" + subKey + "']").val(qty);
+            }
+        }
+
+        // Serial checkbox change
+        $(document).off("change.parBundleSerial", "#windowIcsAction .chk-comp-serial").on("change.parBundleSerial", "#windowIcsAction .chk-comp-serial", function () {
+            recalculateComponentAssignments();
+            updateBundleStatus();
+        });
+
+        // Quantity input change
+        $(document).off("input.parBundleQty change.parBundleQty", "#windowIcsAction .comp-qty-input").on("input.parBundleQty change.parBundleQty", "#windowIcsAction .comp-qty-input", function () {
+            recalculateComponentAssignments();
+            updateBundleStatus();
+        });
+
+        // Auto-allocate button
+        $("#btnAutoAllocate").off("click").on("click", function (e) {
+            e.preventDefault();
+            autoAllocateCurrentBundle();
+        });
+
+        recalculateComponentAssignments();
+        updateBundleStatus();
+    };
+
+    window.initBundleBuilder();
+
+    $(document)
+        .off("click.parGenerateSave", "#windowIcsAction #btnSave")
+        .on("click.parGenerateSave", "#windowIcsAction #btnSave", function (e) {
         e.preventDefault();
-        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+
+        var $form = $(this).closest("#formGenerateIcs");
+        if ($form.length !== 1) {
+            if (typeof notifyWarning === "function") {
+                notifyWarning("Unable to update the Draft ICS because the editor form could not be identified.");
+            }
+            return;
+        }
+
+        // 1. Synchronize all ComboBoxes and dependent fields BEFORE validator.validate()
+        var empCb = $("#IcsPar_ReceivedById").data("kendoMultiColumnComboBox");
+        if (empCb && empCb.dataItem()) {
+            var empItem = empCb.dataItem();
+            if (empItem.Name) {
+                $("#IcsPar_ReceivedBy").val(empItem.Name);
+            }
+            if (empItem.Position && !$("#IcsPar_ReceivedByPosition").val()) {
+                $("#IcsPar_ReceivedByPosition").val(empItem.Position);
+            }
+            if (empItem.Department && !$("#IcsPar_ReceivedDept").val()) {
+                $("#IcsPar_ReceivedDept").val(empItem.Department);
+            }
+            if (!$("#IssuedTo").val() && empItem.Name) {
+                $("#IssuedTo").val(empItem.Name);
+            }
+            if (!$("#Designation").val() && empItem.Position) {
+                $("#Designation").val(empItem.Position);
+            }
+        }
+
+        var issuedCb = $("#IcsPar_IssuedBy").data("kendoMultiColumnComboBox");
+        if (issuedCb) {
+            var issItem = issuedCb.dataItem();
+            if (issItem) {
+                if (issItem.Description) {
+                    $("#IcsPar_IssuedBy").val(issItem.Description);
+                }
+                if (issItem.Desc2 && !$("#IcsPar_IssuedByPosition").val()) {
+                    $("#IcsPar_IssuedByPosition").val(issItem.Desc2);
+                }
+                if (issItem.Desc3 && !$("#IcsPar_IssuedDept").val()) {
+                    $("#IcsPar_IssuedDept").val(issItem.Desc3);
+                }
+            } else if (issuedCb.value()) {
+                $("#IcsPar_IssuedBy").val(issuedCb.value());
+            }
+        }
+
+        var locCb = $("#LocationId").data("kendoMultiColumnComboBox");
+        if (locCb && locCb.dataItem()) {
+            var locItem = locCb.dataItem();
+            if (locItem.Code) {
+                $("#LocationCode").val(locItem.Code);
+            }
+            var locDesc = locItem.Desc2 || locItem.Description;
+            if (locDesc && !$("#Location").val()) {
+                $("#Location").val(locDesc);
+            }
+        }
+
+        // 2. Client-side form validation
+        var validator = $form.data("kendoValidator");
+        if (!validator) {
+            validator = $form.kendoValidator().data("kendoValidator");
+        }
+        if (!validator.validate()) {
+            var errors = validator.errors();
+            if (errors && errors.length > 0) {
+                alert("Please fill in all required fields:\n\n- " + errors.join("\n- "));
+            }
+            return;
+        }
+
+        var mainExtnId = $("#MainPsCardItemExtnId").val() || icsBundleState.mainPsCardItemExtnId;
+        if (!mainExtnId) {
+            alert("The selected physical unit could not be loaded.");
+            return;
+        }
+
+        // 3. Bundle component requirement validation
+        if (rawBundleInit && rawBundleInit.Components && rawBundleInit.Components.length > 0) {
+            var incompleteErrors = [];
+            rawBundleInit.Components.forEach(function (comp) {
+                if (comp.IsRequiredForBundle) {
+                    var allocated = 0;
+                    icsBundleState.componentAssignments.forEach(function (c) {
+                        if (c.PsCardSubItemId === comp.PsCardSubItemId) {
+                            allocated += c.Qty;
+                        }
+                    });
+                    if (allocated < comp.QtyPerParent) {
+                        var missing = comp.QtyPerParent - allocated;
+                        incompleteErrors.push("Required component: " + comp.Description + " requires " + comp.QtyPerParent + " but only " + allocated + " selected (Missing " + missing + ").");
+                    }
+                }
+            });
+
+            if (incompleteErrors.length > 0) {
+                alert("Please satisfy all required bundle components before generating PAR:\n\n" + incompleteErrors.join("\n"));
+                return;
+            }
+
+            var bundlesPayload = [{
+                MainPhysicalItemId: mainExtnId,
+                MainPsCardItemExtnId: mainExtnId,
+                Components: icsBundleState.componentAssignments
+            }];
+
+            $("#BundleDataJson").val(JSON.stringify(bundlesPayload));
+        }
+
+        $("#SelectedIds").val(mainExtnId);
+
+        // 4. AJAX POST to previously assigned Action: ParSet/GeneratePar
+        var $saveBtn = $(this);
+        var originalBtnHtml = $saveBtn.html();
+        var isDraftUpdate = !!$form.find("input[name='ExistingParId']").val();
+        $saveBtn.prop("disabled", true).addClass("disabled").html("<span class='k-icon k-i-loading'></span> " + (isDraftUpdate ? "Updating..." : "Generating..."));
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GenerateIcs", "IcsSet")',
+            data: $form.serialize(),
+            async: true,
+            success: function (result) {
+                $saveBtn.prop("disabled", false).removeClass("disabled").html(originalBtnHtml);
+                if (!result.Errors || result.Errors == "") {
+                    var win = $saveBtn.closest(".k-window-content").data("kendoWindow");
+                    if (win) {
+                        win.close();
+                    }
+                    if (typeof refreshWorkspace === "function") {
+                        refreshWorkspace(true);
+                    } else {
+                        var grid = $("#gridGeneratedSlips").data("kendoGrid");
+                        if (grid) grid.dataSource.read();
+                        var mainGrid = $("#gridItems").data("kendoGrid");
+                        if (mainGrid) mainGrid.dataSource.read();
+                    }
+                } else {
+                    var errMsg = Array.isArray(result.Errors) ? result.Errors.join("\n") : result.Errors;
+                    if (typeof notifyWarning === "function") {
+                        notifyWarning((isDraftUpdate ? "Unable to update the Draft ICS. " : "Unable to generate the PAR. ") + errMsg);
+                    }
+                    alert((isDraftUpdate ? "Draft ICS Update Failed:\n\n" : "PAR Generation Failed:\n\n") + errMsg);
+                }
+            },
+            error: function (req, status, errorObj) {
+                $saveBtn.prop("disabled", false).removeClass("disabled").html(originalBtnHtml);
+                var fallback = isDraftUpdate ? "Unable to update the Draft ICS." : "Unable to generate the PAR.";
+                var message = req.responseText || fallback;
+                if (window.console && console.error) {
+                    console.error(fallback, req.status, status, errorObj, req.responseText);
+                }
+                if (typeof notifyWarning === "function") {
+                    notifyWarning(message);
+                }
+                alert(message);
+            }
+        });
     });
+
+    $(document)
+        .off("click.parGenerateCancel", "#windowIcsAction #btnCancel")
+        .on("click.parGenerateCancel", "#windowIcsAction #btnCancel", function (e) {
+            e.preventDefault();
+            var win = $(this).closest(".k-window-content").data("kendoWindow");
+            if (win) {
+                win.close();
+            }
+        });
 </script>
-
-
-
-
-
-
 

@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.ParIcs
 {
@@ -21,6 +23,9 @@ namespace iLgs.Services.ParIcs
         void ValidateIfNotPosted(IcsPar entity);
         Task ValidateUploadAsync(Guid? icsParId, string parNo, string refType);
         Task<bool> IsWwithUploadAsync(Guid? icsParId);
+
+        Task<string> NextParNoAsync(DateTime parDate);
+        Task<string> NextIcsNoAsync(DateTime icsDate, decimal acqCost);
     }
 
     public class IcsParSharedService : IIcsParSharedService
@@ -37,10 +42,12 @@ namespace iLgs.Services.ParIcs
         }
 
         private readonly AppManEntities _db;
+        private readonly ISemiExpendableService _semiExpendableService;
 
         public IcsParSharedService(AppManEntities db)
         {
             _db = db;
+            _semiExpendableService = new SemiExpendableService(_db);
         }
 
         //public IcsParSharedService(AppManEntities db, IAppManEntitiesFactory appManEntitiesFactory)
@@ -171,6 +178,62 @@ namespace iLgs.Services.ParIcs
         {
             var result = await _db.Uploads.AnyAsync(a => a.ImageId == icsParId);
             return result;
+        }
+
+        public async Task<string> NextParNoAsync(DateTime parDate)
+        {
+            string yyyy = parDate.Year.ToString().Trim();
+            string mm = parDate.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var data = await _db.IcsPars.Where(w => w.RefType == "P" && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
+            if (data == null)
+            {
+                return keyName + "-" + "00001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(5, '0');
+            }
+        }
+
+        public async Task<string> NextIcsNoAsync(DateTime icsDate, decimal acqCost)
+        {
+            string icsType = "";
+            string yyyy = icsDate.Year.ToString().Trim();
+            string mm = icsDate.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            var SPHV = _semiExpendableService.GetSPHV(icsDate);
+
+            if (acqCost < SPHV)
+            {
+                icsType = "SPLV";
+            }
+            else
+            {
+                icsType = "SPHV";
+            }
+
+            string keyName = icsType + "-" + yyyy + "-" + mm;
+
+            var data = await _db.IcsPars.Where(w => w.RefType == "I" && w.RefNo.StartsWith(icsType) && w.RefDate.Value.Year == icsDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
+            if (data == null)
+            {
+                return keyName + "-" + "00001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.RefNo.Split('-')[3]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(5, '0');
+            }
         }
     }
 }

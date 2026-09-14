@@ -320,6 +320,23 @@ namespace iLgs.Ai.Services.Air
                                 }
                             }
 
+                            if (!(await _db.PsCardRefNos.AnyAsync(a => a.RefType == "PO" && a.RefNo == cardItem.PoNo && a.RefDate == cardItem.PoDate && a.DepId == cardItem.DeptId)))
+                            {
+                                var orderId = (await  _db.OrderItemRequests.Include(i => i.OrderItem).Where(f => f.Id == cardItem.OrderItemRequestId).FirstOrDefaultAsync()).OrderItem.OrderId;
+                                var psCardRefNo = new PsCardRefNo
+                                {
+                                    Id = Guid.NewGuid(),
+                                    OrderId = orderId,
+                                    RefType = "PO",
+                                    RefNo = cardItem.PoNo,
+                                    RefDate = cardItem.PoDate,
+                                    DepId = cardItem.DeptId,
+                                    InsertedBy = cardItem.PostedBy,
+                                    InsertedDt = cardItem.PostedDt
+                                };
+                                _db.PsCardRefNos.Add(psCardRefNo);
+                            }
+
                             cardItem.PsCardItemTransfers.Add(receiptMovement);
                             _db.PsCardItems.Add(cardItem);
                             await _db.SaveChangesAsync();
@@ -740,11 +757,12 @@ namespace iLgs.Ai.Services.Air
             target.UpdatedBy = user;
             target.UpdatedDt = postingDate;
 
-            var otherTarget = target as PsCardItemExtnOther;
-            if (otherTarget != null && string.IsNullOrWhiteSpace(target.SeriesNo) && !string.IsNullOrWhiteSpace(otherTarget.SerialNo))
-            {
-                target.SeriesNo = otherTarget.SerialNo;
-            }
+            // SeriesNo is not the same as the SerialNo
+            //var otherTarget = target as PsCardItemExtnOther;
+            //if (otherTarget != null && string.IsNullOrWhiteSpace(target.SeriesNo) && !string.IsNullOrWhiteSpace(otherTarget.SerialNo))
+            //{
+            //    target.SeriesNo = otherTarget.SerialNo;
+            //}
 
             return target;
         }

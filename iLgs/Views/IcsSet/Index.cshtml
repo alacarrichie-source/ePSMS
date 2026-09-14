@@ -339,8 +339,8 @@
                                                         "# var actIcs = (typeof GeneratedIcsNo !== 'undefined' && GeneratedIcsNo) ? GeneratedIcsNo : ''; #" +
                                                         "<div class='d-flex gap-1'>" +
                                                             "# if (actSt == 'Pending') { #" +
-                                                                "<button type='button' class='btn-procurement-primary btn-sm' onclick='openGenerateSingleModal(\"#:Id#\")' title='Generate ICS'>" +
-                                                                    "<span class='k-icon k-i-play'></span> Generate" +
+                                                                "<button type='button' class='btn-procurement-primary btn-sm' onclick='expandPhysicalUnits(\"#:Id#\")' title='Choose a physical unit'>" +
+                                                                    "<span class='k-icon k-i-zoom-in'></span> Select Unit" +
                                                                 "</button>" +
                                                             "# } else if (actIcs) { #" +
                                                                 "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openViewIcsModal(\"#:actIcs#\")' title='View Official Slip'>" +
@@ -1010,6 +1010,8 @@
                         id: "Id",
                         fields: {
                             Id: { type: "string" },
+                            IcsParItemId: { type: "string", nullable: true },
+                            IcsParId: { type: "string", nullable: true },
                             PsCardItemExtnId: { type: "string" },
                             PropNo: { type: "string" },
                             SerialNo: { type: "string" },
@@ -1022,7 +1024,7 @@
                 }
             },
             noRecords: {
-                template: "<div style='padding: 10px 14px; color: rgb(100, 116, 139); font-style: italic; font-size: 12px;'><span class='k-icon k-i-info'></span> No generated property records yet.</div>"
+                template: "<div style='padding: 10px 14px; color: rgb(100, 116, 139); font-style: italic; font-size: 12px;'><span class='k-icon k-i-info'></span> No accountable physical units are available.</div>"
             },
             scrollable: false,
             sortable: false,
@@ -1045,12 +1047,12 @@
                     title: "Issued To",
                     width: "30%",
                     template: function (dataItem) {
-                        if (dataItem.IsPosted) {
+                        if (dataItem.Status !== "Draft") {
                             var val = dataItem.IssuedTo ? kendo.htmlEncode(dataItem.IssuedTo) : "-";
                             return "<span class='subgrid-issued-to-readonly'>" + val + "</span>";
                         } else {
                             var safeVal = dataItem.IssuedTo ? kendo.htmlEncode(dataItem.IssuedTo) : "";
-                            return "<input class='subgrid-employee-combo' data-id='" + dataItem.Id + "' value='" + safeVal + "' style='width: 100%; max-width: 280px;' />";
+                            return "<input class='subgrid-employee-combo' data-id='" + dataItem.IcsParItemId + "' value='" + safeVal + "' style='width: 100%; max-width: 280px;' />";
                         }
                     }
                 },
@@ -1062,8 +1064,23 @@
                         if (dataItem.IsPosted) {
                             return "<span class='status-badge status-accepted'>Posted</span>";
                         } else {
-                            return "<span class='status-badge status-unposted'>Draft</span>";
+                            if (dataItem.Status === "Draft") return "<span class='status-badge status-unposted'>Draft</span>";
+                            if (dataItem.Status === "Assigned") return "<span class='status-badge' style='background:#fef3c7;color:#92400e'>Assigned elsewhere</span>";
+                            return "<span class='status-badge' style='background:#e0f2fe;color:#075985'>Available</span>";
                         }
+                    }
+                },
+                {
+                    title: "Action",
+                    width: "16%",
+                    template: function (dataItem) {
+                        if (dataItem.Status === "Available") {
+                            return "<button type='button' class='btn-procurement-primary btn-sm' onclick=\"openGenerateSingleModal('" + dataItem.PsCardItemExtnId + "')\"><span class='k-icon k-i-plus'></span> Generate</button>";
+                        }
+                        if (dataItem.Status === "Draft") {
+                            return "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openGenerateSingleModal('" + dataItem.PsCardItemExtnId + "','" + dataItem.IcsParId + "')\"><span class='k-icon k-i-edit'></span> Continue</button>";
+                        }
+                        return "<span style='color:#64748b'>" + kendo.htmlEncode(dataItem.Status || 'Unavailable') + "</span>";
                     }
                 }
             ],
@@ -1171,9 +1188,22 @@
     }
 
     // --- SINGLE & BATCH GENERATE MODALS ---
-    function openGenerateSingleModal(psCardItemId) {
-        openIcsWindow("Generate Inventory Custodian Slip", 1000, '@Url.Action("_GenerateIcs", "IcsSet")', {
-            psCardItemId: psCardItemId,
+    function expandPhysicalUnits(psCardItemId) {
+        var grid = $("#gridItems").data("kendoGrid");
+        if (!grid) return;
+        grid.tbody.find("> tr.k-master-row").each(function () {
+            var item = grid.dataItem(this);
+            if (item && item.Id === psCardItemId) {
+                grid.expandRow(this);
+                return false;
+            }
+        });
+    }
+
+    function openGenerateSingleModal(mainPsCardItemExtnId, icsParId) {
+        openIcsWindow(icsParId ? "Continue / Edit Draft ICS" : "Generate Inventory Custodian Slip", 1100, '@Url.Action("_GenerateIcs", "IcsSet")', {
+            mainPsCardItemExtnId: mainPsCardItemExtnId,
+            icsParId: icsParId || null,
             refType: "I"
         });
     }

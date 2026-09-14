@@ -273,27 +273,35 @@ namespace iLgs.Controllers
 
             if (id.HasValue)
             {
-                var draft = await _db.AIRWizardProgresses.FirstOrDefaultAsync(p => p.Id == id.Value);
-                if (draft != null)
+                var air = await _db.AIRs.FirstOrDefaultAsync(a => a.Id == id.Value);
+                if (air != null)
                 {
-                    if (draft.Status != AirWizardStatuses.Draft || draft.IsCompleted)
+                    if (air.PostedDt != null || (air.IsInspected == true && string.Equals(air.OverallStatus, AirStatuses.SubmittedForAcceptance, StringComparison.OrdinalIgnoreCase)))
                     {
-                        ViewBag.Error = "This inspection draft is no longer active (Status: " + draft.Status + ").";
-                        return View("Error");
+                        return RedirectToAction("Inspection", new { id = air.Id });
                     }
-                    model = await _airInspectionService.GetDraftForEditAsync(id.Value);
+                    model = await _airInspectionService.GetAirInspectionForEditAsync(id.Value);
+                    if (model.CurrentStep <= 1)
+                    {
+                        model.CurrentStep = 2;
+                    }
                 }
                 else
                 {
-                    var air = await _db.AIRs.FirstOrDefaultAsync(a => a.Id == id.Value);
-                    if (air != null)
+                    var draft = await _db.AIRWizardProgresses.FirstOrDefaultAsync(p => p.Id == id.Value);
+                    if (draft != null)
                     {
-                        if (air.PostedDt != null || (air.IsInspected == true && string.Equals(air.OverallStatus, AirStatuses.SubmittedForAcceptance, StringComparison.OrdinalIgnoreCase)))
+                        if (draft.Status != AirWizardStatuses.Draft || draft.IsCompleted)
                         {
-                            return RedirectToAction("Inspection", new { id = air.Id });
+                            ViewBag.Error = "This inspection draft is no longer active (Status: " + draft.Status + ").";
+                            return View("Error");
                         }
+                        model = await _airInspectionService.GetDraftForEditAsync(id.Value);
                     }
-                    model = await _airInspectionService.GetAirInspectionForEditAsync(id.Value);
+                    else
+                    {
+                        model = new AIRWizardViewModel();
+                    }
                 }
             }
             else if (orderId.HasValue)
@@ -612,26 +620,29 @@ namespace iLgs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteAcceptance(AIRActionRequestViewModel model)
         {
-            var access = await Access(User.Identity.GetUserId(), "airs_acceptance");
-            if (!access.IsAllowed)
+            return Json(new { success = false, message = "Acceptance cannot delete an AIR. AIR deletion must be initiated from Inspection under controlled conditions." });
+        }
+
+        // POST: AIRs/DeleteInspection
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteInspection(Guid id)
+        {
+            var access = await Access(User.Identity.GetUserId(), "airs_inspection");
+            if (!access.IsAllowed || !access.AllowDelete)
             {
-                return Json(new { success = false, message = "Access Denied: You do not have permission to delete AIR Acceptance." });
+                return Json(new { success = false, message = "Access Denied: You do not have permission to delete AIR Inspection." });
             }
 
-            if (model == null || model.AirId == Guid.Empty)
+            if (id == Guid.Empty)
             {
                 return Json(new { success = false, message = "Invalid request: AIR ID is required." });
             }
 
-            if (string.IsNullOrWhiteSpace(model.Reason))
-            {
-                return Json(new { success = false, message = "Reason for deletion is required." });
-            }
-
             try
             {
-                await _airAcceptanceService.DeleteAcceptanceAsync(model.AirId, model.Reason, User.Identity.Name);
-                return Json(new { success = true, message = "AIR Acceptance deleted successfully." });
+                await _airInspectionService.DeleteInspectionAsync(id, User.Identity.Name);
+                return Json(new { success = true, message = "AIR Inspection deleted successfully." });
             }
             catch (Exception ex)
             {

@@ -85,6 +85,7 @@ namespace iLgs.Models
         public string PpmpCode { get; set; }
         public Nullable<System.Guid> PpmpItemId { get; set; }
         public Nullable<System.Guid> AIRItemId { get; set; }
+        public string RefType { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

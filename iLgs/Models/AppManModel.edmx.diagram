@@ -182,6 +182,7 @@
         <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
         <EntityTypeShape EntityType="AppManModel.PsCardSubItem" Width="1.5" PointX="5.25" PointY="13.5" />
         <AssociationConnector Association="AppManModel.FK_PsCardSubItems_PsCardItems" />
+        <EntityTypeShape EntityType="AppManModel.PsCardRefNo" Width="1.5" PointX="8.375" PointY="4.75" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" ZoomLevel="89" >
         <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="1.125" PointY="6.625" />

@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    ePSMS - Inventory Custodian Slip (ICS) Workspace Stylesheet
    Theme: AIR Procurement / Property & Supply Design System
    Scoped under: .epsms-ics
@@ -588,6 +588,8 @@
 }
 
 /* --- GENERATED SLIPS ACTIONS & AIR BADGES --- */
+.status-badge.status-par-uploaded,
+.status-badge.status-doc-uploaded,
 .status-badge.status-air-uploaded {
     border-color: #bbf7d0 !important;
     background: #f0fdf4 !important;
@@ -766,6 +768,8 @@
 
 
 /* AIR column layout */
+.epsms-ics .ics-par-cell,
+.epsms-ics .ics-doc-cell,
 .epsms-ics .ics-air-cell {
     display: inline-flex;
     align-items: center;
@@ -773,6 +777,7 @@
     flex-wrap: wrap;
 }
 
+.epsms-ics .ics-par-cell .status-par-uploaded,
 .epsms-ics .ics-air-cell .status-air-uploaded {
     max-width: 140px;
     overflow: hidden;

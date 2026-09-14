@@ -43,8 +43,8 @@
                 "# if (typeof CanUnpost !== 'undefined' && CanUnpost) { #" +
                     "<button type='button' class='btn-procurement-secondary btn-sm text-warning border-warning' onclick=\"openUnpostModalGrid('#=Id#')\" title='Unpost AIR Acceptance'><span class='k-icon k-i-undo text-warning'></span> Unpost</button>" +
                 "# } #" +
-                "# if (typeof CanDelete !== 'undefined' && CanDelete) { #" +
-                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"openDeleteAcceptanceModalGrid('#=Id#')\" title='Delete AIR Acceptance'><span class='k-icon k-i-delete text-danger'></span> Delete Acceptance</button>" +
+                "# if (typeof CanReturnForRevision !== 'undefined' && CanReturnForRevision) { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"openReturnRevisionModalGrid('#=Id#')\" title='Return for Revision'><span class='k-icon k-i-undo text-danger'></span> Return for Revision</button>" +
                 "# } #" +
             "</div>";
     }
@@ -56,6 +56,11 @@
                     "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Edit / Continue Inspection'><span class='k-icon k-i-edit'></span> Edit / Continue Inspection</a>" +
                     "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Submit for Acceptance'><span class='k-icon k-i-check'></span> Submit for Acceptance</a>" +
                     "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"discardAirDraft('#=Id#')\" title='Discard Draft'><span class='k-icon k-i-delete text-danger'></span> Discard Draft</button>" +
+                "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Returned for Revision') { #" +
+                    "<a class='btn-procurement-primary btn-sm' href='" + resumeDraftUrl + "?id=#=Id#' title='Revise Inspection'><span class='k-icon k-i-edit'></span> Revise Inspection</a>" +
+                    "# if (typeof CanDelete !== 'undefined' && CanDelete) { #" +
+                        "<button type='button' class='btn-procurement-secondary btn-sm text-danger border-danger' onclick=\"deleteReturnedInspection('#=Id#')\" title='Delete Returned Inspection'><span class='k-icon k-i-delete text-danger'></span> Delete</button>" +
+                    "# } #" +
                 "# } else if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Submitted for Acceptance') { #" +
                     "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
                     "# if (typeof CanWithdraw !== 'undefined' && CanWithdraw) { #" +
@@ -339,39 +344,39 @@ else
         </text>)
     )
 
-    <!-- DELETE ACCEPTANCE MODAL -->
+        <!-- RETURN FOR REVISION MODAL -->
     @(Html.Kendo().Window()
-        .Name("deleteAcceptanceModalGrid")
-        .Title("DELETE AIR ACCEPTANCE")
+        .Name("returnRevisionModalGrid")
+        .Title("RETURN AIR FOR REVISION")
         .Width(520)
         .Modal(true)
         .Visible(false)
         .Actions(actions => actions.Close())
         .Content(@<text>
             <div class="p-3">
-                <div class="alert alert-danger" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:6px;padding:12px;margin-bottom:15px;">
-                    <strong style="display:block;margin-bottom:4px;"><span class="k-icon k-i-warning"></span> This Acceptance was previously posted and then unposted.</strong>
+                <div class="alert alert-warning" style="background:#fffbeb;border:1px solid #fde68a;color:#b45309;border-radius:6px;padding:12px;margin-bottom:15px;">
+                    <strong style="display:block;margin-bottom:4px;"><span class="k-icon k-i-undo"></span> Return to Inspection for Revision</strong>
                     <span style="font-size:12px;line-height:1.4;display:block;">
-                        Deleting it will remove it from the active AIR Acceptance workflow, but the Posting, Unposting, and Deletion history will remain available for audit purposes.
+                        This will return the AIR to the inspector with status "Returned for Revision". The inspector will be able to revise and resubmit the inspection, or delete it under controlled conditions.
                     </span>
                 </div>
 
-                <input type="hidden" id="gridDeleteAirId" />
+                <input type="hidden" id="gridReturnAirId" />
 
                 <div class="form-group mb-3">
-                    <label for="txtGridDeleteReason" class="font-weight-bold mb-1" style="font-size:13px;">
-                        Reason for Deletion <span class="text-danger">*</span>
+                    <label for="txtGridReturnComments" class="font-weight-bold mb-1" style="font-size:13px;">
+                        Revision Comments / Instructions <span class="text-danger">*</span>
                     </label>
-                    <textarea id="txtGridDeleteReason" class="form-control-custom w-100" rows="3" placeholder="Enter mandatory reason for deleting this acceptance..."></textarea>
-                    <div id="gridDeleteReasonError" class="text-danger mt-1" style="display:none;font-size:12px;">
-                        <span class="k-icon k-i-warning"></span> Reason for deletion is required.
+                    <textarea id="txtGridReturnComments" class="form-control-custom w-100" rows="3" placeholder="Enter comments or instructions for the inspector..."></textarea>
+                    <div id="gridReturnCommentsError" class="text-danger mt-1" style="display:none;font-size:12px;">
+                        <span class="k-icon k-i-warning"></span> Revision comments are required.
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4" style="display:flex;justify-content:flex-end;gap:8px;">
-                    <button type="button" class="btn-procurement-secondary" onclick="$('#deleteAcceptanceModalGrid').data('kendoWindow').close()">Cancel</button>
-                    <button type="button" id="btnGridSubmitDelete" class="btn-procurement-primary bg-danger border-danger text-white" onclick="submitDeleteAcceptanceGrid()">
-                        <span class="k-icon k-i-delete"></span> Delete Acceptance
+                    <button type="button" class="btn-procurement-secondary" onclick="$('#returnRevisionModalGrid').data('kendoWindow').close()">Cancel</button>
+                    <button type="button" id="btnGridSubmitReturn" class="btn-procurement-primary bg-warning text-dark border-warning" onclick="submitReturnForRevisionGrid()">
+                        <span class="k-icon k-i-undo"></span> Return for Revision
                     </button>
                 </div>
             </div>
@@ -519,6 +524,31 @@ else
                     }
                 });
             }
+
+            function deleteReturnedInspection(airId) {
+                if (!confirm("Are you sure you want to permanently delete this returned Inspection? This action cannot be undone.")) return;
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                $.ajax({
+                    url: '@Url.Action("DeleteInspection", "AIRs")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        id: airId
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message || "AIR Inspection deleted successfully.");
+                            var grid = $("#AIRsGrid").data("kendoGrid");
+                            if (grid) grid.dataSource.read();
+                        } else {
+                            alert(res.message || "Failed to delete AIR Inspection.");
+                        }
+                    },
+                    error: function () {
+                        alert("A network error occurred while deleting AIR Inspection.");
+                    }
+                });
+            }
             </text>
         }
         else
@@ -595,53 +625,53 @@ else
                 });
             }
 
-            function openDeleteAcceptanceModalGrid(airId) {
-                $("#gridDeleteAirId").val(airId);
-                $("#txtGridDeleteReason").val("");
-                $("#gridDeleteReasonError").hide();
-                var win = $("#deleteAcceptanceModalGrid").data("kendoWindow");
+            function openReturnRevisionModalGrid(airId) {
+                $("#gridReturnAirId").val(airId);
+                $("#txtGridReturnComments").val("");
+                $("#gridReturnCommentsError").hide();
+                var win = $("#returnRevisionModalGrid").data("kendoWindow");
                 if (win) {
                     win.center().open();
                 }
             }
 
-            function submitDeleteAcceptanceGrid() {
-                var reason = $("#txtGridDeleteReason").val();
-                if (!reason || !reason.trim()) {
-                    $("#gridDeleteReasonError").show();
+            function submitReturnForRevisionGrid() {
+                var comments = $("#txtGridReturnComments").val();
+                if (!comments || !comments.trim()) {
+                    $("#gridReturnCommentsError").show();
                     return;
                 }
-                $("#gridDeleteReasonError").hide();
+                $("#gridReturnCommentsError").hide();
 
-                var airId = $("#gridDeleteAirId").val();
-                var token = $('input[name="__RequestVerificationToken"]').val();
+                var airId = $("#gridReturnAirId").val();
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
 
-                $("#btnGridSubmitDelete").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Deleting...");
+                $("#btnGridSubmitReturn").prop("disabled", true).html("<span class='k-icon k-i-loading'></span> Returning...");
 
                 $.ajax({
-                    url: '@Url.Action("DeleteAcceptance", "AIRs")',
+                    url: '@Url.Action("ReturnForRevision", "AIRs")',
                     type: 'POST',
                     data: {
                         __RequestVerificationToken: token,
                         AirId: airId,
-                        Reason: reason.trim()
+                        Reason: comments.trim()
                     },
                     success: function (res) {
                         if (res.success) {
-                            var win = $("#deleteAcceptanceModalGrid").data("kendoWindow");
+                            var win = $("#returnRevisionModalGrid").data("kendoWindow");
                             if (win) win.close();
-                            alert(res.message || "AIR Acceptance deleted successfully.");
+                            alert(res.message || "AIR returned for revision successfully.");
                             var grid = $("#AIRsGrid").data("kendoGrid");
                             if (grid) grid.dataSource.read();
                         } else {
-                            alert(res.message || "Failed to delete AIR Acceptance.");
+                            alert(res.message || "Failed to return AIR for revision.");
                         }
                     },
                     error: function () {
-                        alert("A network error occurred while deleting acceptance.");
+                        alert("A network error occurred while returning AIR for revision.");
                     },
                     complete: function () {
-                        $("#btnGridSubmitDelete").prop("disabled", false).html("<span class='k-icon k-i-delete'></span> Delete Acceptance");
+                        $("#btnGridSubmitReturn").prop("disabled", false).html("<span class='k-icon k-i-undo'></span> Return for Revision");
                     }
                 });
             }

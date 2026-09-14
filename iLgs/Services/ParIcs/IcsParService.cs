@@ -14,7 +14,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.ParIcs
 {
-    public interface IIcsParService : IIcsParSharedService
+    public interface IIcsParService 
     {
         IQueryable<IcsParVM> GetAll();
         IQueryable<IcsParVM> GetAll(string refNo, string refType);
@@ -38,6 +38,8 @@ namespace iLgs.Services.ParIcs
         IIcsService IcsService { get; }
         IParService ParService { get; }
         IIcsParItemService IcsParItem { get; }
+
+        IIcsParSharedService IcsParShared { get; }
     }
 
     public class IcsParService : BaseValidator, IIcsParService
@@ -65,31 +67,10 @@ namespace iLgs.Services.ParIcs
             _icsParSharedService = new IcsParSharedService(_db);
         }
 
-        //public IcsParService(AppManEntities db,
-        //    IAppManEntitiesFactory appManEntitiesFactory,
-        //    ICreateAndLogExceptions exceptions,
-        //    IExceptionService<IcsPar> exceptionService,
-        //    IExceptionService<IcsParVM> vmExceptionService,
-        //    IIcsService icsService,
-        //    IParService parService,
-        //    IIcsParItemService icsParItemService,
-        //    IIcsParSharedService icsParSharedService)
-        //{
-        //    _db = db;
-        //    _contextFactory = appManEntitiesFactory;
-        //    _exceptions = exceptions;
-        //    _exceptionService = exceptionService;
-        //    _vmExceptionService = vmExceptionService;
-        //    _getDisplayName = propertyName => Utility.GetDisplayName<IcsParVM>(propertyName);
-        //    _icsService = icsService;
-        //    _parService = parService;
-        //    _icsParItemService = icsParItemService;
-        //    _icsParSharedService = icsParSharedService;
-        //}
-
         public IIcsService IcsService { get { return _icsService; } }
         public IParService ParService { get { return _parService; } }
         public IIcsParItemService IcsParItem { get { return _icsParItemService; } }
+        public IIcsParSharedService IcsParShared { get { return _icsParSharedService; } }
 
         public IQueryable<IcsParVM> GetAll() 
         {
@@ -403,7 +384,7 @@ namespace iLgs.Services.ParIcs
 
         private async ValueTask<IcsParVM> TransferParAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
         {
-            var refNo = await _parService.NextRefNoAsync((DateTime)model.RefDate, model.RefType);
+            var refNo = await _icsParSharedService.NextParNoAsync((DateTime)model.RefDate);
             model.Id = Guid.NewGuid();
             model.RefNo = refNo;
             var icsPar = new IcsPar()

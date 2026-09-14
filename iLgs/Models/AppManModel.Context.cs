@@ -136,6 +136,7 @@ namespace iLgs.Models
         public virtual DbSet<PsCardSubItem> PsCardSubItems { get; set; }
         public virtual DbSet<AIRSubItem> AIRSubItems { get; set; }
         public virtual DbSet<IcsParItemComponent> IcsParItemComponents { get; set; }
+        public virtual DbSet<PsCardRefNo> PsCardRefNos { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

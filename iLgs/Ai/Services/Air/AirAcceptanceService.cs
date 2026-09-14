@@ -87,8 +87,9 @@ namespace iLgs.Ai.Services.Air
 
             // Query previous posted AIR items for this Order (cumulative historical totals)
             var orderId = air.OrderId;
+            Guid currentAirId = air.Id;
             var otherPostedAirItems = await _db.AIRItems.AsNoTracking()
-                .Where(ai => ai.AIR.OrderId == orderId && ai.AIR.PostedDt != null && ai.AirId != air.Id)
+                .Where(ai => ai.AIR.OrderId == orderId && ai.AIR.PostedDt != null && ai.AirId != currentAirId)
                 .Include(ai => ai.AIRSubItems)
                 .Include(ai => ai.AIRItemAllocations)
                 .Include(ai => ai.OrderItemRequest)
@@ -147,22 +148,28 @@ namespace iLgs.Ai.Services.Air
                 HasAcceptanceData = true
             };
 
+            Guid airIdForHist = air.Id;
             var hasPostedHistory = await _db.DocumentStatusHistories.AsNoTracking().AnyAsync(h =>
                 h.DocumentType == DocumentTypes.AcceptanceInspectionReport &&
-                h.DocumentId == air.Id &&
+                h.DocumentId == airIdForHist &&
                 (h.ToStatus == AirStatuses.Posted || h.Action == "Post Acceptance" || h.Action == "AIR_ACCEPTANCE_REPOSTED"));
 
             bool isPosted = air.PostedDt != null || string.Equals(air.OverallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase);
             bool isUnposted = string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase) ||
                              string.Equals(air.OverallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
             bool isDeleted = string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase);
+            bool isInProgress = string.Equals(air.OverallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.InProgress, StringComparison.OrdinalIgnoreCase) ||
+                                air.AcceptanceStartedDt != null ||
+                                (air.AcceptedDate != null && !isPosted);
 
             vm.AcceptanceStatus = isDeleted ? AirAcceptanceStatuses.Deleted : (isUnposted ? AirAcceptanceStatuses.Unposted : (isPosted ? AirAcceptanceStatuses.Accepted : (air.AcceptanceStatus ?? AirAcceptanceStatuses.InProgress)));
             vm.IsUnposted = isUnposted;
             vm.IsDeleted = isDeleted;
             vm.WasPreviouslyPosted = isPosted || hasPostedHistory;
             vm.CanUnpost = isPosted && !isDeleted;
-            vm.CanDelete = !isPosted && !isDeleted && (isUnposted || air.AcceptanceStartedDt != null || string.Equals(air.OverallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase));
+            vm.CanDelete = false;
+            vm.CanReturnForRevision = !isPosted && !isDeleted && (isUnposted || isInProgress);
 
             // Invoices mapping
             if (air.AIRInvoices != null && air.AIRInvoices.Any())
@@ -484,20 +491,51 @@ namespace iLgs.Ai.Services.Air
             if (string.IsNullOrWhiteSpace(comments))
                 throw new InvalidOperationException("Revision comments are required when returning an AIR.");
 
-            var air = await _db.AIRs.FirstOrDefaultAsync(a => a.Id == airId);
+            var air = await _db.AIRs
+                .Include(a => a.AIRItems.Select(i => i.AIRSubItems))
+                .FirstOrDefaultAsync(a => a.Id == airId);
             if (air == null) throw new InvalidOperationException("AIR record not found.");
 
-            if (air.PostedDt != null)
-                throw new InvalidOperationException("Cannot return a posted AIR.");
-            if (air.IsInspected != true || air.AcceptanceStartedDt == null || air.OverallStatus != AirStatuses.AcceptanceInProgress)
-                throw new InvalidOperationException("Only an AIR with acceptance in progress can be returned for revision.");
+            if (air.PostedDt != null || string.Equals(air.OverallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("This AIR cannot be returned for revision because Acceptance has already been posted.");
 
+            bool isUnposted = string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(air.OverallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
+            bool isInProgress = string.Equals(air.OverallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.InProgress, StringComparison.OrdinalIgnoreCase) ||
+                                air.AcceptanceStartedDt != null ||
+                                (air.AcceptedDate != null && air.PostedDt == null);
+
+            if (!isUnposted && !isInProgress)
+                throw new InvalidOperationException("Only an Unposted Acceptance or Acceptance in progress can be returned for revision.");
+
+            // Check whether downstream posted transactions prevent rollback
+            var receiptLinks = await GetInventoryReceiptLinksAsync(air.AIRItems.Select(i => i.Id).ToList());
+            if (receiptLinks.Any())
+            {
+                throw new InvalidOperationException("This AIR cannot be returned for revision because downstream posted transactions already depend on it. Please unpost inventory first.");
+            }
+
+            var prevStatus = isUnposted ? AirStatuses.Unposted : (air.OverallStatus ?? AirStatuses.AcceptanceInProgress);
+
+            // Atomically transition the AIR to Inspection-side revision state
             air.IsInspected = false;
+            air.OverallStatus = AirStatuses.ReturnedForRevision;
+            air.InspectionStatus = AirInspectionStatuses.Returned;
+            air.AcceptanceStatus = AirAcceptanceStatuses.Pending;
+
+            // Clear Acceptance-specific work
             air.AcceptanceStartedDt = null;
             air.AcceptanceStartedBy = null;
+            air.AcceptedDate = null;
+            air.AcceptedBy = null;
+            air.AcceptedByDesignation = null;
+            air.AcceptanceRemarks = null;
+            air.IsComplete = false;
+            air.IsPartial = false;
 
-            air.RevisionComments = comments;
-            air.OverallStatus = AirStatuses.ReturnedForRevision;
+            // Record audit & revision remarks
+            air.RevisionComments = comments.Trim();
             air.ReturnedBy = user;
             air.ReturnedDt = DateTime.Now;
 
@@ -508,14 +546,50 @@ namespace iLgs.Ai.Services.Air
             air.UpdatedBy = user;
             air.UpdatedDt = DateTime.Now;
 
+            // Reset only acceptance-specific item quantities/destinations, preserving physical inspection data
+            foreach (var item in air.AIRItems)
+            {
+                item.AcceptedQty = 0;
+                item.DestinationDepartment = null;
+                item.DestinationCustodian = null;
+
+                if (item.AIRSubItems != null)
+                {
+                    foreach (var sub in item.AIRSubItems)
+                    {
+                        sub.AcceptedQty = 0;
+                    }
+                }
+            }
+
+            // Sync or reactivate associated AIRWizardProgress pointing to this SAME AIR
+            Guid sameAirId = air.Id;
+            var progress = await _db.AIRWizardProgresses
+                .Where(p => p.AIRId == sameAirId || p.SourceAIRId == sameAirId || p.Id == sameAirId)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (progress != null)
+            {
+                progress.AIRId = air.Id;
+                progress.SourceAIRId = air.Id;
+                progress.OrderId = air.OrderId;
+                progress.Status = AirWizardStatuses.Draft;
+                progress.IsCompleted = false;
+                progress.CurrentStep = 2;
+                progress.LastStep = 2;
+                progress.UserId = air.InsertedBy ?? user;
+                progress.UpdatedAt = DateTime.Now;
+            }
+
             _historyService.AddStatusHistory(
                 DocumentTypes.AcceptanceInspectionReport,
                 air.Id,
                 air.AIRNo ?? air.CtrlNo,
-                AirStatuses.AcceptanceInProgress,
+                prevStatus,
                 AirStatuses.ReturnedForRevision,
                 "Return for Revision",
-                comments,
+                comments.Trim(),
                 user
             );
 
@@ -571,8 +645,10 @@ namespace iLgs.Ai.Services.Air
                 throw new InvalidOperationException("Only an AIR with acceptance in progress or unposted can be posted.");
 
             // Query other posted AIR items for cumulative recalculation and validation
+            Guid? currentOrderId = air.OrderId;
+            Guid currentAirId = air.Id;
             var otherPostedAirItems = await _db.AIRItems.AsNoTracking()
-                .Where(ai => ai.AIR.OrderId == air.OrderId && ai.AIR.PostedDt != null && ai.AirId != air.Id)
+                .Where(ai => ai.AIR.OrderId == currentOrderId && ai.AIR.PostedDt != null && ai.AirId != currentAirId)
                 .Include(ai => ai.AIRSubItems)
                 .Include(ai => ai.OrderItemRequest)
                 .ToListAsync();
@@ -707,9 +783,10 @@ namespace iLgs.Ai.Services.Air
             air.Custodian = model.AcceptedBy;
             air.PostedBy = user;
             air.PostedDt = DateTime.Now;
+            Guid airIdForPost = air.Id;
             bool wasEverPosted = await _db.DocumentStatusHistories.AsNoTracking().AnyAsync(h =>
                 h.DocumentType == DocumentTypes.AcceptanceInspectionReport &&
-                h.DocumentId == air.Id &&
+                h.DocumentId == airIdForPost &&
                 (h.ToStatus == AirStatuses.Posted || h.Action == "Post Acceptance" || h.Action == "AIR_ACCEPTANCE_REPOSTED" || h.Action == "AIR_ACCEPTANCE_UNPOSTED"));
 
             bool isRepost = wasEverPosted || string.Equals(air.OverallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
@@ -1061,100 +1138,9 @@ namespace iLgs.Ai.Services.Air
             public Guid? PsCardId { get; set; }
         }
 
-        public async Task DeleteAcceptanceAsync(Guid airId, string reason, string user)
+        public Task DeleteAcceptanceAsync(Guid airId, string reason, string user)
         {
-            if (string.IsNullOrWhiteSpace(reason))
-                throw new InvalidOperationException("Reason for deletion is required.");
-
-            using (var tx = _db.Database.BeginTransaction())
-            {
-                var air = await _db.AIRs
-                    .Include(a => a.AIRItems.Select(i => i.AIRSubItems))
-                    .Include(a => a.AIRDocuments)
-                    .FirstOrDefaultAsync(a => a.Id == airId);
-
-                if (air == null) throw new InvalidOperationException("AIR record not found.");
-
-                // Concurrency & state validation
-                if (string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("This AIR Acceptance is already deleted.");
-
-                if (air.PostedDt != null || string.Equals(air.OverallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("A Posted Acceptance cannot be deleted directly. Unpost it first.");
-
-                bool isUnposted = string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(air.OverallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
-                bool isInProgress = string.Equals(air.OverallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase) ||
-                                    air.AcceptanceStartedDt != null;
-
-                if (!isUnposted && !isInProgress)
-                    throw new InvalidOperationException("Only an Unposted or Draft Acceptance can be deleted.");
-
-                // Check whether it was ever posted
-                bool wasEverPosted = await _db.DocumentStatusHistories.AsNoTracking().AnyAsync(h =>
-                    h.DocumentType == DocumentTypes.AcceptanceInspectionReport &&
-                    h.DocumentId == air.Id &&
-                    (h.ToStatus == AirStatuses.Posted || h.Action == "Post Acceptance" || h.Action == "AIR_ACCEPTANCE_REPOSTED" || h.Action == "AIR_ACCEPTANCE_UNPOSTED"));
-
-                var prevStatus = isUnposted ? AirStatuses.Unposted : (air.OverallStatus ?? AirStatuses.AcceptanceInProgress);
-
-                // Logical deletion of Acceptance portion ONLY - Keep Inspection intact!
-                air.AcceptanceStatus = AirAcceptanceStatuses.Deleted;
-                air.AcceptanceStartedDt = null;
-                air.AcceptanceStartedBy = null;
-                air.AcceptedDate = null;
-                air.AcceptedBy = null;
-                air.AcceptedByDesignation = null;
-                air.AcceptanceRemarks = null;
-                air.IsComplete = false;
-                air.IsPartial = false;
-
-                // Deactivate/reset Acceptance quantities on items so they cannot be treated as active accepted data
-                foreach (var item in air.AIRItems)
-                {
-                    item.AcceptedQty = 0;
-                    item.Disposition = null;
-                    item.InvDist = null;
-                    item.DestinationDepartment = null;
-                    item.DestinationCustodian = null;
-
-                    if (item.AIRSubItems != null)
-                    {
-                        foreach (var sub in item.AIRSubItems)
-                        {
-                            sub.AcceptedQty = 0;
-                        }
-                    }
-                }
-
-                if (!wasEverPosted)
-                {
-                    // If Draft (never posted), Inspection returns to SubmittedForAcceptance
-                    air.OverallStatus = AirStatuses.SubmittedForAcceptance;
-                }
-                else
-                {
-                    // If previously posted and then unposted, keep status Cancelled for overall while AcceptanceStatus is Deleted
-                    air.OverallStatus = AirStatuses.Cancelled;
-                }
-
-                air.UpdatedBy = user;
-                air.UpdatedDt = DateTime.Now;
-
-                _historyService.AddStatusHistory(
-                    DocumentTypes.AcceptanceInspectionReport,
-                    air.Id,
-                    air.AIRNo ?? air.CtrlNo,
-                    prevStatus,
-                    AirAcceptanceStatuses.Deleted,
-                    "AIR_ACCEPTANCE_DELETED",
-                    reason.Trim(),
-                    user
-                );
-
-                await _db.SaveChangesAsync();
-                tx.Commit();
-            }
+            throw new InvalidOperationException("Acceptance cannot delete an AIR. AIR deletion must be initiated from Inspection under controlled conditions.");
         }
 
         private static void PopulateDetailFromExtension(AIRItemInventoryDetailViewModel detail, AIRItemExtn extn)

@@ -197,7 +197,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsParService.PostAsync(refNo, refType, user, date);
+                    await _icsParService.IcsParShared.PostAsync(refNo, refType, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -248,7 +248,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsParService.UnPostAsync(refNo, refType, user, date);
+                    await _icsParService.IcsParShared.UnPostAsync(refNo, refType, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

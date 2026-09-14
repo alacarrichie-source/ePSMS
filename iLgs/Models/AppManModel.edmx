@@ -1014,13 +1014,13 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="IcsParItemId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="PsCardItemExtnId" Type="uniqueidentifier" />
-          <Property Name="PsCardSubItemId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Qty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="Remarks" Type="nvarchar" MaxLength="500" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="PsCardSubItemId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Qty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
         </EntityType>
         <EntityType Name="IcsParItems">
           <Key>
@@ -1704,6 +1704,7 @@
           <Property Name="PsCardId" Type="uniqueidentifier" />
           <Property Name="OrderItemRequestId" Type="uniqueidentifier" />
           <Property Name="TransferRefId" Type="uniqueidentifier" />
+          <Property Name="RefType" Type="varchar" MaxLength="50" />
           <Property Name="PoDate" Type="datetime" />
           <Property Name="PoNo" Type="varchar" MaxLength="50" />
           <Property Name="AirDate" Type="datetime" />
@@ -1843,6 +1844,19 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="PsCardRefNos">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderId" Type="uniqueidentifier" />
+          <Property Name="RefType" Type="varchar" MaxLength="50" />
+          <Property Name="RefNo" Type="varchar" MaxLength="50" />
+          <Property Name="RefDate" Type="datetime" />
+          <Property Name="DepId" Type="uniqueidentifier" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="PsCards">
           <Key>
             <PropertyRef Name="Id" />
@@ -1883,11 +1897,11 @@
           <Property Name="Remarks" Type="varchar" MaxLength="200" />
           <Property Name="SourceType" Type="varchar" MaxLength="50" />
           <Property Name="IsRequiredForBundle" Type="bit" />
-          <Property Name="QtyPerParent" Type="decimal" Precision="18" Scale="2" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="QtyPerParent" Type="decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="PurchaseOrderWizardProgress">
           <Key>
@@ -3382,18 +3396,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_IcsParItemComponents_PsCardSubItems">
-          <End Role="PsCardSubItems" Type="Self.PsCardSubItems" Multiplicity="1" />
-          <End Role="IcsParItemComponents" Type="Self.IcsParItemComponents" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsCardSubItems">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="IcsParItemComponents">
-              <PropertyRef Name="PsCardSubItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_IcsParItemComponents_PsCardItemExtns">
           <End Role="PsCardItemExtns" Type="Self.PsCardItemExtns" Multiplicity="0..1" />
           <End Role="IcsParItemComponents" Type="Self.IcsParItemComponents" Multiplicity="*" />
@@ -3403,6 +3405,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="IcsParItemComponents">
               <PropertyRef Name="PsCardItemExtnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_IcsParItemComponents_PsCardSubItems">
+          <End Role="PsCardSubItems" Type="Self.PsCardSubItems" Multiplicity="1" />
+          <End Role="IcsParItemComponents" Type="Self.IcsParItemComponents" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsCardSubItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="IcsParItemComponents">
+              <PropertyRef Name="PsCardSubItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4212,6 +4226,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PsCardRefNos_Orders">
+          <End Role="Orders" Type="Self.Orders" Multiplicity="0..1" />
+          <End Role="PsCardRefNos" Type="Self.PsCardRefNos" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Orders">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardRefNos">
+              <PropertyRef Name="OrderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PsCards_ItemCodes">
           <End Role="ItemCodes" Type="Self.ItemCodes" Multiplicity="0..1" />
           <End Role="PsCards" Type="Self.PsCards" Multiplicity="*" />
@@ -4762,6 +4788,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="PsCardItemTransferIssuances" EntityType="Self.PsCardItemTransferIssuances" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemTransferItems" EntityType="Self.PsCardItemTransferItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardItemTransfers" EntityType="Self.PsCardItemTransfers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PsCardRefNos" EntityType="Self.PsCardRefNos" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCards" EntityType="Self.PsCards" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PsCardSubItems" EntityType="Self.PsCardSubItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PurchaseOrderWizardProgress" EntityType="Self.PurchaseOrderWizardProgress" Schema="dbo" store:Type="Tables" />
@@ -5082,12 +5109,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="IcsParItems" EntitySet="IcsParItems" />
             <End Role="IcsParItemComponents" EntitySet="IcsParItemComponents" />
           </AssociationSet>
-          <AssociationSet Name="FK_IcsParItemComponents_PsCardSubItems" Association="Self.FK_IcsParItemComponents_PsCardSubItems">
-            <End Role="PsCardSubItems" EntitySet="PsCardSubItems" />
-            <End Role="IcsParItemComponents" EntitySet="IcsParItemComponents" />
-          </AssociationSet>
           <AssociationSet Name="FK_IcsParItemComponents_PsCardItemExtns" Association="Self.FK_IcsParItemComponents_PsCardItemExtns">
             <End Role="PsCardItemExtns" EntitySet="PsCardItemExtns" />
+            <End Role="IcsParItemComponents" EntitySet="IcsParItemComponents" />
+          </AssociationSet>
+          <AssociationSet Name="FK_IcsParItemComponents_PsCardSubItems" Association="Self.FK_IcsParItemComponents_PsCardSubItems">
+            <End Role="PsCardSubItems" EntitySet="PsCardSubItems" />
             <End Role="IcsParItemComponents" EntitySet="IcsParItemComponents" />
           </AssociationSet>
           <AssociationSet Name="FK_IcsParItems_IcsPars" Association="Self.FK_IcsParItems_IcsPars">
@@ -5341,6 +5368,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsCardItemTransfers_PsCardItems" Association="Self.FK_PsCardItemTransfers_PsCardItems">
             <End Role="PsCardItems" EntitySet="PsCardItems" />
             <End Role="PsCardItemTransfers" EntitySet="PsCardItemTransfers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardRefNos_Orders" Association="Self.FK_PsCardRefNos_Orders">
+            <End Role="Orders" EntitySet="Orders" />
+            <End Role="PsCardRefNos" EntitySet="PsCardRefNos" />
           </AssociationSet>
           <AssociationSet Name="FK_PsCards_ItemCodes" Association="Self.FK_PsCards_ItemCodes">
             <End Role="ItemCodes" EntitySet="ItemCodes" />
@@ -6203,6 +6234,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_IcsParItemComponents_PsCardItemExtns" Association="AppManModel.FK_IcsParItemComponents_PsCardItemExtns">
             <End Role="PsCardItemExtn" EntitySet="PsCardItemExtns" />
             <End Role="IcsParItemComponent" EntitySet="IcsParItemComponents" />
+          </AssociationSet>
+          <EntitySet Name="PsCardRefNos" EntityType="AppManModel.PsCardRefNo" />
+          <AssociationSet Name="FK_PsCardRefNos_Orders" Association="AppManModel.FK_PsCardRefNos_Orders">
+            <End Role="Order" EntitySet="Orders" />
+            <End Role="PsCardRefNo" EntitySet="PsCardRefNos" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -9844,6 +9880,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Supplier" Relationship="AppManModel.FK_Orders_Suppliers" FromRole="Order" ToRole="Supplier" />
           <NavigationProperty Name="PARs" Relationship="AppManModel.FK_PARs_Orders" FromRole="Order" ToRole="PAR" />
           <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="Order" ToRole="OrderItem" />
+          <NavigationProperty Name="PsCardRefNos" Relationship="AppManModel.FK_PsCardRefNos_Orders" FromRole="Order" ToRole="PsCardRefNo" />
         </EntityType>
         <Association Name="FK_AIRs_Orders">
           <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
@@ -10192,6 +10229,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="AIRItemId" Type="Guid" />
           <NavigationProperty Name="AIRItem" Relationship="AppManModel.FK_PsCardItems_AIRItems" FromRole="PsCardItem" ToRole="AIRItem" />
           <NavigationProperty Name="PsCardSubItems" Relationship="AppManModel.FK_PsCardSubItems_PsCardItems" FromRole="PsCardItem" ToRole="PsCardSubItem" />
+          <Property Name="RefType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
         <Association Name="FK_PsCardItems_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -11036,6 +11074,32 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="IcsParItemComponent">
               <PropertyRef Name="PsCardItemExtnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PsCardRefNo">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="OrderId" Type="Guid" />
+          <Property Name="RefType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RefDate" Type="DateTime" Precision="3" />
+          <Property Name="DepId" Type="Guid" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Order" Relationship="AppManModel.FK_PsCardRefNos_Orders" FromRole="PsCardRefNo" ToRole="Order" />
+        </EntityType>
+        <Association Name="FK_PsCardRefNos_Orders">
+          <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardRefNo" Role="PsCardRefNo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Order">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardRefNo">
+              <PropertyRef Name="OrderId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -13384,6 +13448,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="PsCardItems">
             <EntityTypeMapping TypeName="AppManModel.PsCardItem">
               <MappingFragment StoreEntitySet="PsCardItems">
+                <ScalarProperty Name="RefType" ColumnName="RefType" />
                 <ScalarProperty Name="AIRItemId" ColumnName="AIRItemId" />
                 <ScalarProperty Name="PpmpItemId" ColumnName="PpmpItemId" />
                 <ScalarProperty Name="PpmpCode" ColumnName="PpmpCode" />
@@ -13782,6 +13847,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="PsCardSubItemId" ColumnName="PsCardSubItemId" />
                 <ScalarProperty Name="Qty" ColumnName="Qty" />
                 <ScalarProperty Name="IcsParItemId" ColumnName="IcsParItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PsCardRefNos">
+            <EntityTypeMapping TypeName="AppManModel.PsCardRefNo">
+              <MappingFragment StoreEntitySet="PsCardRefNos">
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="DepId" ColumnName="DepId" />
+                <ScalarProperty Name="RefDate" ColumnName="RefDate" />
+                <ScalarProperty Name="RefNo" ColumnName="RefNo" />
+                <ScalarProperty Name="RefType" ColumnName="RefType" />
+                <ScalarProperty Name="OrderId" ColumnName="OrderId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

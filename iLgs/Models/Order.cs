@@ -21,6 +21,7 @@ namespace iLgs.Models
             this.OrderRequests = new HashSet<OrderRequest>();
             this.PARs = new HashSet<PAR>();
             this.OrderItems = new HashSet<OrderItem>();
+            this.PsCardRefNos = new HashSet<PsCardRefNo>();
         }
     
         public System.Guid Id { get; set; }
@@ -66,5 +67,7 @@ namespace iLgs.Models
         public virtual ICollection<PAR> PARs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardRefNo> PsCardRefNos { get; set; }
     }
 }

@@ -413,27 +413,34 @@
                                                             "<span class='status-badge status-unposted'>Draft</span>" +
                                                         "# } #"
                                                     );
-                                                col.Bound("HasAir").Title("AIR").Width(100).Sortable(false)
+                                                col.Bound("HasParDoc").Title("PAR Document").Width(150).Sortable(false)
                                                     .ClientTemplate(
-                                                        "# var hasAirDoc = (typeof HasAir !== 'undefined' && HasAir); #" +
+                                                        "# var hasParDoc = (typeof HasParDoc !== 'undefined' ? HasParDoc : (typeof HasAir !== 'undefined' ? HasAir : false)); #" +
                                                         "# var isPosted = (typeof Status !== 'undefined' && Status == 'Posted'); #" +
-                                                        "# var airName = (typeof AirFileName !== 'undefined' && AirFileName) ? ((AirFileName.length > 37 && AirFileName.charAt(36) === '-') ? AirFileName.substring(37) : AirFileName) : 'Uploaded'; #" +
-                                                        "<div class='ics-air-cell'>" +
-                                                            "# if (hasAirDoc) { #" +
-                                                                "<span class='status-badge status-air-uploaded' style='cursor:pointer;' onclick='viewAirDocument(\"#:Id#\")' title='View: ' + airName>" +
-                                                                    "<span class='k-icon k-i-file-pdf'></span> #:airName#" +
+                                                        "# var docName = (typeof ParFileName !== 'undefined' && ParFileName) ? ParFileName : ((typeof AirFileName !== 'undefined' && AirFileName) ? AirFileName : ''); #" +
+                                                        "# var displayName = docName ? ((docName.length > 37 && docName.charAt(36) === '-') ? docName.substring(37) : docName) : 'PAR Uploaded'; #" +
+                                                        "<div class='ics-doc-cell ics-par-cell'>" +
+                                                            "# if (hasParDoc) { #" +
+                                                                "<span class='status-badge status-doc-uploaded status-par-uploaded' style='cursor:pointer;' onclick='viewParDocument(\"#:Id#\")' title='View: ' + displayName>" +
+                                                                    "<span class='k-icon k-i-file-pdf'></span> #:displayName#" +
                                                                 "</span> " +
-                                                                "<button type='button' class='btn-procurement-secondary btn-sm text-primary' onclick='viewAirDocument(\"#:Id#\")' title='View Attached AIR Document'>" +
+                                                                "<button type='button' class='btn-procurement-secondary btn-sm text-primary' onclick='viewParDocument(\"#:Id#\")' title='View Attached PAR Document'>" +
                                                                     "<span class='k-icon k-i-eye'></span> View" +
                                                                 "</button>" +
+                                                                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='downloadParDocument(\"#:Id#\")' title='Download PAR Document'>" +
+                                                                    "<span class='k-icon k-i-download'></span> Download" +
+                                                                "</button>" +
                                                                 "# if (!isPosted) { #" +
-                                                                    "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Replace Attached AIR Document'>" +
+                                                                    "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadParModal(\"#:Id#\", \"#:RefNo#\")' title='Replace Attached PAR Document'>" +
                                                                         "<span class='k-icon k-i-refresh'></span> Replace" +
+                                                                    "</button>" +
+                                                                    "<button type='button' class='btn-procurement-danger btn-sm' onclick='confirmDeleteParDocument(\"#:Id#\", \"#:RefNo#\")' title='Delete Attached PAR Document'>" +
+                                                                        "<span class='k-icon k-i-delete'></span> Delete" +
                                                                     "</button>" +
                                                                 "# } #" +
                                                             "# } else { #" +
-                                                                "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Upload AIR Document'>" +
-                                                                    "<span class='k-icon k-i-upload'></span> Upload AIR" +
+                                                                "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadParModal(\"#:Id#\", \"#:RefNo#\")' title='Upload PAR Document'>" +
+                                                                    "<span class='k-icon k-i-upload'></span> Upload PAR" +
                                                                 "</button>" +
                                                             "# } #" +
                                                         "</div>"
@@ -485,6 +492,26 @@
     </div>
 </div>
 
+<!-- DELETE PAR DOCUMENT CONFIRMATION MODAL -->
+<div id="windowDeleteParDoc" style="display:none;">
+    <div class="p-3" style="font-size: 13px; padding: 18px;">
+        <div class="alert alert-danger mb-3" style="background: rgb(254, 242, 242); border: 1px solid rgb(254, 202, 202); color: rgb(153, 27, 27); border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+            <strong style="display:block; margin-bottom: 6px; font-size: 14px;">
+                <span class="k-icon k-i-delete"></span> Delete PAR Document?
+            </strong>
+            <div>PAR No.: <strong id="deleteDocModalParNo" style="font-family: Consolas, monospace; color: rgb(127, 29, 29); font-size: 14px;"></strong></div>
+            <div style="font-size: 12px; margin-top: 6px; line-height: 1.4;">
+                This will remove the attached PAR document from this record. The PAR record, its accountable items, and source AIR relationship will remain intact.
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+            <button type="button" class="btn-procurement-secondary" onclick="closeDeleteParDocModal()">Cancel</button>
+            <button type="button" id="btnConfirmDeleteParDoc" class="btn-procurement-primary" style="background: rgb(220, 38, 38); border-color: rgb(220, 38, 38); color: rgb(255, 255, 255);" onclick="executeDeleteParDoc()">
+                <span class="k-icon k-i-delete"></span> Delete Document
+            </button>
+        </div>
+    </div>
+</div>
 <!-- POST PAR CONFIRMATION MODAL -->
 <div id="windowPostPar" style="display:none;">
     <div class="p-3" style="font-size: 13px; padding: 18px;">
@@ -497,14 +524,14 @@
                 Once posted, this PAR will become an official transaction and property accountability will be formally transferred to the designated accountable officer.
             </div>
         </div>
-        <div id="postParMissingAirWarning" class="alert alert-warning mb-3" style="display:none; background: rgb(255, 251, 235); border: 1px solid rgb(253, 230, 138); color: rgb(146, 64, 14); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 12px;">
+        <div id="postParMissingParDocWarning" class="alert alert-warning mb-3" style="display:none; background: rgb(255, 251, 235); border: 1px solid rgb(253, 230, 138); color: rgb(146, 64, 14); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 12px;">
             <strong style="display:block; margin-bottom: 4px;">
-                <span class="k-icon k-i-warning"></span> AIR Document Required
+                <span class="k-icon k-i-warning"></span> PAR Document Required
             </strong>
-            <span>An Acceptance &amp; Inspection Report (AIR) document must be uploaded before posting this PAR.</span>
+            <span>A Property Acknowledgment Receipt (PAR) document must be uploaded before posting this PAR record.</span>
             <div style="margin-top: 8px;">
                 <button type="button" class="btn-procurement-secondary btn-sm" onclick="openUploadFromPostModal()">
-                    <span class="k-icon k-i-upload"></span> Upload AIR Now
+                    <span class="k-icon k-i-upload"></span> Upload PAR Now
                 </button>
             </div>
         </div>
@@ -774,7 +801,7 @@
         $("#lblDetailPoDate").text(d.poDate || "--");
         $("#lblDetailFund").text(d.fund || "General Fund");
         //$("#lblDetailMode").text(d.poMode || "--");
-        $("#lblDetailAcqValue").text(kendo.toString(d.acqValue || 0, "c2"));
+        $("#lblDetailAcqValue").text(kendo.toString(d.acqValue || 0, "n2"));
 
         var tot = d.totalItems || 0;
         var fin = d.finishedItems || 0;
@@ -1442,7 +1469,7 @@
         pendingPostParNo = parNo;
         $("#postModalParNo").text(parNo);
         $("#postParAlertBox").show();
-        $("#postParMissingAirWarning").hide();
+        $("#postParMissingAirWarning").hide(); $("#postParMissingParDocWarning").hide();
         $("#btnConfirmPostPar").prop("disabled", false).html("<span class='k-icon k-i-check'></span> Post PAR");
         var win = $("#windowPostPar").data("kendoWindow");
         if (!win) {
@@ -1459,7 +1486,7 @@
     function openUploadFromPostModal() {
         var parNo = pendingPostParNo;
         closePostParModal();
-        openUploadAirModal(null, parNo);
+        openUploadParModal(null, parNo);
     }
 
     function executePostPar() {
@@ -1479,9 +1506,9 @@
                 } else {
                     var message = response && response.message ? response.message : "Unable to post the PAR.";
                     notifyWarning(message);
-                    if (message.indexOf("AIR") >= 0) {
+                    if (message.indexOf("AIR") >= 0 || message.indexOf("upload") >= 0 || message.indexOf("uploaded") >= 0 || message.indexOf("PAR") >= 0) {
                         $("#postParAlertBox").hide();
-                        $("#postParMissingAirWarning").show();
+                        $("#postParMissingParDocWarning").show();
                     }
                 }
             },
@@ -1539,13 +1566,13 @@
         });
     }
 
-    function openUploadAirModal(id, parNo) {
+    function openUploadParModal(id, parNo) {
         if (!parNo) return;
-        removeDynamicWindow("#windowUploadAir");
-        $("#windowcontainer").append("<div id='windowUploadAir'></div>");
-        var win = $("#windowUploadAir").kendoWindow({
-            title: "Attach Acceptance & Inspection Report (AIR) - " + parNo,
-            width: 560,
+        removeDynamicWindow("#windowUploadPar");
+        $("#windowcontainer").append("<div id='windowUploadPar'></div>");
+        var win = $("#windowUploadPar").kendoWindow({
+            title: "Attach Property Acknowledgment Receipt (PAR) - " + parNo,
+            width: 580,
             modal: true,
             visible: false,
             deactivate: function () {
@@ -1555,37 +1582,84 @@
             }
         }).data("kendoWindow");
         $.ajax({
-            url: '@Url.Action("_UploadAir", "ParSet")',
+            url: '@Url.Action("_UploadPar", "ParSet")',
             type: "GET",
             cache: false,
             data: { parNo: parNo },
             success: function (html) { win.content(html); win.center().open(); },
             error: function (xhr) {
-                removeDynamicWindow("#windowUploadAir");
-                notifyWarning(ajaxFailureMessage(xhr, "Unable to load the AIR upload form."));
+                removeDynamicWindow("#windowUploadPar");
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to load the PAR upload form."));
             }
         });
     }
 
-    function closeUploadAirModal() {
-        var win = $("#windowUploadAir").data("kendoWindow");
+    function closeUploadParModal() {
+        var win = $("#windowUploadPar").data("kendoWindow");
         if (win) win.close();
     }
 
-    function viewAirDocument(parId) {
+    function viewParDocument(parId) {
         if (!parId) return;
-        window.open('@Url.Action("ViewAirDocument", "ParSet")' + '?parId=' + encodeURIComponent(parId), '_blank');
+        window.open('@Url.Action("ViewParDocument", "ParSet")' + '?parId=' + encodeURIComponent(parId), '_blank');
     }
 
-    function executeUploadAirFile(event) {
+    function downloadParDocument(parId) {
+        if (!parId) return;
+        window.location.href = '@Url.Action("DownloadParDocument", "ParSet")' + '?parId=' + encodeURIComponent(parId);
+    }
+
+    var pendingDeleteDocParId = null;
+    function confirmDeleteParDocument(parId, parNo) {
+        if (!parId) return;
+        pendingDeleteDocParId = parId;
+        $("#deleteDocModalParNo").text(parNo || "PAR Slip");
+        var win = $("#windowDeleteParDoc").data("kendoWindow");
+        if (!win) {
+            win = $("#windowDeleteParDoc").kendoWindow({ title: "Delete PAR Document", width: 480, modal: true, visible: false }).data("kendoWindow");
+        }
+        win.center().open();
+    }
+
+    function closeDeleteParDocModal() {
+        var win = $("#windowDeleteParDoc").data("kendoWindow");
+        if (win) win.close();
+    }
+
+    function executeDeleteParDoc() {
+        if (!pendingDeleteDocParId) return;
+        var $button = $("#btnConfirmDeleteParDoc");
+        setClickedButtonBusy($button, "Deleting...");
+        $.ajax({
+            url: '@Url.Action("DeleteParDocument", "ParSet")',
+            type: "POST",
+            data: antiForgeryData({ parId: pendingDeleteDocParId }),
+            success: function (response) {
+                restoreClickedButton($button);
+                if (response && response.success) {
+                    closeDeleteParDocModal();
+                    notifySuccess(response.message || "PAR document deleted.");
+                    refreshWorkspace(true);
+                } else {
+                    notifyWarning(response && response.message ? response.message : "Unable to delete the PAR document.");
+                }
+            },
+            error: function (xhr) {
+                restoreClickedButton($button);
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to delete the PAR document."));
+            }
+        });
+    }
+
+    function executeUploadParFile(event) {
         event.preventDefault();
         var form = event.currentTarget;
         var data = new FormData(form);
         data.append("__RequestVerificationToken", $(".epsms-par input[name='__RequestVerificationToken']").first().val());
-        var $button = $(form).find("#btnSubmitAirUpload");
+        var $button = $(form).find("#btnSubmitParUpload");
         setClickedButtonBusy($button, "Uploading...");
         $.ajax({
-            url: '@Url.Action("UploadAirFile", "ParSet")',
+            url: '@Url.Action("UploadParFile", "ParSet")',
             type: "POST",
             data: data,
             processData: false,
@@ -1593,40 +1667,25 @@
             success: function (response) {
                 restoreClickedButton($button);
                 if (response && response.success) {
-                    closeUploadAirModal();
-                    notifySuccess(response.message || "AIR document uploaded.");
+                    closeUploadParModal();
+                    notifySuccess(response.message || "PAR document uploaded.");
                     refreshWorkspace(true);
                 } else {
-                    notifyWarning(response && response.message ? response.message : "Unable to upload the AIR document.");
+                    notifyWarning(response && response.message ? response.message : "Unable to upload the PAR document.");
                 }
             },
             error: function (xhr) {
                 restoreClickedButton($button);
-                notifyWarning(ajaxFailureMessage(xhr, "Unable to upload the AIR document."));
+                notifyWarning(ajaxFailureMessage(xhr, "Unable to upload the PAR document."));
             }
         });
     }
 
-    function executeReusePoAir(parId, sourceUploadId) {
-        $.ajax({
-            url: '@Url.Action("ReusePoAirFile", "ParSet")',
-            type: "POST",
-            data: antiForgeryData({ parId: parId, sourceUploadId: sourceUploadId }),
-            success: function (response) {
-                if (response && response.success) {
-                    closeUploadAirModal();
-                    notifySuccess(response.message || "AIR document linked.");
-                    refreshWorkspace(true);
-                } else {
-                    notifyWarning(response && response.message ? response.message : "Unable to link the AIR document.");
-                }
-            },
-            error: function (xhr) {
-                notifyWarning(ajaxFailureMessage(xhr, "Unable to link the AIR document."));
-            }
-        });
-    }
-
+    // Backward compatibility aliases
+    function openUploadAirModal(id, parNo) { openUploadParModal(id, parNo); }
+    function closeUploadAirModal() { closeUploadParModal(); }
+    function viewAirDocument(parId) { viewParDocument(parId); }
+    function executeUploadAirFile(event) { executeUploadParFile(event); }
     $(document)
         .off("click.parGenerateUnit", ".par-generate-unit")
         .on("click.parGenerateUnit", ".par-generate-unit", function (e) {

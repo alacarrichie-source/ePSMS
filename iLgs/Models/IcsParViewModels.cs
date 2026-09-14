@@ -840,11 +840,29 @@ namespace iLgs.Models
         }
         public string PropNo { get; set; }
         public string SerialNo { get; set; }
+        public string MainDescription { get; set; }
+        public string IssuedTo { get; set; }
+        public string Designation { get; set; }
+        public string Status { get; set; }
+        public List<string> MissingComponents { get; set; }
         public List<ParBundleComponentAllocationVM> Components { get; set; }
 
         public ParBundleItemAllocationVM()
         {
             Components = new List<ParBundleComponentAllocationVM>();
+            MissingComponents = new List<string>();
+        }
+    }
+
+    public class IcsBatchPreviewVM
+    {
+        public List<ParBundleItemAllocationVM> Bundles { get; set; }
+        public int ReadyCount { get { return Bundles.Count(b => b.Status == "Ready"); } }
+        public int IncompleteCount { get { return Bundles.Count(b => b.Status != "Ready"); } }
+
+        public IcsBatchPreviewVM()
+        {
+            Bundles = new List<ParBundleItemAllocationVM>();
         }
     }
 

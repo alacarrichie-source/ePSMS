@@ -1,0 +1,99 @@
+@{
+    Layout = null;
+    bool hasExistingUpload = ViewBag.HasExistingUpload != null && (bool)ViewBag.HasExistingUpload;
+    string cleanFileName = ViewBag.ExistingFileName;
+    if (!string.IsNullOrEmpty(cleanFileName) && cleanFileName.Length > 37 && cleanFileName[36] == '-')
+    {
+        cleanFileName = cleanFileName.Substring(37);
+    }
+}
+
+<div class="p-3" style="font-size: 13px; padding: 16px;">
+    <!-- PAR Header Details Card -->
+    <div style="background: rgb(248, 250, 252); border: 1px solid rgb(226, 232, 240); border-radius: 6px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: rgb(100, 116, 139); font-weight: 600;">PAR Number</span>
+                <div style="font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118); font-size: 14px;">@ViewBag.ParNo</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: rgb(100, 116, 139); font-weight: 600;">Purchase Order</span>
+                <div style="font-family: Consolas, monospace; font-weight: bold; color: rgb(51, 65, 85);">@(ViewBag.PoNo ?? "N/A")</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: rgb(100, 116, 139); font-weight: 600;">Source AIR No.</span>
+                <div style="font-family: Consolas, monospace; font-weight: bold; color: rgb(2, 132, 199);">@(ViewBag.SourceAirNo ?? "N/A")</div>
+            </div>
+            <div style="grid-column: span 2;">
+                <span style="font-size: 11px; text-transform: uppercase; color: rgb(100, 116, 139); font-weight: 600;">Accountable Officer</span>
+                <div style="font-weight: 600; color: rgb(30, 41, 59);">@(ViewBag.Custodian ?? "Unassigned")</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: rgb(100, 116, 139); font-weight: 600;">Department</span>
+                <div style="color: rgb(71, 85, 105);">@(ViewBag.Department ?? "General Services Office")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current PAR Document Status -->
+    @if (hasExistingUpload)
+    {
+        <div class="alert alert-success py-2 px-3 mb-3" style="display: flex; justify-content: space-between; align-items: center; background: rgb(240, 253, 244); border: 1px solid rgb(187, 247, 208); color: rgb(22, 101, 52); border-radius: 6px; margin-bottom: 14px; padding: 10px 14px;">
+            <div>
+                <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span class="k-icon k-i-check-circle" style="color: rgb(22, 163, 74);"></span> PAR Document Attached
+                </div>
+                <div style="font-size: 11px; color: rgb(21, 128, 61); margin-top: 2px;">
+                    File: <span style="font-family: Consolas, monospace; font-weight: bold;" title="@ViewBag.ExistingFileName">@cleanFileName</span>
+                    @if (ViewBag.ExistingUploadDate != null)
+                    {
+                        <span>(@string.Format("{0:MM/dd/yyyy hh:mm tt}", ViewBag.ExistingUploadDate))</span>
+                    }
+                </div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <a class="btn-procurement-secondary btn-sm" href="@Url.Action("ViewParDocument", "ParSet", new { parId = ViewBag.ParId })" target="_blank" title="View PAR document in new tab" style="white-space: nowrap;">
+                    <span class="k-icon k-i-eye"></span> View
+                </a>
+                <a class="btn-procurement-secondary btn-sm" href="@Url.Action("DownloadParDocument", "ParSet", new { parId = ViewBag.ParId })" title="Download PAR document" style="white-space: nowrap;">
+                    <span class="k-icon k-i-download"></span> Download
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning py-2 px-3 mb-3" style="background: rgb(255, 251, 235); border: 1px solid rgb(253, 230, 138); color: rgb(146, 64, 14); border-radius: 6px; margin-bottom: 14px; font-size: 12px; padding: 10px 14px;">
+            <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <span class="k-icon k-i-warning" style="color: rgb(217, 119, 6);"></span> PAR Document Not Uploaded
+            </div>
+            <div style="margin-top: 2px;">A signed and scanned Property Acknowledgment Receipt (PAR) document must be uploaded before this record can be officially posted.</div>
+        </div>
+    }
+
+    <!-- Upload Form -->
+    <form id="formUploadParModal" enctype="multipart/form-data" method="post" onsubmit="executeUploadParFile(event)">
+        <input type="hidden" name="parId" value="@ViewBag.ParId" />
+
+        <div class="form-group mb-3">
+            <label style="font-weight: 600; font-size: 12px; color: rgb(51, 65, 85); margin-bottom: 4px; display: block;">
+                Select Signed PAR Document (PDF, JPG, PNG &bull; Max 10MB):
+            </label>
+            <input type="file" id="modalParFileInput" name="parFile" accept=".pdf,.jpg,.jpeg,.png" class="form-control" style="font-size: 12px;" required />
+        </div>
+
+        <div class="form-group mb-3" style="margin-top: 10px;">
+            <label style="font-weight: 600; font-size: 12px; color: rgb(51, 65, 85); margin-bottom: 4px; display: block;">
+                Description / Remarks (Optional):
+            </label>
+            <input type="text" name="description" class="k-textbox" style="width: 100%; font-size: 12px; height: 32px;" placeholder="e.g., Signed PAR with Accountable Officer and Property Custodian Signatures" value="@(ViewBag.ExistingDescription ?? "")" />
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgb(226, 232, 240);">
+            <button type="button" class="btn-procurement-secondary" onclick="closeUploadParModal()">Cancel</button>
+            <button type="submit" id="btnSubmitParUpload" class="btn-procurement-primary">
+                <span class="k-icon k-i-upload"></span> @(hasExistingUpload ? "Replace PAR Document" : "Upload PAR Document")
+            </button>
+        </div>
+    </form>
+</div>

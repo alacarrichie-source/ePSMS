@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using iLgs.Exceptions;
@@ -555,6 +555,8 @@ namespace iLgs.Controllers
                     Status = s.PostedDt != null ? "Posted" : "Draft",
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
+                    HasParDoc = _db.Uploads.Any(u => u.ImageId == s.Id),
+                    ParFileName = _db.Uploads.Where(u => u.ImageId == s.Id).OrderByDescending(o => o.InsertedDt).Select(u => u.FileName).FirstOrDefault(),
                     HasAir = _db.Uploads.Any(u => u.ImageId == s.Id),
                     AirFileName = _db.Uploads.Where(u => u.ImageId == s.Id).OrderByDescending(o => o.InsertedDt).Select(u => u.FileName).FirstOrDefault()
                 })
@@ -874,8 +876,11 @@ namespace iLgs.Controllers
             return PartialView("_ViewPar");
         }
 
+        #endregion
+
+        #region PAR DOCUMENT UPLOAD & ATTACHMENT MANAGEMENT
         [HttpGet]
-        public async Task<ActionResult> _UploadAir(string parNo)
+        public async Task<ActionResult> _UploadPar(string parNo)
         {
             var par = await _db.IcsPars.AsNoTracking().FirstOrDefaultAsync(w => w.RefNo == parNo && w.RefType == "P");
             if (par == null)
@@ -889,56 +894,42 @@ namespace iLgs.Controllers
                 .OrderByDescending(o => o.InsertedDt)
                 .FirstOrDefaultAsync();
 
-            // Associated PO Number from items
-            var poNo = await _db.IcsParItems.AsNoTracking()
+            // Associated PO Number and source AIR information from accountable items for traceability
+            var sourceInfo = await _db.IcsParItems.AsNoTracking()
                 .Where(w => w.IcsParId == par.Id)
-                .Select(s => s.PsCardItemExtn.PsCardItem.PoNo)
-                .FirstOrDefaultAsync();
-
-            // Check if PO has an AIR with an upload already in ePSMS
-            Guid? poAirUploadId = null;
-            string poAirNo = null;
-            string poAirFileName = null;
-
-            if (!string.IsNullOrEmpty(poNo))
-            {
-                var airData = await (from a in _db.AIRs.AsNoTracking()
-                                     where a.Order.PoNo == poNo || a.AIRItems.Any(ai => ai.OrderItemRequest.OrderItem.Order.PoNo == poNo)
-                                     join u in _db.Uploads.AsNoTracking() on a.Id equals u.ImageId
-                                     select new
-                                     {
-                                         a.AIRNo,
-                                         u.Id,
-                                         u.FileName
-                                     }).FirstOrDefaultAsync();
-
-                if (airData != null)
+                .Select(s => new
                 {
-                    poAirUploadId = airData.Id;
-                    poAirNo = airData.AIRNo;
-                    poAirFileName = airData.FileName;
-                }
-            }
+                    PoNo = s.PsCardItemExtn.PsCardItem.PoNo,
+                    AirNo = s.PsCardItemExtn.PsCardItem.AirNo
+                })
+                .FirstOrDefaultAsync();
 
             ViewBag.ParId = par.Id;
             ViewBag.ParNo = par.RefNo;
             ViewBag.Custodian = par.ReceivedBy;
             ViewBag.Department = par.ReceivedDept;
-            ViewBag.PoNo = poNo;
+            ViewBag.PoNo = sourceInfo != null ? sourceInfo.PoNo : null;
+            ViewBag.SourceAirNo = sourceInfo != null ? sourceInfo.AirNo : null;
+            ViewBag.IsPosted = par.PostedDt != null;
             ViewBag.HasExistingUpload = existingUpload != null;
             ViewBag.ExistingUploadId = existingUpload != null ? (Guid?)existingUpload.Id : null;
             ViewBag.ExistingFileName = existingUpload != null ? existingUpload.FileName : null;
             ViewBag.ExistingUploadDate = existingUpload != null ? existingUpload.InsertedDt : null;
-            ViewBag.PoAirUploadId = poAirUploadId;
-            ViewBag.PoAirNo = poAirNo;
-            ViewBag.PoAirFileName = poAirFileName;
+            ViewBag.ExistingDescription = existingUpload != null ? existingUpload.Description : null;
 
-            return PartialView();
+            return PartialView("_UploadPar");
+        }
+
+        // Backward compatibility alias for _UploadAir
+        [HttpGet]
+        public async Task<ActionResult> _UploadAir(string parNo)
+        {
+            return await _UploadPar(parNo);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UploadAirFile(Guid parId, HttpPostedFileBase airFile, string description)
+        public async Task<ActionResult> UploadParFile(Guid parId, HttpPostedFileBase parFile, string description)
         {
             try
             {
@@ -949,18 +940,18 @@ namespace iLgs.Controllers
                     return Json(new { success = false, message = "Upload Access Denied!" });
                 }
 
-                if (airFile == null || airFile.ContentLength == 0)
+                if (parFile == null || parFile.ContentLength == 0)
                 {
                     return Json(new { success = false, message = "Please select a valid file to upload." });
                 }
 
-                if (airFile.ContentLength > 10 * 1024 * 1024)
+                if (parFile.ContentLength > 10 * 1024 * 1024)
                 {
                     return Json(new { success = false, message = "The selected file exceeds the 10 MB maximum allowed size." });
                 }
 
                 var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var fileName = airFile.FileName;
+                var fileName = parFile.FileName;
                 var ext = (!string.IsNullOrEmpty(fileName)) ? Path.GetExtension(fileName).ToLower() : "";
                 if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
                 {
@@ -971,6 +962,11 @@ namespace iLgs.Controllers
                 if (par == null)
                 {
                     return Json(new { success = false, message = "PAR record not found." });
+                }
+
+                if (par.PostedDt != null || !string.IsNullOrEmpty(par.PostedBy))
+                {
+                    return Json(new { success = false, message = "Cannot replace the document of a posted PAR. Please unpost the PAR first." });
                 }
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -984,7 +980,8 @@ namespace iLgs.Controllers
                     {
                         try
                         {
-                            var oldPath = Path.Combine(_uploadService.GetDirectoryPath(), u.FileName);
+                            var oldDir = !string.IsNullOrEmpty(u.VirtualDirectory) ? u.VirtualDirectory : _uploadService.GetDirectoryPath();
+                            var oldPath = Path.Combine(oldDir, u.FileName);
                             if (System.IO.File.Exists(oldPath))
                             {
                                 System.IO.File.Delete(oldPath);
@@ -997,7 +994,7 @@ namespace iLgs.Controllers
                 }
 
                 var uploadId = Guid.NewGuid();
-                var safeOriginalName = Path.GetFileName(airFile.FileName);
+                var safeOriginalName = Path.GetFileName(parFile.FileName);
                 var storedFileName = uploadId + "-" + safeOriginalName;
                 var physicalDir = _uploadService.GetDirectoryPath();
 
@@ -1007,14 +1004,14 @@ namespace iLgs.Controllers
                 }
 
                 var physicalPath = Path.Combine(physicalDir, storedFileName);
-                airFile.SaveAs(physicalPath);
+                parFile.SaveAs(physicalPath);
 
                 var upload = new Models.Upload
                 {
                     Id = uploadId,
                     ImageId = parId,
                     FileName = storedFileName,
-                    Description = string.IsNullOrWhiteSpace(description) ? "AIR" : description,
+                    Description = string.IsNullOrWhiteSpace(description) ? "PAR" : description,
                     VirtualDirectory = physicalDir,
                     InsertedBy = user,
                     InsertedDt = date,
@@ -1025,12 +1022,20 @@ namespace iLgs.Controllers
                 _db.Uploads.Add(upload);
                 await _db.SaveChangesAsync();
 
-                return Json(new { success = true, message = "AIR document uploaded successfully.", fileName = safeOriginalName, uploadId = uploadId });
+                return Json(new { success = true, message = "PAR document uploaded successfully.", fileName = safeOriginalName, uploadId = uploadId });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error uploading AIR document: " + ex.Message });
+                return Json(new { success = false, message = "Error uploading PAR document: " + ex.Message });
             }
+        }
+
+        // Backward compatibility alias for UploadAirFile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UploadAirFile(Guid parId, HttpPostedFileBase airFile, string description)
+        {
+            return await UploadParFile(parId, airFile, description);
         }
 
         [HttpPost]
@@ -1074,7 +1079,7 @@ namespace iLgs.Controllers
                     Id = Guid.NewGuid(),
                     ImageId = parId,
                     FileName = sourceUpload.FileName,
-                    Description = "AIR",
+                    Description = "PAR",
                     VirtualDirectory = sourceUpload.VirtualDirectory,
                     InsertedBy = user,
                     InsertedDt = date,
@@ -1085,21 +1090,21 @@ namespace iLgs.Controllers
                 _db.Uploads.Add(newUpload);
                 await _db.SaveChangesAsync();
 
-                return Json(new { success = true, message = "PO AIR document successfully linked to this PAR.", fileName = sourceUpload.FileName });
+                return Json(new { success = true, message = "Document linked to PAR successfully.", fileName = sourceUpload.FileName });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error linking AIR document: " + ex.Message });
+                return Json(new { success = false, message = "Error linking document: " + ex.Message });
             }
         }
 
         [HttpGet]
-        public async Task<ActionResult> ViewAirDocument(Guid parId)
+        public async Task<ActionResult> ViewParDocument(Guid parId)
         {
             var upload = await _db.Uploads.Where(u => u.ImageId == parId).OrderByDescending(o => o.InsertedDt).FirstOrDefaultAsync();
             if (upload == null)
             {
-                return HttpNotFound("No AIR document has been attached to this PAR record.");
+                return HttpNotFound("No PAR document has been attached to this PAR record.");
             }
 
             string dir = !string.IsNullOrEmpty(upload.VirtualDirectory) ? upload.VirtualDirectory : _uploadService.GetDirectoryPath();
@@ -1107,15 +1112,104 @@ namespace iLgs.Controllers
 
             if (!System.IO.File.Exists(physicalPath))
             {
-                return HttpNotFound("The attached document file could not be found on the server storage.");
+                return HttpNotFound("The attached PAR document file could not be found on the server storage.");
             }
 
             string contentType = MimeMapping.GetMimeMapping(upload.FileName);
             return File(physicalPath, contentType);
         }
+
+        // Backward compatibility alias for ViewAirDocument
+        [HttpGet]
+        public async Task<ActionResult> ViewAirDocument(Guid parId)
+        {
+            return await ViewParDocument(parId);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> DownloadParDocument(Guid parId)
+        {
+            var upload = await _db.Uploads.Where(u => u.ImageId == parId).OrderByDescending(o => o.InsertedDt).FirstOrDefaultAsync();
+            if (upload == null)
+            {
+                return HttpNotFound("No PAR document has been attached to this PAR record.");
+            }
+
+            string dir = !string.IsNullOrEmpty(upload.VirtualDirectory) ? upload.VirtualDirectory : _uploadService.GetDirectoryPath();
+            string physicalPath = Path.Combine(dir, upload.FileName);
+
+            if (!System.IO.File.Exists(physicalPath))
+            {
+                return HttpNotFound("The attached PAR document file could not be found on the server storage.");
+            }
+
+            string contentType = MimeMapping.GetMimeMapping(upload.FileName);
+            string downloadName = upload.FileName;
+            if (downloadName.Length > 37 && downloadName[36] == '-')
+            {
+                downloadName = downloadName.Substring(37);
+            }
+
+            return File(physicalPath, contentType, downloadName);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteParDocument(Guid parId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit && !access.AllowDelete)
+                {
+                    return Json(new { success = false, message = "Access Denied: You do not have permission to remove PAR documents." });
+                }
+
+                var par = await _db.IcsPars.FirstOrDefaultAsync(w => w.Id == parId);
+                if (par == null)
+                {
+                    return Json(new { success = false, message = "PAR record not found." });
+                }
+
+                if (par.PostedDt != null || !string.IsNullOrEmpty(par.PostedBy))
+                {
+                    return Json(new { success = false, message = "Cannot delete the document of a posted PAR. Please unpost the PAR first." });
+                }
+
+                var existingUploads = await _db.Uploads.Where(w => w.ImageId == parId).ToListAsync();
+                if (!existingUploads.Any())
+                {
+                    return Json(new { success = false, message = "No attached PAR document found to delete." });
+                }
+
+                foreach (var u in existingUploads)
+                {
+                    try
+                    {
+                        var dir = !string.IsNullOrEmpty(u.VirtualDirectory) ? u.VirtualDirectory : _uploadService.GetDirectoryPath();
+                        var filePath = Path.Combine(dir, u.FileName);
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                    catch { }
+                }
+
+                _db.Uploads.RemoveRange(existingUploads);
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, message = "PAR document deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error deleting PAR document: " + ex.Message });
+            }
+        }
         #endregion
 
-        #region PAR ITEMS
+                #region PAR ITEMS
         public ActionResult _Pars(Guid? cardItemGroupId, string postedBy)
         {
             ViewData["cardItemGroupId"] = cardItemGroupId;

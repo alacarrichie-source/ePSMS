@@ -25,6 +25,7 @@ namespace iLgs.Ai.Services.Air
         Task RequestWithdrawalAsync(Guid airId, string reason, string user);
         Task<AIRItemHistoryViewModel> GetItemInspectionHistoryAsync(Guid orderItemId);
         Task DiscardDraftAsync(Guid draftId, string user);
+        Task DeleteInspectionAsync(Guid airId, string user);
         bool CanWithdrawAir(AIR air);
         bool CanDiscardAir(AIR air, out string reason);
         Task<AIRWizardViewModel> ChangeDraftPOAsync(Guid draftId, Guid newOrderId, string user);
@@ -72,6 +73,14 @@ namespace iLgs.Ai.Services.Air
                         continue;
                 }
 
+
+                bool isPosted = a.PostedDt != null;
+                bool isReturnedForRevision = string.Equals(overallStatus, AirStatuses.ReturnedForRevision, StringComparison.OrdinalIgnoreCase);
+                bool isAcceptanceInProgress = a.AcceptanceStartedDt != null || string.Equals(overallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase) || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.InProgress, StringComparison.OrdinalIgnoreCase);
+                bool isUnposted = string.Equals(overallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase) || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
+                bool isAccepted = a.AcceptedDate != null || string.Equals(overallStatus, AirStatuses.Accepted, StringComparison.OrdinalIgnoreCase);
+                bool hasPostedAcceptance = isPosted || (a.AcceptedDate != null && string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Accepted, StringComparison.OrdinalIgnoreCase));
+
                 var vm = new AIRGridItemViewModel
                 {
                     Id = a.Id,
@@ -97,7 +106,7 @@ namespace iLgs.Ai.Services.Air
                     CanContinue = a.IsInspected != true && a.PostedDt == null,
                     CanWithdraw = CanWithdrawAir(a),
                     CanRequestWithdrawal = false,
-                    CanRevise = false,
+                    CanRevise = !acceptanceQueue && isReturnedForRevision,
                     CanStartAcceptance = acceptanceQueue && overallStatus == AirStatuses.SubmittedForAcceptance && a.IsInspected == true && a.AcceptanceStartedDt == null && a.PostedDt == null,
                     CanContinueAcceptance = acceptanceQueue && (overallStatus == AirStatuses.AcceptanceInProgress || overallStatus == AirStatuses.Unposted || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase)) && a.PostedDt == null,
                     CanPost = false,
@@ -106,7 +115,8 @@ namespace iLgs.Ai.Services.Air
                     CanPrint = a.PostedDt != null,
                     CanViewAcceptance = a.AcceptanceStartedDt != null || a.AcceptedDate != null || a.PostedDt != null || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase) || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase),
                     CanUnpost = acceptanceQueue && a.PostedDt != null && !string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Deleted, StringComparison.OrdinalIgnoreCase),
-                    CanDelete = acceptanceQueue && (string.Equals(overallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase) || string.Equals(a.AcceptanceStatus, AirAcceptanceStatuses.Unposted, StringComparison.OrdinalIgnoreCase))
+                    CanReturnForRevision = acceptanceQueue && !isPosted && (isUnposted || isAcceptanceInProgress || isAccepted),
+                    CanDelete = !acceptanceQueue && isReturnedForRevision && !isPosted && !isAcceptanceInProgress && !hasPostedAcceptance && !inventoryPosted
                 };
 
                 result.Add(vm);
@@ -1039,6 +1049,17 @@ namespace iLgs.Ai.Services.Air
             vm.Disposition = air.Disposition;
             vm.OverallStatus = ResolveOverallStatus(air);
             vm.InspectionStatus = air.PostedDt != null ? AirInspectionStatuses.Posted : (air.IsInspected == true ? AirInspectionStatuses.Submitted : AirInspectionStatuses.Draft);
+            vm.RevisionComments = air.RevisionComments;
+            vm.ReturnedBy = air.ReturnedBy;
+            vm.ReturnedDt = air.ReturnedDt;
+
+            Guid editAirId = air.Id;
+            var progress = await _db.AIRWizardProgresses.FirstOrDefaultAsync(p => p.AIRId == editAirId || p.SourceAIRId == editAirId);
+            if (progress != null)
+            {
+                vm.DraftId = progress.Id;
+                vm.DraftNo = progress.DraftNo;
+            }
 
             if (air.AIRInvoices != null && air.AIRInvoices.Any())
             {
@@ -1361,7 +1382,7 @@ namespace iLgs.Ai.Services.Air
                     throw new InvalidOperationException(string.Format("Source inspection report '{0}' not found for revision resubmission.", model.SourceAIRId.Value));
                 if (sourceAirCheck.PostedDt != null)
                     throw new InvalidOperationException("Cannot resubmit revision: the source inspection report has already been posted and finalized.");
-                if (sourceAirCheck.OverallStatus != AirStatuses.Withdrawn && sourceAirCheck.OverallStatus != AirStatuses.Draft)
+                if (sourceAirCheck.OverallStatus != AirStatuses.Withdrawn && sourceAirCheck.OverallStatus != AirStatuses.Draft && sourceAirCheck.OverallStatus != AirStatuses.ReturnedForRevision)
                     throw new InvalidOperationException(string.Format("Cannot resubmit: source inspection report status is currently '{0}'. Only draft or withdrawn inspection reports can be submitted.", sourceAirCheck.OverallStatus ?? "Unknown"));
 
                 model.AirId = sourceAirCheck.Id;
@@ -1599,6 +1620,10 @@ namespace iLgs.Ai.Services.Air
                         air.RevisionComments = null;
                         air.ReturnedBy = null;
                         air.ReturnedDt = null;
+                        air.AcceptanceStatus = AirAcceptanceStatuses.Pending;
+                        air.AcceptanceStartedDt = null;
+                        air.AcceptedDate = null;
+                        air.AcceptedBy = null;
                     }
 
                     air.UpdatedBy = user;
@@ -1625,8 +1650,9 @@ namespace iLgs.Ai.Services.Air
                     }
 
                     // Generate and persist immutable submission snapshot for this exact AIR
+                    Guid snapshotAirId = air.Id;
                     var maxSnapshotVersion = await _db.AIRSubmissionSnapshots
-                        .Where(s => s.AIRId == air.Id)
+                        .Where(s => s.AIRId == snapshotAirId)
                         .MaxAsync(s => (int?)s.VersionNo) ?? 0;
 
                     int versionNo = Math.Max(maxSnapshotVersion + 1, (model.RevisionNo > 0 ? model.RevisionNo + 1 : 1));
@@ -1645,7 +1671,8 @@ namespace iLgs.Ai.Services.Air
 
                     if (string.IsNullOrEmpty(model.PONumber) && air.OrderId.HasValue)
                     {
-                        var order = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == air.OrderId.Value);
+                        Guid orderIdVal = air.OrderId.Value;
+                        var order = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == orderIdVal);
                         if (order != null)
                         {
                             model.PONumber = order.PoNo;
@@ -1804,9 +1831,9 @@ namespace iLgs.Ai.Services.Air
                 return false;
             }
 
-            if (air.PostedDt != null)
+            if (air.PostedDt != null || string.Equals(air.OverallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase))
             {
-                reason = "This AIR cannot be discarded because downstream acceptance or inventory transactions already exist.";
+                reason = "This AIR cannot be discarded because it has already been posted.";
                 return false;
             }
 
@@ -1821,16 +1848,17 @@ namespace iLgs.Ai.Services.Air
                 string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.InProgress, StringComparison.OrdinalIgnoreCase) ||
                 (air.AIRItems != null && air.AIRItems.Any(ai => ai.AcceptedQty.HasValue && ai.AcceptedQty.Value > 0)))
             {
-                reason = "This AIR cannot be discarded because downstream acceptance or inventory transactions already exist.";
+                reason = "This AIR cannot be discarded because Acceptance is currently in progress.";
                 return false;
             }
 
             var overallStatus = ResolveOverallStatus(air);
             if (!string.Equals(overallStatus, AirStatuses.Draft, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(overallStatus, AirStatuses.Withdrawn, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(overallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase))
+                !string.Equals(overallStatus, AirStatuses.Unposted, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(overallStatus, AirStatuses.ReturnedForRevision, StringComparison.OrdinalIgnoreCase))
             {
-                reason = "Only draft or unposted inspection records can be discarded.";
+                reason = "Only draft, unposted, or returned for revision inspection records can be discarded.";
                 return false;
             }
 
@@ -1882,8 +1910,9 @@ namespace iLgs.Ai.Services.Air
                     }
 
                     // Sync or create associated AIRWizardProgress pointing to this SAME AIR
+                    Guid progressAirId = air.Id;
                     var progress = await _db.AIRWizardProgresses
-                        .Where(p => p.AIRId == air.Id || p.SourceAIRId == air.Id || p.Id == air.Id)
+                        .Where(p => p.AIRId == progressAirId || p.SourceAIRId == progressAirId || p.Id == progressAirId)
                         .OrderByDescending(p => p.CreatedAt)
                         .FirstOrDefaultAsync();
 
@@ -2026,7 +2055,8 @@ namespace iLgs.Ai.Services.Air
 
                     if (air != null && progress == null)
                     {
-                        progress = await _db.AIRWizardProgresses.FirstOrDefaultAsync(p => p.AIRId == air.Id || p.SourceAIRId == air.Id || p.Id == air.Id);
+                        Guid resolvedAirId = air.Id;
+                        progress = await _db.AIRWizardProgresses.FirstOrDefaultAsync(p => p.AIRId == resolvedAirId || p.SourceAIRId == resolvedAirId || p.Id == resolvedAirId);
                     }
 
                     if (air == null && progress == null)
@@ -2043,10 +2073,11 @@ namespace iLgs.Ai.Services.Air
                             throw new InvalidOperationException(reason);
                         }
 
+                        Guid airIdToDelete = air.Id;
                         var inventoryPostedIds = await GetInventoryPostedAirIdsAsync();
-                        if (inventoryPostedIds.Contains(air.Id))
+                        if (inventoryPostedIds.Contains(airIdToDelete))
                         {
-                            throw new InvalidOperationException("This AIR cannot be discarded because downstream acceptance or inventory transactions already exist.");
+                            throw new InvalidOperationException("This AIR cannot be discarded because downstream inventory or posted transactions depend on it.");
                         }
 
                         // 3. Remove dependent child records belonging only to this AIR
@@ -2105,8 +2136,152 @@ namespace iLgs.Ai.Services.Air
                     }
 
                     // 4. Mark related progress records as discarded
+                    Guid? relatedAirId = air != null ? (Guid?)air.Id : targetAirId;
+                    List<AIRWizardProgress> relatedProgresses;
+                    if (relatedAirId.HasValue)
+                    {
+                        Guid airIdVal = relatedAirId.Value;
+                        relatedProgresses = await _db.AIRWizardProgresses
+                            .Where(p => p.Id == draftId || p.AIRId == airIdVal || p.SourceAIRId == airIdVal || p.Id == airIdVal)
+                            .ToListAsync();
+                    }
+                    else
+                    {
+                        relatedProgresses = await _db.AIRWizardProgresses
+                            .Where(p => p.Id == draftId)
+                            .ToListAsync();
+                    }
+
+                    foreach (var p in relatedProgresses)
+                    {
+                        p.Status = AirWizardStatuses.Discarded;
+                        p.DiscardedDt = DateTime.Now;
+                        p.DiscardedBy = user;
+                        p.UpdatedAt = DateTime.Now;
+                        p.IsCompleted = true;
+                    }
+
+                    await _db.SaveChangesAsync();
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public async Task DeleteInspectionAsync(Guid airId, string user)
+        {
+            using (var tx = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var air = await _db.AIRs
+                        .Include(a => a.AIRItems.Select(ai => ai.AIRItemAllocations))
+                        .Include(a => a.AIRItems.Select(ai => ai.AIRItemExtns))
+                        .Include(a => a.AIRItems.Select(ai => ai.AIRSubItems))
+                        .Include(a => a.AIRInvoices)
+                        .Include(a => a.AIRDocuments)
+                        .Include(a => a.AIRSubmissionSnapshots)
+                        .FirstOrDefaultAsync(a => a.Id == airId);
+
+                    if (air == null)
+                    {
+                        throw new InvalidOperationException("AIR record not found.");
+                    }
+
+                    // 1. Confirm Acceptance is NOT currently in progress
+                    if (air.AcceptanceStartedDt != null ||
+                        string.Equals(air.OverallStatus, AirStatuses.AcceptanceInProgress, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.InProgress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("This AIR cannot be deleted because Acceptance is currently in progress.");
+                    }
+
+                    // 2. Confirm the AIR is currently Returned for Revision
+                    var overallStatus = ResolveOverallStatus(air);
+                    if (!string.Equals(overallStatus, AirStatuses.ReturnedForRevision, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("This AIR cannot be deleted because it has not been returned for revision.");
+                    }
+
+                    // 3. Confirm the AIR / Acceptance is not posted
+                    if (air.PostedDt != null ||
+                        string.Equals(overallStatus, AirStatuses.Posted, StringComparison.OrdinalIgnoreCase) ||
+                        (string.Equals(air.AcceptanceStatus, AirAcceptanceStatuses.Accepted, StringComparison.OrdinalIgnoreCase) && air.AcceptedDate != null))
+                    {
+                        throw new InvalidOperationException("This AIR cannot be deleted because it has already been posted.");
+                    }
+
+                    // 4. Confirm no protected downstream posted data exists
+                    var inventoryPostedIds = await GetInventoryPostedAirIdsAsync();
+                    Guid airIdVal = air.Id;
+                    if (inventoryPostedIds.Contains(airIdVal))
+                    {
+                        throw new InvalidOperationException("This AIR cannot be deleted because downstream inventory or posted transactions depend on it.");
+                    }
+
+                    // Safe deletion of child records belonging only to this AIR
+                    if (air.AIRItems != null && air.AIRItems.Any())
+                    {
+                        var airItemIds = air.AIRItems.Select(ai => ai.Id).ToList();
+
+                        var allocations = await _db.AIRItemAllocations.Where(al => airItemIds.Contains(al.AIRItemId)).ToListAsync();
+                        if (allocations.Any())
+                        {
+                            _db.AIRItemAllocations.RemoveRange(allocations);
+                        }
+
+                        var extns = await _db.AIRItemExtns.Where(e => e.AIRItemId.HasValue && airItemIds.Contains(e.AIRItemId.Value)).ToListAsync();
+                        if (extns.Any())
+                        {
+                            _db.AIRItemExtns.RemoveRange(extns);
+                        }
+
+                        var subItems = await _db.AIRSubItems.Where(s => airItemIds.Contains(s.AirItemId)).ToListAsync();
+                        if (subItems.Any())
+                        {
+                            _db.AIRSubItems.RemoveRange(subItems);
+                        }
+
+                        _db.AIRItems.RemoveRange(air.AIRItems);
+                    }
+
+                    if (air.AIRInvoices != null && air.AIRInvoices.Any())
+                    {
+                        _db.AIRInvoices.RemoveRange(air.AIRInvoices);
+                    }
+
+                    if (air.AIRDocuments != null && air.AIRDocuments.Any())
+                    {
+                        _db.AIRDocuments.RemoveRange(air.AIRDocuments);
+                    }
+
+                    if (air.AIRSubmissionSnapshots != null && air.AIRSubmissionSnapshots.Any())
+                    {
+                        _db.AIRSubmissionSnapshots.RemoveRange(air.AIRSubmissionSnapshots);
+                    }
+
+                    _historyService.AddStatusHistory(
+                        DocumentTypes.AcceptanceInspectionReport,
+                        air.Id,
+                        air.AIRNo ?? air.CtrlNo,
+                        overallStatus ?? AirStatuses.ReturnedForRevision,
+                        AirStatuses.Cancelled,
+                        "AIR_DELETED",
+                        "AIR deleted from Inspection following Return for Revision.",
+                        user
+                    );
+
+                    _db.AIRs.Remove(air);
+
+                    Guid targetAirId = air.Id;
+
+                    // Mark related progress records as discarded
                     var relatedProgresses = await _db.AIRWizardProgresses
-                        .Where(p => p.Id == draftId || (air != null && (p.AIRId == air.Id || p.SourceAIRId == air.Id)))
+                        .Where(p => p.AIRId == targetAirId || p.SourceAIRId == targetAirId || p.Id == targetAirId)
                         .ToListAsync();
 
                     foreach (var p in relatedProgresses)
@@ -2901,6 +3076,9 @@ namespace iLgs.Ai.Services.Air
 
             if (string.Equals(a.OverallStatus, AirStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
                 return AirStatuses.Cancelled;
+
+            if (string.Equals(a.OverallStatus, AirStatuses.ReturnedForRevision, StringComparison.OrdinalIgnoreCase))
+                return AirStatuses.ReturnedForRevision;
 
             if (string.Equals(a.OverallStatus, AirStatuses.Draft, StringComparison.OrdinalIgnoreCase))
                 return AirStatuses.Draft;

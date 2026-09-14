@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.ParIcs
 {
@@ -35,13 +36,16 @@ namespace iLgs.Services.ParIcs
 
         Task<ParBundleBuilderInitVM> GetBundleBuilderDataAsync(Guid psCardItemId);
         Task<ParBundleBuilderInitVM> GetSingleUnitBundleDataAsync(Guid mainPsCardItemExtnId);
+        Task<ParBundleBuilderInitVM> GetBundleBuilderDataAsync(Guid psCardItemId, string refType);
+        Task<ParBundleBuilderInitVM> GetSingleUnitBundleDataAsync(Guid mainPsCardItemExtnId, string refType);
         ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date);
+        ValueTask<GenerateIcsParVM> GenerateBundle(GenerateIcsParVM model, string user, DateTime date, string refType);
         ValueTask<GenerateIcsParVM> GenerateParSet(GenerateIcsParVM model, string user, DateTime date);
 
         ValueTask<IcsPar> PostAsync(string refNo, string user, DateTime date);
         ValueTask<IcsPar> UnPostAsync(string refNo, string user, DateTime date);
 
-        ValueTask<string> NextRefNoAsync(DateTime parDate, string refType);
+        //ValueTask<string> NextParNoAsync(DateTime parDate);
 
         IParItemService ParItem { get; }
     }
@@ -124,29 +128,7 @@ namespace iLgs.Services.ParIcs
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _icsParSharedService = new IcsParSharedService(_db);
             _priceCapService = new PriceCapService(_db);
-        }
-
-        //public ParService(AppManEntities db,
-        //    IAppManEntitiesFactory appManEntitiesFactory,
-        //    IParItemService parItemService,
-        //    IExceptionService<GenerateIcsParVM> generateParExceptionService,
-        //    IExceptionService<PsCardItem> postExceptionService,
-        //    IExceptionService<IcsPar> icsParExceptionService,
-        //    IPsCardItemTransactionService psCardItemTransactionService,
-        //    IIcsParSharedService icsParSharedService,
-        //    IPriceCapService priceCapService)
-        //{
-        //    _db = db;
-        //    _contextFactory = appManEntitiesFactory;
-        //    _parItemService = parItemService;
-        //    _generateParExceptionService = generateParExceptionService;
-        //    _postExceptionService = postExceptionService;
-        //    _icsParExceptionService = icsParExceptionService;
-        //    _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
-        //    _psCardItemTransactionService = psCardItemTransactionService;
-        //    _icsParSharedService = icsParSharedService;
-        //    _priceCapService = priceCapService;            
-        //}
+        }        
 
         public IParItemService ParItem { get { return _parItemService; } }
 
@@ -165,9 +147,9 @@ namespace iLgs.Services.ParIcs
             var priceCap = GetPriceCap();
             var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
-                    //&& (w.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems
-                    //    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= priceCap)
-                    //        || w.UnitCost >= priceCap)
+                            //&& (w.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems
+                            //    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= priceCap)
+                            //        || w.UnitCost >= priceCap)
                             && w.UnitCost >= priceCap)
                 .Select(s => new ParVM
                 {
@@ -293,7 +275,7 @@ namespace iLgs.Services.ParIcs
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
                     && w.UnitCost >= priceCap
-                    //&& !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
+                //&& !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
                 )
                 .Select(s => new ParIcsItemVm
                 {
@@ -433,6 +415,7 @@ namespace iLgs.Services.ParIcs
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
                     ParBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    IcsBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     //OrderItemUnitGroupDescriptionItem = s.OrderItemRequest.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemRequest.OrderItemId),
                     IsForICS = s.IsForICS,
                     AcqDate = s.AcqDate
@@ -440,7 +423,12 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
-        public async Task<ParBundleBuilderInitVM> GetSingleUnitBundleDataAsync(Guid mainPsCardItemExtnId)
+        public Task<ParBundleBuilderInitVM> GetSingleUnitBundleDataAsync(Guid mainPsCardItemExtnId)
+        {
+            return GetSingleUnitBundleDataAsync(mainPsCardItemExtnId, "P");
+        }
+
+        public async Task<ParBundleBuilderInitVM> GetSingleUnitBundleDataAsync(Guid mainPsCardItemExtnId, string refType)
         {
             var mainExtn = await _db.PsCardItemExtns
                 .Include(e => e.PsCardItem.PsCard.ItemCode)
@@ -472,7 +460,7 @@ namespace iLgs.Services.ParIcs
 
             // Check if an active Draft PAR exists for this unit
             var existingParItem = mainExtn.IcsParItems
-                .Where(i => i.IcsPar != null && i.IcsPar.RefType == "P" && i.IcsPar.PostedDt == null)
+                .Where(i => i.IcsPar != null && i.IcsPar.RefType == refType && i.IcsPar.PostedDt == null)
                 .OrderByDescending(i => i.IcsPar.InsertedDt)
                 .FirstOrDefault();
 
@@ -579,7 +567,7 @@ namespace iLgs.Services.ParIcs
                 {
                     // Reserved components: those in active PAR items EXCEPT if assigned to THIS unit's existing draft PAR
                     var reservedExtnIds = await _db.IcsParItemComponents
-                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId != null && c.IcsParItem.IcsPar.RefType == "P"
+                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId != null
                             && (!draftParItemId.HasValue || c.IcsParItemId != draftParItemId.Value))
                         .Select(c => c.PsCardItemExtnId.Value)
                         .ToListAsync();
@@ -600,7 +588,7 @@ namespace iLgs.Services.ParIcs
                 else
                 {
                     var reservedQty = await _db.IcsParItemComponents
-                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId == null && c.IcsParItem.IcsPar.RefType == "P"
+                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId == null
                             && (!draftParItemId.HasValue || c.IcsParItemId != draftParItemId.Value))
                         .SumAsync(c => (decimal?)c.Qty) ?? 0;
 
@@ -657,7 +645,12 @@ namespace iLgs.Services.ParIcs
             };
         }
 
-        public async Task<ParBundleBuilderInitVM> GetBundleBuilderDataAsync(Guid psCardItemId)
+        public Task<ParBundleBuilderInitVM> GetBundleBuilderDataAsync(Guid psCardItemId)
+        {
+            return GetBundleBuilderDataAsync(psCardItemId, "P");
+        }
+
+        public async Task<ParBundleBuilderInitVM> GetBundleBuilderDataAsync(Guid psCardItemId, string refType)
         {
             var cardItem = await GetByIdAsync(psCardItemId);
             if (cardItem == null)
@@ -683,7 +676,7 @@ namespace iLgs.Services.ParIcs
 
             // Available main physical units: PsCardSubItemId == null and not already in an active PAR.
             var activeParItemExtnIds = await _db.IcsParItems
-                .Where(i => i.IcsPar.RefType == "P")
+                .Where(i => i.IcsPar.RefType == refType)
                 .Select(i => i.PsCardItemExtnId)
                 .ToListAsync();
 
@@ -743,7 +736,7 @@ namespace iLgs.Services.ParIcs
                 if (isSerialized)
                 {
                     var reservedExtnIds = await _db.IcsParItemComponents
-                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId != null && c.IcsParItem.IcsPar.RefType == "P")
+                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId != null)
                         .Select(c => c.PsCardItemExtnId.Value)
                         .ToListAsync();
 
@@ -764,7 +757,7 @@ namespace iLgs.Services.ParIcs
                 else
                 {
                     var reservedQty = await _db.IcsParItemComponents
-                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId == null && c.IcsParItem.IcsPar.RefType == "P")
+                        .Where(c => c.PsCardSubItemId == sub.Id && c.PsCardItemExtnId == null)
                         .SumAsync(c => (decimal?)c.Qty) ?? 0;
 
                     vm.AllocatedQty = reservedQty;
@@ -790,15 +783,22 @@ namespace iLgs.Services.ParIcs
         }
         public ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date)
         {
+            return GenerateBundle(model, user, date, "P");
+        }
+
+        public ValueTask<GenerateIcsParVM> GenerateBundle(GenerateIcsParVM model, string user, DateTime date, string refType)
+        {
             return _generateParExceptionService.TryCatch(async () =>
         {
+            var documentName = refType == "I" ? "ICS" : "PAR";
+            model.RefType = refType;
             if (model.LocationId == null || model.LocationId == Guid.Empty)
             {
                 throw new InvalidValueException("Field Location is required!");
             }
             if (model.Date == default(DateTime))
             {
-                throw new InvalidValueException("Field PAR Date is required!");
+                throw new InvalidValueException("Field " + documentName + " Date is required!");
             }
             if (model.IcsPar == null)
             {
@@ -868,7 +868,7 @@ namespace iLgs.Services.ParIcs
 
             if (bundles == null || !bundles.Any())
             {
-                throw new InvalidValueException("Please select a main physical unit before generating the PAR.");
+                throw new InvalidValueException("Please select a main physical unit before generating the " + documentName + ".");
             }
 
             // Fallback for PsCardItemId if only MainPsCardItemExtnId was passed
@@ -888,7 +888,7 @@ namespace iLgs.Services.ParIcs
                 throw new RecordNotFoundException((Guid)(model.PsCardItemId ?? Guid.Empty));
             }
 
-            if (cardItem.IsForICS == true)
+            if (refType == "P" && cardItem.IsForICS == true)
             {
                 throw new InvalidValueException("Item is marked for ICS, cannot generate PAR!");
             }
@@ -897,20 +897,20 @@ namespace iLgs.Services.ParIcs
 
             if (model.ExistingParId.HasValue && bundles.Count != 1)
             {
-                throw new InvalidValueException("A Draft PAR can only be updated for its existing main physical unit.");
+                throw new InvalidValueException("A Draft " + documentName + " can only be updated for its existing main physical unit.");
             }
 
             var currentDraftParItemIds = await _db.IcsParItems
-                .Where(i => mainExtnIds.Contains(i.PsCardItemExtnId.Value) && i.IcsPar.RefType == "P" && i.IcsPar.PostedDt == null)
+                .Where(i => mainExtnIds.Contains(i.PsCardItemExtnId.Value) && i.IcsPar.RefType == refType && i.IcsPar.PostedDt == null)
                 .Select(i => i.Id)
                 .ToListAsync();
 
             var currentDraftCount = currentDraftParItemIds.Count;
-            var effectiveBalance = (cardItem.ParBalance ?? 0) + currentDraftCount;
+            var effectiveBalance = (refType == "I" ? (cardItem.IcsBalance ?? 0) : (cardItem.ParBalance ?? 0)) + currentDraftCount;
 
             if (effectiveBalance <= 0)
             {
-                throw new InvalidValueException("All Items have PARs.");
+                throw new InvalidValueException("All Items have " + documentName + " records.");
             }
 
             if (bundles.Count > effectiveBalance)
@@ -919,10 +919,10 @@ namespace iLgs.Services.ParIcs
             }
 
             var existingItem = await _db.IcsParItems.Include(it => it.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync();
-            var refType = existingItem != null && existingItem.IcsPar != null ? existingItem.IcsPar.RefType : null;
-            if (!string.IsNullOrWhiteSpace(refType))
+            var existingRefType = existingItem != null && existingItem.IcsPar != null ? existingItem.IcsPar.RefType : null;
+            if (!string.IsNullOrWhiteSpace(existingRefType))
             {
-                throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
+                throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(existingRefType), RefTypeDesc(model.RefType)));
             }
 
             string acqYear = "";
@@ -954,12 +954,12 @@ namespace iLgs.Services.ParIcs
             // 1. Validate Main Physical Items
             // Load active reservations in DB
             var activeParExtnIds = await _db.IcsParItems
-                .Where(i => i.IcsPar.RefType == "P")
+                .Where(i => i.IcsPar.RefType == refType)
                 .Select(i => i.PsCardItemExtnId)
                 .ToListAsync();
 
             var activeReservedComponentExtnIds = await _db.IcsParItemComponents
-                .Where(c => c.PsCardItemExtnId != null && c.IcsParItem.IcsPar.RefType == "P" && !currentDraftParItemIds.Contains(c.IcsParItemId))
+                .Where(c => c.PsCardItemExtnId != null && !currentDraftParItemIds.Contains(c.IcsParItemId))
                 .Select(c => c.PsCardItemExtnId.Value)
                 .ToListAsync();
 
@@ -982,19 +982,19 @@ namespace iLgs.Services.ParIcs
                 var lockedDraftItem = await _db.IcsParItems
                     .Include(i => i.IcsPar)
                     .AsNoTracking()
-                    .SingleOrDefaultAsync(i => i.IcsParId == model.ExistingParId.Value && i.IcsPar.RefType == "P");
+                    .SingleOrDefaultAsync(i => i.IcsParId == model.ExistingParId.Value && i.IcsPar.RefType == refType);
 
                 if (lockedDraftItem == null)
                 {
-                    throw new InvalidValueException("The Draft PAR could not be found. Refresh the page and try again.");
+                    throw new InvalidValueException("The Draft " + documentName + " could not be found. Refresh the page and try again.");
                 }
                 if (lockedDraftItem.IcsPar.PostedDt != null)
                 {
-                    throw new InvalidValueException("This PAR has already been posted and can no longer be edited.");
+                    throw new InvalidValueException("This " + documentName + " has already been posted and can no longer be edited.");
                 }
                 if (!lockedDraftItem.PsCardItemExtnId.HasValue || lockedDraftItem.PsCardItemExtnId.Value != mainExtnIds.Single())
                 {
-                    throw new InvalidValueException("The main accountable physical unit of a Draft PAR cannot be changed. Delete the Draft and generate a new PAR for the correct unit.");
+                    throw new InvalidValueException("The main accountable physical unit of a Draft " + documentName + " cannot be changed. Delete the Draft and generate a new record for the correct unit.");
                 }
             }
 
@@ -1014,11 +1014,11 @@ namespace iLgs.Services.ParIcs
                 if (activeParExtnIds.Contains(mainExtn.Id))
                 {
                     var activePar = await _db.IcsPars
-                        .Where(p => p.RefType == "P" && p.IcsParItems.Any(i => i.PsCardItemExtnId == mainExtn.Id))
+                        .Where(p => p.RefType == refType && p.IcsParItems.Any(i => i.PsCardItemExtnId == mainExtn.Id))
                         .FirstOrDefaultAsync();
                     if (activePar != null && activePar.PostedDt != null)
                     {
-                        throw new InvalidValueException(string.Format("This physical unit is already assigned to posted PAR {0}.", activePar.RefNo));
+                        throw new InvalidValueException(string.Format("This physical unit is already assigned to posted {0} {1}.", documentName, activePar.RefNo));
                     }
                 }
             }
@@ -1082,7 +1082,7 @@ namespace iLgs.Services.ParIcs
                 if (activeReservedComponentExtnIds.Contains(sId))
                 {
                     var compExtn = await _db.PsCardItemExtns.FirstOrDefaultAsync(e => e.Id == sId);
-                    throw new InvalidValueException(string.Format("Component serial '{0}' is already reserved in another PAR.", compExtn != null ? GetSerialNo(compExtn) : sId.ToString()));
+                    throw new InvalidValueException(string.Format("Component serial '{0}' is already reserved in another active bundle.", compExtn != null ? GetSerialNo(compExtn) : sId.ToString()));
                 }
             }
 
@@ -1119,7 +1119,7 @@ namespace iLgs.Services.ParIcs
                 var totalRequested = group.Sum(x => x.Qty);
 
                 var reservedQty = await _db.IcsParItemComponents
-                    .Where(c => c.PsCardSubItemId == subId && c.PsCardItemExtnId == null && c.IcsParItem.IcsPar.RefType == "P"
+                    .Where(c => c.PsCardSubItemId == subId && c.PsCardItemExtnId == null
                         && !currentDraftParItemIds.Contains(c.IcsParItemId))
                     .SumAsync(c => (decimal?)c.Qty) ?? 0;
 
@@ -1158,13 +1158,12 @@ namespace iLgs.Services.ParIcs
                     var conflictingSerializedComponent = await _db.IcsParItemComponents
                         .Where(c => c.PsCardItemExtnId != null &&
                             serializedExtnIds.Contains(c.PsCardItemExtnId.Value) &&
-                            c.IcsParItem.IcsPar.RefType == "P" &&
                             !currentDraftParItemIds.Contains(c.IcsParItemId))
                         .Select(c => c.PsCardItemExtnId)
                         .FirstOrDefaultAsync();
                     if (conflictingSerializedComponent.HasValue)
                     {
-                        throw new InvalidValueException("A selected serialized component was reserved by another PAR. Refresh the component list and try again.");
+                        throw new InvalidValueException("A selected serialized component was reserved by another active bundle. Refresh the component list and try again.");
                     }
 
                     foreach (var group in nonSerializedComponents)
@@ -1172,15 +1171,15 @@ namespace iLgs.Services.ParIcs
                         var sub = subItemMap[group.Key];
                         var reservedQty = await _db.IcsParItemComponents
                             .Where(c => c.PsCardSubItemId == group.Key && c.PsCardItemExtnId == null &&
-                                c.IcsParItem.IcsPar.RefType == "P" &&
                                 !currentDraftParItemIds.Contains(c.IcsParItemId))
                             .SumAsync(c => (decimal?)c.Qty) ?? 0;
                         if (group.Sum(c => c.Qty) > Math.Max(0, sub.Qty - reservedQty))
                         {
-                            throw new InvalidValueException(string.Format("Component '{0}' was reserved by another PAR. Refresh the component list and try again.", sub.Description));
+                            throw new InvalidValueException(string.Format("Component '{0}' was reserved by another active bundle. Refresh the component list and try again.", sub.Description));
                         }
                     }
 
+                    var batchHeaders = new Dictionary<string, IcsPar>(StringComparer.OrdinalIgnoreCase);
                     foreach (var bundle in bundles)
                     {
                         var psCardItemExtn = mainExtns.First(m => m.Id == bundle.MainPhysicalItemId);
@@ -1188,8 +1187,8 @@ namespace iLgs.Services.ParIcs
                             .Include(it => it.IcsPar)
                             .Include(it => it.IcsParItemComponents);
                         var existingDraftParItem = model.ExistingParId.HasValue
-                            ? await existingDraftQuery.SingleOrDefaultAsync(it => it.IcsParId == model.ExistingParId.Value && it.PsCardItemExtnId == psCardItemExtn.Id && it.IcsPar.RefType == "P")
-                            : await existingDraftQuery.FirstOrDefaultAsync(it => it.PsCardItemExtnId == psCardItemExtn.Id && it.IcsPar.RefType == "P" && it.IcsPar.PostedDt == null);
+                            ? await existingDraftQuery.SingleOrDefaultAsync(it => it.IcsParId == model.ExistingParId.Value && it.PsCardItemExtnId == psCardItemExtn.Id && it.IcsPar.RefType == refType)
+                            : await existingDraftQuery.FirstOrDefaultAsync(it => it.PsCardItemExtnId == psCardItemExtn.Id && it.IcsPar.RefType == refType && it.IcsPar.PostedDt == null);
 
                         IcsPar icsPar = null;
                         IcsParItem icsParItem = null;
@@ -1205,7 +1204,7 @@ namespace iLgs.Services.ParIcs
 
                             if (icsPar.PostedDt != null)
                             {
-                                throw new InvalidValueException("This PAR has already been posted and can no longer be edited.");
+                                throw new InvalidValueException("This " + documentName + " has already been posted and can no longer be edited.");
                             }
 
                             icsPar.LocationId = model.LocationId;
@@ -1213,7 +1212,7 @@ namespace iLgs.Services.ParIcs
                             icsPar.Location = model.Location;
                             icsPar.RefDate = model.Date;
                             icsPar.ReceivedById = model.IcsPar != null ? model.IcsPar.ReceivedById : null;
-                            icsPar.ReceivedBy = (model.IcsPar != null && model.IcsPar.ReceivedBy != null) ? model.IcsPar.ReceivedBy.Trim() : null;
+                            icsPar.ReceivedBy = (model.IcsPar != null && model.IcsPar.ReceivedBy != null) ? model.IcsPar.ReceivedBy?.Trim() : null;
                             icsPar.ReceivedByTitle = (model.IcsPar != null && model.IcsPar.ReceivedByTitle != null) ? model.IcsPar.ReceivedByTitle.Trim() : null;
                             icsPar.ReceivedByTitle2 = (model.IcsPar != null && model.IcsPar.ReceivedByTitle2 != null) ? model.IcsPar.ReceivedByTitle2.Trim() : null;
                             icsPar.ReceivedByPosition = (model.IcsPar != null && model.IcsPar.ReceivedByPosition != null) ? model.IcsPar.ReceivedByPosition.Trim() : null;
@@ -1295,34 +1294,42 @@ namespace iLgs.Services.ParIcs
                         }
                         else
                         {
-                            var refNo = await NextRefNoAsync(model.Date, model.RefType);
-
-                            icsPar = new IcsPar()
+                            var batchKey = refType == "I" && bundles.Count > 1 ? (assignedTo ?? string.Empty) : Guid.NewGuid().ToString();
+                            if (!batchHeaders.TryGetValue(batchKey, out icsPar))
                             {
-                                Id = Guid.NewGuid(),
-                                UpdateCode = "N",
-                                LocationId = model.LocationId,
-                                LocationCode = locCode,
-                                Location = model.Location,
-                                RefNo = refNo,
-                                RefDate = model.Date,
-                                RefType = model.RefType,
-                                ReceivedById = model.IcsPar != null ? model.IcsPar.ReceivedById : null,
-                                ReceivedBy = (model.IcsPar != null && model.IcsPar.ReceivedBy != null) ? model.IcsPar.ReceivedBy.Trim() : null,
-                                ReceivedByTitle = (model.IcsPar != null && model.IcsPar.ReceivedByTitle != null) ? model.IcsPar.ReceivedByTitle.Trim() : null,
-                                ReceivedByTitle2 = (model.IcsPar != null && model.IcsPar.ReceivedByTitle2 != null) ? model.IcsPar.ReceivedByTitle2.Trim() : null,
-                                ReceivedByPosition = (model.IcsPar != null && model.IcsPar.ReceivedByPosition != null) ? model.IcsPar.ReceivedByPosition.Trim() : null,
-                                ReceivedDate = model.IcsPar != null ? model.IcsPar.ReceivedDate : null,
-                                ReceivedDept = (model.IcsPar != null && model.IcsPar.ReceivedDept != null) ? model.IcsPar.ReceivedDept.Trim() : null,
-                                IssuedBy = (model.IcsPar != null && model.IcsPar.IssuedBy != null) ? model.IcsPar.IssuedBy.Trim() : null,
-                                IssuedByPosition = (model.IcsPar != null && model.IcsPar.IssuedByPosition != null) ? model.IcsPar.IssuedByPosition.Trim() : null,
-                                IssuedDate = model.IcsPar != null ? model.IcsPar.IssuedDate : null,
-                                IssuedDept = (model.IcsPar != null && model.IcsPar.IssuedDept != null) ? model.IcsPar.IssuedDept.Trim() : null,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
+                                //var refNo = refType == "P" ? await NextParNoAsync(model.Date) : await ;
+                                var refNo = refType == "P" ? await _icsParSharedService.NextParNoAsync(model.Date) :
+                                    await _icsParSharedService.NextIcsNoAsync(model.Date, psCardItemExtn.AcqCost ?? 0);
+                                icsPar = new IcsPar()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UpdateCode = "N",
+                                    LocationId = model.LocationId,
+                                    LocationCode = locCode,
+                                    Location = model.Location,
+                                    RefNo = refNo,
+                                    RefDate = model.Date,
+                                    RefType = model.RefType,
+                                    ReceivedById = model.IcsPar != null ? model.IcsPar.ReceivedById : null,
+                                    ReceivedBy = assignedTo,
+                                    ReceivedByTitle = model.IcsPar != null ? model.IcsPar.ReceivedByTitle?.Trim() : null,
+                                    ReceivedByTitle2 = model.IcsPar != null ? model.IcsPar.ReceivedByTitle2?.Trim() : null,
+                                    ReceivedByPosition = assignedDesig,
+                                    ReceivedDate = model.IcsPar != null ? model.IcsPar.ReceivedDate : null,
+                                    ReceivedDept = model.IcsPar != null ? model.IcsPar.ReceivedDept?.Trim() : null,
+                                    IssuedBy = model.IcsPar != null ? model.IcsPar.IssuedBy?.Trim() : null,
+                                    IssuedByPosition = model.IcsPar != null ? model.IcsPar.IssuedByPosition?.Trim() : null,
+                                    IssuedDate = model.IcsPar != null ? model.IcsPar.IssuedDate : null,
+                                    IssuedDept = model.IcsPar != null ? model.IcsPar.IssuedDept?.Trim() : null,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                batchHeaders[batchKey] = icsPar;
+                                _db.IcsPars.Add(icsPar);
+                                _db.Entry(icsPar).State = EntityState.Added;
+                            }
 
                             icsParItem = new IcsParItem()
                             {
@@ -1340,8 +1347,6 @@ namespace iLgs.Services.ParIcs
                                 UpdatedDt = date
                             };
                             icsPar.IcsParItems.Add(icsParItem);
-                            _db.IcsPars.Add(icsPar);
-                            _db.Entry(icsPar).State = EntityState.Added;
                             await _db.SaveChangesAsync();
 
                             var bundleComps = bundle.Components ?? new List<ParBundleComponentAllocationVM>();
@@ -1379,7 +1384,7 @@ namespace iLgs.Services.ParIcs
                         psCardItemExtn.UpdatedDt = date;
 
                         await _db.SaveChangesAsync();
-                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, "PAR", user, date);
+                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsPar.Id, documentName, user, date);
                     }
 
                     transaction.Commit();
@@ -1443,8 +1448,8 @@ namespace iLgs.Services.ParIcs
                     throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
                 }
 
-            var existingItem = await _db.IcsParItems.Include(it => it.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemExtn.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync();
-            var refType = existingItem != null && existingItem.IcsPar != null ? existingItem.IcsPar.RefType : null;
+                var existingItem = await _db.IcsParItems.Include(it => it.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemExtn.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync();
+                var refType = existingItem != null && existingItem.IcsPar != null ? existingItem.IcsPar.RefType : null;
                 if (!string.IsNullOrWhiteSpace(refType))
                 {
                     throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
@@ -1460,7 +1465,7 @@ namespace iLgs.Services.ParIcs
                 }).ToList();
             foreach (var selectedItemGroup in selectedItemGroups)
             {
-                var refNo = await NextRefNoAsync(model.Date, model.RefType);
+                var refNo = await _icsParSharedService.NextParNoAsync(model.Date);
                 var icsPar = new IcsPar()
                 {
                     Id = Guid.NewGuid(),
@@ -1666,30 +1671,29 @@ namespace iLgs.Services.ParIcs
             return propNo.LastOrDefault();
         }
 
-        public async ValueTask<string> NextRefNoAsync(DateTime parDate, string refType)
-        {
-            string yyyy = parDate.Year.ToString().Trim();
-            string mm = parDate.Month.ToString().Trim();
+        //public async ValueTask<string> NextParNoAsync(DateTime parDate)
+        //{
+        //    string yyyy = parDate.Year.ToString().Trim();
+        //    string mm = parDate.Month.ToString().Trim();
 
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+        //    mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
 
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
+        //    string keyName = yyyy + "-" + mm;
+        //    // yyyy-mm-9999
+        //    // 123456789012
 
-            //var data = await _db.RisIssueds.Where(w => w.RefType == refType && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
-            var data = await _db.IcsPars.Where(w => w.RefType == refType && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
-            if (data == null)
-            {
-                return keyName + "-" + "00001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(5, '0');
-            }
-        }
-
+        //    var data = await _db.IcsPars.Where(w => w.RefType == "P" && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
+        //    if (data == null)
+        //    {
+        //        return keyName + "-" + "00001";
+        //    }
+        //    else
+        //    {
+        //        var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
+        //        return keyName + "-" + sequence.PadLeft(5, '0');
+        //    }
+        //}
+        
         private string RefTypeDesc(string refType)
         {
             return refType == "P" ? "PAR" : "ICS";
