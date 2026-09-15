@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data.Entity;
 using System.Linq;
 using iLgs.Models;
@@ -51,7 +51,7 @@ namespace iLgs.Services.PropertyCard
         }
         public IQueryable<PropertyCardUnitChoiceVM> Units(Guid id)
         {
-            return _db.PsCardItemExtns.AsNoTracking().Where(x => x.PsCardItem.PsCardId == id)
+            return _db.PsCardItemExtns.AsNoTracking().Where(x => x.PsCardItem.PsCardId == id && x.PsCardSubItemId == null)
                 .Select(x => new PropertyCardUnitChoiceVM {
                     Id = x.Id, AcquisitionId = x.PsCardItemId, PoNo = x.PsCardItem.PoNo,
                     PropNo = x.PropNo, CustItemNo = x.CustItemNo,
@@ -61,15 +61,23 @@ namespace iLgs.Services.PropertyCard
         }
         public IQueryable<PropertyCardHistoryVM> History(Guid id)
         {
-            // These are stored transaction records, not an inferred lifecycle timeline.
+            // Stored transaction records for both unit-level and acquisition-level events under this card.
             return from transaction in _db.PsCardItemTransactions.AsNoTracking()
-                   join unit in _db.PsCardItemExtns on transaction.PsCardItemExtnId equals unit.Id
-                   where unit.PsCardItem.PsCardId == id
+                   join unit in _db.PsCardItemExtns on transaction.PsCardItemExtnId equals unit.Id into unitGroup
+                   from unit in unitGroup.DefaultIfEmpty()
+                   join item in _db.PsCardItems on transaction.PsCardItemId equals item.Id into itemGroup
+                   from item in itemGroup.DefaultIfEmpty()
+                   where (unit != null && unit.PsCardItem.PsCardId == id) || (item != null && item.PsCardId == id)
                    select new PropertyCardHistoryVM {
-                       Id = transaction.Id, PropNo = unit.PropNo, PoNo = unit.PsCardItem.PoNo,
-                       Remarks = transaction.Remarks, TransferId = transaction.PsCardItemTransferId,
-                       IssuanceId = transaction.PsCardItemIssuanceId, IcsParId = transaction.IcsParId,
-                       InsertedBy = transaction.InsertedBy, InsertedDt = transaction.InsertedDt,
+                       Id = transaction.Id,
+                       PropNo = unit != null ? unit.PropNo : null,
+                       PoNo = unit != null ? unit.PsCardItem.PoNo : (item != null ? item.PoNo : null),
+                       Remarks = transaction.Remarks,
+                       TransferId = transaction.PsCardItemTransferId,
+                       IssuanceId = transaction.PsCardItemIssuanceId,
+                       IcsParId = transaction.IcsParId,
+                       InsertedBy = transaction.InsertedBy,
+                       InsertedDt = transaction.InsertedDt,
                        UpdatedDt = transaction.UpdatedDt
                    };
         }

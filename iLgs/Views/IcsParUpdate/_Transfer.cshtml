@@ -1,411 +1,201 @@
-﻿@model iLgs.Models.IcsParVM
+@model iLgs.Models.IcsParVM
+@{
+    var selectedItemId = Convert.ToString(ViewData["selectedItemId"]);
+}
+<script type="text/javascript">
+(function (global, $) {
+    var transfer = global.IcsParTransfer = global.IcsParTransfer || {};
+    transfer.preselectedItemId = '@selectedItemId';
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+    transfer.encode = function (value) {
+        return kendo.htmlEncode(value == null || value === "" ? "—" : String(value));
+    };
+
+    global.transferTextTemplate = function (value) {
+        return "<div style='white-space:normal;word-wrap:break-word'>" + transfer.encode(value) + "</div>";
+    };
+
+    global.transferItemIdentityTemplate = function (dataItem) {
+        var identifiers = [];
+        if (dataItem.PropNo) { identifiers.push("Property " + transfer.encode(dataItem.PropNo)); }
+        if (dataItem.SerialNo) { identifiers.push("Serial " + transfer.encode(dataItem.SerialNo)); }
+        if (dataItem.Unit) { identifiers.push(transfer.encode(dataItem.Unit)); }
+        return "<div class='item-title'>" + transfer.encode(dataItem.Description) + "</div><div class='item-sub'>" +
+            (identifiers.length ? identifiers.join(" · ") : "PO " + transfer.encode(dataItem.PoNo)) + "</div>";
+    };
+
+    global.transferOfficerTemplate = function (dataItem) {
+        var context = [];
+        if (dataItem.AccountableOfficerPosition) { context.push(transfer.encode(dataItem.AccountableOfficerPosition)); }
+        if (dataItem.AccountableOfficerDepartment) { context.push(transfer.encode(dataItem.AccountableOfficerDepartment)); }
+        return "<div class='officer-name'>" + transfer.encode(dataItem.CurrentAccountableOfficer) + "</div><div class='officer-sub'>" +
+            (context.length ? context.join(" · ") : "No position / department supplied") + "</div>";
+    };
+
+    global.transferBundleTemplate = function (dataItem) {
+        var count = dataItem.ComponentCount == null ? 0 : dataItem.ComponentCount;
+        return "<button type='button' class='bundle-btn js-bundle' " + (count ? "" : "disabled='disabled'") + ">" +
+            count + " component" + (count === 1 ? "" : "s") + "</button>";
+    };
+
+    global.transferStatusTemplate = function (dataItem) {
+        var value = dataItem.TransferStatus || "Transferable";
+        var css = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        return "<span class='status-badge status-" + css + "'>" + transfer.encode(value) + "</span>";
+    };
+
+    global.showIcsParTransferError = function (message) {
+        $("#transferError").text(message).show();
+    };
+
+    global.onTransferSelectionChange = function () {
+        var count = this.selectedKeyNames().length;
+        $("#transferSelectedCount").text(count + " selected");
+    };
+
+    global.onTransferItemsBound = function (e) {
+        var wanted = transfer.preselectedItemId;
+        if (wanted) {
+            var dataItem = e.sender.dataSource.get(wanted);
+            if (dataItem && dataItem.CanTransfer) {
+                e.sender.select(e.sender.tbody.find("tr[data-uid='" + dataItem.uid + "']"));
+            }
+        }
+        global.onTransferSelectionChange.call(e.sender);
+        if (!e.sender.dataSource.total()) {
+            global.showIcsParTransferError("No items are currently eligible for transfer from this record.");
+            $("#btnSave").prop("disabled", true);
+        }
+    };
+
+    global.transferComponentDetailInit = function (e) {
+        e.detailRow.find(".transfer-component-grid").kendoGrid({
+            sortable: true,
+            noRecords: { template: "No component rows are registered." },
+            columns: [
+                { field: "ItemCode", title: "Code", width: 90 },
+                { field: "Description", title: "Component" },
+                { field: "SerialNo", title: "Serial no.", width: 130 },
+                { field: "Qty", title: "Qty", width: 70, format: "{0:n2}" },
+                { field: "Unit", title: "Unit", width: 75 },
+                { field: "SourceType", title: "Source", width: 100 },
+                { field: "IsRequiredForBundle", title: "Required for bundle", width: 110, template: "#=IsRequiredForBundle ? 'Yes' : 'No'#" },
+                { field: "Remarks", title: "Remarks", width: 140 }
+            ],
+            dataSource: {
+                transport: { read: { url: '@Url.Action("ComponentPreviewRead", "IcsParUpdate")', dataType: "json", data: { icsParItemId: e.data.Id } } },
+                schema: { data: "Data", total: "Total" }
+            }
+        });
+    };
+})(window, jQuery);
+</script>
+<div class="transfer-dialog">
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "form", name = "form" }))
 {
     @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.RefNo)
+    @Html.HiddenFor(m => m.PrevRefNo)
+    @Html.HiddenFor(m => m.RefType)
+    @Html.HiddenFor(m => m.LocationCode)
+    @Html.HiddenFor(m => m.Location)
+    @Html.HiddenFor(m => m.ReceivedBy)
+    @Html.HiddenFor(m => m.SelectedIds)
 
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    <div id="ErrorContent" class="hidden x-bootstrap-content">
-        <div class="alert alert-danger x-popup-alert">
-            <ul class="errors"></ul>
+    <div id="transferError" class="transfer-error" role="alert"></div>
+    <div class="transfer-route">
+        <div class="route-card from-card">
+            <span class="route-label">FROM</span>
+            <strong>@ViewData["refNo"]</strong>
+            <span>@(ViewData["sourceOfficer"] ?? "Current accountable officer")</span>
+            <small>@ViewData["sourcePosition"]</small>
+            <small>@ViewData["sourceDepartment"]</small>
+            <small>@ViewData["sourceLocation"]</small>
+        </div>
+        <div class="route-arrow"><span class="k-icon k-i-arrow-right"></span></div>
+        <div class="route-card to-card">
+            <span class="route-label">TO</span>
+            <strong id="toOfficer">Select the receiving officer</strong>
+            <span id="toPosition">Position will be filled automatically</span>
+            <small id="toDepartment">Department will be filled automatically</small>
         </div>
     </div>
 
-    @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.RefNo)
-    @Html.HiddenFor(model => model.PrevRefNo)
-    @Html.HiddenFor(model => model.RefType)
-    @Html.HiddenFor(model => model.LocationCode)
-    @Html.HiddenFor(model => model.ReceivedBy)
-    @Html.HiddenFor(model => model.SelectedIds)
-
-    <fieldset>
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.RefDate, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(model => model.RefDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.RefDate)
-                </div>
+    <div class="transfer-form-grid">
+        <div class="form-card receiving-card">
+            <h3>Receiving accountability</h3>
+            <p>Choose the officer who will become accountable for every selected item and its components.</p>
+            <div class="field-row full">
+                <label>Receiving officer</label>
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.ReceivedById)
+                    .HtmlAttributes(new { style = "width:100%;max-width:100%;", data_value_primitive = "true" })
+                    .Placeholder("Search employee name...").DataTextField("Name").DataValueField("Id").Filter(FilterType.Contains)
+                    .DataSource(s => s.Read(r => r.Action("GetEmployee", "Getters").Data("DataEmployeeId")).ServerFiltering(true))
+                    .Columns(c => { c.Add().Field("Name").Title("Name").Width("32%").Template("#=transferTextTemplate(data.Name)#"); c.Add().Field("Department").Title("Department").Width("28%").Template("#=transferTextTemplate(data.Department)#"); c.Add().Field("Position").Title("Position").Width("28%").Template("#=transferTextTemplate(data.Position)#"); c.Add().Field("Status").Title("Status").Width("12%"); })
+                    .Events(e => e.Select("onSelectEmployee")))
+                @Html.ValidationMessageFor(m => m.ReceivedById)
             </div>
+            <div class="field-row"><label>Title</label>@(Html.Kendo().TextBoxFor(m => m.ReceivedByTitle).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Additional title</label>@(Html.Kendo().TextBoxFor(m => m.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Position</label>@(Html.Kendo().TextBoxFor(m => m.ReceivedByPosition).HtmlAttributes(new { style = "width:100%;max-width:100%;", @readonly = "readonly" }))@Html.ValidationMessageFor(m => m.ReceivedByPosition)</div>
+            <div class="field-row"><label>Department</label>@(Html.Kendo().TextBoxFor(m => m.ReceivedDept).HtmlAttributes(new { style = "width:100%;max-width:100%;", @readonly = "readonly" }))@Html.ValidationMessageFor(m => m.ReceivedDept)</div>
         </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.LocationId, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location Code")
-                            .DataTextField("Code")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetLocationSp", "Getters");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("10%");
-                                c.Add().Field("Desc3").Title("Main-Location").Width("50%").Template("#= columnTemplate(data.Desc3) #");
-                                c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
-                            })
-                            .Events(e => e.Select("onSelectLocationId"))
-                            .Suggest(false)
-                    )
-                    @Html.ValidationMessageFor(model => model.LocationId)
-                </div>
+        <div class="form-card transfer-details">
+            <h3>Transfer details</h3><p>Set the receiving date and destination location.</p>
+            <div class="field-row"><label>Transfer date</label>@(Html.Kendo().DatePickerFor(m => m.RefDate).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))@Html.ValidationMessageFor(m => m.RefDate)</div>
+            <div class="field-row"><label>Received date</label>@(Html.Kendo().DatePickerFor(m => m.ReceivedDate).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))@Html.ValidationMessageFor(m => m.ReceivedDate)</div>
+            <div class="field-row full"><label>Destination location</label>
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                    .HtmlAttributes(new { style = "width:100%;max-width:100%;" }).Placeholder("Select location...").DataTextField("Code").DataValueField("Id").ValuePrimitive(true).Filter(FilterType.Contains)
+                    .DataSource(s => s.Read(r => r.Action("GetLocationSp", "Getters")).ServerFiltering(true))
+                    .Columns(c => { c.Add().Field("Code").Title("Code").Width("15%"); c.Add().Field("Desc3").Title("Main location").Width("45%").Template("#=transferTextTemplate(data.Desc3)#"); c.Add().Field("Desc2").Title("Location").Width("40%").Template("#=transferTextTemplate(data.Desc2)#"); })
+                    .Events(e => e.Select("onSelectLocationId")))
+                @Html.ValidationMessageFor(m => m.LocationId)
             </div>
+            <div class="field-row full"><label>Remarks</label>@(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
         </div>
+    </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.Location, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Location)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.ReceivedByTitle, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.ReceivedByTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.ReceivedByTitle)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.ReceivedById, "LabelGuid")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ReceivedById)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
-                            .Placeholder("Select Employee..")
-                            .DataTextField("Name")
-                            .DataValueField("Id")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetEmployee", "Getters").Data("DataEmployeeId");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Name").Title("Name").Width("30%").Template("#= columnTemplate(data.Name) #");
-                                c.Add().Field("Department").Title("Department").Width("30%").Template("#= columnTemplate(data.Department) #");
-                                c.Add().Field("Position").Title("Position").Width("30%").Template("#= columnTemplate(data.Position) #");
-                                c.Add().Field("Status").Title("Status").Width("10%").Template("#= columnTemplate(data.Status) #");
-                            })
-                            //.MinLength(3)
-                            .Events(e => { e.Select("onSelectEmployee"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.ReceivedById)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(model => model.ReceivedByTitle2, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.ReceivedByTitle2)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.ReceivedByPosition, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.ReceivedByPosition)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.ReceivedDept, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.ReceivedDept)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.ReceivedDate, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(m => m.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.ReceivedDate)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedTo, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedTo)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.Designation, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Designation)
-                </div>
-            </div>
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedBy, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IssuedBy)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
-                            .Placeholder("Select Issued by")
-                            .DataTextField("Description")
-                            .DataValueField("Description")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetIssuedBy", "Getters");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Description").Title("Name").Width("40%").Template("#= columnTemplate(data.Description) #");
-                                c.Add().Field("Desc3").Title("Department").Width("30%").Template("#= columnTemplate(data.Desc3) #");
-                                c.Add().Field("Desc2").Title("Position").Width("30%").Template("#= columnTemplate(data.Desc2) #");
-                            })
-                            //.MinLength(3)
-                            .Events(e => { e.Select("onSelectIssuedBy"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.IssuedBy)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedByPosition, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedByPosition)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedDept, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedDept)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.IssuedDate, "LabelDate")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedDate)
-                </div>
-            </div>
-        </div>
-
-        <br />
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    @Html.DisplayFor(m => m.Remarks, "Label")
-                </div>
-                <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Remarks)
-                </div>
-            </div>
-        </div>
-
-        <br />
-
-        <div class="row" style="padding-left:20px;padding-right:20px;">
-            @RenderGridSelections()
-        </div>
-
-        <br />
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Submit").Name("btnSave"))
-                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
-                </span>
-            </div>
-        </div>
-    </fieldset>
-}
-
-@helper RenderGridSelections()
-{
-    @(Html.Kendo().Grid<iLgs.Models.IcsParTransferItemVM>()
-        .Name("gridSelections")
-        .Columns(col =>
-        {
-            col.Select().Width(30);
-            col.Bound(c => c.PoNo).Width(40);
-            col.Bound(c => c.ItemNo).Width(40);
-            col.Bound(c => c.Description).Width(100);
-            col.Bound(c => c.RefNo).Width(150);
-            col.Bound(c => c.TUnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.SetLotNo).Width(40);
-            col.Bound(c => c.SetLotQtyNo).Width(40);
-        })
-        .NoRecords()
-        .Resizable(r => r.Columns(true))
-        .Selectable(s => s.Mode(GridSelectionMode.Multiple))
-        .Scrollable(s => s.Height(200))
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+    <div class="items-card">
+        <div class="items-card-head"><div><h3>Items to transfer</h3><p>Only server-eligible items are listed. Selecting a main item transfers its full registered bundle.</p></div><span id="transferSelectedCount">0 selected</span></div>
+        @(Html.Kendo().Grid<iLgs.Models.IcsParTransferItemVM>()
+            .Name("gridSelections")
+            .Columns(c => {
+                c.Select().Width(42);
+                c.Bound(x => x.Description).Title("Item").Width(260).ClientTemplate("#=transferItemIdentityTemplate(data)#").Encoded(false);
+                c.Bound(x => x.CurrentAccountableOfficer).Title("Current accountable officer").Width(190).ClientTemplate("#=transferOfficerTemplate(data)#").Encoded(false);
+                c.Bound(x => x.AcquisitionCost).Title("Acquisition cost").Width(110).Format("{0:n2}");
+                c.Bound(x => x.ComponentCount).Title("Bundle").Width(100).ClientTemplate("#=transferBundleTemplate(data)#").Encoded(false);
+                c.Bound(x => x.TransferStatus).Title("State").Width(120).ClientTemplate("#=transferStatusTemplate(data)#").Encoded(false);
             })
-            .Sort(s =>
-            {
-                s.Add(a => a.PoNo);
-                s.Add(a => a.SetLotNo);
-                s.Add(a => a.SetLotQtyNo);
-                s.Add(a => a.Description);
-                s.Add(a => a.ContentNo);
-            })
-            .Read(read => read.Action("_TransferSelectionSetRead", "IcsParUpdate", new { refNo = @ViewData["refNo"], refType = @ViewData["refType"] }))
-        )
-        //.Events(e => e.Change("onChangeGridItemExtns")) // No need to select by group. Individual selection is allowed during transfer
-        .AutoBind(true)
-    )
+            .NoRecords(n => n.Template("No items are currently eligible for transfer from this record."))
+            .Resizable(r => r.Columns(true)).Scrollable(s => s.Height(250)).Selectable(s => s.Mode(GridSelectionMode.Multiple)).PersistSelection()
+            .ClientDetailTemplateId("transferComponentTemplate")
+            .DataSource(d => d.Ajax().Events(e => e.Error("GridError")).Model(m => m.Id(x => x.Id)).Sort(s => { s.Add(x => x.PoNo); s.Add(x => x.Description); }).Read(r => r.Action("_TransferSelectionSetRead", "IcsParUpdate", new { refNo = ViewData["refNo"], refType = ViewData["refType"] })))
+            .Events(e => e.Change("onTransferSelectionChange").DataBound("onTransferItemsBound").DetailInit("transferComponentDetailInit")))
+    </div>
+
+    <details class="issuing-details">
+        <summary>Issuing and acknowledgement details</summary>
+        <div class="issuing-grid">
+            <div class="field-row"><label>Issued to</label>@(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Designation</label>@(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Issued by</label>@(Html.Kendo().MultiColumnComboBoxFor(m => m.IssuedBy).HtmlAttributes(new { style = "width:100%;max-width:100%;" }).Placeholder("Select issuer...").DataTextField("Description").DataValueField("Description").Filter(FilterType.Contains).DataSource(s => s.Read(r => r.Action("GetIssuedBy", "Getters")).ServerFiltering(true)).Columns(c => { c.Add().Field("Description").Title("Name").Width("40%"); c.Add().Field("Desc3").Title("Department").Width("30%"); c.Add().Field("Desc2").Title("Position").Width("30%"); }).Events(e => e.Select("onSelectIssuedBy")))</div>
+            <div class="field-row"><label>Issuer position</label>@(Html.Kendo().TextBoxFor(m => m.IssuedByPosition).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Issuer department</label>@(Html.Kendo().TextBoxFor(m => m.IssuedDept).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+            <div class="field-row"><label>Issued date</label>@(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%;max-width:100%;" }))</div>
+        </div>
+    </details>
+    <div class="transfer-footer"><button type="button" id="btnCancel" class="transfer-cancel">Cancel</button><button type="submit" id="btnSave" class="transfer-submit"><span class="k-icon k-i-check"></span>Create transfer</button></div>
 }
-
-
+</div>
+<script id="transferComponentTemplate" type="text/x-kendo-template"><div class="component-shell"><strong>Bundle contents</strong><div class="transfer-component-grid"></div></div></script>
+<style>
+.transfer-dialog{padding:2px 6px 14px;color:#26384d}.transfer-error{display:none;margin-bottom:12px;padding:10px 12px;border:1px solid #fecaca;border-radius:8px;background:#fef2f2;color:#991b1b}.transfer-route{display:grid;grid-template-columns:1fr 50px 1fr;align-items:stretch;gap:10px;margin-bottom:12px}.route-card{display:flex;flex-direction:column;min-height:112px;padding:14px 16px;border:1px solid #dbe3ec;border-radius:10px;background:#f8fafc}.route-card.to-card{border-color:#bfdbfe;background:#eff6ff}.route-label{font-size:10px;font-weight:800;letter-spacing:.12em;color:#64748b}.route-card strong{margin:5px 0;color:#172554;font-size:16px}.route-card span:not(.route-label){font-size:12px;font-weight:650}.route-card small{margin-top:2px;color:#64748b}.route-arrow{display:flex;align-items:center;justify-content:center;color:#2563eb}.route-arrow .k-icon{font-size:24px}.transfer-form-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.form-card,.items-card{padding:14px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}.form-card h3,.items-card h3{margin:0;font-size:15px}.form-card>p,.items-card-head p{margin:4px 0 12px;color:#64748b;font-size:11px}.receiving-card,.transfer-details{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;align-content:start}.form-card h3,.form-card>p,.field-row.full{grid-column:1/-1}.field-row label{display:block;margin-bottom:4px;color:#475569;font-size:11px;font-weight:700}.field-row .field-validation-error{display:block;margin-top:3px;color:#b91c1c;font-size:10px}.items-card{margin-top:12px}.items-card-head{display:flex;justify-content:space-between;gap:12px}.items-card-head>span{height:25px;padding:4px 9px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:700}.issuing-details{margin-top:12px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc}.issuing-details summary{padding:11px 13px;color:#475569;font-size:12px;font-weight:700;cursor:pointer}.issuing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 12px;padding:0 13px 13px}.transfer-footer{position:sticky;bottom:-14px;display:flex;justify-content:flex-end;gap:8px;margin:14px -6px -14px;padding:12px 8px;background:#fff;border-top:1px solid #e2e8f0}.transfer-cancel,.transfer-submit{padding:8px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}.transfer-cancel{border:1px solid #cbd5e1;background:#fff;color:#475569}.transfer-submit{border:1px solid #2563eb;background:#2563eb;color:#fff}.transfer-submit[disabled]{opacity:.55;cursor:wait}.component-shell{padding:12px;background:#f8fafc;border-left:3px solid #60a5fa}.component-shell>strong{display:block;margin-bottom:8px}@@media(max-width:800px){.transfer-route,.transfer-form-grid{grid-template-columns:1fr}.route-arrow{transform:rotate(90deg)}.issuing-grid{grid-template-columns:1fr}.receiving-card,.transfer-details{grid-template-columns:1fr}.field-row.full,.form-card h3,.form-card>p{grid-column:auto}}
+</style>
 <script type="text/javascript">
-    $("#btnSave").click(function (e) {
-        e.preventDefault();
-        var validator = $("#form").kendoValidator().data("kendoValidator");
-        if (validator.validate()) {
-            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-
-            // Get reference to Grid object
-            var grid = $("#gridSelections").data("kendoGrid");
-            // Get selected rows
-            //var selectedRows = $("input:checked", grid.tbody).closest("tr");
-            // Get data item for each
-
-            var selectedIds = grid.selectedKeyNames().join(",");
-
-            // Retrieve the dataItems of the selected rows
-            //var selectedIds = selectedRows.map(function () {
-            //    return grid.dataItem(this);
-            //}).get(); // Convert to an array
-
-            $("#SelectedIds").val(selectedIds);
-            //$("#SelectedIds").val(JSON.stringify(selectedIds));
-
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("TransferSave", "IcsParUpdate")',
-                data: $("#form").serialize(),
-                async: true,
-                beforeSend: function () {
-                    window.kendo.ui.progress($("#form"), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($("#form"), false);
-                    if (result.Errors == "") {
-                        selectedId = result.Id;
-                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                    }
-                    else {
-                        alert(result.Errors);
-                    }
-                }, error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                }
-            });
-            disabled.attr('disabled', 'disabled');
-        }
-    });
-
-    $("#btnCancel").click(function (e) {
-        e.preventDefault();
-        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
-    });
+$("#form").on("submit",function(e){e.preventDefault();$("#transferError").hide();var validator=$(this).kendoValidator().data("kendoValidator");if(!validator.validate()){showIcsParTransferError("Complete the required receiving officer, location, and date fields.");return;}var grid=$("#gridSelections").data("kendoGrid"),ids=grid.selectedKeyNames(),invalid=false;$.each(ids,function(_,id){var row=grid.dataSource.get(id);if(!row||!row.CanTransfer){invalid=true;}});if(!ids.length){showIcsParTransferError("Select at least one eligible item to transfer.");return;}if(invalid){showIcsParTransferError("One or more selected items are no longer eligible. Refresh the dialog and try again.");return;}$("#SelectedIds").val(ids.join(","));var disabled=$("#form").find(":input:disabled").not("#btnSave").removeAttr("disabled"),button=$("#btnSave").prop("disabled",true).text("Creating transfer...");kendo.ui.progress($("#form"),true);$.ajax({type:"POST",url:'@Url.Action("TransferSave", "IcsParUpdate")',data:$("#form").serialize(),success:function(r){var err=resultError(r);if(err){showIcsParTransferError(err);return;}selectedId=r.Id;var win=$("#btnSave").closest(".k-window-content").data("kendoWindow");if(win){win.close();}},error:function(q){showIcsParTransferError(requestError(q));},complete:function(){disabled.attr("disabled","disabled");button.prop("disabled",false).html("<span class='k-icon k-i-check'></span>Create transfer");kendo.ui.progress($("#form"),false);}});});
+$("#btnCancel").on("click",function(){var w=$(this).closest(".k-window-content").data("kendoWindow");if(w){w.close();}});
+$(document).off("click.transferBundle").on("click.transferBundle","#gridSelections .js-bundle",function(e){e.preventDefault();e.stopPropagation();if($(this).is(":disabled")){return;}var g=$("#gridSelections").data("kendoGrid"),row=$(this).closest("tr");g.expandRow(row);});
 </script>
-
-
-
-
-
-
-
-
-

@@ -12,7 +12,8 @@ namespace iLgs.Models
             INSPECTION = 1,
             ACCEPTANCE = 2,
             SERIAL = 3,
-            ADMIN = 4
+            ADMIN = 4,
+            NONE = 5
         }
 
         public enum IcsValue

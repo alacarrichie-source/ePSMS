@@ -65,6 +65,28 @@ namespace iLgs.Controllers
             return result;
         }
 
+        public async Task<ActionResult> AccountabilityHistoryRead([DataSourceRequest] DataSourceRequest request, Guid icsParItemId)
+        {
+            var data = await _icsParService.GetAccountabilityHistoryAsync(icsParItemId);
+            return new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+        }
+
+        public ActionResult ComponentPreviewRead([DataSourceRequest] DataSourceRequest request, Guid icsParItemId)
+        {
+            var data = _icsParService.GetItemComponents(icsParItemId);
+            return new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, IcsParVM model)
         {
@@ -96,7 +118,14 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _Transfer(string refNo, string refType)
+        public ActionResult _Transfer(
+            string refNo,
+            string refType,
+            Guid? selectedItemId,
+            string sourceOfficer,
+            string sourcePosition,
+            string sourceDepartment,
+            string sourceLocation)
         {
             var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
             var date = DateTime.Now;
@@ -114,6 +143,11 @@ namespace iLgs.Controllers
 
             ViewData["refNo"] = refNo;
             ViewData["refType"] = refType;
+            ViewData["selectedItemId"] = selectedItemId;
+            ViewData["sourceOfficer"] = sourceOfficer;
+            ViewData["sourcePosition"] = sourcePosition;
+            ViewData["sourceDepartment"] = sourceDepartment;
+            ViewData["sourceLocation"] = sourceLocation;
             return PartialView(model);
         }
 

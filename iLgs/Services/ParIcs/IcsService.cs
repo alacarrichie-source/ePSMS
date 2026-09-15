@@ -8,6 +8,7 @@ using iLgs.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace iLgs.Services.ParIcs
         ValueTask<GenerateIcsParVM> GenerateIcsSet(GenerateIcsParVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GenerateIcsBatch(GenerateIcsParVM model, string user, DateTime date);
         Task<IcsBatchPreviewVM> BuildBatchPreviewAsync(string poNo, DateTime? poDate, Guid? deptId);
-        ValueTask<GenerateIcsParVM> GenerateIcsBatchBundles(GenerateIcsParVM model, string user, DateTime date);
+        Task<IcsBatchGenerationResultVM> GenerateIcsBatchBundles(GenerateIcsParVM model, string user, DateTime date);
 
         //ValueTask<PsCardItemUnitGroupDescriptionItem> UpdateNoICSAsync(PsCardItemUnitGroupDescriptionItem model, string user, DateTime date);
         //ValueTask<string> NextRefNoAsync(DateTime parDate, string refType, IcsValue icsValue);
@@ -121,9 +122,18 @@ namespace iLgs.Services.ParIcs
                     e.AcqCost < priceCap && e.PsCardItem.InvDist == "I" &&
                     e.PsCardItem.IsConsumable != true && e.PsCardItem.IsIncorporated != true &&
                     e.PsCardItem.IsOthers != true &&
-                    !e.IcsParItems.Any(i => i.IcsPar.RefType == "I"))
+                    !e.IcsParItems.Any())
                 .OrderBy(e => e.PsCardItem.Description).ThenBy(e => e.PropNo).ThenBy(e => e.ContentNo).ThenBy(e => e.Id)
-                .Select(e => new { e.Id, ParentId = e.PsCardItemId.Value, e.PropNo, e.UpcomingOfficer, e.PsCardItem.Description })
+                .Select(e => new
+                {
+                    e.Id,
+                    ParentId = e.PsCardItemId.Value,
+                    e.PropNo,
+                    e.UpcomingOfficer,
+                    e.PsCardItem.Description,
+                    e.PsCardItem.PoDate,
+                    AcquisitionCost = e.AcqCost.Value
+                })
                 .ToListAsync();
 
             var result = new IcsBatchPreviewVM();
@@ -139,22 +149,18 @@ namespace iLgs.Services.ParIcs
 
                 foreach (var main in parentGroup)
                 {
+                    var sphv = _semiExpendableService.GetSPHV(main.PoDate) ?? 5000;
                     var bundle = new ParBundleItemAllocationVM
                     {
                         MainPhysicalItemId = main.Id,
                         MainDescription = main.Description,
                         PropNo = main.PropNo,
-                        IssuedTo = main.UpcomingOfficer
+                        IssuedTo = main.UpcomingOfficer,
+                        PoDate = main.PoDate,
+                        AcquisitionCost = main.AcquisitionCost,
+                        Sphv = sphv,
+                        ValueClassification = main.AcquisitionCost < sphv ? "LOW" : "HIGH"
                     };
-
-                    if (string.IsNullOrWhiteSpace(bundle.IssuedTo))
-                        bundle.MissingComponents.Add("Accountable Officer is not assigned");
-                    else
-                    {
-                        var employee = await _db.Database.SqlQuery<EmployeeVM>("Exec Employee_GetAll {0}", bundle.IssuedTo).FirstOrDefaultAsync();
-                        if (employee != null && string.Equals(employee.Name, bundle.IssuedTo, StringComparison.OrdinalIgnoreCase))
-                            bundle.Designation = employee.Position;
-                    }
 
                     foreach (var pool in pools.Values.Where(p => p.Definition.IsRequiredForBundle).OrderBy(p => p.Definition.SubItemNo))
                     {
@@ -193,54 +199,184 @@ namespace iLgs.Services.ParIcs
                     bundle.Status = bundle.MissingComponents.Any() ? "Incomplete" : "Ready";
                     result.Bundles.Add(bundle);
                 }
+
+                var readyBundles = result.Bundles
+                    .Where(b => b.Status == "Ready" && parentGroup.Any(p => p.Id == b.MainPhysicalItemId))
+                    .ToList();
+                foreach (var pool in pools.Values.Where(p => !p.Definition.IsRequiredForBundle)
+                    .OrderBy(p => p.Definition.SubItemNo).ThenBy(p => p.Definition.SourceType))
+                {
+                    foreach (var bundle in readyBundles)
+                    {
+                        var wanted = pool.Definition.QtyPerParent;
+                        if (pool.Definition.IsSerialized)
+                        {
+                            var selected = pool.Serials.Take((int)Math.Ceiling(wanted)).ToList();
+                            foreach (var serial in selected)
+                            {
+                                bundle.Components.Add(new ParBundleComponentAllocationVM
+                                {
+                                    PsCardSubItemId = pool.Definition.PsCardSubItemId,
+                                    PsCardItemExtnId = serial.PsCardItemExtnId,
+                                    Qty = 1,
+                                    SerialNo = serial.SerialNo,
+                                    Description = pool.Definition.Description,
+                                    SourceType = pool.Definition.SourceType,
+                                    IsRequiredForBundle = false
+                                });
+                                pool.Serials.Remove(serial);
+                            }
+                        }
+                        else
+                        {
+                            var assigned = Math.Min(wanted, pool.RemainingQty);
+                            if (assigned > 0)
+                            {
+                                bundle.Components.Add(new ParBundleComponentAllocationVM
+                                {
+                                    PsCardSubItemId = pool.Definition.PsCardSubItemId,
+                                    Qty = assigned,
+                                    Description = pool.Definition.Description,
+                                    SourceType = pool.Definition.SourceType,
+                                    IsRequiredForBundle = false
+                                });
+                                pool.RemainingQty -= assigned;
+                            }
+                        }
+                        if ((!pool.Definition.IsSerialized && pool.RemainingQty <= 0) ||
+                            (pool.Definition.IsSerialized && !pool.Serials.Any()))
+                            break;
+                    }
+                }
             }
             return result;
         }
 
-        public ValueTask<GenerateIcsParVM> GenerateIcsBatchBundles(GenerateIcsParVM model, string user, DateTime date)
+        public async Task<IcsBatchGenerationResultVM> GenerateIcsBatchBundles(GenerateIcsParVM model, string user, DateTime date)
         {
-            return _generateParExceptionService.TryCatch(async () =>
-            {
-            var preview = await BuildBatchPreviewAsync(model.PoNo, model.PoDate, model.DeptId);
-            var submitted = string.IsNullOrWhiteSpace(model.BundleDataJson)
-                ? new List<ParBundleItemAllocationVM>()
-                : JsonConvert.DeserializeObject<List<ParBundleItemAllocationVM>>(model.BundleDataJson);
-            var readyIds = new HashSet<Guid>(preview.Bundles.Where(b => b.Status == "Ready").Select(b => b.MainPhysicalItemId));
-            var ready = submitted.Where(b => readyIds.Contains(b.MainPhysicalItemId)).ToList();
-            if (!ready.Any()) throw new InvalidValueException("No complete, ready bundles are available for generation.");
+            if (string.IsNullOrWhiteSpace(model.PoNo))
+                throw new InvalidValueException("Field PO Number is required!");
+            if (model.LocationId == null || model.LocationId == Guid.Empty)
+                throw new InvalidValueException("Field Location is required!");
+            if (model.IcsPar == null)
+                throw new InvalidValueException("Accountability and Assignment details are required.");
+            model.RefType = "I";
 
-            using (var transaction = _db.Database.BeginTransaction())
+            var result = new IcsBatchGenerationResultVM();
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 try
                 {
+                    // Rebuild inside the transaction. Browser data is preview-only and is never authoritative.
+                    var preview = await BuildBatchPreviewAsync(model.PoNo, model.PoDate, model.DeptId);
+                    var ready = preview.Bundles.Where(b => b.Status == "Ready").ToList();
+                    result.PendingIncompleteCount = preview.IncompleteCount;
+                    if (!ready.Any())
+                        throw new InvalidValueException("No complete, ready bundles are available for generation.");
+
                     var readyMainIds = ready.Select(b => b.MainPhysicalItemId).ToList();
-                    var parentIds = await _db.PsCardItemExtns.Where(e => readyMainIds.Contains(e.Id))
-                        .Select(e => new { e.Id, e.PsCardItemId }).ToListAsync();
-                    var groups = ready.GroupBy(b => new
+                    var mainItems = await _db.PsCardItemExtns
+                        .Include(e => e.PsCardItem.PsCard)
+                        .Where(e => readyMainIds.Contains(e.Id) && e.PsCardSubItemId == null && !e.IcsParItems.Any())
+                        .ToListAsync();
+                    if (mainItems.Count != readyMainIds.Count)
+                        throw new InvalidValueException("One or more accountable units were assigned by another process. Refresh and try again.");
+
+                    var componentExtnIds = ready.SelectMany(b => b.Components)
+                        .Where(c => c.PsCardItemExtnId.HasValue)
+                        .Select(c => c.PsCardItemExtnId.Value).ToList();
+                    if (componentExtnIds.Count != componentExtnIds.Distinct().Count())
+                        throw new InvalidValueException("A serialized component was selected more than once in this batch.");
+                    var reservedComponentCount = await _db.IcsParItemComponents
+                        .CountAsync(c => c.PsCardItemExtnId.HasValue && componentExtnIds.Contains(c.PsCardItemExtnId.Value));
+                    if (reservedComponentCount != 0)
+                        throw new InvalidValueException("A component was assigned by another process. Refresh and try again.");
+
+                    var bulkRequests = ready.SelectMany(b => b.Components)
+                        .Where(c => !c.PsCardItemExtnId.HasValue)
+                        .GroupBy(c => c.PsCardSubItemId).ToList();
+                    foreach (var request in bulkRequests)
                     {
-                        ParentId = parentIds.Single(p => p.Id == b.MainPhysicalItemId).PsCardItemId,
-                        Officer = b.IssuedTo ?? string.Empty
-                    });
-                    foreach (var group in groups)
+                        var available = await _db.PsCardSubItems.Where(s => s.Id == request.Key)
+                            .Select(s => s.Qty - (s.IcsParItemComponents.Where(c => c.PsCardItemExtnId == null)
+                                .Sum(c => (decimal?)c.Qty) ?? 0)).SingleAsync();
+                        if (request.Sum(c => c.Qty) > available)
+                            throw new InvalidValueException("A component quantity was assigned by another process. Refresh and try again.");
+                    }
+
+                    foreach (var valueGroup in ready.GroupBy(b => b.ValueClassification)
+                        .OrderBy(g => g.Key == "HIGH" ? 0 : 1))
                     {
-                        var authoritative = group.Select(b => preview.Bundles.Single(p => p.MainPhysicalItemId == b.MainPhysicalItemId)).ToList();
-                        model.Bundles = authoritative;
-                        model.BundleDataJson = null;
-                        model.MainPsCardItemExtnId = authoritative.First().MainPhysicalItemId;
-                        model.ExistingParId = null;
-                        model.PsCardItemId = group.Key.ParentId;
-                        model.IssuedTo = authoritative.First().IssuedTo;
-                        model.Designation = authoritative.First().Designation;
-                        model.IcsPar.ReceivedBy = authoritative.First().IssuedTo;
-                        model.IcsPar.ReceivedByPosition = authoritative.First().Designation;
-                        await _bundleService.GenerateBundle(model, user, date, "I");
+                        var icsValue = valueGroup.Key == "LOW" ? IcsValue.SPLV : IcsValue.SPHV;
+                        var header = await SetIcsParAsync(model, (int)icsValue, user, date);
+                        _db.IcsPars.Add(header);
+                        await _db.SaveChangesAsync();
+
+                        foreach (var bundle in valueGroup)
+                        {
+                            var main = mainItems.Single(e => e.Id == bundle.MainPhysicalItemId);
+                            var item = new IcsParItem
+                            {
+                                Id = Guid.NewGuid(),
+                                IcsParId = header.Id,
+                                PsCardItemExtnId = main.Id,
+                                Qty = 1,
+                                AddCost = main.AddCost,
+                                Amount = main.AcqCost,
+                                IssuedTo = model.IssuedTo,
+                                Designation = model.Designation,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+                            _db.IcsParItems.Add(item);
+                            foreach (var component in bundle.Components)
+                            {
+                                _db.IcsParItemComponents.Add(new IcsParItemComponent
+                                {
+                                    Id = Guid.NewGuid(),
+                                    IcsParItemId = item.Id,
+                                    PsCardSubItemId = component.PsCardSubItemId,
+                                    PsCardItemExtnId = component.PsCardItemExtnId,
+                                    Qty = component.Qty,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                });
+                            }
+
+                            var cardItem = await GetByIdAsync(main.PsCardItemId);
+                            var acqDate = GetAcqDate(cardItem);
+                            var propNo = NextPropNo(acqDate.Value.Year.ToString(), cardItem.StockNo, model.LocationCode, "I");
+                            var propSplit = propNo.Split('/');
+                            main.LocationId = model.LocationId;
+                            main.PropYear = acqDate.Value.Year.ToString();
+                            main.PropNo = propNo;
+                            main.PropSeq = propSplit[propSplit.Length - 2];
+                            main.UpdatedBy = user;
+                            main.UpdatedDt = date;
+                            await _db.SaveChangesAsync();
+                            await _psCardItemTransactionService.LogUpdates(main.Id, header.Id, "ICS", user, date);
+                        }
+
+                        if (icsValue == IcsValue.SPHV)
+                        {
+                            result.HighValueIcsNo = header.RefNo;
+                            result.HighValueBundleCount = valueGroup.Count();
+                        }
+                        else
+                        {
+                            result.LowValueIcsNo = header.RefNo;
+                            result.LowValueBundleCount = valueGroup.Count();
+                        }
                     }
                     transaction.Commit();
                 }
                 catch { transaction.Rollback(); throw; }
             }
-            return model;
-            });
+            return result;
         }
 
         private decimal GetPriceCap()
@@ -350,10 +486,13 @@ namespace iLgs.Services.ParIcs
                     Id = s.Id,
                     GroupId = s.GroupId,
                     PsCardId = s.PsCardId,
+                    CardNo = s.PsCard.PsNo,
                     Qty = (int?)s.Qty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     TotalCost = s.Amount,
+                    AddCost = _db.PsCardItemExtns.Where(e => e.PsCardItemId == s.Id).Sum(e => e.AddCost) ?? 0,
+                    GTotalCost = _db.PsCardItemExtns.Where(e => e.PsCardItemId == s.Id).Sum(e => e.AcqCost) ?? 0,
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,
@@ -404,6 +543,8 @@ namespace iLgs.Services.ParIcs
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     TotalCost = s.Amount,
+                    AddCost = s.AddCost, 
+                    GTotalCost = s.GTotalCost,
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,

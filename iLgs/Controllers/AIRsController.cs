@@ -239,6 +239,7 @@ namespace iLgs.Controllers
         // GET: AIRs
         public ActionResult Index()
         {
+            ViewBag.AirGroup = (int)AirGroup.NONE;
             ViewBag.Title = "Acceptance & Inspection Reports";
             return View();
         }

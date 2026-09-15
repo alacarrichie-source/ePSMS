@@ -121,23 +121,30 @@ namespace iLgs.Controllers
         {
             try
             {
-                var order = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.PoNo == poNo);
-                int? poYear = poDate.HasValue ? (int?)poDate.Value.Year : (int?)DateTime.Now.Year;
-                int poSource = (source.HasValue && (source.Value == 1 || source.Value == 2)) ? source.Value : 0;
+                //var order = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.PoNo == poNo);
+                //int? poYear = poDate.HasValue ? (int?)poDate.Value.Year : (int?)DateTime.Now.Year;
+                //int poSource = (source.HasValue && (source.Value == 1 || source.Value == 2)) ? source.Value : 0;
                 var poSummary = await _icsParService.IcsService.GetByPoNoAsync(poNo);
-                   
 
-                decimal acqValue = 0;
-                string supplier = order != null ? order.SupName : "";
-                string dept = order != null ? order.Department : (poSummary != null ? poSummary.Department : "");
-                string fund = order != null ? order.Fund : "";
-                string poMode = order != null ? order.PoMode : "";
-                DateTime? pDate = order != null ? order.PoDate : (poSummary != null ? poSummary.PoDate : poDate);
 
-                if (order != null && order.OrderItems.Any())
-                {
-                    acqValue = order.OrderItems.Sum(oi => (oi.Amount ?? (oi.UnitCost * oi.Qty) ?? 0));
-                }
+                //decimal acqValue = 0;
+                //string supplier = order != null ? order.SupName : "";
+                //string dept = order != null ? order.Department : (poSummary != null ? poSummary.Department : "");
+                //string fund = order != null ? order.Fund : "";
+                //string poMode = order != null ? order.PoMode : "";
+                //DateTime? pDate = order != null ? order.PoDate : (poSummary != null ? poSummary.PoDate : poDate);
+
+                decimal acqValue = poSummary != null ? poSummary.Amount ?? 0 : 0;
+                //string supplier = order != null ? order.SupName : "";
+                string dept = poSummary != null ? poSummary.Department : "";
+                string fund = poSummary != null ? poSummary.Fund : "";
+                //string poMode = poSummary != null ? order.PoMode : "";
+                DateTime? pDate = poSummary != null ? poSummary.PoDate : null;
+
+                //if (order != null && order.OrderItems.Any())
+                //{
+                //    acqValue = order.OrderItems.Sum(oi => (oi.Amount ?? (oi.UnitCost * oi.Qty) ?? 0));
+                //}
 
                 int totalItems = poSummary != null ? (int)(poSummary.Qty ?? 0) : 0;
                 int finishedItems = poSummary != null ? (poSummary.QtyFinished ?? 0) : 0;
@@ -148,10 +155,10 @@ namespace iLgs.Controllers
                     success = true,
                     poNo = poNo,
                     poDate = pDate.HasValue ? pDate.Value.ToString("MM/dd/yyyy") : "",
-                    supplier = supplier,
+                    //supplier = supplier,
                     department = dept,
                     fund = fund,
-                    poMode = poMode,
+                    //poMode = poMode,
                     acqValue = acqValue,
                     totalItems = totalItems,
                     finishedItems = finishedItems,
@@ -458,6 +465,7 @@ namespace iLgs.Controllers
                 .ToListAsync();
 
             var list = new List<object>();
+            int unitSeq = 1;
             foreach (var e in extns)
             {
                 var ipi = e.IcsParItems
@@ -476,18 +484,27 @@ namespace iLgs.Controllers
                 string issuedTo = ipi != null && !string.IsNullOrWhiteSpace(ipi.IssuedTo)
                     ? ipi.IssuedTo
                     : (ipi != null && ipi.IcsPar != null ? ipi.IcsPar.ReceivedBy : (e.UpcomingOfficer ?? ""));
+                string officerPosition = ipi != null
+                    ? (!string.IsNullOrWhiteSpace(ipi.Designation) ? ipi.Designation : (ipi.IcsPar != null ? ipi.IcsPar.ReceivedByPosition : ""))
+                    : "";
+                string status = ipi == null ? (otherAccountability == null ? "Available" : "Assigned") : (isPosted ? "Posted" : "Draft");
 
                 list.Add(new
                 {
-                    Id = e.Id,
+                    Id = ipi != null ? ipi.Id : Guid.Empty,
+                    UnitNo = unitSeq++,
                     IcsParItemId = ipi != null ? (Guid?)ipi.Id : null,
                     IcsParId = ipi != null ? ipi.IcsParId : null,
                     PsCardItemExtnId = e.Id,
                     PropNo = !string.IsNullOrEmpty(e.PropNo) ? e.PropNo : "Unassigned",
                     SerialNo = !string.IsNullOrEmpty(serial) ? serial : "-",
                     IssuedTo = issuedTo ?? "",
+                    AccountableOfficer = issuedTo ?? "",
+                    Position = officerPosition ?? "",
+                    AccountableOfficerPosition = officerPosition ?? "",
                     IsPosted = isPosted,
-                    Status = ipi == null ? (otherAccountability == null ? "Available" : "Assigned") : (isPosted ? "Posted" : "Draft"),
+                    Status = status,
+                    Action = status == "Available" ? "Generate" : (status == "Draft" ? "Continue" : (status == "Posted" ? "View ICS" : "Unavailable")),
                     IcsNo = slipNo
                 });
             }
@@ -572,6 +589,7 @@ namespace iLgs.Controllers
                 .Select(s => new
                 {
                     Id = s.Id,
+                    MainPsCardItemExtnId = s.IcsParItems.Select(i => i.PsCardItemExtnId).FirstOrDefault(),
                     RefNo = s.RefNo,
                     RefDate = s.RefDate,
                     ReceivedBy = s.ReceivedBy,
@@ -579,11 +597,13 @@ namespace iLgs.Controllers
                     ReceivedDept = s.ReceivedDept,
                     ItemCount = s.IcsParItems.Count,
                     TotalValue = s.IcsParItems.Sum(x => (decimal?)x.Amount) ?? 0,
-                    Status = s.PostedBy != null ? "Posted" : "Draft",
+                    Status = s.PostedDt != null ? "Posted" : "Draft",
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
                     HasAir = _db.Uploads.Any(u => u.ImageId == s.Id),
-                    AirFileName = _db.Uploads.Where(u => u.ImageId == s.Id).OrderByDescending(o => o.InsertedDt).Select(u => u.FileName).FirstOrDefault()
+                    AirFileName = _db.Uploads.Where(u => u.ImageId == s.Id).OrderByDescending(o => o.InsertedDt).Select(u => u.FileName).FirstOrDefault(),
+                    HasIcsDoc = _db.Uploads.Any(u => u.ImageId == s.Id),
+                    IcsFileName = _db.Uploads.Where(u => u.ImageId == s.Id).OrderByDescending(o => o.InsertedDt).Select(u => u.FileName).FirstOrDefault()
                 })
                 .OrderByDescending(o => o.RefDate)
                 .ThenByDescending(o => o.RefNo);
@@ -827,11 +847,11 @@ namespace iLgs.Controllers
                     return Json(new { success = false, message = $"ICS No. {icsNo} was already posted by {ics.PostedBy} on {ics.PostedDt:MM/dd/yyyy}." }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Authoritative server-side verification: check AIR attachment in DB
+                // Authoritative server-side verification: check the ICS attachment in DB.
                 bool hasAir = await _db.Uploads.AnyAsync(u => u.ImageId == ics.Id);
                 if (!hasAir)
                 {
-                    return Json(new { success = false, message = "Unable to post ICS because an AIR document has not been uploaded. Please upload the AIR before posting." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Unable to post ICS because an ICS document has not been uploaded. Please upload the ICS document before posting." }, JsonRequestBehavior.AllowGet);
                 }
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -1113,7 +1133,7 @@ namespace iLgs.Controllers
                     Id = uploadId,
                     ImageId = icsId,
                     FileName = storedFileName,
-                    Description = string.IsNullOrWhiteSpace(description) ? "AIR" : description,
+                    Description = string.IsNullOrWhiteSpace(description) ? "ICS" : description,
                     VirtualDirectory = physicalDir,
                     InsertedBy = user,
                     InsertedDt = date,
@@ -1124,11 +1144,11 @@ namespace iLgs.Controllers
                 _db.Uploads.Add(upload);
                 await _db.SaveChangesAsync();
 
-                return Json(new { success = true, message = "AIR document uploaded successfully.", fileName = safeOriginalName, uploadId = uploadId });
+                return Json(new { success = true, message = "ICS document uploaded successfully.", fileName = safeOriginalName, uploadId = uploadId });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error uploading AIR document: " + ex.Message });
+                return Json(new { success = false, message = "Error uploading ICS document: " + ex.Message });
             }
         }
 
@@ -1153,7 +1173,7 @@ namespace iLgs.Controllers
                 var sourceUpload = await _db.Uploads.FindAsync(sourceUploadId);
                 if (sourceUpload == null)
                 {
-                    return Json(new { success = false, message = "Source AIR document not found." });
+                    return Json(new { success = false, message = "Source PO document not found." });
                 }
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -1172,7 +1192,7 @@ namespace iLgs.Controllers
                     Id = Guid.NewGuid(),
                     ImageId = icsId,
                     FileName = sourceUpload.FileName,
-                    Description = "AIR",
+                    Description = "ICS",
                     VirtualDirectory = sourceUpload.VirtualDirectory,
                     InsertedBy = user,
                     InsertedDt = date,
@@ -1183,11 +1203,11 @@ namespace iLgs.Controllers
                 _db.Uploads.Add(newUpload);
                 await _db.SaveChangesAsync();
 
-                return Json(new { success = true, message = "PO AIR document successfully linked to this ICS.", fileName = sourceUpload.FileName });
+                return Json(new { success = true, message = "PO document successfully linked to this ICS.", fileName = sourceUpload.FileName });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error linking AIR document: " + ex.Message });
+                return Json(new { success = false, message = "Error linking PO document: " + ex.Message });
             }
         }
 
@@ -1197,7 +1217,7 @@ namespace iLgs.Controllers
             var upload = await _db.Uploads.Where(u => u.ImageId == icsId).OrderByDescending(o => o.InsertedDt).FirstOrDefaultAsync();
             if (upload == null)
             {
-                return HttpNotFound("No AIR document has been attached to this ICS record.");
+                return HttpNotFound("No ICS document has been attached to this ICS record.");
             }
 
             string dir = !string.IsNullOrEmpty(upload.VirtualDirectory) ? upload.VirtualDirectory : _uploadService.GetDirectoryPath();
@@ -1627,7 +1647,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsParService.IcsService.GenerateIcsBatchBundles(model, user, date);
+                    var result = await _icsParService.IcsService.GenerateIcsBatchBundles(model, user, date);
+                    return Json(new { Errors = "", Result = result }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

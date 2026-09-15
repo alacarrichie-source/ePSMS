@@ -366,10 +366,37 @@ namespace iLgs.Services.PropertyCard
             ValidateRecord(targetEntity);
 
             // load source
-            var psCardItemSource = await _db.PsCardItems.FindAsync(psCardItemId);
+            var psCardItemSource = await _db.PsCardItems.Include(i => i.PsCard).FirstOrDefaultAsync(x => x.Id == psCardItemId);
             if (psCardItemSource == null)
             {
                 throw new NotFoundException((Guid)psCardItemId);
+            }
+
+            // Validate card category compatibility
+            if (psCardItemSource.PsCard != null && targetEntity != null && psCardItemSource.PsCard.CardCategory != targetEntity.CardCategory)
+            {
+                throw new InvalidOperationException($"Cannot transfer acquisition to an incompatible card category. Source is {psCardItemSource.PsCard.CardCategory}, target is {targetEntity.CardCategory}.");
+            }
+
+            // Validate no posted accountability dependency
+            var postedIcsPars = await _db.IcsParItems.AsNoTracking()
+                .Where(x => x.PsCardItemExtn.PsCardItemId == psCardItemId && x.IcsPar.PostedDt != null)
+                .Select(x => (x.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (postedIcsPars.Any())
+            {
+                throw new InvalidOperationException($"This acquisition cannot be transferred to another card because one or more units already have posted accountability records ({string.Join(", ", postedIcsPars)}).");
+            }
+
+            var compIcsPars = await _db.IcsParItemComponents.AsNoTracking()
+                .Where(x => (x.PsCardSubItem.PsCardItemId == psCardItemId || x.PsCardItemExtn.PsCardItemId == psCardItemId) && x.IcsParItem.IcsPar.PostedDt != null)
+                .Select(x => (x.IcsParItem.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsParItem.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (compIcsPars.Any())
+            {
+                throw new InvalidOperationException($"This acquisition cannot be transferred to another card because components are assigned to posted accountability records ({string.Join(", ", compIcsPars)}).");
             }
 
             // transfer source to target card

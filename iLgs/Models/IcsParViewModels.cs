@@ -12,6 +12,11 @@ namespace iLgs.Models
     {
         public int? ItemCount { get; set; }
         public int? ItemCountActive { get; set; }
+        public int? TransferableItemCount { get; set; }
+        public int? DraftTransferItemCount { get; set; }
+        public int? TransferredItemCount { get; set; }
+        public bool HasDraftTransfer { get; set; }
+        public string TransferStatus { get; set; }
 
         [Display(Name = "Available Items")]
         public string ActiveItems { get; set; }
@@ -739,6 +744,8 @@ namespace iLgs.Models
     public class IcsParTransferItemVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardItemExtnId { get; set; }
+        public Nullable<System.Guid> PrevItemId { get; set; }
 
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
@@ -764,12 +771,30 @@ namespace iLgs.Models
 
         [Display(Name = "Total Cost")]
         public Nullable<decimal> TUnitCost { get; set; }
+
+        [Display(Name = "Property No.")]
+        public string PropNo { get; set; }
+        public string SerialNo { get; set; }
+        public string Unit { get; set; }
+        public Nullable<decimal> AcquisitionCost { get; set; }
+        public string CurrentRefNo { get; set; }
+        public string CurrentAccountableOfficer { get; set; }
+        public string AccountableOfficerPosition { get; set; }
+        public string AccountableOfficerDepartment { get; set; }
+        public int ComponentCount { get; set; }
+        public bool HasDraftTransfer { get; set; }
+        public bool HasPostedSuccessor { get; set; }
+        public bool CanTransfer { get; set; }
+        public string TransferStatus { get; set; }
+        public string SuccessorRefNo { get; set; }
     }
 
     public class IcsParItemVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> IcsParId { get; set; }
         public Nullable<System.Guid> PsCardItemExtnId { get; set; }
+        public Nullable<System.Guid> PrevItemId { get; set; }
 
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
@@ -814,6 +839,57 @@ namespace iLgs.Models
 
         [Display(Name = "Serial No.")]
         public string SerialNo { get; set; }
+
+        public string Unit { get; set; }
+        public Nullable<decimal> AcquisitionCost { get; set; }
+        public string CurrentRefNo { get; set; }
+        public string PreviousRefNo { get; set; }
+        public string SuccessorRefNo { get; set; }
+        public string CurrentAccountableOfficer { get; set; }
+        public string AccountableOfficerPosition { get; set; }
+        public string AccountableOfficerDepartment { get; set; }
+        public int ComponentCount { get; set; }
+        public bool HasDraftTransfer { get; set; }
+        public bool HasPostedSuccessor { get; set; }
+        public bool CanTransfer { get; set; }
+        public string TransferStatus { get; set; }
+    }
+
+    public class IcsParAccountabilityHistoryVM
+    {
+        public int Sequence { get; set; }
+        public Guid IcsParItemId { get; set; }
+        public Guid? PrevItemId { get; set; }
+        public Guid? PsCardItemExtnId { get; set; }
+        public string RefNo { get; set; }
+        public DateTime? RefDate { get; set; }
+        public string RefType { get; set; }
+        public string AccountableOfficer { get; set; }
+        public string AccountableOfficerPosition { get; set; }
+        public string AccountableOfficerDepartment { get; set; }
+        public string PostedBy { get; set; }
+        public DateTime? PostedDt { get; set; }
+        public bool HasDraftTransfer { get; set; }
+        public bool HasPostedSuccessor { get; set; }
+        public bool IsCurrent { get; set; }
+        public int ComponentCount { get; set; }
+        public string TransferStatus { get; set; }
+    }
+
+    public class IcsParItemComponentVM
+    {
+        public Guid Id { get; set; }
+        public Guid IcsParItemId { get; set; }
+        public Guid PsCardSubItemId { get; set; }
+        public Guid? PsCardItemExtnId { get; set; }
+        public string ItemCode { get; set; }
+        public string Description { get; set; }
+        public string SerialNo { get; set; }
+        public decimal Qty { get; set; }
+        public string Unit { get; set; }
+        public string SourceType { get; set; }
+        public bool IsRequiredForBundle { get; set; }
+        public string Remarks { get; set; }
     }
 
     public class ParBundleComponentDisplayVM
@@ -843,6 +919,10 @@ namespace iLgs.Models
         public string MainDescription { get; set; }
         public string IssuedTo { get; set; }
         public string Designation { get; set; }
+        public DateTime? PoDate { get; set; }
+        public decimal AcquisitionCost { get; set; }
+        public decimal Sphv { get; set; }
+        public string ValueClassification { get; set; }
         public string Status { get; set; }
         public List<string> MissingComponents { get; set; }
         public List<ParBundleComponentAllocationVM> Components { get; set; }
@@ -864,6 +944,15 @@ namespace iLgs.Models
         {
             Bundles = new List<ParBundleItemAllocationVM>();
         }
+    }
+
+    public class IcsBatchGenerationResultVM
+    {
+        public string HighValueIcsNo { get; set; }
+        public int HighValueBundleCount { get; set; }
+        public string LowValueIcsNo { get; set; }
+        public int LowValueBundleCount { get; set; }
+        public int PendingIncompleteCount { get; set; }
     }
 
     public class ParBundleComponentAllocationVM

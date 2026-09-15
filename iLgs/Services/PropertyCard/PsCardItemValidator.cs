@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using System.Data.Entity;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;

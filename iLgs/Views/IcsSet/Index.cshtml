@@ -106,7 +106,7 @@
             <div class="ics-master-search-bar">
                 <div style="position: relative;">
                     <span class="k-icon k-i-search" style="position: absolute; left: 10px; top: 9px; color: #94a3b8;"></span>
-                    <input type="text" id="txtPoSearch" class="k-textbox" placeholder="Search PO #, Supplier, Dept..."
+                    <input type="text" id="txtPoSearch" class="k-textbox" placeholder="Search PO #, Dept..."
                            style="width: 100%; padding-left: 30px; font-size: 12px; height: 32px;" onkeyup="onFilterMasterList()" />
                 </div>
                 <div class="ics-filter-pills">
@@ -204,9 +204,9 @@
                                 <span id="badgeDetailPoStatus" class="status-badge status-unposted">Pending</span>
                             </div>
                             <div id="lblDetailDept" style="font-size: 13px; font-weight: 600; color: #1e293b;">Department</div>
-                            <div style="font-size: 12px; color: #64748b; margin-top: 1px;">
+                            @*<div style="font-size: 12px; color: #64748b; margin-top: 1px;">
                                 Supplier: <strong id="lblDetailSupplier" style="color: #334155;">--</strong>
-                            </div>
+                            </div>*@
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <button type="button" class="btn-procurement-secondary btn-sm" onclick="refreshCurrentPo(true)" title="Refresh current PO">
@@ -225,13 +225,13 @@
                             <span style="color: #64748b; display: block; font-size: 11px;">Fund Source:</span>
                             <strong id="lblDetailFund" style="color: #0f172a;">General Fund</strong>
                         </div>
-                        <div>
+                        @*<div>
                             <span style="color: #64748b; display: block; font-size: 11px;">Procurement Mode:</span>
                             <strong id="lblDetailMode" style="color: #0f172a;">--</strong>
-                        </div>
+                        </div>*@
                         <div>
                             <span style="color: #64748b; display: block; font-size: 11px;">Acquisition Value:</span>
-                            <strong id="lblDetailAcqValue" style="color: #002576; font-family: Consolas, monospace;">â‚±0.00</strong>
+                            <strong id="lblDetailAcqValue" style="color: #002576; font-family: Consolas, monospace;">0.00</strong>
                         </div>
                         <div>
                             <span style="color: #64748b; display: block; font-size: 11px;">Accountable Items:</span>
@@ -294,64 +294,27 @@
                                             .HtmlAttributes(new { style = "height: calc(100vh - 430px); min-height: 350px; border: none;" })
                                             .Columns(col =>
                                             {
-                                                col.Bound(c => c.Description).Title("Description").Width(340)
+                                                col.Bound(c => c.CardNo).Title("Card Number").Width(100)
                                                     .ClientTemplate(
-                                                        "# var art = (typeof Article !== 'undefined' && Article) ? Article : ''; #" +
-                                                        "# var desc = (typeof Description !== 'undefined' && Description) ? Description : ''; #" +
-                                                        "# var rem = (typeof OtherRemarks !== 'undefined' && OtherRemarks) ? OtherRemarks : ''; #" +
-                                                        "<div><strong>#:art#</strong></div>" +
-                                                        "<div style='font-size: 12px; color: rgb(71, 85, 105);'>#:desc#</div>" +
-                                                        "# if (rem) { #" +
-                                                            "<div style='font-size: 11px; color: rgb(180, 83, 9);'><span class='k-icon k-i-info'></span> #:rem#</div>" +
-                                                        "# } #"
-                                                    );
-
-                                                col.Bound(c => c.Unit).Title("Unit").Width(75);
-
-                                                col.Bound(c => c.Qty).Title("Qty").Width(75).Format("{0:n0}")
-                                                    .HtmlAttributes(new { style = "text-align: center; font-weight: 600;" });
-
-                                                col.Bound(c => c.UnitCost).Title("Acquisition Cost").Width(130).Format("{0:n2}")
-                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: 600;" });
-
-                                                col.Bound(c => c.IcsStatus).Title("Status").Width(110)
-                                                    .ClientTemplate(
-                                                        "# var st = (typeof IcsStatus !== 'undefined' && IcsStatus) ? IcsStatus : 'Pending'; #" +
-                                                        "# var gIcs = (typeof GeneratedIcsNo !== 'undefined' && GeneratedIcsNo) ? GeneratedIcsNo : ''; #" +
-                                                        "# if (st == 'Posted') { #" +
-                                                            "<span class='status-badge status-accepted' title='#:gIcs#'>Posted</span>" +
-                                                            "# if (gIcs) { #" +
-                                                                "<div style='font-size: 10px; font-family: Consolas, monospace; color: rgb(22, 101, 52); margin-top: 2px;'>#:gIcs#</div>" +
-                                                            "# } #" +
-                                                        "# } else if (st == 'Generated') { #" +
-                                                            "<span class='status-badge status-acceptance-progress' title='#:gIcs#'>Generated</span>" +
-                                                            "# if (gIcs) { #" +
-                                                                "<div style='font-size: 10px; font-family: Consolas, monospace; color: rgb(3, 105, 161); margin-top: 2px;'>#:gIcs#</div>" +
-                                                            "# } #" +
+                                                        "# var cNo = (typeof CardNo !== 'undefined' && CardNo) ? CardNo : ((typeof StockNo !== 'undefined' && StockNo) ? StockNo : ''); #" +
+                                                        "# if (cNo) { #" +
+                                                            "<span style='font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118);'>#:cNo#</span>" +
                                                         "# } else { #" +
-                                                            "<span class='status-badge status-unposted'>Pending</span>" +
+                                                            "<span class='text-muted' style='font-style: italic;'>-</span>" +
                                                         "# } #"
                                                     );
-
-                                                col.Bound(c => c.Id).Title("Action").Width(130).Sortable(false).Filterable(false)
-                                                    .ClientTemplate(
-                                                        "# var actSt = (typeof IcsStatus !== 'undefined' && IcsStatus) ? IcsStatus : ''; #" +
-                                                        "# var actIcs = (typeof GeneratedIcsNo !== 'undefined' && GeneratedIcsNo) ? GeneratedIcsNo : ''; #" +
-                                                        "<div class='d-flex gap-1'>" +
-                                                            "# if (actSt == 'Pending') { #" +
-                                                                "<button type='button' class='btn-procurement-primary btn-sm' onclick='expandPhysicalUnits(\"#:Id#\")' title='Choose a physical unit'>" +
-                                                                    "<span class='k-icon k-i-zoom-in'></span> Select Unit" +
-                                                                "</button>" +
-                                                            "# } else if (actIcs) { #" +
-                                                                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openViewIcsModal(\"#:actIcs#\")' title='View Official Slip'>" +
-                                                                    "<span class='k-icon k-i-eye'></span> View" +
-                                                                "</button>" +
-                                                                "<button type='button' class='btn-procurement-secondary btn-sm' onclick='printOfficialIcs(\"#:actIcs#\")' title='Print Official Report'>" +
-                                                                    "<span class='k-icon k-i-print'></span> Print" +
-                                                                "</button>" +
-                                                            "# } #" +
-                                                        "</div>"
-                                                    );
+                                                col.Bound(c => c.Description).Title("Description").Width(150)
+                                                    .HtmlAttributes(new { style = "white-space: normal; word-break: break-word;" });
+                                                col.Bound(c => c.Qty).Title("Qty").Width(70).Format("{0:n0}")
+                                                    .HtmlAttributes(new { style = "text-align: center; font-weight: 600;" });
+                                                col.Bound(c => c.Unit).Title("Unit").Width(70)
+                                                    .HtmlAttributes(new { style = "text-align: center;" });
+                                                col.Bound(c => c.UnitCost).Title("Unit Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: 600;" });
+                                                col.Bound(c => c.AddCost).Title("Additional Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace;" });
+                                                col.Bound(c => c.GTotalCost).Title("Acq. Cost").Width(70).Format("{0:n2}")
+                                                    .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: 700; color: rgb(0, 37, 118);" });
                                             })
                                             .Scrollable()
                                             .Resizable(x => x.Columns(true))
@@ -365,6 +328,7 @@
                                                 {
                                                     model.Id(p => p.Id);
                                                     model.Field(p => p.Id).DefaultValue(Guid.Empty);
+                                                    model.Field(p => p.CardNo).DefaultValue("");
                                                     model.Field(p => p.Qty).DefaultValue(0);
                                                     model.Field(p => p.UnitCost).DefaultValue(0);
                                                 })
@@ -389,26 +353,28 @@
                                     <div style="flex: 1 1 auto; overflow: hidden; min-height: 350px;">
                                         @(Html.Kendo().Grid<dynamic>()
                                             .Name("gridGeneratedSlips")
+                                            .Resizable(r => r.Columns(true))
                                             .HtmlAttributes(new { style = "height: calc(100vh - 430px); min-height: 350px; border: none;" })
                                             .Columns(col =>
                                             {
-                                                col.Bound("RefNo").Title("ICS Number").Width(150)
+                                                col.Bound("RefNo").Title("ICS No.").Width(100)
                                                     .ClientTemplate("<span style='font-family: Consolas, monospace; font-weight: bold; color: rgb(0, 37, 118);'>#:RefNo#</span>");
-                                                col.Bound("RefDate").Title("ICS Date").Width(110).Format("{0:MM/dd/yyyy}");
-                                                col.Bound("ReceivedBy").Title("Accountable Person").Width(180)
+                                                col.Bound("RefDate").Title("ICS Date").Width(70).ClientTemplate(
+                                                    "#= RefDate ? kendo.toString(kendo.parseDate(RefDate), 'MM/dd/yyyy') : '' #"
+                                                );
+                                                col.Bound("ReceivedBy").Title("Accountable Officer").Width(150)
                                                     .ClientTemplate(
                                                         "# var rBy = (typeof ReceivedBy !== 'undefined' && ReceivedBy) ? ReceivedBy : ''; #" +
                                                         "# var rPos = (typeof ReceivedByPosition !== 'undefined' && ReceivedByPosition) ? ReceivedByPosition : ''; #" +
                                                         "<div><strong>#:rBy#</strong></div>" +
                                                         "<div style='font-size:11px; color:rgb(100, 116, 139);'>#:rPos#</div>"
                                                     );
-                                                col.Bound("ReceivedByPosition").Title("Designation").Width(140);
-                                                col.Bound("ReceivedDept").Title("Department").Width(150);
-                                                col.Bound("ItemCount").Title("Item Count").Width(80)
+                                                col.Bound("ReceivedDept").Title("Department").Width(70);
+                                                col.Bound("ItemCount").Title("Item Count").Width(50)
                                                     .HtmlAttributes(new { style = "text-align: center; font-weight: 600;" });
-                                                col.Bound("TotalValue").Title("Total Value").Width(130).Format("{0:n2}")
+                                                col.Bound("TotalValue").Title("Total Value").Width(70).Format("{0:n2}")
                                                     .HtmlAttributes(new { style = "text-align: right; font-family: Consolas, monospace; font-weight: bold;" });
-                                                col.Bound("Status").Title("Status").Width(95)
+                                                col.Bound("Status").Title("Status").Width(70)
                                                     .ClientTemplate(
                                                         "# var slipSt = (typeof Status !== 'undefined' && Status) ? Status : ''; #" +
                                                         "# if (slipSt == 'Posted') { #" +
@@ -417,55 +383,34 @@
                                                             "<span class='status-badge status-unposted'>Draft</span>" +
                                                         "# } #"
                                                     );
-                                                col.Bound("HasAir").Title("AIR").Width(200).Sortable(false)
+                                                col.Bound("HasIcsDoc").Title("ICS Document").Width(150).Sortable(false)
                                                     .ClientTemplate(
-                                                        "# var hasAirDoc = (typeof HasAir !== 'undefined' && HasAir); #" +
+                                                        "# var hasIcsDoc = (typeof HasIcsDoc !== 'undefined' ? HasIcsDoc : (typeof HasAir !== 'undefined' && HasAir)); #" +
                                                         "# var isPosted = (typeof Status !== 'undefined' && Status == 'Posted'); #" +
-                                                        "# var airName = (typeof AirFileName !== 'undefined' && AirFileName) ? ((AirFileName.length > 37 && AirFileName.charAt(36) === '-') ? AirFileName.substring(37) : AirFileName) : 'Uploaded'; #" +
-                                                        "<div class='ics-air-cell'>" +
-                                                            "# if (hasAirDoc) { #" +
-                                                                "<span class='status-badge status-air-uploaded' style='cursor:pointer;' onclick='viewAirDocument(\"#:Id#\")' title='View: ' + airName>" +
-                                                                    "<span class='k-icon k-i-file-pdf'></span> #:airName#" +
+                                                        "# var docName = (typeof IcsFileName !== 'undefined' && IcsFileName) ? IcsFileName : ((typeof AirFileName !== 'undefined' && AirFileName) ? AirFileName : ''); #" +
+                                                        "# var displayName = docName ? ((docName.length > 37 && docName.charAt(36) === '-') ? docName.substring(37) : docName) : 'ICS Uploaded'; #" +
+                                                        "<div class='ics-doc-cell'>" +
+                                                            "# if (hasIcsDoc) { #" +
+                                                                "<span class='status-badge status-doc-uploaded' style='cursor:pointer;' onclick='viewIcsDocument(\"#:Id#\")' title='View: ' + displayName>" +
+                                                                    "<span class='k-icon k-i-file-pdf'></span> #:displayName#" +
                                                                 "</span> " +
-                                                                "<button type='button' class='btn-procurement-secondary btn-sm text-primary' onclick='viewAirDocument(\"#:Id#\")' title='View Attached AIR Document'>" +
+                                                                "<button type='button' class='btn-procurement-secondary btn-sm text-primary' onclick='viewIcsDocument(\"#:Id#\")' title='View Attached ICS Document'>" +
                                                                     "<span class='k-icon k-i-eye'></span> View" +
                                                                 "</button>" +
                                                                 "# if (!isPosted) { #" +
-                                                                    "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Replace Attached AIR Document'>" +
+                                                                    "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadIcsModal(\"#:Id#\", \"#:RefNo#\")' title='Replace Attached ICS Document'>" +
                                                                         "<span class='k-icon k-i-refresh'></span> Replace" +
                                                                     "</button>" +
                                                                 "# } #" +
                                                             "# } else { #" +
-                                                                "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadAirModal(\"#:Id#\", \"#:RefNo#\")' title='Upload AIR Document'>" +
-                                                                    "<span class='k-icon k-i-upload'></span> Upload AIR" +
+                                                                "<button type='button' class='btn-procurement-info btn-sm' onclick='openUploadIcsModal(\"#:Id#\", \"#:RefNo#\")' title='Upload ICS Document'>" +
+                                                                    "<span class='k-icon k-i-upload'></span> Upload ICS" +
                                                                 "</button>" +
                                                             "# } #" +
                                                         "</div>"
                                                     );
-                                                col.Bound("RefNo").Title("Actions").Width(260).Sortable(false)
-                                                    .ClientTemplate(
-                                                        "# var isPosted = (typeof Status !== 'undefined' && Status == 'Posted'); #" +
-                                                        "<div class='ics-actions-cell'>" +
-                                                            "<button type='button' class='btn-procurement-secondary btn-sm' onclick='openViewIcsModal(\"#:RefNo#\")' title='View Official Slip'>" +
-                                                                "<span class='k-icon k-i-eye'></span> View" +
-                                                            "</button>" +
-                                                            "<button type='button' class='btn-procurement-secondary btn-sm' onclick='printOfficialIcs(\"#:RefNo#\")' title='Print Official Report'>" +
-                                                                "<span class='k-icon k-i-print'></span> Print" +
-                                                            "</button>" +
-                                                            "# if (isPosted) { #" +
-                                                                "<button type='button' class='btn-procurement-warning btn-sm' onclick='confirmUnpostIcs(\"#:RefNo#\")' title='Unpost Official ICS'>" +
-                                                                    "<span class='k-icon k-i-undo'></span> Unpost" +
-                                                                "</button>" +
-                                                            "# } else { #" +
-                                                                "<button type='button' class='btn-procurement-success btn-sm' onclick='confirmPostIcs(\"#:RefNo#\")' title='Post Official ICS'>" +
-                                                                    "<span class='k-icon k-i-check'></span> Post" +
-                                                                "</button>" +
-                                                                "<button type='button' class='btn-procurement-danger btn-sm' onclick='confirmDeleteIcs(\"#:RefNo#\")' title='Delete Draft ICS'>" +
-                                                                    "<span class='k-icon k-i-delete'></span> Delete" +
-                                                                "</button>" +
-                                                            "# } #" +
-                                                        "</div>"
-                                                    );
+                                                col.Bound("RefNo").Title("Actions").Width(70).Sortable(false)
+                                                    .ClientTemplate("#=generatedSlipActionsTemplate(data)#");
                                             })
                                             .Scrollable()
                                             .Sortable()
@@ -528,12 +473,12 @@
         </div>
         <div id="postIcsMissingAirWarning" class="alert alert-warning mb-3" style="display:none; background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:6px; padding:12px; margin-bottom:15px; font-size:12px;">
             <strong style="display:block; margin-bottom:4px;">
-                <span class="k-icon k-i-warning"></span> AIR Document Required
+                <span class="k-icon k-i-warning"></span> ICS Document Required
             </strong>
-            <span>An Acceptance &amp; Inspection Report (AIR) document must be uploaded before posting this ICS.</span>
+            <span>An ICS document must be uploaded before posting this ICS.</span>
             <div style="margin-top:8px;">
                 <button type="button" class="btn-procurement-secondary btn-sm" onclick="openUploadFromPostModal()">
-                    <span class="k-icon k-i-upload"></span> Upload AIR Now
+                    <span class="k-icon k-i-upload"></span> Upload ICS Now
                 </button>
             </div>
         </div>
@@ -829,10 +774,10 @@
     function renderSelectedPoHeader(d) {
         $("#lblDetailPoNo").text(d.poNo);
         $("#lblDetailDept").text(d.department ? d.department : "General Services Office");
-        $("#lblDetailSupplier").text(d.supplier ? d.supplier : "Not Specified");
+        //$("#lblDetailSupplier").text(d.supplier ? d.supplier : "Not Specified");
         $("#lblDetailPoDate").text(d.poDate ? d.poDate : "--");
         $("#lblDetailFund").text(d.fund ? d.fund : "General Fund");
-        $("#lblDetailMode").text(d.poMode ? d.poMode : "Public Bidding");
+        //$("#lblDetailMode").text(d.poMode ? d.poMode : "Public Bidding");
         $("#lblDetailAcqValue").text("â‚±" + kendo.toString(d.acqValue, "n2"));
         $("#lblDetailItemStats").text(d.totalItems + " Total / " + d.finishedItems + " Issued");
 
@@ -1007,14 +952,18 @@
                     total: "Total",
                     errors: "Errors",
                     model: {
-                        id: "Id",
+                        id: "PsCardItemExtnId",
                         fields: {
                             Id: { type: "string" },
+                            UnitNo: { type: "number" },
                             IcsParItemId: { type: "string", nullable: true },
                             IcsParId: { type: "string", nullable: true },
                             PsCardItemExtnId: { type: "string" },
                             PropNo: { type: "string" },
                             SerialNo: { type: "string" },
+                            AccountableOfficer: { type: "string" },
+                            AccountableOfficerPosition: { type: "string" },
+                            Position: { type: "string" },
                             IssuedTo: { type: "string" },
                             IsPosted: { type: "boolean" },
                             Status: { type: "string" },
@@ -1026,61 +975,67 @@
             noRecords: {
                 template: "<div style='padding: 10px 14px; color: rgb(100, 116, 139); font-style: italic; font-size: 12px;'><span class='k-icon k-i-info'></span> No accountable physical units are available.</div>"
             },
-            scrollable: false,
+            scrollable: true,
             sortable: false,
             pageable: false,
+            resizable: true,
             columns: [
                 {
-                    field: "PropNo",
-                    title: "Property Number",
-                    width: "30%",
-                    template: "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(0, 37, 118);'>#: PropNo #</span>"
+                    field: "UnitNo",
+                    title: "Unit #",
+                    width: 70,
+                    attributes: { style: "text-align: center; font-weight: 600; color: rgb(71, 85, 105);" },
+                    headerAttributes: { style: "text-align: center;" }
                 },
                 {
                     field: "SerialNo",
-                    title: "Serial / Plate No.",
-                    width: "25%",
+                    title: "Serial / (Ref. No.)",
+                    width: 150,
                     template: "<span style='font-family: Consolas, monospace; color: rgb(51, 65, 85);'>#: SerialNo #</span>"
                 },
                 {
-                    field: "IssuedTo",
-                    title: "Issued To",
-                    width: "30%",
+                    field: "IcsNo",
+                    title: "ICS No.",
+                    width: 150,
                     template: function (dataItem) {
-                        if (dataItem.Status !== "Draft") {
-                            var val = dataItem.IssuedTo ? kendo.htmlEncode(dataItem.IssuedTo) : "-";
-                            return "<span class='subgrid-issued-to-readonly'>" + val + "</span>";
+                        if (dataItem.Status === "Posted" && dataItem.IcsNo) {
+                            return "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(22, 101, 52);'>" + kendo.htmlEncode(dataItem.IcsNo) + "</span>";
+                        } else if (dataItem.Status === "Draft" && dataItem.IcsNo) {
+                            return "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(3, 105, 161);'>" + kendo.htmlEncode(dataItem.IcsNo) + "</span>";
                         } else {
-                            var safeVal = dataItem.IssuedTo ? kendo.htmlEncode(dataItem.IssuedTo) : "";
-                            return "<input class='subgrid-employee-combo' data-id='" + dataItem.IcsParItemId + "' value='" + safeVal + "' style='width: 100%; max-width: 280px;' />";
+                            return "<span class='text-muted' style='font-style: italic;'>&mdash;</span>";
                         }
                     }
                 },
                 {
-                    field: "Status",
-                    title: "Slip Status",
-                    width: "15%",
+                    field: "PropNo",
+                    title: "Property No.",
+                    width: 200,
+                    template: "<span style='font-family: Consolas, monospace; font-weight: 600; color: rgb(0, 37, 118);'>#: PropNo #</span>"
+                },
+                {
+                    field: "AccountableOfficer",
+                    title: "Accountable Officer",
+                    width: 200,
                     template: function (dataItem) {
-                        if (dataItem.IsPosted) {
-                            return "<span class='status-badge status-accepted'>Posted</span>";
-                        } else {
-                            if (dataItem.Status === "Draft") return "<span class='status-badge status-unposted'>Draft</span>";
-                            if (dataItem.Status === "Assigned") return "<span class='status-badge' style='background:#fef3c7;color:#92400e'>Assigned elsewhere</span>";
-                            return "<span class='status-badge' style='background:#e0f2fe;color:#075985'>Available</span>";
-                        }
+                        var officer = dataItem.AccountableOfficer || dataItem.IssuedTo;
+                        var position = dataItem.AccountableOfficerPosition || dataItem.Position;
+                        if (!officer || dataItem.Status === "Available") return "<span class='text-muted' style='font-style: italic;'>&mdash;</span>";
+                        var color = dataItem.Status === "Posted" ? "color: rgb(22, 101, 52);" : (dataItem.Status === "Draft" ? "color: rgb(3, 105, 161);" : "");
+                        var html = "<div><div style='font-weight: 600; " + color + "'>" + kendo.htmlEncode(officer) + "</div>";
+                        if (position) html += "<div style='font-size: 11px; color: rgb(100, 116, 139); margin-top: 2px;'>" + kendo.htmlEncode(position) + "</div>";
+                        return html + "</div>";
                     }
                 },
                 {
                     title: "Action",
-                    width: "16%",
+                    width: 150,
+                    sortable: false,
                     template: function (dataItem) {
-                        if (dataItem.Status === "Available") {
-                            return "<button type='button' class='btn-procurement-primary btn-sm' onclick=\"openGenerateSingleModal('" + dataItem.PsCardItemExtnId + "')\"><span class='k-icon k-i-plus'></span> Generate</button>";
-                        }
-                        if (dataItem.Status === "Draft") {
-                            return "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openGenerateSingleModal('" + dataItem.PsCardItemExtnId + "','" + dataItem.IcsParId + "')\"><span class='k-icon k-i-edit'></span> Continue</button>";
-                        }
-                        return "<span style='color:#64748b'>" + kendo.htmlEncode(dataItem.Status || 'Unavailable') + "</span>";
+                        if (dataItem.Status === "Posted") return "<button type='button' class='btn-procurement-secondary btn-sm ics-view-unit' data-ics-no='" + kendo.htmlEncode(dataItem.IcsNo) + "' title='View Posted ICS'><span class='k-icon k-i-eye'></span> View ICS</button>";
+                        if (dataItem.Status === "Draft") return "<button type='button' class='btn-procurement-secondary btn-sm ics-continue-unit' data-extn-id='" + kendo.htmlEncode(dataItem.PsCardItemExtnId) + "' data-ics-id='" + kendo.htmlEncode(dataItem.IcsParId || '') + "' title='Continue / Edit Draft ICS'><span class='k-icon k-i-edit'></span> Continue</button>";
+                        if (dataItem.Status === "Available") return "<button type='button' class='btn-procurement-primary btn-sm ics-generate-unit' data-extn-id='" + kendo.htmlEncode(dataItem.PsCardItemExtnId) + "' title='Generate ICS for Unit'><span class='k-icon k-i-play'></span> Generate</button>";
+                        return "<span class='text-muted' style='font-style: italic;'>Assigned elsewhere</span>";
                     }
                 }
             ],
@@ -1091,7 +1046,6 @@
                     subGrid.element.find(".k-grid-header").hide();
                 } else {
                     subGrid.element.find(".k-grid-header").show();
-                    initSubgridIssuedToCombos(subGrid);
                 }
             }
         });
@@ -1214,7 +1168,7 @@
             return;
         }
         var pDate = kendo.toString(kendo.parseDate(selectedPoDate), "yyyy-MM-dd");
-        openIcsWindow("Batch Generate ICS - " + selectedPoNo, 1000, '@Url.Action("_GenerateIcsBatch", "IcsSet")', {
+        openIcsWindow("Batch Generate ICS - " + selectedPoNo, 1140, '@Url.Action("_GenerateIcsBatch", "IcsSet")', {
             poNo: selectedPoNo,
             poDate: pDate,
             deptId: selectedDeptId
@@ -1280,6 +1234,29 @@
         if (!refNo) return;
         var printUrl = '@Url.Action("IcsSetRpt", "IcsParRpt")' + '?icsNo=' + encodeURIComponent(refNo);
         window.open(printUrl, '_blank');
+    }
+
+    function htmlEncodeValue(value) {
+        return kendo.htmlEncode(value === null || value === undefined ? "" : String(value));
+    }
+
+    function generatedSlipActionsTemplate(dataItem) {
+        var id = htmlEncodeValue(dataItem.Id);
+        var extnId = htmlEncodeValue(dataItem.MainPsCardItemExtnId);
+        var refNo = htmlEncodeValue(dataItem.RefNo);
+        var isPosted = dataItem.Status === "Posted";
+        var canEditIndividually = !isPosted && dataItem.ItemCount === 1 && extnId;
+        var html = "<div class='ics-actions-cell'>";
+        html += "<button type='button' class='btn-procurement-secondary btn-sm ics-view-slip' data-ics-no='" + refNo + "' title='View Official ICS'><span class='k-icon k-i-eye'></span> View</button>";
+        html += "<button type='button' class='btn-procurement-secondary btn-sm ics-print-slip' data-ics-no='" + refNo + "' title='Print Official Report'><span class='k-icon k-i-print'></span> Print</button>";
+        if (isPosted) {
+            html += "<button type='button' class='btn-procurement-warning btn-sm ics-unpost-slip' data-ics-no='" + refNo + "' title='Unpost Official ICS'><span class='k-icon k-i-undo'></span> Unpost</button>";
+        } else {
+            if (canEditIndividually) html += "<button type='button' class='btn-procurement-secondary btn-sm ics-edit-slip' data-ics-id='" + id + "' data-extn-id='" + extnId + "' title='Continue / Edit Draft ICS'><span class='k-icon k-i-edit'></span> Edit</button>";
+            html += "<button type='button' class='btn-procurement-success btn-sm ics-post-slip' data-ics-no='" + refNo + "' title='Post Official ICS'><span class='k-icon k-i-check'></span> Post</button>";
+            html += "<button type='button' class='btn-procurement-danger btn-sm ics-delete-slip' data-ics-id='" + id + "' data-ics-no='" + refNo + "' title='Delete Draft ICS'><span class='k-icon k-i-delete'></span> Delete</button>";
+        }
+        return html + "</div>";
     }
 
     // --- FORM CALLBACK HANDLERS FOR GENERATION POPUPS ---
@@ -1373,14 +1350,14 @@
 
         if (hasAir) {
             html += "<button type='button' class='ics-menu-item' onclick='viewAirDocument(\"" + id + "\")'>" +
-                    "<span class='k-icon k-i-file-pdf' style='color:rgb(239, 68, 68);'></span> View AIR Document" +
+                    "<span class='k-icon k-i-file-pdf' style='color:rgb(239, 68, 68);'></span> View ICS Document" +
                     "</button>";
             html += "<button type='button' class='ics-menu-item' onclick='openUploadAirModal(\"" + id + "\", \"" + refNo + "\")'>" +
-                    "<span class='k-icon k-i-refresh' style='color:rgb(2, 132, 199);'></span> Replace AIR Document" +
+                    "<span class='k-icon k-i-refresh' style='color:rgb(2, 132, 199);'></span> Replace ICS Document" +
                     "</button>";
         } else {
             html += "<button type='button' class='ics-menu-item' onclick='openUploadAirModal(\"" + id + "\", \"" + refNo + "\")'>" +
-                    "<span class='k-icon k-i-upload' style='color:rgb(37, 99, 235);'></span> Upload AIR Document" +
+                    "<span class='k-icon k-i-upload' style='color:rgb(37, 99, 235);'></span> Upload ICS Document" +
                     "</button>";
         }
 
@@ -1419,13 +1396,13 @@
         closeRowActionMenu();
     });
 
-    // --- UPLOAD AIR MODAL ---
+    // Existing endpoints retain their route names; this surface stores the uploaded ICS document.
     function openUploadAirModal(id, refNo, custodian, dept) {
         if (!refNo) return;
         closeRowActionMenu();
         $("#windowcontainer").append("<div id='windowUploadAir'></div>");
         var win = $("#windowUploadAir").kendoWindow({
-            title: "Attach Acceptance & Inspection Report (AIR) - " + refNo,
+            title: "Attach ICS Document - " + refNo,
             width: 560,
             modal: true,
             visible: false,
@@ -1455,6 +1432,10 @@
         var url = '@Url.Action("ViewAirDocument", "IcsSet")?icsId=' + encodeURIComponent(id);
         window.open(url, '_blank');
     }
+
+    function openUploadIcsModal(id, refNo) { openUploadAirModal(id, refNo); }
+    function closeUploadIcsModal() { closeUploadAirModal(); }
+    function viewIcsDocument(id) { viewAirDocument(id); }
 
     // --- DELETE ICS MODAL ---
     function confirmDeleteIcs(refNo) {
@@ -1561,7 +1542,7 @@
                     var errorMsg = (res && res.message) ? res.message : "Failed to post ICS.";
                     notifyWarning(errorMsg);
                     alert(errorMsg);
-                    if (errorMsg.indexOf("AIR document has not been uploaded") !== -1 || errorMsg.indexOf("upload the AIR") !== -1) {
+                    if (errorMsg.indexOf("ICS document has not been uploaded") !== -1 || errorMsg.indexOf("upload the ICS") !== -1) {
                         $("#postIcsAlertBox").hide();
                         $("#postIcsMissingAirWarning").show();
                     }
@@ -1630,6 +1611,56 @@
             }
         });
     }
+
+    $(document)
+        .off("click.icsGenerateUnit", ".ics-generate-unit")
+        .on("click.icsGenerateUnit", ".ics-generate-unit", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openGenerateSingleModal($(this).attr("data-extn-id"));
+        })
+        .off("click.icsContinueUnit", ".ics-continue-unit")
+        .on("click.icsContinueUnit", ".ics-continue-unit", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openGenerateSingleModal($(this).attr("data-extn-id"), $(this).attr("data-ics-id"));
+        })
+        .off("click.icsViewUnit", ".ics-view-unit")
+        .on("click.icsViewUnit", ".ics-view-unit", function (e) {
+            e.preventDefault();
+            openViewIcsModal($(this).attr("data-ics-no"));
+        })
+        .off("click.icsEditSlip", ".ics-edit-slip")
+        .on("click.icsEditSlip", ".ics-edit-slip", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openGenerateSingleModal($(this).attr("data-extn-id"), $(this).attr("data-ics-id"));
+        })
+        .off("click.icsViewSlip", ".ics-view-slip")
+        .on("click.icsViewSlip", ".ics-view-slip", function (e) {
+            e.preventDefault();
+            openViewIcsModal($(this).attr("data-ics-no"));
+        })
+        .off("click.icsPrintSlip", ".ics-print-slip")
+        .on("click.icsPrintSlip", ".ics-print-slip", function (e) {
+            e.preventDefault();
+            printOfficialIcs($(this).attr("data-ics-no"));
+        })
+        .off("click.icsPostSlip", ".ics-post-slip")
+        .on("click.icsPostSlip", ".ics-post-slip", function (e) {
+            e.preventDefault();
+            confirmPostIcs($(this).attr("data-ics-no"));
+        })
+        .off("click.icsUnpostSlip", ".ics-unpost-slip")
+        .on("click.icsUnpostSlip", ".ics-unpost-slip", function (e) {
+            e.preventDefault();
+            confirmUnpostIcs($(this).attr("data-ics-no"));
+        })
+        .off("click.icsDeleteSlip", ".ics-delete-slip")
+        .on("click.icsDeleteSlip", ".ics-delete-slip", function (e) {
+            e.preventDefault();
+            confirmDeleteIcs($(this).attr("data-ics-no"));
+        });
 </script>
 
 

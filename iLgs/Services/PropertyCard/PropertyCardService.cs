@@ -1,4 +1,4 @@
-﻿using iLgs.Exceptions;
+using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Items;
@@ -13,6 +13,7 @@ namespace iLgs.Services.PropertyCard
     public interface IPropertyCardService : IPsCardService
     {
         IQueryable<PropertyCardVM> GetAll();
+        IQueryable<PropertyCardVM> GetAllFiltered(string userName);
         ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
         ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
@@ -58,6 +59,25 @@ namespace iLgs.Services.PropertyCard
             var data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P'").AsQueryable();
             return data;
         });
+
+        /// <summary>
+        /// Overrides base PsCardService.GetAll(userName) returning PropertyCardVM (not PsCardVM)
+        /// so the Property Card index grid receives the correct projected type including SubAccount splits.
+        /// </summary>
+        public new IQueryable<PropertyCardVM> GetAll(string userName) => _propCardVMexceptionService.TryCatch(() =>
+        {
+            IQueryable<PropertyCardVM> data;
+            if (string.IsNullOrWhiteSpace(userName))
+                data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P'").AsQueryable();
+            else
+                data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P', {0}", userName).AsQueryable();
+            return data;
+        });
+
+        /// <summary>
+        /// Interface-compatible method that returns PropertyCardVM with optional userName filter.
+        /// </summary>
+        public IQueryable<PropertyCardVM> GetAllFiltered(string userName) => GetAll(userName);
 
         public ValueTask<PropertyCardVM> GetByIdAsync(Guid? id) => _propCardVMexceptionService.TryCatch(async () =>
         {

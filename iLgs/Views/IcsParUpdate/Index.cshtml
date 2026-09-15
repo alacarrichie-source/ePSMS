@@ -1,905 +1,129 @@
-﻿@{
+@{
     ViewBag.Title = "ICS/PAR Updates";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-<br />
-<div class="row">
-    <div class="col-md-6">
-        <div class="col-md-1">
-            @Html.Label("Type:")
-        </div>
-        <div class="col-md-11">
-            @(Html.Kendo().RadioGroup()
-            .Name("refType")
-            .Layout("horizontal")
-            .Events(e => e.Select("onSelectType"))
-            .Items(i =>
-                {
-                    i.Add().Label("ICS").Value("I");
-                    i.Add().Label("PAR").Value("P");                    
-                })
-            .Value("I")
-            )
+<link href="@Url.Content("~/Content/ics-workspace.css")" rel="stylesheet" type="text/css" />
+
+<div class="epsms-ics accountability-page">
+    <div class="header-bar page-head">
+        <div><h1>ICS / PAR Accountability</h1><div class="subtitle">Review custody, transfer complete bundles, and follow each item's accountability history.</div></div>
+        <div class="type-switch">
+            @(Html.Kendo().RadioGroup().Name("refType").Layout("horizontal").Events(e => e.Select("onSelectType")).Items(i => { i.Add().Label("ICS").Value("I"); i.Add().Label("PAR").Value("P"); }).Value("I"))
         </div>
     </div>
+    <div id="workspaceMessage" class="workspace-message" role="status" aria-live="polite"></div>
+    <div class="accountability-workspace">
+        <section class="master-pane">
+            <div class="pane-head"><div><h2 id="listTitle">ICS records</h2><p>Select a record to inspect its items.</p></div><span id="recordCount">0</span></div>
+            @(Html.Kendo().Grid<iLgs.Models.IcsParVM>()
+                .Name("grid").HtmlAttributes(new { @class = "record-grid" })
+                .Columns(c => c.Bound(x => x.RefNo).Title("Records").ClientTemplate("#=recordCard(data)#").Encoded(false))
+                .ToolBar(t => t.Search())
+                .Search(s => { s.Field(x => x.RefNo, "contains"); s.Field(x => x.LocationCode, "contains"); s.Field(x => x.Location, "contains"); s.Field(x => x.ReceivedBy, "contains"); })
+                .Pageable(p => p.Numeric(false).Info(true).PreviousNext(true).Refresh(true).PageSizes(new[] { 10, 15, 25 }))
+                .NoRecords(n => n.Template("No records match the selected type or search."))
+                .Scrollable().Selectable(s => s.Mode(GridSelectionMode.Single)).Sortable()
+                .DataSource(d => d.Ajax().PageSize(15).Events(e => e.Error("GridError").RequestEnd("onRequestEndGrid")).Model(m => m.Id(x => x.Id)).Sort(s => s.Add(x => x.RefNo).Descending()).Read(r => r.Action("Read", "IcsParUpdate").Data("DataGrid")).Destroy(x => x.Action("Destroy", "IcsParUpdate")))
+                .Events(e => e.Change("onChangeGrid").DataBound("onDataBoundGrid")))
+        </section>
+        <section class="detail-pane">
+            <div id="detailEmpty" class="empty-state"><span class="k-icon k-i-folder-open"></span><h2>Select a record</h2><p>Choose an ICS or PAR record to review its accountable officer, transferable items, bundles, and ownership trail.</p></div>
+            <div id="detailWorkspace" class="hidden">
+                <div class="summary-card">
+                    <div class="title-row">
+                        <div><div id="detailType" class="kicker">ICS RECORD</div><h2 id="detailRefNo">—</h2><div class="status-line"><span id="detailStatus" class="status-badge status-unposted">—</span><span id="detailDate" class="muted"></span></div></div>
+                        <div id="detailActions" class="actions"></div>
+                    </div>
+                    <div class="metadata">
+                        <div class="meta wide"><span>Current accountable officer</span><strong id="detailOfficer">—</strong><small id="detailOfficerContext">—</small></div>
+                        <div class="meta"><span>Location</span><strong id="detailLocation">—</strong></div>
+                        <div class="meta"><span>Items</span><strong id="detailItemCount">0</strong><small id="detailTransferCounts"></small></div>
+                        <div class="meta"><span>Posted</span><strong id="detailPostedBy">Not posted</strong><small id="detailPostedDate"></small></div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-head"><h3>Accountability items</h3><p>Transfer state and bundle membership are supplied by the accountability service.</p></div>
+                    @(Html.Kendo().Grid<iLgs.Models.IcsParItemVM>()
+                        .Name("gridItems").HtmlAttributes(new { @class = "items-grid" })
+                        .Columns(c => {
+                            c.Bound(x => x.Description).Title("Item").Width(250).ClientTemplate("#=itemIdentity(data)#").Encoded(false);
+                            c.Bound(x => x.CurrentAccountableOfficer).Title("Current accountability").Width(200).ClientTemplate("#=officerCell(data)#").Encoded(false);
+                            c.Bound(x => x.AcquisitionCost).Title("Acquisition cost").Width(115).Format("{0:n2}").HtmlAttributes(new { @class = "text-right" });
+                            c.Bound(x => x.ComponentCount).Title("Bundle").Width(110).ClientTemplate("#=bundleCell(data)#").Encoded(false);
+                            c.Bound(x => x.TransferStatus).Title("Transfer state").Width(140).ClientTemplate("#=badge(TransferStatus || 'Current')#").Encoded(false);
+                            c.Bound(x => x.Id).Title("Action").Width(105).ClientTemplate("#=itemAction(data)#").Encoded(false).Sortable(false).Filterable(false);
+                        })
+                        .Pageable(p => p.Numeric(true).Info(true).PreviousNext(true).PageSizes(new[] { 10, 20, 50 }))
+                        .NoRecords(n => n.Template("This record has no accountability items."))
+                        .Resizable(r => r.Columns(true)).Scrollable(s => s.Height(330)).Selectable(s => s.Mode(GridSelectionMode.Single)).Sortable()
+                        .ClientDetailTemplateId("componentTemplate").AutoBind(false)
+                        .DataSource(d => d.Ajax().PageSize(10).Events(e => e.Error("GridError")).Model(m => m.Id(x => x.Id)).Read(r => r.Action("ItemRead", "IcsParUpdate").Data("selectedRecordParameters")))
+                        .Events(e => e.Change("onChangeGridItems").DataBound("onDataBoundGridItems").DetailInit("componentDetailInit")))
+                </div>
+                <div class="section-card">
+                    <div class="section-head"><h3>Accountability history</h3><p id="historyContext">Select an item to view its lineage.</p></div>
+                    <div id="historyContent"><div class="history-empty">Select an item above to load its accountability timeline.</div></div>
+                </div>
+            </div>
+        </section>
+    </div>
 </div>
-<br />
-
-
-@(Html.Kendo().Grid<iLgs.Models.IcsParVM>()
-    .HtmlAttributes(new { @class = "max-grid-2" })
-    .Name("grid")
-    .Columns(col =>
-    {
-        //col.Bound(p => p.Id).Title("")
-        //        .ClientTemplate(
-        //        @"<div class='upload-photo'
-        //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");" +
-        //           "onclick='oClickImage(#:Id#)'></div></div>")
-        //            .Width(70);
-        col.Bound(c => c.RefNo).Width(100);
-        col.Bound(c => c.RefDate).Width(50);
-        //col.Bound(c => c.UpdateCode).Width(30);
-        col.Bound(c => c.LocationCode).Width(30);
-        col.Bound(c => c.Location).Width(100);
-        col.Bound(c => c.ReceivedBy).Width(100);
-        col.Bound(c => c.ReceivedDate).Width(50);
-        col.Bound(c => c.PostedBy).Width(50);
-        col.Bound(c => c.PostedDt).Width(70);
-        col.Bound(c => c.ActiveItems).Width(50);
-        col.Command(command =>
-        {
-            command.Custom("Print").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
-            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);            
-            command.Custom("Delete").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickDelete").Visible("IsNotPosted");
-            command.Custom("Post").IconClass("k-icon k-i-lock").Click("onClickPost").SendDataKeys(true).Visible("IsNotPosted");
-            command.Custom("Unpost").IconClass("k-icon k-i-unlock").Click("onClickUnpost").SendDataKeys(true).Visible("IsPosted");
-            command.Custom("Transfer").IconClass("k-icon k-i-copy").Click("onClickTransfer").SendDataKeys(true).Visible("IsActive");
-        }).Width(250);
-    })
-    .ToolBar(t =>
-    {
-        t.Search();
-    })
-    .Search(s =>
-    {
-        s.Field(o => o.RefNo, "contains");
-        s.Field(o => o.LocationCode, "contains");
-        s.Field(o => o.Location, "contains");
-        s.Field(o => o.ReceivedBy, "contains");
-        s.Field(o => o.IssuedBy, "contains");
-        s.Field(o => o.PostedBy, "contains");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(true)
-        .ButtonCount(5)
-    )
-    .Filterable()
-    .NoRecords()
-    .Resizable(r => r.Columns(true))
-    .Scrollable()
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Sortable()
-    .ClientDetailTemplateId("DetailTemplate")
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(30)
-        .Events(events => events.Error("GridError")
-            .RequestEnd("onRequestEndGrid")
-        )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-        })
-        .Sort(s => s.Add(a => a.RefNo).Descending())
-        .Read(read => read.Action("Read", "IcsParUpdate").Data("DataGrid"))
-        .Destroy(destroy => destroy.Action("Destroy", "IcsParUpdate"))
-    )
-    .Events(events => events
-        .Change("onChangeGrid")
-        .DataBound("onDataBoundGrid")
-    )
-)
-
-<script id="DetailTemplate" type="text/kendo-tmpl">
-    @(Html.Kendo().TabStrip()
-    .Name("tabStrip_#=Id#")
-    .TabPosition(TabStripTabPosition.Top)
-    .Animation(animation =>
-    {
-        animation.Open(config =>
-        {
-            config.Fade(FadeDirection.In);
-        });
-    })
-    .SelectedIndex(0)
-    .Items(items =>
-    {
-        items.Add().Text("Items")
-            .Selected(true)
-            //.LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#" });        
-            .Content(@<text>
-                @(Html.Kendo().Grid<iLgs.Models.IcsParItemVM>()
-                .Name("gridItem_#=Id#")
-                .Columns(col =>
-                {
-                    col.Bound(c => c.PoNo).Width(70);
-                    col.Bound(c => c.SetLotNo).Width(40);
-                    col.Bound(c => c.SetLotQtyNo).Width(40);
-                    col.Bound(c => c.ItemNo).Width(40);
-                    col.Bound(c => c.PropNo).Width(150);
-                    col.Bound(c => c.RefNo).Width(100);
-                    col.Bound(c => c.Description).Width(100);
-                    col.Bound(c => c.TUnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });                    
-                    col.Bound(c => c.PrevIcsParNo).Width(70);
-                    col.Bound(c => c.CanByIcsParNo).Width(70);
-                })
-                .Sortable()
-                .NoRecords()
-                .DataSource(dataSource => dataSource
-                    .Ajax()
-                    .Events(events => events.Error("GridError"))
-                    .Model(model =>
-                    {
-                        model.Id(p => p.Id);
-                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                    })
-                    .Aggregates(a =>
-                    {
-                        a.Add(p => p.TUnitCost).Sum();
-                    })
-                    .Read(read => read.Action("ItemRead", "IcsParUpdate", new { refNo = "#=RefNo#", refType = "#=RefType#" }))
-                )
-                .Events(events => events
-                    .Change("onChangeGridItems")
-                    .DataBound("onDataBoundGridItems")
-                )
-                .Selectable(s => s.Mode(GridSelectionMode.Single))
-                .ToClientTemplate())
-    </text>);
-    }).ToClientTemplate())
-    
-</script>
-
-@(Html.Kendo().Notification()
-        .Name("popupNotification")
-        .Events(e => e.Show("onShowNotification"))
-)
-
-
+<script id="componentTemplate" type="text/x-kendo-template"><div class="component-shell"><strong>Bundle contents</strong><div class="component-grid"></div></div></script>
+@(Html.Kendo().Notification().Name("popupNotification").Events(e => e.Show("onShowNotification")))
 <div id="windowcontainer"></div>
 
 <style>
-    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
-        width: auto;
-    }
-
-    .k-window-content {
-        overflow-x: hidden;
-    }
-
-    .k-grid .k-grid-search {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-    }
-
-    .k-floating-label-container {
-        width: 100%;
-    }
-
-    #span_ {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-        width: fit-content;
-    }
-
-    .k-multicolumncombobox .k-grid td {
-        white-space: normal !important;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-
-    .no-text-tabstrip .k-item .k-link {
-        padding: 0; /* Remove padding */
-        /* Move the text outside the visible area */
-        /*text-indent: -9999px;*/
-        overflow: hidden; /* Hide any overflow */
-        display: none;
-    }
-
-    .max-grid-2 .k-grid-content {
-        overflow-x: auto;
-        height: calc(90vh - 150px) !important;
-    }
-
-    .upload-photo {
-        cursor: pointer; /* Changes cursor to indicate clickability */
-        display: inline-block;
-        width: 70px;
-        height: 70px;
-        border-radius: 1%;
-        background-size: 70px 70px;
-        background-position: center center;
-        vertical-align: middle;
-        line-height: 80px;
-        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
-        margin-left: 5px;
-    }
-
-    .file-name {
-        display: inline-block;
-        width: 150px;
-        background-position: center center;
-        vertical-align: middle;
-        line-height: 32px;
-        padding-left: 3px;
-    }
+    .accountability-page{padding:18px 20px 24px;color:#243447}.page-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:14px}.page-head h1{margin:0 0 4px}.type-switch{background:#fff;border:1px solid #dbe3ec;border-radius:10px;padding:8px 12px;white-space:nowrap}.workspace-message{display:none;margin:0 0 12px;padding:10px 13px;border-radius:8px;font-size:13px}.workspace-message.error{display:block;color:#991b1b;background:#fef2f2;border:1px solid #fecaca}.workspace-message.info{display:block;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe}.accountability-workspace{display:grid;grid-template-columns:minmax(330px,38%) minmax(0,62%);gap:14px;min-height:calc(100vh - 180px)}.master-pane,.detail-pane{background:#fff;border:1px solid #dbe3ec;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.05);min-width:0;overflow:hidden}.master-pane{display:flex;flex-direction:column}.detail-pane{padding:14px;overflow:auto}.pane-head{display:flex;justify-content:space-between;padding:16px 16px 10px}.pane-head h2,.section-head h3{margin:0;color:#1f2937;font-size:17px}.pane-head p,.section-head p{margin:4px 0 0;color:#64748b;font-size:12px}.pane-head>span{height:25px;min-width:30px;padding:4px 8px;text-align:center;background:#eef2ff;color:#3730a3;border-radius:999px;font-size:12px;font-weight:700}.record-grid{border:0!important;flex:1}.record-grid .k-grid-header{display:none}.record-grid .k-grid-content{min-height:420px;height:calc(100vh - 315px)!important}.record-grid .k-grid-content td{padding:0!important;border-width:0 0 1px!important}.record-card{padding:13px 15px;border-left:4px solid transparent;cursor:pointer}.record-grid tr.k-state-selected td,.record-grid tr.k-selected td{background:#eff6ff!important}.record-grid tr.k-state-selected .record-card,.record-grid tr.k-selected .record-card{border-left-color:#2563eb}.record-top,.record-bottom{display:flex;justify-content:space-between;gap:10px;align-items:center}.record-number{font-size:14px;font-weight:750;color:#172554}.record-officer{margin:7px 0 4px;font-size:13px;font-weight:600;color:#334155;white-space:normal}.record-bottom{color:#64748b;font-size:11px}.empty-state{min-height:520px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;color:#64748b}.empty-state .k-icon{font-size:44px;color:#94a3b8}.empty-state h2{margin:14px 0 8px;color:#334155}.empty-state p{max-width:460px;line-height:1.55}.summary-card,.section-card{border:1px solid #e2e8f0;border-radius:10px;background:#fff}.summary-card{padding:17px;background:linear-gradient(135deg,#f8fbff,#fff)}.title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.kicker{color:#2563eb;font-size:10px;letter-spacing:.12em;font-weight:800}.title-row h2{margin:3px 0 7px;font-size:24px;color:#172554}.status-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.muted,.meta small{color:#64748b;font-size:11px}.actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px;max-width:440px}.action-btn{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:7px;padding:7px 10px;font-size:12px;font-weight:650;cursor:pointer}.action-btn.primary{color:#fff;background:#2563eb;border-color:#2563eb}.action-btn.danger{color:#b91c1c;border-color:#fecaca;background:#fff7f7}.action-btn .k-icon{margin-right:4px}.metadata{display:grid;grid-template-columns:1.5fr 1fr .8fr 1fr;gap:10px;margin-top:16px}.meta{padding:10px 12px;border:1px solid #e8edf3;background:#fff;border-radius:8px;min-width:0}.meta>span{display:block;margin-bottom:5px;color:#64748b;font-size:10px;font-weight:750;text-transform:uppercase}.meta strong,.meta small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.meta strong{font-size:13px}.section-card{margin-top:12px;padding:14px}.section-head{margin-bottom:11px}.item-title,.officer-name{font-size:12px;font-weight:700;white-space:normal}.item-sub,.officer-sub{margin-top:3px;color:#64748b;font-size:10px;white-space:normal}.bundle-btn,.transfer-btn{border:0;padding:0;background:transparent;color:#2563eb;font-size:11px;font-weight:700;cursor:pointer}.bundle-btn:disabled{color:#94a3b8}.transfer-btn{border:1px solid #bfdbfe;background:#eff6ff;border-radius:6px;padding:5px 8px}.action-note{color:#64748b;font-size:10px;white-space:normal}.status-badge{display:inline-block;max-width:100%;white-space:normal;text-align:center}.status-badge.status-current,.status-badge.status-posted-current,.status-badge.status-transferable{background:#dcfce7;color:#166534}.status-badge.status-draft-transfer,.status-badge.status-posted-draft-transfer-exists{background:#fef3c7;color:#92400e}.status-badge.status-transferred,.status-badge.status-posted-fully-transferred{background:#e0e7ff;color:#3730a3}.status-badge.status-posted-partially-transferred{background:#dbeafe;color:#1d4ed8}.component-shell{padding:12px;background:#f8fafc;border-left:3px solid #60a5fa}.component-shell>strong{display:block;margin-bottom:8px}.history-empty{padding:24px;color:#64748b;text-align:center;background:#f8fafc;border-radius:8px}.timeline{position:relative;margin-left:8px;padding-left:24px}.timeline:before{content:"";position:absolute;top:7px;bottom:8px;left:6px;width:2px;background:#dbe3ec}.history-entry{position:relative;padding:0 0 17px 4px}.history-dot{position:absolute;left:-25px;top:5px;width:10px;height:10px;border:2px solid #fff;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 2px #cbd5e1}.history-entry.current .history-dot{background:#16a34a;box-shadow:0 0 0 2px #86efac}.history-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.history-ref{color:#1e3a8a;font-size:12px;font-weight:750}.history-officer{margin-top:4px;font-size:12px;font-weight:650}.history-sub{color:#64748b;font-size:10px}.hidden{display:none!important}.k-edit-form-container,.k-widget.k-window,.k-popup-edit-form.k-window-content.k-content{width:auto}.k-window-content{overflow-x:hidden}.k-grid .k-grid-search{display:flex;margin-left:auto}.k-multicolumncombobox .k-grid td{white-space:normal!important;word-wrap:break-word}.upload-photo{cursor:pointer;display:inline-block;width:70px;height:70px;background-size:70px 70px;background-position:center}.file-name{display:inline-block;width:150px;line-height:32px;padding-left:3px}
+    @@media(max-width:1100px){.metadata{grid-template-columns:1fr 1fr}}@@media(max-width:780px){.page-head,.title-row{align-items:stretch;flex-direction:column}.accountability-workspace{grid-template-columns:1fr}.record-grid .k-grid-content{height:360px!important;min-height:0}.actions{justify-content:flex-start;max-width:none}.metadata{grid-template-columns:1fr}}
 </style>
 
-
-<script type="text/x-kendo-template" id="validationMessageTemplate">
-    # if (messages.length) { #
-    <li>
-        #=field#
-        <ul>
-            # for (var i = 0; i < messages.length; ++i) { #
-            <li>#= messages[i] #</li>
-            # } #
-        </ul>
-    </li>
-    # } #
-</script>
-
 <script type="text/javascript">
-    function onShowNotification(e) {
-        if (e.sender.getNotifications().length == 1) {
-            e.element.parent().css({ zIndex: 22222 });
-        }
-    }
-
-    function columnTemplate(data) {
-        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
-    }
-
-    function GridError(args) {
-        if (args.errors) {
-            var validationError = true;
-            $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
-                    validationError = false;
-                    selectedGrid.dataSource.read();
-                }
-            });
-            if (validationError) {
-                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
-                $('#ErrorContent').removeClass('hidden');
-                selectedGrid.one("dataBinding", function (e) {
-                    e.preventDefault();
-                    var errors = selectedGrid.editable.element.find(".errors");
-                    errors.empty();
-                    $.each(args.errors, function (propertyName) {
-                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
-                        errors.append(renderedTemplate);
-                    });
-                });
-            }
-        }
-    }
-
-    function onSelectType(e) {
-        var refType = $(e.target[0]).val();
-        $("#grid").data("kendoGrid").dataSource.read({ refType: refType });
-    }
-
-    var selectedGrid = null;
-    var selectedId = null;
-    var selectedPoNo = null;
-
-
-    $(".k-grid-btnPrintCard").click(function (e) {
-        e.preventDefault();
-        PrintCard(1);
-    });
-
-    $(".k-grid-btnPrintCardUpdate").click(function (e) {
-        e.preventDefault();
-        PrintCard(0);
-    });
-
-    function PrintCard(originalSw) {
-        var url = '@Url.Action("PoRpt", "Query")?poNo=' + selectedPoNo + '&originalSw=' + originalSw;
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    }
-
-    function onRequestEndGrid(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();
-            }
-            if (e.type == "create")
-            {
-                var responseData = e.response;
-                var newRecord = responseData.Data[0];
-                selectedId = newRecord.Id;
-            }
-        }
-    }
-
-    var postedBy = null;
-
-    function onChangeGrid(e) {
-        selectedGrid = this;
-        var selectedData = this.dataItem(this.select());
-        selectedId = selectedData.Id;
-        selectedPoNo = selectedData.PoNo
-        selectedItemId = null;
-    }
-
-    function onDataBoundGrid(e) {
-        if (selectedId) {
-            var dataItem = this.dataSource.get(selectedId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
-        }
-
-        var grid = $("#grid");
-        if (this.dataSource.data().length == 0) {
-            $(".k-grid-btnPrintCard", grid).hide();
-            //$(".k-grid-btnPost", grid).hide();
-            //$(".k-grid-btnUnpost", grid).hide();
-        }
-        else {
-            $(".k-grid-btnPrintCard", grid).show();
-        }
-    }
-
-    function DataGrid() {
-        return {
-            refType: $("#refType").data("kendoRadioGroup").value()
-        };
-    }
-
-    function onSelectUserName(e) {
-        if (!e.item) {
-            return;
-        }
-
-        var dataItem = this.dataItem(e.item.index());
-
-        if (dataItem) {
-            var userName = dataItem.UserName;
-            $("#grid").data("kendoGrid").dataSource.read({userName: userName});
-        }
-    }
-
-    function onChangeUserName(e) {
-        var comboBox = this;
-        var value = comboBox.value(); // Get the current value of the combo box
-
-        if (!value) {
-            var userName = "";
-            $("#grid").data("kendoGrid").dataSource.read({ userName: userName });
-        }
-    }
-
-    function error_handler(e, status) {
-        if ((e.errors)) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
-                }
-            });
-            alert(message);
-        }
-    }
-
-    function onChangeGridItems(e) {
-        var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Id;
-    }
-
-    function onDataBoundGridItems(e) {
-        if (selectedItemId) {
-            var dataItem = this.dataSource.get(selectedItemId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            //var row = e.sender.tbody.find("tr:first");
-            //this.select(row);
-
-            //var firstRow = this.tbody.find("tr.k-master-row").first();
-            //this.expandRow(firstRow);
-
-            // Attach a handler to the "detailExpand" event
-            this.bind("detailExpand", function (e) {
-                // Select the expanded master row
-                this.select(e.masterRow);
-            });
-        }
-    }
-
-    //////
-
-    function IsActive(dataItem) {
-        return dataItem.ItemCountActive > 0 && dataItem.PostedDt != null;
-    }
-
-    function IsPosted(dataItem) {
-        return dataItem.PostedDt != null;
-    }
-
-    function IsNotPosted(dataItem) {
-        return !IsPosted(dataItem);
-    }
-
-
-    function onClickBtnPrint(e) {
-        e.preventDefault();
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        var url = "";
-        var refType = $("#refType").data("kendoRadioGroup").value();
-
-        if (refType == "I") {
-            url = '@Url.Action("IcsSetRpt", "IcsParRpt")?icsNo=' + dataItem.RefNo;
-        } else {
-            url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.RefNo;
-        }
-
-        $("#windowcontainer").append("<div id='windowPrint'></div>");
-        var mywindow = $("#windowPrint")
-                .kendoWindow({
-                    actions: ["Maximize", "Minimize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: "Preview",
-            width: 1200,
-            height: 700
-        });
-        mywindow.refresh({
-            url: url
-        });
-        mywindow.center();
-        mywindow.open();
-    }
-
-    function onClickDelete(e) {
-        e.preventDefault();
-
-        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
-        selectedGrid = grid;
-        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
-
-        if (confirm("Are you sure you want to delete this record?")) {
-            grid.dataSource.remove(dataItem);
-            grid.dataSource.sync();
-        }
-    }
-
-    function onClickPost(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var selectedRow  = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-        selectedGrid.select(selectedRow);
-        var postedBy = dataItem.PostedBy;
-
-        if (postedBy) {
-            alert("Record is already posted by " + postedBy);
-        }
-        else {
-            var refNo = dataItem.RefNo;
-            var refType = dataItem.RefType;
-            var msg = "Post " + (refType == "I" ? "ICS" : "PAR") + " No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("Post", "IcsParUpdate")',
-                    data: { refNo: refNo, refType: refType },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Record Posted...", "info");
-                            //$("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function onClickUnpost(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var selectedRow = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(selectedRow);
-        selectedGrid.select(selectedRow);
-        var postedBy = dataItem.PostedBy;
-
-        if (!postedBy) {
-            alert("Record is not yet posted!");
-        }
-        else {
-            var refNo = dataItem.RefNo;
-            var refType = dataItem.RefType;
-            var msg = "Post " + (refType == "I" ? "ICS" : "PAR") + " No. " + refNo + "?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("Unpost", "IcsParUpdate")',
-                    data: { refNo: refNo, refType: refType },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Done...", "info");
-                            selectedGrid.dataSource.read();
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
-    }
-
-    function onClickUploads(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        //selectedId = dataItem.Id;
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        Uploads(dataItem.Id, dataItem.PostedBy);
-    }
-
-    function Uploads(imageId, postedBy) {
-        var myTitle = "Uploads";
-        var width = 1000;
-        var height = 650;
-
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width
-            //height: height
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_Images", "ParIcsUpload")',
-            data: {
-                imageId: imageId,
-                postedBy: postedBy
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        //mywindow.center();
-        mywindow.open();
-        //resizeWindow();
-    }
-
-    function onClickTransfer(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        var refNo = dataItem.RefNo;
-        var refType = dataItem.RefType;
-        var myTitle = "Transfer";
-        var width = 1000;
-        
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    autoheight: true,
-                    close: function () {
-                        grid = $("#grid").data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width            
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_Transfer", "IcsParUpdate")',
-            data: {
-                refNo: refNo,
-                refType: refType
-            },
-            // Specify a callback function to execute after content is loaded
-            complete: function () {
-                // Resize the window to fit its content
-                mywindow.resize();
-                mywindow.center();
-            }
-        });
-        mywindow.open();        
-    }
-
-    // TRANSFER TEMPLATE
-    function onSelectLocationId(e) {
-        var dataItem = this.dataItem(e.item.index());
-
-        $("#LocationCode").val(dataItem.Code).trigger("change");
-        $("#Location").val(dataItem.Description).trigger("change");
-    }
-
-    function onSelectIssuedBy(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#IssuedBy").val(dataItem.Description).trigger("change");
-        $("#IssuedByPosition").val(dataItem.Desc2).trigger("change");
-        $("#IssuedDept").val(dataItem.Desc3).trigger("change");
-    }
-
-    function onSelectEmployee(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#ReceivedBy").val(dataItem.Name).trigger("change");
-        $("#ReceivedByPosition").val(dataItem.Position).trigger("change");
-        $("#ReceivedDept").val(dataItem.Department).trigger("change");
-    }
-
-    function DataEmployeeId() {
-        var text = $("#ReceivedById").data("kendoMultiColumnComboBox").text();
-        if (text == null || text == "") {
-            text = $("#ReceivedById").data("kendoMultiColumnComboBox").value();
-        }
-        return {
-            text: text
-        };
-    }
-
-    // END TRANSFER TEMPLATE
-
-
-    // GRID IMAGES
-    function GridUploadError(e) {
-        if (e.errors) {
-            $.each(e.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
-                }
-            });
-        }
-    }
-
-    var selectedGridImagesItem = null;
-    function onEditGridImages(e) {
-        e.preventDefault();
-
-        var selectedGrid = e.sender; // local, grid is popup
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            e.model.set("ImageId", '@ViewData["imageId"]');
-        } else {
-            selectedGridImagesItem = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        }
-    }
-
-    function onDataBoundGridImages(e) {
-        if (selectedGridImagesItem) {
-            var dataItem = this.dataSource.get(selectedGridImagesItem);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-    }
-
-    function onDeleteGridImages(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
-    }
-
-
-    function onClickUpload(e) {
-        var button = e.sender.element; // Use the sender's element;
-        // Retrieve the grid name from the data attribute
-        var imageId = $(button).data("imageid");
-        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId;
-        var myTitle = "Upload Images/Documents";
-        var width = 800;
-        var height = 650;
-
-        $("#windowcontainer").append("<div id='windowUpload'></div>");
-        var mywindow = $("#windowUpload")
-                .kendoWindow({
-                    actions: ["Minimize", "Maximize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-
-        mywindow.setOptions({ title: myTitle, width: width, height: height });
-        mywindow.refresh({ url: myUrl });
-        mywindow.center();
-        mywindow.open();
-
-    }
-
-    function onError(e) {
-        // invalid because the responseText is a raw string, not JSON
-        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
-        var err = e.XMLHttpRequest.responseText;
-        alert(err);
-    };
-
-    function UploadPara(e) {
-        var data = JSON.stringify({ model: $("#formUpload").serialize() });
-        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
-    }
-
-    $(document).ready(function () {
-        var previewUploadUrl = '@Url.Action("GridPreview", "ParIcsUpload")';
-
-        $(document).on("click", ".upload-photo", function () {
-            var bgImage = $(this).css("background-image");
-
-            // Extract ID from URL
-            var match = bgImage.match(/id=([^"&]+)/i); // More flexible ID extraction
-            if (match && match[1]) {
-                var myUrl = previewUploadUrl + "?id=" + match[1];
-                window.open(myUrl, "_blank");
-            } else {
-                console.log("ID not found in background-image:", bgImage);
-            }
-        });
-    });
-
-    function onClickPreview(e) {
-        var selectedGrid = this; // local, grid is popup
-
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        selectedGridImagesItem = dataItem.Id;
-
-        var myUrl = '@Url.Action("PreviewUpload", "ParIcsUpload")?id=' + selectedGridImagesItem;
-        window.open(myUrl, "_blank");
-    }
-
-    function onUploadSuccess(e)
-    {
-        $("#gridImages_").data("kendoGrid").dataSource.read();
-    }
-
-    // END GRID IMAGES
-
-    // GRID ITEMEXTNS
-    
-    // END GRID ITEMEXTNS
-
+var selectedGrid=null,selectedId=null,selectedItemId=null,selectedRecord=null,selectedGridImagesItem=null;
+function onShowNotification(e){if(e.sender.getNotifications().length===1){e.element.parent().css({zIndex:22222});}}
+function enc(v){return kendo.htmlEncode(v==null||v===""?"—":String(v));}
+function dt(v,time){if(!v){return "";}var d=v instanceof Date?v:kendo.parseDate(v);return d?kendo.toString(d,time?"MMM d, yyyy h:mm tt":"MMM d, yyyy"):"";}
+function num(v){return v==null?0:v;}
+function statusClass(v){return "status-"+(String(v||"draft").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"draft");}
+function badge(v){return "<span class='status-badge "+statusClass(v)+"'>"+enc(v||"Draft")+"</span>";}
+function recordCard(d){var s=d.TransferStatus||d.Status_||"Draft",date=dt(d.RefDate,false);return "<div class='record-card'><div class='record-top'><span class='record-number'>"+enc(d.RefNo)+"</span>"+badge(s)+"</div><div class='record-officer'>"+enc(d.ReceivedBy)+"</div><div class='record-bottom'><span>"+enc(d.LocationCode||d.Location)+(date?" · "+enc(date):"")+"</span><span>"+num(d.TransferableItemCount)+" transferable / "+num(d.ItemCount)+" items</span></div></div>";}
+function itemIdentity(d){var a=[];if(d.PropNo){a.push("Property "+enc(d.PropNo));}if(d.SerialNo){a.push("Serial "+enc(d.SerialNo));}if(d.Unit){a.push(enc(d.Unit));}return "<div class='item-title'>"+enc(d.Description)+"</div><div class='item-sub'>"+(a.length?a.join(" · "):"PO "+enc(d.PoNo))+"</div>";}
+function officerCell(d){var a=[d.AccountableOfficerPosition||d.Designation,d.AccountableOfficerDepartment].filter(function(x){return !!x;}).map(enc);return "<div class='officer-name'>"+enc(d.CurrentAccountableOfficer||d.IssuedTo)+"</div><div class='officer-sub'>"+(a.length?a.join(" · "):"No position / department supplied")+"</div>";}
+function bundleCell(d){var n=num(d.ComponentCount);return "<button type='button' class='bundle-btn js-bundle' "+(n?"":"disabled='disabled'")+">"+n+" component"+(n===1?"":"s")+"</button>";}
+function itemAction(d){if(d.CanTransfer){return "<button type='button' class='transfer-btn js-transfer-item'>Transfer</button>";}if(d.HasDraftTransfer){return "<span class='action-note'>Draft transfer exists"+(d.SuccessorRefNo?" in "+enc(d.SuccessorRefNo):"")+"</span>";}if(d.HasPostedSuccessor){return "<span class='action-note'>Transferred"+(d.SuccessorRefNo?" to "+enc(d.SuccessorRefNo):"")+"</span>";}return "<span class='action-note'>Not transferable</span>";}
+function DataGrid(){return{refType:$("#refType").data("kendoRadioGroup").value()};}
+function selectedRecordParameters(){return selectedRecord?{refNo:selectedRecord.RefNo,refType:selectedRecord.RefType}:{refNo:"",refType:DataGrid().refType};}
+function onSelectType(e){var t=$(e.target[0]).val();selectedId=selectedItemId=null;selectedRecord=null;clearDetail();$("#listTitle").text(t==="I"?"ICS records":"PAR records");$("#grid").data("kendoGrid").dataSource.read({refType:t});}
+function onChangeGrid(){var d=this.dataItem(this.select());if(!d){return;}selectedGrid=this;selectedRecord=d;selectedId=d.Id;selectedItemId=null;renderRecord(d);var g=$("#gridItems").data("kendoGrid");g.dataSource.page(1);g.dataSource.read();historyEmpty("Select an item above to load its accountability timeline.");}
+function onDataBoundGrid(e){var g=e.sender,row;if(selectedId){var d=g.dataSource.get(selectedId);if(d){row=g.tbody.find("tr[data-uid='"+d.uid+"']");}}if(!row||!row.length){row=g.tbody.find("tr:first");}$("#recordCount").text(g.dataSource.total());if(row.length){g.select(row);g.trigger("change");}else{selectedRecord=null;clearDetail();}}
+function renderRecord(d){$("#detailEmpty").addClass("hidden");$("#detailWorkspace").removeClass("hidden");$("#detailType").text((d.RefType==="P"?"PAR":"ICS")+" RECORD");$("#detailRefNo").text(d.RefNo||"—");$("#detailStatus").attr("class","status-badge "+statusClass(d.TransferStatus||d.Status_)).text(d.TransferStatus||d.Status_||"Draft");$("#detailDate").text(dt(d.RefDate,false));$("#detailOfficer").text(d.ReceivedBy||"—");$("#detailOfficerContext").text([d.ReceivedByPosition,d.ReceivedDept].filter(function(x){return !!x;}).join(" · ")||"No position / department supplied");$("#detailLocation").text([d.LocationCode,d.Location].filter(function(x){return !!x;}).join(" · ")||"—");$("#detailItemCount").text(num(d.ItemCount));$("#detailTransferCounts").text(num(d.TransferableItemCount)+" transferable · "+num(d.TransferredItemCount)+" transferred · "+num(d.DraftTransferItemCount)+" in draft");$("#detailPostedBy").text(d.PostedBy||"Not posted");$("#detailPostedDate").text(dt(d.PostedDt,true));renderActions(d);}
+function clearDetail(){$("#detailWorkspace").addClass("hidden");$("#detailEmpty").removeClass("hidden");var g=$("#gridItems").data("kendoGrid");if(g){g.dataSource.data([]);}historyEmpty("Select an item above to load its accountability timeline.");}
+function button(a,i,l,c){return "<button type='button' class='action-btn "+(c||"")+"' data-action='"+a+"'><span class='k-icon "+i+"'></span>"+enc(l)+"</button>";}
+function renderActions(d){var h=button("print","k-i-print","Print")+button("docs","k-i-attachment","Documents");if(d.PostedDt&&num(d.TransferableItemCount)>0){h+=button("transfer","k-i-copy","Transfer","primary");}if(!d.PostedDt){h+=button("post","k-i-lock",d.UpdateCode==="T"?"Post transfer":"Post");if(d.UpdateCode==="T"){h+=button("delete","k-i-delete","Delete draft","danger");}}else{h+=button("unpost","k-i-unlock",d.UpdateCode==="T"?"Unpost transfer":"Unpost");}$("#detailActions").html(h);}
+function onChangeGridItems(){var d=this.dataItem(this.select());if(d){selectedItemId=d.Id;loadHistory(d);}}
+function onDataBoundGridItems(e){var g=e.sender,row;if(selectedItemId){var d=g.dataSource.get(selectedItemId);if(d){row=g.tbody.find("tr[data-uid='"+d.uid+"']");}}if(!row||!row.length){row=g.tbody.find("tr.k-master-row:first,tr:first").first();}if(row.length){g.select(row);g.trigger("change");}else{selectedItemId=null;historyEmpty("This record has no items to display.");}}
+function componentDetailInit(e){e.detailRow.find(".component-grid").kendoGrid({sortable:true,noRecords:{template:"No component rows are registered for this item."},columns:[{field:"ItemCode",title:"Code",width:90},{field:"Description",title:"Component"},{field:"SerialNo",title:"Serial no.",width:130},{field:"Qty",title:"Qty",width:75,format:"{0:n2}"},{field:"Unit",title:"Unit",width:80},{field:"SourceType",title:"Source",width:105},{field:"IsRequiredForBundle",title:"Required for bundle",width:110,template:"#=IsRequiredForBundle ? 'Yes' : 'No'#"},{field:"Remarks",title:"Remarks",width:150}],dataSource:{transport:{read:{url:'@Url.Action("ComponentPreviewRead", "IcsParUpdate")',dataType:"json",data:{icsParItemId:e.data.Id}}},schema:{data:"Data",total:"Total"},pageSize:50}});}
+function loadHistory(item){$("#historyContext").text((item.PropNo?"Property "+item.PropNo+" · ":"")+(item.Description||"Selected item"));var c=$("#historyContent");kendo.ui.progress(c,true);$.ajax({url:'@Url.Action("AccountabilityHistoryRead", "IcsParUpdate")',data:{icsParItemId:item.Id,page:1,pageSize:100},dataType:"json",success:function(r){var rows=r&&r.Data?r.Data:[];if(!rows.length){historyEmpty("No accountability history was returned for this item.");return;}var h="<div class='timeline'>";$.each(rows,function(_,x){var sub=[x.AccountableOfficerPosition,x.AccountableOfficerDepartment].filter(function(v){return !!v;}).map(enc).join(" · ");h+="<div class='history-entry "+(x.IsCurrent?"current":"")+"'><span class='history-dot'></span><div class='history-line'><span class='history-ref'>"+enc(x.RefNo)+"</span>"+badge(x.TransferStatus)+(x.IsCurrent?"<span class='status-badge status-current'>Current</span>":"")+"</div><div class='history-officer'>"+enc(x.AccountableOfficer)+"</div><div class='history-sub'>"+(sub||"No position / department supplied")+" · "+enc(dt(x.RefDate,false))+(x.PostedBy?" · Posted by "+enc(x.PostedBy):"")+"</div></div>";});c.html(h+"</div>");},error:function(q){historyEmpty("History could not be loaded. "+requestError(q));},complete:function(){kendo.ui.progress(c,false);}});}
+function historyEmpty(m){$("#historyContent").html("<div class='history-empty'>"+enc(m)+"</div>");}
+function GridError(e){var a=[];if(e.errors){$.each(e.errors,function(_,v){if(v.errors){$.each(v.errors,function(){a.push(String(this));});}});}message(a.join(" ")||"The request could not be completed.",true);}
+function onRequestEndGrid(e){if(e.type==="destroy"&&e.response&&!e.response.Errors){selectedId=null;selectedRecord=null;message("Draft transfer deleted.",false);}}
+function message(m,error){$("#workspaceMessage").stop(true,true).attr("class","workspace-message "+(error?"error":"info")).text(m).show();if(!error){setTimeout(function(){$("#workspaceMessage").fadeOut(200);},4500);}}
+function requestError(q){return q&&q.responseJSON&&q.responseJSON.Message?q.responseJSON.Message:(q&&q.responseText?q.responseText:"Please try again.");}
+function resultError(r){return!r||!r.Errors||r.Errors===""?"":($.isArray(r.Errors)?r.Errors.join(" "):String(r.Errors));}
+function refresh(){var g=$("#grid").data("kendoGrid");if(g){g.dataSource.read();}}
+function mutate(url,d,ok){kendo.ui.progress($(document.body),true);$.ajax({type:"POST",url:url,data:{refNo:d.RefNo,refType:d.RefType},success:function(r){var x=resultError(r);if(x){message(x,true);}else{message(ok,false);refresh();}},error:function(q){message(requestError(q),true);},complete:function(){kendo.ui.progress($(document.body),false);}});}
+function postRecord(d){if(!d||d.PostedDt){message("This record is already posted.",true);return;}if(confirm("Post "+(d.UpdateCode==="T"?"draft transfer ":"")+d.RefNo+"? Its accountability changes will become official.")){mutate('@Url.Action("Post", "IcsParUpdate")',d,"Record posted successfully.");}}
+function unpostRecord(d){if(!d||!d.PostedDt){message("This record is not posted.",true);return;}if(confirm("Unpost "+d.RefNo+"? This is allowed only when no later transfer depends on it.")){mutate('@Url.Action("Unpost", "IcsParUpdate")',d,"Record unposted successfully.");}}
+function deleteDraft(d){if(!d||d.UpdateCode!=="T"||d.PostedDt){message("Only an unposted transfer draft can be deleted here. Original ICS/PAR records are protected.",true);return;}if(confirm("Delete draft transfer "+d.RefNo+"? This cannot be undone.")){var g=$("#grid").data("kendoGrid");selectedGrid=g;g.dataSource.remove(d);g.dataSource.sync();}}
+function printRecord(d){var url=d.RefType==="I"?'@Url.Action("IcsSetRpt", "IcsParRpt")?icsNo=':'@Url.Action("ParSetRpt", "IcsParRpt")?parNo=';openWindow("windowPrint","Print preview · "+d.RefNo,url+encodeURIComponent(d.RefNo),1200,700,true);}
+function openWindow(id,title,url,width,height,iframe){$("#windowcontainer").append("<div id='"+id+"'></div>");var w=$("#"+id).kendoWindow({actions:["Maximize","Minimize","Close"],resizable:true,draggable:true,modal:true,visible:false,iframe:!!iframe,deactivate:function(){this.destroy();}}).data("kendoWindow");w.setOptions({title:title,width:width,height:height});w.refresh({url:url});w.center().open();return w;}
+function Uploads(id,posted){$("#windowcontainer").append("<div id='windowDocuments'></div>");var w=$("#windowDocuments").kendoWindow({actions:["Minimize","Close"],draggable:true,modal:true,visible:false,deactivate:function(){this.destroy();}}).data("kendoWindow");w.setOptions({title:"Supporting documents",width:1000});w.refresh({url:'@Url.Action("_Images", "ParIcsUpload")',data:{imageId:id,postedBy:posted},complete:function(){w.resize();w.center();}});w.open();}
+function openTransfer(d,itemId){if(!d||!d.PostedDt){message("Post the source record before creating a transfer.",true);return;}if(num(d.TransferableItemCount)<1){message("No eligible items remain for transfer from this record.",true);return;}$("#windowcontainer").append("<div id='windowTransfer'></div>");var w=$("#windowTransfer").kendoWindow({actions:["Minimize","Close"],draggable:true,resizable:true,modal:true,visible:false,close:refresh,deactivate:function(){this.destroy();}}).data("kendoWindow");w.setOptions({title:"Create transfer · "+d.RefNo,width:1100,height:720});w.refresh({url:'@Url.Action("_Transfer", "IcsParUpdate")',data:{refNo:d.RefNo,refType:d.RefType,selectedItemId:itemId||"",sourceOfficer:d.ReceivedBy||"",sourcePosition:d.ReceivedByPosition||"",sourceDepartment:d.ReceivedDept||"",sourceLocation:d.Location||d.LocationCode||""},complete:function(){w.center();}});w.center().open();}
+function onSelectLocationId(e){var d=this.dataItem(e.item.index());$("#LocationCode").val(d.Code).trigger("change");$("#Location").val(d.Description).trigger("change");}
+function onSelectIssuedBy(e){var d=this.dataItem(e.item.index());$("#IssuedBy").val(d.Description).trigger("change");$("#IssuedByPosition").val(d.Desc2).trigger("change");$("#IssuedDept").val(d.Desc3).trigger("change");}
+function onSelectEmployee(e){var d=this.dataItem(e.item.index());$("#ReceivedBy").val(d.Name).trigger("change");$("#ReceivedByPosition").val(d.Position).trigger("change");$("#ReceivedDept").val(d.Department).trigger("change");$("#IssuedTo").val(d.Name).trigger("change");$("#Designation").val(d.Position).trigger("change");$("#toOfficer").text(d.Name||"—");$("#toPosition").text(d.Position||"—");$("#toDepartment").text(d.Department||"—");}
+function DataEmployeeId(){var c=$("#ReceivedById").data("kendoMultiColumnComboBox"),t=c?c.text():"";return{text:t||(c?c.value():"")};}
+$(document).on("click","#detailActions [data-action]",function(){if(!selectedRecord){return;}var a=$(this).data("action");if(a==="print"){printRecord(selectedRecord);}else if(a==="docs"){Uploads(selectedRecord.Id,selectedRecord.PostedBy);}else if(a==="transfer"){openTransfer(selectedRecord,null);}else if(a==="post"){postRecord(selectedRecord);}else if(a==="unpost"){unpostRecord(selectedRecord);}else if(a==="delete"){deleteDraft(selectedRecord);}});
+$(document).on("click",".js-transfer-item",function(e){e.preventDefault();e.stopPropagation();var g=$("#gridItems").data("kendoGrid"),row=$(this).closest("tr"),d=g.dataItem(row);if(d&&d.CanTransfer){g.select(row);selectedItemId=d.Id;openTransfer(selectedRecord,d.Id);}else{message("This item is not eligible for transfer.",true);}});
+$(document).on("click","#gridItems .js-bundle",function(e){e.preventDefault();e.stopPropagation();if($(this).is(":disabled")){return;}var g=$("#gridItems").data("kendoGrid"),row=$(this).closest("tr");g.select(row);g.expandRow(row);});
+function GridUploadError(e){GridError(e);}function onEditGridImages(e){if(e.model.isNew()){e.model.set("ImageId",'@ViewData["imageId"]');}else{selectedGridImagesItem=e.model.Id;}}function onDataBoundGridImages(e){var r=e.sender.tbody.find("tr:first");if(r.length){e.sender.select(r);}}function onDeleteGridImages(e){e.preventDefault();var g=e.sender,r=$(e.currentTarget).closest("tr");setTimeout(function(){g.removeRow(r);},10);}function onClickUpload(e){var id=$(e.sender.element).data("imageid");openWindow("windowUpload","Upload images/documents",'@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId='+encodeURIComponent(id),800,650,false);}function onError(e){message(e.XMLHttpRequest.responseText||"Upload failed.",true);}function UploadPara(e){e.data={imageId:$("#ImageId").val(),Description:$("#Description").val()};}function onClickPreview(e){e.preventDefault();var d=this.dataItem($(e.currentTarget).closest("tr"));window.open('@Url.Action("PreviewUpload", "ParIcsUpload")?id='+encodeURIComponent(d.Id),"_blank");}function onUploadSuccess(){var g=$("#gridImages_").data("kendoGrid");if(g){g.dataSource.read();}}
 </script>
-
-
-
-
-
-

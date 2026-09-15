@@ -4,19 +4,19 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="epsms-procurement pr-index-page">
+<div class="epsms-procurement po-wizard">
     @Html.AntiForgeryToken()
 
     <div class="header-bar">
         <div>
-            <div class="pr-breadcrumbs">
-                <span>Procurement</span> &gt;
-                <span>@(isSubmittedMode ? "Posting & Review" : "Purchase Requests")</span>
-                @if (isSubmittedMode)
-                {
-                    <span class="pr-mode-badge">Posting Queue</span>
-                }
-            </div>
+            @*<div class="pr-breadcrumbs">
+                    <span>Procurement</span> &gt;
+                    <span>@(isSubmittedMode ? "Posting & Review" : "Purchase Requests")</span>
+                    @if (isSubmittedMode)
+                    {
+                        <span class="pr-mode-badge">Posting Queue</span>
+                    }
+                </div>*@
             <h1>@(isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests")</h1>
             <p class="subtitle">
                 @(isSubmittedMode
@@ -83,7 +83,7 @@
 
     <!-- Data Card with Kendo Grid -->
     <div class="data-card">
-@(Html.Kendo().Grid<iLgs.Models.RequestVM>()
+        @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
         .Name("grid")
         .HtmlAttributes(new { @class = "pr-directory-grid" })
         .Columns(col =>
@@ -100,7 +100,7 @@
                         "</a>" +
                         "<span class='pr-ctrl-sub'>Ctrl: #= kendo.htmlEncode(CtrlNo || '-') #</span>" +
                     "</div>"
-                );            
+                );
             col.Bound(c => c.Department).Title("Department & Fund").Width(190)
                 .ClientTemplate(
                     "<div class='pr-dept-col'>" +
@@ -175,9 +175,11 @@
             .Edit("onEditGrid")
             .DataBound("onDataBoundGrid")
         )
-)
+        )
     </div>
 </div>
+
+
 
 <!-- Review PR Modal Window -->
 <div id="purchaseRequestReviewWindow" style="display:none;"></div>

@@ -5,6 +5,7 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ namespace iLgs.Services.ParIcs
 
         IQueryable<IcsParTransferItemVM> GetAllItemsForTransfer(string refNo, string refType);
         IQueryable<IcsParItemVM> GetAllItems(string refNo, string refType);
+        Task<List<IcsParAccountabilityHistoryVM>> GetAccountabilityHistoryAsync(Guid icsParItemId);
+        IQueryable<IcsParItemComponentVM> GetItemComponents(Guid icsParItemId);
 
         ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date);
@@ -168,6 +171,144 @@ namespace iLgs.Services.ParIcs
             return data;
         }
 
+        public async Task<List<IcsParAccountabilityHistoryVM>> GetAccountabilityHistoryAsync(Guid icsParItemId)
+        {
+            var selected = await _db.IcsParItems
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == icsParItemId);
+            if (selected == null || !selected.PsCardItemExtnId.HasValue)
+            {
+                throw new NotFoundException(icsParItemId);
+            }
+
+            var items = await _db.IcsParItems
+                .Include(i => i.IcsPar)
+                .Include(i => i.IcsParItemComponents)
+                .AsNoTracking()
+                .Where(i => i.PsCardItemExtnId == selected.PsCardItemExtnId)
+                .ToListAsync();
+
+            var byId = items.ToDictionary(i => i.Id);
+            IcsParItem root;
+            if (!byId.TryGetValue(selected.Id, out root))
+            {
+                throw new NotFoundException(icsParItemId);
+            }
+
+            var ancestorGuard = new HashSet<Guid>();
+            while (root.PrevItemId.HasValue && ancestorGuard.Add(root.Id))
+            {
+                IcsParItem previous;
+                if (!byId.TryGetValue(root.PrevItemId.Value, out previous))
+                {
+                    break;
+                }
+                root = previous;
+            }
+
+            var result = new List<IcsParAccountabilityHistoryVM>();
+            var visited = new HashSet<Guid>();
+            var current = root;
+            while (current != null && visited.Add(current.Id))
+            {
+                var postedSuccessors = items
+                    .Where(i => i.PrevItemId == current.Id && i.IcsPar != null && i.IcsPar.PostedDt.HasValue)
+                    .OrderBy(i => i.IcsPar.PostedDt)
+                    .ThenBy(i => i.IcsPar.RefDate)
+                    .ThenBy(i => i.Id)
+                    .ToList();
+                var draftSuccessors = items
+                    .Where(i => i.PrevItemId == current.Id && (i.IcsPar == null || !i.IcsPar.PostedDt.HasValue))
+                    .OrderBy(i => i.IcsPar == null ? null : i.IcsPar.RefDate)
+                    .ThenBy(i => i.InsertedDt)
+                    .ThenBy(i => i.Id)
+                    .ToList();
+
+                var hasPostedSuccessor = postedSuccessors.Any();
+                var hasDraftTransfer = draftSuccessors.Any();
+                var isPosted = current.IcsPar != null && current.IcsPar.PostedDt.HasValue;
+                var isCurrent = isPosted && !hasPostedSuccessor;
+
+                result.Add(new IcsParAccountabilityHistoryVM
+                {
+                    Sequence = result.Count + 1,
+                    IcsParItemId = current.Id,
+                    PrevItemId = current.PrevItemId,
+                    PsCardItemExtnId = current.PsCardItemExtnId,
+                    RefNo = current.IcsPar == null ? null : current.IcsPar.RefNo,
+                    RefDate = current.IcsPar == null ? null : current.IcsPar.RefDate,
+                    RefType = current.IcsPar == null ? null : current.IcsPar.RefType,
+                    AccountableOfficer = !string.IsNullOrWhiteSpace(current.IssuedTo) ? current.IssuedTo : (current.IcsPar == null ? null : current.IcsPar.ReceivedBy),
+                    AccountableOfficerPosition = !string.IsNullOrWhiteSpace(current.Designation) ? current.Designation : (current.IcsPar == null ? null : current.IcsPar.ReceivedByPosition),
+                    AccountableOfficerDepartment = current.IcsPar == null ? null : current.IcsPar.ReceivedDept,
+                    PostedBy = current.IcsPar == null ? null : current.IcsPar.PostedBy,
+                    PostedDt = current.IcsPar == null ? null : current.IcsPar.PostedDt,
+                    HasDraftTransfer = hasDraftTransfer,
+                    HasPostedSuccessor = hasPostedSuccessor,
+                    IsCurrent = isCurrent,
+                    ComponentCount = current.IcsParItemComponents.Count,
+                    TransferStatus = !isPosted ? "DRAFT TRANSFER" : (hasPostedSuccessor ? "TRANSFERRED" : "CURRENT")
+                });
+
+                current = postedSuccessors.FirstOrDefault() ?? draftSuccessors.FirstOrDefault();
+            }
+
+            return result;
+        }
+
+        public IQueryable<IcsParItemComponentVM> GetItemComponents(Guid icsParItemId)
+        {
+            return _db.IcsParItemComponents
+                .AsNoTracking()
+                .Where(c => c.IcsParItemId == icsParItemId)
+                .Select(c => new IcsParItemComponentVM
+                {
+                    Id = c.Id,
+                    IcsParItemId = c.IcsParItemId,
+                    PsCardSubItemId = c.PsCardSubItemId,
+                    PsCardItemExtnId = c.PsCardItemExtnId,
+
+                    ItemCode = c.PsCardSubItem.SubItemNo,
+                    Description = c.PsCardSubItem.Description,
+
+                    SerialNo =
+                        _db.PsCardItemExtns
+                            .OfType<PsCardItemExtnOther>()
+                            .Where(e =>
+                                c.PsCardItemExtnId.HasValue &&
+                                e.Id == c.PsCardItemExtnId.Value)
+                            .Select(e => e.SerialNo)
+                            .FirstOrDefault()
+
+                        ??
+
+                        _db.PsCardItemExtns
+                            .OfType<PsCardItemExtnVehicle>()
+                            .Where(e =>
+                                c.PsCardItemExtnId.HasValue &&
+                                e.Id == c.PsCardItemExtnId.Value)
+                            .Select(e => e.PlateNo ?? e.ConductionNo)
+                            .FirstOrDefault()
+
+                        ??
+
+                        _db.PsCardItemExtns
+                            .Where(e =>
+                                c.PsCardItemExtnId.HasValue &&
+                                e.Id == c.PsCardItemExtnId.Value)
+                            .Select(e => e.SeriesNo)
+                            .FirstOrDefault(),
+
+                    Qty = c.Qty,
+                    Unit = c.PsCardSubItem.Unit,
+                    SourceType = c.PsCardSubItem.SourceType,
+                    IsRequiredForBundle = c.PsCardSubItem.IsRequiredForBundle == true,
+                    Remarks = c.Remarks
+                })
+                .OrderBy(c => c.Description)
+                .ThenBy(c => c.SerialNo);
+        }
+
 
         public ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date) 
         {
@@ -216,57 +357,75 @@ namespace iLgs.Services.ParIcs
             return
         _vmExceptionService.TryCatch(async () =>
         {
-            IcsPar entity = await _db.IcsPars
-                .Include(i => i.IcsParItems)
-                .Include(i => i.IcsParUpdates)
-                //.Include(i => i.IcsParUnitGroups)
-                .FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            if (entity == null)
+            if (model == null)
             {
-                throw new NotFoundException(model.Id);
+                throw new InvalidValueException("Transfer record is required.");
             }
 
-            if (entity.UpdateCode == "N")
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                throw new RecordRelationshipException("This record was made via ICS/PAR module, cannot delete.");
+                try
+                {
+                    IcsPar entity = await _db.IcsPars
+                        .Include(i => i.IcsParItems.Select(item => item.IcsParItemComponents))
+                        .Include(i => i.IcsParUpdates)
+                        .FirstOrDefaultAsync(f => f.Id == model.Id);
+
+                    if (entity == null)
+                    {
+                        throw new NotFoundException(model.Id);
+                    }
+
+                    if (!string.Equals(entity.UpdateCode, "T", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new RecordRelationshipException("Only draft accountability transfers can be deleted from this module.");
+                    }
+
+                    ValidateIfPosted(entity);
+
+                    var itemIds = entity.IcsParItems.Select(i => i.Id).ToList();
+                    if (itemIds.Any() && await _db.IcsParItems.AnyAsync(i =>
+                        i.PrevItemId.HasValue && itemIds.Contains(i.PrevItemId.Value)))
+                    {
+                        throw new RecordRelationshipException("This transfer cannot be deleted because a later accountability transfer already exists.");
+                    }
+                    if (itemIds.Any() && await _db.PsCardItemTransferItems.AnyAsync(i =>
+                        i.IcsParItemId.HasValue && itemIds.Contains(i.IcsParItemId.Value)))
+                    {
+                        throw new RecordRelationshipException("This transfer cannot be deleted because dependent property transfer records already exist.");
+                    }
+
+                    var components = entity.IcsParItems
+                        .SelectMany(i => i.IcsParItemComponents)
+                        .ToList();
+
+                    if (components.Any())
+                    {
+                        _db.IcsParItemComponents.RemoveRange(components);
+                    }
+                    if (entity.IcsParItems.Any())
+                    {
+                        _db.IcsParItems.RemoveRange(entity.IcsParItems);
+                    }
+                    if (entity.IcsParUpdates.Any())
+                    {
+                        _db.IcsParUpdates.RemoveRange(entity.IcsParUpdates);
+                    }
+
+                    _db.IcsPars.Remove(entity);
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
-
-            ValidateIfPosted(entity);
-            ValidateUpdates(model.RefNo, model.RefType);
-
-            //foreach (var unitGroup in entity.IcsParUnitGroups)
-            //{
-            //    var unitGroupDescriptions = _db.IcsPartUnitGroupDescriptions.Include(i => i.IcsParUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroup.Id);
-            //    _db.IcsPartUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
-            //}
-
-            // Don't update PsCardItemExtn
-            //foreach (var icsParItem in entity.IcsParItems)
-            //{
-            //    var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.Id == icsParItem.PsCardItemExtnId).FirstOrDefault();
-            //    psCardItemExtn.LocationId = null;
-            //    psCardItemExtn.PropNo = null;
-            //    psCardItemExtn.PropSeq = null;
-            //    psCardItemExtn.PropYear = null;
-            //    psCardItemExtn.UpdatedBy = user;
-            //    psCardItemExtn.UpdatedDt = date;
-            //    _db.PsCardItemExtns.Attach(psCardItemExtn);
-            //    _db.Entry(psCardItemExtn).State = EntityState.Modified;
-            //}
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            await _db.SaveChangesAsync();
-
-            _db.IcsPars.Remove(entity);
-            await _db.SaveChangesAsync();
-
-            return model;
         });
         }
 
@@ -351,38 +510,254 @@ namespace iLgs.Services.ParIcs
                 throw new InvalidValueException("Field Location is required!");
             }
 
-            if (model.SelectedIds == null)
+            if (!model.RefDate.HasValue)
             {
-                throw new InvalidValueException("No selected items, cannot proceed.");
+                throw new InvalidValueException("Field Date is required!");
             }
 
             ValidateTransferFields(model);
-            //ValidateUpdates(model.RefNo, model.RefType);
+            var selectedIds = ParseSelectedIds(model.SelectedIds);
 
-            var prevIcsPar = await _db.IcsPars
-                .Include(i => i.IcsParItems)
-                //.Include(i => i.IcsParUnitGroups)
-                .FirstOrDefaultAsync(f => f.RefNo == model.PrevRefNo && f.RefType == model.RefType);
-
-            if (prevIcsPar == null)
+            if (!string.Equals(model.RefType, "P", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(model.RefType, "I", StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotFoundException(string.Format("ICS/PAR No. {0} does not exists, please verify.", model.PrevRefNo));
+                throw new InvalidValueException("One or more selected accountable properties are invalid.");
             }
+            model.RefType = model.RefType.ToUpperInvariant();
 
-            if (model.RefType == "P")
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
-                model = await TransferParAsync(prevIcsPar, model, user, date);
-            }
-            else
-            {
-                model = await TransferIcsAsync(prevIcsPar, model, user, date);
-            }
+                try
+                {
+                    var prevIcsPar = await _db.IcsPars
+                        .FirstOrDefaultAsync(f => f.RefNo == model.PrevRefNo && f.RefType == model.RefType);
 
-            return model;
+                    if (prevIcsPar == null)
+                    {
+                        throw new InvalidValueException(string.Format("Source {0} does not exist.", RefTypeDesc(model.RefType)));
+                    }
+                    if (!prevIcsPar.PostedDt.HasValue)
+                    {
+                        throw new InvalidValueException(string.Format("Source {0} is not posted.", RefTypeDesc(model.RefType)));
+                    }
+
+                    var sourceItems = await _db.IcsParItems
+                        .Include(i => i.IcsPar)
+                        .Include(i => i.PsCardItemExtn)
+                        .Include(i => i.IcsParItemComponents)
+                        .Where(i => selectedIds.Contains(i.Id))
+                        .ToListAsync();
+
+                    if (sourceItems.Count != selectedIds.Count ||
+                        sourceItems.Any(i => i.IcsParId != prevIcsPar.Id))
+                    {
+                        throw new InvalidValueException("One or more selected accountable properties are invalid or no longer available.");
+                    }
+
+                    foreach (var sourceItem in sourceItems)
+                    {
+                        if (!sourceItem.PsCardItemExtnId.HasValue || sourceItem.PsCardItemExtn == null ||
+                            sourceItem.PsCardItemExtn.PsCardSubItemId.HasValue)
+                        {
+                            throw new InvalidValueException("One or more selected accountable properties are invalid.");
+                        }
+                    }
+
+                    var successors = await _db.IcsParItems
+                        .Include(i => i.IcsPar)
+                        .Where(i => i.PrevItemId.HasValue && selectedIds.Contains(i.PrevItemId.Value))
+                        .ToListAsync();
+
+                    if (successors.Any(i => i.IcsPar != null && i.IcsPar.PostedDt.HasValue))
+                    {
+                        throw new InvalidValueException("This accountable property has already been transferred.");
+                    }
+                    if (successors.Any(i => i.IcsPar == null || !i.IcsPar.PostedDt.HasValue))
+                    {
+                        throw new InvalidValueException("A draft transfer already exists for this accountable property.");
+                    }
+
+                    if (model.RefType == "P")
+                    {
+                        model = await TransferParAsync(prevIcsPar, sourceItems, model, user, date);
+                    }
+                    else
+                    {
+                        model = await TransferIcsAsync(prevIcsPar, sourceItems, model, user, date);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         });
         }
 
-        private async ValueTask<IcsParVM> TransferParAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
+        private static List<Guid> ParseSelectedIds(string selectedIdsValue)
+        {
+            if (string.IsNullOrWhiteSpace(selectedIdsValue))
+            {
+                throw new InvalidValueException("No accountable properties were selected.");
+            }
+
+            var result = new List<Guid>();
+            var seen = new HashSet<Guid>();
+            var values = selectedIdsValue.Split(',');
+            foreach (var value in values)
+            {
+                Guid id;
+                if (string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value.Trim(), out id) ||
+                    id == Guid.Empty || !seen.Add(id))
+                {
+                    throw new InvalidValueException("One or more selected accountable properties are invalid.");
+                }
+                result.Add(id);
+            }
+
+            if (!result.Any())
+            {
+                throw new InvalidValueException("No accountable properties were selected.");
+            }
+            return result;
+        }
+
+        private static string RefTypeDesc(string refType)
+        {
+            return string.Equals(refType, "P", StringComparison.OrdinalIgnoreCase) ? "PAR" : "ICS";
+        }
+
+        private static Guid ParseSelectedId(string value)
+        {
+            Guid id;
+            if (string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value.Trim(), out id) || id == Guid.Empty)
+            {
+                throw new InvalidValueException("One or more selected accountable properties are invalid.");
+            }
+            return id;
+        }
+
+        private async ValueTask<IcsParVM> TransferParAsync(IcsPar prevIcsPar, IList<IcsParItem> sourceItems, IcsParVM model, string user, DateTime date)
+        {
+            var refNo = await _icsParSharedService.NextParNoAsync(model.RefDate.Value);
+            return CreateTransferDocument(prevIcsPar, sourceItems, model, refNo, user, date);
+        }
+
+        private async ValueTask<IcsParVM> TransferIcsAsync(IcsPar prevIcsPar, IList<IcsParItem> sourceItems, IcsParVM model, string user, DateTime date)
+        {
+            IcsValue icsValue;
+            if (prevIcsPar.RefNo.StartsWith("SPLV", StringComparison.OrdinalIgnoreCase))
+            {
+                icsValue = IcsValue.SPLV;
+            }
+            else if (prevIcsPar.RefNo.StartsWith("SPHV", StringComparison.OrdinalIgnoreCase))
+            {
+                icsValue = IcsValue.SPHV;
+            }
+            else
+            {
+                throw new InvalidValueException("The source ICS value classification could not be determined.");
+            }
+
+            var refNo = await _icsService.NextRefNoAsync(model.RefDate.Value, model.RefType, icsValue);
+            return CreateTransferDocument(prevIcsPar, sourceItems, model, refNo, user, date);
+        }
+
+        private IcsParVM CreateTransferDocument(IcsPar prevIcsPar, IList<IcsParItem> sourceItems, IcsParVM model, string refNo, string user, DateTime date)
+        {
+            model.Id = Guid.NewGuid();
+            model.RefNo = refNo;
+
+            var transfer = new IcsPar
+            {
+                Id = model.Id,
+                UpdateCode = "T",
+                LocationId = model.LocationId,
+                LocationCode = model.LocationCode,
+                Location = model.Location,
+                RefNo = refNo,
+                RefDate = model.RefDate,
+                RefType = model.RefType,
+                ReceivedById = model.ReceivedById,
+                ReceivedBy = model.ReceivedBy == null ? null : model.ReceivedBy.Trim(),
+                ReceivedByTitle = model.ReceivedByTitle == null ? null : model.ReceivedByTitle.Trim(),
+                ReceivedByTitle2 = model.ReceivedByTitle2 == null ? null : model.ReceivedByTitle2.Trim(),
+                ReceivedByPosition = model.ReceivedByPosition == null ? null : model.ReceivedByPosition.Trim(),
+                ReceivedDate = model.ReceivedDate,
+                ReceivedDept = model.ReceivedDept == null ? null : model.ReceivedDept.Trim(),
+                IssuedBy = model.IssuedBy == null ? null : model.IssuedBy.Trim(),
+                IssuedByPosition = model.IssuedByPosition == null ? null : model.IssuedByPosition.Trim(),
+                IssuedDate = model.IssuedDate,
+                IssuedDept = model.IssuedDept == null ? null : model.IssuedDept.Trim(),
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            transfer.IcsParUpdates.Add(new IcsParUpdate
+            {
+                Id = Guid.NewGuid(),
+                IcsParId = transfer.Id,
+                RefType = model.RefType,
+                PrevRefNo = prevIcsPar.RefNo,
+                Remarks = model.Remarks,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            });
+
+            foreach (var sourceItem in sourceItems)
+            {
+                var transferItem = new IcsParItem
+                {
+                    Id = Guid.NewGuid(),
+                    IcsParId = transfer.Id,
+                    PrevItemId = sourceItem.Id,
+                    PsCardItemExtnId = sourceItem.PsCardItemExtnId,
+                    Qty = sourceItem.Qty,
+                    AddCost = sourceItem.AddCost,
+                    Amount = sourceItem.Amount,
+                    IssuedTo = model.IssuedTo,
+                    Designation = model.Designation,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                foreach (var sourceComponent in sourceItem.IcsParItemComponents)
+                {
+                    transferItem.IcsParItemComponents.Add(new IcsParItemComponent
+                    {
+                        Id = Guid.NewGuid(),
+                        IcsParItemId = transferItem.Id,
+                        PsCardItemExtnId = sourceComponent.PsCardItemExtnId,
+                        PsCardSubItemId = sourceComponent.PsCardSubItemId,
+                        Qty = sourceComponent.Qty,
+                        Remarks = sourceComponent.Remarks,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    });
+                }
+
+                transfer.IcsParItems.Add(transferItem);
+            }
+
+            _db.IcsPars.Add(transfer);
+            return model;
+        }
+
+        // Retained only as historical reference; the normal transfer path above uses item lineage and component snapshots.
+        private async ValueTask<IcsParVM> LegacyTransferParAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
         {
             var refNo = await _icsParSharedService.NextParNoAsync((DateTime)model.RefDate);
             model.Id = Guid.NewGuid();
@@ -437,7 +812,7 @@ namespace iLgs.Services.ParIcs
 
             foreach (var selectedId in selectedIds)
             {
-                var gSelectedId = Guid.Parse(selectedId);
+                var gSelectedId = ParseSelectedId(selectedId);
                 var prevIcsParItem = prevIcsParItems.SingleOrDefault(f => f.Id == gSelectedId);
                 var psCardItemExtn = await _db.PsCardItemExtns.FirstOrDefaultAsync(f => f.Id == prevIcsParItem.PsCardItemExtnId);
                 var icsParItem = new IcsParItem()
@@ -583,7 +958,7 @@ namespace iLgs.Services.ParIcs
         /*
          * Transfer the ICS based on the original group value.
          */
-        private async ValueTask<IcsParVM> TransferIcsAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
+        private async ValueTask<IcsParVM> LegacyTransferIcsAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
         {
             var prevIcsParItems = prevIcsPar.IcsParItems;
             var selectedItemIds = model.SelectedIds.Split(','); // items to transfer                        
@@ -593,7 +968,7 @@ namespace iLgs.Services.ParIcs
                 var transferItemList = new List<IcsParItem>();
                 foreach (var selectedItemId in selectedItemIds)
                 {
-                    var gSelectedItemId = Guid.Parse(selectedItemId);
+                    var gSelectedItemId = ParseSelectedId(selectedItemId);
                     IcsParItem item = null;
 
                     /*
@@ -824,7 +1199,7 @@ namespace iLgs.Services.ParIcs
                 var transferItemList = new List<IcsParItem>();
                 foreach (var selectedItemId in selectedItemIds)
                 {
-                    var gSelectedItemId = Guid.Parse(selectedItemId);
+                    var gSelectedItemId = ParseSelectedId(selectedItemId);
                     IcsParItem individualItem = null;
                     IcsParItem groupItem1 = null;
                     IcsParItem groupItem2 = null;

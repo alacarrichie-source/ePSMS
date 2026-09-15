@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using System.Data.Entity;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Validators;
@@ -49,9 +50,24 @@ namespace iLgs.Services.PropertyCard
             ValidateIfPosted(model);
 
             // check in Par/Ics
-            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.Id))
+            var icsParItem = _db.IcsParItems.Include(a => a.IcsPar).FirstOrDefault(a => a.PsCardItemExtnId == model.Id);
+            if (icsParItem != null)
             {
-                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+                var doc = icsParItem.IcsPar != null ? (icsParItem.IcsPar.RefType + " No. " + icsParItem.IcsPar.RefNo) : "an existing PAR/ICS record";
+                throw new RecordAlreadyExistsException("This physical unit cannot be deleted because it is already referenced by " + doc + ".");
+            }
+
+            var compItem = _db.IcsParItemComponents.Include(a => a.IcsParItem.IcsPar).FirstOrDefault(a => a.PsCardItemExtnId == model.Id);
+            if (compItem != null)
+            {
+                var doc = compItem.IcsParItem != null && compItem.IcsParItem.IcsPar != null ? (compItem.IcsParItem.IcsPar.RefType + " No. " + compItem.IcsParItem.IcsPar.RefNo) : "an existing PAR/ICS bundle";
+                throw new RecordAlreadyExistsException("This component unit cannot be deleted because it is assigned to " + doc + ".");
+            }
+
+            var extn = _db.PsCardItemExtns.Find(model.Id);
+            if (extn != null && extn.AIRItemExtnId != null)
+            {
+                throw new RecordRelationshipException("This physical unit was generated from an AIR inspection and cannot be deleted here.");
             }
 
             var transfer = _db.PsCardItemTransferItems.AsNoTracking()

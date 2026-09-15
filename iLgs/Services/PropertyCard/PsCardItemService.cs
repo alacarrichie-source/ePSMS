@@ -487,6 +487,25 @@ namespace iLgs.Services.PropertyCard
 
             MapModelToEntityFields(entity, model, Mode.ADD, isAdmin);
 
+            if (!string.IsNullOrWhiteSpace(model.PoNo))
+            {
+                if (!(await _db.PsCardRefNos.AnyAsync(a => a.RefType == "PO" && a.RefNo == model.PoNo && a.RefDate == model.PoDate && a.DepId == model.DeptId)))
+                {
+                    var psCardRefNo = new PsCardRefNo
+                    {
+                        Id = Guid.NewGuid(),
+                        RefType = "PO",
+                        RefNo = model.PoNo,
+                        RefDate = model.PoDate,
+                        DepId = model.DeptId,
+                        InsertedBy = user,
+                        InsertedDt = date
+                    };
+
+                    _db.PsCardRefNos.Add(psCardRefNo);
+                }
+            }
+
             _db.PsCardItems.Add(entity);
             await _db.SaveChangesAsync();
 
@@ -684,7 +703,26 @@ namespace iLgs.Services.PropertyCard
                 entity.LocationId = model.LocationId;
                 entity.TranType = model.TranType;
                 entity.UpdatedBy = model.UpdatedBy;
-                entity.UpdatedDt = model.UpdatedDt;                
+                entity.UpdatedDt = model.UpdatedDt;
+
+                if (!string.IsNullOrWhiteSpace(model.PoNo))
+                {
+                    if (!(await _db.PsCardRefNos.AnyAsync(a => a.RefType == "PO" && a.RefNo == model.PoNo && a.RefDate == model.PoDate && a.DepId == model.DeptId)))
+                    {
+                        var psCardRefNo = new PsCardRefNo
+                        {
+                            Id = Guid.NewGuid(),
+                            RefType = "PO",
+                            RefNo = model.PoNo,
+                            RefDate = model.PoDate,
+                            DepId = model.DeptId,
+                            InsertedBy = user,
+                            InsertedDt = date
+                        };
+
+                        _db.PsCardRefNos.Add(psCardRefNo);
+                    }
+                }
 
                 await _db.SaveChangesAsync();
                 await _psCardItemTransferService.UpdatePsCardItemTransfer(model.TransferId, user, date);
@@ -958,6 +996,19 @@ namespace iLgs.Services.PropertyCard
             ValidateRecord(entity);
             ValidateIfPosted(entity);
 
+            if ((entity.Qty ?? 0) <= 0)
+            {
+                throw new InvalidOperationException("Cannot post an acquisition with zero or negative quantity.");
+            }
+            if ((entity.QtyBal ?? 0) < 0)
+            {
+                throw new InvalidOperationException("Cannot post an acquisition with a negative balance.");
+            }
+            if ((entity.QtyIss ?? 0) > (entity.Qty ?? 0))
+            {
+                throw new InvalidOperationException("Issued quantity cannot exceed received quantity.");
+            }
+
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
@@ -974,6 +1025,48 @@ namespace iLgs.Services.PropertyCard
             var entity = await _db.PsCardItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfNotPosted(entity);
+
+            // AIR-generated acquisition protection: AIR owns the source lifecycle.
+            if (entity.AIRItemId != null || !string.IsNullOrWhiteSpace(entity.AirNo) || (entity.OrderItemRequestId != null && entity.TranType == "A"))
+            {
+                throw new InvalidOperationException("This acquisition was generated from an AIR inspection and cannot be independently unposted from Property Card. Source reversal must be performed through the AIR module.");
+            }
+
+            // Check if any physical units belonging to this acquisition have ICS/PAR accountability records
+            var icsPars = await _db.IcsParItems.AsNoTracking()
+                .Where(x => x.PsCardItemExtn.PsCardItemId == id)
+                .Select(x => (x.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (icsPars.Any())
+            {
+                throw new InvalidOperationException($"This acquisition cannot be unposted because one or more units already have accountability records ({string.Join(", ", icsPars)}).");
+            }
+
+            // Check if any components belonging to this acquisition have ICS/PAR accountability records
+            var compIcsPars = await _db.IcsParItemComponents.AsNoTracking()
+                .Where(x => (x.PsCardSubItem.PsCardItemId == id || x.PsCardItemExtn.PsCardItemId == id))
+                .Select(x => (x.IcsParItem.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsParItem.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (compIcsPars.Any())
+            {
+                throw new InvalidOperationException($"This acquisition cannot be unposted because components are assigned to accountability records ({string.Join(", ", compIcsPars)}).");
+            }
+
+            // Check if any transfers or issuances exist
+            if (await _db.PsCardItemTransfers.AnyAsync(a => a.PsCardItemId == id && a.ParentId != null))
+            {
+                throw new InvalidOperationException("This acquisition has been transferred to another department/location and cannot be unposted.");
+            }
+            if (await _db.PsCardItemTransferIssuances.AnyAsync(a => a.PsCardItemTransfer.PsCardItemId == id))
+            {
+                throw new InvalidOperationException("This acquisition has issued items and cannot be unposted.");
+            }
+            if ((entity.QtyIss ?? 0) > 0)
+            {
+                throw new InvalidOperationException("This acquisition has issued quantity and cannot be unposted.");
+            }
 
             entity.PostedBy = "";
             entity.PostedDt = null;
@@ -1120,7 +1213,8 @@ namespace iLgs.Services.PropertyCard
 
         private void ValidateRelationship(PsCardItemVM model)
         {
-            if (model.OrderItemRequestId != null && model.ParentId == null)
+            //if ((model.AIRItemId != null || !string.IsNullOrWhiteSpace(model.AirNo) || model.OrderItemRequestId != null) && model.ParentId == null)
+            if (model.OrderItemRequestId != null)
             {
                 throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
             }

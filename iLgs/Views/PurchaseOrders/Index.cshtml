@@ -4,7 +4,7 @@
 
 @{
     ViewBag.Title = "Purchase Orders";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 
     var printUrl = Url.Action("PrintPO", "PurchaseOrders");
     var pdfUrl = Url.Action("DownloadPdf", "PurchaseOrders");
@@ -14,11 +14,11 @@
 <div class="epsms-procurement po-wizard">
     @Html.AntiForgeryToken()
     <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
+    @*<div class="breadcrumbs">
         <a href="@Url.Action("Index", "Home")">Home</a> &gt;
         <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
         <span>Purchase Orders</span>
-    </div>
+    </div>*@
 
     <!-- Header Bar -->
     <div class="header-bar">

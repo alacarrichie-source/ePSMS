@@ -4,10 +4,11 @@
 
 @{
     var airGroup = ViewBag.AirGroup != null ? (int)ViewBag.AirGroup : (int)iLgs.Models.Enums.AirGroup.INSPECTION;
+    var isInspection = airGroup == (int)iLgs.Models.Enums.AirGroup.INSPECTION;
     var isAcceptance = airGroup == (int)iLgs.Models.Enums.AirGroup.ACCEPTANCE;
 
     ViewBag.Title = isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 
     var resumeDraftUrl = Url.Action("Wizard", "AIRs");
     var acceptanceWizardUrl = Url.Action("AcceptanceWizard", "AIRs");
@@ -48,7 +49,7 @@
                 "# } #" +
             "</div>";
     }
-    else
+    else if (isInspection)
     {
         actionButtonsTemplate =
             "<div class='grid-action-buttons'>" +
@@ -83,6 +84,23 @@
                 "# } #" +
             "</div>";
     }
+    else
+    {
+        actionButtonsTemplate =
+            "<div class='grid-action-buttons'>" +                
+                "# if (typeof OverallStatus !== 'undefined' && OverallStatus == 'Submitted for Acceptance') { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +                    
+                "# } else { #" +
+                    "<button type='button' class='btn-procurement-secondary btn-sm' onclick=\"openAirDetails('#=Id#')\" title='View Inspection'><span class='k-icon k-i-eye'></span> View Inspection</button>" +
+                    "# if (typeof CanViewAcceptance !== 'undefined' && CanViewAcceptance) { #" +
+                        "<a class='btn-procurement-secondary btn-sm' href='" + viewAcceptanceUrl + "?id=#=Id#' title='View Acceptance'><span class='k-icon k-i-preview'></span> View Acceptance</a>" +
+                    "# } #" +                                        
+                    "# if (typeof CanPrint !== 'undefined' && CanPrint) { #" +
+                        "<a class='btn-procurement-secondary btn-sm' href='" + printUrl + "?ctrlNo=#= (typeof CtrlNo !== 'undefined' && CtrlNo) ? CtrlNo : \"\" #' target='_blank' title='Print AIR Report'><span class='k-icon k-i-print'></span> Print</a>" +
+                    "# } #" +
+                "# } #" +
+            "</div>";
+    }
 }
 
 <style type="text/css">
@@ -94,13 +112,16 @@
 </style>
 <div class="epsms-procurement po-wizard">
     @Html.AntiForgeryToken()
-
+    
     <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
-        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
-        <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
-        <span>@(isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports (AIR)")</span>
-    </div>
+    @if (isAcceptance || isInspection)
+    {
+        <div class="breadcrumbs">
+            <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+            <a href="@Url.Action("Index", "AIRs")">AIR Masterlist</a> &gt;
+            <span>@(isAcceptance ? "AIR Acceptance" : "Acceptance & Inspection Reports (AIR)")</span>
+        </div>
+    }
 
     <!-- Header Bar -->
     <div class="header-bar">
@@ -114,11 +135,17 @@
                 <a href="@Url.Action("Wizard", "AIRs")" class="k-button k-button-solid-primary k-rounded-md">
                     <span class="k-icon k-i-check-outline"></span> Inspect Orders
                 </a>
-            </div>
+                @if (!isInspection)
+                {
+                    <a href="@Url.Action("Acceptance", "AIRs")" class="k-button k-button-solid-primary k-rounded-md">
+                        <span class="k-icon k-i-check-outline"></span> Accept Orders
+                    </a>
+                }
+            </div>                  
         }
     </div>
 
-    @if (!isAcceptance)
+    @if (isInspection)
     {
         <!-- My Drafts Card -->
         <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">

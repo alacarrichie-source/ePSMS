@@ -141,19 +141,35 @@ namespace iLgs.Controllers
         public ActionResult WorkspaceDocuments(Guid id, Guid imageId)
         {
             if (!IsWorkspaceCard(id)) return HttpNotFound();
-            var unit = _db.PsCardItemExtns.Where(x => x.Id == imageId && x.PsCardItem.PsCardId == id).Select(x => x.PsCardItemId).FirstOrDefault();
-            var acquisition = _db.PsCardItems.Where(x => x.PsCardId == id && (x.Id == imageId || x.GroupId == imageId)).Select(x => (Guid?)x.Id).FirstOrDefault();
-            if (!unit.HasValue && !acquisition.HasValue) return HttpNotFound();
+            // 1. Check if imageId is a specific physical unit
+            var unitExtn = _db.PsCardItemExtns.Where(x => x.Id == imageId && x.PsCardItem.PsCardId == id).Select(x => new { x.Id, x.PsCardItemId, x.PropNo, x.CustItemNo, x.PsCardItem.PoNo }).FirstOrDefault();
+            if (unitExtn != null)
+            {
+                ViewData["imageId"] = imageId;
+                ViewData["psCardItemId"] = unitExtn.PsCardItemId;
+                ViewData["scopeLabel"] = (unitExtn.PoNo ?? "No PO") + " / " + (unitExtn.PropNo ?? unitExtn.CustItemNo ?? "Unnumbered unit");
+                return PartialView("_WorkspaceDocumentScope");
+            }
+
+            // 2. Check if imageId is an exact acquisition Id
+            var acquisition = _db.PsCardItems.Where(x => x.PsCardId == id && x.Id == imageId).Select(x => new { x.Id, x.PoNo }).FirstOrDefault();
+            // 3. Fallback: check GroupId if not matched by exact Id
+            if (acquisition == null)
+            {
+                acquisition = _db.PsCardItems.Where(x => x.PsCardId == id && x.GroupId == imageId).OrderBy(x => x.PoNo).Select(x => new { x.Id, x.PoNo }).FirstOrDefault();
+            }
+
+            if (acquisition == null) return HttpNotFound();
+
             ViewData["imageId"] = imageId;
-            ViewData["psCardItemId"] = unit ?? acquisition;
-            ViewData["scopeLabel"] = unit.HasValue
-                ? WorkspaceService().Units(id).Where(x => x.Id == imageId).Select(x => x.Label).FirstOrDefault()
-                : "Acquisition / " + _db.PsCardItems.Where(x => x.Id == acquisition.Value).Select(x => x.PoNo).FirstOrDefault();
+            ViewData["psCardItemId"] = acquisition.Id;
+            ViewData["scopeLabel"] = "Acquisition / " + (acquisition.PoNo ?? "No PO");
             return PartialView("_WorkspaceDocumentScope");
         }
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, string userName)
         {
-            var data = _propertyCardService.GetAll(userName);
+            // Use GetAllFiltered to get PropertyCardVM results with optional encoder filter.
+            var data = _propertyCardService.GetAllFiltered(userName);
 
             var result = new JsonNetResult
             {
@@ -446,7 +462,13 @@ namespace iLgs.Controllers
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
 
-                var entity = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
+                if (model == null)
+                {
+                    ModelState.AddModelError("", "Invalid acquisition data.");
+                    return Json(new { Errors = new[] { "Invalid acquisition data." } }, JsonRequestBehavior.DenyGet);
+                }
+
+                var entity = model.Id != Guid.Empty ? await _propertyCardService.PsCardItem.GetByIdAsync(model.Id) : null;
                 if (entity == null)
                 {
                     if (!access.AllowAdd)
@@ -826,6 +848,52 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
             rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+
+        /// <summary>
+        /// Prints the PO (acquisition) report for a given PsCardItem (acquisition record).
+        /// Mirrors the same action in StockCardController, using the same Crystal Report.
+        /// </summary>
+        public async Task<ActionResult> StockCardPoRpt(Guid? selectedItemId, int originalSw)
+        {
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+            string rptKey = ConfigurationManager.AppSettings["RptKey"];
+            string un = decoder.UserID;
+            string pw = rptKey;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Card_Po_.rpt"));
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+
+            rpt.Load();
+            rpt.Refresh();
+
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                logonInfo.ConnectionInfo.IntegratedSecurity = false;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            var cardItem = await _propertyCardService.PsCardItem.GetByIdAsync(selectedItemId);
+            var poNo = cardItem?.PoNo;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description ?? "";
+
+            rpt.SetParameterValue("@cPoNo", poNo);
+            rpt.SetParameterValue("LGU", lgu);
+            rpt.SetParameterValue("IsOriginal", originalSw == 1);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
@@ -1350,8 +1418,10 @@ namespace iLgs.Controllers
         #region AJAX CALLS
         [HttpPost]
         public async Task<ActionResult> GetItemExtnTemplate(Guid? id)
-        {            
+        {
+            if (!id.HasValue) return Json(new { Errors = "Invalid ID" }, JsonRequestBehavior.AllowGet);
             var itemTransfer = await _propertyCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(id);
+            if (itemTransfer == null) return Json(new { Errors = "Transfer not found" }, JsonRequestBehavior.AllowGet);
             string itemExtnName = _propertyCardService.GetItemExtnName(itemTransfer.PsCardItemId);
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName, ItemTransfer = itemTransfer }, JsonRequestBehavior.AllowGet);
@@ -1433,6 +1503,106 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     await _propertyCardService.PsCardItem.UnpostAsync(psCardItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostRecord(Guid psCardId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _propertyCardService.PostAsync(psCardId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostRecord(Guid psCardId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _propertyCardService.UnpostAsync(psCardId, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
