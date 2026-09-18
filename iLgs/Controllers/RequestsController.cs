@@ -208,7 +208,9 @@ namespace iLgs.Controllers
                     x.Status,
                     x.Department,
                     x.PostedBy,
-                    x.SubmittedBy
+                    x.PostedDt,
+                    x.SubmittedBy,
+                    x.SubmittedDt
                 }).ToListAsync();
 
                 int draftCount = 0;
@@ -222,12 +224,22 @@ namespace iLgs.Controllers
 
                 foreach (var item in items)
                 {
-                    var st = NormalizePrStatus(item.Status);
-                    if (string.IsNullOrWhiteSpace(st))
+                    string st;
+                    if (!string.IsNullOrWhiteSpace(item.Status))
                     {
-                        if (!string.IsNullOrWhiteSpace(item.PostedBy)) st = PrStatuses.Posted;
-                        else if (!string.IsNullOrWhiteSpace(item.SubmittedBy)) st = PrStatuses.Submitted;
-                        else st = PrStatuses.Draft;
+                        st = NormalizePrStatus(item.Status);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(item.PostedBy) || item.PostedDt.HasValue)
+                    {
+                        st = PrStatuses.Posted;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(item.SubmittedBy) || item.SubmittedDt.HasValue)
+                    {
+                        st = PrStatuses.Submitted;
+                    }
+                    else
+                    {
+                        st = PrStatuses.Draft;
                     }
 
                     if (string.Equals(st, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase)) draftCount++;

@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.CartViewModel
+@model iLgs.Models.CartViewModel
 @using Kendo.Mvc.UI
 
 @{
@@ -42,7 +42,7 @@
         {
             <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="@Url.Action("Annual")">Annual Procurement</a>
+            <a href="@(Model.IsRevision ? Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }) : Url.Action("Annual", "Procurement"))">Annual Procurement</a>
             <span class="breadcrumb-separator">&gt;</span>
             <span>My Cart</span>
         }
@@ -82,7 +82,7 @@
             }
             else if (Model.IsRevision)
             {
-                <a class="k-button btn-secondary-action" href="@Url.Action("Annual", "Procurement", new { requestId = Model.RequestId })">
+                <a class="k-button btn-secondary-action" href="@Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })">
                     <span class="k-icon k-i-arrow-left"></span> Add More Items
                 </a>
             }
@@ -129,7 +129,7 @@
             <p><b>Reviewer Comment:</b> @(String.IsNullOrWhiteSpace(Model.ReviewComment) ? "No comment was recorded." : Model.ReviewComment)</p>
         </div>
         <div class="pr-revision-toolbar">
-            <a class="k-button k-button-solid-base" href="@Url.Action("Annual", "Procurement", new { requestId = Model.RequestId })"><span class="k-icon k-i-plus"></span> Add More Items</a>
+            <a class="k-button k-button-solid-base" href="@Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })"><span class="k-icon k-i-plus"></span> Add More Items</a>
             <span>Cart changes are saved automatically for this session.</span>
         </div>
     }
@@ -150,16 +150,14 @@
             columns.Bound(x => x.Description)
                 .HtmlAttributes(new { @class = "cart-multiline-description" });
             columns.Bound(x => x.Unit)
-                .Width(95)
-                .Editor("cartItemUnitEditor");
+                .Width(95);
             columns.Bound(x => x.Quantity)
                 .Width(110)
                 .Title("Quantity");
             columns.Bound(x => x.UnitCost)
                 .Title("Unit Cost")
                 .Width(130)
-                .ClientTemplate("#= renderCartUnitCost(data) #")
-                .Editor("cartItemUnitCostEditor");
+                .ClientTemplate("#= renderCartUnitCost(data) #");
             columns.Bound(x => x.EstimatedAmount)
                 .Title("Est. Amount")
                 .Width(140)
@@ -638,7 +636,7 @@
                 else if (Model.IsAdminEdit)
                 {
                     <text>
-                    #adminEditCartCountBadge.text(
+                    $("#adminEditCartCountBadge").text(
                         "Admin Edit Cart: " + result.itemCount + (result.itemCount === 1 ? " item" : " items")
                     );
                     </text>
@@ -683,11 +681,64 @@
             }
 
             if (isAdminEditMode) {
-                var unitCostInput = e.container
+                var unitInput = e.container.find("input[name='Unit']");
+                if (unitInput.length && !unitInput.data("kendoMultiColumnComboBox")) {
+                    unitInput.kendoMultiColumnComboBox({
+                        placeholder: "Select unit",
+                        dataTextField: "Code",
+                        dataValueField: "Code",
+                        valuePrimitive: true,
+                        filter: "contains",
+                        autoBind: false,
+                        suggest: true,
+                        dataSource: {
+                            transport: {
+                                read: {
+                                    url: cartSubItemUrls.units,
+                                    dataType: "json",
+                                    data: function () {
+                                        var widget = unitInput.data("kendoMultiColumnComboBox");
+                                        return {
+                                            text: widget ? widget.input.val() : ""
+                                        };
+                                    }
+                                }
+                            },
+                            serverFiltering: true
+                        },
+                        columns: [
+                            { field: "Code", title: "Code", width: 100 },
+                            {
+                                field: "Description",
+                                title: "Description",
+                                width: 220,
+                                template: "#= columnTemplate(data.Description) #"
+                            },
+                            {
+                                field: "Desc2",
+                                title: "Category",
+                                width: 180,
+                                template: "#= columnTemplate(data.Desc2) #"
+                            }
+                        ]
+                    });
+                }
+
+                var unitCostWidget = e.container
                     .find("input[name='UnitCost']")
                     .data("kendoNumericTextBox");
-                if (unitCostInput) {
-                    unitCostInput.min(0.01);
+                if (unitCostWidget) {
+                    unitCostWidget.min(0.01);
+                } else {
+                    var unitCostInput = e.container.find("input[name='UnitCost']");
+                    if (unitCostInput.length) {
+                        unitCostInput.kendoNumericTextBox({
+                            format: "n2",
+                            decimals: 2,
+                            min: 0.01,
+                            placeholder: "0.00"
+                        });
+                    }
                 }
             }
         }

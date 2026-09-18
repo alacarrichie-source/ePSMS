@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PurchaseRequestViewModel
+@model iLgs.Models.PurchaseRequestViewModel
 @using System.Collections.Generic
 @using System.Globalization
 @using Kendo.Mvc.UI
@@ -556,17 +556,6 @@
                 }
             });
         });
-
-        $("#postAfterAdminEdit").change(function () {
-            if ($(this).is(":checked")) {
-                $("#adminEditPostingFields").slideDown();
-            } else {
-                $("#adminEditPostingFields").slideUp();
-            }
-        });
-        if ($("#postAfterAdminEdit").is(":checked")) {
-            $("#adminEditPostingFields").show();
-        }
 
         $("#postAfterAdminEdit").change(function () {
             if ($(this).is(":checked")) {

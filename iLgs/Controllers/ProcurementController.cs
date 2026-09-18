@@ -1,4 +1,4 @@
-﻿using iLgs.Ai.Services;
+using iLgs.Ai.Services;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.PPMP_;
@@ -45,7 +45,7 @@ namespace iLgs.Controllers
             public string SearchText { get; set; }
         }
 
-        public async Task<ActionResult> Annual(int? fiscalYear, Guid? department, string category, string searchText)
+        public async Task<ActionResult> Annual(int? fiscalYear, Guid? department, string category, string searchText, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
@@ -54,36 +54,56 @@ namespace iLgs.Controllers
                 return new HttpStatusCodeResult(403, "Access to Procurement and Purchase Requests is denied.");
             }
 
-            var activeCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
-            var hasIncomingFilters =
-                Request.QueryString["fiscalYear"] != null ||
-                Request.QueryString["department"] != null ||
-                Request.QueryString["category"] != null ||
-                Request.QueryString["searchText"] != null;
-            var savedFilter = Session[AnnualFilterSessionKey] as AnnualFilterState;
+            var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
+            CartViewModel activeCart;
 
-            if (!hasIncomingFilters && savedFilter != null)
+            if (isRevision)
             {
-                fiscalYear = savedFilter.FiscalYear;
-                department = savedFilter.Department;
-                category = savedFilter.Category;
-                searchText = savedFilter.SearchText;
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    TempData["Error"] = "A valid Purchase Request is required to revise items.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                var revisionCartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId.Value);
+                if (revisionCartEntity == null)
+                {
+                    TempData["Error"] = "The revision session for this Purchase Request was not found or is no longer active.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                activeCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Revision, requestId.Value);
+                if (!CanWriteRevisionCart(activeCart))
+                {
+                    TempData["Error"] = "This Purchase Request is no longer available for revision.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                fiscalYear = activeCart.FiscalYear;
+                department = activeCart.DepartmentId;
+            }
+            else
+            {
+                activeCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
+                var hasIncomingFilters =
+                    Request.QueryString["fiscalYear"] != null ||
+                    Request.QueryString["department"] != null ||
+                    Request.QueryString["category"] != null ||
+                    Request.QueryString["searchText"] != null;
+                var savedFilter = Session[AnnualFilterSessionKey] as AnnualFilterState;
+
+                if (!hasIncomingFilters && savedFilter != null)
+                {
+                    fiscalYear = savedFilter.FiscalYear;
+                    department = savedFilter.Department;
+                    category = savedFilter.Category;
+                    searchText = savedFilter.SearchText;
+                }
             }
 
             var departments = (await _codextnService.GetUserDepartmentsAsync(userId))
                 .OrderBy(x => x.Code)
                 .ToList();
-
-            if (activeCart.IsRevision)
-            {
-                if (!CanWriteRevisionCart(activeCart))
-                {
-                    await _cartService.ClearCartAsync(userId, User.Identity.Name, CartModes.Revision, activeCart.RequestId);
-                    return RedirectToAction("Index", "Requests");
-                }
-                fiscalYear = activeCart.FiscalYear;
-                department = activeCart.DepartmentId;
-            }
 
             if (!departments.Any())
             {
@@ -213,7 +233,7 @@ namespace iLgs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddToCart(Guid id)
+        public async Task<ActionResult> AddToCart(Guid id, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
@@ -223,14 +243,38 @@ namespace iLgs.Controllers
                 return Json(new { success = false, message = "Add to cart access denied." });
             }
 
-            var cart = await _cartService.GetActiveCartViewModelAsync(userId);
-            if (cart.IsAdminEdit)
+            var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
+            CartViewModel cart;
+
+            if (isRevision)
             {
-                return Json(new { success = false, message = "New procurement items cannot be added while performing an administrative PR edit." });
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { success = false, message = "A valid Purchase Request is required for revision." });
+                }
+
+                var revisionCartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId.Value);
+                if (revisionCartEntity == null)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { success = false, message = "The revision cart for this Purchase Request is no longer active." });
+                }
+
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Revision, requestId.Value);
+                if (!CanWriteRevisionCart(cart))
+                {
+                    Response.StatusCode = 403;
+                    return Json(new { success = false, message = "This Purchase Request is no longer available for revision." });
+                }
             }
-            if (!CanWriteRevisionCart(cart))
+            else
             {
-                return Json(new { success = false, message = "This Purchase Request is no longer available for revision." });
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
+                if (cart.IsAdminEdit)
+                {
+                    return Json(new { success = false, message = "New procurement items cannot be added while performing an administrative PR edit." });
+                }
             }
 
             var item = await _ppmpService.PPMPItem.GetByIdAsync(id);
@@ -245,13 +289,16 @@ namespace iLgs.Controllers
 
             var filter = Session[AnnualFilterSessionKey] as AnnualFilterState;
             var departments = await GetAuthorizedDepartmentsAsync();
-            if (filter == null ||
-                !filter.Department.HasValue ||
-                !filter.FiscalYear.HasValue ||
-                !departments.Any(x => x.Id == filter.Department.Value) ||
+
+            var targetDept = isRevision ? cart.DepartmentId : (filter != null ? filter.Department : null);
+            var targetYear = isRevision ? cart.FiscalYear : (filter != null ? filter.FiscalYear : null);
+
+            if (!targetDept.HasValue ||
+                !targetYear.HasValue ||
+                !departments.Any(x => x.Id == targetDept.Value) ||
                 item.PPMP == null ||
-                item.PPMP.DeptId != filter.Department ||
-                item.PPMP.ForYear != filter.FiscalYear)
+                item.PPMP.DeptId != targetDept ||
+                item.PPMP.ForYear != targetYear)
             {
                 Response.StatusCode = 403;
                 return Json(new
@@ -262,7 +309,7 @@ namespace iLgs.Controllers
             }
 
             if (cart.Items.Any() &&
-                (cart.DepartmentId != filter.Department || cart.FiscalYear != filter.FiscalYear))
+                (cart.DepartmentId != targetDept || cart.FiscalYear != targetYear))
             {
                 return Json(new
                 {
@@ -284,7 +331,9 @@ namespace iLgs.Controllers
 
             try
             {
-                var updatedCart = await _cartService.AddItemAsync(userId, id, User.Identity.Name, filter.Department, filter.FiscalYear);
+                var targetMode = isRevision ? CartModes.Revision : CartModes.Normal;
+                var targetRequestId = isRevision ? requestId : null;
+                var updatedCart = await _cartService.AddItemAsync(userId, id, User.Identity.Name, targetDept, targetYear, targetMode, targetRequestId);
                 return Json(new
                 {
                     success = true,

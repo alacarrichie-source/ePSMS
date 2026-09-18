@@ -1,4 +1,4 @@
-﻿using iLgs.Ai.Services;
+using iLgs.Ai.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
@@ -675,6 +675,13 @@ namespace iLgs.Services.PurchaseRequest
                         .Include(x => x.PPMPItemUsages)
                         .Where(x => ppmpIds.Contains(x.Id)).ToListAsync();
 
+                    var validUnitCodes = new HashSet<string>(
+                        await _db.Codextns
+                            .Where(c => c.CodeMast.Code == "UNIT")
+                            .Select(c => c.Code.Trim())
+                            .ToListAsync(),
+                        StringComparer.OrdinalIgnoreCase);
+
                     // Reconcile and validate each item
                     foreach (var item in model.Items)
                     {
@@ -685,6 +692,31 @@ namespace iLgs.Services.PurchaseRequest
                         if (newQty <= 0)
                         {
                             throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " quantity must be greater than zero.");
+                        }
+
+                        if (string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " requires a description.");
+                        }
+
+                        if (string.IsNullOrWhiteSpace(item.Unit))
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " requires a unit.");
+                        }
+
+                        if (!validUnitCodes.Contains(item.Unit.Trim()))
+                        {
+                            throw new InvalidOperationException(string.Format("Unit '{0}' for item '{1}' is not recognized.", item.Unit, item.Code ?? requestItem.PpmpCode));
+                        }
+
+                        if (!item.UnitCost.HasValue || item.UnitCost.Value <= 0)
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " must have a unit cost greater than zero.");
+                        }
+
+                        if (requestItem.PpmpItemId.HasValue && requestItem.PpmpItemId.Value != item.Id)
+                        {
+                            throw new InvalidOperationException(string.Format("PPMP Item identity for item '{0}' has been modified.", item.Code ?? requestItem.PpmpCode));
                         }
 
                         if (requestItem.PpmpItemId.HasValue)
@@ -703,16 +735,6 @@ namespace iLgs.Services.PurchaseRequest
                                         item.Code ?? ppmpItem.Code, newQty, (availableForPr - origQty)));
                                 }
                             }
-                        }
-
-                        if (string.IsNullOrWhiteSpace(item.Description))
-                        {
-                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " requires a description.");
-                        }
-
-                        if (item.UnitCost.HasValue && item.UnitCost.Value < 0)
-                        {
-                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " has an invalid unit cost.");
                         }
                     }
 

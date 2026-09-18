@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.AnnualProcurementViewModel
+@model iLgs.Models.AnnualProcurementViewModel
 
 @{
     ViewBag.Title = "Annual Procurement";
@@ -61,7 +61,7 @@
                     <div style="color: #3b82f6; font-size: 12px;">Browse and add catalog items for this department and fiscal year, then return to your cart to complete the revision.</div>
                 </div>
             </div>
-            <a href="@Url.Action("Cart", "Procurement")" class="k-button k-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <a href="@Url.Action("Cart", "Procurement", new { mode = "REVISION", requestId = Model.RequestId })" class="k-button k-primary" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="k-icon k-i-cart"></span> Return to Revision Cart
             </a>
         </div>
@@ -77,6 +77,11 @@
                 FormMethod.Get,
                 new { @class = "filter-panel" }))
     {
+        if (Model.IsRevision)
+        {
+            @Html.Hidden("mode", "REVISION")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
         <div class="filter-row">
 
             <div>
@@ -231,6 +236,11 @@
                         @Html.AntiForgeryToken()
 
                         @Html.Hidden("id", item.Id)
+                        if (Model.IsRevision)
+                        {
+                            @Html.Hidden("mode", "REVISION")
+                            @Html.Hidden("requestId", Model.RequestId)
+                        }
 
                         var disabled =
                             item.QtyBal <= 0 ||
@@ -408,6 +418,11 @@
                                     @Html.AntiForgeryToken()
 
                                     @Html.Hidden("id", item.Id)
+                                    if (Model.IsRevision)
+                                    {
+                                        @Html.Hidden("mode", "REVISION")
+                                        @Html.Hidden("requestId", Model.RequestId)
+                                    }
 
                                     var disabled =
                                         item.QtyBal <= 0 ||
