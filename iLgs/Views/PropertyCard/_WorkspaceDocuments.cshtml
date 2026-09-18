@@ -1,5 +1,39 @@
-<section class="pc-tab-section">
-<h3>Documents</h3><p>Choose an acquisition or individual unit. Documents remain attached to that record. Additional-cost supporting documents are available from the unit's Additional Cost action.</p>
-<label for="pcDocumentChoice">Acquisition / Individual unit — search by PO or property number</label><input id="pcDocumentChoice" class="pc-choice" />
-<div id="pcDocumentsHost"></div>
+<section class="pc-tab-section" data-tab-name="Documents">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h3 class="mb-1">Documents</h3>
+            <p class="text-muted mb-0">Persistent master-detail view of acquisitions and documents attached to acquisitions or individual units.</p>
+        </div>
+    </div>
+
+    <div class="pc-master-detail">
+        @Html.Partial("_PropertyCardAcquisitionList")
+
+        <section class="pc-detail-pane">
+            <!-- Selected Acquisition Header -->
+            <div class="pc-detail-header-card">
+                <div class="pc-detail-header-main">
+                    <div class="pc-detail-title-row">
+                        <span class="pc-eyebrow">SELECTED ACQUISITION</span>
+                        <h4 id="pcDocAcqPo" class="pc-detail-heading">Select an Acquisition</h4>
+                    </div>
+                    <div id="pcDocAcqDesc" class="pc-detail-subtext">Choose an acquisition card from the left panel to browse and upload documents.</div>
+                </div>
+                <div class="pc-detail-header-actions" id="pcDocScopeSwitcher" style="display:none;">
+                    <label for="pcDocUnitSelect" style="font-size: 11px; margin: 0; font-weight: 600; color: #475569;">Scope:</label>
+                    <select id="pcDocUnitSelect" class="form-control form-control-sm" style="width: 260px; display: inline-block; font-size: 12px;"></select>
+                </div>
+            </div>
+
+            <!-- Fallback hidden input for legacy compatibility -->
+            <input id="pcDocumentChoice" type="hidden" />
+
+            <div id="pcDocPostedLockBanner" class="pc-posted-lock-banner" style="display:none;">
+                <i class="fa fa-lock"></i> This acquisition is posted. Documents are read-only.
+            </div>
+
+            <!-- Documents Host Container -->
+            <div id="pcDocumentsHost"></div>
+        </section>
+    </div>
 </section>

@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItemExtnAddCost
+@model iLgs.Models.PsCardItemExtnAddCost
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formAddCost", id = "formAddCost" }))
 {
@@ -6,6 +6,7 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.Id)    
 
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
     <div id="AddCostErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>

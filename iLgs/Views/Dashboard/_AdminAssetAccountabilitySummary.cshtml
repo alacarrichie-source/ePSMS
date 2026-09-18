@@ -1,0 +1,77 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var s = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.OperationalSummary : null;
+    if (s == null) { s = new iLgs.Models.AdminOperationalSummaryVM(); }
+}
+
+<div class="chart-card admin-asset-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-grid chart-icon"></span>
+            <div>
+                <h3 class="chart-title">Asset &amp; Accountability Registry</h3>
+                <span class="chart-subtitle">Registry ledgers and property receipts</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card-body">
+        <div class="asset-accountability-grid">
+            <div class="content-panel summary-subpanel">
+                <div class="panel-inner-header">
+                    <h3 class="panel-inner-title">
+                        <span class="k-icon k-i-grid title-icon-primary"></span>
+                        <span>Asset &amp; Inventory Registry</span>
+                    </h3>
+                    <a href="@Url.Action("Index", "PropertyCard")" class="admin-op-link">Open Cards &rarr;</a>
+                </div>
+                <div class="registry-metric-rows">
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Property Cards (PPE):</span>
+                        <strong class="metric-row-val val-highlight">@s.PropertyCardCount.ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Stock Cards (Supplies):</span>
+                        <strong class="metric-row-val">@s.StockCardCount.ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Total Registry Ledgers:</span>
+                        <strong class="metric-row-val">@(s.PropertyCardCount + s.StockCardCount).ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Ledger Registry Health:</span>
+                        <span class="registry-status-pill pill-active">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-panel summary-subpanel">
+                <div class="panel-inner-header">
+                    <h3 class="panel-inner-title">
+                        <span class="k-icon k-i-user title-icon-primary"></span>
+                        <span>Property Accountability</span>
+                    </h3>
+                    <a href="@Url.Action("Index", "ParSet")" class="admin-op-link">Manage &rarr;</a>
+                </div>
+                <div class="registry-metric-rows">
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Active PAR Records:</span>
+                        <strong class="metric-row-val val-highlight">@s.ParCount.ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Active ICS Records:</span>
+                        <strong class="metric-row-val">@s.IcsCount.ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Total Assigned Receipts:</span>
+                        <strong class="metric-row-val">@(s.ParCount + s.IcsCount).ToString("N0")</strong>
+                    </div>
+                    <div class="registry-metric-row">
+                        <span class="metric-row-label">Property Relocations:</span>
+                        <a href="@Url.Action("Index", "PoTransfer")" class="admin-metric-link">View Transfers &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

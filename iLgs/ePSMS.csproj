@@ -362,6 +362,7 @@
     <Compile Include="Controllers\ParSetOrderController.cs" />
     <Compile Include="Controllers\PoAdjustmentController.cs" />
     <Compile Include="Controllers\PoTransferController.cs" />
+    <Compile Include="Controllers\PpmpAcctgCodeController.cs" />
     <Compile Include="Controllers\PpmpController.cs" />
     <Compile Include="Controllers\ProcurementController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
@@ -451,6 +452,15 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderSubItemRequest.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProcurementCart.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProcurementCartItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProcurementCartSubItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardRefNo.cs">
@@ -639,9 +649,13 @@
     <Compile Include="Models\PPMPItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PPMPAcctgCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PPMPItemUsage.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PpmpAcctgCodeVM.cs" />
     <Compile Include="Models\PPMPViewModels.cs" />
     <Compile Include="Models\ProcurementViewModels.cs" />
     <Compile Include="Models\PropertyCardViewModels.cs" />
@@ -1158,6 +1172,7 @@
     <Compile Include="Controllers\Api\MenuActionController.cs" />
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
+    <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
@@ -1369,6 +1384,7 @@
     <Content Include="Assets\issuance.jpg" />
     <Content Include="Assets\Logo.png" />
     <Content Include="Assets\NoImageAvailable.png" />
+    <Content Include="Assets\official-seal.jpg" />
     <Content Include="Assets\product-logo.png" />
     <Content Include="Assets\Login1.PNG" />
     <Content Include="Assets\Login2.PNG" />
@@ -1392,6 +1408,7 @@
     <Content Include="Content\Fonts\icomoon.svg" />
     <Content Include="Content\grid.css" />
     <Content Include="Content\home.css" />
+    <Content Include="Content\ics-workspace.css" />
     <Content Include="Content\item.css" />
     <Content Include="Content\kd-sidebar.css" />
     <Content Include="Content\kendo-min.css" />
@@ -1751,6 +1768,10 @@
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_2x.png" />
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_kpi.png" />
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_kpi_2x.png" />
+    <Content Include="Content\login.css" />
+    <Content Include="Content\procurement.css" />
+    <Content Include="Content\purchase-orders.css" />
+    <Content Include="Content\requests.css" />
     <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.carbon.css" />
     <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.css" />
     <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.js" />
@@ -1768,8 +1789,8 @@
     </EntityDeploy>
     <Content Include="Models\AppManModel.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AppManModel.Context.cs</LastGenOutput>
       <DependentUpon>AppManModel.edmx</DependentUpon>
+      <LastGenOutput>AppManModel.Context.cs</LastGenOutput>
     </Content>
     <Content Include="Models\AppManModel.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -1895,6 +1916,7 @@
     <Content Include="Content\kendo\2022.1.301\images\kendoui.woff" />
     <Content Include="packages.config" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\Fonts\icomoon.eot" />
@@ -1928,6 +1950,7 @@
     <Content Include="App_Data\CustodianVehiclesAnnexTemplate.xlsx" />
     <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
     <Content Include="App_Data\CustodianSummary.xlsx" />
+    <Content Include="Content\dashboard.css.original_backup" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3994,6 +4017,59 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\_UserPersonalKpis.cshtml" />
+    <Content Include="Views\Home\_UserWorkloadChart.cshtml" />
+    <Content Include="Views\Home\_UserActivityTrend.cshtml" />
+    <Content Include="Views\Home\_AdminExecutiveKpis.cshtml" />
+    <Content Include="Views\Home\_AdminProcurementTrend.cshtml" />
+    <Content Include="Views\Home\_AdminWorkloadDistribution.cshtml" />
+    <Content Include="Views\Home\_AdminOperationalBacklog.cshtml" />
+    <Content Include="Views\Home\_AdminPipelineFlow.cshtml" />
+    <Content Include="Views\Home\_AdminPoCommitmentTrend.cshtml" />
+    <Content Include="Views\Home\_AdminAssetAccountabilitySummary.cshtml" />
+    <Content Include="Views\Dashboard\_UserPersonalKpis.cshtml" />
+    <Content Include="Views\Dashboard\_UserWorkloadChart.cshtml" />
+    <Content Include="Views\Dashboard\_UserActivityTrend.cshtml" />
+    <Content Include="Views\Dashboard\_AdminExecutiveKpis.cshtml" />
+    <Content Include="Views\Dashboard\_AdminProcurementTrend.cshtml" />
+    <Content Include="Views\Dashboard\_AdminWorkloadDistribution.cshtml" />
+    <Content Include="Views\Dashboard\_AdminOperationalBacklog.cshtml" />
+    <Content Include="Views\Dashboard\_AdminPipelineFlow.cshtml" />
+    <Content Include="Views\Dashboard\_AdminPoCommitmentTrend.cshtml" />
+    <Content Include="Views\Dashboard\_AdminAssetAccountabilitySummary.cshtml" />
+    <Content Include="Views\Home\_DashboardHeader.cshtml" />
+    <Content Include="Views\Home\_DashboardSearch.cshtml" />
+    <Content Include="Views\Home\_DashboardQuickActions.cshtml" />
+    <Content Include="Views\Home\_DashboardAttention.cshtml" />
+    <Content Include="Views\Home\_DashboardContinueWork.cshtml" />
+    <Content Include="Views\Home\_DashboardModules.cshtml" />
+    <Content Include="Views\Home\_DashboardRecentWork.cshtml" />
+    <Content Include="Views\Home\_UserDashboard.cshtml" />
+    <Content Include="Views\Home\_AdminFilters.cshtml" />
+    <Content Include="Views\Home\_AdminAttention.cshtml" />
+    <Content Include="Views\Home\_AdminOperationalSummary.cshtml" />
+    <Content Include="Views\Home\_AdminWorkflowHealth.cshtml" />
+    <Content Include="Views\Home\_AdminRecentActivity.cshtml" />
+    <Content Include="Views\Home\_AdminQuickModules.cshtml" />
+    <Content Include="Views\Home\_AdminTools.cshtml" />
+    <Content Include="Views\Home\_AdminDashboard.cshtml" />
+    <Content Include="Views\Dashboard\Index.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardHeader.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardSearch.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardQuickActions.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardAttention.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardContinueWork.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardModules.cshtml" />
+    <Content Include="Views\Dashboard\_DashboardRecentWork.cshtml" />
+    <Content Include="Views\Dashboard\_UserDashboard.cshtml" />
+    <Content Include="Views\Dashboard\_AdminFilters.cshtml" />
+    <Content Include="Views\Dashboard\_AdminAttention.cshtml" />
+    <Content Include="Views\Dashboard\_AdminOperationalSummary.cshtml" />
+    <Content Include="Views\Dashboard\_AdminWorkflowHealth.cshtml" />
+    <Content Include="Views\Dashboard\_AdminRecentActivity.cshtml" />
+    <Content Include="Views\Dashboard\_AdminQuickModules.cshtml" />
+    <Content Include="Views\Dashboard\_AdminTools.cshtml" />
+    <Content Include="Views\Dashboard\_AdminDashboard.cshtml" />
     <Content Include="Views\Account\_ExternalLoginsListPartial.cshtml" />
     <Content Include="Views\Account\ConfirmEmail.cshtml" />
     <Content Include="Views\Account\ExternalLoginConfirmation.cshtml" />
@@ -4568,16 +4644,23 @@
     <Content Include="Views\StockCard\_StockCardItem.cshtml" />
     <Content Include="Views\Rpci\EditorTemplates\_RpciItemTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_GeneratePAR.cshtml" />
+    <Content Include="Content\item-codes.css" />
+    <Content Include="Content\ppmp-index.css" />
     <Content Include="Content\property-card-index.css" />
     <Content Include="Scripts\property-card-index.js" />
     <Content Include="Scripts\purchase-orders-existing.js" />
     <Compile Include="Services\PurchaseOrder\PurchaseOrderLifecycleService.cs" />
     <Compile Include="Services\PurchaseRequest\PurchaseRequestLifecycleService.cs" />
+    <Compile Include="Services\PurchaseRequest\ProcurementCartService.cs" />
     <Compile Include="Ai\Services\PurchaseOrder\PurchaseOrderAiService.Existing.cs" />
     <Compile Include="Models\PropertyCardWorkspaceViewModels.cs" />
     <Compile Include="Services\PropertyCard\PropertyCardWorkspaceService.cs" />
+    <Compile Include="Services\PropertyCard\PropertyCardSubItemService.cs" />
     <Content Include="Views\PropertyCard\Workspace.cshtml" />
+    <Content Include="Views\PropertyCard\_PropertyCardAcquisitionList.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceAcquisitionScope.cshtml" />
     <Content Include="Views\PropertyCard\_WorkspaceUnits.cshtml" />
+    <Content Include="Views\PropertyCard\_WorkspaceComponents.cshtml" />
     <Content Include="Views\PropertyCard\_WorkspaceAccountability.cshtml" />
     <Content Include="Views\PropertyCard\_WorkspaceAccountabilityScope.cshtml" />
     <Content Include="Views\PropertyCard\_WorkspaceDocuments.cshtml" />
@@ -4596,6 +4679,9 @@
     <Content Include="Views\PropertyCard\_PropertyCardAddEdit.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemTemplate.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_ComponentTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_ComponentUnitTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_WorkspaceUnitTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_ItemSwTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_Transfer.cshtml" />
     <Content Include="Views\PoIssuance\_Pars.cshtml" />
@@ -4906,6 +4992,7 @@
     <Content Include="Views\Orders\_ItemSelection.cshtml" />
     <Content Include="Views\Orders\_ItemPR.cshtml" />
     <Content Include="Views\Ppmp\_UploadRecords.cshtml" />
+    <Content Include="Views\PpmpAcctgCode\Index.cshtml" />
     <Content Include="Views\Ppmp\Index.cshtml" />
     <Content Include="Views\Ppmp\EditorTemplates\_PpmpTemplate.cshtml" />
     <Content Include="Views\Requests\_PpmpItems.cshtml" />
@@ -5121,7 +5208,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

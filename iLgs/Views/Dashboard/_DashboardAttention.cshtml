@@ -1,0 +1,78 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var attentionItems = Model != null && Model.UserDashboard != null ? (Model.UserDashboard.AttentionItems ?? Model.UserDashboard.NeedsAttention) : null;
+    var count = attentionItems != null ? attentionItems.Count : 0;
+}
+
+<div class="workbench-panel">
+    <div class="workbench-panel-header">
+        <h3 class="workbench-panel-title">
+            <span class="k-icon k-i-bell panel-title-icon icon-danger"></span>
+            <span>Needs Your Attention</span>
+        </h3>
+        <span class="dash-count-badge @(count > 0 ? "badge-danger" : "badge-neutral")">@count @(count == 1 ? "Item" : "Items")</span>
+    </div>
+
+    @if (attentionItems != null && attentionItems.Any())
+    {
+        <div class="workbench-item-list">
+            @foreach (var item in attentionItems)
+            {
+                var borderClass = "border-danger";
+                var statusBadgeClass = "status-danger";
+                var btnClass = "btn-action-danger";
+
+                if (item.UrgencyLevel == "warning")
+                {
+                    borderClass = "border-warning";
+                    statusBadgeClass = "status-warning";
+                    btnClass = "btn-action-primary";
+                }
+                else if (item.UrgencyLevel == "info")
+                {
+                    borderClass = "border-info";
+                    statusBadgeClass = "status-info";
+                    btnClass = "btn-action-outline";
+                }
+
+                <div class="workbench-task-card @borderClass">
+                    <div class="workbench-task-top">
+                        <span class="workbench-task-ref">@item.Reference</span>
+                        <span class="workbench-task-status @statusBadgeClass">@item.Status</span>
+                    </div>
+
+                    <span class="workbench-task-module">@item.Module</span>
+
+                    @if (!string.IsNullOrWhiteSpace(item.ShortDescription))
+                    {
+                        <div class="workbench-task-desc">@item.ShortDescription</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(item.Reason))
+                    {
+                        <div class="workbench-task-reason">
+                            <span class="k-icon k-i-warning reason-icon"></span>
+                            <strong>Required:</strong> @item.Reason
+                        </div>
+                    }
+
+                    <div class="workbench-task-bottom">
+                        <span class="task-date-text">@(item.Date.HasValue ? item.Date.Value.ToString("MMM d, yyyy") : "")</span>
+                        <a href="@item.ActionUrl" class="workbench-task-btn @btnClass">
+                            <span>@item.ActionLabel</span>
+                            <span class="k-icon k-i-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state">
+            <span class="k-icon k-i-check-outline empty-icon icon-success"></span>
+            <div class="empty-title">All Caught Up!</div>
+            <p class="empty-subtext">No items currently require your attention or revision.</p>
+        </div>
+    }
+</div>

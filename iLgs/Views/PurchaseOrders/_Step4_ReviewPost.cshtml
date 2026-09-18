@@ -65,11 +65,74 @@
         return Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function applyPoGroupDepartmentDefault(group) {
+        if (!group) return;
+        if (group.deptId) return;
+
+        var sourcePRs = group.sourcePRs || [];
+        var distinctDeptIds = [];
+        var deptIdMap = {};
+
+        $.each(sourcePRs, function (_, spr) {
+            var did = spr.DepartmentId || spr.DeptId || spr.departmentId || spr.deptId;
+            if (did) {
+                var key = String(did).toLowerCase();
+                if (distinctDeptIds.indexOf(key) === -1) {
+                    distinctDeptIds.push(key);
+                    deptIdMap[key] = {
+                        id: did,
+                        name: spr.DepartmentName || spr.Department || spr.departmentName || spr.department || ""
+                    };
+                }
+            }
+        });
+
+        if (distinctDeptIds.length === 1) {
+            var defaultDept = deptIdMap[distinctDeptIds[0]];
+            group.deptId = defaultDept.id;
+            group.department = defaultDept.name;
+        } else {
+            group.deptId = null;
+            group.department = "";
+        }
+    }
+
+    function buildStep4SourcePrsPanel(group) {
+        var sourcePRs = group.sourcePRs || [];
+        var section = $('<section class="step3-card group-card step4-detail-section" style="margin-bottom:16px"></section>');
+        section.append($('<div class="group-title text-navy"><span class="k-icon k-i-file-txt" style="color:#115cb9"></span> Source Purchase Requests</div>'));
+
+        if (!sourcePRs.length) {
+            section.append($('<div class="text-muted" style="font-size:12px; padding:8px 12px;">No source Purchase Requests recorded.</div>'));
+            return section;
+        }
+
+        var tableWrapper = $('<div class="step4-table-wrapper" style="overflow-x:auto;"></div>');
+        var table = $('<table class="step4-items-table" style="width:100%; border-collapse:collapse;"></table>');
+        var thead = $('<thead><tr><th style="text-align:left; padding:8px 12px; width:40%;">PR No.</th><th style="text-align:left; padding:8px 12px; width:60%;">Requesting Department</th></tr></thead>');
+        var tbody = $('<tbody></tbody>');
+
+        $.each(sourcePRs, function (_, spr) {
+            var prNo = spr.PRNumber || spr.prNumber || spr.PrNo || spr.prNo || "";
+            var dept = spr.DepartmentName || spr.departmentName || spr.Department || spr.department || spr.RequestingDepartment || "&mdash;";
+            var row = $('<tr></tr>');
+            row.append($('<td style="padding:6px 12px; font-family:monospace; font-weight:600; color:#1e40af;"></td>').text(prNo || "-"));
+            row.append($('<td style="padding:6px 12px; color:#334155;"></td>').html(dept || "&mdash;"));
+            tbody.append(row);
+        });
+
+        table.append(thead).append(tbody);
+        tableWrapper.append(table);
+        section.append(tableWrapper);
+        return section;
+    }
+
     function renderStep4Review() {
         var container = $("#step4ReviewGroupsContainer");
         kendo.destroy(container);
         container.empty();
         var grandTotal = 0;
+        if (typeof syncPOGroupSourcePRs === "function") syncPOGroupSourcePRs();
 
         if (!poGroups || poGroups.length === 0) {
             container.html('<div class="wizard-empty-state">No PO groups configured. Return to Step 2.</div>');
@@ -78,6 +141,7 @@
         }
 
         $.each(poGroups, function (index, group) {
+            applyPoGroupDepartmentDefault(group);
             var groupTotal = 0;
             $.each(group.items || [], function (_, item) { groupTotal += Number(item.qty || 0) * Number(item.unitCost || 0); });
             grandTotal += groupTotal;
@@ -99,6 +163,7 @@
 
             if (expandedReviewGroupIndex === index) {
                 var body = $('<div class="step4-group-body"></div>');
+                body.append(buildStep4SourcePrsPanel(group));
                 body.append(buildStep4PoDetailsPanel(group, index));
                 body.append(buildStep4ItemsTable(group));
                 body.append(buildStep4DocumentPanel(group, index));
@@ -130,6 +195,8 @@
         var headerFields = $('<div class="step3-fields-grid"></div>');
         headerFields.append(buildStep4Field('PO No. <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PoNo', groupIndex)), false));
         headerFields.append(buildStep4Field('PO Date <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('PoDate', groupIndex)), false));
+        headerFields.append(buildStep4Field('Department <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('DeptId', groupIndex)), false));
+        headerFields.append($('<input type="hidden" />').attr('id', step4FieldId('Department', groupIndex)).val(group.department || ""));
         headerFields.append(buildStep4Field('Mode of Procurement <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('ProcurementMode', groupIndex)), false));
         headerFields.append(buildStep4Field('Supplier <span class="required-marker">*</span>', $('<input />').attr('id', step4FieldId('Supplier', groupIndex)), true));
         headerFields.append(buildStep4Field('Address', $('<input />').attr('id', step4FieldId('SupAddress', groupIndex)), true));
@@ -170,6 +237,65 @@
         var poNumberWidget = poNumberElement.data('kendoMaskedTextBox');
         poNumberWidget.enable(true);
         fitStep4KendoWidget(poNumberWidget);
+
+        var deptElement = $('#' + step4FieldId('DeptId', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
+        var resolvingInitialDept = !!group.deptId;
+        deptElement.kendoMultiColumnComboBox({
+            placeholder: "Select Department",
+            dataTextField: "Description",
+            dataValueField: "Id",
+            valuePrimitive: true,
+            filter: "contains",
+            minLength: 1,
+            autoBind: true,
+            columns: [
+                { field: "Code", title: "Code", width: 120 },
+                { field: "Description", title: "Description", width: 280 }
+            ],
+            dataSource: step4RemoteDataSource('@Url.Action("GetUserDepartmentsAsync", "Getters")', function () {
+                var widget = deptElement.data("kendoMultiColumnComboBox");
+                return { text: widget ? (widget.text() || "") : "" };
+            }),
+            dataBound: function () {
+                if (!group.deptId) return;
+                var targetId = String(group.deptId).toLowerCase();
+                var match = null;
+                $.each(this.dataSource.view(), function (_, dept) {
+                    if (String(dept.Id).toLowerCase() === targetId) { match = dept; return false; }
+                });
+                if (match) {
+                    this.value(match.Id);
+                    this.text(match.Description || group.department || "");
+                    if (this.input) this.input.val(match.Description || group.department || "");
+                    setStep4Department(groupIndex, match);
+                } else if (group.department) {
+                    this.value(group.deptId);
+                    this.text(group.department);
+                    if (this.input) this.input.val(group.department);
+                }
+                resolvingInitialDept = false;
+            },
+            select: function (e) {
+                setStep4Department(groupIndex, e.dataItem);
+            },
+            change: function () {
+                if (!this.value()) {
+                    setStep4Department(groupIndex, null);
+                } else {
+                    var item = this.dataItem();
+                    setStep4Department(groupIndex, item || { Id: this.value(), Description: this.text() });
+                }
+            }
+        });
+        var deptCombo = deptElement.data("kendoMultiColumnComboBox");
+        fitStep4KendoWidget(deptCombo);
+        if (group.deptId) {
+            deptCombo.value(group.deptId);
+            if (group.department) {
+                deptCombo.text(group.department);
+                if (deptCombo.input) deptCombo.input.val(group.department);
+            }
+        }
 
         var procurementElement = $('#' + step4FieldId('ProcurementMode', groupIndex)).attr('style', 'width: 100%; max-width: 100%;');
         procurementElement.kendoMultiColumnComboBox({
@@ -307,6 +433,17 @@
         poGroups[groupIndex][field] = value;
         scheduleWizardAutoSave();
         refreshStep4Readiness();
+    }
+
+    function setStep4Department(groupIndex, dept) {
+        var group = poGroups[groupIndex];
+        if (!group) return;
+        group.deptId = dept && dept.Id ? dept.Id : null;
+        group.department = dept && dept.Description ? dept.Description : (dept && dept.name ? dept.name : "");
+        var hiddenDept = $('#' + step4FieldId('Department', groupIndex));
+        if (hiddenDept.length) hiddenDept.val(group.department);
+        refreshStep4Readiness();
+        if (typeof scheduleWizardAutoSave === "function") scheduleWizardAutoSave();
     }
 
     function setStep4Supplier(groupIndex, supplier) {
@@ -465,7 +602,7 @@
 
     function validateStep4PoDetails() {
         return poGroups && poGroups.length > 0 && poGroups.every(function (group) {
-            return $.trim(group.poNumber || '') !== '' && !!group.supplierId &&
+            return $.trim(group.poNumber || "") !== "" && !!group.supplierId && !!group.deptId &&
                 !!group.poDate &&
                 $.trim(group.placeOfDelivery || "") !== "" &&
                 $.trim(group.termDelivery || "") !== "" &&
@@ -567,7 +704,9 @@
                 GroupName: group.groupName,
                 PONumber: group.poNumber,
                 PRNumber: group.PRNumber || "",
-                DepartmentName: group.DepartmentName || "",
+                DeptId: group.deptId || null,
+                Department: group.department || "",
+                DepartmentName: group.department || group.DepartmentName || "",
                 SourcePRs: sourcePRs.map(function (source) {
                     return { PRId: source.PRId, PRNumber: source.PRNumber, DepartmentId: source.DepartmentId || null, DepartmentName: source.DepartmentName || "" };
                 }),

@@ -2,21 +2,124 @@
 @using Kendo.Mvc.UI
 
 @{
-    ViewBag.Title = "My Procurement Cart";
+    ViewBag.Title = Model.IsAdminEdit ? "Admin Edit - Purchase Request" : (Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart");
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<section class="epsms-procurement">
+<link href="@Url.Content("~/Content/procurement.css")?v=20260916_1" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+    /* ==========================================================================
+       CART TEMPLATE HELPERS & FORMATTERS
+       Defined before Grid initialization for complete template execution safety
+       ========================================================================== */
+    function renderCartItemCode(data) {
+        if (!data || !data.Code) return "";
+        var encoded = kendo.htmlEncode(data.Code);
+        return "<span class='cart-item-code'>" + encoded + "</span>";
+    }
+
+    function renderCartUnitCost(data) {
+        if (!data || data.UnitCost == null) return "&#8369;0.00";
+        return "&#8369;" + kendo.toString(data.UnitCost, "n2");
+    }
+
+    function renderCartEstimatedAmount(data) {
+        if (!data || data.EstimatedAmount == null) return "&#8369;0.00";
+        return "&#8369;" + kendo.toString(data.EstimatedAmount, "n2");
+    }
+</script>
+
+<section class="epsms-procurement epsms-procurement-cart">
     <div class="breadcrumbs">
-        <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
-        <span class="breadcrumb-separator">&gt;</span>
-        <a href="@Url.Action("Annual")">Annual Procurement</a>
-        <span class="breadcrumb-separator">&gt;</span>
-        My Cart
+        @if (Model.IsAdminEdit)
+        {
+            <a href="@Url.Action("Posting", "Requests")">Requests / Posting</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span>Admin Edit Cart</span>
+        }
+        else
+        {
+            <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Annual")">Annual Procurement</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span>My Cart</span>
+        }
     </div>
 
-    <h1>@(Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart")</h1>
-    <p class="subtitle">@(Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : "Review quantities before creating your purchase request.")</p>
+    <!-- Page Header -->
+    <div class="procurement-header">
+        <div class="header-title-group">
+            <div class="header-icon-pill">
+                <span class="k-icon k-i-cart"></span>
+            </div>
+            <div>
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+                    <h1 style="margin:0;">@(Model.IsAdminEdit ? "Admin Edit - Purchase Request" : (Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart"))</h1>
+                    @if (Model.IsAdminEdit)
+                    {
+                        <span id="adminEditCartCountBadge" class="badge" style="background-color: #e0e7ff; color: #3730a3; font-size: 0.95rem; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
+                            Admin Edit Cart: @(Model.Items == null ? 0 : Model.Items.Count) @((Model.Items != null && Model.Items.Count == 1) ? "item" : "items")
+                        </span>
+                    }
+                    else if (Model.IsRevision)
+                    {
+                        <span class="badge" style="background-color: #fef3c7; color: #92400e; font-size: 0.95rem; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
+                            Revision Cart: @(Model.Items == null ? 0 : Model.Items.Count) @((Model.Items != null && Model.Items.Count == 1) ? "item" : "items")
+                        </span>
+                    }
+                </div>
+                <p class="subtitle">@(Model.IsAdminEdit ? "Make administrative corrections to the submitted/unposted Purchase Request. Adding new catalog items is disabled." : (Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : "Review quantities before creating your purchase request."))</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            @if (Model.IsAdminEdit)
+            {
+                <a class="k-button btn-secondary-action" href="@Url.Action("CancelAdminEdit", "Procurement", new { requestId = Model.RequestId })">
+                    <span class="k-icon k-i-close"></span> Cancel Admin Edit
+                </a>
+            }
+            else if (Model.IsRevision)
+            {
+                <a class="k-button btn-secondary-action" href="@Url.Action("Annual", "Procurement", new { requestId = Model.RequestId })">
+                    <span class="k-icon k-i-arrow-left"></span> Add More Items
+                </a>
+            }
+            else
+            {
+                <a class="k-button btn-secondary-action" href="@Url.Action("Annual", "Procurement")">
+                    <span class="k-icon k-i-arrow-left"></span> Continue Shopping
+                </a>
+            }
+        </div>
+    </div>
+
+        @if (Model.IsAdminEdit)
+    {
+        <div class="pr-revision-notice" style="border-left: 4px solid #d97706; background-color: #fffbeb;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <strong style="color: #b45309; font-size: 1.05rem;"><span class="k-icon k-i-edit"></span> Admin Edit &mdash; Purchase Request Correction</strong>
+                    <div style="margin-top: 6px; font-size: 0.9rem; color: #374151;">
+                        <span><b>PR Reference:</b> @(String.IsNullOrWhiteSpace(Model.AdminEditPrNo) ? (String.IsNullOrWhiteSpace(Model.AdminEditCtrlNo) ? "Unassigned" : Model.AdminEditCtrlNo) : Model.AdminEditPrNo)</span>
+                        <span style="margin: 0 8px; color: #9ca3af;">&bull;</span>
+                        <span><b>Status:</b> <span class="badge badge-warning" style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">@(String.IsNullOrWhiteSpace(Model.AdminEditStatus) ? "Submitted" : Model.AdminEditStatus)</span></span>
+                        <span style="margin: 0 8px; color: #9ca3af;">&bull;</span>
+                        <span><b>Department:</b> @(String.IsNullOrWhiteSpace(Model.AdminEditDepartment) ? "N/A" : Model.AdminEditDepartment)</span>
+                    </div>
+                </div>
+                <div>
+                    <span style="background-color: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: 500;">
+                        <span class="k-icon k-i-lock"></span> Catalog additions disabled
+                    </span>
+                </div>
+            </div>
+            <p style="margin-top: 8px; margin-bottom: 0; font-size: 0.85rem; color: #4b5563;">
+                You may modify existing item quantities, specifications, or sub-items, or remove permitted lines. Proceed to Checkout to save changes directly to this Purchase Request.
+            </p>
+        </div>
+    }
 
     @if (Model.IsRevision)
     {
@@ -26,7 +129,7 @@
             <p><b>Reviewer Comment:</b> @(String.IsNullOrWhiteSpace(Model.ReviewComment) ? "No comment was recorded." : Model.ReviewComment)</p>
         </div>
         <div class="pr-revision-toolbar">
-            <a class="k-button k-button-solid-base" href="@Url.Action("Annual", "Procurement")"><span class="k-icon k-i-plus"></span> Add More Items</a>
+            <a class="k-button k-button-solid-base" href="@Url.Action("Annual", "Procurement", new { requestId = Model.RequestId })"><span class="k-icon k-i-plus"></span> Add More Items</a>
             <span>Cart changes are saved automatically for this session.</span>
         </div>
     }
@@ -39,9 +142,11 @@
         {
             columns.Bound(x => x.ItemNo)
                 .Title("Item No.")
-                .Width(65);
+                .Width(75);
             columns.Bound(x => x.Code)
-                .Title("Item Code");
+                .Title("Item Code")
+                .Width(130)
+                .ClientTemplate("#= renderCartItemCode(data) #");
             columns.Bound(x => x.Description)
                 .HtmlAttributes(new { @class = "cart-multiline-description" });
             columns.Bound(x => x.Unit)
@@ -52,11 +157,11 @@
             columns.Bound(x => x.UnitCost)
                 .Title("Unit Cost")
                 .Width(130)
-                .ClientTemplate("₱#= kendo.toString(UnitCost, 'n2') #");
+                .ClientTemplate("#= renderCartUnitCost(data) #");
             columns.Bound(x => x.EstimatedAmount)
                 .Title("Est. Amount")
                 .Width(140)
-                .ClientTemplate("₱#= kendo.toString(EstimatedAmount, 'n2') #");
+                .ClientTemplate("#= renderCartEstimatedAmount(data) #");
 
             columns.Command(command =>
             {
@@ -69,7 +174,7 @@
         .Events(events => events
             .Edit("onCartGridEdit")
             .DetailInit("onCartDetailInit"))
-        .Scrollable(scrollable => scrollable.Height(420))
+        .Scrollable(scrollable => scrollable.Height(350))
         .Pageable()
         .Sortable()
         .HtmlAttributes(new { @class = "data-card" })
@@ -88,12 +193,12 @@
                 model.Field(x => x.UnitCost).Editable(false);
                 model.Field(x => x.EstimatedAmount).Editable(false);
             })
-            .Read(read => read.Action("CartRead", "Procurement"))
+            .Read(read => read.Action("CartRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))
             .Update(update => update
-                .Action("UpdateCartItem", "Procurement")
+                .Action("UpdateCartItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })
                 .Data("addAntiForgeryToken"))
             .Destroy(destroy => destroy
-                .Action("RemoveCartItem", "Procurement")
+                .Action("RemoveCartItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })
                 .Data("addAntiForgeryToken"))
             .Events(events => events.RequestEnd("onCartGridRequestEnd"))
         )
@@ -106,12 +211,9 @@
                 System.Globalization.CultureInfo.GetCultureInfo("en-PH"))
         </strong>
 
-        @*<a class="k-button k-primary" href="@Url.Action("Checkout")">
-            Proceed to Checkout
-        </a>*@
         @(Html.Kendo().Button()
             .Name("proceedToCheckout")
-            .Content("<span class='k-icon k-i-arrow-right'></span> " + (Model.IsRevision ? "Proceed to Revision Checkout" : "Proceed to Checkout"))
+            .Content("<span class='k-icon k-i-arrow-right'></span> " + (Model.IsAdminEdit ? "Proceed to Checkout" : (Model.IsRevision ? "Proceed to Revision Checkout" : "Proceed to Checkout")))
             .HtmlAttributes(new
             {
                 type = "button",
@@ -131,10 +233,10 @@
 @section scripts {
     <script>
         var cartSubItemUrls = {
-            read: "@Url.Action("CartSubItemsRead", "Procurement")",
-            create: "@Url.Action("CreateCartSubItem", "Procurement")",
-            update: "@Url.Action("UpdateCartSubItem", "Procurement")",
-            destroy: "@Url.Action("RemoveCartSubItem", "Procurement")",
+            read: "@Url.Action("CartSubItemsRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
+            create: "@Url.Action("CreateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
+            update: "@Url.Action("UpdateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
+            destroy: "@Url.Action("RemoveCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
             units: "@Url.Action("GetUnits", "Getters")"
         };
 
@@ -222,7 +324,7 @@
                 }],
                 editable: "inline",
                 scrollable: true,
-                height: 300,
+                height: 200,
                 sortable: false,
                 pageable: false,
                 columns: [
@@ -444,15 +546,28 @@
                 return;
             }
 
-            $.get("@Url.Action("CartSummary", "Procurement")", function (result) {
+            $.get("@Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })", function (result) {
                 $("#cartEstimatedTotal").text(
                     kendo.toString(result.estimatedTotal, "c2")
-                        .replace("$", "₱")
+                        .replace("$", "\u20B1")
                 );
 
                 // Uses the badge function created earlier.
-                if (typeof updateCartBadge === "function") {
-                    updateCartBadge(result.cartCount);
+                @if (!Model.IsAdminEdit && !Model.IsRevision)
+                {
+                    <text>
+                    if (typeof updateCartBadge === "function") {
+                        updateCartBadge(result.cartCount);
+                    }
+                    </text>
+                }
+                else if (Model.IsAdminEdit)
+                {
+                    <text>
+                    #adminEditCartCountBadge.text(
+                        "Admin Edit Cart: " + result.itemCount + (result.itemCount === 1 ? " item" : " items")
+                    );
+                    </text>
                 }
 
                 var checkoutButton = $("#proceedToCheckout").data("kendoButton");
@@ -495,7 +610,7 @@
         }
 
         function proceedToCheckout(e) {
-            window.location.href = "@Url.Action("Checkout", "Procurement")";
+            window.location.href = "@Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })";
         }
     </script>
 }

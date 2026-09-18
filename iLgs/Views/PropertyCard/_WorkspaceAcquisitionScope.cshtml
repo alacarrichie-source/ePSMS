@@ -1,0 +1,124 @@
+@model iLgs.Models.PsCardItemVM
+@if (Model == null)
+{
+    <div class="alert alert-warning">Acquisition record not found or does not belong to this Property Card.</div>
+    return;
+}
+
+<div class="pc-acquisition-scope" data-acquisition-id="@Model.Id" data-transfer-id="@Model.TransferId">
+    <div class="pc-panel" style="background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <div>
+                <span class="pc-eyebrow" style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">ACQUISITION DETAILS</span>
+                <h2 style="margin: 2px 0 6px 0; font-size: 18px; font-weight: 700; color: #1e293b;">
+                    @(string.IsNullOrWhiteSpace(Model.PoNo) ? "Acquisition / No PO" : "PO #" + Model.PoNo)
+                </h2>
+                <div style="font-size: 13px; color: #475569;">
+                    @if (Model.PoDate.HasValue)
+                    {
+                        <span>PO Date: <strong>@Model.PoDate.Value.ToString("MM/dd/yyyy")</strong></span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.AirNo))
+                    {
+                        <span style="color: #94a3b8; margin: 0 6px;">&bull;</span>
+                        <span>AIR No: <strong>@Model.AirNo</strong></span>
+                    }
+                    @if (Model.AirDate.HasValue)
+                    {
+                        <span style="color: #94a3b8; margin: 0 6px;">&bull;</span>
+                        <span>AIR Date: <strong>@Model.AirDate.Value.ToString("MM/dd/yyyy")</strong></span>
+                    }
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                @if (Model.PostedDt != null)
+                {
+                    <span class="k-badge k-badge-solid-primary pc-posted" style="font-size: 13px; padding: 6px 12px; font-weight: 600;">
+                        <i class="fa fa-lock" style="margin-right: 4px;"></i> POSTED
+                    </span>
+                }
+                else
+                {
+                    <span class="k-badge k-badge-solid-warning pc-draft" style="font-size: 13px; padding: 6px 12px; font-weight: 600;">
+                        <i class="fa fa-pencil" style="margin-right: 4px;"></i> DRAFT
+                    </span>
+                }
+                @if (Model.TransferId.HasValue && Model.TransferId.Value != Guid.Empty)
+                {
+                    <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-acquisition-units" data-transfer-id="@Model.TransferId">
+                        <i class="fa fa-cubes" style="margin-right: 4px;"></i> View Units
+                    </button>
+                }
+                <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-acquisition-documents" data-acquisition-id="@Model.Id">
+                    <i class="fa fa-file" style="margin-right: 4px;"></i> Documents
+                </button>
+                <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-close-acquisition-details" onclick="$('#pcAcquisitionDetailHost').slideUp(150, function(){ $(this).empty(); });">
+                    <i class="fa fa-times" style="margin-right: 4px;"></i> Close
+                </button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Acquisition & Cost</span>
+                <div style="font-size: 13px; color: #1e293b;">
+                    <div>Qty: <strong>@((Model.Qty ?? 0).ToString("n0")) @(Model.Unit ?? "")</strong></div>
+                    <div>Unit Cost: <strong>@((Model.UnitCost ?? 0).ToString("n2"))</strong></div>
+                    <div>Total Cost: <strong>@((Model.Amount ?? ((Model.Qty ?? 0) * (Model.UnitCost ?? 0))).ToString("n2"))</strong></div>
+                    @if (Model.AddCost.HasValue && Model.AddCost.Value > 0)
+                    {
+                        <div>Additional Cost: <strong>@Model.AddCost.Value.ToString("n2")</strong></div>
+                    }
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Movement & Balance</span>
+                <div style="font-size: 13px; color: #1e293b;">
+                    <div>Transit In: <strong>@((Model.TransferIn ?? 0).ToString("n0"))</strong></div>
+                    <div>Issued: <strong>@((Model.QtyIss ?? 0).ToString("n0"))</strong></div>
+                    <div>Transit Out: <strong>@((Model.TransferOut ?? 0).ToString("n0"))</strong></div>
+                    <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #cbd5e1;">
+                        Available Balance: <strong class="pc-balance" style="color: #047857;">@((Model.QtyBal ?? 0).ToString("n0")) @(Model.Unit ?? "")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Department / Location</span>
+                <div style="font-size: 13px; color: #1e293b;">
+                    <div>Dept: <strong>@(Model.Department ?? Model.DeptDisplay ?? "-")</strong></div>
+                    @*<div>Location: <strong>@(Model.Location ?? "-")</strong></div>*@
+                    <div>Code: <strong>@(Model.DeptCode?? "-")</strong></div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Audit & Record</span>
+                <div style="font-size: 13px; color: #1e293b;">
+                    <div>Created by: <strong>@(Model.InsertedBy ?? "-")</strong></div>
+                    <div>Created: <strong>@(Model.InsertedDt.HasValue ? Model.InsertedDt.Value.ToString("MM/dd/yyyy") : "-")</strong></div>
+                    @if (Model.PostedDt.HasValue)
+                    {
+                        <div>Posted by: <strong>@(Model.PostedBy ?? "-")</strong></div>
+                        <div>Posted: <strong>@Model.PostedDt.Value.ToString("MM/dd/yyyy")</strong></div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Remarks) || !string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px; color: #475569;">
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div><strong>Description:</strong> @Model.Description</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Remarks))
+                {
+                    <div style="@(!string.IsNullOrWhiteSpace(Model.Description) ? "margin-top: 4px;" : "")"><strong>Remarks:</strong> @Model.Remarks</div>
+                }
+            </div>
+        }
+    </div>
+</div>

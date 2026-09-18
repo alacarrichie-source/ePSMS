@@ -349,6 +349,49 @@ namespace iLgs.Services.PropertyCard
             ValidateRecord(entity);
             ValidateIfNotPosted(entity);
 
+            // AIR check: Block unpost if any acquisition originated from AIR
+            var hasAirAcquisition = await _db.PsCardItems.AnyAsync(x => x.PsCardId == id && (x.AIRItemId != null || (x.AirNo != null && x.AirNo != "") || (x.OrderItemRequestId != null && x.TranType == "A")));
+            if (hasAirAcquisition)
+            {
+                throw new InvalidOperationException("This Property Card contains acquisitions generated from an AIR inspection and cannot be independently unposted. Source reversal must be performed through the AIR module.");
+            }
+
+            // ICS/PAR check: Block unpost if any unit has draft or posted accountability records
+            var icsPars = await _db.IcsParItems.AsNoTracking()
+                .Where(x => x.PsCardItemExtn.PsCardItem.PsCardId == id)
+                .Select(x => (x.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (icsPars.Any())
+            {
+                throw new InvalidOperationException($"This Property Card cannot be unposted because one or more units already have accountability records ({string.Join(", ", icsPars)}).");
+            }
+
+            // Component accountability check: Block unpost if any components are assigned to accountability records
+            var compIcsPars = await _db.IcsParItemComponents.AsNoTracking()
+                .Where(x => x.PsCardSubItem.PsCardItem.PsCardId == id || x.PsCardItemExtn.PsCardItem.PsCardId == id)
+                .Select(x => (x.IcsParItem.IcsPar.RefType ?? "PAR/ICS") + " No. " + x.IcsParItem.IcsPar.RefNo)
+                .Distinct()
+                .ToListAsync();
+            if (compIcsPars.Any())
+            {
+                throw new InvalidOperationException($"This Property Card cannot be unposted because components are assigned to accountability records ({string.Join(", ", compIcsPars)}).");
+            }
+
+            // Downstream transfer movement
+            var hasTransfers = await _db.PsCardItemTransfers.AnyAsync(x => x.PsCardItem.PsCardId == id && x.ParentId != null);
+            if (hasTransfers)
+            {
+                throw new InvalidOperationException("This Property Card contains transferred acquisitions and cannot be unposted.");
+            }
+
+            // Downstream issuance movement
+            var hasIssuances = await _db.PsCardItems.AnyAsync(x => x.PsCardId == id && (x.QtyIss ?? 0) > 0);
+            if (hasIssuances)
+            {
+                throw new InvalidOperationException("This Property Card contains issued quantities and cannot be unposted.");
+            }
+
             entity.PostedBy = "";
             entity.PostedDt = null;
             entity.UpdatedBy = user;

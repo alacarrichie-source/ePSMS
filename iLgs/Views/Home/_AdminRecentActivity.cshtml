@@ -1,0 +1,52 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var activity = Model != null && Model.AdminDashboard != null ? (Model.AdminDashboard.RecentActivities ?? Model.AdminDashboard.RecentActivity) : null;
+}
+
+<div class="content-panel admin-activity-panel">
+    <div class="panel-inner-header">
+        <h3 class="panel-inner-title">
+            <span class="k-icon k-i-history title-icon-primary"></span>
+            <span>Recent System Activity</span>
+        </h3>
+        <span class="panel-inner-subtitle">Live operational audit trail</span>
+    </div>
+
+    @if (activity != null && activity.Any())
+    {
+        <div class="activity-feed-list">
+            @foreach (var act in activity)
+            {
+                <div class="activity-feed-item">
+                    <span class="activity-doc-badge">@act.DocumentType</span>
+
+                    <div class="activity-main-text">
+                        <div class="activity-text-line">
+                            <a href="@act.DocumentUrl" class="activity-doc-link">@act.DocumentNo</a>
+                            <span class="activity-action-text">@act.ActionText</span>
+                            <span class="activity-by-text">by</span>
+                            <strong class="activity-user-text">@act.UserName</strong>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(act.RemarksSnippet))
+                        {
+                            <span class="activity-remarks-snippet" title="@act.RemarksSnippet">
+                                &ldquo;@act.RemarksSnippet&rdquo;
+                            </span>
+                        }
+                    </div>
+
+                    <span class="activity-time-text">@act.RelativeTime</span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state">
+            <span class="k-icon k-i-clock empty-icon"></span>
+            <div class="empty-title">No Recent Activity Recorded</div>
+            <p class="empty-subtext">System events and status updates will be logged here in real-time as users execute actions.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,11 @@
+﻿/* Property Card workspace. Existing mutation endpoints and popup forms remain authoritative. */
+var pcWorkspace = propertyCardConfig.workspace;
+var pcTabNames = ['Overview', 'Acquisitions', 'Individual Units', 'Components', 'Accountability', 'History', 'Documents'];
+var pcActiveAcquisition = null;
+var pcPendingUnitTransfer = null;
+var pcPendingUnit = null;
+var pcPendingDocument = null;
+var pcTabLoads = {};
+var pcUploadOwner = null;
+selectedId = pcWorkspace.id;
+selectedStockNo = pcWorkspace.cardNumber;

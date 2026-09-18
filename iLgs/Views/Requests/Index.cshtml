@@ -4,182 +4,668 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="epsms-procurement po-wizard">
+<link href="@Url.Content("~/Content/requests.css")?v=20260916_2" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+    /* ==========================================================================
+       GLOBAL TEMPLATE RENDERERS & DATA FORMATTERS
+       Defined before Grid initialization for complete template execution safety
+       ========================================================================== */
+    var isPrReviewMode = @Html.Raw(Json.Encode(ViewBag.IsSubmitted == true));
+    var canUnpostPr = @Html.Raw(Json.Encode(ViewBag.AllowUnpost == true));
+
+    function renderPrNumber(data) {
+        if (!data) return "";
+        var id = data.Id;
+        var prNo = data.PrNo;
+        var ctrlNo = data.CtrlNo || "-";
+        var html = "<div class='pr-number-col'>";
+        html += "<a href='javascript:void(0)' class='pr-number-link' onclick=\"viewPurchaseRequest('" + id + "')\">";
+        if (prNo) {
+            html += "<span class='pr-no-text'>" + kendo.htmlEncode(prNo) + "</span>";
+        } else {
+            html += "<span class='pr-no-draft'>Unnumbered</span>";
+        }
+        html += "</a>";
+        html += "<span class='pr-ctrl-sub'>Ctrl: " + kendo.htmlEncode(ctrlNo) + "</span>";
+        html += "</div>";
+        return html;
+    }
+
+    function renderPrDepartment(data) {
+        if (!data) return "";
+        var dept = data.Department || "-";
+        var fund = data.Fund || "";
+        var html = "<div class='pr-dept-col'>";
+        html += "<span class='pr-dept-name' title='" + kendo.htmlEncode(dept) + "'>" + kendo.htmlEncode(dept) + "</span>";
+        if (fund) {
+            html += "<span class='pr-fund-sub'>" + kendo.htmlEncode(fund) + "</span>";
+        }
+        html += "</div>";
+        return html;
+    }
+
+    function renderPrPurpose(data) {
+        if (!data) return "";
+        var purpose = data.Purpose || "";
+        return "<span class='pr-purpose' title='" + kendo.htmlEncode(purpose) + "'>" + kendo.htmlEncode(purpose) + "</span>";
+    }
+
+    function renderPrAmount(data) {
+        if (!data) return "";
+        var amount = kendo.toString(data.TotalAmount, 'n2') || "0.00";
+        var count = data.ItemCount || 0;
+        var itemLabel = count === 1 ? "item" : "items";
+        var html = "<div class='pr-amount-col text-right'>";
+        html += "<span class='pr-amount-text font-weight-bold'>" + amount + "</span>";
+        html += "<span class='pr-items-sub'>" + count + " " + itemLabel + "</span>";
+        html += "</div>";
+        return html;
+    }
+
+    function renderPrDate(data) {
+        if (!data) return "";
+        var dateStr = data.InsertedDt ? kendo.toString(data.InsertedDt, 'MMM dd, yyyy') : "-";
+        var creator = data.InsertedBy || "-";
+        var html = "<div class='pr-date-col'>";
+        html += "<span class='pr-date-text font-weight-bold'>" + dateStr + "</span>";
+        html += "<span class='pr-creator-sub'>by " + kendo.htmlEncode(creator) + "</span>";
+        html += "</div>";
+        return html;
+    }
+
+    function renderPrStatus(status) {
+        var value = status || "Draft";
+        var cssClass = "status-draft";
+        var dotClass = "dot-draft";
+        if (value === "Posted") {
+            cssClass = "status-posted";
+            dotClass = "dot-posted";
+        } else if (value === "Submitted") {
+            cssClass = "status-submitted";
+            dotClass = "dot-submitted";
+        } else if (value === "Returned") {
+            cssClass = "status-returned";
+            dotClass = "dot-returned";
+        } else if (value === "Unposted") {
+            cssClass = "status-unposted";
+            dotClass = "dot-unposted";
+        } else if (value === "Revising") {
+            cssClass = "status-revising";
+            dotClass = "dot-revising";
+        }
+
+        return "<span class='status-badge " + cssClass + "'>" +
+            "<span class='status-dot " + dotClass + "'></span>" +
+            kendo.htmlEncode(value) + "</span>";
+    }
+
+    function renderPrActions(item) {
+        if (!item) return "";
+        var id = item.Id;
+        var status = item.Status ? (item.Status + "").replace(/^\s+|\s+$/g, "") : "Draft";
+        var html = "<div class='pr-row-actions'>";
+
+        if (isPrReviewMode) {
+            // ==========================================
+            // REQUESTS / POSTING - ADMINISTRATIVE MATRIX
+            // ==========================================
+            if (status === "Submitted" || status === "Unposted") {
+                // PRIMARY: Review, Post
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openPurchaseRequestReview('" + id + "')\" title='Review Purchase Request'><span class='k-icon k-i-search'></span> Review</button>";
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openReviewPostDialogForPr('" + id + "')\" title='Post Purchase Request'><span class='k-icon k-i-check'></span> Post</button>";
+
+                // SECONDARY / MORE: Admin Edit, Return for Revision, View
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); startPurchaseRequestAdminEdit('" + id + "')\"><span class='k-icon k-i-edit'></span> Admin Edit</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); openReviewReturnDialogForPr('" + id + "')\"><span class='k-icon k-i-undo'></span> Return for Revision</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
+            } else if (status === "Returned") {
+                // PRIMARY: View
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+
+                // SECONDARY / MORE: Review Comment
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
+                html += "</div></div>";
+            } else if (status === "Posted") {
+                // PRIMARY: View
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+
+                // SECONDARY / MORE: Print, Unpost
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
+                if (canUnpostPr) {
+                    html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); unpostPurchaseRequest(this, '" + id + "')\"><span class='k-icon k-i-unlock'></span> Unpost</a>";
+                }
+                html += "</div></div>";
+            } else {
+                // Draft or other statuses (normally not shown in Posting queue)
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
+            }
+        } else {
+            // ==========================================
+            // REQUESTS / INDEX - REQUESTER MATRIX
+            // ==========================================
+            if (status === "Draft") {
+                // PRIMARY: Continue
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continueDraftPurchaseRequest('" + id + "')\" title='Continue Draft PR'><span class='k-icon k-i-arrow-right'></span> Continue</button>";
+
+                // SECONDARY / MORE: View, Delete
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-danger' onclick=\"closeAllPrActionMenus(); deletePurchaseRequest('" + id + "')\"><span class='k-icon k-i-trash'></span> Delete</a>";
+                html += "</div></div>";
+            } else if (status === "Returned") {
+                // PRIMARY: Revise PR
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"startPurchaseRequestRevision('" + id + "')\" title='Revise Returned PR'><span class='k-icon k-i-edit'></span> Revise PR</button>";
+
+                // SECONDARY / MORE: Review Comment, View
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
+            } else if (status === "Revising") {
+                // Revising: Continue Revision
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continuePurchaseRequestRevision()\" title='Continue Revision in Cart'><span class='k-icon k-i-arrow-right'></span> Continue Revision</button>";
+
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
+            } else if (status === "Submitted" || status === "Unposted") {
+                // Submitted / Unposted: PRIMARY: View only (strictly read-only)
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+            } else if (status === "Posted") {
+                // Posted: PRIMARY: View, SECONDARY / MORE: Print
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
+                html += "</div></div>";
+            } else {
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
+            }
+        }
+
+        html += "</div>";
+        return html;
+    }
+
+    /* ==========================================================================
+       ACTION DROPDOWN (MORE) MENU PORTAL
+       Appended to body to guarantee zero table-cell overflow clipping
+       ========================================================================== */
+    function togglePrActionMenu(e, btn) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        var $btn = $(btn);
+        var $wrapper = $btn.closest(".pr-dropdown-wrapper");
+        var $menu = $wrapper.find(".pr-action-menu");
+        if (!$menu.length) return;
+
+        var wasActive = $btn.hasClass("active");
+        closeAllPrActionMenus();
+        if (wasActive) return;
+
+        $btn.addClass("active");
+
+        var $portal = $("#prActionMenuPortal");
+        if (!$portal.length) {
+            $portal = $("<div id='prActionMenuPortal' class='pr-action-menu-portal'></div>").appendTo("body");
+        }
+        $portal.empty().html($menu.html());
+
+        var rect = btn.getBoundingClientRect();
+        var menuWidth = 175;
+        var left = rect.right - menuWidth;
+        if (left < 10) left = 10;
+        var top = rect.bottom + 4;
+
+        var windowHeight = $(window).height();
+        $portal.css({ top: top + "px", left: left + "px", display: "block" });
+        var portalHeight = $portal.outerHeight();
+        if (top + portalHeight > windowHeight - 10 && rect.top > portalHeight + 10) {
+            top = rect.top - portalHeight - 4;
+            $portal.css({ top: top + "px" });
+        }
+
+        $(document).off("click.prActionMenu").on("click.prActionMenu", function (ev) {
+            if (!$(ev.target).closest("#prActionMenuPortal, .pr-btn-more").length) {
+                closeAllPrActionMenus();
+            }
+        });
+        $(window).off("scroll.prActionMenu resize.prActionMenu").on("scroll.prActionMenu resize.prActionMenu", function () {
+            closeAllPrActionMenus();
+        });
+    }
+
+    function closeAllPrActionMenus() {
+        $(".pr-btn-more").removeClass("active");
+        $("#prActionMenuPortal").hide().empty();
+        $(document).off("click.prActionMenu");
+        $(window).off("scroll.prActionMenu resize.prActionMenu");
+    }
+
+    /* ==========================================================================
+       GRID / DATASOURCE EVENT HANDLERS & SELECTION STATE
+       Pre-declared before Grid rendering to guarantee immediate availability
+       ========================================================================== */
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedItemId = null;
+    var submittedBy = null;
+    var postedBy = null;
+    var selectedPrNo = null;
+    var selectedCtrlNo = null;
+
+    function addAntiForgeryToken(data) {
+        data = data || {};
+        var token = $('input[name="__RequestVerificationToken"]').first().val();
+        if (token) {
+            data.__RequestVerificationToken = token;
+        }
+        return data;
+    }
+
+    function onChangeGrid(e) {
+        var grid = (e && e.sender) ? e.sender : (this.dataItem ? this : $("#grid").data("kendoGrid"));
+        if (!grid || typeof grid.select !== "function") {
+            return;
+        }
+
+        var row = grid.select();
+        if (!row || row.length === 0) {
+            return;
+        }
+
+        var dataItem = grid.dataItem(row);
+        if (!dataItem) {
+            return;
+        }
+
+        selectedId = dataItem.Id;
+        selectedItemId = null;
+        submittedBy = dataItem.SubmittedBy;
+        postedBy = dataItem.PostedBy;
+        selectedPrNo = dataItem.PrNo;
+        selectedCtrlNo = dataItem.CtrlNo;
+    }
+
+    function onDataBoundGrid(e) {
+        var grid = (e && e.sender) ? e.sender : this;
+        var rawData = (grid && grid.dataSource) ? grid.dataSource.data() : [];
+        if (typeof updateQuickFilterCountsAndDept === "function") {
+            updateQuickFilterCountsAndDept(rawData);
+        }
+
+        if (selectedId && grid && grid.dataSource) {
+            var dataItem = grid.dataSource.get(selectedId);
+            if (dataItem) {
+                grid.select($('[data-uid="' + dataItem.uid + '"]'));
+            }
+        } else if (grid && grid.tbody) {
+            var row = grid.tbody.find("tr:first");
+            if (row && row.length > 0) {
+                grid.select(row);
+            }
+
+            grid.unbind("detailExpand.prSelect").bind("detailExpand.prSelect", function (ev) {
+                grid.select(ev.masterRow);
+            });
+        }
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        selectedId = null;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            if (row && row.length > 0) {
+                this.select(row);
+            }
+
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetModelDefault", "Requests")',
+                success: function (result) {
+                    if (result && result.model) {
+                        var availCombo = $("#Availability").data("kendoMultiColumnComboBox");
+                        if (availCombo) {
+                            availCombo.value(result.model.Availability);
+                            availCombo.trigger("change");
+                        }
+                        $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig).trigger("change");
+
+                        var approvedCombo = $("#ApprovedBy").data("kendoMultiColumnComboBox");
+                        if (approvedCombo) {
+                            approvedCombo.value(result.model.ApprovedBy);
+                            approvedCombo.trigger("change");
+                        }
+                        $("#ApprovedDesig").val(result.model.ApprovedDesig).trigger("change");
+                    }
+                    disabled.attr('disabled', 'disabled');
+                },
+                error: function (req) {
+                    alert(req.responseText);
+                }
+            });
+        } else {
+            selectedId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            if (rowitem) {
+                selectedGrid.select($('[data-uid="' + rowitem.uid + '"]'));
+            }
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (!e.response || !e.response.Errors) {
+            if (e.type == "destroy" || e.type == "update") {
+                if (selectedGrid && selectedGrid.dataSource) selectedGrid.dataSource.read();
+                else if (typeof refreshPrGrid === "function") refreshPrGrid();
+            }
+            if (e.type == "create") {
+                var responseData = e.response;
+                if (responseData && responseData.Data && responseData.Data.length > 0) {
+                    var newRecord = responseData.Data[0];
+                    selectedId = newRecord.Id;
+
+                    if (selectedId) {
+                        var grid = $("#grid").data("kendoGrid");
+                        if (grid) {
+                            grid.dataSource.read().then(function () {
+                                var dataItem = grid.dataSource.get(selectedId);
+                                if (dataItem) {
+                                    var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                                    grid.expandRow(row);
+                                }
+                            });
+                        }
+                        if (typeof PpeItems === "function") {
+                            PpeItems();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function GridError(args) {
+        if (args && args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    if (selectedGrid && selectedGrid.dataSource) selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError && selectedGrid && selectedGrid.editable) {
+                var templateEl = $("#validationMessageTemplate");
+                if (templateEl.length > 0) {
+                    var validationTemplate = kendo.template(templateEl.html());
+                    $('#ErrorContent').removeClass('hidden');
+
+                    selectedGrid.one("dataBinding", function (e) {
+                        e.preventDefault();
+                        var errors = selectedGrid.editable.element.find(".errors");
+                        errors.empty();
+                        $.each(args.errors, function (propertyName) {
+                            var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                            errors.append(renderedTemplate);
+                        });
+                    });
+                }
+            }
+        }
+    }
+
+    function onSelectTabStrip(e) {
+        var tabStrip = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = tabStrip.contentElement(idx);
+            if (tab == null) break;
+            if (tab != e.contentElement) {
+                $(tab).html("");
+            }
+        }
+    }
+</script>
+
+<div class="requests-workspace epsms-requests po-wizard">
     @Html.AntiForgeryToken()
 
-    <div class="header-bar">
-        <div>
-            @*<div class="pr-breadcrumbs">
-                    <span>Procurement</span> &gt;
-                    <span>@(isSubmittedMode ? "Posting & Review" : "Purchase Requests")</span>
-                    @if (isSubmittedMode)
-                    {
-                        <span class="pr-mode-badge">Posting Queue</span>
-                    }
-                </div>*@
-            <h1>@(isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests")</h1>
-            <p class="subtitle">
+    <!-- PAGE HEADER -->
+    <div class="requests-header">
+        <div class="requests-title-group">
+            <h2>
+                <span class="requests-title-icon"><span class="k-icon k-i-cart"></span></span>
+                @(isSubmittedMode ? "PURCHASE REQUEST POSTING & REVIEW" : "PURCHASE REQUESTS")
+            </h2>
+            <p class="requests-subtitle">
                 @(isSubmittedMode
                     ? "Review verified requisitions, return items for corrections, or assign official PR numbers and post."
                     : "Create, review, track, and manage departmental purchase requests.")
             </p>
         </div>
-        <div class="action-toolbar">
+        <div class="requests-header-actions">
             @if (!isSubmittedMode)
             {
-                <a href="@Url.Action("Annual", "Procurement")" class="k-button k-button-solid-primary k-rounded-md">
+                <a href="@Url.Action("Annual", "Procurement")" class="btn-primary-action" title="Create a New Purchase Request">
                     <span class="k-icon k-i-plus"></span> Create a New PR
                 </a>
             }
-            <button type="button" class="k-button k-button-solid-base k-rounded-md" onclick="refreshPrGrid()" title="Refresh grid data">
+            <button type="button" class="btn-secondary-action" onclick="refreshPrGrid()" title="Refresh grid data">
                 <span class="k-icon k-i-reload"></span> Refresh
             </button>
         </div>
     </div>
 
-    <!-- Filter Panel with Quick Filters -->
-    <div class="filter-panel pr-filter-panel">
-        <div class="pr-filter-row">
-            <div class="pr-filter-search">
-                <label for="searchPR">Quick Search</label>
-                <div class="pr-search-wrapper">
-                    <span class="k-icon k-i-search pr-search-icon"></span>
-                    <input id="searchPR" type="text" class="form-control-custom pr-search-input"
-                           placeholder="Search by PR#, Ctrl#, department, purpose, fund, creator..." />
-                </div>
+    <!-- KPI SUMMARY CARDS (Interactive click-to-filter, matching PpmpAcctgCode) -->
+    <div class="requests-metrics-row">
+        <div class="requests-metric-card active" id="cardMetricTotal" data-status="" onclick="filterByStatusPill('')" title="Click to view all requests">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Total Requests</span>
+                <span class="requests-metric-dot dot-total"></span>
             </div>
-            <div class="pr-filter-dept">
-                <label for="prDeptFilter">Department</label>
-                <select id="prDeptFilter" class="form-control-custom" onchange="applyPrFilters()">
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricTotal">0</span>
+                <span class="requests-metric-subtext">All records</span>
+            </div>
+        </div>
+
+        <div class="requests-metric-card" id="cardMetricDraft" data-status="Draft" onclick="filterByStatusPill('Draft')" title="Click to filter by draft">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Draft</span>
+                <span class="requests-metric-dot dot-draft"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricDraft">0</span>
+                <span class="requests-metric-subtext">In preparation</span>
+            </div>
+        </div>
+
+        <div class="requests-metric-card" id="cardMetricSubmitted" data-status="Submitted" onclick="filterByStatusPill('Submitted')" title="Click to filter by submitted">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Submitted</span>
+                <span class="requests-metric-dot dot-submitted"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricSubmitted">0</span>
+                <span class="requests-metric-subtext">Pending review</span>
+            </div>
+        </div>
+
+        <div class="requests-metric-card" id="cardMetricReturned" data-status="Returned" onclick="filterByStatusPill('Returned')" title="Click to filter by returned">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Returned</span>
+                <span class="requests-metric-dot dot-returned"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricReturned">0</span>
+                <span class="requests-metric-subtext">Needs revision</span>
+            </div>
+        </div>
+
+        <div class="requests-metric-card" id="cardMetricUnposted" data-status="Unposted" onclick="filterByStatusPill('Unposted')" title="Click to filter by unposted">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Unposted</span>
+                <span class="requests-metric-dot dot-unposted"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricUnposted">0</span>
+                <span class="requests-metric-subtext">Needs action</span>
+            </div>
+        </div>
+
+        <div class="requests-metric-card" id="cardMetricPosted" data-status="Posted" onclick="filterByStatusPill('Posted')" title="Click to filter by posted">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Posted</span>
+                <span class="requests-metric-dot dot-posted"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricPosted">0</span>
+                <span class="requests-metric-subtext">Official PR</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN UNIFIED WORKSPACE CARD -->
+    <div class="requests-card">
+        <div class="requests-card-header">
+            <h3 class="requests-card-title">
+                <span class="k-icon k-i-grid"></span> @(isSubmittedMode ? "Purchase Request Posting Queue" : "Purchase Requests Directory")
+            </h3>
+            <div class="requests-card-stats">
+                <span id="pillCountAllBadge">0</span> Records
+            </div>
+        </div>
+
+        <!-- INTEGRATED TOOLBAR: Search & Filters directly above grid -->
+        <div class="requests-toolbar">
+            <div class="requests-search-container">
+                <span class="k-icon k-i-search requests-search-icon"></span>
+                <input id="searchPR" type="text" class="requests-search-input"
+                       placeholder="Search by PR#, Ctrl#, department, purpose, fund, creator..." />
+            </div>
+
+            <div class="requests-filter-group">
+                <select id="prDeptFilter" class="requests-select" onchange="applyPrFilters()">
                     <option value="">All Departments</option>
                 </select>
-            </div>
-            <div class="pr-filter-status">
-                <label for="prStatusFilter">Status Filter</label>
-                <select id="prStatusFilter" class="form-control-custom" onchange="onStatusFilterChange()">
+
+                <select id="prStatusFilter" class="requests-select" onchange="onStatusFilterChange()">
                     <option value="">All Statuses</option>
                     <option value="Draft">Draft</option>
                     <option value="Submitted">Submitted</option>
                     <option value="Returned">Returned</option>
                     <option value="Revising">Revising</option>
+                    <option value="Unposted">Unposted</option>
                     <option value="Posted">Posted</option>
                 </select>
-            </div>
-            <div class="pr-filter-actions">
-                <button type="button" class="k-button k-button-solid-base pr-btn-reset" onclick="resetPrFilters()" title="Clear all filters">
-                    <span class="k-icon k-i-reset"></span> Reset
+
+                <button type="button" class="requests-btn-reset" onclick="resetPrFilters()" title="Clear all filters">
+                    <span class="k-icon k-i-reload"></span> Clear
                 </button>
             </div>
         </div>
-        <div class="pr-quick-pills">
-            <span class="pr-pill-label">Quick Filter:</span>
-            <button type="button" class="pr-pill active" data-status="" onclick="filterByStatusPill('')">All (<span id="pillCountAll">0</span>)</button>
-            <button type="button" class="pr-pill" data-status="Draft" onclick="filterByStatusPill('Draft')">Draft (<span id="pillCountDraft">0</span>)</button>
-            <button type="button" class="pr-pill" data-status="Submitted" onclick="filterByStatusPill('Submitted')">Submitted (<span id="pillCountSubmitted">0</span>)</button>
-            <button type="button" class="pr-pill" data-status="Returned" onclick="filterByStatusPill('Returned')">Returned (<span id="pillCountReturned">0</span>)</button>
-            <button type="button" class="pr-pill" data-status="Posted" onclick="filterByStatusPill('Posted')">Posted (<span id="pillCountPosted">0</span>)</button>
+
+        <!-- KENDO GRID BODY -->
+        <div class="requests-card-body">
+            @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
+            .Name("grid")
+            .HtmlAttributes(new { @class = "pr-directory-grid" })
+            .Columns(col =>
+            {
+                col.Bound(c => c.PrNo).Title("PR / Ctrl No.").Width(160)
+                    .ClientTemplate("#= renderPrNumber(data) #");
+                col.Bound(c => c.Department).Title("Department & Fund").Width(210)
+                    .ClientTemplate("#= renderPrDepartment(data) #");
+                col.Bound(c => c.Purpose).Title("Purpose").Width(280)
+                    .ClientTemplate("#= renderPrPurpose(data) #");
+                col.Bound(c => c.TotalAmount).Title("Items & Amount").Width(150)
+                    .HtmlAttributes(new { @class = "text-right" })
+                    .HeaderHtmlAttributes(new { @class = "text-right" })
+                    .ClientTemplate("#= renderPrAmount(data) #");
+                col.Bound(c => c.PrDate).Title("Date & Creator").Width(140)
+                    .ClientTemplate("#= renderPrDate(data) #");
+                col.Bound(c => c.Status).Title("Status").Width(125)
+                    .HtmlAttributes(new { @class = "text-center" })
+                    .HeaderHtmlAttributes(new { @class = "text-center" })
+                    .ClientTemplate("#= renderPrStatus(Status) #");
+                col.Bound(c => c.Id).Title("Actions").Width(isSubmittedMode ? 245 : 190)
+                    .Sortable(false).Filterable(false)
+                    .HtmlAttributes(new { @class = "text-right" })
+                    .HeaderHtmlAttributes(new { @class = "text-right" })
+                    .ClientTemplate("#= renderPrActions(data) #");
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
+            .Pageable(pager => pager
+                .Input(false)
+                .Numeric(true)
+                .Info(true)
+                .PreviousNext(true)
+                .Refresh(true)
+                .PageSizes(new[] { 10, 20, 50, 100 })
+                .ButtonCount(5)
+            )
+            .Filterable()
+            .NoRecords(n => n.Template(
+                "<div class='item-empty-state pr-empty-state'>" +
+                    "<span class='k-icon k-i-folder-open pr-empty-icon'></span>" +
+                    "<p>No Purchase Requests found</p>" +
+                    "<span class='item-empty-sub pr-empty-sub'>No records match your search query or selected status filter.</span>" +
+                    "<div style='margin-top: 10px;'><button type='button' class='btn-secondary-action' onclick='resetPrFilters()'><span class='k-icon k-i-reload'></span> Reset Filters</button></div>" +
+                "</div>"
+            ))
+            .Resizable(r => r.Columns(true))
+            .Scrollable()
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Sortable()
+            .ClientDetailTemplateId("Details")
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s => s.Add(a => a.InsertedDt).Descending())
+                .Read(read => read.Action("RequestRead", "Requests", new { isSubmitted = ViewBag.IsSubmitted }))
+                .Update(update => update.Action("RequestUpdate", "Requests").Data("addAntiForgeryToken"))
+                .Destroy(destroy => destroy.Action("RequestDestroy", "Requests").Data("addAntiForgeryToken"))
+            )
+            .Events(events => events
+                .Change("onChangeGrid")
+                .Edit("onEditGrid")
+                .DataBound("onDataBoundGrid")
+            )
+            )
         </div>
     </div>
-
-    <!-- Data Card with Kendo Grid -->
-    <div class="data-card">
-        @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
-        .Name("grid")
-        .HtmlAttributes(new { @class = "pr-directory-grid" })
-        .Columns(col =>
-        {
-            col.Bound(c => c.PrNo).Title("PR / Ctrl No.").Width(150)
-                .ClientTemplate(
-                    "<div class='pr-number-col'>" +
-                        "<a href='javascript:void(0)' class='pr-number-link' onclick=\"viewPurchaseRequest('#=Id#')\">" +
-                            "# if (PrNo) { #" +
-                                "<span class='pr-no-text'>#= kendo.htmlEncode(PrNo) #</span>" +
-                            "# } else { #" +
-                                "<span class='pr-no-draft'>Unnumbered</span>" +
-                            "# } #" +
-                        "</a>" +
-                        "<span class='pr-ctrl-sub'>Ctrl: #= kendo.htmlEncode(CtrlNo || '-') #</span>" +
-                    "</div>"
-                );
-            col.Bound(c => c.Department).Title("Department & Fund").Width(190)
-                .ClientTemplate(
-                    "<div class='pr-dept-col'>" +
-                        "<span class='pr-dept-name' title='#= kendo.htmlEncode(Department || '') #'>#= kendo.htmlEncode(Department || '-') #</span>" +
-                        "<span class='pr-fund-sub'>#= kendo.htmlEncode(Fund || '') #</span>" +
-                    "</div>"
-                );
-            col.Bound(c => c.Purpose).Title("Purpose").Width(260)
-                .ClientTemplate("<span class='pr-purpose' title='#=kendo.htmlEncode(Purpose || \'\')#'>#=kendo.htmlEncode(Purpose || '')#</span>");
-            col.Bound(c => c.TotalAmount).Title("Items & Amount").Width(150)
-                .HtmlAttributes(new { @class = "text-right" })
-                .HeaderHtmlAttributes(new { @class = "text-right" })
-                .ClientTemplate(
-                    "<div class='pr-amount-col text-right'>" +
-                        "<span class='pr-amount-text font-weight-bold'>#= kendo.toString(TotalAmount, 'n2') #</span>" +
-                        "<span class='pr-items-sub'>#= ItemCount # #= ItemCount === 1 ? 'item' : 'items' #</span>" +
-                    "</div>"
-                );
-            col.Bound(c => c.PrDate).Title("Date & Creator").Width(140)
-                .ClientTemplate(
-                    "<div class='pr-date-col'>" +
-                        "<span class='pr-date-text font-weight-bold'>#= InsertedDt ? kendo.toString(InsertedDt, 'MMM dd, yyyy') : '-' #</span>" +
-                        "<span class='pr-creator-sub'>by #= kendo.htmlEncode(InsertedBy || '-') #</span>" +
-                    "</div>"
-                );
-            col.Bound(c => c.Status).Title("Status").Width(120)
-                .HtmlAttributes(new { @class = "text-center" })
-                .HeaderHtmlAttributes(new { @class = "text-center" })
-                .ClientTemplate("#=renderPrStatus(Status)#");
-            col.Bound(c => c.Id).Title("Actions").Width(190)
-                .Sortable(false).Filterable(false)
-                .HtmlAttributes(new { @class = "text-right" })
-                .HeaderHtmlAttributes(new { @class = "text-right" })
-                .ClientTemplate("#=renderPrActions(data)#");
-        })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
-        .Pageable(pager => pager
-            .Refresh(true)
-            .PageSizes(new[] { 10, 20, 50, 100 })
-            .ButtonCount(5)
-        )
-        .Filterable()
-        .NoRecords(n => n.Template(
-            "<div class='pr-empty-state'>" +
-                "<span class='k-icon k-i-folder-open pr-empty-icon'></span>" +
-                "<h3>No Purchase Requests found</h3>" +
-                "<p>No records match your search query or selected status filter.</p>" +
-                "<button type='button' class='k-button k-button-solid-base k-rounded-md' onclick='resetPrFilters()'>Reset Filters</button>" +
-            "</div>"
-        ))
-        .Resizable(r => r.Columns(true))
-        .Scrollable()
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Sortable()
-        .ClientDetailTemplateId("Details")
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .PageSize(20)
-            .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-            })
-            .Sort(s => s.Add(a => a.InsertedDt).Descending())
-            .Read(read => read.Action("RequestRead", "Requests", new { isSubmitted = ViewBag.IsSubmitted }))
-            .Update(update => update.Action("RequestUpdate", "Requests"))
-            .Destroy(destroy => destroy.Action("RequestDestroy", "Requests"))
-        )
-        .Events(events => events
-            .Change("onChangeGrid")
-            .Edit("onEditGrid")
-            .DataBound("onDataBoundGrid")
-        )
-        )
-    </div>
 </div>
-
-
 
 <!-- Review PR Modal Window -->
 <div id="purchaseRequestReviewWindow" style="display:none;"></div>
@@ -189,13 +675,18 @@
     <div class="pr-return-form">
         <p>Confirm the official Purchase Request number and date before posting.</p>
         <label for="reviewPostPrNumber">PR Number</label>
-        <input id="reviewPostPrNumber" class="k-textbox" maxlength="50" style="width:100%;" placeholder="Auto-generate" />
+        <input id="reviewPostPrNumber" class="k-textbox" maxlength="50" style="width:100%; text-transform:uppercase;" placeholder="" />
+        <div class="text-muted" style="font-size: 11.5px; margin-top: 4px; margin-bottom: 8px;">Leave blank to automatically generate a PR Number.</div>
         <label for="reviewPostPrDate">PR Date <span class="text-danger">*</span></label>
         <input id="reviewPostPrDate" style="width:100%;" />
-        <div id="reviewPostError" class="text-danger" role="alert"></div>
+        <div id="reviewPostError" class="text-danger" style="margin-top: 6px; font-size: 12.5px;" role="alert"></div>
         <div class="pr-return-actions">
-            <button type="button" class="k-button" onclick="closeReviewPostDialog()">Cancel</button>
-            <button id="confirmReviewPost" type="button" class="k-button k-button-solid-primary" onclick="submitReviewPost()">Confirm Post</button>
+            <button type="button" class="btn-secondary-action" onclick="closeReviewPostDialog()">
+                <span class="k-icon k-i-cancel"></span> Cancel
+            </button>
+            <button id="confirmReviewPost" type="button" class="btn-primary-action" onclick="submitReviewPost()">
+                <span class="k-icon k-i-check"></span> Post
+            </button>
         </div>
     </div>
 </div>
@@ -205,12 +696,40 @@
     <div class="pr-return-form">
         <p>Explain the corrections required before this Purchase Request can be resubmitted.</p>
         <label for="returnRevisionRemarks">Review comment <span class="text-danger">*</span></label>
-        <textarea id="returnRevisionRemarks" class="k-textbox" rows="6" maxlength="1000"></textarea>
-        <div id="returnRevisionError" class="text-danger" role="alert"></div>
+        <textarea id="returnRevisionRemarks" class="k-textbox" rows="6" maxlength="1000" placeholder="Enter corrections or reason for return..."></textarea>
+        <div id="returnRevisionError" class="text-danger" style="margin-top: 6px; font-size: 12.5px;" role="alert"></div>
         <div class="pr-return-actions">
-            <button type="button" class="k-button" onclick="closeReturnForRevision()">Cancel</button>
-            <button id="confirmReturnForRevision" type="button" class="k-button k-button-solid-primary" onclick="submitReturnForRevision()">
-                Return for Revision
+            <button type="button" class="btn-secondary-action" onclick="closeReturnForRevision()">
+                <span class="k-icon k-i-cancel"></span> Cancel
+            </button>
+            <button id="confirmReturnForRevision" type="button" class="btn-primary-action" onclick="submitReturnForRevision()">
+                <span class="k-icon k-i-undo"></span> Return for Revision
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Review Comment Modal Window -->
+<div id="reviewCommentWindow" style="display:none;">
+    <div class="pr-return-form" style="padding: 10px 0;">
+        <p class="text-muted" style="margin-bottom: 12px; font-size: 12.5px;">View the corrections or comments recorded when this Purchase Request was returned.</p>
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; display: block; margin-bottom: 5px;">Review Comment</label>
+            <div id="reviewCommentText" style="font-size: 13px; line-height: 1.5; color: #1e293b; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 14px; min-height: 80px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;"></div>
+        </div>
+        <div style="display: flex; gap: 20px; padding: 10px 0; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
+            <div>
+                <span class="font-weight-bold" style="color: #475569;">Returned By:</span>
+                <span id="reviewCommentUser">-</span>
+            </div>
+            <div>
+                <span class="font-weight-bold" style="color: #475569;">Returned Date:</span>
+                <span id="reviewCommentDate">-</span>
+            </div>
+        </div>
+        <div class="pr-return-actions" style="margin-top: 16px; text-align: right;">
+            <button type="button" class="btn-secondary-action" onclick="closeReviewCommentDialog()">
+                <span class="k-icon k-i-close"></span> Close
             </button>
         </div>
     </div>
@@ -227,10 +746,15 @@
         </div>
     </div>
     # } #
-    <div class="pr-detail-wrapper">
+    <div class="item-codes-detail-wrap pr-detail-wrapper">
+        <div class="item-codes-detail-header">
+            <h4 class="item-codes-detail-title">
+                <span class="k-icon k-i-list-unordered"></span> Requisition Items for #: PrNo ? PrNo : (CtrlNo ? CtrlNo : 'PR') #
+            </h4>
+        </div>
         @(Html.Kendo().TabStrip()
                 .Name("tabStrip_#=Id#")
-                .HtmlAttributes(new { @class = "pr-clean-tabstrip" })
+                .HtmlAttributes(new { @class = "no-text-tabstrip pr-clean-tabstrip" })
                 .TabPosition(TabStripTabPosition.Top)
                 .Animation(animation =>
                 {
@@ -253,7 +777,16 @@
 <div id="windowcontainer"></div>
 
 <style>
-    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
+    .status-unposted {
+        background-color: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+    .dot-unposted {
+        background-color: #f59e0b;
+    }
+
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
     }
 
@@ -270,6 +803,7 @@
         margin-left: auto;
         margin-right: 0;
         width: fit-content;
+        gap: 8px;
     }
 
     .pr-clean-tabstrip {
@@ -278,13 +812,98 @@
     }
 
     .pr-clean-tabstrip .k-tabstrip-items {
-        border-bottom: 2px solid #e2e8f0;
+        display: none !important;
     }
 
     .pr-clean-tabstrip .k-content {
-        padding: 16px 0 0 0;
+        padding: 0;
         border: none;
         background: transparent;
+    }
+
+    /* More Dropdown Menu & Floating Portal */
+    .pr-dropdown-wrapper {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .pr-btn-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 11.5px;
+        padding: 4px 8px;
+    }
+
+    .pr-btn-more.active {
+        background-color: #e2e8f0;
+        border-color: #94a3b8;
+    }
+
+    .pr-btn-more .k-i-arrow-60-down {
+        font-size: 10px;
+        margin-left: 2px;
+    }
+
+    .pr-action-menu-portal {
+        position: fixed;
+        z-index: 99999;
+        min-width: 175px;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        padding: 4px 0;
+        display: none;
+    }
+
+    .pr-action-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #334155 !important;
+        text-decoration: none !important;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        cursor: pointer;
+    }
+
+    .pr-action-menu-item:hover {
+        background-color: #f1f5f9;
+        color: #0f172a !important;
+    }
+
+    .pr-action-menu-item .k-icon {
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .pr-action-menu-item:hover .k-icon {
+        color: #0284c7;
+    }
+
+    .pr-action-menu-item-warn {
+        color: #b45309 !important;
+    }
+    .pr-action-menu-item-warn:hover {
+        background-color: #fffbeb !important;
+        color: #92400e !important;
+    }
+    .pr-action-menu-item-warn .k-icon {
+        color: #d97706 !important;
+    }
+
+    .pr-action-menu-item-danger {
+        color: #dc2626 !important;
+    }
+    .pr-action-menu-item-danger:hover {
+        background-color: #fef2f2 !important;
+        color: #b91c1c !important;
+    }
+    .pr-action-menu-item-danger .k-icon {
+        color: #ef4444 !important;
     }
 
     .k-button .k-icon.k-i-loading {
@@ -320,79 +939,9 @@
     var unpostPurchaseRequestUrl = '@Url.Action("UnpostPurchaseRequest", "Requests")';
     var returnForRevisionUrl = '@Url.Action("ReturnForRevision", "Requests")';
     var resubmitRequestUrl = '@Url.Action("ResubmitRequest", "Requests")';
-    var isPrReviewMode = @Html.Raw(Json.Encode(ViewBag.IsSubmitted == true));
-    var canUnpostPr = @Html.Raw(Json.Encode(ViewBag.AllowUnpost == true));
     var reviewRequestId = null;
-
-    var selectedGrid = null;
-    var selectedId = null;
-    var selectedItemId = null;
-    var submittedBy = null;
-    var postedBy = null;
-    var selectedPrNo = null;
-    var selectedCtrlNo = null;
-
     var searchTimer = null;
     var knownDepartments = {};
-
-    // --- Badge & Action Renderers ---
-
-    function renderPrStatus(status) {
-        var value = status || "Draft";
-        var cssClass = value === "Posted"
-            ? "status-posted"
-            : (value === "Submitted"
-                ? "status-submitted"
-                : (value === "Returned" ? "status-returned" : (value === "Revising" ? "status-revising" : "status-draft")));
-
-        return "<span class='status-badge " + cssClass + "'>" +
-            kendo.htmlEncode(value) + "</span>";
-    }
-
-    function renderPrActions(item) {
-        var id = item.Id;
-        var html = "<div class='pr-row-actions'>";
-
-        if (item.Status === "Draft") {
-            html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
-                "onclick=\"editPurchaseRequest('" + id + "')\">Continue</button>";
-        } else if (item.Status === "Returned" && !isPrReviewMode) {
-            html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
-                "onclick=\"startPurchaseRequestRevision('" + id + "')\">Revise PR</button>";
-            html += "<button type='button' class='k-button k-button-sm k-button-flat-primary' " +
-                "title='Review Comment' onclick=\"showReturnComment('" + id + "')\">" +
-                "<span class='k-icon k-i-comment'></span></button>";
-        } else if (item.Status === "Revising" && !isPrReviewMode) {
-            html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
-                "onclick=\"startPurchaseRequestRevision('" + id + "')\">Continue Revision</button>";
-        } else if (item.Status === "Submitted" && (isPrReviewMode || canUnpostPr)) {
-            html += "<button type='button' class='k-button k-button-sm k-button-solid-primary' " +
-                "onclick=\"openPurchaseRequestReview('" + id + "')\"><span class='k-icon k-i-eye'></span> Review</button>";
-        } else if (item.Status === "Posted") {
-            if (canUnpostPr) {
-                html += "<button type='button' class='k-button k-button-sm k-button-solid-base' " +
-                    "onclick=\"unpostPurchaseRequest(this, '" + id + "')\">Unpost</button>";
-            }
-        }
-
-        if (!(item.Status === "Submitted" && (isPrReviewMode || canUnpostPr))) {
-            html += "<button type='button' class='k-button k-button-sm k-button-flat-primary' " +
-                "title='View Details' onclick=\"viewPurchaseRequest('" + id + "')\">" +
-                "<span class='k-icon k-i-eye'></span></button>";
-        }
-
-        if (item.Status !== "Draft" && item.Status !== "Returned") {
-            html += "<button type='button' class='k-button k-button-sm k-button-flat-secondary' " +
-                "title='Print Purchase Request' onclick=\"printPurchaseRequest('" + id + "')\">" +
-                "<span class='k-icon k-i-print'></span></button>";
-        } else if (item.Status === "Draft") {
-            html += "<button type='button' class='k-button k-button-sm k-button-flat-secondary' " +
-                "title='Delete Draft' onclick=\"deletePurchaseRequest('" + id + "')\">" +
-                "<span class='k-icon k-i-close'></span></button>";
-        }
-
-        return html + "</div>";
-    }
 
     // --- Row Target & Dialog Helpers ---
 
@@ -412,9 +961,48 @@
 
     function editPurchaseRequest(id) {
         var target = getPurchaseRequestRow(id);
-        if (!target || (target.item.Status !== "Draft" && target.item.Status !== "Returned")) return;
+        if (!target) return;
+        var st = target.item.Status;
+        if (st !== "Draft" && st !== "Returned" && st !== "Submitted" && st !== "Unposted") return;
         target.grid.select(target.row);
         target.grid.editRow(target.row);
+    }
+
+    function openReviewPostDialogForPr(id) {
+        reviewRequestId = id;
+        openReviewPostDialog();
+    }
+
+    function openReviewReturnDialogForPr(id) {
+        reviewRequestId = id;
+        openReviewReturnDialog();
+    }
+
+        var startAdminEditUrl = "@Url.Action("StartAdminEdit", "Requests")";
+
+    function startPurchaseRequestAdminEdit(id) {
+        $.ajax({
+            url: startAdminEditUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                id: id
+            }
+        }).done(function (result) {
+            if (result.success) {
+                window.location.href = result.redirectUrl;
+            } else if (window.kendo && kendo.alert) {
+                kendo.alert(kendo.htmlEncode(result.message || "Admin Edit could not be started."));
+            } else {
+                alert(result.message || "Admin Edit could not be started.");
+            }
+        }).fail(function () {
+            if (window.kendo && kendo.alert) {
+                kendo.alert("Admin Edit could not be started.");
+            } else {
+                alert("Admin Edit could not be started.");
+            }
+        });
     }
 
     function startPurchaseRequestRevision(id) {
@@ -452,16 +1040,48 @@
             encodeURIComponent(target.item.CtrlNo), "_blank");
     }
 
+    function continueDraftPurchaseRequest(id) {
+        window.location.href = '@Url.Action("Cart", "Procurement")';
+    }
+
+    var getReturnCommentUrl = '@Url.Action("GetReturnComment", "Requests")';
+
     function showReturnComment(id) {
         var target = getPurchaseRequestRow(id);
-        if (!target) return;
-        var message = target.item.StatusRemarks || "No review comment was recorded.";
+        var item = target ? target.item : null;
 
-        if (window.kendo && kendo.alert) {
-            kendo.alert("<strong>Review comment</strong><br><br>" + kendo.htmlEncode(message));
-        } else {
-            window.alert(message);
-        }
+        var wnd = ensureReviewDialog("#reviewCommentWindow", "Review Comment / Reason for Return", 500);
+        $("#reviewCommentText").text("Loading comment...");
+        $("#reviewCommentUser").text("-");
+        $("#reviewCommentDate").text("-");
+        wnd.center().open();
+
+        $.ajax({
+            url: getReturnCommentUrl,
+            type: "GET",
+            data: { id: id }
+        }).done(function (result) {
+            if (result && result.success) {
+                $("#reviewCommentText").text(result.remarks || "No comments recorded.");
+                $("#reviewCommentUser").text(result.returnedBy || (item ? item.StatusUser : "-") || "-");
+                $("#reviewCommentDate").text(result.returnedDate || "-");
+            } else {
+                var remarks = (item && item.StatusRemarks) ? item.StatusRemarks : "No review comment was recorded.";
+                $("#reviewCommentText").text(remarks);
+                $("#reviewCommentUser").text((item && item.StatusUser) ? item.StatusUser : "-");
+                $("#reviewCommentDate").text((item && item.StatusDate) ? kendo.toString(item.StatusDate, 'MMM dd, yyyy') : "-");
+            }
+        }).fail(function () {
+            var remarks = (item && item.StatusRemarks) ? item.StatusRemarks : "No review comment was recorded.";
+            $("#reviewCommentText").text(remarks);
+            $("#reviewCommentUser").text((item && item.StatusUser) ? item.StatusUser : "-");
+            $("#reviewCommentDate").text((item && item.StatusDate) ? kendo.toString(item.StatusDate, 'MMM dd, yyyy') : "-");
+        });
+    }
+
+    function closeReviewCommentDialog() {
+        var wnd = $("#reviewCommentWindow").data("kendoWindow");
+        if (wnd) wnd.close();
     }
 
     function resubmitPurchaseRequest(id) {
@@ -484,6 +1104,7 @@
             window.alert("The Purchase Request could not be resubmitted.");
         });
     }
+
     function unpostPurchaseRequest(btn, id) {
         var target = getPurchaseRequestRow(id);
         var prNo = (target && target.item && target.item.PrNo) ? target.item.PrNo : (target && target.item && target.item.CtrlNo ? target.item.CtrlNo : "");
@@ -576,7 +1197,7 @@
             wnd.title(title);
         }
 
-        wnd.content("<div class='pr-review-loading'>Loading Purchase Request...</div>");
+        wnd.content("<div class='pr-review-loading' style='padding: 30px; text-align: center; color: #64748b;'><span class='k-icon k-i-loading' style='font-size: 20px;'></span> Loading Purchase Request...</div>");
         wnd.center().open();
         wnd.refresh({ url: url, data: { id: id } });
     }
@@ -597,12 +1218,8 @@
 
     function openReviewPostDialog() {
         $("#reviewPostError").text("");
+        $("#reviewPostPrNumber").val("");
         var target = getPurchaseRequestRow(reviewRequestId);
-        var prNo = target && target.item.PrNo ? target.item.PrNo : "";
-        $("#reviewPostPrNumber").val(prNo);
-        if (!prNo) {
-            $("#reviewPostPrNumber").attr("placeholder", "Auto-generate");
-        }
         var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
         if (!datePicker) {
             $("#reviewPostPrDate").kendoDatePicker({ format: "MM/dd/yyyy" });
@@ -623,7 +1240,7 @@
         var datePicker = $("#reviewPostPrDate").data("kendoDatePicker");
         var prDate = datePicker ? datePicker.value() : null;
         if (!prDate) {
-            $("#reviewPostError").text("PR Date is required.");
+            $("#reviewPostError").text("The PR Date is required.");
             return;
         }
         setReviewButtonBusy("#confirmReviewPost", true);
@@ -752,8 +1369,12 @@
 
     function filterByStatusPill(status) {
         $("#prStatusFilter").val(status);
-        $(".pr-pill").removeClass("active");
-        $(".pr-pill[data-status='" + status + "']").addClass("active");
+        $(".requests-metric-card").removeClass("active");
+        if (status) {
+            $(".requests-metric-card[data-status='" + status + "']").addClass("active");
+        } else {
+            $(".requests-metric-card[data-status='']").addClass("active");
+        }
 
         applyPrFilters();
     }
@@ -782,6 +1403,7 @@
         var draftCount = 0;
         var submittedCount = 0;
         var returnedCount = 0;
+        var unpostedCount = 0;
         var postedCount = 0;
 
         var deptSelect = $("#prDeptFilter");
@@ -794,6 +1416,7 @@
             if (st === "Draft" || st === "Revising") draftCount++;
             if (st === "Submitted") submittedCount++;
             if (st === "Returned") returnedCount++;
+            if (st === "Unposted") unpostedCount++;
             if (st === "Posted") postedCount++;
 
             if (item.Department && !knownDepartments[item.Department]) {
@@ -804,12 +1427,14 @@
 
         if (currentDept) deptSelect.val(currentDept);
 
-        // Update pill counts
-        $("#pillCountAll").text(totalCount);
-        $("#pillCountDraft").text(draftCount);
-        $("#pillCountSubmitted").text(submittedCount);
-        $("#pillCountReturned").text(returnedCount);
-        $("#pillCountPosted").text(postedCount);
+        // Update KPI metrics and badge
+        $("#metricTotal").text(totalCount);
+        $("#metricDraft").text(draftCount);
+        $("#metricSubmitted").text(submittedCount);
+        $("#metricReturned").text(returnedCount);
+        $("#metricUnposted").text(unpostedCount);
+        $("#metricPosted").text(postedCount);
+        $("#pillCountAllBadge").text(totalCount);
     }
 
     // Attach debounced search listener
@@ -823,81 +1448,19 @@
 
         if (isPrReviewMode) {
             $("#prStatusFilter").val("Submitted");
-            $(".pr-pill").removeClass("active");
-            $(".pr-pill[data-status='Submitted']").addClass("active");
+            $(".requests-metric-card").removeClass("active");
+            $(".requests-metric-card[data-status='Submitted']").addClass("active");
         }
+
+        $(window).on("resize", function () {
+            var grid = $("#grid").data("kendoGrid");
+            if (grid) {
+                grid.resize();
+            }
+        });
     });
 
-    // --- Grid Event Handlers ---
-
-    function onChangeGrid(e) {
-        var selectedData = this.dataItem(this.select());
-        if (!selectedData) return;
-
-        selectedId = selectedData.Id;
-        selectedItemId = null;
-        submittedBy = selectedData.SubmittedBy;
-        postedBy = selectedData.PostedBy;
-        selectedPrNo = selectedData.PrNo;
-        selectedCtrlNo = selectedData.CtrlNo;
-    }
-
-    function onDataBoundGrid(e) {
-        var rawData = this.dataSource.data();
-        updateQuickFilterCountsAndDept(rawData);
-
-        if (selectedId) {
-            var dataItem = this.dataSource.get(selectedId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            this.bind("detailExpand", function (e) {
-                this.select(e.masterRow);
-            });
-        }
-    }
-
-    function onEditGrid(e) {
-        e.preventDefault();
-        selectedGrid = e.sender;
-        selectedId = null;
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-
-            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("GetModelDefault", "Requests")',
-                success: function (result) {
-                    if (result && result.model) {
-                        $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
-                        $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
-                        $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig).trigger("change");
-
-                        $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
-                        $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
-                        $("#ApprovedDesig").val(result.model.ApprovedDesig).trigger("change");
-                    }
-                    disabled.attr('disabled', 'disabled');
-                },
-                error: function (req) {
-                    alert(req.responseText);
-                }
-            });
-        } else {
-            selectedId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selectedId);
-            if (rowitem) {
-                selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            }
-        }
-    }
-
+    // --- Row Action Helpers ---
     function onGridDeleteClick(e) {
         e.preventDefault();
         selectedGrid = this;
@@ -906,71 +1469,6 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         selectedGrid.removeRow(tr);
-    }
-
-    function onRequestEnd(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                if (selectedGrid) selectedGrid.dataSource.read();
-                else refreshPrGrid();
-            }
-            if (e.type == "create") {
-                var responseData = e.response;
-                var newRecord = responseData.Data[0];
-                selectedId = newRecord.Id;
-
-                if (selectedId) {
-                    var grid = $("#grid").data("kendoGrid");
-                    grid.dataSource.read().then(function () {
-                        var dataItem = grid.dataSource.get(selectedId);
-                        if (dataItem) {
-                            var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
-                            grid.expandRow(row);
-                        }
-                    });
-                    PpeItems();
-                }
-            }
-        }
-    }
-
-    function GridError(args) {
-        if (args.errors) {
-            var validationError = true;
-            $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
-                    validationError = false;
-                    if (selectedGrid) selectedGrid.dataSource.read();
-                }
-            });
-            if (validationError && selectedGrid && selectedGrid.editable) {
-                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
-                $('#ErrorContent').removeClass('hidden');
-
-                selectedGrid.one("dataBinding", function (e) {
-                    e.preventDefault();
-                    var errors = selectedGrid.editable.element.find(".errors");
-                    errors.empty();
-                    $.each(args.errors, function (propertyName) {
-                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
-                        errors.append(renderedTemplate);
-                    });
-                });
-            }
-        }
-    }
-
-    function onSelectTabStrip(e) {
-        var tabStrip = this;
-        for (var idx = 0; ; ++idx) {
-            var tab = tabStrip.contentElement(idx);
-            if (tab == null) break;
-            if (tab != e.contentElement) {
-                $(tab).html("");
-            }
-        }
     }
 
     function error_handler(e) {

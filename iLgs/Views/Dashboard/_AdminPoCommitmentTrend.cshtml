@@ -1,0 +1,85 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var commitments = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.MonthlyPoCommitment : null;
+    var months = new List<string>();
+    var amounts = new List<decimal>();
+
+    if (commitments != null && commitments.Any())
+    {
+        foreach (var c in commitments)
+        {
+            months.Add(c.MonthName);
+            amounts.Add(c.PoAmount);
+        }
+    }
+    var totalCommitted = amounts.Sum();
+}
+
+<div class="chart-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-cart chart-icon" style="color: #047857;"></span>
+            <div>
+                <h3 class="chart-title">PO Commitment Trend</h3>
+                <span class="chart-subtitle">Monthly purchase order monetary values (FY @(Model != null ? Model.FiscalYear : DateTime.Now.Year))</span>
+            </div>
+        </div>
+        <div class="chart-total-pill">
+            <span class="pill-label">Total:</span>
+            <strong>PHP @((totalCommitted >= 1000000m) ? (totalCommitted / 1000000m).ToString("N2") + "M" : totalCommitted.ToString("N2"))</strong>
+        </div>
+    </div>
+
+    <div class="chart-card-body">
+        @if (totalCommitted > 0)
+        {
+            <div id="adminPoCommitmentChart" class="kendo-dash-chart" style="height: 250px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var months = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(months));
+                    var data = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(amounts));
+
+                    $("#adminPoCommitmentChart").kendoChart({
+                        title: { visible: false },
+                        legend: { visible: false },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "column",
+                            color: "#047857",
+                            gap: 0.3
+                        },
+                        series: [
+                            {
+                                name: "Committed Amount",
+                                data: data
+                            }
+                        ],
+                        categoryAxis: {
+                            categories: months,
+                            majorGridLines: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: {
+                                template: "#= (value >= 1000000) ? (value / 1000000).toFixed(1) + 'M' : ((value >= 1000) ? (value / 1000).toFixed(0) + 'K' : value) #"
+                            }
+                        },
+                        tooltip: {
+                            visible: true,
+                            template: "#= category #: PHP #= kendo.toString(value, 'n2') #"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 250px;">
+                <span class="k-icon k-i-cart empty-icon"></span>
+                <div class="empty-title">No PO Commitments Recorded</div>
+                <p class="empty-subtext">There are no purchase orders with committed amounts recorded for this fiscal period.</p>
+            </div>
+        }
+    </div>
+</div>

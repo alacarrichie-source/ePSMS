@@ -1,0 +1,65 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var now = DateTime.Now.ToString("MMM d, yyyy HH:mm:ss");
+    var fiscalYear = Model != null && Model.FiscalYear > 0 ? Model.FiscalYear : DateTime.Now.Year;
+}
+
+<div class="content-panel admin-tools-panel">
+    <div class="panel-inner-header">
+        <h3 class="panel-inner-title">
+            <span class="k-icon k-i-gear title-icon-primary"></span>
+            <span>System Administration &amp; Maintenance</span>
+        </h3>
+        <span class="panel-inner-subtitle">Master configuration &amp; controls</span>
+    </div>
+
+    <div class="admin-tools-grid">
+        <a href="@Url.Action("Index", "Users")" class="admin-tool-item">
+            <span class="k-icon k-i-user"></span>
+            <span>Users</span>
+        </a>
+        <a href="@Url.Action("Index", "Roles")" class="admin-tool-item">
+            <span class="k-icon k-i-lock"></span>
+            <span>Roles &amp; Rights</span>
+        </a>
+        <a href="@Url.Action("Index", "Items")" class="admin-tool-item">
+            <span class="k-icon k-i-menu"></span>
+            <span>Items Master</span>
+        </a>
+        <a href="@Url.Action("Index", "Codes")" class="admin-tool-item">
+            <span class="k-icon k-i-custom"></span>
+            <span>Code Maintenance</span>
+        </a>
+        <a href="@Url.Action("Index", "PpmpAcctgCode")" class="admin-tool-item">
+            <span class="k-icon k-i-table-properties"></span>
+            <span>PPMP Accounting</span>
+        </a>
+        <a href="@Url.Action("Index", "AuditTrail")" class="admin-tool-item">
+            <span class="k-icon k-i-search"></span>
+            <span>Audit Trail</span>
+        </a>
+        <a href="@Url.Action("Index", "CustodianReport")" class="admin-tool-item">
+            <span class="k-icon k-i-print"></span>
+            <span>Reports</span>
+        </a>
+        <a href="@Url.Action("Index", "Rpci")" class="admin-tool-item">
+            <span class="k-icon k-i-paste-plain-text"></span>
+            <span>RPCI Supplies</span>
+        </a>
+        <a href="@Url.Action("Index", "RpcPpe")" class="admin-tool-item">
+            <span class="k-icon k-i-folder-up"></span>
+            <span>RPC-PPE Assets</span>
+        </a>
+    </div>
+
+    <div class="admin-system-info">
+        <div class="system-info-env">
+            <strong>ePSMS Application Environment:</strong> ASP.NET MVC 5 &bull; EF 6 &bull; .NET Framework 4.8
+        </div>
+        <div class="system-info-meta">
+            <span>Active Fiscal Year: <strong>FY @fiscalYear</strong></span>
+            <span class="info-meta-sep">&bull;</span>
+            <span>Last Refreshed: <strong>@now</strong></span>
+        </div>
+    </div>
+</div>

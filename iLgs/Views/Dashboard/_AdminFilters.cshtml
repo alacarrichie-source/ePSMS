@@ -1,0 +1,87 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var fiscalYear = Model != null && Model.FiscalYear > 0 ? Model.FiscalYear : DateTime.Now.Year;
+    var depts = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.DepartmentList : null;
+}
+
+<div class="admin-filter-bar">
+    <div class="admin-filter-title">
+        <span class="k-icon k-i-filter filter-title-icon"></span>
+        <span>Operational Filters</span>
+    </div>
+
+    <div class="admin-filter-controls">
+        <select id="adminFilterYear" class="admin-filter-select" onchange="applyAdminFilters();">
+            <option value="@fiscalYear" selected>FY @fiscalYear</option>
+            <option value="@(fiscalYear - 1)">FY @(fiscalYear - 1)</option>
+            <option value="@(fiscalYear - 2)">FY @(fiscalYear - 2)</option>
+        </select>
+
+        <select id="adminFilterDept" class="admin-filter-select" onchange="applyAdminFilters();">
+            <option value="">All Departments</option>
+            @if (depts != null)
+            {
+                foreach (var d in depts)
+                {
+                    <option value="@d">@d</option>
+                }
+            }
+        </select>
+
+        <select id="adminFilterModule" class="admin-filter-select" onchange="applyAdminFilters();">
+            <option value="">All Modules</option>
+            <option value="PR">Purchase Request (PR)</option>
+            <option value="PO">Purchase Order (PO)</option>
+            <option value="AIR">Inspection &amp; Acceptance (AIR)</option>
+            <option value="RIS">Requisition &amp; Issue (RIS)</option>
+            <option value="Property">Property &amp; Stock Cards</option>
+            <option value="Accountability">Accountability (PAR / ICS)</option>
+        </select>
+
+        <select id="adminFilterStatus" class="admin-filter-select" onchange="applyAdminFilters();">
+            <option value="">All Statuses</option>
+            <option value="Action Required">Action Required</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Submitted">Submitted / Pending</option>
+            <option value="Posted">Posted / Completed</option>
+        </select>
+
+        <button type="button" class="admin-filter-reset" onclick="resetAdminFilters();">
+            <span class="k-icon k-i-close"></span>
+            <span>Reset</span>
+        </button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function applyAdminFilters() {
+        var dept = (document.getElementById("adminFilterDept").value || "").toLowerCase();
+        var mod = (document.getElementById("adminFilterModule").value || "").toLowerCase();
+        var status = (document.getElementById("adminFilterStatus").value || "").toLowerCase();
+
+        var attentionCards = document.querySelectorAll(".admin-attention-card");
+        for (var i = 0; i < attentionCards.length; i++) {
+            var card = attentionCards[i];
+            var cardDept = (card.getAttribute("data-department") || "").toLowerCase();
+            var cardMod = (card.getAttribute("data-module") || "").toLowerCase();
+            var cardStatus = (card.getAttribute("data-status") || "").toLowerCase();
+
+            var matchDept = !dept || cardDept.indexOf(dept) !== -1;
+            var matchMod = !mod || cardMod.indexOf(mod) !== -1;
+            var matchStatus = !status || cardStatus.indexOf(status) !== -1;
+
+            if (matchDept && matchMod && matchStatus) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        }
+    }
+
+    function resetAdminFilters() {
+        document.getElementById("adminFilterDept").value = "";
+        document.getElementById("adminFilterModule").value = "";
+        document.getElementById("adminFilterStatus").value = "";
+        applyAdminFilters();
+    }
+</script>

@@ -1,0 +1,85 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var modules = Model != null && Model.AdminDashboard != null ? (Model.AdminDashboard.QuickModules ?? Model.AdminDashboard.CoreModules) : null;
+}
+
+<div class="dash-section-header">
+    <h2 class="dash-section-title">
+        <span class="k-icon k-i-grid section-title-icon"></span>
+        <span>Quick Module Access</span>
+    </h2>
+</div>
+
+<div class="workbench-modules-grid">
+    @if (modules != null && modules.Any())
+    {
+        foreach (var mod in modules)
+        {
+            <a href="@mod.Url" class="workbench-module-card">
+                <div class="workbench-module-icon">
+                    <span class="k-icon @mod.IconClass"></span>
+                </div>
+                <span class="workbench-module-name">@mod.Title</span>
+                <span class="workbench-module-desc">@mod.Description</span>
+            </a>
+        }
+    }
+    else
+    {
+        <a href="@Url.Action("Index", "Requests")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-file-add"></span></div>
+            <span class="workbench-module-name">Purchase Request</span>
+            <span class="workbench-module-desc">Procurement requests</span>
+        </a>
+        <a href="@Url.Action("Index", "PPMP")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-calendar"></span></div>
+            <span class="workbench-module-name">PPMP</span>
+            <span class="workbench-module-desc">Project procurement plans</span>
+        </a>
+        <a href="@Url.Action("Index", "Orders")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-cart"></span></div>
+            <span class="workbench-module-name">Purchase Orders</span>
+            <span class="workbench-module-desc">Supplier purchase orders</span>
+        </a>
+        <a href="@Url.Action("Index", "AIRs")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-check"></span></div>
+            <span class="workbench-module-name">AIR</span>
+            <span class="workbench-module-desc">Inspection &amp; acceptance</span>
+        </a>
+        <a href="@Url.Action("Index", "RIS")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-note"></span></div>
+            <span class="workbench-module-name">RIS</span>
+            <span class="workbench-module-desc">Requisition and issue</span>
+        </a>
+        <a href="@Url.Action("Index", "PropertyCard")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-grid"></span></div>
+            <span class="workbench-module-name">Property Cards</span>
+            <span class="workbench-module-desc">Capital assets &amp; PPE</span>
+        </a>
+        <a href="@Url.Action("Index", "StockCard")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-copy"></span></div>
+            <span class="workbench-module-name">Stock Cards</span>
+            <span class="workbench-module-desc">Supplies &amp; materials</span>
+        </a>
+        <a href="@Url.Action("Index", "ParSet")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-folder"></span></div>
+            <span class="workbench-module-name">PAR</span>
+            <span class="workbench-module-desc">Property receipts</span>
+        </a>
+        <a href="@Url.Action("Index", "IcsSet")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-files"></span></div>
+            <span class="workbench-module-name">ICS</span>
+            <span class="workbench-module-desc">Custodian slips</span>
+        </a>
+        <a href="@Url.Action("Index", "PoTransfer")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-hyperlink-open"></span></div>
+            <span class="workbench-module-name">Transfers</span>
+            <span class="workbench-module-desc">Property transfers</span>
+        </a>
+        <a href="@Url.Action("Index", "CustodianAccountability")" class="workbench-module-card">
+            <div class="workbench-module-icon"><span class="k-icon k-i-user"></span></div>
+            <span class="workbench-module-name">Custodian Reports</span>
+            <span class="workbench-module-desc">Accountability listings</span>
+        </a>
+    }
+</div>

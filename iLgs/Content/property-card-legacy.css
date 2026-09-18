@@ -363,3 +363,89 @@
         transform: rotate(360deg);
     }
 }
+
+/* ==========================================================================
+   ePSMS Canonical Dialog Styles (ParSet Pattern)
+   ========================================================================== */
+.btn-procurement-primary,
+.btn-procurement-secondary,
+.btn-procurement-danger,
+.btn-procurement-warning,
+.btn-procurement-info,
+.btn-procurement-success {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    min-height: 30px !important;
+    padding: 5px 14px !important;
+    border-radius: 5px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+.btn-procurement-primary {
+    border: 1px solid #2c3e50 !important;
+    background: #2c3e50 !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-primary:hover {
+    border-color: #1f2937 !important;
+    background: #1f2937 !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-secondary {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #475569 !important;
+}
+
+.btn-procurement-secondary:hover {
+    border-color: #94a3b8 !important;
+    background: #f8fafc !important;
+    color: #334155 !important;
+}
+
+.btn-procurement-danger {
+    border: 1px solid #dc2626 !important;
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-danger:hover {
+    border-color: #b91c1c !important;
+    background: #b91c1c !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-warning {
+    border: 1px solid #d97706 !important;
+    background: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-warning:hover {
+    border-color: #b45309 !important;
+    background: #b45309 !important;
+    color: #ffffff !important;
+}
+
+.btn-procurement-primary.btn-sm,
+.btn-procurement-secondary.btn-sm,
+.btn-procurement-danger.btn-sm,
+.btn-procurement-warning.btn-sm {
+    min-height: 26px !important;
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+}
+
+.epsms-confirm-window .k-window-titlebar {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+}

@@ -1,173 +1,885 @@
-﻿@{
+@{
     ViewBag.Title = "Property Card";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-<link href="@Url.Content("~/Content/property-card-index.css")" rel="stylesheet" />
-<section id="propertyCardWorkspace" class="epsms-property-card" aria-label="Property cards">
+
+<link href="@Url.Content("~/Content/property-card-index.css?v=20260916_4")" rel="stylesheet" />
+
+<section id="propertyCardWorkspace"
+         class="epsms-property-card"
+         aria-label="Property cards">
+
     <div class="pc-header">
-        <div><h1>Property Cards</h1><p>Find property cards and review their acquisition records and item details.</p></div>
-        <div class="pc-view-switch" role="group" aria-label="Display property cards as">
-            <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary" data-pc-view="list" aria-pressed="true">List</button>
-            <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" data-pc-view="catalogue" aria-pressed="false">Catalog</button>
+        <div class="pc-header-title">
+            <h1>Property Cards</h1>
+            <p>Find property cards and review their acquisition records and item details.</p>
+        </div>
+
+        <div class="pc-view-switch"
+             role="group"
+             aria-label="Display property cards as">
+
+            <button type="button"
+                    class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary pc-view-btn"
+                    data-pc-view="list"
+                    aria-pressed="true"
+                    title="List View"
+                    aria-label="List View">
+                <span class="k-icon k-i-list-unordered"></span>
+                List
+            </button>
+
+            <button type="button"
+                    class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-view-btn"
+                    data-pc-view="catalogue"
+                    aria-pressed="false"
+                    title="Catalog View"
+                    aria-label="Catalog View">
+                <span class="k-icon k-i-grid-layout"></span>
+                Catalog
+            </button>
         </div>
     </div>
-    <div class="pc-filter-summary"><span id="pcResultCount" role="status" aria-live="polite"></span>
-        <button type="button" id="pcClearFilters" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">Clear filters</button>
-    </div>
-<div class="row pc-encoder-filter">
-    <div class="col-md-6">
-        <div class="col-md-12">
-            @Html.Label("UserName", "Encoder")
-        </div>
-        <div class="col-md-12">
-            @(Html.Kendo().MultiColumnComboBox()
-                .Name("UserName")
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                .Placeholder("Select encoder")
-                .DataTextField("NameFull")
-                .DataValueField("UserName")
-                .ValuePrimitive(true)
-                .Filter(FilterType.Contains)
-                .DataSource(source =>
-                {
-                    source.Read(read =>
-                    {
-                        read.Action("GetGsoUsers", "Getters");
-                    })
-                    .ServerFiltering(true);
-                })
-                .Columns(c =>
-                {
-                    c.Add().Field("UserName").Title("User Name").Width("30%");
-                    c.Add().Field("NameFull").Title("Name Full").Width("70%");
-                })
-                .Events(e => e.Select("onSelectUserName").Change("onChangeUserName"))
-                .AutoBind(true)
-            )
-        </div>
-    </div>
-</div>
-<br />
 
 
-@(Html.Kendo().Grid<iLgs.Models.PropertyCardVM>()
-    .HtmlAttributes(new { @class = "max-grid" })
-    .Name("grid")
-    .Columns(col =>
-    {
-        col.Bound(c => c.Id).Hidden();
-        col.Bound(c => c.Fund).Width(40);
-        col.Bound(c => c.PsNo).Width(210).Title("Property Card No.");
-        col.Bound(c => c.ItemType).Width(100);
-        col.Bound(c => c.SubAccount1).Width(100);
-        col.Bound(c => c.SubAccount2).Width(100);
-        col.Bound(c => c.SubAccount3).Width(100);
-        col.Bound(c => c.SubAccount4).Width(100);
-        //col.Bound(c => c.PsName).Width(70);
-        //col.Bound(c => c.Description).Width(100);
-        col.Bound(c => c.Item).Width(240).Title("Article").HtmlAttributes(new { @class = "pc-article" });
-        col.Bound(c => c.InsertedBy).Width(70).Title("Created by");
-        col.Bound(c => c.ItemCount).Width(70);
-        col.Bound(c => c.NotPosted).Width(70);
-        col.Command(command =>
+    <!-- ============================================================
+         FILTER PANEL
+         ============================================================ -->
+    <div class="pc-filter-panel">
+
+        <!-- Quick Search -->
+        <div class="pc-quick-search-row">
+            <div class="pc-search-input-wrap">
+
+                <span class="k-icon k-i-search pc-search-icon"></span>
+
+                <input type="text"
+                       id="pcFilterQuickSearch"
+                       class="k-textbox pc-quick-search-input"
+                       placeholder="Search Article, Property Card No., Fund, Classification..."
+                       aria-label="Quick search property cards" />
+
+                <button type="button"
+                        id="pcBtnClearQuickSearch"
+                        class="pc-search-clear-btn"
+                        title="Clear quick search"
+                        aria-label="Clear quick search"
+                        style="display:none;">
+                    <span class="k-icon k-i-close"></span>
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- Primary Filters -->
+        <div class="pc-primary-filter-row">
+
+            <!-- Fund -->
+            <div class="pc-filter-group">
+                <label for="pcFilterFund"
+                       class="pc-filter-label">
+                    Fund
+                </label>
+
+                <div class="pc-filter-control">
+                    @(Html.Kendo().ComboBox()
+                        .Name("pcFilterFund")
+                        .HtmlAttributes(new
+                        {
+                            style = "width:100%; max-width:100%;",
+                            @class = "pc-filter-combo"
+                        })
+                        .Placeholder("All Funds")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
+                        .Filter(FilterType.Contains)
+                        .ClearButton(true)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action(
+                                    "GetCodeList",
+                                    "Getters",
+                                    new
+                                    {
+                                        mastCode = "FUND",
+                                        addAll = false
+                                    }
+                                );
+                            });
+                        })
+                        .Template("#: data.Code # - #: data.Description #")
+                        .Events(e => e
+                            .Change("onChangeFilterCombo")
+                            .Select("onSelectFilterCombo"))
+                        .Suggest(true)
+                    )
+                </div>
+            </div>
+
+
+            <!-- Item Type -->
+            <div class="pc-filter-group">
+                <label for="pcFilterItemType"
+                       class="pc-filter-label">
+                    Item Type
+                </label>
+
+                <div class="pc-filter-control">
+                    @(Html.Kendo().ComboBox()
+                        .Name("pcFilterItemType")
+                        .HtmlAttributes(new
+                        {
+                            style = "width:100%; max-width:100%;",
+                            @class = "pc-filter-combo"
+                        })
+                        .Placeholder("All Item Types")
+                        .DataTextField("Description")
+                        .DataValueField("Description")
+                        .Filter(FilterType.Contains)
+                        .ClearButton(true)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetItemType", "Getters");
+                            });
+                        })
+                        .Events(e => e
+                            .Change("onChangeFilterCombo")
+                            .Select("onSelectFilterCombo"))
+                        .Suggest(true)
+                    )
+                </div>
+            </div>
+
+
+            <!-- Encoder -->
+            <div class="pc-filter-group pc-filter-group-encoder">
+                <label for="UserName"
+                       class="pc-filter-label">
+                    Encoder
+                </label>
+
+                <div class="pc-filter-control">
+                    @(Html.Kendo().MultiColumnComboBox()
+                        .Name("UserName")
+                        .HtmlAttributes(new
+                        {
+                            style = "width:100%; max-width:100%; min-width:200px;"
+                        })
+                        .Placeholder("All Encoders")
+                        .DataTextField("NameFull")
+                        .DataValueField("UserName")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetGsoUsers", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add()
+                                .Field("UserName")
+                                .Title("User Name")
+                                .Width("30%");
+
+                            c.Add()
+                                .Field("NameFull")
+                                .Title("Name Full")
+                                .Width("70%");
+                        })
+                        .Events(e => e
+                            .Select("onSelectUserName")
+                            .Change("onChangeUserName"))
+                        .AutoBind(true)
+                    )
+                </div>
+            </div>
+
+
+            <!-- Filter Actions -->
+            <div class="pc-filter-actions">
+
+                <button type="button"
+                        id="pcBtnToggleMoreFilters"
+                        class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-btn-more-filters"
+                        aria-expanded="false"
+                        aria-controls="pcMoreFiltersDrawer"
+                        title="Toggle additional filters"
+                        aria-label="Toggle additional filters">
+
+                    <span class="k-icon k-i-filter"></span>
+
+                    <span class="pc-more-filters-text">
+                        More Filters
+                    </span>
+
+                    <span class="k-icon k-i-arrow-chevron-down pc-chevron-icon"></span>
+                </button>
+
+
+                <button type="button"
+                        id="pcClearFilters"
+                        class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-btn-clear-filters"
+                        title="Reset all filters and search"
+                        aria-label="Reset all filters and search">
+
+                    <span class="k-icon k-i-filter-clear"></span>
+                    Clear filters
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- ========================================================
+             MORE FILTERS
+             ======================================================== -->
+        <div id="pcMoreFiltersDrawer"
+             class="pc-more-filters-drawer"
+             style="display:none;">
+
+            <div class="pc-drawer-grid">
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterPsNo"
+                           class="pc-filter-label">
+                        Property Card No.
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterPsNo"
+                           class="k-textbox pc-filter-input"
+                           placeholder="e.g. PC-2026-001" />
+                </div>
+
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterItem"
+                           class="pc-filter-label">
+                        Article / Description
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterItem"
+                           class="k-textbox pc-filter-input"
+                           placeholder="e.g. Laptop, Desktop, Printer..." />
+                </div>
+
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterSubAccount1"
+                           class="pc-filter-label">
+                        Sub Account 1
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterSubAccount1"
+                           class="k-textbox pc-filter-input"
+                           placeholder="e.g. ICT Equipment" />
+                </div>
+
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterSubAccount2"
+                           class="pc-filter-label">
+                        Sub Account 2
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterSubAccount2"
+                           class="k-textbox pc-filter-input"
+                           placeholder="e.g. Computer Equipment" />
+                </div>
+
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterSubAccount3"
+                           class="pc-filter-label">
+                        Sub Account 3
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterSubAccount3"
+                           class="k-textbox pc-filter-input"
+                           placeholder="Sub-account 3" />
+                </div>
+
+
+                <div class="pc-filter-group">
+                    <label for="pcFilterSubAccount4"
+                           class="pc-filter-label">
+                        Sub Account 4
+                    </label>
+
+                    <input type="text"
+                           id="pcFilterSubAccount4"
+                           class="k-textbox pc-filter-input"
+                           placeholder="Sub-account 4" />
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Filter Status -->
+        <div class="pc-filter-status-bar">
+            <div class="pc-status-left">
+
+                <span id="pcResultCount"
+                      class="pc-result-count"
+                      role="status"
+                      aria-live="polite">
+                </span>
+
+                <span id="pcActiveFilterBadge"
+                      class="pc-active-filter-badge"
+                      style="display:none;">
+                </span>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         LIST VIEW
+         ============================================================ -->
+    @(Html.Kendo().Grid<iLgs.Models.PropertyCardVM>()
+        .Name("grid")
+        .HtmlAttributes(new { @class = "max-grid" })
+
+        .Columns(col =>
         {
-            //command.Edit();
-            command.Custom("View Property Card").Click("onViewPropertyCard");
-            command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdit");
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            command.Destroy();
-        }).Width(220);
-    })
-    @*.ToolBar(toolbar =>
-            {
-            toolbar.Template(@<text>
-                @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
-                @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
-            </text>);
-        })*@
-    .ToolBar(t =>
-    {
-        //t.Create().Text("Add New Record");
-        //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Add Property Card").IconClass("k-icon k-i-add").Name("btnAddNew").HtmlAttributes(new { @class = "k-grid-add-custom" });
-        t.Custom().Text("Print Selected Card").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Search();
-    })
-    .Search(s =>
-    {
-        s.Field(o => o.Fund, "contains");
-        s.Field(o => o.PsNo, "contains");
-        s.Field(o => o.ItemType, "contains");
-        s.Field(o => o.SubAccount1, "contains");
-        s.Field(o => o.SubAccount2, "contains");
-        s.Field(o => o.SubAccount3, "contains");
-        s.Field(o => o.SubAccount4, "contains");
-        s.Field(o => o.Item, "contains");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(new int[] { 12, 20, 40, 80 })
-        .ButtonCount(5)
-    )
-    .Filterable()
-    .NoRecords()
-    .Resizable(r => r.Columns(true))
-    .Scrollable()
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Sortable()
+            col.Bound(c => c.Id)
+                .Hidden();
 
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(20)
-        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGrid")
-        )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.CardCategory).DefaultValue("P").Editable(true);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+
+            // --------------------------------------------------------
+            // Property Card No.
+            // #: already HTML-encodes. Do NOT wrap in kendo.htmlEncode.
+            // --------------------------------------------------------
+            col.Bound(c => c.PsNo)
+                .Width(170)
+                .Title("Property Card No.")
+                .ClientTemplate(
+                    "<span class=\"pc-col-psno\">" +
+                        "<span class=\"k-icon k-i-file-data mr-1\"></span>" +
+                        "#: PsNo || '' #" +
+                    "</span>"
+                );
+
+
+            // --------------------------------------------------------
+            // Article
+            // --------------------------------------------------------
+            col.Bound(c => c.Item)
+                .Width(240)
+                .Title("Article")
+                .HtmlAttributes(new
+                {
+                    @class = "pc-article"
+                })
+                .ClientTemplate(
+                    "<span class=\"pc-col-article\" " +
+                          "title=\"#: Item || '' #\">" +
+                        "#: Item || '' #" +
+                    "</span>"
+                );
+
+
+            // --------------------------------------------------------
+            // Combined Account Classification
+            // Helper returns HTML and must encode its own data.
+            // --------------------------------------------------------
+            col.Bound(c => c.SubAccount1)
+                .Width(220)
+                .Title("Account Classification")
+                .ClientTemplate(
+                    "#= propertyCardClassificationHtml(data) #"
+                );
+
+
+            col.Bound(c => c.Fund)
+                .Width(100)
+                .Title("Fund");
+
+
+            col.Bound(c => c.ItemType)
+                .Width(130)
+                .Title("Item Type");
+
+
+            // --------------------------------------------------------
+            // Item Count
+            // --------------------------------------------------------
+            col.Bound(c => c.ItemCount)
+                .Width(80)
+                .Title("Items")
+                .HtmlAttributes(new
+                {
+                    @class = "text-right"
+                })
+                .ClientTemplate(
+                    "#: ItemCount == null ? '0' : kendo.toString(ItemCount, 'n0') #"
+                );
+
+
+            // --------------------------------------------------------
+            // Status
+            // Helper intentionally returns HTML.
+            // --------------------------------------------------------
+            col.Bound(c => c.NotPosted)
+                .Width(120)
+                .Title("Status")
+                .ClientTemplate(
+                    "#= propertyCardStatusCue(data) #"
+                );
+
+
+            // --------------------------------------------------------
+            // Created By
+            // --------------------------------------------------------
+            col.Bound(c => c.InsertedBy)
+                .Width(110)
+                .Title("Created By")
+                .ClientTemplate(
+                    "<span title=\"#: InsertedBy || '' #\">" +
+                        "#: InsertedBy || '\\u2014' #" +
+                    "</span>"
+                );
+
+
+            // --------------------------------------------------------
+            // Actions
+            //
+            // IMPORTANT:
+            // Do not use HTML entities with # (such as numeric caret entities) inside
+            // Kendo templates because # is a Kendo delimiter.
+            // --------------------------------------------------------
+            col.Template(@<text></text>)
+                .Title("Actions")
+                .Width(210)
+                .ClientTemplate(
+                    "<div class=\"pc-row-actions\">" +
+
+                        "<button type=\"button\" " +
+                                "class=\"k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary pc-grid-view-btn\" " +
+                                "data-card-id=\"#: Id #\" " +
+                                "title=\"View Property Card\" " +
+                                "aria-label=\"View Property Card\">" +
+
+                            "<span class=\"k-icon k-i-folder-open mr-1\"></span>" +
+                            "View" +
+
+                        "</button>" +
+
+
+                        "<button type=\"button\" " +
+                                "class=\"k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-grid-edit-btn\" " +
+                                "data-card-id=\"#: Id #\" " +
+                                "title=\"Edit Property Card\" " +
+                                "aria-label=\"Edit Property Card\">" +
+
+                            "<span class=\"k-icon k-i-edit mr-1\"></span>" +
+                            "Edit" +
+
+                        "</button>" +
+
+
+                        "<button type=\"button\" " +
+                                "class=\"k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-grid-more-btn\" " +
+                                "data-card-id=\"#: Id #\" " +
+                                "aria-haspopup=\"true\" " +
+                                "aria-expanded=\"false\" " +
+                                "title=\"More options\" " +
+                                "aria-label=\"More options\">" +
+
+                            "<span class=\"k-icon k-i-more-vertical mr-1\"></span>" +
+                            "<span class=\"k-icon k-i-arrow-chevron-down pc-more-caret\"></span>" +
+
+                        "</button>" +
+
+                    "</div>"
+                );
         })
-        .Sort(s => s.Add(a => a.InsertedDt).Descending())
-        .Read(read => read.Action("Read", "PropertyCard").Data("DataStockCard"))
-        //.Create(create => create.Action("Create", "PropertyCard"))
-        //.Update(update => update.Action("Update", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("Destroy", "PropertyCard"))
-    )
-    .Events(events => events
-        .Change("onChangeGrid")
-        //.Edit("onEditGrid")
-        .DataBound("onDataBoundGrid")
 
-    )
-)
 
-<div id="pcCataloguePanel" hidden>
-    <p class="pc-catalogue-help">Open a card to review acquisitions, individual units, accountability and documents. List filters and sorting also apply here.</p>
-    <div id="pcCatalogue" aria-label="Property card catalog"></div>
-    <div id="pcCataloguePager" aria-label="Catalog pages"></div>
-</div>
+        // ============================================================
+        // TOOLBAR
+        // ============================================================
+        .ToolBar(t =>
+        {
+            t.Custom()
+                .Text("Add Property Card")
+                .IconClass("k-icon k-i-add")
+                .Name("btnAddNew")
+                .HtmlAttributes(new
+                {
+                    @class = "k-grid-add-custom",
+                    title = "Add Property Card"
+                });
+
+
+            t.Custom()
+                .Text("Print Selected Card")
+                .IconClass("k-icon k-i-print")
+                .Name("btnPrintCard")
+                .HtmlAttributes(new
+                {
+                    @class = "k-button",
+                    href = "",
+                    title = "Print Selected Card"
+                });
+        })
+
+
+        // ============================================================
+        // PAGING
+        // ============================================================
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(new int[] { 12, 20, 40, 80 })
+            .ButtonCount(5)
+        )
+
+
+        .Filterable()
+        .NoRecords()
+
+        .Resizable(r => r
+            .Columns(true)
+        )
+
+        .Scrollable()
+
+        .Selectable(s => s
+            .Mode(GridSelectionMode.Single)
+        )
+
+        .Sortable()
+
+
+        // ============================================================
+        // DATA SOURCE
+        // ============================================================
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+
+            .Events(events => events
+                .Error("GridError")
+                .RequestEnd("onRequestEndGrid")
+            )
+
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+
+                model.Field(p => p.CardCategory)
+                    .DefaultValue("P")
+                    .Editable(true);
+
+                model.Field(p => p.Id)
+                    .DefaultValue(Guid.Empty)
+                    .Editable(true);
+            })
+
+            .Sort(s => s
+                .Add(a => a.InsertedDt)
+                .Descending()
+            )
+
+            .Read(read => read
+                .Action("Read", "PropertyCard")
+                .Data("DataStockCard")
+            )
+
+            .Destroy(destroy => destroy
+                .Action("Destroy", "PropertyCard")
+            )
+        )
+
+
+        // ============================================================
+        // GRID EVENTS
+        // ============================================================
+        .Events(events => events
+            .Change("onChangeGrid")
+            .DataBound("onDataBoundGrid")
+        )
+    )
+
+
+    <!-- ============================================================
+         CATALOG VIEW
+         ============================================================ -->
+    <div id="pcCataloguePanel" hidden>
+
+        <div class="pc-catalogue-toolbar">
+
+            <p class="pc-catalogue-help">
+                <span class="k-icon k-i-info"></span>
+
+                <span>
+                    Open a card to review acquisitions, individual units,
+                    accountability and documents. List filters and sorting
+                    also apply here.
+                </span>
+            </p>
+
+
+            <div class="pc-catalogue-sort-wrap">
+
+                <label for="pcCatalogueSort"
+                       class="pc-sort-label">
+                    Sort by:
+                </label>
+
+                <input id="pcCatalogueSort"
+                       class="pc-sort-select"
+                       style="width:175px;" />
+
+            </div>
+
+        </div>
+
+
+        <div id="pcCatalogue"
+             aria-label="Property card catalog">
+        </div>
+
+
+        <div id="pcCataloguePager"
+             aria-label="Catalog pages">
+        </div>
+
+    </div>
+
 </section>
-<script id="pcCatalogueTemplate" type="text/x-kendo-template">
-    <article class="pc-card">
-        <div class="pc-card-heading"><span class="pc-card-number">#: PsNo || 'No card number' #</span><span class="pc-fund">Fund #: Fund || '\u2014' #</span></div>
-        <h2>#: Item || 'No article description' #</h2>
-        <p class="pc-account">#: ItemType || '\u2014' #</p>
-        <p class="pc-subaccounts">#: propertyCardClassification(data) #</p>
-        <dl class="pc-card-counts"><div><dt>Item count</dt><dd>#: ItemCount == null ? '\u2014' : ItemCount #</dd></div><div><dt>Not posted</dt><dd>#: NotPosted == null ? '\u2014' : NotPosted #</dd></div></dl>
-        <p class="pc-created">Created by #: InsertedBy || '\u2014' #</p>
-        <div class="pc-card-actions"><button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary pc-open-card" data-card-id="#: Id #">View Property Card</button><button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-edit-card" data-card-id="#: Id #">Edit</button><button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-print-card" data-card-id="#: Id #">Print</button></div>
+
+
+<!-- ================================================================
+     CATALOG CARD TEMPLATE
+
+     IMPORTANT:
+     - #: expression # = HTML encoded
+     - #= expression # = raw HTML
+     - Never put HTML numeric entities containing # inside this template.
+     ================================================================ -->
+<script id="pcCatalogueTemplate"
+        type="text/x-kendo-template">
+
+    <article class="pc-card"
+             data-card-id="#: Id #">
+
+        <header class="pc-card-heading">
+
+            <div class="pc-card-identity">
+
+                <span class="pc-card-number">
+
+                    <span class="k-icon k-i-file-data mr-1"></span>
+
+                    #: PsNo || 'No card number' #
+
+                </span>
+
+
+                <span class="pc-fund">
+
+                    #: Fund || '\u2014' #
+
+                </span>
+
+            </div>
+
+
+            #= propertyCardStatusCue(data) #
+
+        </header>
+
+
+        <div class="pc-card-body">
+
+
+            <!-- Article -->
+            <h2 class="pc-card-title"
+                title="#: Item || '' #">
+
+                #: Item || 'No article description' #
+
+            </h2>
+
+
+            <!-- Item Type -->
+            <div class="pc-card-type">
+
+                <span class="k-icon k-i-cube mr-1"></span>
+
+                #: ItemType || '\u2014' #
+
+            </div>
+
+
+            <!-- Classification -->
+            <div class="pc-card-classification">
+
+                <span class="pc-classification-label">
+                    Account Classification
+                </span>
+
+                #= propertyCardClassificationHtml(data) #
+
+            </div>
+
+
+            <!-- Counts -->
+            <div class="pc-card-counts">
+
+                <div class="pc-card-stat pc-stat-items">
+
+                    <strong>
+                        #: ItemCount == null ? '0' : kendo.toString(ItemCount, 'n0') #
+                    </strong>
+
+                    <span>Items</span>
+
+                </div>
+
+
+                <div class="pc-card-stat pc-stat-notposted #= (NotPosted != null && NotPosted > 0) ? 'pc-has-unposted' : 'pc-is-posted' #">
+
+                    <strong>
+                        #: NotPosted == null ? '0' : kendo.toString(NotPosted, 'n0') #
+                    </strong>
+
+                    <span>Not Posted</span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Created By -->
+            <div class="pc-created">
+
+                <span class="k-icon k-i-user mr-1"></span>
+
+                Created by
+
+                <strong>
+                    #: InsertedBy || '\u2014' #
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             CARD ACTIONS
+             ======================================================== -->
+        <footer class="pc-card-actions">
+
+
+            <!-- View -->
+            <button type="button"
+                    class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary pc-open-card"
+                    data-card-id="#: Id #"
+                    title="View Property Card"
+                    aria-label="View Property Card">
+
+                <span class="k-icon k-i-folder-open mr-1"></span>
+
+                View Property Card
+
+            </button>
+
+
+            <!-- Edit -->
+            <button type="button"
+                    class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-edit-card"
+                    data-card-id="#: Id #"
+                    title="Edit Property Card"
+                    aria-label="Edit Property Card">
+
+                <span class="k-icon k-i-edit mr-1"></span>
+
+                Edit
+
+            </button>
+
+
+            <!-- More -->
+            <button type="button"
+                    class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base pc-card-more-btn"
+                    data-card-id="#: Id #"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    title="More options"
+                    aria-label="More options">
+
+                <span class="k-icon k-i-more-vertical mr-1"></span>
+
+                More
+
+                <span class="k-icon k-i-arrow-chevron-down pc-more-caret"></span>
+
+            </button>
+
+        </footer>
+
     </article>
+
 </script>
 
+
+<!-- ================================================================
+     WINDOWS / NOTIFICATIONS
+     ================================================================ -->
 <div id="windowcontainer"></div>
+
+
+@(Html.Kendo().Notification()
+    .Name("propertyCardNotification")
+    .Position(p => p
+        .Pinned(true)
+        .Top(30)
+        .Right(30)
+    )
+    .Stacking(NotificationStackingSettings.Down)
+    .AutoHideAfter(5000)
+)
+
+
+<!-- ================================================================
+     SHARED PARTIALS
+     ================================================================ -->
 @Html.Partial("_ValidationTemplate")
 @Html.Partial("_ClientConfig")
-<link href="@Url.Content("~/Content/property-card-legacy.css?v=20260912_3")" rel="stylesheet" />
-<script src="@Url.Content("~/Scripts/property-card-legacy.js?v=20260912_3")"></script>
-<script src="@Url.Content("~/Scripts/property-card-index.js?v=20260912_3")"></script>
+
+
+<!-- ================================================================
+     LEGACY + MODULE ASSETS
+     ================================================================ -->
+<link href="@Url.Content("~/Content/property-card-legacy.css?v=20260915_2")"
+      rel="stylesheet" />
+
+<script src="@Url.Content("~/Scripts/epsms-dialog.js?v=20260915_1")"></script>
+
+<script src="@Url.Content("~/Scripts/property-card-legacy.js?v=20260915_5")"></script>
+
+<script src="@Url.Content("~/Scripts/property-card-index.js?v=20260916_4")"></script>

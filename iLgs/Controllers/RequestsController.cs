@@ -96,53 +96,53 @@ namespace iLgs.Controllers
                     .ThenByDescending(o => o.InsertedDt);
             }
 
-            var requests = await data.ToListAsync();
-            var requestIds = requests.Select(x => x.Id).ToList();
-            var histories = await _db.DocumentStatusHistories
-                .AsNoTracking()
-                .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && requestIds.Contains(x.DocumentId))
-                .OrderByDescending(x => x.ChangedDt)
-                .ThenByDescending(x => x.Id)
-                .ToListAsync();
-            var latestHistories = histories
-                .GroupBy(x => x.DocumentId)
-                .ToDictionary(x => x.Key, x => x.First());
-
-            foreach (var purchaseRequest in requests)
+            var result = data.ToDataSourceResult(request);
+            var pageItems = (result.Data as System.Collections.IEnumerable)?.OfType<RequestVM>().ToList();
+            if (pageItems != null && pageItems.Any())
             {
-                DocumentStatusHistory latestHistory;
-                if (latestHistories.TryGetValue(purchaseRequest.Id, out latestHistory) &&
-                    !String.IsNullOrWhiteSpace(latestHistory.ToStatus))
+                var pageIds = pageItems.Select(x => x.Id).ToList();
+                var returnedRemarks = await _db.DocumentStatusHistories
+                    .AsNoTracking()
+                    .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && pageIds.Contains(x.DocumentId) && x.ToStatus == PrStatuses.Returned)
+                    .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
+                    .Select(x => new { x.DocumentId, x.Remarks, x.ChangedBy, x.ChangedDt })
+                    .ToListAsync();
+
+                var remarksMap = returnedRemarks
+                    .GroupBy(x => x.DocumentId)
+                    .ToDictionary(x => x.Key, x => x.First());
+
+                foreach (var purchaseRequest in pageItems)
                 {
-                    purchaseRequest.Status = NormalizePrStatus(latestHistory.ToStatus);
-                    purchaseRequest.StatusRemarks = latestHistory.Remarks;
-                }
-                else if (!String.IsNullOrWhiteSpace(purchaseRequest.PostedBy) ||
-                    purchaseRequest.PostedDt.HasValue)
-                {
-                    purchaseRequest.Status = PrStatuses.Posted;
-                }
-                else
-                {
-                    purchaseRequest.Status = !String.IsNullOrWhiteSpace(purchaseRequest.SubmittedBy)
-                        ? PrStatuses.Submitted
-                        : PrStatuses.Draft;
+                    if (!string.IsNullOrWhiteSpace(purchaseRequest.Status))
+                    {
+                        purchaseRequest.Status = NormalizePrStatus(purchaseRequest.Status);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(purchaseRequest.PostedBy) || purchaseRequest.PostedDt.HasValue)
+                    {
+                        purchaseRequest.Status = PrStatuses.Posted;
+                    }
+                    else
+                    {
+                        purchaseRequest.Status = !string.IsNullOrWhiteSpace(purchaseRequest.SubmittedBy) ? PrStatuses.Submitted : PrStatuses.Draft;
+                    }
+
+                    if (remarksMap.ContainsKey(purchaseRequest.Id))
+                    {
+                        var hist = remarksMap[purchaseRequest.Id];
+                        purchaseRequest.StatusRemarks = hist.Remarks;
+                        purchaseRequest.StatusUser = hist.ChangedBy;
+                        purchaseRequest.StatusDate = hist.ChangedDt;
+                    }
                 }
             }
 
-            if (isSubmitted == true)
+            return new JsonNetResult
             {
-                requests = requests.Where(x => x.Status == PrStatuses.Submitted).ToList();
-            }
-
-            var result = new JsonNetResult
-            {
-                Data = requests.AsQueryable().ToDataSourceResult(request),
+                Data = result,
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-
-            return result;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -187,7 +187,8 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RequestUpdate([DataSourceRequest] DataSourceRequest request, RequestVM model)
         {
             try
@@ -199,12 +200,12 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Update Access Denied!");
                 }
 
-                var existingRequest = await _db.Requests.AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == model.Id);
-                var currentStatus = await GetRequestStatusAsync(existingRequest);
-                if (existingRequest == null || currentStatus != PrStatuses.Draft)
+                var isDraftEdit = await CanEditDraftRequestAsync(model.Id, access);
+                var isAdminEdit = !isDraftEdit && await CanAdminEditRequestAsync(model.Id, access);
+
+                if (!isDraftEdit && !isAdminEdit)
                 {
-                    ModelState.AddModelError("Status", "Only a new Draft can be edited here. Returned Purchase Requests must use Revise PR.");
+                    ModelState.AddModelError("Status", "Only an authorized Draft or Submitted/Unposted Purchase Request can be edited.");
                 }
 
                 if (ModelState.IsValid)
@@ -212,8 +213,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id);
-                    model = await _requestService.UpdateAsync(model, user, date);
+                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id, allowAdminEdit: isAdminEdit);
+                    model = await _requestService.UpdateAsync(model, user, date, allowAdminEdit: isAdminEdit);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -234,6 +235,60 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+                [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
+        public async Task<ActionResult> StartAdminEdit(Guid id)
+        {
+            _menuId = "requests_posting";
+            var access = await Access(User.Identity.GetUserId(), _menuId, "requests");
+            if (!access.IsAllowed || (!access.IsAdmin && !access.AllowEdit && !access.AllowPost))
+            {
+                if (Request.IsAjaxRequest())
+                {
+                    return Json(new { success = false, message = "Admin Edit access denied." }, JsonRequestBehavior.AllowGet);
+                }
+                TempData["Error"] = "Admin Edit access denied.";
+                return RedirectToAction("Posting");
+            }
+
+            if (!await CanAdminEditRequestAsync(id, access))
+            {
+                var msg = "Admin edit is only permitted for Submitted or Unposted Purchase Requests.";
+                if (Request.IsAjaxRequest())
+                {
+                    return Json(new { success = false, message = msg }, JsonRequestBehavior.AllowGet);
+                }
+                TempData["Error"] = msg;
+                return RedirectToAction("Posting");
+            }
+
+            try
+            {
+                var lifecycle = new PurchaseRequestLifecycleService(_db);
+                await lifecycle.EnsureEditableAsync(id, allowAdminEdit: true);
+
+                var cartService = new ProcurementCartService(_db);
+                var adminCart = await cartService.StartAdminEditCartAsync(id, User.Identity.GetUserId(), User.Identity.Name, access);
+
+                Session["ActiveAdminEditRequestId"] = id;
+
+                var redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.AdminEdit, requestId = id });
+                if (Request.IsAjaxRequest())
+                {
+                    return Json(new { success = true, redirectUrl = redirectUrl }, JsonRequestBehavior.AllowGet);
+                }
+                return Redirect(redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                if (Request.IsAjaxRequest())
+                {
+                    return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                }
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Posting");
+            }
         }
 
         private async Task<PurchaseRequestReviewViewModel> LoadPurchaseRequestReviewModelAsync(Guid id)
@@ -318,9 +373,9 @@ namespace iLgs.Controllers
             }
 
             var model = await LoadPurchaseRequestReviewModelAsync(id);
-            if (model == null || model.Status != PrStatuses.Submitted)
+            if (model == null || (model.Status != PrStatuses.Submitted && model.Status != PrStatuses.Unposted))
             {
-                return HttpNotFound("Only a Submitted Purchase Request can be reviewed.");
+                return HttpNotFound("Only a Submitted or Unposted Purchase Request can be reviewed.");
             }
 
             model.IsViewOnly = false;
@@ -351,6 +406,41 @@ namespace iLgs.Controllers
             return PartialView("_Review", model);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> GetReturnComment(Guid id)
+        {
+            var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
+            if (!access.IsAllowed)
+            {
+                return Json(new { success = false, message = "Access denied." }, JsonRequestBehavior.AllowGet);
+            }
+
+            var history = await _db.DocumentStatusHistories
+                .AsNoTracking()
+                .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == id && x.ToStatus == PrStatuses.Returned)
+                .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
+                .Select(x => new
+                {
+                    Remarks = x.Remarks,
+                    ReturnedBy = x.ChangedBy,
+                    ReturnedDate = x.ChangedDt
+                })
+                .FirstOrDefaultAsync();
+
+            if (history == null)
+            {
+                return Json(new { success = false, message = "No review comment found." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                success = true,
+                remarks = history.Remarks,
+                returnedBy = history.ReturnedBy,
+                returnedDate = history.ReturnedDate.ToString("MMM dd, yyyy hh:mm tt")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> PostPurchaseRequest(PostPurchaseRequestViewModel model)
@@ -359,79 +449,30 @@ namespace iLgs.Controllers
             if (!access.IsAllowed || !access.AllowPost)
                 return Json(new { success = false, message = "Posting access denied." });
 
-            ModelState.Remove(nameof(model.PrNumber));
-            ModelState.Remove("PrNumber");
-            ModelState.Remove("model.PrNumber");
-
             if (model.RequestId == Guid.Empty)
                 return Json(new { success = false, message = "Invalid Request ID." });
 
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage).Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
+                var errors = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                 if (errors.Any())
                     return Json(new { success = false, message = string.Join(" ", errors) });
             }
 
-            var entity = await _db.Requests.FirstOrDefaultAsync(x => x.Id == model.RequestId);
-            if (entity == null)
-                return Json(new { success = false, message = "Purchase Request not found." });
 
-            var status = await GetRequestStatusAsync(entity);
-            if (status != PrStatuses.Submitted || entity.PostedDt.HasValue || !String.IsNullOrWhiteSpace(entity.PostedBy))
-                return Json(new { success = false, message = "Only a Submitted Purchase Request can be posted." });
+            if (!model.PrDate.HasValue)
+                return Json(new { success = false, message = "PR Date is required." });
 
-            if (String.IsNullOrWhiteSpace(entity.Availability) || String.IsNullOrWhiteSpace(entity.ApprovedBy))
-                return Json(new { success = false, message = "Cash availability and Approved By are required before posting." });
-
-            var prDate = model.PrDate.HasValue
-                ? model.PrDate.Value.Date
-                : (entity.PrDate.HasValue ? entity.PrDate.Value.Date : DateTime.Today);
-
-            // Allow empty PR Number: preserve existing PR Number if already present, otherwise auto generate
-            var prNumber = !String.IsNullOrWhiteSpace(model.PrNumber)
-                ? model.PrNumber.Trim()
-                : (!String.IsNullOrWhiteSpace(entity.PrNo) ? entity.PrNo.Trim() : _requestService.NextPrNo(prDate));
-
-            var validation = _requestService.ValidateOnPost(prNumber, prDate);
-            if (validation != null && validation.Count > 0)
+            try
             {
-                var errorList = new List<string>();
-                foreach (DictionaryEntry entry in validation)
-                {
-                    if (entry.Value is IEnumerable<string> msgs)
-                        errorList.AddRange(msgs);
-                    else if (entry.Value != null)
-                        errorList.Add(entry.Value.ToString());
-                }
-                if (errorList.Any())
-                    return Json(new { success = false, message = string.Join(" ", errorList) });
+                var service = new PurchaseRequestLifecycleService(_db);
+                var pr = await service.PostAsync(model.RequestId, model.PrNumber, model.PrDate.Value, User.Identity.Name, DateTime.Now);
+                return Json(new { success = true, prNumber = pr.PrNo });
             }
-
-            if (await _db.Requests.AnyAsync(x => x.Id != entity.Id && x.PrNo == prNumber))
-                return Json(new { success = false, message = "PR Number already exists." });
-
-            using (var transaction = _db.Database.BeginTransaction())
+            catch (Exception ex)
             {
-                var now = DateTime.Now;
-                var user = User.Identity.Name;
-                entity.PrNo = prNumber;
-                entity.PrDate = prDate;
-                entity.PostedBy = user;
-                entity.PostedDt = now;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = now;
-
-                var usages = await _db.PPMPItemUsages.Where(x => x.PrId == entity.Id && x.Type != "PR").ToListAsync();
-                foreach (var usage in usages) { usage.Type = "PR"; usage.Reference = prNumber; }
-
-                new DocumentHistoryService(_db).AddStatusHistory(DocumentTypes.PurchaseRequest, entity.Id,
-                    prNumber, status, PrStatuses.Posted, "Post", "Purchase Request reviewed and posted.", user);
-                await _db.SaveChangesAsync();
-                transaction.Commit();
+                return Json(new { success = false, message = ex.Message });
             }
-
-            return Json(new { success = true, prNumber = prNumber });
         }
 
         [HttpPost]
@@ -444,38 +485,21 @@ namespace iLgs.Controllers
                 return Json(new { success = false, message = "Return for revision access denied." });
             }
 
-            if (!ModelState.IsValid || model.RequestId == Guid.Empty || String.IsNullOrWhiteSpace(model.ReviewComment))
+            if (!ModelState.IsValid || model.RequestId == Guid.Empty || string.IsNullOrWhiteSpace(model.ReviewComment))
             {
                 return Json(new { success = false, message = "A review comment is required." });
             }
 
-            using (var transaction = _db.Database.BeginTransaction())
+            try
             {
-                var entity = await _db.Requests.FirstOrDefaultAsync(x => x.Id == model.RequestId);
-                var status = await GetRequestStatusAsync(entity);
-                if (entity == null || status != PrStatuses.Submitted || entity.PostedDt.HasValue ||
-                    !String.IsNullOrWhiteSpace(entity.PostedBy))
-                {
-                    return Json(new { success = false, message = "Only a Submitted Purchase Request can be returned." });
-                }
-
-                if (entity.RequestItems.Any(x => x.OrderItemRequests.Any()))
-                {
-                    return Json(new { success = false, message = "This Purchase Request is already used by a Purchase Order." });
-                }
-
-                var now = DateTime.Now;
-                var user = User.Identity.Name;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = now;
-                new DocumentHistoryService(_db).AddStatusHistory(DocumentTypes.PurchaseRequest, entity.Id,
-                    entity.PrNo ?? entity.CtrlNo, PrStatuses.Submitted, PrStatuses.Returned,
-                    "Return", model.ReviewComment.Trim(), user);
-                await _db.SaveChangesAsync();
-                transaction.Commit();
+                var service = new PurchaseRequestLifecycleService(_db);
+                await service.ReturnForRevisionAsync(model.RequestId, model.ReviewComment, User.Identity.Name, DateTime.Now);
+                return Json(new { success = true });
             }
-
-            return Json(new { success = true });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [NonAction]
@@ -535,7 +559,8 @@ namespace iLgs.Controllers
             return Json(new { success = true });
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+[HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RequestDestroy([DataSourceRequest]DataSourceRequest request, RequestVM model)
         {
             try
@@ -544,9 +569,9 @@ namespace iLgs.Controllers
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
-                if (!await CanReviseRequestAsync(model.Id, access))
+                if (!await CanEditDraftRequestAsync(model.Id, access))
                 {
-                    ModelState.AddModelError("DeleteError", "Only an authorized Draft or Returned Purchase Request can be deleted.");
+                    ModelState.AddModelError("DeleteError", "Only an authorized Draft Purchase Request can be deleted.");
                 }
                 if (!access.AllowDelete)
                 {
@@ -576,7 +601,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _RequestItem(Guid requestId)
         {
             var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            ViewBag.CanRevise = await CanReviseRequestAsync(requestId, access);
+            ViewBag.CanRevise = await CanEditDraftOrAdminEditAsync(requestId, access);
             ViewData["requestId"] = requestId;
             return PartialView();
         }
@@ -584,9 +609,9 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId, string setLotNo)
         {
             var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            if (!await CanReviseRequestAsync(prId, access))
+            if (!await CanEditDraftOrAdminEditAsync(prId, access))
             {
-                return new HttpStatusCodeResult(403, "Only Draft or Returned Purchase Requests can be revised.");
+                return new HttpStatusCodeResult(403, "Only an authorized Draft or Submitted/Unposted Purchase Request can be edited here.");
             }
 
             var data = await _requestService.RequestItem.GetVmByIdAsync(requestItemId);
@@ -603,21 +628,25 @@ namespace iLgs.Controllers
             return PartialView(data);
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> _RequestItemSave(RequestItemVM model)
         {
             try
             {
                 _menuId = TempData["requests"]?.ToString();
                 TempData.Keep("requests");
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests", "requests_posting");
                 Access access = await accessTask;
 
                 var entity = await _requestService.RequestItem.GetByIdAsync(model.Id);
                 var requestId = entity == null ? model.PrId : entity.PrId;
-                if (!requestId.HasValue || !await CanReviseRequestAsync(requestId.Value, access))
+                var isDraftEdit = requestId.HasValue && await CanEditDraftRequestAsync(requestId.Value, access);
+                var isAdminEdit = !isDraftEdit && requestId.HasValue && await CanAdminEditRequestAsync(requestId.Value, access);
+
+                if (!isDraftEdit && !isAdminEdit)
                 {
-                    ModelState.AddModelError("Status", "Only Draft or Returned Purchase Requests can be revised by the original requester.");
+                    ModelState.AddModelError("Status", "Only an authorized Draft or Submitted/Unposted Purchase Request item can be edited.");
                 }
                 if (entity == null)
                 {
@@ -636,17 +665,17 @@ namespace iLgs.Controllers
 
                 if (model != null && ModelState.IsValid)
                 {
-                    if (requestId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(requestId.Value); }
+                    if (requestId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(requestId.Value, allowAdminEdit: isAdminEdit); }
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
                     if (entity == null)
                     {
-                        model = await _requestService.RequestItem.CreateAsync(model, user, date);
+                        model = await _requestService.RequestItem.CreateAsync(model, user, date, allowAdminEdit: isAdminEdit);
                     }
                     else
                     {
-                        model = await _requestService.RequestItem.UpdateAsync(model, user, date);
+                        model = await _requestService.RequestItem.UpdateAsync(model, user, date, allowAdminEdit: isAdminEdit);
                     }
                 }
             }
@@ -670,25 +699,16 @@ namespace iLgs.Controllers
             var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
                        .Select(ms => new
                        {
-                           Key = ms.Key, // The field name
+                           Key = ms.Key,
                            Message = ms.Value.Errors.Select(e =>
                            {
                                var errorMessage = e.ErrorMessage;
-                               if (e.Exception != null)
+                               if (string.IsNullOrWhiteSpace(errorMessage))
                                {
-                                   var exceptionMessage = e.Exception.Message;
-                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
-
-                                   // Append exception details
-                                   errorMessage += $" Exception: {exceptionMessage}";
-                                   if (innerExceptionMessage != null)
-                                   {
-                                       errorMessage += $" InnerException: {innerExceptionMessage}";
-                                   }
+                                   errorMessage = "An error occurred while saving the item. Please verify your inputs.";
                                }
-
                                return errorMessage;
-                           }).ToList() // List of messages for the current field
+                           }).ToList()
                        })
                        .ToList();
 
@@ -708,18 +728,22 @@ namespace iLgs.Controllers
         }
 
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> _RequestItemDestroy([DataSourceRequest]DataSourceRequest request, RequestItemVM model)
         {
             try
             {
                 _menuId = TempData["requests"]?.ToString();
                 TempData.Keep("requests");
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests", "requests_posting");
                 Access access = await accessTask;
-                if (!model.PrId.HasValue || !await CanReviseRequestAsync(model.PrId.Value, access))
+                var isDraftEdit = model.PrId.HasValue && await CanEditDraftRequestAsync(model.PrId.Value, access);
+                var isAdminEdit = !isDraftEdit && model.PrId.HasValue && await CanAdminEditRequestAsync(model.PrId.Value, access);
+
+                if (!isDraftEdit && !isAdminEdit)
                 {
-                    ModelState.AddModelError("DeleteError", "Only Draft or Returned Purchase Request items can be deleted by the original requester.");
+                    ModelState.AddModelError("DeleteError", "Only an authorized Draft or Submitted/Unposted Purchase Request item can be deleted.");
                 }
                 if (!access.AllowDelete)
                 {
@@ -730,8 +754,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    if (model.PrId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.PrId.Value); }
-                    model = await _requestService.RequestItem.DeleteAsync(model, user, date);
+                    if (model.PrId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.PrId.Value, allowAdminEdit: isAdminEdit); }
+                    model = await _requestService.RequestItem.DeleteAsync(model, user, date, allowAdminEdit: isAdminEdit);
                 }
             }
             catch (ValidationException validationException)
@@ -816,7 +840,7 @@ namespace iLgs.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = string.Format("Purchase Request {0} has been unposted and returned to the review stage.", prNo)
+                    message = string.Format("Purchase Request {0} has been unposted successfully.", prNo)
                 });
             }
             catch (Exception ex)
@@ -825,6 +849,7 @@ namespace iLgs.Controllers
             }
         }
 
+        [NonAction]
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> UnpostRequest(Guid requestId)
         {
@@ -885,6 +910,7 @@ namespace iLgs.Controllers
             return Json(new { success = true, message = "Purchase Request unposted.", Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
+        [NonAction]
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> SubmitRequest(Guid requestId)
         {
@@ -937,6 +963,7 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
+        [NonAction]
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> UnsubmitRequest(Guid requestId)
         {
@@ -1247,16 +1274,24 @@ namespace iLgs.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> _PpmpItemSelectionSave(Guid? prId, string selectedIds)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("UpdateError", "Access Denied!");
                 }
+                else if (!prId.HasValue || !await CanEditDraftRequestAsync(prId.Value, access))
+                {
+                    ModelState.AddModelError("UpdateError", "Only an authorized Draft Purchase Request can add PPMP items here.");
+                }
+
+
+
                 else
                 {
                     ModelState.Clear();
@@ -1335,22 +1370,65 @@ namespace iLgs.Controllers
                 : PrStatuses.Draft;
         }
 
-        private async Task<bool> CanReviseRequestAsync(Guid requestId, Access access)
+        private async Task<bool> CanEditDraftRequestAsync(Guid requestId, Access access)
         {
             var entity = await _db.Requests.AsNoTracking().FirstOrDefaultAsync(x => x.Id == requestId);
-            var status = await GetRequestStatusAsync(entity);
-            if (entity == null || status != PrStatuses.Draft)
+            if (entity == null)
             {
                 return false;
             }
 
-            return status == PrStatuses.Draft || access.IsAdmin ||
-                String.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase);
+            var status = await GetRequestStatusAsync(entity);
+            if (status != PrStatuses.Draft)
+            {
+                return false;
+            }
+
+            return access.IsAdmin ||
+                string.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string NormalizePrStatus(string status)
+        private async Task<bool> CanAdminEditRequestAsync(Guid requestId, Access access)
         {
-            switch ((status ?? String.Empty).Trim().ToUpperInvariant())
+            var entity = await _db.Requests.AsNoTracking().FirstOrDefaultAsync(x => x.Id == requestId);
+            if (entity == null)
+            {
+                return false;
+            }
+
+            var status = await GetRequestStatusAsync(entity);
+            if (status != PrStatuses.Submitted && status != PrStatuses.Unposted)
+            {
+                return false;
+            }
+
+            if (access.IsAdmin)
+            {
+                return true;
+            }
+
+            var postingAccess = await Access(User.Identity.GetUserId(), "requests_posting");
+            return postingAccess.IsAllowed && postingAccess.AllowEdit;
+        }
+
+        private async Task<bool> CanEditDraftOrAdminEditAsync(Guid requestId, Access access)
+        {
+            if (await CanEditDraftRequestAsync(requestId, access))
+            {
+                return true;
+            }
+            return await CanAdminEditRequestAsync(requestId, access);
+        }
+
+        [Obsolete("Use CanEditDraftRequestAsync.")]
+        private async Task<bool> CanReviseRequestAsync(Guid requestId, Access access)
+        {
+            return await CanEditDraftRequestAsync(requestId, access);
+        }
+
+        private string NormalizePrStatus(string status)
+        {
+            switch (status != null ? status.ToUpperInvariant() : null)
             {
                 case "SUBMITTED":
                     return PrStatuses.Submitted;
@@ -1360,10 +1438,14 @@ namespace iLgs.Controllers
                     return PrStatuses.Revising;
                 case "POSTED":
                     return PrStatuses.Posted;
+                case "UNPOSTED":
+                    return PrStatuses.Unposted;
                 case "CANCELLED":
                     return PrStatuses.Cancelled;
-                default:
+                case "DRAFT":
                     return PrStatuses.Draft;
+                default:
+                    return !string.IsNullOrWhiteSpace(status) ? status : PrStatuses.Draft;
             }
         }
     }

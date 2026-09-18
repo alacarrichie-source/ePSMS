@@ -1,0 +1,32 @@
+@model iLgs.Models.DashboardViewModel
+
+<!-- 1. Global Document Search -->
+@Html.Partial("_DashboardSearch", Model)
+
+<!-- 2. Personal KPI Cards (4 Cards) -->
+@Html.Partial("_UserPersonalKpis", Model)
+
+<!-- 3. Personal Analytics (My Workload & My Activity Trend) -->
+<div class="user-dashboard-row-2col">
+    <div class="row-col-left">
+        @Html.Partial("_UserWorkloadChart", Model)
+    </div>
+    <div class="row-col-right">
+        @Html.Partial("_UserActivityTrend", Model)
+    </div>
+</div>
+
+<!-- 4. Two-Column Task Area: Needs Your Attention & Continue Your Work -->
+<div id="userAttentionSection" class="workbench-two-col">
+    @Html.Partial("_DashboardAttention", Model)
+    @Html.Partial("_DashboardContinueWork", Model)
+</div>
+
+<!-- 5. Quick Actions Launcher -->
+@Html.Partial("_DashboardQuickActions", Model)
+
+<!-- 6. Module Navigation Shortcuts -->
+@Html.Partial("_DashboardModules", Model)
+
+<!-- 7. Recently Opened / Recent Work -->
+@Html.Partial("_DashboardRecentWork", Model)

@@ -1,0 +1,1631 @@
+/* ==========================================================================
+   ePSMS Modern Dashboard Styles
+   Enterprise Government Theme (Las Pinas City ePSMS)
+   ========================================================================== */
+
+.epsms-dashboard {
+    max-width: 1696px;
+    margin: 0 auto;
+    padding: 16px 20px 40px;
+    background-color: #f7f9fb;
+    color: #191c1e;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   1. Dashboard Context Header
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.epsms-dashboard .header-brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.epsms-dashboard .header-logo {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.epsms-dashboard .header-titles h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #002576;
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+}
+
+.epsms-dashboard .header-titles .subtitle {
+    font-size: 12px;
+    color: #5f6470;
+    margin: 0;
+}
+
+.epsms-dashboard .header-context-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.epsms-dashboard .user-meta-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 11px;
+    color: #475569;
+}
+
+.epsms-dashboard .user-meta-chip strong {
+    font-size: 13px;
+    color: #0f172a;
+}
+
+.epsms-dashboard .user-meta-chip .department-tag {
+    color: #002576;
+    font-weight: 600;
+}
+
+.epsms-dashboard .header-date-badge {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.epsms-dashboard .btn-dashboard-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #002576;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    border: none;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.epsms-dashboard .btn-dashboard-primary:hover {
+    background-color: #001b57;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.epsms-dashboard .btn-dashboard-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    color: #002576 !important;
+    border: 1px solid #002576;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .btn-dashboard-cart:hover {
+    background-color: #eff6ff;
+}
+
+/* --------------------------------------------------------------------------
+   2. Key Metrics & Status Overview (KPI Cards)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .kpi-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.epsms-dashboard .dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.epsms-dashboard .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 125px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
+}
+
+.epsms-dashboard .kpi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.epsms-dashboard .kpi-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.epsms-dashboard .kpi-card-icon {
+    font-size: 16px;
+    color: #002576;
+    background: #eff6ff;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.epsms-dashboard .kpi-card-body {
+    margin-bottom: 12px;
+}
+
+.epsms-dashboard .kpi-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #002576;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.epsms-dashboard .kpi-unit-label {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.epsms-dashboard .kpi-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    margin-top: auto;
+}
+
+.epsms-dashboard .kpi-sub-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-draft {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-submitted {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-returned {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.epsms-dashboard .kpi-sub-badge.badge-posted {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* --------------------------------------------------------------------------
+   3. Action Required (Operational Backlog)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .action-required-panel {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+.epsms-dashboard .panel-heading {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.epsms-dashboard .panel-count-pill {
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.epsms-dashboard .action-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.epsms-dashboard .action-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .action-item-card.urgency-danger {
+    border-left: 4px solid #ef4444;
+    background: #fff5f5;
+    border-color: #fecaca;
+}
+
+.epsms-dashboard .action-item-card.urgency-warning {
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.epsms-dashboard .action-item-card.urgency-info {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.epsms-dashboard .action-item-content {
+    flex: 1;
+    min-width: 260px;
+}
+
+.epsms-dashboard .action-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.epsms-dashboard .doc-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.epsms-dashboard .doc-type-badge.doc-pr {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.epsms-dashboard .doc-type-badge.doc-po {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.epsms-dashboard .doc-type-badge.doc-air {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.epsms-dashboard .doc-type-badge.doc-ris {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.epsms-dashboard .action-doc-no {
+    font-weight: 700;
+    color: #0f172a;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.epsms-dashboard .action-department {
+    font-size: 12px;
+    color: #475569;
+}
+
+.epsms-dashboard .action-remarks {
+    font-size: 12px;
+    color: #334155;
+    margin: 3px 0 0 0;
+    line-height: 1.35;
+}
+
+.epsms-dashboard .action-remarks strong {
+    color: #991b1b;
+}
+
+.epsms-dashboard .action-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.epsms-dashboard .btn-action-resolve {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #002576;
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 5px;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease;
+}
+
+.epsms-dashboard .btn-action-resolve:hover {
+    background: #001b57;
+}
+
+.epsms-dashboard .btn-action-resolve.btn-danger-resolve {
+    background: #dc2626;
+}
+
+.epsms-dashboard .btn-action-resolve.btn-danger-resolve:hover {
+    background: #b91c1c;
+}
+
+.epsms-dashboard .action-empty-state {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Workflow Pipeline (Visual Lifecycle)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .workflow-section {
+    margin-bottom: 24px;
+}
+
+.epsms-dashboard .workflow-pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.epsms-dashboard .pipeline-card {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-decoration: none !important;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.epsms-dashboard .pipeline-card:hover {
+    border-color: #002576;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.epsms-dashboard .pipeline-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.epsms-dashboard .pipeline-step-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.epsms-dashboard .pipeline-card-icon {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.epsms-dashboard .pipeline-count {
+    font-size: 18px;
+    font-weight: 700;
+    color: #002576;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.epsms-dashboard .pipeline-subtitle {
+    font-size: 10px;
+    color: #64748b;
+}
+
+@media (max-width: 1024px) {
+    .epsms-dashboard .workflow-pipeline-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+/* --------------------------------------------------------------------------
+   5. Dual Operational Columns (Split 7 : 5 Grid)
+   -------------------------------------------------------------------------- */
+.epsms-dashboard .dashboard-main-grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 20px;
+}
+
+@media (max-width: 992px) {
+    .epsms-dashboard .dashboard-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.epsms-dashboard .content-panel {
+    background: #ffffff;
+    border: 1px solid #e0e3e5;
+    border-radius: 8px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-dashboard .panel-inner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.epsms-dashboard .panel-inner-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Recent Activity List */
+.epsms-dashboard .activity-feed-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.epsms-dashboard .activity-feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.epsms-dashboard .activity-feed-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.epsms-dashboard .activity-doc-link {
+    font-family: monospace;
+    font-weight: 700;
+    color: #002576;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.epsms-dashboard .activity-doc-link:hover {
+    text-decoration: underline;
+}
+
+.epsms-dashboard .activity-main-text {
+    flex: 1;
+    min-width: 0;
+    color: #334155;
+}
+
+.epsms-dashboard .activity-remarks-snippet {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.epsms-dashboard .activity-time-text {
+    font-size: 10px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* Quick Actions Tiles Grid */
+.epsms-dashboard .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+}
+
+.epsms-dashboard .action-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    text-decoration: none !important;
+    color: #1e293b !important;
+    transition: all 0.15s ease;
+}
+
+.epsms-dashboard .action-tile:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.epsms-dashboard .action-tile.tile-primary {
+    background: #002576;
+    border-color: #001f66;
+    color: #ffffff !important;
+}
+
+.epsms-dashboard .action-tile.tile-primary:hover {
+    background: #001b57;
+    color: #ffffff !important;
+}
+
+.epsms-dashboard .action-tile-icon {
+    font-size: 16px;
+    color: #002576;
+    background: #ffffff;
+    padding: 6px;
+    border-radius: 5px;
+    display: inline-flex;
+}
+
+.epsms-dashboard .action-tile.tile-primary .action-tile-icon {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.epsms-dashboard .action-tile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.epsms-dashboard .action-tile-title {
+    font-size: 12px;
+    font-weight: 700;
+    display: block;
+    line-height: 1.25;
+}
+
+.epsms-dashboard .action-tile-desc {
+    font-size: 10px;
+    color: #64748b;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.epsms-dashboard .action-tile.tile-primary .action-tile-desc {
+    color: #e2e8f0;
+}
+
+
+/* ==========================================================================
+   ROLE-BASED DASHBOARD EXTENSIONS (Workbench & Command Center)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   6. Role Mode Wrappers & Shared Helpers
+   -------------------------------------------------------------------------- */
+.epsms-dashboard.user-workbench-mode {
+    padding-top: 16px;
+}
+
+.epsms-dashboard.admin-command-mode {
+    padding-top: 16px;
+}
+
+.dashboard-empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    color: #64748b;
+}
+
+.dashboard-empty-state .empty-icon {
+    font-size: 28px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+.dashboard-empty-state .empty-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.dashboard-empty-state .empty-subtext {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7. Non-Admin Personal Workbench Components
+   -------------------------------------------------------------------------- */
+/* Global Prominent Search Bar */
+.workbench-search-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.workbench-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+.workbench-search-input-box {
+    position: relative;
+    flex: 1;
+}
+
+.workbench-search-input-box .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #002576;
+    pointer-events: none;
+}
+
+.workbench-search-input {
+    width: 100%;
+    height: 44px;
+    padding: 8px 16px 8px 42px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.workbench-search-input:focus {
+    background: #ffffff;
+    border-color: #002576;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 37, 118, 0.12);
+}
+
+.workbench-search-btn {
+    height: 44px;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #002576;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s;
+}
+
+.workbench-search-btn:hover {
+    background: #001a54;
+    color: #ffffff;
+}
+
+.workbench-search-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.search-chip-item {
+    background: #f1f5f9;
+    color: #334155;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.15s ease;
+}
+
+.search-chip-item:hover {
+    background: #e2e8f0;
+    color: #002576;
+    border-color: #cbd5e1;
+    text-decoration: none;
+}
+
+/* Quick Actions Strip */
+.workbench-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.workbench-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #002576;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.workbench-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.workbench-quick-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.workbench-quick-card:hover {
+    border-color: #002576;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 37, 118, 0.08);
+    text-decoration: none;
+}
+
+.workbench-quick-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #002576;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.workbench-quick-card:hover .workbench-quick-icon {
+    background: #002576;
+    color: #ffffff;
+}
+
+.workbench-quick-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.workbench-quick-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.3;
+    display: block;
+}
+
+.workbench-quick-desc {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Two-Column Workbench Layout (Attention vs Continue) */
+.workbench-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .workbench-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.workbench-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+}
+
+.workbench-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 14px;
+}
+
+.workbench-panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.workbench-badge-count {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.workbench-badge-count.count-neutral {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.workbench-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+/* Attention Card */
+.workbench-task-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.workbench-task-card.border-danger {
+    border-left: 4px solid #dc2626;
+}
+
+.workbench-task-card.border-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.workbench-task-card.border-info {
+    border-left: 4px solid #0284c7;
+}
+
+.workbench-task-card:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.workbench-task-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.workbench-task-ref {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #002576;
+}
+
+.workbench-task-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.workbench-task-module {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.workbench-task-desc {
+    font-size: 12px;
+    color: #334155;
+    margin-bottom: 8px;
+    line-height: 1.35;
+}
+
+.workbench-task-reason {
+    font-size: 11px;
+    color: #7f1d1d;
+    background: #fff1f2;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ffe4e6;
+}
+
+.workbench-task-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.workbench-task-btn {
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.workbench-task-btn.btn-action-danger {
+    background: #dc2626;
+    color: #ffffff;
+    border: 1px solid #dc2626;
+}
+
+.workbench-task-btn.btn-action-danger:hover {
+    background: #b91c1c;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.workbench-task-btn.btn-action-primary {
+    background: #002576;
+    color: #ffffff;
+    border: 1px solid #002576;
+}
+
+.workbench-task-btn.btn-action-primary:hover {
+    background: #001a54;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.workbench-task-btn.btn-action-outline {
+    background: transparent;
+    color: #002576;
+    border: 1px solid #cbd5e1;
+}
+
+.workbench-task-btn.btn-action-outline:hover {
+    background: #f1f5f9;
+    border-color: #002576;
+    text-decoration: none;
+}
+
+/* Module Launcher Grid */
+.workbench-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.workbench-module-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: all 0.15s ease;
+}
+
+.workbench-module-card:hover {
+    border-color: #002576;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 37, 118, 0.06);
+    text-decoration: none;
+}
+
+.workbench-module-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #002576;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.workbench-module-card:hover .workbench-module-icon {
+    background: #002576;
+    color: #ffffff;
+}
+
+.workbench-module-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    display: block;
+    line-height: 1.3;
+}
+
+.workbench-module-desc {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Recent Work Feed */
+.workbench-recent-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.workbench-recent-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.workbench-recent-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.workbench-recent-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.workbench-recent-table tr:hover td {
+    background: #f8fafc;
+}
+
+/* --------------------------------------------------------------------------
+   8. Administrator Command Center Components
+   -------------------------------------------------------------------------- */
+/* Admin Filter Toolbar */
+.admin-filter-bar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.admin-filter-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #002576;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-filter-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.admin-filter-select {
+    height: 32px;
+    padding: 4px 10px;
+    font-size: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #334155;
+}
+
+.admin-filter-select:focus {
+    border-color: #002576;
+    outline: none;
+}
+
+.admin-filter-reset {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.admin-filter-reset:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Admin Attention Strip */
+.admin-attention-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.admin-attention-card {
+    background: #ffffff;
+    border: 1px solid #fca5a5;
+    border-left: 4px solid #dc2626;
+    border-radius: 6px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.admin-attention-card.card-warning {
+    border-color: #fcd34d;
+    border-left-color: #f59e0b;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.05);
+}
+
+.admin-attention-card.card-info {
+    border-color: #7dd3fc;
+    border-left-color: #0284c7;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.05);
+}
+
+.admin-attention-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.admin-attention-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.admin-attention-card.card-warning .admin-attention-tag {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.admin-attention-card.card-info .admin-attention-tag {
+    color: #075985;
+    background: #e0f2fe;
+}
+
+.admin-attention-ref {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #0f172a;
+    display: block;
+}
+
+.admin-attention-reason {
+    font-size: 11px;
+    color: #475569;
+    margin: 4px 0 10px;
+    line-height: 1.35;
+}
+
+.admin-attention-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 8px;
+    margin-top: 4px;
+}
+
+/* Operational Summary Cards Grid */
+.admin-ops-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.admin-op-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-op-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 6px;
+}
+
+.admin-op-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #002576;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-op-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: #0284c7;
+    text-decoration: none;
+}
+
+.admin-op-link:hover {
+    text-decoration: underline;
+}
+
+.admin-op-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.admin-op-metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.admin-op-metric-label {
+    color: #64748b;
+}
+
+.admin-op-metric-val {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.admin-op-metric-val.val-highlight {
+    color: #002576;
+}
+
+.admin-op-metric-val.val-alert {
+    color: #dc2626;
+}
+
+/* Admin Tools / Maintenance shortcuts */
+.admin-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.admin-tool-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.admin-tool-item:hover {
+    background: #002576;
+    color: #ffffff;
+    border-color: #002576;
+    text-decoration: none;
+}
+
+.admin-tool-item:hover .k-icon {
+    color: #ffffff;
+}
+
+.admin-tool-item .k-icon {
+    color: #002576;
+    font-size: 14px;
+}
+
+/* System Info Strip */
+.admin-system-info {
+    font-size: 11px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+
+/* --------------------------------------------------------------------------
+   9. Workflow Health & Pipeline Flow
+   -------------------------------------------------------------------------- */
+.workflow-pipeline-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.workflow-pipeline-header {
+    margin-bottom: 10px;
+}
+
+.workflow-pipeline-title {
+    font-size: 12px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.workflow-pipeline-track {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.workflow-stage-pill {
+    flex: 1;
+    min-width: 80px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 6px;
+    text-decoration: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.workflow-stage-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 37, 118, 0.08);
+    text-decoration: none !important;
+}
+
+.workflow-stage-pill .stage-count {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.workflow-stage-pill .stage-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.workflow-stage-pill.stage-default {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.workflow-stage-pill.stage-default .stage-count {
+    color: #0f172a;
+}
+
+.workflow-stage-pill.stage-active {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.workflow-stage-pill.stage-active .stage-count {
+    color: #1d4ed8;
+}
+
+.workflow-stage-pill.stage-alert {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.workflow-stage-pill.stage-alert .stage-count {
+    color: #b91c1c;
+}
+
+.workflow-stage-pill.stage-success {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.workflow-stage-pill.stage-success .stage-count {
+    color: #15803d;
+}
+
+.workflow-stage-arrow {
+    color: #94a3b8;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    flex-shrink: 0;
+    padding: 0 2px;
+}

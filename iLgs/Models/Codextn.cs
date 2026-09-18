@@ -45,6 +45,9 @@ namespace iLgs.Models
             this.PPMPs = new HashSet<PPMP>();
             this.PsCardItems = new HashSet<PsCardItem>();
             this.PsCardItems1 = new HashSet<PsCardItem>();
+            this.AIRs = new HashSet<AIR>();
+            this.Orders = new HashSet<Order>();
+            this.RISses = new HashSet<RISs>();
         }
     
         public System.Guid Id { get; set; }
@@ -117,5 +120,11 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIR> AIRs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Order> Orders { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RISs> RISses { get; set; }
     }
 }

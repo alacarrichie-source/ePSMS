@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -21,7 +21,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
             var po = await LoadExistingOrderAsync(id);
             var group = new POGroupDraftViewModel {
                 GroupId = po.Id.ToString(), GroupName = "Purchase Order " + po.PoNo,
-                PONumber = po.PoNo, CtrlNo = po.CtrlNo, PRNumber = po.PrNo, DepartmentName = po.Department,
+                PONumber = po.PoNo, CtrlNo = po.CtrlNo, PRNumber = po.PrNo, DeptId = po.DeptId, Department = po.Department, DepartmentName = po.Department,
                 PODate = po.PoDate ?? DateTime.Today, SupplierId = po.SupplierId, SupplierName = po.SupName,
                 SupBusiness = po.SupBusiness, SupAddress = po.SupAddress, SupTIN = po.SupTIN,
                 SupEmail = po.SupEmail, SupZipCode = po.SupZipCode, SupContactNo = po.SupContactNo,
@@ -32,7 +32,7 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 ResoNo = po.ResoNo, CertifiedCorrectBy = po.CertifiedCorrectBy, CertifiedCorrectDate = po.CertifiedCorrectDate
             };
             group.SourcePRs = po.OrderRequests.Where(x => x.Request != null).Select(x => new POGroupSourcePRViewModel {
-                PRId = x.Request.Id, PRNumber = x.Request.PrNo
+                PRId = x.Request.Id, PRNumber = x.Request.PrNo, DepartmentId = x.Request.DeptId, DepartmentName = x.Request.Department
             }).ToList();
             foreach (var item in po.OrderItems.OrderBy(x => x.ItemNo))
             {
@@ -111,6 +111,15 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 if (message != null) throw new InvalidOperationException(message);
                 var now = DateTime.Now;
                 po.PoDate = group.PODate.Date;
+                if (group.DeptId.HasValue && group.DeptId.Value != Guid.Empty)
+                {
+                    var dept = await _db.Codextns.FirstOrDefaultAsync(c => c.Id == group.DeptId.Value && c.CodeMast.Code == "LOCATIONS");
+                    if (dept != null)
+                    {
+                        po.DeptId = dept.Id;
+                        po.Department = dept.Description;
+                    }
+                }
                 po.SupplierId = group.SupplierId; po.SupName = group.SupplierName;
                 po.SupBusiness = group.SupBusiness; po.SupAddress = group.SupAddress; po.SupTIN = group.SupTIN;
                 po.SupEmail = group.SupEmail; po.SupZipCode = group.SupZipCode; po.SupContactNo = group.SupContactNo;

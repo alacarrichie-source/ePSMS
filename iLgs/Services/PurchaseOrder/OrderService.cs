@@ -131,6 +131,7 @@ namespace iLgs.Services.PurchaseOrder
                 PrNo = s.PrNo,
                 PrNoList = s.OrderRequests.OrderBy(o => o.Request.PrNo).Select(s2 => s2.Request.PrNo).ToList(),
                 //PrDate = s.Request.PrDate,
+                DeptId = s.DeptId,
                 Department = s.Department,
                 Fund = s.Fund,
                 //PrId = s.PrId,
@@ -846,7 +847,7 @@ namespace iLgs.Services.PurchaseOrder
             entity.Fund = model.Fund;
 
             //entity.PrNo = model.PrNo;            
-            //entity.DeptId = model.DeptId;
+            entity.DeptId = model.DeptId;
             //entity.Department = model.Department?.Trim();
             //entity.Section = model.Section?.Trim();
             //entity.FPP = model.FPP?.Trim();

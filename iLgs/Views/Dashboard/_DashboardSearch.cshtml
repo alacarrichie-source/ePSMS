@@ -1,0 +1,66 @@
+@model iLgs.Models.DashboardViewModel
+
+<div class="workbench-search-card">
+    <div class="workbench-search-wrap">
+        <div class="workbench-search-input-box">
+            <span class="k-icon k-i-search search-icon"></span>
+            <input type="text"
+                   id="workbenchGlobalSearchInput"
+                   class="workbench-search-input"
+                   placeholder="Search PR, PO, AIR, RIS, Property No., PAR, ICS, Item..."
+                   autocomplete="off"
+                   onkeydown="if (event.keyCode === 13) { handleWorkbenchGlobalSearch(); return false; }" />
+        </div>
+        <button type="button" class="workbench-search-btn" onclick="handleWorkbenchGlobalSearch();">
+            <span class="k-icon k-i-search"></span>
+            <span>Search</span>
+        </button>
+    </div>
+
+    <div class="workbench-search-chips">
+        <span class="search-chips-label">Quick filter:</span>
+        <a href="@Url.Action("Index", "Requests")" class="search-chip-item">Purchase Requests</a>
+        <a href="@Url.Action("Index", "Orders")" class="search-chip-item">Purchase Orders</a>
+        <a href="@Url.Action("Index", "AIRs")" class="search-chip-item">AIR (Inspections)</a>
+        <a href="@Url.Action("Index", "RIS")" class="search-chip-item">Requisitions (RIS)</a>
+        <a href="@Url.Action("Index", "PropertyCard")" class="search-chip-item">Property Cards</a>
+        <a href="@Url.Action("Index", "StockCard")" class="search-chip-item">Stock Cards</a>
+        <a href="@Url.Action("Index", "ParSet")" class="search-chip-item">PAR Items</a>
+        <a href="@Url.Action("Index", "IcsSet")" class="search-chip-item">ICS Items</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function handleWorkbenchGlobalSearch() {
+        var input = document.getElementById("workbenchGlobalSearchInput");
+        if (!input) return;
+        var query = (input.value || "").trim();
+        if (!query) {
+            input.focus();
+            return;
+        }
+
+        var qLower = query.toLowerCase();
+        var targetUrl = '@Url.Action("Index", "Requests")';
+
+        if (qLower.indexOf("po") === 0 || qLower.indexOf("order") !== -1) {
+            targetUrl = '@Url.Action("Index", "Orders")';
+        } else if (qLower.indexOf("air") === 0 || qLower.indexOf("inspect") !== -1) {
+            targetUrl = '@Url.Action("Index", "AIRs")';
+        } else if (qLower.indexOf("ris") === 0 || qLower.indexOf("req") !== -1) {
+            targetUrl = '@Url.Action("Index", "RIS")';
+        } else if (qLower.indexOf("pc") === 0 || qLower.indexOf("prop") !== -1 || qLower.indexOf("asset") !== -1) {
+            targetUrl = '@Url.Action("Index", "PropertyCard")';
+        } else if (qLower.indexOf("sc") === 0 || qLower.indexOf("stock") !== -1) {
+            targetUrl = '@Url.Action("Index", "StockCard")';
+        } else if (qLower.indexOf("par") === 0) {
+            targetUrl = '@Url.Action("Index", "ParSet")';
+        } else if (qLower.indexOf("ics") === 0) {
+            targetUrl = '@Url.Action("Index", "IcsSet")';
+        } else if (qLower.indexOf("item") !== -1) {
+            targetUrl = '@Url.Action("Index", "Items")';
+        }
+
+        window.location.href = targetUrl + "?search=" + encodeURIComponent(query);
+    }
+</script>

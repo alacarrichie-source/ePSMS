@@ -266,6 +266,7 @@ namespace iLgs.Services.PropertyCard
                 Remarks = s.PsCardItem.Remarks,
                 DeptId = s.PsCardItem.DeptId,
                 LocationId = s.LocationId,
+                DeptCode = s.PsCardItem.Codextn.Code,
                 DeptDisplay = s.PsCardItem.DeptDisplay,
                 Description = s.PsCardItem.Description,
                 OtherDesc = s.PsCardItem.OtherDesc,
@@ -418,6 +419,7 @@ namespace iLgs.Services.PropertyCard
                 UpdatedBy = s.PsCardItem.UpdatedBy,
                 UpdatedDt = s.PsCardItem.UpdatedDt,
                 Department = s.PsCardItem.Codextn.Description,
+                DeptCode = s.PsCardItem.Codextn.Code,
                 Location = s.Codextn.Description,
                 LocCode = s.Codextn.Code,
                 InvDistDesc = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS" && w.Code == s.PsCardItem.InvDist).Select(sel => sel.Description).FirstOrDefault(),
@@ -1213,32 +1215,46 @@ namespace iLgs.Services.PropertyCard
 
         private void ValidateRelationship(PsCardItemVM model)
         {
-            //if ((model.AIRItemId != null || !string.IsNullOrWhiteSpace(model.AirNo) || model.OrderItemRequestId != null) && model.ParentId == null)
-            if (model.OrderItemRequestId != null)
+            var entity = _db.PsCardItems.Find(model.Id);
+            if (entity != null && entity.PostedDt != null)
             {
-                throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
+                throw new InvalidOperationException("Cannot delete a posted acquisition. Unpost it first.");
             }
 
-            //if (_db.PsCardItemIssuances.Any(a => a.PsCardItemId == model.Id))
-            //{
-            //    throw new RecordRelationshipException("Issuance already exists, cannot delete!");
-            //}
+            if (entity != null && (entity.AIRItemId != null || !string.IsNullOrWhiteSpace(entity.AirNo) || (entity.OrderItemRequestId != null && entity.TranType == "A")))
+            {
+                throw new RecordRelationshipException("This acquisition was generated from an AIR inspection and cannot be deleted from Property Card. Source reversal must be performed through the AIR module.");
+            }
+
+            if (_db.PsCardItemExtns.Any(x => x.PsCardItemId == model.Id && x.PsCardSubItemId == null))
+            {
+                throw new RecordRelationshipException("Cannot delete this acquisition because it has main physical units. Please remove the physical units first.");
+            }
+
+            if (_db.PsCardSubItems.Any(x => x.PsCardItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Cannot delete this acquisition because it has components defined. Please remove the components first.");
+            }
+
+            if (_db.IcsParItems.Any(x => x.PsCardItemExtn.PsCardItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Cannot delete this acquisition because one or more units have accountability records.");
+            }
+
+            if (_db.IcsParItemComponents.Any(x => x.PsCardSubItem.PsCardItemId == model.Id || x.PsCardItemExtn.PsCardItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Cannot delete this acquisition because components are assigned to accountability records.");
+            }
 
             if (_db.PsCardItemTransferIssuances.Any(a => a.PsCardItemTransferId == model.TransferId))
             {
                 throw new RecordRelationshipException("Issuance already exists, cannot delete!");
             }
 
-            //if (_db.PsCardItemTransfers.Any(a => a.PsCardItemId == model.Id))
-            //{
-            //    throw new RecordRelationshipException("Transit already exists, cannot delete!");
-            //}
-
             if (_db.PsCardItemTransfers.Any(a => a.ParentId == model.TransferId))
             {
                 throw new RecordRelationshipException("Transit already exists, cannot delete!");
             }
-
         }
     }
 }

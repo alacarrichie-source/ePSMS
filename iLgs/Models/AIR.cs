@@ -71,15 +71,18 @@ namespace iLgs.Models
         public string WithdrawnBy { get; set; }
         public Nullable<System.DateTime> WithdrawnDt { get; set; }
         public string Disposition { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Department { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRInvoice> AIRInvoices { get; set; }
-        public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRDocument> AIRDocuments { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRSubmissionSnapshot> AIRSubmissionSnapshots { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Order Order { get; set; }
     }
 }

@@ -164,6 +164,7 @@
                 type: "POST",
                 url: '@Url.Action("_PpmpItemSelectionSave", "Requests")',
                 data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]', '#form').val(),
                     prId: '@ViewData["prId"]',
                     selectedIds: selectedIds
                 },

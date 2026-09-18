@@ -80,7 +80,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
             var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
+                    notifyWarning(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
                 }
@@ -107,7 +107,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
             var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
+                    notifyWarning(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
                 }
@@ -171,7 +171,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         //this.select($('[data-uid=' + rowitem.uid + ']'));
         //this.removeRow(tr);
 
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var tr = $(e.currentTarget).closest("tr"); var dataItem = this.dataItem(tr);
         selectedId = dataItem.Id;
         var rowitem = selectedGrid.dataSource.get(selectedId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
@@ -249,61 +249,88 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         e.preventDefault();
         var btn = this;
         if (postedBy) {
-            alert("Request already posted by " + postedBy);
+            notifyWarning("This Property Card has already been posted by " + postedBy);
+            return;
         }
-        else {
-            var msg = "Post Property No. " + selectedStockNo + "?";
 
-            if (confirm(msg)) {
-                if (!propertyCardButtonStart(btn, "Posting...")) {
-                    return;
-                }
+        epsmsConfirm({
+            title: "Post Property Card",
+            type: "info",
+            headline: "Post Official Property Card?",
+            entityLabel: "Property Card No.",
+            entityValue: selectedStockNo || "Card",
+            message: "Once posted, this Property Card will be formally recognized in the property registry and its records will become official.",
+            cancelText: "Cancel",
+            confirmText: "Post Card",
+            confirmIcon: "k-i-check",
+            onConfirm: function (dialog, $confirmBtn) {
+                setClickedButtonBusy($confirmBtn, "Posting...");
+                if (!propertyCardButtonStart(btn, "Posting...")) { return; }
+
                 $.ajax({
                     type: "POST",
                     url: '' + propertyCardConfig.urls.PropertyCard_PostRecord + '',
                     data: { psCardId: selectedId },
                     async: true
                 }).done(function (result) {
-                    if (result.Errors == "") {
+                    restoreClickedButton($confirmBtn);
+                    dialog.close();
+                    if (!result || result.Errors == null || result.Errors === "") {
+                        notifySuccess("Property Card posted successfully.");
                         $("#grid").data("kendoGrid").dataSource.read();
                     } else {
-                        alert(result.Errors);
+                        notifyWarning(result.Errors);
                     }
                 }).fail(function (req) {
-                    alert(req.responseText);
+                    restoreClickedButton($confirmBtn);
+                    notifyWarning(ajaxFailureMessage(req, "Unable to post the Property Card."));
                 }).always(function () {
                     propertyCardButtonStop(btn);
                 });
             }
-        }
+        });
     });
 
     $(".k-grid-btnUnpost").click(function (e) {
         e.preventDefault();
         var btn = this;
-        var msg = "Unpost Property No. " + selectedStockNo + "?";
 
-        if (confirm(msg)) {
-            if (!propertyCardButtonStart(btn, "Unposting...")) {
-                return;
+        epsmsConfirm({
+            title: "Unpost Property Card",
+            type: "warning",
+            headline: "Unpost Property Card?",
+            entityLabel: "Property Card No.",
+            entityValue: selectedStockNo || "Card",
+            message: "This will return the Property Card to an unposted status.",
+            cancelText: "Cancel",
+            confirmText: "Unpost Card",
+            confirmIcon: "k-i-undo",
+            onConfirm: function (dialog, $confirmBtn) {
+                setClickedButtonBusy($confirmBtn, "Unposting...");
+                if (!propertyCardButtonStart(btn, "Unposting...")) { return; }
+
+                $.ajax({
+                    type: "POST",
+                    url: '' + propertyCardConfig.urls.PropertyCard_UnpostRecord + '',
+                    data: { psCardId: selectedId },
+                    async: true
+                }).done(function (result) {
+                    restoreClickedButton($confirmBtn);
+                    dialog.close();
+                    if (!result || result.Errors == null || result.Errors === "") {
+                        notifySuccess("Property Card unposted.");
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        notifyWarning(result.Errors);
+                    }
+                }).fail(function (req) {
+                    restoreClickedButton($confirmBtn);
+                    notifyWarning(ajaxFailureMessage(req, "Unable to unpost the Property Card."));
+                }).always(function () {
+                    propertyCardButtonStop(btn);
+                });
             }
-            $.ajax({
-                type: "POST",
-                url: '' + propertyCardConfig.urls.PropertyCard_UnpostRecord + '',
-                data: { psCardId: selectedId },
-                async: true
-            }).done(function (result) {
-                if (result.Errors == "") {
-                    $("#grid").data("kendoGrid").dataSource.read();
-                } else {
-                    alert(result.Errors);
-                }
-            }).fail(function (req) {
-                alert(req.responseText);
-            }).always(function () {
-                propertyCardButtonStop(btn);
-            });
-        }
+        });
     });
 
     function onRequestEndGrid(e) {
@@ -425,7 +452,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
                     });
                 }
             });
-            alert(message);
+            notifyWarning(message);
         }
     }
 
@@ -662,12 +689,12 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
                     // Insert the rendered template into the detail cell
                     e.detailRow.find(".k-detail-cell").html(template(dataItem));
                 } else {
-                    alert(result.Errors);
+                    notifyWarning(result.Errors);
                     return false;
                 }
             },
             error: function (req, status, errorObj) {
-                alert(req.responseText);
+                notifyWarning(ajaxFailureMessage(req, "Request failed."));
                 return false;
             }
         });
@@ -730,10 +757,21 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
             // Handle the Cancel button click separately
             setTimeout(function () {
                 e.container.find(".k-grid-cancel").off("click").on("click", function (event) {
-                    if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
-                        event.preventDefault();         // Stop default closing
-                        event.stopImmediatePropagation(); // Prevent further event execution
-                    }
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    epsmsConfirm({
+                        title: "Discard Unsaved Changes",
+                        type: "warning",
+                        headline: "Discard Unsaved Changes?",
+                        message: "Are you sure you want to close this form? Any unsaved changes will be lost.",
+                        cancelText: "Keep Editing",
+                        confirmText: "Discard Changes",
+                        confirmIcon: "k-i-close",
+                        onConfirm: function (dialog) {
+                            dialog.close();
+                            popupWindow.close();
+                        }
+                    });
                 });
             });
         }
@@ -919,57 +957,83 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
     }
 
     function postItem(btn) {
-        var msg = "Post selected record?";
+        epsmsConfirm({
+            title: "Post Acquisition Record",
+            type: "info",
+            headline: "Post Acquisition Record?",
+            entityLabel: "Record",
+            entityValue: "Selected Item",
+            message: "Once posted, this acquisition record will be officially entered into the property ledger.",
+            cancelText: "Cancel",
+            confirmText: "Post",
+            confirmIcon: "k-i-check",
+            onConfirm: function (dialog, $confirmBtn) {
+                setClickedButtonBusy($confirmBtn, "Posting...");
+                if (!propertyCardButtonStart(btn, "Posting...")) { return; }
 
-        if (confirm(msg)) {
-            if (!propertyCardButtonStart(btn, "Posting...")) {
-                return;
+                $.ajax({
+                    type: "POST",
+                    url: '' + propertyCardConfig.urls.StockCard_PostItemRecord + '',
+                    data: { psCardItemId: selectedItemId },
+                    async: true
+                }).done(function (result) {
+                    restoreClickedButton($confirmBtn);
+                    dialog.close();
+                    if (!result || result.Errors == null || result.Errors === "") {
+                        notifySuccess("Acquisition record posted.");
+                        var g = $("#gridItems_" + selectedId).data("kendoGrid");
+                        if (g) { g.dataSource.read(); }
+                    } else {
+                        notifyWarning(result.Errors);
+                    }
+                }).fail(function (req) {
+                    restoreClickedButton($confirmBtn);
+                    notifyWarning(ajaxFailureMessage(req, "Unable to post acquisition record."));
+                }).always(function () {
+                    propertyCardButtonStop(btn);
+                });
             }
-            $.ajax({
-                type: "POST",
-                url: '' + propertyCardConfig.urls.StockCard_PostItemRecord + '',
-                data: { psCardItemId: selectedItemId },
-                async: true
-            }).done(function (result) {
-                if (result.Errors == "") {
-                    var g = $("#gridItems_" + selectedId).data("kendoGrid");
-                    if (g) { g.dataSource.read(); }
-                } else {
-                    alert(result.Errors);
-                }
-            }).fail(function (req) {
-                alert(req.responseText);
-            }).always(function () {
-                propertyCardButtonStop(btn);
-            });
-        }
+        });
     }
 
     function unpostItem(btn) {
-        var msg = "Unpost selected record?";
+        epsmsConfirm({
+            title: "Unpost Acquisition Record",
+            type: "warning",
+            headline: "Unpost Acquisition Record?",
+            entityLabel: "Record",
+            entityValue: "Selected Item",
+            message: "This will return the acquisition record to unposted status.",
+            cancelText: "Cancel",
+            confirmText: "Unpost",
+            confirmIcon: "k-i-undo",
+            onConfirm: function (dialog, $confirmBtn) {
+                setClickedButtonBusy($confirmBtn, "Unposting...");
+                if (!propertyCardButtonStart(btn, "Unposting...")) { return; }
 
-        if (confirm(msg)) {
-            if (!propertyCardButtonStart(btn, "Unposting...")) {
-                return;
+                $.ajax({
+                    type: "POST",
+                    url: '' + propertyCardConfig.urls.StockCard_UnpostItemRecord + '',
+                    data: { psCardItemId: selectedItemId },
+                    async: true
+                }).done(function (result) {
+                    restoreClickedButton($confirmBtn);
+                    dialog.close();
+                    if (!result || result.Errors == null || result.Errors === "") {
+                        notifySuccess("Acquisition record unposted.");
+                        var g = $("#gridItems_" + selectedId).data("kendoGrid");
+                        if (g) { g.dataSource.read(); }
+                    } else {
+                        notifyWarning(result.Errors);
+                    }
+                }).fail(function (req) {
+                    restoreClickedButton($confirmBtn);
+                    notifyWarning(ajaxFailureMessage(req, "Unable to unpost acquisition record."));
+                }).always(function () {
+                    propertyCardButtonStop(btn);
+                });
             }
-            $.ajax({
-                type: "POST",
-                url: '' + propertyCardConfig.urls.StockCard_UnpostItemRecord + '',
-                data: { psCardItemId: selectedItemId },
-                async: true
-            }).done(function (result) {
-                if (result.Errors == "") {
-                    var g = $("#gridItems_" + selectedId).data("kendoGrid");
-                    if (g) { g.dataSource.read(); }
-                } else {
-                    alert(result.Errors);
-                }
-            }).fail(function (req) {
-                alert(req.responseText);
-            }).always(function () {
-                propertyCardButtonStop(btn);
-            });
-        }
+        });
     }
 
 
@@ -1181,7 +1245,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         e.preventDefault();
         selectedGrid = this;
 
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var tr = $(e.currentTarget).closest("tr"); var dataItem = this.dataItem(tr);
         selectedIssuedId = dataItem.Id;
         var rowitem = selectedGrid.dataSource.get(selectedIssuedId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
@@ -1245,7 +1309,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
                     disabled.attr('disabled', 'disabled');
                 },
                 error: function (req, status, errorObj) {
-                    alert(req.responseText);
+                    notifyWarning(ajaxFailureMessage(req, "Request failed."));
                 }
             });
         }, 500);
@@ -1292,7 +1356,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
     // Helper function to select a row
     function selectRow(grid, dataItem) {
         var row = grid.table.find("tr[data-uid='" + dataItem.uid + "']");
-        alert(row);
+        notifyWarning("Unable to locate record row.");
         grid.select(row); // Select the row
     }
 
@@ -1418,21 +1482,46 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
     }
 
     function onCloseCardTemplate(e) {
-        if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
-            e.preventDefault(); // Prevents the window from closing
-        }
+        e.preventDefault();
+        var win = this;
+        epsmsConfirm({
+            title: "Discard Unsaved Changes",
+            type: "warning",
+            headline: "Discard Unsaved Changes?",
+            message: "Are you sure you want to close this form? Any unsaved changes will be lost.",
+            cancelText: "Keep Editing",
+            confirmText: "Discard Changes",
+            confirmIcon: "k-i-close",
+            onConfirm: function (dialog) {
+                dialog.close();
+                win.unbind("close");
+                win.close();
+            }
+        });
     }
 
     function onOpenPopupTemplate(e) {
         var popupWindow = $(".k-window-content.k-popup-edit-form").data("kendoWindow");
 
         if (popupWindow) {
-            // Ensure the event is not bound multiple times
             popupWindow.unbind("close");
             popupWindow.bind("close", function (e) {
-                if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
-                    e.preventDefault(); // Prevents the window from closing
-                }
+                e.preventDefault();
+                var win = this;
+                epsmsConfirm({
+                    title: "Discard Unsaved Changes",
+                    type: "warning",
+                    headline: "Discard Unsaved Changes?",
+                    message: "Are you sure you want to close this form? Any unsaved changes will be lost.",
+                    cancelText: "Keep Editing",
+                    confirmText: "Discard Changes",
+                    confirmIcon: "k-i-close",
+                    onConfirm: function (dialog) {
+                        dialog.close();
+                        win.unbind("close");
+                        win.close();
+                    }
+                });
             });
         }
     }
@@ -1487,18 +1576,24 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemExtnId = null;
-            selectedItemExtnQty = parentModel.QtyBal;
-            e.model.set("PsCardItemId", parentModel.Id);
-            e.model.set("TransferId", parentModel.TransferId);
-            e.model.set("LocationId", parentModel.LocationId);
-            e.model.set("Location", parentModel.Location);
-            e.model.set("TContentNo", parentModel.TContentNo);
-            //$("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            selectedItemExtnQty = parentModel ? parentModel.QtyBal : null;
+            if (parentModel) {
+                e.model.set("PsCardItemId", parentModel.Id);
+                e.model.set("TransferId", parentModel.TransferId);
+                e.model.set("LocationId", parentModel.LocationId);
+                e.model.set("Location", parentModel.Location);
+                e.model.set("TContentNo", parentModel.TContentNo);
+            }
         } else {
             selectedItemExtnId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            //$("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            if (rowitem) { selectedGrid.select($('[data-uid=' + rowitem.uid + ']')); }
+            if (e.model.CanEdit === false) {
+                var win = e.container.data("kendoWindow");
+                if (win) { win.title("View Individual Unit (Accountable - Read Only)"); }
+                e.container.find(".k-grid-update").hide();
+                e.container.find("input, textarea, select").prop("readonly", true);
+            }
         }
     }
 
@@ -1517,7 +1612,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         e.preventDefault();
         selectedGrid = this;
 
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var tr = $(e.currentTarget).closest("tr"); var dataItem = this.dataItem(tr);
         selectedItemExtnId = dataItem.Id;
         var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
@@ -1567,7 +1662,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
                 }
                 else
                 {
-                    alert(result.Errors);
+                    notifyWarning(result.Errors);
                 }
             }
         });
@@ -1579,7 +1674,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         // invalid because the responseText is a raw string, not JSON
         //var err = $.parseJSON(e.XMLHttpRequest.responseText);
         var err = e.XMLHttpRequest.responseText;
-        alert(err);
+        notifyWarning(err);
     };
 
     function GridUploadError(e) {
@@ -1636,7 +1731,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
 
             $.each(e.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
+                    notifyWarning(this.errors);
                 }
             });
         }
@@ -1782,7 +1877,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors
+            notifyWarning(message); // You can replace this with any other UI method to display errors
         }
     }
 
@@ -1909,7 +2004,7 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
             var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);
+                    notifyWarning(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
                 }
@@ -1979,3 +2074,22 @@ window.propertyCardStopProcessing = propertyCardStopProcessing;
         //resizeWindow();
     }
     // end additional cost
+// Explicitly expose Property Card handlers to window for Kendo MVC and global inline calls
+window.onSelectUserName = onSelectUserName;
+window.onChangeUserName = onChangeUserName;
+window.DataStockCard = DataStockCard;
+window.DataStockCardItem = DataStockCardItem;
+window.GridError = GridError;
+window.GridItemError = GridItemError;
+window.onListDataBound = onListDataBound;
+window.onCriteriaChange = onCriteriaChange;
+window.onClickBtnAdd = onClickBtnAdd;
+window.onClickBtnEdit = onClickBtnEdit;
+window.onClickBtnPrint = onClickBtnPrint;
+window.onChangeGrid = onChangeGrid;
+window.onDataBoundGrid = onDataBoundGrid;
+window.onRequestEndGrid = onRequestEndGrid;
+window.onEditGridItemExtn = onEditGridItemExtn;
+window.onRemoveGridItemExtn = onRemoveGridItemExtn;
+window.onGridItemExtnDeleteClick = onGridItemExtnDeleteClick;
+window.onRequestEndGridItemExtn = onRequestEndGridItemExtn;

@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PropertyCardVM
+@model iLgs.Models.PropertyCardVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -19,6 +19,7 @@
     @Html.HiddenFor(model => model.Mode)
     @Html.HiddenFor(model => model.IsDuplicateStockNo)
 
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -213,6 +214,10 @@
     $("#btnSave").click(function (e) {
         e.preventDefault();
         var btn = this;
+        var $popup = $("#btnSave").closest(".k-window-content");
+        if (typeof clearPropertyCardPopupError === 'function') {
+            clearPropertyCardPopupError($popup);
+        }
 
         UpdateDescription();
         var validator = $("#form").kendoValidator().data("kendoValidator");
@@ -231,28 +236,55 @@
                     if (result.Errors == "") {
                         selectedId = result.Id;
                         $("#IsDuplicateStockNo").val("true").trigger("change");
-                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        $popup.data("kendoWindow").close();
                     }
                     else {
+                        var errorMsg = "";
+                        if (Array.isArray(result.Errors)) {
+                            var messages = [];
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var msgs = error.Message;
+                                if (Array.isArray(msgs)) {
+                                    messages.push(key + ": " + msgs.join(", "));
+                                } else if (msgs) {
+                                    messages.push(msgs);
+                                }
+                            });
+                            errorMsg = messages.join("\n");
+                        } else if (typeof result.Errors === "string") {
+                            errorMsg = result.Errors;
+                        }
+                        if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                            showPropertyCardPopupError($popup, errorMsg || "Failed to save Property Card.");
+                        }
+
                         $('#ErrorContent .errors').empty();
-                        result.Errors.forEach(function (error) {
-                            var key = error.Key;
-                            var messages = error.Message;
-                            if (Array.isArray(messages)) {
-                                var errorListItem = $('<li></li>').text(key);
-                                var messageList = $('<ul></ul>');
-                                messages.forEach(function (message) {
-                                    messageList.append($('<li></li>').text(message));
-                                });
-                                errorListItem.append(messageList);
-                                $('#ErrorContent .errors').append(errorListItem);
-                            }
-                        });
-                        $('#ErrorContent').removeClass('hidden');
+                        if (Array.isArray(result.Errors)) {
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message;
+                                if (Array.isArray(messages)) {
+                                    var errorListItem = $('<li></li>').text(key);
+                                    var messageList = $('<ul></ul>');
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
+                                    errorListItem.append(messageList);
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                }
+                            });
+                            $('#ErrorContent').removeClass('hidden');
+                        }
                     }
                     selectedId = result.Id;
                 }).fail(function (req) {
-                    alert(req.responseText);
+                    var msg = typeof ajaxFailureMessage === 'function' ? ajaxFailureMessage(req, "Failed to save Property Card.") : "Failed to save Property Card.";
+                    if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                        showPropertyCardPopupError($popup, msg);
+                    } else {
+                        notifyWarning(msg);
+                    }
                 }).always(function () {
                     propertyCardButtonStop(btn);
                 });

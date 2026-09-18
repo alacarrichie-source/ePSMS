@@ -2091,17 +2091,17 @@ namespace iLgs.Ai.Services.Air
                                 _db.AIRItemAllocations.RemoveRange(allocations);
                             }
 
-                            var extns = await _db.AIRItemExtns.Where(e => e.AIRItemId.HasValue && airItemIds.Contains(e.AIRItemId.Value)).ToListAsync();
-                            if (extns.Any())
-                            {
-                                _db.AIRItemExtns.RemoveRange(extns);
-                            }
-
                             var subItems = await _db.AIRSubItems.Where(s => airItemIds.Contains(s.AirItemId)).ToListAsync();
                             if (subItems.Any())
                             {
                                 _db.AIRSubItems.RemoveRange(subItems);
                             }
+
+                            var extns = await _db.AIRItemExtns.Where(e => e.AIRItemId.HasValue && airItemIds.Contains(e.AIRItemId.Value)).ToListAsync();
+                            if (extns.Any())
+                            {
+                                _db.AIRItemExtns.RemoveRange(extns);
+                            }                            
 
                             _db.AIRItems.RemoveRange(air.AIRItems);
                         }

@@ -42,6 +42,7 @@ namespace iLgs.Services.PurchaseRequest
 
         ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
         ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date);
+        ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date, bool allowAdminEdit);
         ValueTask<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date);
         ValueTask PostAsync(Guid requestId, string user, DateTime date);
         ValueTask UnpostAsync(Guid requestId, string user, DateTime date);
@@ -50,6 +51,7 @@ namespace iLgs.Services.PurchaseRequest
 
         ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
         ValueTask<PurchaseRequestViewModel> SaveRevisionCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
+        ValueTask<PurchaseRequestViewModel> SaveAdminEditCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
 
         IRequestItemService RequestItem { get; }
     }
@@ -374,14 +376,24 @@ namespace iLgs.Services.PurchaseRequest
                     }
                     _documentHistoryService.AddStatusHistory(
                         DocumentTypes.PurchaseRequest,
-                        request.Id,
-                        request.PrNo,
+                        requestVM.Id != Guid.Empty ? requestVM.Id : request.Id,
+                        request.PrNo ?? requestVM.CtrlNo ?? request.CtrlNo ?? "PR",
                         oldStatus,
                         "SUBMITTED",
                         "Submit",
                         null,
                         user);
 
+                    if (model.CartId.HasValue)
+                    {
+                        var cartEntity = await _db.ProcurementCarts.FirstOrDefaultAsync(c => c.Id == model.CartId.Value);
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = "COMPLETED";
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
                     await _db.SaveChangesAsync();
 
                     transaction.Commit();
@@ -539,10 +551,335 @@ namespace iLgs.Services.PurchaseRequest
                         "Resubmitted - Revision " + revisionNo,
                         "Purchase Request resubmitted after revision " + revisionNo + ".", user);
 
+                    if (model.CartId.HasValue)
+                    {
+                        var cartEntity = await _db.ProcurementCarts.FirstOrDefaultAsync(c => c.Id == model.CartId.Value);
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = "COMPLETED";
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
+                    else
+                    {
+                        var cartEntity = await _db.ProcurementCarts.FirstOrDefaultAsync(c => c.RequestId == requestId && c.Status == "ACTIVE");
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = "COMPLETED";
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
                     await _db.SaveChangesAsync();
                     transaction.Commit();
                     model.CtrlNo = entity.CtrlNo;
                     model.RevisionNo = revisionNo;
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        });
+
+        public ValueTask<PurchaseRequestViewModel> SaveAdminEditCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date) =>
+        _prCheckoutExceptionService.TryCatch(async () =>
+        {
+            Guid prId = Guid.Empty;
+            if (model.SourceRequestId.HasValue && model.SourceRequestId.Value != Guid.Empty)
+            {
+                prId = model.SourceRequestId.Value;
+            }
+            else if (model.RequestId.HasValue && model.RequestId.Value != Guid.Empty)
+            {
+                prId = model.RequestId.Value;
+            }
+            else if (model.Id.HasValue && model.Id.Value != Guid.Empty)
+            {
+                prId = model.Id.Value;
+            }
+
+            if (prId == Guid.Empty)
+            {
+                throw new InvalidOperationException("The Purchase Request reference is missing.");
+            }
+
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var entity = await _db.Requests
+                        .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
+                        .FirstOrDefaultAsync(x => x.Id == prId);
+
+                    if (entity == null)
+                    {
+                        throw new InvalidOperationException("The Purchase Request no longer exists.");
+                    }
+
+                    var latestStatus = await _db.DocumentStatusHistories
+                        .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == prId)
+                        .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
+                        .Select(x => x.ToStatus).FirstOrDefaultAsync();
+
+                    bool isSubmitted = String.Equals(latestStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) ||
+                                       String.Equals(latestStatus, "Submitted", StringComparison.OrdinalIgnoreCase);
+                    bool isUnposted = String.Equals(latestStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase) ||
+                                      String.Equals(latestStatus, "Unposted", StringComparison.OrdinalIgnoreCase);
+
+                    if (!isSubmitted && !isUnposted)
+                    {
+                        throw new InvalidOperationException(string.Format(
+                            "Purchase Request is no longer available for administrative editing. Current status is '{0}'.",
+                            latestStatus ?? "Unknown"));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(entity.PostedBy) && !isUnposted)
+                    {
+                        throw new InvalidOperationException("This Purchase Request is already Posted. Cannot update.");
+                    }
+
+                    if (await _requestSharedService.GetAnyOrderAsync(prId))
+                    {
+                        throw new InvalidOperationException("PR Number already has an associated Purchase Order. Cannot update.");
+                    }
+
+                    if (model.Items == null || !model.Items.Any())
+                    {
+                        throw new InvalidOperationException("The Purchase Request must contain at least one item.");
+                    }
+
+                    var existingItemMap = entity.RequestItems.ToDictionary(x => x.Id);
+
+                    // Strictly reject any cart item that does not correspond to an existing RequestItem
+                    foreach (var item in model.Items)
+                    {
+                        if (!item.RequestItemId.HasValue || !existingItemMap.ContainsKey(item.RequestItemId.Value))
+                        {
+                            throw new InvalidOperationException(string.Format(
+                                "Cart item '{0}' does not correspond to an existing Purchase Request item. New procurement items cannot be added during Admin Edit.",
+                                item.Description ?? item.Code));
+                        }
+                    }
+
+                    var ppmpIds = entity.RequestItems
+                        .Where(x => x.PpmpItemId.HasValue)
+                        .Select(x => x.PpmpItemId.Value)
+                        .Distinct().ToList();
+
+                    var ppmpItems = await _db.PPMPItems
+                        .Include(x => x.PPMP)
+                        .Include(x => x.PPMPItemUsages)
+                        .Where(x => ppmpIds.Contains(x.Id)).ToListAsync();
+
+                    // Reconcile and validate each item
+                    foreach (var item in model.Items)
+                    {
+                        var requestItem = existingItemMap[item.RequestItemId.Value];
+                        var origQty = requestItem.Qty.GetValueOrDefault();
+                        var newQty = item.Quantity;
+
+                        if (newQty <= 0)
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " quantity must be greater than zero.");
+                        }
+
+                        if (requestItem.PpmpItemId.HasValue)
+                        {
+                            var ppmpItem = ppmpItems.FirstOrDefault(x => x.Id == requestItem.PpmpItemId.Value);
+                            if (ppmpItem != null)
+                            {
+                                var usedByOthers = ppmpItem.PPMPItemUsages
+                                    .Where(x => x.PrId != prId)
+                                    .Sum(x => x.Qty).GetValueOrDefault();
+                                var availableForPr = ppmpItem.Qty.GetValueOrDefault() - usedByOthers;
+                                if (newQty > availableForPr)
+                                {
+                                    throw new InvalidOperationException(string.Format(
+                                        "Insufficient PPMP allocation for item '{0}'. Requested: {1}, Available balance: {2}.",
+                                        item.Code ?? ppmpItem.Code, newQty, (availableForPr - origQty)));
+                                }
+                            }
+                        }
+
+                        if (string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " requires a description.");
+                        }
+
+                        if (item.UnitCost.HasValue && item.UnitCost.Value < 0)
+                        {
+                            throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " has an invalid unit cost.");
+                        }
+                    }
+
+                    // Permitted header corrections
+                    entity.Purpose = model.Purpose == null ? "" : model.Purpose.Trim();
+                    entity.FPP = model.FPP;
+                    entity.Fund = model.Fund == null ? null : model.Fund.Trim().ToUpper();
+                    entity.FundSpecific = model.FundSpecific;
+                    entity.RequestedBy = model.RequestedBy == null ? "" : model.RequestedBy.Trim();
+                    entity.RequestedDesig = model.RequestedDesig == null ? "" : model.RequestedDesig.Trim();
+                    entity.Availability = model.Availability == null ? "" : model.Availability.Trim();
+                    entity.AvaialbilityDesig = model.AvaialbilityDesig == null ? "" : model.AvaialbilityDesig.Trim();
+                    entity.ApprovedBy = model.ApprovedBy == null ? "" : model.ApprovedBy.Trim();
+                    entity.ApprovedDesig = model.ApprovedDesig == null ? "" : model.ApprovedDesig.Trim();
+                    entity.UpdatedBy = user;
+                    entity.UpdatedDt = date;
+
+                    var retainedItemIds = new HashSet<Guid>();
+                    foreach (var item in model.Items)
+                    {
+                        var requestItem = existingItemMap[item.RequestItemId.Value];
+                        retainedItemIds.Add(requestItem.Id);
+
+                        requestItem.ItemNo = item.ItemNo;
+                        requestItem.ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo);
+                        requestItem.Description = item.Description.Trim();
+                        requestItem.OtherDesc = item.TechnicalSpecifications == null ? "" : item.TechnicalSpecifications.Trim();
+                        requestItem.Qty = item.Quantity;
+                        if (!string.IsNullOrWhiteSpace(item.Unit))
+                        {
+                            requestItem.Unit = item.Unit.Trim();
+                        }
+                        if (item.UnitCost.HasValue)
+                        {
+                            requestItem.UnitCost = item.UnitCost.Value;
+                        }
+                        requestItem.TotalCost = item.Quantity * requestItem.UnitCost.GetValueOrDefault();
+                        requestItem.UpdatedBy = user;
+                        requestItem.UpdatedDt = date;
+
+                        var retainedSubItemIds = new HashSet<Guid>();
+                        foreach (var subItem in item.SubItems ?? Enumerable.Empty<CartSubItemViewModel>())
+                        {
+                            if (string.IsNullOrWhiteSpace(subItem.Description) ||
+                                string.IsNullOrWhiteSpace(subItem.Unit) ||
+                                subItem.Quantity <= 0 ||
+                                subItem.UnitCost < 0)
+                            {
+                                throw new InvalidOperationException("A sub-item under " + item.Code + " contains invalid values.");
+                            }
+
+                            var entitySubItem = subItem.Id != Guid.Empty
+                                ? requestItem.RequestSubItems.FirstOrDefault(x => x.Id == subItem.Id)
+                                : null;
+
+                            if (entitySubItem == null)
+                            {
+                                entitySubItem = new RequestSubItem
+                                {
+                                    Id = subItem.Id == Guid.Empty ? Guid.NewGuid() : subItem.Id,
+                                    RequestItemId = requestItem.Id,
+                                    InsertedBy = user,
+                                    InsertedDt = date
+                                };
+                                requestItem.RequestSubItems.Add(entitySubItem);
+                                subItem.Id = entitySubItem.Id;
+                            }
+
+                            retainedSubItemIds.Add(entitySubItem.Id);
+                            entitySubItem.ItemNo = subItem.ItemNo;
+                            entitySubItem.ItemNoIndex = Utility.GetItemNoIndex(subItem.ItemNo);
+                            entitySubItem.Description = subItem.Description.Trim();
+                            entitySubItem.Unit = subItem.Unit.Trim();
+                            entitySubItem.Qty = subItem.Quantity;
+                            entitySubItem.UnitCost = subItem.UnitCost;
+                            entitySubItem.Total = subItem.Quantity * subItem.UnitCost;
+                            entitySubItem.UpdatedBy = user;
+                            entitySubItem.UpdatedDt = date;
+                        }
+
+                        var removedSubItems = requestItem.RequestSubItems
+                            .Where(x => !retainedSubItemIds.Contains(x.Id)).ToList();
+                        _db.RequestSubItems.RemoveRange(removedSubItems);
+                    }
+
+                    // Handle removed RequestItems
+                    var removedItems = entity.RequestItems.Where(x => !retainedItemIds.Contains(x.Id)).ToList();
+                    _db.RequestSubItems.RemoveRange(removedItems.SelectMany(x => x.RequestSubItems).ToList());
+                    _db.RequestItems.RemoveRange(removedItems);
+
+                    // Reconcile PPMPItemUsages (Delta adjustment)
+                    var usages = await _db.PPMPItemUsages.Where(x => x.PrId == prId).ToListAsync();
+                    foreach (var item in model.Items)
+                    {
+                        var requestItem = existingItemMap[item.RequestItemId.Value];
+                        if (!requestItem.PpmpItemId.HasValue) continue;
+
+                        var usage = usages.FirstOrDefault(x => x.PpmpItemId == requestItem.PpmpItemId);
+                        if (usage == null)
+                        {
+                            usage = new PPMPItemUsage
+                            {
+                                Id = Guid.NewGuid(),
+                                PpmpItemId = requestItem.PpmpItemId,
+                                PrId = prId,
+                                InsertedBy = user,
+                                InsertedDt = date
+                            };
+                            _db.PPMPItemUsages.Add(usage);
+                        }
+                        usage.Type = string.IsNullOrWhiteSpace(entity.PrNo) ? "PR-CN" : "PR";
+                        usage.Reference = entity.PrNo ?? entity.CtrlNo;
+                        usage.Qty = item.Quantity;
+                        usage.UpdatedBy = user;
+                        usage.UpdatedDt = date;
+                    }
+
+                    var retainedPpmpIds = model.Items
+                        .Select(x => existingItemMap[x.RequestItemId.Value].PpmpItemId)
+                        .Where(x => x.HasValue)
+                        .Select(x => x.Value)
+                        .Distinct().ToList();
+                    var removedUsages = usages
+                        .Where(x => !x.PpmpItemId.HasValue || !retainedPpmpIds.Contains(x.PpmpItemId.Value))
+                        .ToList();
+                    _db.PPMPItemUsages.RemoveRange(removedUsages);
+
+                    // Audit history preserving workflow status
+                    _documentHistoryService.AddStatusHistory(
+                        DocumentTypes.PurchaseRequest,
+                        prId,
+                        entity.PrNo ?? entity.CtrlNo,
+                        latestStatus,
+                        latestStatus,
+                        "Admin Edit",
+                        "Purchase Request updated via Admin Edit Checkout.",
+                        user);
+
+                    // Complete the Admin Edit cart
+                    if (model.CartId.HasValue)
+                    {
+                        var cartEntity = await _db.ProcurementCarts.FirstOrDefaultAsync(c => c.Id == model.CartId.Value);
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = "COMPLETED";
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
+                    else
+                    {
+                        var cartEntity = await _db.ProcurementCarts.FirstOrDefaultAsync(c => c.RequestId == prId && c.Status == "ACTIVE" && ((c.RevisionUser != null && c.RevisionUser.StartsWith("ADMIN_EDIT:")) || (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]"))));
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = "COMPLETED";
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+
+                    model.CtrlNo = entity.CtrlNo;
+                    model.AdminEditPrNo = entity.PrNo;
+                    model.Id = entity.Id;
+                    model.RequestId = entity.Id;
                     return model;
                 }
                 catch
@@ -582,6 +919,9 @@ namespace iLgs.Services.PurchaseRequest
         });
 
         public ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date) =>
+            UpdateAsync(model, user, date, false);
+
+        public ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date, bool allowAdminEdit) =>
         _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
@@ -590,10 +930,17 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = await _db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             ValidateRecord(entity, model.Id);
-            await ValidateStatusAsync(model.Id);
+            await ValidateStatusAsync(model.Id, allowAdminEdit);
+
+            if (allowAdminEdit)
+            {
+                model.PrNo = entity.PrNo;
+                model.PrDate = entity.PrDate;
+            }
+
             await ValidateOnCreateUpdateAsync(model, Mode.EDIT);
 
-            MapModelToEntityFields(entity, model, Mode.ADD);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
             await _db.SaveChangesAsync();
 
@@ -941,7 +1288,7 @@ namespace iLgs.Services.PurchaseRequest
         {
             _imex = new InvalidModelException();
             var validationResult = ValidatePrNoAndDate(model.PrNo, model.PrDate);
-            if (validationResult.Count == 0)
+            if (validationResult.Count == 0 && !string.IsNullOrEmpty(model.PrNo))
             {
                 if (mode == Mode.ADD)
                 {
@@ -990,9 +1337,9 @@ namespace iLgs.Services.PurchaseRequest
         //    }
         //}
 
-        private async Task ValidateStatusAsync(Guid prId)
+        private async Task ValidateStatusAsync(Guid prId, bool allowAdminEdit = false)
         {
-            await _requestSharedService.ValidateStatusAsync(prId);
+            await _requestSharedService.ValidateStatusAsync(prId, allowAdminEdit);
         }
 
         private void ValidateRecord(Request entity, Guid id)

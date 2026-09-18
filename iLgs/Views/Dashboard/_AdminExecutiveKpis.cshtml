@@ -1,0 +1,102 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var kpis = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.ExecutiveKpis : null;
+    if (kpis == null) { kpis = new iLgs.Models.AdminExecutiveKpiVM(); }
+}
+
+<div class="admin-kpi-strip">
+    <!-- 1. Purchase Requests -->
+    <a href="@Url.Action("Index", "Requests")" class="admin-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Purchase Requests</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-file-add"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.PrTotal.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.PrSubmitted.ToString("N0") processing</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.PrDraft.ToString("N0") draft</span>
+        </div>
+    </a>
+
+    <!-- 2. Purchase Orders -->
+    <a href="@Url.Action("Index", "Orders")" class="admin-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Purchase Orders</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-cart"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.PoTotal.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <strong class="kpi-highlight-green">
+                PHP @((kpis.PoCommittedAmount >= 1000000m) ? (kpis.PoCommittedAmount / 1000000m).ToString("N1") + "M" : (kpis.PoCommittedAmount / 1000m).ToString("N0") + "K")
+            </strong>
+            <span>committed</span>
+        </div>
+    </a>
+
+    <!-- 3. Pending Inspection (AIR) -->
+    <a href="@Url.Action("Index", "AIRs")" class="admin-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Awaiting Inspection</span>
+            <div class="kpi-icon-box @(kpis.AirPendingInspection > 0 ? "kpi-box-warning" : "")">
+                <span class="k-icon k-i-search"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val @(kpis.AirPendingInspection > 0 ? "val-warning" : "")">@kpis.AirPendingInspection.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.AirInspected.ToString("N0") accepted</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.AirTotal.ToString("N0") total</span>
+        </div>
+    </a>
+
+    <!-- 4. RIS Pending -->
+    <a href="@Url.Action("Index", "RIS")" class="admin-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Requisitions (RIS)</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-note"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.RisPendingTotal.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.RisPendingApproval.ToString("N0") pending approval</span>
+        </div>
+    </a>
+
+    <!-- 5. Asset Registry -->
+    <a href="@Url.Action("Index", "PropertyCard")" class="admin-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Asset Registry</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-grid"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.TotalRegistryCards.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.PropertyCardCount.ToString("N0") PPE</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.StockCardCount.ToString("N0") Supplies</span>
+        </div>
+    </a>
+
+    <!-- 6. Requires Attention -->
+    <a href="#adminAttentionQueue" class="admin-kpi-card kpi-card-attention">
+        <div class="kpi-top">
+            <span class="kpi-label label-attention">Requires Attention</span>
+            <div class="kpi-icon-box kpi-box-danger">
+                <span class="k-icon k-i-bell"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val val-danger">@kpis.ActionableExceptionsCount.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.PrReturned.ToString("N0") returned PR</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.AirPendingInspection.ToString("N0") inspect</span>
+        </div>
+    </a>
+</div>

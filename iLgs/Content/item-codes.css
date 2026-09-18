@@ -1,0 +1,469 @@
+﻿/* ==========================================================================
+   ePSMS - Item Code Management Workspace Stylesheet
+   Scoped under: .epsms-item-codes
+   ========================================================================== */
+
+.epsms-item-codes {
+    padding: 16px 20px 24px 20px;
+    background-color: #f8fafc;
+    min-height: calc(100vh - 65px);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    color: #1e293b;
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .item-codes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-item-codes .header-title-group h2 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+}
+
+.epsms-item-codes .header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.epsms-item-codes .header-desc {
+    color: #64748b;
+    font-size: 0.83rem;
+    margin: 0;
+}
+
+.epsms-item-codes .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.epsms-item-codes .btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #0284c7;
+    color: #ffffff !important;
+    border: 1px solid #0284c7;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-item-codes .btn-primary-action:hover {
+    background-color: #0369a1;
+    border-color: #0369a1;
+    color: #ffffff !important;
+}
+
+.epsms-item-codes .btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #ffffff;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.15s ease-in-out;
+}
+
+.epsms-item-codes .btn-secondary-action:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a !important;
+}
+
+/* --------------------------------------------------------------------------
+   Filter Panel
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .filter-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.epsms-item-codes .filter-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.epsms-item-codes .filter-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.epsms-item-codes .filter-stats {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.epsms-item-codes .filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 1fr auto;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.epsms-item-codes .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.epsms-item-codes .filter-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.epsms-item-codes .search-box-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.epsms-item-codes .search-input {
+    width: 100%;
+    padding: 6px 10px 6px 32px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.epsms-item-codes .search-input:focus {
+    outline: none;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.epsms-item-codes .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.epsms-item-codes .btn-clear-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f8fafc;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    height: 32px;
+    box-sizing: border-box;
+}
+
+.epsms-item-codes .btn-clear-filters:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+    border-color: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+   Workspace Main Card / Grid
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .grid-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.epsms-item-codes .grid-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-item-codes .grid-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.epsms-item-codes .grid-card-title .k-icon {
+    color: #0284c7;
+    font-size: 15px;
+}
+
+.epsms-item-codes .grid-card-body {
+    padding: 10px 14px;
+}
+
+/* --------------------------------------------------------------------------
+   Badges & Pills
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .item-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+.epsms-item-codes .badge-article {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.epsms-item-codes .badge-nonarticle {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.epsms-item-codes .badge-archive {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.epsms-item-codes .badge-active {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.epsms-item-codes .item-cat-badge {
+    display: inline-block;
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.epsms-item-codes .item-req-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 9999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: default;
+}
+
+.epsms-item-codes .item-req-pill .k-icon {
+    font-size: 11px;
+    color: #3b82f6;
+}
+
+.epsms-item-codes .item-code-strong {
+    font-weight: 700;
+    color: #0f172a;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px;
+}
+
+/* --------------------------------------------------------------------------
+   Detail Expanded Row / Child Container
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .item-codes-detail-wrap {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 6px 0;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.epsms-item-codes .item-codes-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-item-codes .item-codes-detail-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.epsms-item-codes .item-codes-detail-title .k-icon {
+    color: #0284c7;
+    font-size: 13px;
+}
+
+/* Hide tab header when using clean wrapper */
+.no-text-tabstrip .k-tabstrip-items {
+    display: none !important;
+}
+
+.no-text-tabstrip.k-tabstrip {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.no-text-tabstrip > .k-content {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+/* --------------------------------------------------------------------------
+   Grid Customizations
+   -------------------------------------------------------------------------- */
+.epsms-item-codes .k-grid {
+    border-color: #e2e8f0;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.epsms-item-codes .k-grid-header {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.epsms-item-codes .k-grid-header th.k-header {
+    color: #334155;
+    font-weight: 600;
+    font-size: 11.5px;
+    padding: 7px 8px;
+    vertical-align: middle;
+}
+
+.epsms-item-codes .k-grid td {
+    padding: 6px 8px;
+    border-color: #f1f5f9;
+    color: #334155;
+}
+
+.epsms-item-codes .k-grid-toolbar {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Empty State */
+.epsms-item-codes .item-empty-state {
+    padding: 24px 16px;
+    text-align: center;
+    color: #64748b;
+}
+
+.epsms-item-codes .item-empty-state .k-icon {
+    font-size: 26px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.epsms-item-codes .item-empty-state p {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 4px 0;
+}
+
+.epsms-item-codes .item-empty-sub {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .epsms-item-codes .filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .epsms-item-codes .item-codes-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .epsms-item-codes .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}

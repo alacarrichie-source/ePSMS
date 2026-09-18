@@ -365,12 +365,24 @@ namespace iLgs.Ai.Services.PurchaseOrder
                         var poNumber = String.IsNullOrWhiteSpace(grp.PONumber)
                             ? await GeneratePONumberAsync(grp.PODate.Date)
                             : grp.PONumber.Trim();
+                        Guid? resolvedDeptId = null;
+                        string resolvedDepartment = null;
+                        if (grp.DeptId.HasValue && grp.DeptId.Value != Guid.Empty)
+                        {
+                            var deptRecord = await _db.Codextns.FirstOrDefaultAsync(c => c.Id == grp.DeptId.Value && c.CodeMast.Code == "LOCATIONS");
+                            if (deptRecord != null)
+                            {
+                                resolvedDeptId = deptRecord.Id;
+                                resolvedDepartment = deptRecord.Description;
+                            }
+                        }
                         var po = new Order
                         {
                             Id = Guid.NewGuid(),
                             PoNo = poNumber,
                             PrNo = grp.PRNumber,
-                            Department = grp.DepartmentName,
+                            DeptId = resolvedDeptId,
+                            Department = resolvedDepartment,
                             CtrlNo = grp.CtrlNo,
                             PoDate = grp.PODate.Date,
                             SupplierId = grp.SupplierId,
@@ -808,11 +820,28 @@ namespace iLgs.Ai.Services.PurchaseOrder
                 group.SupEmail = supplier.Email;
                 group.SupZipCode = supplier.ZipCode;
                 group.SupContactNo = supplier.ContactNos;
+
+                if (!group.DeptId.HasValue || group.DeptId.Value == Guid.Empty)
+                    return "Please select a valid Department.";
+                var dept = await _db.Codextns.FirstOrDefaultAsync(c => c.Id == group.DeptId.Value && c.CodeMast.Code == "LOCATIONS");
+                if (dept == null)
+                    return "Please select a valid Department.";
+                group.Department = dept.Description;
+                group.DepartmentName = dept.Description;
                 if (String.IsNullOrWhiteSpace(group.PlaceOfDelivery) || String.IsNullOrWhiteSpace(group.TermDelivery) ||
                     String.IsNullOrWhiteSpace(group.PaymentTerms) || String.IsNullOrWhiteSpace(group.ModeOfProcurement))
                     return "Complete the delivery and procurement terms for " + name + ".";
                 if (group.POCopyDoc == null || (!group.POCopyDoc.ExistingUploadId.HasValue && String.IsNullOrWhiteSpace(group.POCopyDoc.FilePath)))
                     return "Upload the signed PO copy for " + name + ".";
+                }
+                else if (group.DeptId.HasValue && group.DeptId.Value != Guid.Empty)
+                {
+                    var draftDept = await _db.Codextns.FirstOrDefaultAsync(c => c.Id == group.DeptId.Value && c.CodeMast.Code == "LOCATIONS");
+                    if (draftDept != null)
+                    {
+                        group.Department = draftDept.Description;
+                        group.DepartmentName = draftDept.Description;
+                    }
                 }
                 foreach (var item in group.Items)
                 {
@@ -846,6 +875,23 @@ namespace iLgs.Ai.Services.PurchaseOrder
             return null;
         }
 
+
+        public static Guid? ResolveDefaultPoDepartment(Guid? existingPoDeptId, IEnumerable<Guid?> sourcePrDeptIds)
+        {
+            if (existingPoDeptId.HasValue && existingPoDeptId.Value != Guid.Empty)
+                return existingPoDeptId.Value;
+
+            var departments = (sourcePrDeptIds ?? Enumerable.Empty<Guid?>())
+                .Where(x => x.HasValue && x.Value != Guid.Empty)
+                .Select(x => x.Value)
+                .Distinct()
+                .ToList();
+
+            if (departments.Count == 1)
+                return departments[0];
+
+            return null;
+        }
 
         public async Task<string> GeneratePONumberAsync(DateTime poDate)
         {

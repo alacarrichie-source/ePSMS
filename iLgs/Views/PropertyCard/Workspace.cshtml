@@ -1,15 +1,16 @@
-﻿@model iLgs.Models.PropertyCardWorkspaceVM
+@model iLgs.Models.PropertyCardWorkspaceVM
 @{
     ViewBag.Title = "Property Card " + Model.Card.PsNo;
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 <link href="@Url.Content("~/Content/property-card-legacy.css?v=20260912_3")" rel="stylesheet" />
-<link href="@Url.Content("~/Content/property-card-view.css")" rel="stylesheet" />
+<link href="@Url.Content("~/Content/property-card-view.css?v=20260916_6")" rel="stylesheet" />
 @Html.Partial("_ClientConfig")
 <script>
 propertyCardConfig.workspace = {
     id: "@Model.Card.Id",
     tabUrl: "@Url.Action("WorkspaceTab")",
+    acquisitionUrl: "@Url.Action("WorkspaceAcquisition")",
     positionUrl: "@Url.Action("WorkspacePosition")",
     choicesUrl: "@Url.Action("WorkspaceChoices")",
     unitsUrl: "@Url.Action("WorkspaceUnits")",
@@ -21,9 +22,9 @@ propertyCardConfig.workspace = {
 </script>
 <div id="pcWorkspace" class="epsms-property-workspace">
     @Html.AntiForgeryToken()
-    <a class="pc-back" href="@Url.Action("Index")">← Back to Property Cards</a>
+    <a class="pc-back" href="@Url.Action("Index")">Back to Property Cards</a>
     <header class="pc-workspace-header">
-        <div><p class="pc-eyebrow">PROPERTY CARD NO.</p><h1>@Model.Card.PsNo</h1><h2>@Model.Card.Item</h2><p>@Model.Card.ItemType · Fund @Model.Card.Fund</p></div>
+        <div><p class="pc-eyebrow">PROPERTY CARD NO.</p><h1>@Model.Card.PsNo</h1><h2>@Model.Card.Item</h2><p>@Model.Card.ItemType &bull; Fund @Model.Card.Fund</p></div>
         <div class="pc-workspace-actions">
             <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" id="pcEditCard">Edit Property Card</button>
             <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" id="pcPrintCard">Print Property Card</button>
@@ -41,7 +42,7 @@ propertyCardConfig.workspace = {
     </div>
     <p class="pc-note">All acquisition records for this card. Received counts original receipts; balance and balance value follow the existing inventory calculations.</p>
     <div id="pcWorkspaceTabs">
-        <ul><li class="k-state-active">Overview</li><li>Acquisitions</li><li>Individual Units</li>
+        <ul><li class="k-state-active">Overview</li><li>Acquisitions</li><li>Individual Units</li><li>Components</li>
         <li>Accountability</li>
         <li>History</li>
         <li>Documents</li></ul>
@@ -51,28 +52,37 @@ propertyCardConfig.workspace = {
                     <dt>Property Card No.</dt><dd>@Model.Card.PsNo</dd><dt>Article</dt><dd>@Model.Card.Item</dd>
                     <dt>Account</dt><dd>@Model.Card.ItemType</dd><dt>Sub-account</dt><dd>@Model.Card.SubAccount</dd>
                     <dt>Fund</dt><dd>@Model.Card.Fund</dd><dt>Description</dt><dd>@Model.Card.Description</dd>
-                    <dt>Created by</dt><dd>@Model.Card.InsertedBy</dd><dt>Created date</dt><dd>@(Model.Card.InsertedDt.HasValue ? Model.Card.InsertedDt.Value.ToString("MM/dd/yyyy") : "—")</dd>
+                    <dt>Created by</dt><dd>@Model.Card.InsertedBy</dd><dt>Created date</dt><dd>@(Model.Card.InsertedDt.HasValue ? Model.Card.InsertedDt.Value.ToString("MM/dd/yyyy") : "-")</dd>
                 </dl></section>
                 <section class="pc-panel"><h3>Acquisitions & Individual Units</h3><dl>
                     <dt>Acquisition records</dt><dd data-pc-stat="AcquisitionCount">@Model.Position.AcquisitionCount</dd>
                     <dt>Latest PO</dt><dd data-pc-text="LatestPo">@Model.Position.LatestPo</dd>
-                    <dt>Latest PO date</dt><dd data-pc-date="LatestPoDate">@(Model.Position.LatestPoDate.HasValue ? Model.Position.LatestPoDate.Value.ToString("MM/dd/yyyy") : "—")</dd>
-                    <dt>Latest acquisition date</dt><dd data-pc-date="LatestAcquisitionDate">@(Model.Position.LatestAcquisitionDate.HasValue ? Model.Position.LatestAcquisitionDate.Value.ToString("MM/dd/yyyy") : "—")</dd>
+                    <dt>Latest PO date</dt><dd data-pc-date="LatestPoDate">@(Model.Position.LatestPoDate.HasValue ? Model.Position.LatestPoDate.Value.ToString("MM/dd/yyyy") : "-")</dd>
+                    @*<dt>Latest acquisition date</dt><dd data-pc-date="LatestAcquisitionDate">@(Model.Position.LatestAcquisitionDate.HasValue ? Model.Position.LatestAcquisitionDate.Value.ToString("MM/dd/yyyy") : "-")</dd>*@
                     <dt>Identifiable units</dt><dd data-pc-stat="UnitCount">@Model.Position.UnitCount</dd>
-                </dl><p class="pc-note">Property Card → Acquisitions → Individual Units. Review the selected unit's PAR/ICS records in Accountability.</p>
+                </dl><p class="pc-note">Property Card -> Acquisitions -> Individual Units. Review the selected unit's PAR/ICS records in Accountability.</p>
                 <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" data-pc-tab="Acquisitions">Open Acquisitions</button></section>
             </div>
         </div>
         <div><div data-pc-tab-host="Acquisitions"></div></div>
         <div><div data-pc-tab-host="Individual Units"></div></div>
+        <div><div data-pc-tab-host="Components"></div></div>
         <div><div data-pc-tab-host="Accountability"></div></div>
         <div><div data-pc-tab-host="History"></div></div>
         <div><div data-pc-tab-host="Documents"></div></div>
     </div>
 </div>
 <div id="windowcontainer"></div>
+@(Html.Kendo().Notification()
+    .Name("propertyCardNotification")
+    .Position(p => p.Pinned(true).Top(30).Right(30))
+    .Stacking(NotificationStackingSettings.Down)
+    .AutoHideAfter(5000)
+)
+
 @Html.Partial("_UnitTemplates")
 @Html.Partial("_ValidationTemplate")
 <script id="pcAcquisitionDetails" type="text/x-kendo-template">#= pcAcquisitionDetailHtml(data) #</script>
-<script src="@Url.Content("~/Scripts/property-card-legacy.js?v=20260912_3")"></script>
-<script src="@Url.Content("~/Scripts/property-card-view.js?v=20260912_3")"></script>
+<script src="@Url.Content("~/Scripts/epsms-dialog.js?v=20260915_1")"></script>
+<script src="@Url.Content("~/Scripts/property-card-legacy.js?v=20260915_4")"></script>
+<script src="@Url.Content("~/Scripts/property-card-view.js?v=20260916_10")"></script>

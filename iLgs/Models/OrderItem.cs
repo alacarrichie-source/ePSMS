@@ -51,7 +51,6 @@ namespace iLgs.Models
     
         public virtual AllField AllField { get; set; }
         public virtual ItemCode ItemCode { get; set; }
-        public virtual Order Order { get; set; }
         public virtual PPMPItem PPMPItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PARItem> PARItems { get; set; }
@@ -59,5 +58,6 @@ namespace iLgs.Models
         public virtual ICollection<OrderItemRequest> OrderItemRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderSubItem> OrderSubItems { get; set; }
+        public virtual Order Order { get; set; }
     }
 }

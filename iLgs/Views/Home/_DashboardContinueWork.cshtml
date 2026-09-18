@@ -1,0 +1,59 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var workItems = Model != null && Model.UserDashboard != null ? (Model.UserDashboard.ContinueWorkItems ?? Model.UserDashboard.ContinueWork) : null;
+    var count = workItems != null ? workItems.Count : 0;
+}
+
+<div class="workbench-panel">
+    <div class="workbench-panel-header">
+        <h3 class="workbench-panel-title">
+            <span class="k-icon k-i-clock panel-title-icon icon-info"></span>
+            <span>Continue Your Work</span>
+        </h3>
+        <span class="dash-count-badge badge-neutral">@count In-Progress</span>
+    </div>
+
+    @if (workItems != null && workItems.Any())
+    {
+        <div class="workbench-item-list">
+            @foreach (var item in workItems)
+            {
+                <div class="workbench-task-card border-info">
+                    <div class="workbench-task-top">
+                        <span class="workbench-task-ref">@item.Reference</span>
+                        <span class="workbench-task-status status-info">@item.Status</span>
+                    </div>
+
+                    <span class="workbench-task-module">@item.Module</span>
+
+                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                    {
+                        <div class="workbench-task-desc">@item.Description</div>
+                    }
+
+                    <div class="workbench-task-bottom">
+                        <span class="task-date-text">
+                            @(item.LastWorked.HasValue ? "Last worked " + item.LastWorked.Value.ToString("MMM d") : "")
+                            @if (!string.IsNullOrWhiteSpace(item.Stage))
+                            {
+                                <span class="task-stage-badge">(@item.Stage)</span>
+                            }
+                        </span>
+                        <a href="@item.Url" class="workbench-task-btn btn-action-primary">
+                            <span>Continue</span>
+                            <span class="k-icon k-i-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state">
+            <span class="k-icon k-i-file-add empty-icon"></span>
+            <div class="empty-title">No In-Progress Drafts</div>
+            <p class="empty-subtext">You have no pending draft transactions. Use Quick Actions above to begin a new request.</p>
+        </div>
+    }
+</div>

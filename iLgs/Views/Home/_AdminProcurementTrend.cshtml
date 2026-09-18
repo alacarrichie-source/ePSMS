@@ -1,0 +1,88 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var activity = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.MonthlyProcurementActivity : null;
+    var months = new List<string>();
+    var prData = new List<int>();
+    var poData = new List<int>();
+    var airData = new List<int>();
+    var risData = new List<int>();
+
+    if (activity != null && activity.Any())
+    {
+        foreach (var item in activity)
+        {
+            months.Add(item.MonthName);
+            prData.Add(item.PrCount);
+            poData.Add(item.PoCount);
+            airData.Add(item.AirCount);
+            risData.Add(item.RisCount);
+        }
+    }
+    var totalActivity = prData.Sum() + poData.Sum() + airData.Sum() + risData.Sum();
+}
+
+<div class="chart-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-chart-line chart-icon"></span>
+            <div>
+                <h3 class="chart-title">Procurement Activity Trend</h3>
+                <span class="chart-subtitle">Monthly volume across PR, PO, AIR, and RIS (FY @(Model != null ? Model.FiscalYear : DateTime.Now.Year))</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card-body">
+        @if (totalActivity > 0)
+        {
+            <div id="adminProcurementTrendChart" class="kendo-dash-chart" style="height: 280px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(months));
+                    var pr = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(prData));
+                    var po = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(poData));
+                    var air = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(airData));
+                    var ris = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(risData));
+
+                    $("#adminProcurementTrendChart").kendoChart({
+                        title: { visible: false },
+                        legend: { position: "bottom" },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "line",
+                            style: "smooth",
+                            markers: { size: 4 }
+                        },
+                        series: [
+                            { name: "Purchase Request (PR)", data: pr, color: "#002576" },
+                            { name: "Purchase Order (PO)", data: po, color: "#0284c7" },
+                            { name: "Inspection (AIR)", data: air, color: "#f59e0b" },
+                            { name: "Requisition (RIS)", data: ris, color: "#16a34a" }
+                        ],
+                        categoryAxis: {
+                            categories: categories,
+                            majorGridLines: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: { format: "{0:N0}" }
+                        },
+                        tooltip: {
+                            visible: true,
+                            format: "{0:N0}"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 280px;">
+                <span class="k-icon k-i-chart-line empty-icon"></span>
+                <div class="empty-title">No Procurement Activity Recorded</div>
+                <p class="empty-subtext">There are no transaction records logged for the selected fiscal year.</p>
+            </div>
+        }
+    </div>
+</div>

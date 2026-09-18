@@ -1,0 +1,59 @@
+@model iLgs.Models.DashboardViewModel
+
+<div class="admin-pulse-dashboard">
+
+    @Html.Partial("_AdminFilters", Model)
+
+    @* 1. Executive KPI Strip (6 Cards) *@
+    @Html.Partial("_AdminExecutiveKpis", Model)
+
+    @* 2. Procurement Activity Trend (Line Chart) & Work Requiring Attention *@
+    <div class="admin-2col-grid admin-2col-7-5">
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminProcurementTrend", Model)
+        </div>
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminAttention", Model)
+        </div>
+    </div>
+
+    @* 3. Current Workload Distribution (Stacked Bar) & Operational Backlog (Horizontal Bar) *@
+    <div class="admin-2col-grid admin-2col-even">
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminWorkloadDistribution", Model)
+        </div>
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminOperationalBacklog", Model)
+        </div>
+    </div>
+
+    @* 4. End-to-End Procurement & Property Pipeline *@
+    @Html.Partial("_AdminPipelineFlow", Model)
+
+    @* 5. PO Commitment Trend & Asset/Accountability Registry *@
+    <div class="admin-2col-grid admin-2col-even">
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminPoCommitmentTrend", Model)
+        </div>
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminAssetAccountabilitySummary", Model)
+        </div>
+    </div>
+
+    @* 6. Workflow Health Detail & Live Activity Feed *@
+    <div class="admin-2col-grid admin-2col-even">
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminWorkflowHealth", Model)
+        </div>
+        <div class="admin-grid-col">
+            @Html.Partial("_AdminRecentActivity", Model)
+        </div>
+    </div>
+
+    @* 7. Quick Module Navigation *@
+    @Html.Partial("_AdminQuickModules", Model)
+
+    @* 8. System Administration Utilities *@
+    @Html.Partial("_AdminTools", Model)
+
+</div>

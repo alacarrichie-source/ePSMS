@@ -1,11 +1,13 @@
-@model iLgs.Models.AnnualProcurementViewModel
+﻿@model iLgs.Models.AnnualProcurementViewModel
 
 @{
     ViewBag.Title = "Annual Procurement";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<section class="epsms-procurement">
+<link href="@Url.Content("~/Content/procurement.css")?v=20260916_1" rel="stylesheet" type="text/css" />
+
+<section class="epsms-procurement epsms-procurement-annual">
 
     @if (TempData["Message"] != null)
     {
@@ -26,14 +28,18 @@
     <!-- Page Header -->
     <div class="procurement-header">
 
-        <div>
-            <h1>@(Model.IsRevision ? "Add Items to PR Revision" : "Annual Procurement")</h1>
-
-            <p class="subtitle">
+        <div class="header-title-group">
+            <div class="header-icon-pill">
+                <span class="k-icon k-i-cart"></span>
+            </div>
+            <div>
+                <h1>@(Model.IsRevision ? "Add Items to PR Revision" : "Annual Procurement")</h1>
+                <p class="subtitle">
                 @(Model.IsRevision
                     ? "Add approved procurement items to the same returned Purchase Request."
                     : "Select items from the approved annual procurement plan to create a Purchase Request.")
             </p>
+            </div>
         </div>
 
         <!-- View Selector -->
@@ -44,6 +50,22 @@
 
     </div>
 
+
+    @if (Model.IsRevision)
+    {
+        <div class="pr-revision-banner" style="display: flex; align-items: center; justify-content: space-between; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 18px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="k-icon k-i-info" style="color: #2563eb; font-size: 18px;"></span>
+                <div>
+                    <strong style="color: #1e40af;">Revising Returned Purchase Request</strong>
+                    <div style="color: #3b82f6; font-size: 12px;">Browse and add catalog items for this department and fiscal year, then return to your cart to complete the revision.</div>
+                </div>
+            </div>
+            <a href="@Url.Action("Cart", "Procurement")" class="k-button k-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="k-icon k-i-cart"></span> Return to Revision Cart
+            </a>
+        </div>
+    }
 
     <!-- ========================================================= -->
     <!-- FILTERS -->
@@ -61,6 +83,7 @@
                 <label>Fiscal Year</label>
 
                 @(Html.Kendo().DropDownListFor(m => m.FiscalYear)
+                    .Enable(!Model.IsRevision)
                     .BindTo(Model.FiscalYears)
                     .HtmlAttributes(new
                     {
@@ -72,6 +95,7 @@
                 <label>Department</label>
 
                 @(Html.Kendo().DropDownListFor(m => m.Department)
+                    .Enable(!Model.IsRevision)
                     .DataTextField("Description")
                     .DataValueField("Id")
                     .Filter(FilterType.Contains)
@@ -500,333 +524,7 @@
 </section>
 
 
-<style>
-    /* =========================================================
-       HEADER
-       ========================================================= */
 
-    .procurement-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .view-selector-container {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        min-width: 180px;
-    }
-
-        .view-selector-container label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #666;
-        }
-
-
-    /* =========================================================
-       CATALOG VIEW
-       ========================================================= */
-
-    .catalog-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 20px;
-    }
-
-    .catalog-card {
-        display: flex;
-        flex-direction: column;
-        padding: 18px;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        min-height: 290px;
-        box-sizing: border-box;
-        transition: border-color .15s ease, box-shadow .15s ease;
-    }
-
-        .catalog-card:hover {
-            border-color: #4b41e1;
-            box-shadow: 0 3px 10px rgba(0,0,0,.08);
-        }
-
-        .catalog-card h2 {
-            margin: 5px 0;
-            font-size: 18px;
-            line-height: 22px;
-            height: 44px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-
-    .item-code {
-        color: #777;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .unit {
-        color: #666;
-        font-size: 13px;
-        margin-bottom: 15px;
-    }
-
-    .metrics {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin: 0 0 15px 0;
-    }
-
-        .metrics > div {
-            text-align: center;
-            padding: 8px;
-            background: #f5f6f8;
-            border-radius: 5px;
-        }
-
-        .metrics dt {
-            color: #777;
-            font-size: 11px;
-            margin-bottom: 3px;
-        }
-
-        .metrics dd {
-            margin: 0;
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-    .remaining {
-        color: #173d70;
-    }
-
-    .cost {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        font-size: 13px;
-    }
-
-        .cost span {
-            color: #777;
-        }
-
-
-    /* =========================================================
-       LIST VIEW
-       ========================================================= */
-
-    .procurement-list-container {
-        width: 100%;
-        overflow-x: auto;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-    }
-
-    .procurement-list {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
-
-        .procurement-list th {
-            background: #f4f6f9;
-            color: #555;
-            font-size: 12px;
-            font-weight: 700;
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .procurement-list td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            vertical-align: middle;
-        }
-
-        .procurement-list tbody tr:hover {
-            background: #f8f9fb;
-        }
-
-        .procurement-list tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-    .item-column {
-        width: 34%;
-    }
-
-    .number-column {
-        width: 10%;
-        text-align: right !important;
-    }
-
-    .cost-column {
-        width: 14%;
-        text-align: right !important;
-    }
-
-    .action-column {
-        width: 15%;
-        text-align: center !important;
-    }
-
-    .list-item-info {
-        min-width: 0;
-    }
-
-    .list-item-code {
-        font-size: 11px;
-        color: #777;
-        margin-bottom: 3px;
-        font-weight: 600;
-    }
-
-    .list-item-description {
-        font-size: 14px;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-
-    /* =========================================================
-       ADD TO CART
-       ========================================================= */
-
-    .add-to-cart-form {
-        width: 100%;
-    }
-
-    .add-to-cart-button {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .list-add-to-cart-form {
-        max-width: 130px;
-        margin: auto;
-    }
-
-    .add-to-cart-button .k-icon,
-    .filter-button .k-icon {
-        margin-right: 6px;
-    }
-
-    .add-to-cart-button.cart-updating {
-        opacity: .65;
-        cursor: wait;
-    }
-
-
-    /* =========================================================
-       PAGINATION
-       ========================================================= */
-
-    .catalog-pagination {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        margin-top: 30px;
-        padding: 15px 0;
-        flex-wrap: wrap;
-    }
-
-    .catalog-pagination-info {
-        color: #666;
-        font-size: 14px;
-    }
-
-    .catalog-pagination-controls {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .catalog-page-numbers {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .catalog-page-button {
-        min-width: 36px;
-    }
-
-    .catalog-page-ellipsis {
-        padding: 0 5px;
-        color: #777;
-    }
-
-    .catalog-page-size {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .catalog-page-size label {
-            margin: 0;
-            font-size: 14px;
-            color: #666;
-        }
-
-
-    /* =========================================================
-       RESPONSIVE
-       ========================================================= */
-
-    @@media (max-width: 1200px) {
-
-        .catalog-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-    }
-
-    @@media (max-width: 900px) {
-
-        .catalog-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .procurement-header {
-            align-items: stretch;
-            flex-direction: column;
-        }
-    }
-
-    @@media (max-width: 600px) {
-
-        .catalog-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .procurement-list th:nth-child(3),
-        .procurement-list th:nth-child(4),
-        .procurement-list th:nth-child(5),
-        .procurement-list td:nth-child(3),
-        .procurement-list td:nth-child(4),
-        .procurement-list td:nth-child(5) {
-            display: none;
-        }
-
-        .catalog-pagination {
-            justify-content: center;
-        }
-    }
-</style>
 
 
 <script type="text/javascript">
@@ -1282,7 +980,7 @@
 
                 "Showing " +
                 startItem +
-                "–" +
+                "-" +
                 endItem +
                 " of " +
                 totalItems +

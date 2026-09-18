@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using iLgs.Ai.Services;
+using iLgs.Exceptions;
 using iLgs.Models;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace iLgs.Services.PurchaseRequest
         Task<bool> GetAnyOrderAsync(Guid id);
         //Task<bool> GetAnyParsAsync(Guid id);
         Task<bool> IsSubmittedAsync(Guid prId);
-        Task ValidateStatusAsync(Guid prId);
+        Task ValidateStatusAsync(Guid prId, bool allowAdminEdit = false);
     }
 
     public class RequestSharedService : IRequestSharedService
@@ -99,22 +100,60 @@ namespace iLgs.Services.PurchaseRequest
         }
 
 
-        public async Task ValidateStatusAsync(Guid prId)
+        public async Task ValidateStatusAsync(Guid prId, bool allowAdminEdit = false)
         {
-            if (await IsPostedAsync(prId))
+            var historyStatus = await _db.DocumentStatusHistories
+                .AsNoTracking()
+                .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == prId)
+                .OrderByDescending(x => x.ChangedDt)
+                .ThenByDescending(x => x.Id)
+                .Select(x => x.ToStatus)
+                .FirstOrDefaultAsync();
+
+            var isPosted = await IsPostedAsync(prId) ||
+                string.Equals(historyStatus, PrStatuses.Posted, StringComparison.OrdinalIgnoreCase);
+
+            if (isPosted)
             {
-                throw new RecordAlreadyPostedException("PR Number is already Posted. Cannot update.");
+                throw new RecordAlreadyPostedException("This Purchase Request is already Posted. Cannot update.");
+            }
+
+            if (allowAdminEdit)
+            {
+                if (!string.Equals(historyStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(historyStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(historyStatus, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("Admin edit is only permitted for Draft, Submitted, or Unposted Purchase Requests.");
+                }
+            }
+            else
+            {
+                if (string.Equals(historyStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("This Purchase Request is currently Submitted for review. Cannot update directly.");
+                }
+
+                if (string.Equals(historyStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("This Purchase Request is unposted. Return it for revision or edit via posting administration.");
+                }
+
+                if (string.Equals(historyStatus, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("This Purchase Request has been Returned for revision. Please use the Revise PR cart workflow.");
+                }
+
+                if (string.Equals(historyStatus, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("This Purchase Request is currently being revised. Please use the Procurement cart workflow.");
+                }
             }
 
             if (await GetAnyOrderAsync(prId))
             {
                 throw new RecordRelationshipException("PR Number already has a Purchase Order. Cannot update.");
             }
-
-            //if (await GetAnyParsAsync(prId))
-            //{
-            //    throw new RecordRelationshipException("PR Number already has PAR. Cannot update.");
-            //}
         }
 
         public async Task<bool> GetAnyOrderAsync(Guid id)

@@ -22,10 +22,14 @@ namespace iLgs.Services.PurchaseRequest
         Task<RequestItem> GetByIdAsync(Guid? id);
 
         ValueTask<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date);
+        ValueTask<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit);
         ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date);
+        ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit);
         ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date);
+        ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit);
 
         ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date);
+        ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date, bool allowAdminEdit);
     }
 
     internal class RequestItemService : BaseValidator, IRequestItemService
@@ -98,6 +102,9 @@ namespace iLgs.Services.PurchaseRequest
         }
 
         public ValueTask<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date) =>
+            CreateAsync(model, user, date, false);
+
+        public ValueTask<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit) =>
         _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
@@ -107,8 +114,10 @@ namespace iLgs.Services.PurchaseRequest
                 model.ItemNo = await NextItemNoAsync(model.PrId);
             }
 
+            model.TotalCost = (model.Qty ?? 0) * (model.UnitCost ?? 0);
+
             await ValidateFieldsAsync(model);
-            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId);
+            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId, allowAdminEdit);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -134,6 +143,9 @@ namespace iLgs.Services.PurchaseRequest
         });
 
         public ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date) =>
+            UpdateAsync(model, user, date, false);
+
+        public ValueTask<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit) =>
         _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
@@ -154,7 +166,10 @@ namespace iLgs.Services.PurchaseRequest
 
             var entity = await _db.RequestItems.FindAsync(model.Id);
             ValidateRecord(entity, model.Id);
-            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId);
+            await _requestSharedService.ValidateStatusAsync((Guid)model.PrId, allowAdminEdit);
+
+            model.TotalCost = (model.Qty ?? 0) * (model.UnitCost ?? 0);
+
             await ValidateFieldsAsync(model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
@@ -185,7 +200,8 @@ namespace iLgs.Services.PurchaseRequest
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
-                    UpdatedDt = date
+                    UpdatedDt = date,
+                    CallerId = "REQUEST"
                 };
             }
             else
@@ -195,12 +211,16 @@ namespace iLgs.Services.PurchaseRequest
                 ppmpItemUsage.Qty = (int?)model.Qty;
                 ppmpItemUsage.UpdatedBy = user;
                 ppmpItemUsage.UpdatedDt = date;
+                ppmpItemUsage.CallerId = "REQUEST";
             }
 
             return await _ppmpItemService.PPMPItemUsage.SaveAsync(ppmpItemUsage, user, date);
         });
 
         public ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date) =>
+            DeleteAsync(model, user, date, false);
+
+        public ValueTask<RequestItemVM> DeleteAsync(RequestItemVM model, string user, DateTime date, bool allowAdminEdit) =>
         _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
@@ -209,7 +229,7 @@ namespace iLgs.Services.PurchaseRequest
 
             RequestItem entity = await _db.RequestItems.FindAsync(model.Id);
             ValidateRecord(entity, model.Id);
-            await _requestSharedService.ValidateStatusAsync((Guid)entity.PrId);
+            await _requestSharedService.ValidateStatusAsync((Guid)entity.PrId, allowAdminEdit);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -242,7 +262,7 @@ namespace iLgs.Services.PurchaseRequest
             entity.Qty = model.Qty;
             entity.Unit = model.Unit?.Trim() ?? "";
             entity.UnitCost = model.UnitCost;
-            entity.TotalCost = model.TotalCost;
+            entity.TotalCost = (entity.Qty ?? 0) * (entity.UnitCost ?? 0);
             entity.PriceRate = model.PriceRate;
             entity.PpmpItemId = model.PpmpItemId;
             entity.PpmpCode = model.PpmpCode?.Trim();
@@ -251,6 +271,9 @@ namespace iLgs.Services.PurchaseRequest
         }
 
         public ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date) =>
+            CreateFromPpmpItemAsync(prId, selectedIds, user, date, false);
+
+        public ValueTask<RequestItemVM> CreateFromPpmpItemAsync(Guid? prId, string selectedIds, string user, DateTime date, bool allowAdminEdit) =>
         _vmExceptionService.TryCatch(async () =>
         {
             var selectedIdList = selectedIds.Split(',').ToList();
@@ -259,7 +282,7 @@ namespace iLgs.Services.PurchaseRequest
                 throw new RecordNotFoundException("No Items to process.");
             }
 
-            await _requestSharedService.ValidateStatusAsync((Guid)prId);
+            await _requestSharedService.ValidateStatusAsync((Guid)prId, allowAdminEdit);
 
             var count = 0;
             var ctrlNo = await _db.RequestItems.Where(w => w.PrId == prId && !w.ItemNo.Contains(".")).MaxAsync(m => m.ItemNo);

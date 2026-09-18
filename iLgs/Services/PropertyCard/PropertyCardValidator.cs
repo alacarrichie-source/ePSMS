@@ -1,4 +1,5 @@
-﻿using iLgs.Exceptions;
+﻿using System;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
@@ -102,6 +103,11 @@ namespace iLgs.Services.PropertyCard
         public async Task ValidateOnDeleteAsync(PropertyCardVM model)
         {
             ValidateCard(model);
+            var card = await _db.PsCards.FindAsync(model.Id);
+            if (card != null && card.PostedDt != null)
+            {
+                throw new InvalidOperationException($"Cannot delete Property Card {card.PsNo} because it is currently posted. Unpost the card first.");
+            }
             if (await _db.PsCardItems.AnyAsync(a => a.PsCardId == model.Id))
             {
                 throw new RecordRelationshipException("Cannot delete card with items, please delete the items first.");

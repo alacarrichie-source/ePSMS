@@ -1,0 +1,1569 @@
+@model iLgs.Models.PpmpAcctgCodeVM
+
+@{
+    ViewBag.Title = "PPMP Accounting Code Assignment";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<style>
+    /* ==========================================================================
+       ePSMS - PPMP Accounting Code Assignment Workspace Stylesheet
+       Scoped under: .ppmp-workspace, #gridPpmpAcctgCode, #wndAssignAcctgCode
+       Aligned with: Views/Items/Index.cshtml and Content/item-codes.css
+       ========================================================================== */
+
+    .ppmp-workspace {
+        padding: 16px 20px 24px 20px;
+        background-color: #f8fafc;
+        min-height: calc(100vh - 65px);
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        color: #1e293b;
+    }
+
+    /* --------------------------------------------------------------------------
+       Page Header
+       -------------------------------------------------------------------------- */
+    .ppmp-workspace .ppmp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .ppmp-workspace .ppmp-title-group h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 3px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.01em;
+    }
+
+    .ppmp-workspace .ppmp-title-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background-color: #e0f2fe;
+        color: #0284c7;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+
+    .ppmp-workspace .ppmp-subtitle {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .ppmp-workspace .ppmp-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* --------------------------------------------------------------------------
+       Shared Action Buttons (Items theme convention)
+       -------------------------------------------------------------------------- */
+    .ppmp-workspace .btn-primary-action,
+    .ppmp-modal-content .btn-primary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #0284c7;
+        color: #ffffff !important;
+        border: 1px solid #0284c7;
+        border-radius: 6px;
+        padding: 7px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
+        transition: all 0.15s ease-in-out;
+    }
+
+    .ppmp-workspace .btn-primary-action:hover,
+    .ppmp-modal-content .btn-primary-action:hover {
+        background-color: #0369a1;
+        border-color: #0369a1;
+        color: #ffffff !important;
+    }
+
+    .ppmp-workspace .btn-secondary-action,
+    .ppmp-modal-content .btn-secondary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #ffffff;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        transition: all 0.15s ease-in-out;
+    }
+
+    .ppmp-workspace .btn-secondary-action:hover,
+    .ppmp-modal-content .btn-secondary-action:hover {
+        background-color: #f8fafc;
+        border-color: #94a3b8;
+        color: #0f172a !important;
+    }
+
+    /* --------------------------------------------------------------------------
+       KPI Summary Cards
+       -------------------------------------------------------------------------- */
+    .ppmp-workspace .ppmp-metrics-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .ppmp-workspace .ppmp-metric-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 14px 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: all 0.15s ease-in-out;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .ppmp-workspace .ppmp-metric-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+    }
+
+    .ppmp-workspace .ppmp-metric-card.active {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.18);
+        background-color: #f0f9ff;
+    }
+
+    .ppmp-workspace .ppmp-metric-card-info {
+        cursor: default;
+    }
+
+    .ppmp-workspace .ppmp-metric-card-info:hover {
+        transform: none;
+    }
+
+    .ppmp-workspace .ppmp-metric-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .ppmp-workspace .ppmp-metric-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+    }
+
+    .ppmp-workspace .ppmp-metric-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .ppmp-workspace .dot-total { background-color: #0284c7; }
+    .ppmp-workspace .dot-assigned { background-color: #10b981; }
+    .ppmp-workspace .dot-unassigned { background-color: #f59e0b; }
+    .ppmp-workspace .dot-completion { background-color: #6366f1; }
+
+    .ppmp-workspace .ppmp-metric-value-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+    }
+
+    .ppmp-workspace .ppmp-metric-number {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .ppmp-workspace .ppmp-metric-subtext {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* --------------------------------------------------------------------------
+       Main Workspace Card & Toolbar
+       -------------------------------------------------------------------------- */
+    .ppmp-workspace .ppmp-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+    }
+
+    .ppmp-workspace .ppmp-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .ppmp-workspace .ppmp-card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ppmp-workspace .ppmp-card-title .k-icon {
+        color: #0284c7;
+        font-size: 15px;
+    }
+
+    .ppmp-workspace .ppmp-toolbar {
+        padding: 10px 16px;
+        background-color: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .ppmp-workspace .ppmp-search-container {
+        position: relative;
+        flex: 1;
+        min-width: 260px;
+        max-width: 480px;
+    }
+
+    .ppmp-workspace .ppmp-search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .ppmp-workspace .ppmp-search-input {
+        width: 100%;
+        padding: 6px 10px 6px 32px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #1e293b;
+        background-color: #ffffff;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .ppmp-workspace .ppmp-search-input:focus {
+        outline: none;
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+
+    .ppmp-workspace .ppmp-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ppmp-workspace .ppmp-status-segmented {
+        display: inline-flex;
+        background-color: #f1f5f9;
+        border-radius: 6px;
+        padding: 2px;
+        border: 1px solid #e2e8f0;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .ppmp-workspace .ppmp-segment-btn {
+        border: none;
+        background: transparent;
+        padding: 5px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #64748b;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .ppmp-workspace .ppmp-segment-btn:hover {
+        color: #0f172a;
+    }
+
+    .ppmp-workspace .ppmp-segment-btn.active {
+        background: #ffffff;
+        color: #0284c7;
+        font-weight: 700;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .ppmp-workspace .ppmp-card-body {
+        padding: 10px 14px;
+    }
+
+    /* --------------------------------------------------------------------------
+       Kendo Grid Styling (Scoped to #gridPpmpAcctgCode)
+       -------------------------------------------------------------------------- */
+    #gridPpmpAcctgCode.k-grid {
+        border-color: #e2e8f0;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    }
+
+    #gridPpmpAcctgCode .k-grid-header {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    #gridPpmpAcctgCode .k-grid-header th.k-header {
+        color: #334155;
+        font-weight: 600;
+        font-size: 12.5px;
+        padding: 8px 10px;
+        vertical-align: middle;
+        border-color: #e2e8f0;
+    }
+
+    #gridPpmpAcctgCode .k-grid-header th.k-header .k-link {
+        color: #334155;
+        font-weight: 600;
+    }
+
+    #gridPpmpAcctgCode td {
+        padding: 8px 10px;
+        border-color: #f1f5f9;
+        color: #334155;
+        font-size: 13.5px;
+        line-height: 1.4;
+        vertical-align: middle;
+    }
+
+    #gridPpmpAcctgCode tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    #gridPpmpAcctgCode tbody tr.ppmp-row-unassigned {
+        border-left: 3px solid #f59e0b !important;
+        background-color: #fffdfa;
+    }
+
+    #gridPpmpAcctgCode tbody tr.ppmp-row-assigned {
+        border-left: 3px solid transparent !important;
+    }
+
+    #gridPpmpAcctgCode .k-grid-pager {
+        background-color: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        padding: 6px 10px;
+        font-size: 12.5px;
+        color: #475569;
+    }
+
+    #gridPpmpAcctgCode .k-pager-info {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    #gridPpmpAcctgCode .k-pager-numbers .k-link {
+        border-radius: 4px;
+        color: #334155;
+    }
+
+    #gridPpmpAcctgCode .k-pager-numbers .k-state-selected {
+        background-color: #0284c7;
+        border-color: #0284c7;
+        color: #ffffff;
+        border-radius: 4px;
+    }
+
+    /* --------------------------------------------------------------------------
+       Grid Cell Presentation Elements
+       -------------------------------------------------------------------------- */
+    .ppmp-code-pill {
+        display: inline-block;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 12.5px;
+        color: #0f172a;
+        background-color: #f1f5f9;
+        padding: 2px 7px;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+        letter-spacing: 0.02em;
+    }
+
+    .ppmp-desc-text {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #1e293b;
+        line-height: 1.35;
+    }
+
+    .ppmp-gso-text {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: #334155;
+        line-height: 1.35;
+    }
+
+    .ppmp-acctg-assigned {
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-weight: 600;
+        font-size: 12.5px;
+        color: #0f172a;
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        padding: 2px 7px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .ppmp-acctg-unassigned {
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .ppmp-unassigned-hint {
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    /* Status Badges (Items convention) */
+    .ppmp-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        line-height: 1.3;
+    }
+
+    .status-pill-assigned {
+        background-color: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .status-pill-unassigned {
+        background-color: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .ppmp-status-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .indicator-assigned { background-color: #10b981; }
+    .indicator-unassigned { background-color: #f59e0b; }
+
+    /* Remarks */
+    .ppmp-remarks-text {
+        font-size: 13px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 200px;
+    }
+
+    .ppmp-remarks-empty {
+        color: #cbd5e1;
+    }
+
+    /* Grid Action Buttons */
+    .ppmp-btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px !important;
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        border-radius: 5px !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease-in-out !important;
+        line-height: 1.3 !important;
+    }
+
+    .ppmp-btn-assign {
+        background-color: #0284c7 !important;
+        border: 1px solid #0284c7 !important;
+        color: #ffffff !important;
+        box-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
+    }
+
+    .ppmp-btn-assign:hover {
+        background-color: #0369a1 !important;
+        border-color: #0369a1 !important;
+        color: #ffffff !important;
+    }
+
+    .ppmp-btn-edit {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #334155 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        margin-right: 4px !important;
+    }
+
+    .ppmp-btn-edit:hover {
+        background-color: #f8fafc !important;
+        border-color: #94a3b8 !important;
+        color: #0f172a !important;
+    }
+
+    .ppmp-btn-delete {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #dc2626 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .ppmp-btn-delete:hover {
+        background-color: #fef2f2 !important;
+        border-color: #fca5a5 !important;
+        color: #b91c1c !important;
+    }
+
+    /* Empty State (Identical to Items Index) */
+    .ppmp-empty-state {
+        padding: 32px 16px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .ppmp-empty-state .k-icon {
+        font-size: 28px;
+        color: #94a3b8;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .ppmp-empty-state p {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+        margin: 0 0 4px 0;
+    }
+
+    .ppmp-empty-state .item-empty-sub {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    /* --------------------------------------------------------------------------
+       Assign / Edit Modal Dialog Styling
+       -------------------------------------------------------------------------- */
+    .k-window {
+        border-radius: 8px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .k-window-titlebar {
+        background-color: #f8fafc !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 12px 16px !important;
+    }
+
+    .k-window-title {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+
+    .ppmp-modal-content {
+        padding: 6px 14px 14px 14px;
+    }
+
+    .ppmp-identity-box {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+    }
+
+    .ppmp-identity-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .ppmp-identity-code {
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 3px;
+    }
+
+    .ppmp-identity-desc {
+        font-size: 13.5px;
+        color: #334155;
+        line-height: 1.4;
+    }
+
+    .ppmp-form-group {
+        margin-bottom: 14px;
+    }
+
+    .ppmp-form-group-last {
+        margin-bottom: 18px;
+    }
+
+    .ppmp-field-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .ppmp-optional-label {
+        color: #64748b;
+        font-weight: 400;
+        font-size: 12px;
+    }
+
+    .ppmp-field-hint {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .ppmp-textarea {
+        font-size: 13.5px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 8px 10px;
+        width: 100%;
+        box-sizing: border-box;
+        resize: vertical;
+        font-family: inherit;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .ppmp-textarea:focus {
+        outline: none;
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+
+    .ppmp-combo-item {
+        padding: 3px 0;
+    }
+
+    .ppmp-combo-code {
+        font-weight: 600;
+        font-size: 13px;
+        color: #0f172a;
+    }
+
+    .ppmp-combo-desc {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    #modalAlertBox.ppmp-modal-alert {
+        display: none;
+        font-size: 13px;
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .ppmp-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        padding-top: 14px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    /* ComboBox full-width containment */
+    #modalContentWrapper .k-combobox {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    #modalContentWrapper .k-dropdown-wrap {
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+    }
+
+    #modalContentWrapper .k-dropdown-wrap.k-state-focused {
+        border-color: #0284c7 !important;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15) !important;
+    }
+
+    /* --------------------------------------------------------------------------
+       Responsive Layout Breakpoints (Matching Items)
+       -------------------------------------------------------------------------- */
+    @@media (max-width: 1024px) {
+        .ppmp-workspace .ppmp-metrics-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .ppmp-workspace .ppmp-search-container {
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .ppmp-workspace .ppmp-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .ppmp-workspace .ppmp-metrics-row {
+            grid-template-columns: 1fr;
+        }
+        .ppmp-workspace .ppmp-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .ppmp-workspace .ppmp-search-container {
+            min-width: 100%;
+        }
+        .ppmp-workspace .ppmp-filter-group {
+            width: 100%;
+        }
+        .ppmp-workspace .ppmp-status-segmented {
+            width: 100%;
+            display: flex;
+        }
+        .ppmp-workspace .ppmp-segment-btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
+</style>
+
+<script type="text/javascript">
+    /* ==========================================================================
+       GLOBAL STATE & KENDO CLIENT TEMPLATE RENDERERS
+       (Defined prior to Grid initialization for complete template execution safety)
+       ========================================================================== */
+    var isEditMode = false;
+    var currentStatusFilter = "all";
+
+    function renderPpmpCode(data) {
+        if (!data || !data.Code) return "";
+        return '<span class="ppmp-code-pill">' + kendo.htmlEncode(data.Code) + '</span>';
+    }
+
+    function renderPpmpDescription(data) {
+        if (!data || !data.Description) return '<span class="ppmp-remarks-empty">&mdash;</span>';
+        return '<span class="ppmp-desc-text">' + kendo.htmlEncode(data.Description) + '</span>';
+    }
+
+    function renderPpmpGSOCode(data) {
+        var description = "";
+        if (typeof data === "string") {
+            description = data;
+        } else if (data && data.GSOCodeDescription) {
+            description = data.GSOCodeDescription;
+        }
+        if (!description) {
+            return '<span class="ppmp-unassigned-hint">&mdash;</span>';
+        }
+        return '<span class="ppmp-gso-text">' + kendo.htmlEncode(description) + '</span>';
+    }
+
+    function renderPpmpAcctgCode(data) {
+        if (!data) return "";
+        if (data.HasMapping && data.AcctgCode) {
+            return '<span class="ppmp-acctg-assigned">' + kendo.htmlEncode(data.AcctgCode) + '</span>';
+        }
+        return '<span class="ppmp-acctg-unassigned">&mdash; <span class="ppmp-unassigned-hint">Not assigned</span></span>';
+    }
+
+    function renderPpmpMappingStatus(data) {
+        if (!data) return "";
+        if (data.HasMapping) {
+            return '<span class="ppmp-status-pill status-pill-assigned"><span class="ppmp-status-indicator indicator-assigned"></span>Assigned</span>';
+        }
+        return '<span class="ppmp-status-pill status-pill-unassigned"><span class="ppmp-status-indicator indicator-unassigned"></span>Unassigned</span>';
+    }
+
+    function renderPpmpRemarks(data) {
+        if (!data || !data.Remarks) return '<span class="ppmp-remarks-empty">&mdash;</span>';
+        var remarksText = kendo.htmlEncode(data.Remarks);
+        return '<span class="ppmp-remarks-text" title="' + remarksText + '">' + remarksText + '</span>';
+    }
+
+    function renderPpmpAcctgActions(data) {
+        if (!data) return "";
+        if (!data.HasMapping) {
+            return '<button type="button" class="btn-primary-action ppmp-btn-action js-ppmp-acctg-assign">' +
+                   '<span class="k-icon k-i-plus"></span> Assign</button>';
+        }
+        return '<button type="button" class="btn-secondary-action ppmp-btn-action ppmp-btn-edit js-ppmp-acctg-edit">' +
+               '<span class="k-icon k-i-edit"></span> Edit</button>' +
+               '<button type="button" class="btn-secondary-action ppmp-btn-action ppmp-btn-delete js-ppmp-acctg-delete" title="Remove Mapping">' +
+               '<span class="k-icon k-i-trash"></span> Remove</button>';
+    }
+
+    function getPpmpAcctgGrid() {
+        return $("#gridPpmpAcctgCode").data("kendoGrid");
+    }
+
+    function refreshGrid() {
+        var grid = getPpmpAcctgGrid();
+        if (grid && grid.dataSource) {
+            grid.dataSource.read();
+        }
+    }
+
+    function onGridError(e) {
+        if (e && e.errors) {
+            var message = extractKendoErrors(e.errors);
+            alert("Error: " + message);
+        }
+    }
+
+    function extractKendoErrors(errors) {
+        var messages = [];
+        if (errors) {
+            $.each(errors, function (key, value) {
+                if (value && value.errors) {
+                    $.each(value.errors, function () {
+                        messages.push(this);
+                    });
+                } else if (typeof value === "string") {
+                    messages.push(value);
+                }
+            });
+        }
+        return messages.join("; ");
+    }
+</script>
+
+<div class="ppmp-workspace">
+
+    <!-- PAGE HEADER -->
+    <div class="ppmp-header">
+        <div class="ppmp-title-group">
+            <h2>
+                <span class="ppmp-title-icon"><span class="k-icon k-i-file-data"></span></span>
+                PPMP Accounting Code Assignment
+            </h2>
+            <p class="ppmp-subtitle">Map PPMP item groups to their corresponding accounting codes and GSO classifications.</p>
+        </div>
+        <div class="ppmp-header-actions">
+            <button type="button" id="btnRefreshPpmpAcctg" class="btn-secondary-action" title="Refresh PPMP Accounting Code grid">
+                <span class="k-icon k-i-reload"></span> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI SUMMARY CARDS -->
+    <div class="ppmp-metrics-row">
+        <div class="ppmp-metric-card active" id="cardMetricTotal" title="Click to view all groups">
+            <div class="ppmp-metric-header">
+                <span class="ppmp-metric-label">Total Groups</span>
+                <span class="ppmp-metric-dot dot-total"></span>
+            </div>
+            <div class="ppmp-metric-value-row">
+                <span class="ppmp-metric-number" id="metricTotal">0</span>
+                <span class="ppmp-metric-subtext">Type 'M'</span>
+            </div>
+        </div>
+
+        <div class="ppmp-metric-card" id="cardMetricAssigned" title="Click to filter by assigned">
+            <div class="ppmp-metric-header">
+                <span class="ppmp-metric-label">Assigned</span>
+                <span class="ppmp-metric-dot dot-assigned"></span>
+            </div>
+            <div class="ppmp-metric-value-row">
+                <span class="ppmp-metric-number" id="metricAssigned">0</span>
+                <span class="ppmp-metric-subtext">Mapped</span>
+            </div>
+        </div>
+
+        <div class="ppmp-metric-card" id="cardMetricUnassigned" title="Click to filter by unassigned">
+            <div class="ppmp-metric-header">
+                <span class="ppmp-metric-label">Unassigned</span>
+                <span class="ppmp-metric-dot dot-unassigned"></span>
+            </div>
+            <div class="ppmp-metric-value-row">
+                <span class="ppmp-metric-number" id="metricUnassigned">0</span>
+                <span class="ppmp-metric-subtext">Pending</span>
+            </div>
+        </div>
+
+        <div class="ppmp-metric-card ppmp-metric-card-info" id="cardMetricCompletion" title="Assignment coverage percentage">
+            <div class="ppmp-metric-header">
+                <span class="ppmp-metric-label">Completion</span>
+                <span class="ppmp-metric-dot dot-completion"></span>
+            </div>
+            <div class="ppmp-metric-value-row">
+                <span class="ppmp-metric-number" id="metricCompletion">0%</span>
+                <span class="ppmp-metric-subtext">Coverage</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN WORKSPACE CARD -->
+    <div class="ppmp-card">
+        <div class="ppmp-card-header">
+            <h3 class="ppmp-card-title">
+                <span class="k-icon k-i-grid"></span> PPMP Accounting Code Mappings
+            </h3>
+        </div>
+
+        <!-- Toolbar: Search & Status Filter -->
+        <div class="ppmp-toolbar">
+            <div class="ppmp-search-container">
+                <span class="k-icon k-i-search ppmp-search-icon"></span>
+                <input type="text" id="txtPpmpSearch" class="ppmp-search-input"
+                       placeholder="Search PPMP code, description, GSO code, accounting code, remarks..." />
+            </div>
+
+            <div class="ppmp-filter-group">
+                <div class="ppmp-status-segmented">
+                    <button type="button" class="ppmp-segment-btn active" data-status="all">All</button>
+                    <button type="button" class="ppmp-segment-btn" data-status="assigned">Assigned</button>
+                    <button type="button" class="ppmp-segment-btn" data-status="unassigned">Unassigned</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kendo Grid Workspace -->
+        <div class="ppmp-card-body">
+            @(Html.Kendo().Grid<iLgs.Models.PpmpAcctgCodeVM>()
+                .Name("gridPpmpAcctgCode")
+                .HtmlAttributes(new { style = "height: calc(68vh);" })
+                .Columns(columns =>
+                {
+                    columns.Bound(c => c.Code).Title("PPMP Code").Width(140)
+                        .ClientTemplate("#= renderPpmpCode(data) #");
+
+                    columns.Bound(c => c.Description).Title("Group / Description").Width(280)
+                        .ClientTemplate("#= renderPpmpDescription(data) #");
+
+                    columns.Bound(c => c.AcctgCode).Title("Accounting Code").Width(180)
+                        .ClientTemplate("#= renderPpmpAcctgCode(data) #");
+
+                    columns.Bound(c => c.GSOCodeDescription).Title("GSO Code").Width(220)
+                        .ClientTemplate("#= renderPpmpGSOCode(data) #");
+
+                    columns.Bound(c => c.Status).Title("Status").Width(130)
+                        .ClientTemplate("#= renderPpmpMappingStatus(data) #");
+
+                    columns.Bound(c => c.Remarks).Title("Remarks").Width(180)
+                        .ClientTemplate("#= renderPpmpRemarks(data) #");
+
+                    columns.Bound(c => c.Code).Title("Actions").Width(180).Filterable(false).Sortable(false)
+                        .ClientTemplate("#= renderPpmpAcctgActions(data) #");
+                })
+                .Pageable(pager => pager
+                    .Input(false)
+                    .Numeric(true)
+                    .Info(true)
+                    .PreviousNext(true)
+                    .Refresh(true)
+                    .PageSizes(new int[] { 10, 20, 50, 100 })
+                    .ButtonCount(5)
+                )
+                .Sortable()
+                .Filterable()
+                .Resizable(resize => resize.Columns(true))
+                .Scrollable()
+                .NoRecords(n => n.Template(
+                    "<div class='ppmp-empty-state'>" +
+                        "<span class='k-icon k-i-search'></span>" +
+                        "<p>No PPMP groups found</p>" +
+                        "<span class='item-empty-sub'>Adjust your search or filter parameters to locate item groups.</span>" +
+                    "</div>"
+                ))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(false)
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Code).Editable(false);
+                        model.Field(p => p.Description).Editable(false);
+                        model.Field(p => p.GSOCodeId).Editable(false);
+                        model.Field(p => p.GSOCodeDescription).Editable(false);
+                        model.Field(p => p.HasMapping).Editable(false);
+                        model.Field(p => p.Status).Editable(false);
+                    })
+                    .Read(read => read.Action("Read", "PpmpAcctgCode"))
+                    .Events(e => e.Error("onGridError"))
+                )
+                .Events(e => e.DataBound("onGridDataBound"))
+            )
+        </div>
+    </div>
+</div>
+
+<!-- Assign / Edit Modal Window -->
+@(Html.Kendo().Window()
+    .Name("wndAssignAcctgCode")
+    .Title("Assign Accounting Code")
+    .Visible(false)
+    .Modal(true)
+    .Width(520)
+    .Draggable(true)
+    .Resizable(resizable => resizable.Enabled(false))
+    .Actions(actions => actions.Close())
+    .Content(@<text>
+        <div id="modalContentWrapper" class="ppmp-modal-content">
+            <!-- In-Popup Error Alert Container -->
+            <div id="modalAlertBox" class="alert alert-danger ppmp-modal-alert">
+                <span class="k-icon k-i-warning" style="margin-right: 6px;"></span>
+                <span id="modalAlertMessage"></span>
+            </div>
+
+            <form id="frmAssignAcctgCode" onsubmit="return false;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="modalMappingId" name="Id" value="" />
+                <input type="hidden" id="modalPpmpCode" name="Code" value="" />
+
+                <!-- PPMP Identity Panel -->
+                <div class="ppmp-identity-box">
+                    <div class="ppmp-identity-label">PPMP Group (Type 'M')</div>
+                    <div class="ppmp-identity-code" id="modalPpmpCodeDisplay">&mdash;</div>
+                    <div class="ppmp-identity-desc" id="modalPpmpDescDisplay">&mdash;</div>
+                </div>
+
+                <!-- Accounting Code ComboBox -->
+                <div class="form-group ppmp-form-group">
+                    <label class="ppmp-field-label">
+                        Accounting Code <span class="text-danger">*</span>
+                    </label>
+                    <div style="width: 100%;">
+                        @(Html.Kendo().ComboBox()
+                            .Name("modalAcctgCodeCombo")
+                            .Placeholder("Search or select accounting code...")
+                            .DataTextField("Code")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .Suggest(true)
+                            .HtmlAttributes(new { style = "width: 100%; max-width: 100%;" })
+                            .Template(
+                                "<div class='ppmp-combo-item'>" +
+                                    "<div class='ppmp-combo-code'>#: Code #</div>" +
+                                    "<div class='ppmp-combo-desc'>#: Description #</div>" +
+                                "</div>"
+                            )
+                            .DataSource(source => source
+                                .Read(read => read.Action("GetAccountingCodes", "PpmpAcctgCode"))
+                                .ServerFiltering(true)
+                            )
+                        )
+                    </div>
+                    <small class="ppmp-field-hint">Select from existing master accounts or search by code.</small>
+                </div>
+
+                <!-- GSO Code ComboBox -->
+                <div class="form-group ppmp-form-group">
+                    <label class="ppmp-field-label">
+                        GSO Code <span class="text-danger">*</span>
+                    </label>
+                    <div style="width: 100%;">
+                        @(Html.Kendo().ComboBox()
+                            .Name("modalGSOCodeCombo")
+                            .DataValueField("Id")
+                            .DataTextField("Description")
+                            .Placeholder("Select GSO Code...")
+                            .Filter(FilterType.Contains)
+                            .Suggest(true)
+                            .HtmlAttributes(new { style = "width: 100%; max-width: 100%;" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetGSOCodes", "PpmpAcctgCode");
+                                });
+                            })
+                        )
+                    </div>
+                    <small class="ppmp-field-hint">Select the GSO classification from Item Types.</small>
+                </div>
+
+                <!-- Remarks -->
+                <div class="form-group ppmp-form-group ppmp-form-group-last">
+                    <label class="ppmp-field-label">
+                        Remarks <span class="ppmp-optional-label">(Optional)</span>
+                    </label>
+                    <textarea id="modalRemarks" name="Remarks" class="form-control ppmp-textarea" rows="2"
+                              maxlength="200" placeholder="Add optional notes or remarks regarding this account mapping..."></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="ppmp-modal-footer">
+                    <button type="button" id="btnCancelMapping" class="btn-secondary-action">
+                        <span class="k-icon k-i-cancel"></span> Cancel
+                    </button>
+                    <button type="button" id="btnSaveMapping" class="btn-primary-action">
+                        <span id="btnSaveIcon" class="k-icon k-i-save"></span>
+                        <span id="btnSaveText">Save Assignment</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </text>)
+)
+
+<script type="text/javascript">
+    /* ==========================================================================
+       EVENT HANDLERS, FILTERING & AJAX MUTATIONS
+       ========================================================================== */
+
+    // Grid DataBound & Summary Metrics
+    function onGridDataBound(e) {
+        var grid = e.sender;
+        var fullData = grid.dataSource.data();
+
+        // Calculate summary metrics across all items
+        updateSummaryMetrics(fullData);
+
+        // Subtle row highlighting for unassigned items
+        grid.tbody.find("tr").each(function () {
+            var row = $(this);
+            var item = grid.dataItem(row);
+            if (item) {
+                if (item.HasMapping) {
+                    row.removeClass("ppmp-row-unassigned").addClass("ppmp-row-assigned");
+                } else {
+                    row.removeClass("ppmp-row-assigned").addClass("ppmp-row-unassigned");
+                }
+            }
+        });
+    }
+
+    function updateSummaryMetrics(items) {
+        var total = items ? items.length : 0;
+        var assigned = 0;
+        var unassigned = 0;
+
+        if (items && total > 0) {
+            for (var i = 0; i < total; i++) {
+                if (items[i].HasMapping) {
+                    assigned++;
+                } else {
+                    unassigned++;
+                }
+            }
+        }
+
+        var completion = total > 0 ? Math.round((assigned / total) * 100) : 0;
+
+        $("#metricTotal").text(total);
+        $("#metricAssigned").text(assigned);
+        $("#metricUnassigned").text(unassigned);
+        $("#metricCompletion").text(completion + "%");
+    }
+
+    // Search & Filtering
+    function applyStatusFilter(status) {
+        currentStatusFilter = status;
+        var grid = getPpmpAcctgGrid();
+        if (!grid) return;
+
+        // Update segmented buttons
+        $(".ppmp-segment-btn").removeClass("active");
+        $(".ppmp-segment-btn[data-status='" + status + "']").addClass("active");
+
+        // Update card highlights
+        $(".ppmp-metric-card").removeClass("active");
+        if (status === "all") $("#cardMetricTotal").addClass("active");
+        else if (status === "assigned") $("#cardMetricAssigned").addClass("active");
+        else if (status === "unassigned") $("#cardMetricUnassigned").addClass("active");
+
+        executeCombinedFilter();
+    }
+
+    function executeCombinedFilter() {
+        var grid = getPpmpAcctgGrid();
+        if (!grid) return;
+
+        var searchText = $.trim($("#txtPpmpSearch").val());
+        var combinedFilters = [];
+
+        // Status Filter
+        if (currentStatusFilter === "assigned") {
+            combinedFilters.push({ field: "HasMapping", operator: "eq", value: true });
+        } else if (currentStatusFilter === "unassigned") {
+            combinedFilters.push({ field: "HasMapping", operator: "eq", value: false });
+        }
+
+        // Quick Search Filter (Includes Code, Description, GSOCodeDescription, AcctgCode, Remarks)
+        if (searchText) {
+            combinedFilters.push({
+                logic: "or",
+                filters: [
+                    { field: "Code", operator: "contains", value: searchText },
+                    { field: "Description", operator: "contains", value: searchText },
+                    { field: "GSOCodeDescription", operator: "contains", value: searchText },
+                    { field: "AcctgCode", operator: "contains", value: searchText },
+                    { field: "Remarks", operator: "contains", value: searchText }
+                ]
+            });
+        }
+
+        if (combinedFilters.length > 0) {
+            grid.dataSource.filter({ logic: "and", filters: combinedFilters });
+        } else {
+            grid.dataSource.filter({});
+        }
+    }
+
+    // Modal Handling (Assign / Edit)
+    function hideModalAlert() {
+        $("#modalAlertBox").hide();
+        $("#modalAlertMessage").text("");
+    }
+
+    function showModalAlert(msg) {
+        $("#modalAlertMessage").text(msg);
+        $("#modalAlertBox").fadeIn(150);
+    }
+
+    function openAssignModal(dataItem) {
+        if (!dataItem) return;
+
+        isEditMode = false;
+        hideModalAlert();
+
+        var wnd = $("#wndAssignAcctgCode").data("kendoWindow");
+        wnd.title("Assign Accounting Code");
+
+        $("#modalMappingId").val("");
+        $("#modalPpmpCode").val(dataItem.Code || "");
+        $("#modalPpmpCodeDisplay").text(dataItem.Code || "-");
+        $("#modalPpmpDescDisplay").text(dataItem.Description || "-");
+        $("#modalRemarks").val("");
+
+        $("#btnSaveText").text("Assign");
+        $("#btnSaveIcon").attr("class", "k-icon k-i-plus");
+
+        var gsoCombo = $("#modalGSOCodeCombo").data("kendoComboBox");
+        if (gsoCombo) {
+            gsoCombo.value("");
+            gsoCombo.text("");
+        }
+
+        var acctgCombo = $("#modalAcctgCodeCombo").data("kendoComboBox");
+        if (acctgCombo) {
+            acctgCombo.value("");
+            acctgCombo.text("");
+            acctgCombo.dataSource.read();
+        }
+
+        wnd.center().open();
+    }
+
+    function openEditModal(dataItem) {
+        if (!dataItem) return;
+
+        isEditMode = true;
+        hideModalAlert();
+
+        var wnd = $("#wndAssignAcctgCode").data("kendoWindow");
+        wnd.title("Edit Accounting Code");
+
+        $("#modalMappingId").val(dataItem.Id || "");
+        $("#modalPpmpCode").val(dataItem.Code || "");
+        $("#modalPpmpCodeDisplay").text(dataItem.Code || "-");
+        $("#modalPpmpDescDisplay").text(dataItem.Description || "-");
+        $("#modalRemarks").val(dataItem.Remarks || "");
+
+        $("#btnSaveText").text("Save Changes");
+        $("#btnSaveIcon").attr("class", "k-icon k-i-save");
+
+        var gsoCombo = $("#modalGSOCodeCombo").data("kendoComboBox");
+        if (gsoCombo) {
+            var selectedGsoId = dataItem.GSOCodeId ? String(dataItem.GSOCodeId) : "";
+            var selectedGsoDesc = dataItem.GSOCodeDescription || "";
+            if (selectedGsoId) {
+                gsoCombo.value(selectedGsoId);
+                if (!gsoCombo.text() && selectedGsoDesc) {
+                    gsoCombo.text(selectedGsoDesc);
+                }
+            } else {
+                gsoCombo.value("");
+                gsoCombo.text("");
+            }
+            gsoCombo.dataSource.read();
+        }
+
+        var acctgCombo = $("#modalAcctgCodeCombo").data("kendoComboBox");
+        if (acctgCombo) {
+            acctgCombo.value(dataItem.AcctgCode || "");
+            acctgCombo.text(dataItem.AcctgCode || "");
+            acctgCombo.dataSource.read();
+        }
+
+        wnd.center().open();
+    }
+
+    function closeModal() {
+        var wnd = $("#wndAssignAcctgCode").data("kendoWindow");
+        if (wnd) {
+            wnd.close();
+        }
+        hideModalAlert();
+    }
+
+    function submitModal() {
+        hideModalAlert();
+
+        var code = $("#modalPpmpCode").val();
+
+        var gsoCombo = $("#modalGSOCodeCombo").data("kendoComboBox");
+        var gsoCodeId = gsoCombo ? $.trim(gsoCombo.value() || "") : "";
+
+        var acctgCombo = $("#modalAcctgCodeCombo").data("kendoComboBox");
+        var acctgCode = acctgCombo ? acctgCombo.value() : "";
+        if (!acctgCode && acctgCombo) {
+            acctgCode = acctgCombo.text();
+        }
+
+        var remarks = $("#modalRemarks").val();
+        var id = $("#modalMappingId").val();
+
+        // Client-side validations
+        if (!gsoCodeId || gsoCodeId === "") {
+            showModalAlert("Please select a GSO Code.");
+            if (gsoCombo) { gsoCombo.focus(); }
+            return;
+        }
+
+        if (!acctgCode || $.trim(acctgCode) === "") {
+            showModalAlert("Please select or enter an Accounting Code.");
+            if (acctgCombo) { acctgCombo.focus(); }
+            return;
+        }
+
+        var postUrl = isEditMode
+            ? '@Url.Action("Update", "PpmpAcctgCode")'
+            : '@Url.Action("Create", "PpmpAcctgCode")';
+
+        var token = $("#frmAssignAcctgCode input[name='__RequestVerificationToken']").val();
+
+        var postData = {
+            Id: id ? id : null,
+            Code: $.trim(code),
+            GSOCodeId: gsoCodeId,
+            AcctgCode: $.trim(acctgCode),
+            Remarks: $.trim(remarks),
+            __RequestVerificationToken: token
+        };
+
+        var btn = $("#btnSaveMapping");
+        var originalBtnText = $("#btnSaveText").text();
+        btn.prop("disabled", true);
+        $("#btnSaveText").text("Saving...");
+        $("#btnSaveIcon").attr("class", "k-icon k-i-loading");
+
+        $.ajax({
+            url: postUrl,
+            type: "POST",
+            data: postData,
+            success: function (res) {
+                btn.prop("disabled", false);
+                $("#btnSaveText").text(originalBtnText);
+                $("#btnSaveIcon").attr("class", isEditMode ? "k-icon k-i-save" : "k-icon k-i-plus");
+
+                if (res && res.Errors) {
+                    var errorMsg = extractKendoErrors(res.Errors);
+                    showModalAlert(errorMsg || "Validation failed.");
+                } else {
+                    closeModal();
+                    refreshGrid();
+                }
+            },
+            error: function (xhr) {
+                btn.prop("disabled", false);
+                $("#btnSaveText").text(originalBtnText);
+                $("#btnSaveIcon").attr("class", isEditMode ? "k-icon k-i-save" : "k-icon k-i-plus");
+
+                var err = "An unexpected error occurred while saving the assignment.";
+                try {
+                    var json = JSON.parse(xhr.responseText);
+                    if (json && json.message) { err = json.message; }
+                } catch (e) { }
+                showModalAlert(err);
+            }
+        });
+    }
+
+    // Remove Mapping / Delete Action
+    function confirmDeleteMapping(dataItem) {
+        if (!dataItem) return;
+
+        var code = dataItem.Code || "";
+        var confirmed = confirm(
+            "Remove Accounting Code Mapping?\n\n" +
+            "The accounting-code assignment for PPMP Code '" + code + "' will be removed.\n\n" +
+            "The PPMP group itself will remain available and will return to Unassigned status."
+        );
+
+        if (!confirmed) return;
+
+        var token = $("#frmAssignAcctgCode input[name='__RequestVerificationToken']").val();
+
+        $.ajax({
+            url: '@Url.Action("Destroy", "PpmpAcctgCode")',
+            type: "POST",
+            data: {
+                Id: dataItem.Id,
+                Code: code,
+                __RequestVerificationToken: token
+            },
+            success: function (res) {
+                if (res && res.Errors) {
+                    var errorMsg = extractKendoErrors(res.Errors);
+                    alert("Remove Mapping Failed: " + (errorMsg || "Validation failed."));
+                } else {
+                    refreshGrid();
+                }
+            },
+            error: function () {
+                alert("An error occurred while removing the accounting code mapping.");
+            }
+        });
+    }
+
+    // DOM Ready Event Bindings
+    $(document).ready(function () {
+        // Refresh Button
+        $("#btnRefreshPpmpAcctg").off("click.ppmpAcctg").on("click.ppmpAcctg", function (e) {
+            e.preventDefault();
+            refreshGrid();
+        });
+
+        // Quick Search Input (Filters Code, Description, GSOCodeDescription, AcctgCode, Remarks)
+        $("#txtPpmpSearch").off("input.ppmpAcctg").on("input.ppmpAcctg", function () {
+            executeCombinedFilter();
+        });
+
+        // Segmented Status Filter Buttons
+        $(".ppmp-segment-btn").off("click.ppmpAcctg").on("click.ppmpAcctg", function (e) {
+            e.preventDefault();
+            var status = $(this).data("status") || "all";
+            applyStatusFilter(status);
+        });
+
+        // Interactive KPI Cards
+        $("#cardMetricTotal").off("click.ppmpAcctg").on("click.ppmpAcctg", function () {
+            applyStatusFilter("all");
+        });
+
+        $("#cardMetricAssigned").off("click.ppmpAcctg").on("click.ppmpAcctg", function () {
+            applyStatusFilter("assigned");
+        });
+
+        $("#cardMetricUnassigned").off("click.ppmpAcctg").on("click.ppmpAcctg", function () {
+            applyStatusFilter("unassigned");
+        });
+
+        // Modal Cancel Button
+        $("#btnCancelMapping").off("click.ppmpAcctg").on("click.ppmpAcctg", function (e) {
+            e.preventDefault();
+            closeModal();
+        });
+
+        // Modal Save Button
+        $("#btnSaveMapping").off("click.ppmpAcctg").on("click.ppmpAcctg", function (e) {
+            e.preventDefault();
+            submitModal();
+        });
+
+        // Form Submit handler
+        $("#frmAssignAcctgCode").off("submit.ppmpAcctg").on("submit.ppmpAcctg", function (e) {
+            e.preventDefault();
+            submitModal();
+            return false;
+        });
+
+        // Grid Action Buttons (Delegated Events for Kendo row recreation safety)
+        $("#gridPpmpAcctgCode").off("click.ppmpAcctgAssign", ".js-ppmp-acctg-assign")
+            .on("click.ppmpAcctgAssign", ".js-ppmp-acctg-assign", function (e) {
+                e.preventDefault();
+                var grid = getPpmpAcctgGrid();
+                if (!grid) return;
+                var dataItem = grid.dataItem($(this).closest("tr"));
+                if (dataItem) {
+                    openAssignModal(dataItem);
+                }
+            });
+
+        $("#gridPpmpAcctgCode").off("click.ppmpAcctgEdit", ".js-ppmp-acctg-edit")
+            .on("click.ppmpAcctgEdit", ".js-ppmp-acctg-edit", function (e) {
+                e.preventDefault();
+                var grid = getPpmpAcctgGrid();
+                if (!grid) return;
+                var dataItem = grid.dataItem($(this).closest("tr"));
+                if (dataItem) {
+                    openEditModal(dataItem);
+                }
+            });
+
+        $("#gridPpmpAcctgCode").off("click.ppmpAcctgDelete", ".js-ppmp-acctg-delete")
+            .on("click.ppmpAcctgDelete", ".js-ppmp-acctg-delete", function (e) {
+                e.preventDefault();
+                var grid = getPpmpAcctgGrid();
+                if (!grid) return;
+                var dataItem = grid.dataItem($(this).closest("tr"));
+                if (dataItem) {
+                    confirmDeleteMapping(dataItem);
+                }
+            });
+    });
+</script>

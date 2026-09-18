@@ -1,5 +1,37 @@
-<section class="pc-tab-section">
-<h3>Accountability</h3><p>Existing PAR/ICS references for the selected unit. These are linked records, not a determination of the current accountable officer.</p>
-<label for="pcAccountabilityChoice">Individual unit — search by property number, custodian item number or PO</label><input id="pcAccountabilityChoice" class="pc-choice" />
-<div id="pcAccountabilityHost"></div>
+<section class="pc-tab-section" data-tab-name="Accountability">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h3 class="mb-1">Physical Unit Accountability</h3>
+            <p class="text-muted mb-0">Persistent master-detail view of acquisitions, individual units, authoritative ICS/PAR accountability, and custodian assignment. (Read-Only)</p>
+        </div>
+    </div>
+
+    <div class="pc-master-detail">
+        @Html.Partial("_PropertyCardAcquisitionList")
+
+        <section class="pc-detail-pane">
+            <!-- Selected Acquisition Header -->
+            <div class="pc-detail-header-card">
+                <div class="pc-detail-header-main">
+                    <div class="pc-detail-title-row">
+                        <span class="pc-eyebrow">SELECTED ACQUISITION</span>
+                        <h4 id="pcAcctAcqPo" class="pc-detail-heading">Select an Acquisition</h4>
+                    </div>
+                    <div id="pcAcctAcqDesc" class="pc-detail-subtext">Choose an acquisition card from the left panel to review physical unit accountability.</div>
+                </div>
+            </div>
+
+            <!-- Fallback hidden input for legacy compatibility -->
+            <input id="pcAccountabilityChoice" type="hidden" />
+
+            <!-- Accountability Host Container -->
+            <div id="pcAccountabilityHost"></div>
+
+            <div id="pcAcctEmptyState" style="display:none; text-align:center; padding: 36px 20px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; margin: 12px 0 16px;">
+                <i class="fa fa-user-shield" style="font-size: 32px; color: #94a3b8; margin-bottom: 10px; display:block;"></i>
+                <h4 style="margin: 0 0 6px; color: #334155; font-size: 16px;">No individual physical units found for this acquisition.</h4>
+                <p style="margin: 0; color: #64748b; font-size: 13px;">Create physical units under the Individual Units tab first to establish PAR/ICS accountability.</p>
+            </div>
+        </section>
+    </div>
 </section>

@@ -1,4 +1,4 @@
-using iLgs.Models;
+﻿using iLgs.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,7 @@ using iLgs.Services.Codes;
 using Kendo.Mvc.Extensions;
 using System.Data.Entity;
 using iLgs.Services.Dashboard;
+using iLgs.Services;
 
 namespace iLgs.Controllers
 {
@@ -116,10 +117,12 @@ namespace iLgs.Controllers
 
         private readonly ICodextnService _codextnService;
         private readonly IDashboardService _dashboardService;
+        private readonly IUserService _userService;
 
         public HomeController()
         {
             _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
             _dashboardService = new DashboardService(_db);
         }
 
@@ -128,13 +131,19 @@ namespace iLgs.Controllers
             string userId = User != null && User.Identity.IsAuthenticated ? User.Identity.GetUserId() : null;
             string userName = User != null && User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
 
-            var model = await _dashboardService.GetDashboardDataAsync(userId, userName);
+            var isAdmin = await _userService.IsUserNameAdminAsync(userName);
 
-            var activeCart = Session["ProcurementCart"] as CartViewModel;
-            if (activeCart != null && activeCart.Items != null)
+            var model = await _dashboardService.GetDashboardDataAsync(userId, userName);
+            model.IsAdmin = isAdmin;
+
+            if (!string.IsNullOrEmpty(userId))
             {
-                model.CartItemCount = activeCart.Items.Count;
+                var cartService = new iLgs.Services.PurchaseRequest.ProcurementCartService(_db);
+                model.CartItemCount = await cartService.GetCartCountAsync(userId);
             }
+
+
+
 
             return View(model);
         }

@@ -172,5 +172,7 @@ namespace iLgs.Models
 
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        // Who is saving the PPMP Records.
+        public string CallerId { get; set; }
     }
 }

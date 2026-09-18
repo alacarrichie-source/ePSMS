@@ -4,30 +4,71 @@
 @using Kendo.Mvc.UI
 
 @{
-    ViewBag.Title = Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout";
+    ViewBag.Title = Model.IsAdminEdit ? "Admin Edit - Purchase Request Checkout" : (Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout");
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 
     var cartItems = Model.Items ?? new List<iLgs.Models.CartItemViewModel>();    
 }
 
-<section class="epsms-procurement">
-    <div class="breadcrumbs">
-        <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
-        <span class="breadcrumb-separator">&gt;</span>
-        <a href="@Url.Action("Annual")">Annual Procurement</a>
-        <span class="breadcrumb-separator">&gt;</span>
-        <a href="@Url.Action("Cart")">My Cart</a>
-        <span>›</span>
-        Checkout
+<link href="@Url.Content("~/Content/procurement.css")?v=20260916_2" rel="stylesheet" type="text/css" />
+
+<section class="epsms-procurement epsms-procurement-checkout">
+    <div class="checkout-breadcrumbs">
+        @if (Model.IsAdminEdit)
+        {
+            <a href="@Url.Action("Posting", "Requests")">Requests / Posting</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Cart", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })">Admin Edit Cart</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-current">Checkout</span>
+        }
+        else
+        {
+            <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Annual")">Annual Procurement</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Cart")">My Cart</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-current">Checkout</span>
+        }
     </div>
 
-    <h1>@(Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout")</h1>
-    <p class="subtitle">@(Model.IsRevision ? "Review the revised Purchase Request before returning it to the review queue." : "Review and finalize your procurement request details.")</p>
+    <div class="checkout-header">
+        <div class="checkout-title-group">
+            <h1>
+                <span class="checkout-title-icon"><span class="k-icon k-i-check-outline"></span></span>
+                @(Model.IsAdminEdit ? "Admin Edit - Purchase Request Checkout" : (Model.IsRevision ? "Purchase Request Revision Checkout" : "Purchase Request Checkout"))
+            </h1>
+            <p class="checkout-subtitle">@(Model.IsAdminEdit ? "Review administrative corrections to the Purchase Request before saving changes." : (Model.IsRevision ? "Review the revised Purchase Request before returning it to the review queue." : "Review and finalize your procurement request details."))</p>
+        </div>
+    </div>
+
+        @if (Model.IsAdminEdit)
+    {
+        <div class="pr-revision-notice" style="border-left: 4px solid #d97706; background-color: #fffbeb;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <strong style="color: #b45309; font-size: 1.05rem;"><span class="k-icon k-i-edit"></span> Admin Edit &mdash; Updating Existing Purchase Request</strong>
+                    <div style="margin-top: 6px; font-size: 0.9rem; color: #374151;">
+                        <span><b>PR Reference:</b> @(String.IsNullOrWhiteSpace(Model.AdminEditPrNo) ? (String.IsNullOrWhiteSpace(Model.AdminEditCtrlNo) ? "Unassigned" : Model.AdminEditCtrlNo) : Model.AdminEditPrNo)</span>
+                        <span style="margin: 0 8px; color: #9ca3af;">&bull;</span>
+                        <span><b>Status:</b> <span class="badge badge-warning" style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">@(String.IsNullOrWhiteSpace(Model.AdminEditStatus) ? "Submitted" : Model.AdminEditStatus)</span></span>
+                        <span style="margin: 0 8px; color: #9ca3af;">&bull;</span>
+                        <span><b>Department:</b> @(String.IsNullOrWhiteSpace(Model.AdminEditDepartment) ? "N/A" : Model.AdminEditDepartment)</span>
+                    </div>
+                </div>
+            </div>
+            <p style="margin-top: 8px; margin-bottom: 0; font-size: 0.85rem; color: #4b5563;">
+                Saving checkout will update the existing Purchase Request, reconcile item quantities and PPMP allocations, and return you to Requests / Posting without altering the PR Number or workflow status.
+            </p>
+        </div>
+    }
 
     @if (Model.IsRevision)
     {
         <div class="pr-revision-notice">
-            <strong>Returned for Revision</strong>
+            <strong><span class="k-icon k-i-warning"></span> Returned for Revision</strong>
             <span>Revision No. @Model.RevisionNo</span>
             <p><b>Reviewer Comment:</b> @(String.IsNullOrWhiteSpace(Model.ReviewComment) ? "No comment was recorded." : Model.ReviewComment)</p>
         </div>
@@ -37,6 +78,10 @@
     {
         @Html.AntiForgeryToken()
         @Html.HiddenFor(m => m.CheckoutToken)
+        @Html.HiddenFor(m => m.CartId)
+        @Html.HiddenFor(m => m.CartMode)
+        @Html.HiddenFor(m => m.SourceRequestId)
+        @Html.HiddenFor(m => m.RequestId)
         @Html.ValidationSummary(
             true,
             "",
@@ -45,11 +90,13 @@
         @Html.HiddenFor(m => m.DeptId)
 
         <div class="checkout-grid">
-            <section class="form-card">
-                <h2>Purchase Request Information</h2>
+            <section class="checkout-form-card">
+                <h2 class="checkout-section-title">
+                    <span class="k-icon k-i-file-data"></span> Purchase Request Information
+                </h2>
 
-                <div class="form-grid">                                                                      
-                    <div class="wide">
+                <div class="checkout-form-grid">                                                                      
+                    <div class="checkout-form-group wide">
                         <label>@Html.DisplayNameFor(m => m.Department)</label>
                         @(Html.Kendo().TextBoxFor(m => m.Department)
                             .HtmlAttributes(new
@@ -59,7 +106,7 @@
                             }))
                     </div>
 
-                    <div class="wide">
+                    <div class="checkout-form-group wide">
                         <label>@Html.DisplayNameFor(m => m.Purpose)</label>
                         @(Html.Kendo().TextAreaFor(m => m.Purpose)
                             .Rows(4)
@@ -74,7 +121,7 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.FPP)</label>
                         @(Html.Kendo().MultiColumnComboBoxFor(m => m.FPP)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -100,7 +147,7 @@
                         @Html.ValidationMessageFor(m => m.FPP,"",new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.Fund)</label>
                         @(Html.Kendo().TextBoxFor(m => m.Fund)
                             .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
@@ -110,21 +157,17 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
-                        &nbsp;
-                    </div>
-
-                    <div>
+                    <div class="checkout-form-group wide">
                         <label>@Html.DisplayNameFor(m => m.FundSpecific)</label>
                         @(Html.Kendo().TextBoxFor(m => m.FundSpecific)
-                            .HtmlAttributes(new { style = "width:100%" }))
+                            .HtmlAttributes(new { style = "width:100%", placeholder = "Enter fund specific details if applicable..." }))
                         @Html.ValidationMessageFor(
                             m => m.FundSpecific,
                             "",
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.RequestedBy)</label>
                         @(Html.Kendo().TextBoxFor(m => m.RequestedBy)
                             .HtmlAttributes(new { style = "width:100%" }))
@@ -134,7 +177,7 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.RequestedDesig)</label>
                         @(Html.Kendo().TextBoxFor(m => m.RequestedDesig)
                             .HtmlAttributes(new { style = "width:100%" }))
@@ -144,7 +187,7 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.Availability)</label>
                         @(Html.Kendo().MultiColumnComboBoxFor(m => m.Availability)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -170,7 +213,7 @@
                         @Html.ValidationMessageFor(m => m.Availability, "", new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.AvaialbilityDesig)</label>
                         @(Html.Kendo().TextBoxFor(m => m.AvaialbilityDesig)
                             .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
@@ -180,7 +223,7 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.ApprovedBy)</label>
                         @(Html.Kendo().MultiColumnComboBoxFor(m => m.ApprovedBy)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -209,7 +252,7 @@
                             new { @class = "text-danger" })
                     </div>
 
-                    <div>
+                    <div class="checkout-form-group">
                         <label>@Html.DisplayNameFor(m => m.ApprovedDesig)</label>
                         @(Html.Kendo().TextBoxFor(m => m.ApprovedDesig)
                             .HtmlAttributes(new { style = "width:100%", @readonly = "readonly" }))
@@ -218,10 +261,11 @@
                             "",
                             new { @class = "text-danger" })
                     </div>          
-                    
                 </div>
 
-                <h2>Purchase Request Items</h2>
+                <h2 class="checkout-section-title">
+                    <span class="k-icon k-i-list-unordered"></span> Purchase Request Items
+                </h2>
 
                 @(Html.Kendo().Grid<iLgs.Models.CartItemViewModel>()
                     .Name("requestItems")
@@ -230,11 +274,13 @@
                     {
                         columns.Bound(x => x.ItemNo)
                             .Title("No.")
-                            .Width(65);
+                            .Width(65)
+                            .HtmlAttributes(new { @class = "font-weight-bold font-mono" });
 
                         columns.Bound(x => x.Code)
                             .Title("Item Code")
-                            .Width(110);
+                            .Width(110)
+                            .HtmlAttributes(new { @class = "font-weight-bold font-mono" });
 
                         columns.Bound(x => x.Description)
                             .Title("Description")
@@ -242,81 +288,83 @@
 
                         columns.Bound(x => x.Unit)
                             .Title("Unit")
-                            .Width(95);
+                            .Width(95)
+                            .HtmlAttributes(new { @class = "text-center text-muted" })
+                            .HeaderHtmlAttributes(new { @class = "text-center" });
 
                         columns.Bound(x => x.Quantity)
                             .Title("Quantity")
-                            .Width(135)
-                            .Format("{0:n0}");
+                            .Width(115)
+                            .Format("{0:n0}")
+                            .HtmlAttributes(new { style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
 
                         columns.Bound(x => x.UnitCost)
                             .Title("Unit Cost")
                             .Width(130)
-                            .ClientTemplate("\u20B1#= kendo.toString(UnitCost, 'n2') #");
+                            .HtmlAttributes(new { style = "text-align:right;", @class = "checkout-amount-cell" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" })
+                            .ClientTemplate("&#8369;#= kendo.toString(UnitCost, 'n2') #");
 
                         columns.Bound(x => x.EstimatedAmount)
                             .Title("Estimated Amount")
                             .Width(150)
-                            .ClientTemplate("\u20B1#= kendo.toString(EstimatedAmount, 'n2') #");
+                            .HtmlAttributes(new { style = "text-align:right;", @class = "checkout-amount-cell" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" })
+                            .ClientTemplate("&#8369;#= kendo.toString(EstimatedAmount, 'n2') #");
                     })
                     .Events(events => events.DetailInit("onCheckoutDetailInit"))
                     .Scrollable(scrollable => scrollable.Height(420))
                     .Pageable()
                     .Sortable()
-                    .HtmlAttributes(new { @class = "data-card checkout-items-grid" })
+                    .HtmlAttributes(new { @class = "checkout-items-grid" })
                     .DataSource(dataSource => dataSource
                         .Ajax()
                         .PageSize(10)
-                        .Read(read => read.Action("CartRead", "Procurement"))
+                        .Read(read => read.Action("CartRead", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId }))
                     )
                 )
             </section>
 
-            <aside class="summary-card">
-                <h2>Summary</h2>
+            <aside class="checkout-summary-card">
+                <h2>
+                    <span class="k-icon k-i-calculator"></span> Summary
+                </h2>
 
-                <p>
-                    Distinct Items
+                <div class="checkout-summary-stat">
+                    <span>Distinct Items</span>
                     <strong>@cartItems.Count</strong>
-                </p>
+                </div>
 
-                <p>
-                    Total Quantity
+                <div class="checkout-summary-stat">
+                    <span>Total Quantity</span>
                     <strong>@cartItems.Sum(x => x.Quantity)</strong>
-                </p>
+                </div>
 
                 <hr />
 
-                <div class="total">
-                    Estimated Total
-                    <strong>
+                <div class="checkout-total-block">
+                    <span class="checkout-total-label">Estimated Total</span>
+                    <strong class="checkout-total-value">
                         @Model.EstimatedTotal.ToString(
                             "C2",
                             CultureInfo.GetCultureInfo("en-PH"))
                     </strong>
                 </div>
 
-                @*<button type="submit" class="k-button k-primary submit">
-                    Submit for Review
-                </button>
-
-                <a href="@Url.Action("Cart")" class="k-button">
-                    Back to Cart
-                </a>*@
-
                 <div class="submit-confirmation">
                     <label>
                         <input type="checkbox" id="confirmCheckout"
                                @(Model.Confirmed ? "checked=checked" : "") />
                         @Html.HiddenFor(m => m.Confirmed, new { id = "confirmedCheckoutValue" })
-                        I have reviewed the purchase request details and confirm that they are correct.
+                        <span>I have reviewed the purchase request details and confirm that they are correct.</span>
                     </label>
                     @Html.ValidationMessageFor(m => m.Confirmed, "", new { @class = "text-danger" })
                 </div>
 
                 @(Html.Kendo().Button()
                 .Name("submitForReview")
-                .Content("<span class='k-icon k-i-check'></span> " + (Model.IsRevision ? "Resubmit Purchase Request" : "Submit for Review"))
+                .Content("<span class='k-icon k-i-check'></span> " + (Model.IsAdminEdit ? "Save Corrections to Purchase Request" : (Model.IsRevision ? "Resubmit Purchase Request" : "Submit for Review")))
                 .HtmlAttributes(new
                 {
                     type = "submit",
@@ -331,9 +379,16 @@
                 .HtmlAttributes(new
                 {
                     type = "button",
-                    style = "width:100%; margin-top:8px;"
+                    style = "width:100%; margin-top:10px;"
                 })
                 .Events(e => e.Click("onBackToCart")))
+
+                @if (Model.IsAdminEdit)
+                {
+                    <a class="k-button btn-secondary-action" href="@Url.Action("CancelAdminEdit", "Procurement", new { requestId = Model.SourceRequestId })" style="width:100%; margin-top:10px;">
+                        <span class="k-icon k-i-close"></span> Cancel Admin Edit
+                    </a>
+                }
             </aside>
         </div>
     }
@@ -343,29 +398,6 @@
     <div class="checkout-sub-items-host"></div>
 </script>
 
-<style>
-    .submit-confirmation {
-        margin: 15px 0;
-        padding: 12px;
-        border-radius: 4px;
-        background: #f5f5f5;
-    }
-
-    .submit-confirmation label {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .submit-confirmation input[type="checkbox"] {
-        margin-top: 2px;
-        cursor: pointer;
-    }
-</style>
-
 @section scripts {
     @Scripts.Render("~/bundles/jqueryval")
 
@@ -374,7 +406,7 @@
             var parentItemId = e.data.Id;
             var $host = e.detailCell.find(".checkout-sub-items-host");
 
-            $("<div class='cart-sub-items-title'>User-defined sub-items</div>")
+            $("<div class='cart-sub-items-title'><span class='k-icon k-i-list-unordered'></span> User-defined sub-items</div>")
                 .prependTo($host);
 
             $("<div />")
@@ -383,7 +415,7 @@
                     dataSource: {
                         transport: {
                             read: {
-                                url: "@Url.Action("CartSubItemsRead", "Procurement")",
+                                url: "@Url.Action("CartSubItemsRead", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })",
                                 type: "POST",
                                 data: function () {
                                     return { parentItemId: parentItemId };
@@ -401,26 +433,30 @@
                     sortable: false,
                     pageable: false,
                     columns: [
-                        { field: "ItemNo", title: "Item No.", width: "12%" },
+                        { field: "ItemNo", title: "Item No.", width: "12%", attributes: { "class": "font-weight-bold font-mono" } },
                         {
                             field: "Description",
                             title: "Description",
                             width: "35%",
                             attributes: { "class": "cart-multiline-description" }
                         },
-                        { field: "Unit", title: "Unit", width: "12%" },
-                        { field: "Quantity", title: "Qty", width: "11%", format: "{0:n2}" },
+                        { field: "Unit", title: "Unit", width: "12%", headerAttributes: { "style": "text-align:center;" }, attributes: { "class": "text-center text-muted" } },
+                        { field: "Quantity", title: "Qty", width: "11%", format: "{0:n2}", headerAttributes: { "style": "text-align:right;" }, attributes: { "style": "text-align:right;" } },
                         {
                             field: "UnitCost",
                             title: "Unit Cost",
                             width: "15%",
-                            template: "\u20B1#= kendo.toString(UnitCost, 'n2') #"
+                            headerAttributes: { "style": "text-align:right;" },
+                            attributes: { "style": "text-align:right;", "class": "checkout-amount-cell" },
+                            template: "&#8369;#= kendo.toString(UnitCost, 'n2') #"
                         },
                         {
                             field: "Total",
                             title: "Total",
                             width: "15%",
-                            template: "\u20B1#= kendo.toString(Total, 'n2') #"
+                            headerAttributes: { "style": "text-align:right;" },
+                            attributes: { "style": "text-align:right;", "class": "checkout-amount-cell font-weight-bold" },
+                            template: "&#8369;#= kendo.toString(Total, 'n2') #"
                         }
                     ]
                 });
@@ -429,27 +465,6 @@
         $(document).ready(function () {
             var isRevisionCheckout = @Html.Raw(Json.Encode(Model.IsRevision));
             var revisionConfirmed = false;
-            @*var disabled = $("#formCheckout").find(':input:disabled').removeAttr('disabled');
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("GetModelDefault", "Requests")',
-                success: function (result) {
-                    $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
-                    $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
-                    $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig);
-                    $("#AvaialbilityDesig").trigger("change");
-
-                    $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
-                    $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
-                    $("#ApprovedDesig").val(result.model.ApprovedDesig);
-                    $("#ApprovedDesig").trigger("change");
-
-                    disabled.attr('disabled', 'disabled');
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                }
-            });*@
 
             // Initially disable Submit for Review
             var submitButton = $("#submitForReview").data("kendoButton");
@@ -515,7 +530,7 @@
         });
 
         function onBackToCart() {
-            window.location.href = '@Url.Action("Cart")';
+            window.location.href = '@Url.Action("Cart", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })';
         }
 
         function onDepartmentChange(e) {

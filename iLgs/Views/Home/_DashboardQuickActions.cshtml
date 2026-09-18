@@ -1,0 +1,86 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var actions = Model != null && Model.UserDashboard != null ? Model.UserDashboard.QuickActions : null;
+}
+
+<div class="dash-section-header">
+    <h2 class="dash-section-title">
+        <span class="k-icon k-i-flash section-title-icon"></span>
+        <span>Quick Actions</span>
+    </h2>
+</div>
+
+<div class="workbench-quick-grid">
+    @if (actions != null && actions.Any())
+    {
+        foreach (var act in actions)
+        {
+            <a href="@act.Url" class="workbench-quick-card">
+                <div class="workbench-quick-icon">
+                    <span class="k-icon @act.IconClass"></span>
+                </div>
+                <div class="workbench-quick-body">
+                    <span class="workbench-quick-title">@act.Title</span>
+                    <span class="workbench-quick-desc">@act.Description</span>
+                </div>
+            </a>
+        }
+    }
+    else
+    {
+        <a href="@Url.Action("Index", "Requests")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-file-add"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">+ New Purchase Request</span>
+                <span class="workbench-quick-desc">Create procurement request</span>
+            </div>
+        </a>
+        <a href="@Url.Action("Index", "RIS")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-note"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">+ New Requisition (RIS)</span>
+                <span class="workbench-quick-desc">Request inventory items</span>
+            </div>
+        </a>
+        <a href="@Url.Action("Index", "PropertyCard")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-grid"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">Search Property Cards</span>
+                <span class="workbench-quick-desc">Find equipment and PPE</span>
+            </div>
+        </a>
+        <a href="@Url.Action("Index", "StockCard")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-cart"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">Search Stock Cards</span>
+                <span class="workbench-quick-desc">Find supplies and items</span>
+            </div>
+        </a>
+        <a href="@Url.Action("Index", "ParSet")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-folder"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">My PAR / ICS</span>
+                <span class="workbench-quick-desc">Property accountabilities</span>
+            </div>
+        </a>
+        <a href="@Url.Action("Index", "CustodianAccountability")" class="workbench-quick-card">
+            <div class="workbench-quick-icon">
+                <span class="k-icon k-i-user"></span>
+            </div>
+            <div class="workbench-quick-body">
+                <span class="workbench-quick-title">My Custodianship</span>
+                <span class="workbench-quick-desc">Custodian assignments</span>
+            </div>
+        </a>
+    }
+</div>

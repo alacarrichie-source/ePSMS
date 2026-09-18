@@ -1,4 +1,4 @@
-﻿using iLgs.Exceptions;
+using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
@@ -61,6 +61,11 @@ namespace iLgs.Controllers
         {
             try
             {
+                if (IsAcquisitionPosted(model.ImageId))
+                {
+                    ModelState.AddModelError("DeleteError", "This acquisition is posted. Documents are read-only.");
+                }
+
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card", "property_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
@@ -94,6 +99,11 @@ namespace iLgs.Controllers
         {
             try
             {
+                if (IsAcquisitionPosted(model.ImageId))
+                {
+                    ModelState.AddModelError("UpdateError", "This acquisition is posted. Documents are read-only.");
+                }
+
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card", "property_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
@@ -134,6 +144,11 @@ namespace iLgs.Controllers
         {
             try
             {
+                if (IsAcquisitionPosted(model.ImageId))
+                {
+                    ModelState.AddModelError("AddError", "This acquisition is posted. Documents are read-only.");
+                }
+
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card", "property_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -193,7 +208,35 @@ namespace iLgs.Controllers
             }
         }
 
-        public int Count(string word)
+        /// <summary>
+        /// Resolves the parent PsCardItem (acquisition) from the given imageId (which may be
+        /// a PsCardItem.Id, PsCardItem.GroupId, or PsCardItemExtn.Id) and returns true if
+        /// that acquisition is posted (PostedDt != null).
+        /// </summary>
+        private bool IsAcquisitionPosted(Guid? imageId)
+        {
+            if (!imageId.HasValue || imageId.Value == Guid.Empty) return false;
+
+            var id = imageId.Value;
+
+            // Check: imageId is a physical unit (PsCardItemExtn)
+            var unitPostedDt = _db.PsCardItemExtns
+                .Where(u => u.Id == id)
+                .Select(u => u.PsCardItem.PostedDt)
+                .FirstOrDefault();
+            if (unitPostedDt.HasValue) return true;
+
+            // Check: imageId is a PsCardItem (acquisition) by Id or GroupId
+            var acqPostedDt = _db.PsCardItems
+                .Where(i => i.Id == id || i.GroupId == id)
+                .Select(i => i.PostedDt)
+                .FirstOrDefault();
+            if (acqPostedDt.HasValue) return true;
+
+            return false;
+        }
+
+                public int Count(string word)
         {
             //Simon rian T. Alacar
             //         i

@@ -1,70 +1,35 @@
-﻿@{
+@{
     var functionName = "DataGridItem_" + ViewData["itemTypeId"].ToString().Replace("-", "_");
 }
 
 @(Html.Kendo().Grid<iLgs.Models.ItemCodeVM>()
         .Name("gridItems_" + @ViewData["itemTypeId"])
-        //.HtmlAttributes(new
-        //{
-        //    data_itemtypeid = @ViewData["itemTypeId"]
-        //})
         .Columns(col =>
         {
             col.Bound(c => c.ItemNoIndex).Hidden();
-            col.Bound(c => c.ItemNo).Width(50);
-            col.Bound(c => c.Description).Width(150)
-            //.HtmlAttributes(new { style = "text-align:left;" });
-                .ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
-            //.ClientTemplate("#: Description #");
-            //.ClientTemplate("<pre>#: Description #</pre>");
-            col.Bound(c => c.Code).Width(70);
-            col.Bound(c => c.ItemSw).Width(70);
-            col.Bound(c => c.IsConsumable).Width(70);
-            col.Bound(c => c.IsIncorporated).Width(70);
-            col.Bound(c => c.ForDistribution).Width(90);
-            col.Bound(c => c.RequiredFields).Width(90).EditorTemplateName("_PartialPageTemplate");
-            //col.Bound(c => c.ItemSwUI).Width(50).EditorTemplateName("_ItemSwTemplate")
-            //    .ClientTemplate("<input type='checkbox' #= ItemSwUI ? 'YES' : '' # class='k-switch' />")
-            //    .HtmlAttributes(new { @class = "text-center" });
-            //col.Bound(c => c.AccountCode).Width(50);
+            col.Bound(c => c.ItemNo).Width(60).Title("Item No");
+            col.Bound(c => c.Description).Width(180).Title("Description")
+                .ClientTemplate("#= renderItemCodeDescription(data) #");
+            col.Bound(c => c.Code).Width(85).Title("Item Code");
+            col.Bound(c => c.ItemSw).Width(95).Title("Article")
+                .ClientTemplate("#= renderItemCodeSw(data) #");
+            col.Bound(c => c.IsConsumable).Width(80).Title("Consumable");
+            col.Bound(c => c.IsIncorporated).Width(85).Title("Incorp.");
+            col.Bound(c => c.ForDistribution).Width(85).Title("Distr.");
+            col.Bound(c => c.RequiredFields).Width(95).Title("Required Fields").EditorTemplateName("_PartialPageTemplate");
             col.Command(command =>
             {
-                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
                 command.Edit();
                 command.Destroy();
             }).Width(100);
         })
         .ToolBar(toolbar =>
         {
-        toolbar.Create();
-        //toolbar.Custom()
-        //    .Text("Show Archive")
-        //    .Name("btnArchiveToggle_" + @ViewData["itemTypeId"])
-        //    .HtmlAttributes(new
-        //    {
-        //        id = "btnArchiveToggle_" + @ViewData["itemTypeId"],
-        //        //href = "javascript:void(0);",
-        //        //@class = "k-button"
-        //        @class = "archive-toggle k-button",
-        //        data_itemtype = ViewData["itemTypeId"],
-        //        data_showarchive = "0"
-        //    });
-            @*toolbar.Template(@<text>
-                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
-            </text>);*@
+            toolbar.Create().Text("Add Item Code");
         })
-        //.Pageable(pager => pager
-        //    .Input(false)
-        //    .Numeric(true)
-        //    .Info(true)
-        //    .PreviousNext(true)
-        //    .Refresh(true)
-        //    .PageSizes(true)
-        //    .ButtonCount(5)
-        //)
         .Scrollable()
         .Filterable()
-        .NoRecords()
+        .NoRecords(n => n.Template("<div class='item-empty-state'><span class='k-icon k-i-search'></span><p>No Item Codes found</p><span class='item-empty-sub'>Click 'Add Item Code' to create an item code under this item type.</span></div>"))
         .Resizable(r => r.Columns(true))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
@@ -83,8 +48,7 @@
             {
                 s.Add(a => a.ItemNoIndex);
             })
-            //.Read(read => read.Action("ItemCodeRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
-            .Read(read => read.Action("ItemCodeRead", "Items").Data("DataGridItem"))            
+            .Read(read => read.Action("ItemCodeRead", "Items").Data("DataGridItem"))
             .Create(create => create.Action("ItemCodeCreate", "Items"))
             .Update(update => update.Action("ItemCodeUpdate", "Items"))
             .Destroy(destroy => destroy.Action("ItemCodeDestroy", "Items"))

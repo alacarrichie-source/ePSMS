@@ -128,7 +128,10 @@ namespace iLgs.Services.PPMP_
         public ValueTask<PPMPItemUsageVM> CreateAsync(PPMPItemUsageVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            await ValidateStatusAsync(model.PpmpItemId);
+            if (string.IsNullOrEmpty(model.CallerId)) // called by PPMP module (default)
+            {
+                await ValidateStatusAsync(model.PpmpItemId);
+            }
             await ValidateFieldsAsync(model);
 
             model.Id = Guid.NewGuid();

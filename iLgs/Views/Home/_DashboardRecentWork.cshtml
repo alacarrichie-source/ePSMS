@@ -1,0 +1,63 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var recentWork = Model != null && Model.UserDashboard != null ? (Model.UserDashboard.RecentWorkItems ?? Model.UserDashboard.RecentWork) : null;
+}
+
+<div class="dash-section-header">
+    <h2 class="dash-section-title">
+        <span class="k-icon k-i-history section-title-icon"></span>
+        <span>Recently Opened / Recent Work</span>
+    </h2>
+</div>
+
+<div class="workbench-recent-card">
+    @if (recentWork != null && recentWork.Any())
+    {
+        <div class="recent-table-wrapper">
+            <table class="workbench-recent-table">
+                <thead>
+                    <tr>
+                        <th class="col-ref">Reference</th>
+                        <th class="col-module">Module</th>
+                        <th class="col-desc">Description</th>
+                        <th class="col-activity">Last Activity</th>
+                        <th class="col-action">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in recentWork)
+                    {
+                        <tr>
+                            <td class="col-ref">
+                                <strong class="recent-ref-code">@item.Reference</strong>
+                            </td>
+                            <td class="col-module">
+                                <span class="k-icon @item.IconClass module-icon-lead"></span>
+                                <span>@item.Module</span>
+                            </td>
+                            <td class="col-desc">
+                                <span>@item.Description</span>
+                            </td>
+                            <td class="col-activity">
+                                <span>@(item.ActivityDate.HasValue ? item.ActivityDate.Value.ToString("MMM d, yyyy") : "")</span>
+                            </td>
+                            <td class="col-action">
+                                <a href="@item.Url" class="workbench-task-btn btn-action-outline">
+                                    <span>Open</span>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state">
+            <span class="k-icon k-i-folder-up empty-icon"></span>
+            <div class="empty-title">No Recent Work History</div>
+            <p class="empty-subtext">As you create and interact with documents, your most recently accessed records will appear here.</p>
+        </div>
+    }
+</div>

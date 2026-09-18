@@ -112,7 +112,6 @@ namespace iLgs.Models
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<PoAdjustment> PoAdjustments { get; set; }
         public virtual DbSet<OrderRequest> OrderRequests { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<PPMP> PPMPs { get; set; }
         public virtual DbSet<PPMPItem> PPMPItems { get; set; }
         public virtual DbSet<AccountCodeItem> AccountCodeItems { get; set; }
@@ -137,6 +136,11 @@ namespace iLgs.Models
         public virtual DbSet<AIRSubItem> AIRSubItems { get; set; }
         public virtual DbSet<IcsParItemComponent> IcsParItemComponents { get; set; }
         public virtual DbSet<PsCardRefNo> PsCardRefNos { get; set; }
+        public virtual DbSet<PPMPAcctgCode> PPMPAcctgCodes { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<ProcurementCart> ProcurementCarts { get; set; }
+        public virtual DbSet<ProcurementCartItem> ProcurementCartItems { get; set; }
+        public virtual DbSet<ProcurementCartSubItem> ProcurementCartSubItems { get; set; }
     
         [DbFunction("AppManEntities", "fn_ItemCodes_GetPreview")]
         public virtual IQueryable<fn_ItemCodes_GetPreview_Result> fn_ItemCodes_GetPreview(string cCategory, string cUserId)

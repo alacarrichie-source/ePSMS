@@ -183,8 +183,17 @@ namespace iLgs.Models
         [Display(Name = "Location")]
         public string Location { get; set; }
 
+        [Display(Name = "Description")]
+        public string Description { get; set; }
+
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
+
+        [Display(Name = "Accountability Status")]
+        public string AccountabilityStatus { get; set; }
     }
 
     public class PsCardItemExtnOtherVM : PsCardItemExtnCommonVM
@@ -243,8 +252,8 @@ namespace iLgs.Models
         [Display(Name = "Insurance Policy No.")]
         public string InsPolicyNo { get; set; }
 
-        //[Display(Name = "PAR Reissuance")]
-        //public string ParReissuance { get; set; }
+        [Display(Name = "PAR Reissuance")]
+        public string ParReissuance { get; set; }
 
         [Required]
         [Display(Name = "Conduction Sticker No.")]
@@ -475,6 +484,9 @@ namespace iLgs.Models
         public Nullable<bool> RelocationCap { get; set; }
         public Nullable<bool> SurveyingCap { get; set; }
         public Nullable<bool> IncidentalExpensesCap { get; set; }
+
+        [Display(Name = "Total Capitalized")]
+        public Nullable<decimal> TotalCap { get; set; }
     }
 
     [MetadataType(typeof(PsCardItemExtnVehicle.Metadata2))]

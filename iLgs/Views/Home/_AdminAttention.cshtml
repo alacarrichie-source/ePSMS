@@ -1,0 +1,95 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var items = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.RequiresAttention : null;
+    var summary = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.OperationalSummary : null;
+    var count = items != null ? items.Count : 0;
+}
+
+<div id="adminAttentionQueue" class="content-panel admin-attention-panel">
+    <div class="panel-inner-header">
+        <h3 class="panel-inner-title title-danger">
+            <span class="k-icon k-i-bell"></span>
+            <span>Work Requiring Attention</span>
+        </h3>
+        <span class="dash-count-badge @(count > 0 ? "badge-danger" : "badge-neutral")">@count Actionable</span>
+    </div>
+
+    <!-- Exception Summary Chips -->
+    @if (summary != null)
+    {
+        <div class="attention-summary-chips">
+            <a href="@Url.Action("Index", "Requests")" class="attention-chip chip-danger" title="Filter Returned PRs">
+                <span class="chip-title">Returned PR:</span>
+                <span class="chip-count">@summary.PrReturned.ToString("N0")</span>
+            </a>
+            <a href="@Url.Action("Index", "AIRs")" class="attention-chip chip-warning" title="Open Pending Inspections">
+                <span class="chip-title">Awaiting Inspection:</span>
+                <span class="chip-count">@summary.AirPendingInspection.ToString("N0")</span>
+            </a>
+            <a href="@Url.Action("Index", "RIS")" class="attention-chip chip-info" title="RIS Pending Approval">
+                <span class="chip-title">RIS Approval:</span>
+                <span class="chip-count">@summary.RisPendingApproval.ToString("N0")</span>
+            </a>
+            <a href="@Url.Action("Index", "RIS")" class="attention-chip chip-neutral" title="RIS Pending Issuance">
+                <span class="chip-title">RIS Issuance:</span>
+                <span class="chip-count">@summary.RisPendingIssuance.ToString("N0")</span>
+            </a>
+        </div>
+    }
+
+    <!-- Actionable Exception Cards -->
+    @if (items != null && items.Any())
+    {
+        <div class="admin-attention-feed">
+            @foreach (var item in items)
+            {
+                var cardClass = "card-danger";
+                var btnStyle = "btn-action-danger";
+
+                if (item.UrgencyLevel == "warning")
+                {
+                    cardClass = "card-warning";
+                    btnStyle = "btn-action-primary";
+                }
+                else if (item.UrgencyLevel == "info")
+                {
+                    cardClass = "card-info";
+                    btnStyle = "btn-action-outline";
+                }
+
+                <div class="admin-attention-mini-card @cardClass" data-module="@item.Module" data-status="@item.Status" data-department="@(item.Department ?? "")">
+                    <div class="mini-card-top">
+                        <div class="mini-card-left">
+                            <span class="admin-attention-tag">@item.Module</span>
+                            <strong class="admin-attention-ref">@item.Reference</strong>
+                        </div>
+                        <span class="admin-attention-date">
+                            @(item.Date.HasValue ? item.Date.Value.ToString("MMM d") : "")
+                        </span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(item.Reason))
+                    {
+                        <div class="mini-card-reason">@item.Reason</div>
+                    }
+
+                    <div class="mini-card-bottom">
+                        <span class="mini-card-status">Status: <strong>@item.Status</strong></span>
+                        <a href="@item.ActionUrl" class="workbench-task-btn @btnStyle btn-sm">
+                            <span>@item.ActionLabel</span>
+                            <span class="k-icon k-i-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state empty-state-compact">
+            <span class="k-icon k-i-check-outline empty-icon icon-success"></span>
+            <div class="empty-title">All Operational Queues Healthy</div>
+            <p class="empty-subtext">There are currently no returned requests or blocked technical inspections requiring administrative intervention.</p>
+        </div>
+    }
+</div>

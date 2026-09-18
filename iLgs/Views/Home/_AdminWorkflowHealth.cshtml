@@ -1,0 +1,69 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var pipelines = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.WorkflowHealth : null;
+}
+
+<div class="content-panel workflow-health-panel">
+    <div class="panel-inner-header">
+        <h3 class="panel-inner-title">
+            <span class="k-icon k-i-parameter-date-time title-icon-primary"></span>
+            <span>Workflow Health &amp; Pipelines</span>
+        </h3>
+        <span class="panel-inner-subtitle">Lifecycle status distribution</span>
+    </div>
+
+    @if (pipelines != null && pipelines.Any())
+    {
+        <div class="workflow-pipelines-container">
+            @foreach (var pipe in pipelines)
+            {
+                <div class="workflow-pipeline-card">
+                    <div class="workflow-pipeline-header">
+                        <strong class="workflow-pipeline-title">
+                            <span class="k-icon @pipe.IconClass title-icon-primary"></span>
+                            <span>@pipe.ProcessTitle</span>
+                        </strong>
+                    </div>
+
+                    <div class="workflow-pipeline-track">
+                        @for (int i = 0; i < pipe.Stages.Count; i++)
+                        {
+                            var stage = pipe.Stages[i];
+                            var pillClass = "stage-default";
+                            if (stage.StatusClass == "alert")
+                            {
+                                pillClass = "stage-alert";
+                            }
+                            else if (stage.StatusClass == "active")
+                            {
+                                pillClass = "stage-active";
+                            }
+                            else if (stage.StatusClass == "success")
+                            {
+                                pillClass = "stage-success";
+                            }
+
+                            <a href="@stage.Url" class="workflow-stage-pill @pillClass" title="View @stage.StageName">
+                                <span class="stage-count">@stage.Count.ToString("N0")</span>
+                                <span class="stage-name">@stage.StageName</span>
+                            </a>
+
+                            if (i < pipe.Stages.Count - 1)
+                            {
+                                <div class="workflow-stage-arrow">&rarr;</div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-empty-state">
+            <span class="k-icon k-i-gears empty-icon"></span>
+            <div class="empty-title">Pipeline Analysis Active</div>
+            <p class="empty-subtext">Workflow lifecycles are being computed across the procurement pipeline.</p>
+        </div>
+    }
+</div>

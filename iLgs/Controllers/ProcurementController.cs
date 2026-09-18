@@ -1,6 +1,6 @@
-﻿using iLgs.Models;
+﻿using iLgs.Ai.Services;
+using iLgs.Models;
 using iLgs.Services.Codes;
-using iLgs.Ai.Services;
 using iLgs.Services.PPMP_;
 using iLgs.Services.PurchaseOrder;
 using iLgs.Services.PurchaseRequest;
@@ -20,14 +20,12 @@ namespace iLgs.Controllers
     public class ProcurementController : BaseController
     {
         private const string AnnualFilterSessionKey = "AnnualProcurementFilters";
-        private const string CartSessionKey = "ProcurementCart";
         private const string CheckoutTokenSessionKey = "ProcurementCheckoutToken";
         private readonly IOrderService _orderService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
         private readonly IPPMPService _ppmpService;
-
-        private string _menuId = string.Empty;
+        private readonly ProcurementCartService _cartService;
 
         public ProcurementController()
         {
@@ -35,6 +33,7 @@ namespace iLgs.Controllers
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);
             _ppmpService = new PPMPService(_db);
+            _cartService = new ProcurementCartService(_db);
         }
 
         [Serializable]
@@ -44,11 +43,25 @@ namespace iLgs.Controllers
             public Guid? Department { get; set; }
             public string Category { get; set; }
             public string SearchText { get; set; }
-        }        
+        }
 
-        public async Task<ActionResult> Annual(int? fiscalYear, Guid? department, string category,string searchText)
+        public async Task<ActionResult> Annual(int? fiscalYear, Guid? department, string category, string searchText)
         {
-            var activeCart = GetCart();
+            var userId = User.Identity.GetUserId();
+            var access = await Access(userId, "requests");
+            if (!access.IsAllowed)
+            {
+                return new HttpStatusCodeResult(403, "Access to Procurement and Purchase Requests is denied.");
+            }
+
+            var activeAdminEditId = Session["ActiveAdminEditRequestId"] as Guid?;
+            var activeCart = await _cartService.GetActiveCartViewModelAsync(userId, activeAdminEditId.HasValue ? CartModes.AdminEdit : null, activeAdminEditId);
+
+            if (activeCart.IsAdminEdit)
+            {
+                TempData["Message"] = "New procurement items cannot be added while performing an administrative PR edit.";
+                return RedirectToAction("Cart", new { mode = CartModes.AdminEdit, requestId = activeAdminEditId });
+            }
             var hasIncomingFilters =
                 Request.QueryString["fiscalYear"] != null ||
                 Request.QueryString["department"] != null ||
@@ -64,7 +77,6 @@ namespace iLgs.Controllers
                 searchText = savedFilter.SearchText;
             }
 
-            var userId = User.Identity.GetUserId();
             var departments = (await _codextnService.GetUserDepartmentsAsync(userId))
                 .OrderBy(x => x.Code)
                 .ToList();
@@ -73,7 +85,7 @@ namespace iLgs.Controllers
             {
                 if (!CanWriteRevisionCart(activeCart))
                 {
-                    SaveCart(new CartViewModel());
+                    await _cartService.ClearCartAsync(userId, User.Identity.Name, CartModes.Revision, activeCart.RequestId);
                     return RedirectToAction("Index", "Requests");
                 }
                 fiscalYear = activeCart.FiscalYear;
@@ -123,9 +135,9 @@ namespace iLgs.Controllers
 
             var itemQuery = _ppmpService.PPMPItem.GetAll()
                 .Where(x => x.PPMP.DeptId == department && x.PPMP.ForYear == fiscalYear)
-                .Where(x => String.IsNullOrEmpty(category) || x.ProcMode == category);
+                .Where(x => string.IsNullOrEmpty(category) || x.ProcMode == category);
 
-            if (!String.IsNullOrWhiteSpace(searchText))
+            if (!string.IsNullOrWhiteSpace(searchText))
             {
                 searchText = searchText.Trim();
                 itemQuery = itemQuery.Where(x =>
@@ -138,6 +150,12 @@ namespace iLgs.Controllers
                 .ThenBy(o => o.Description)
                 .ToListAsync();
 
+            var cartItemIds = new HashSet<Guid>(activeCart.Items.Select(x => x.Id));
+            foreach (var item in items)
+            {
+                item.IsInCart = cartItemIds.Contains(item.Id);
+            }
+
             var procurementModes = await availableItems
                 .Where(x => x.PPMP.DeptId == department &&
                             x.PPMP.ForYear == fiscalYear &&
@@ -148,24 +166,16 @@ namespace iLgs.Controllers
                 .OrderBy(x => x)
                 .ToListAsync();
 
-            var cart = GetCart();
-            var cartItemIds = new HashSet<Guid>(cart.Items.Select(x => x.Id));
-
-            foreach (var item in items)
-            {
-                item.IsInCart = cartItemIds.Contains(item.Id);
-            }
-
             return View(new AnnualProcurementViewModel
             {
                 FiscalYear = fiscalYear.Value,
-                Department = department,
+                Department = department.Value,
                 Category = category ?? "",
-                SearchText = searchText,
+                SearchText = searchText ?? "",
                 Items = items,
-                CartCount = cart.Items.Count,
-                IsRevision = cart.IsRevision,
-                RequestId = cart.RequestId,
+                CartCount = activeCart.Items.Count,
+                IsRevision = activeCart.IsRevision,
+                RequestId = activeCart.RequestId,
                 FiscalYears = fiscalYears.Select(x => new SelectListItem
                 {
                     Text = x.ToString(),
@@ -178,89 +188,33 @@ namespace iLgs.Controllers
                 }.Concat(procurementModes.Select(x => new SelectListItem { Text = x, Value = x }))
             });
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> StartRevision(Guid id)
         {
-            var access = await Access(User.Identity.GetUserId(), "requests");
+            var userId = User.Identity.GetUserId();
+            var access = await Access(userId, "requests");
             if (!access.IsAllowed || !access.AllowEdit)
-                return Json(new { success = false, message = "Revision access denied." });
-
-            using (var transaction = _db.Database.BeginTransaction())
             {
-                var entity = await _db.Requests
-                    .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
-                    .Include(x => x.RequestItems.Select(i => i.PPMPItem.PPMP))
-                    .FirstOrDefaultAsync(x => x.Id == id);
-                if (entity == null)
-                    return Json(new { success = false, message = "The Purchase Request no longer exists." });
+                return Json(new { success = false, message = "Revision access denied." });
+            }
 
-                var historyService = new DocumentHistoryService(_db);
-                var latest = await historyService.GetLatestHistoryAsync(DocumentTypes.PurchaseRequest, id);
-                var isReturned = latest != null && String.Equals(latest.ToStatus, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase);
-                var isRevising = latest != null && String.Equals(latest.ToStatus, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase);
-                if (!isReturned && !isRevising)
-                    return Json(new { success = false, message = "Only a Returned Purchase Request or an active revision can be opened." });
-                if (!access.IsAdmin && !String.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-                    return Json(new { success = false, message = "Only the original requester can revise this Purchase Request." });
-
-                var departments = await GetAuthorizedDepartmentsAsync();
-                if (!entity.DeptId.HasValue || !departments.Any(x => x.Id == entity.DeptId.Value))
-                    return Json(new { success = false, message = "You are not authorized for this Purchase Request department." });
-                var existingCart = GetCart();
-                if (isRevising && existingCart.IsRevision && existingCart.RequestId == entity.Id && CanWriteRevisionCart(existingCart))
-                    return Json(new { success = true, redirectUrl = Url.Action("Cart", "Procurement") });
-                if (entity.RequestItems.Any(x => !x.PpmpItemId.HasValue || x.PPMPItem == null || x.PPMPItem.PPMP == null))
-                    return Json(new { success = false, message = "A Purchase Request item is no longer linked to the Annual Procurement Plan." });
-                if (!entity.RequestItems.Any())
-                    return Json(new { success = false, message = "The Purchase Request has no items to revise." });
-                if (entity.RequestItems.Any(x => x.Qty.GetValueOrDefault() <= 0 || x.Qty.GetValueOrDefault() != Math.Truncate(x.Qty.GetValueOrDefault())))
-                    return Json(new { success = false, message = "The shared cart requires whole-number item quantities." });
-
-                var revisionNo = await _db.DocumentStatusHistories.CountAsync(x =>
-                    x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == id && x.Action.StartsWith("Resubmitted")) + 1;
-                var returnComment = await _db.DocumentStatusHistories.AsNoTracking()
-                    .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == id && x.ToStatus == PrStatuses.Returned)
-                    .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
-                    .Select(x => x.Remarks).FirstOrDefaultAsync();
-                var cart = new CartViewModel
-                {
-                    RequestId = entity.Id, IsRevision = true, Status = PrStatuses.Revising,
-                    ReviewComment = returnComment, RevisionNo = revisionNo, RevisionUser = User.Identity.Name,
-                    DepartmentId = entity.DeptId,
-                    FiscalYear = entity.RequestItems.Select(x => x.PPMPItem.PPMP.ForYear).FirstOrDefault()
-                };
-                cart.Items = entity.RequestItems.OrderBy(x => x.ItemNoIndex).Select(item => new CartItemViewModel
-                {
-                    Id = item.PpmpItemId.Value, RequestItemId = item.Id, ItemNo = item.ItemNo,
-                    Code = item.PpmpCode, Description = item.Description,
-                    TechnicalSpecifications = item.OtherDesc, Unit = item.Unit, UnitCost = item.UnitCost,
-                    Quantity = Convert.ToInt32(item.Qty.GetValueOrDefault()),
-                    SubItems = item.RequestSubItems.OrderBy(x => x.ItemNoIndex).Select(subItem => new CartSubItemViewModel
-                    {
-                        Id = subItem.Id, ParentItemId = item.PpmpItemId.Value, ItemNo = subItem.ItemNo,
-                        Description = subItem.Description, Unit = subItem.Unit,
-                        Quantity = subItem.Qty.GetValueOrDefault(), UnitCost = subItem.UnitCost.GetValueOrDefault()
-                    }).ToList()
-                }).ToList();
-
-                if (isReturned)
-                {
-                    historyService.AddStatusHistory(DocumentTypes.PurchaseRequest, entity.Id, entity.PrNo ?? entity.CtrlNo,
-                        PrStatuses.Returned, PrStatuses.Revising, "Revision Started",
-                        "Purchase Request revision " + revisionNo + " started.", User.Identity.Name);
-                    await _db.SaveChangesAsync();
-                }
-                transaction.Commit();
-
-                RenumberCartItems(cart);
-                SaveCart(cart);
+            try
+            {
+                var revisionCart = await _cartService.StartRevisionCartAsync(id, userId, User.Identity.Name, access);
                 Session[AnnualFilterSessionKey] = new AnnualFilterState
                 {
-                    FiscalYear = cart.FiscalYear, Department = cart.DepartmentId, Category = "", SearchText = ""
+                    FiscalYear = revisionCart.FiscalYear,
+                    Department = revisionCart.DepartmentId,
+                    Category = "",
+                    SearchText = ""
                 };
-                return Json(new { success = true, redirectUrl = Url.Action("Cart", "Procurement") });
+                return Json(new { success = true, redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.Revision, requestId = id }) });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -268,12 +222,25 @@ namespace iLgs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddToCart(Guid id)
         {
-            var cart = GetCart();
+            var userId = User.Identity.GetUserId();
+            var access = await Access(userId, "requests");
+            if (!access.IsAllowed || !access.AllowAdd)
+            {
+                Response.StatusCode = 403;
+                return Json(new { success = false, message = "Add to cart access denied." });
+            }
+
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId);
+            if (cart.IsAdminEdit)
+            {
+                return Json(new { success = false, message = "New procurement items cannot be added while performing an administrative PR edit." });
+            }
             if (!CanWriteRevisionCart(cart))
+            {
                 return Json(new { success = false, message = "This Purchase Request is no longer available for revision." });
+            }
 
             var item = await _ppmpService.PPMPItem.GetByIdAsync(id);
-
             if (item == null)
             {
                 return Json(new
@@ -311,9 +278,6 @@ namespace iLgs.Controllers
                 });
             }
 
-            cart.DepartmentId = filter.Department;
-            cart.FiscalYear = filter.FiscalYear;
-
             if (cart.Items.Any(x => x.Id == item.Id))
             {
                 return Json(new
@@ -325,74 +289,114 @@ namespace iLgs.Controllers
                 });
             }
 
-            if (item.QtyBal <= 0)
+            try
+            {
+                var updatedCart = await _cartService.AddItemAsync(userId, id, User.Identity.Name, filter.Department, filter.FiscalYear);
+                return Json(new
+                {
+                    success = true,
+                    cartCount = updatedCart.Items.Count
+                });
+            }
+            catch (Exception ex)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "This item has no remaining quantity available."
+                    message = ex.Message
                 });
             }
-
-            cart.Items.Add(new CartItemViewModel
-            {
-                Id = item.Id,
-                Code = item.Code,
-                Description = item.Description,
-                Unit = item.Unit,
-                UnitCost = item.UnitCost,
-                Quantity = item.QtyBal.Value
-            });
-
-            RenumberCartItems(cart);
-            SaveCart(cart);            
-
-            return Json(new
-            {
-                success = true,
-                cartCount = cart.Items.Count
-            });
         }
 
-        public ActionResult Cart()
+        public async Task<ActionResult> Cart(string mode = null, Guid? requestId = null, Guid? cartId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart))
+            var userId = User.Identity.GetUserId();
+
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
             {
-                SaveCart(new CartViewModel());
-                TempData["Message"] = "This Purchase Request is no longer available for revision.";
-                return RedirectToAction("Index", "Requests");
+                var resolvedRequestId = requestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
+
+                var access = await Access(userId, "requests");
+                if (!access.IsAllowed || (!access.IsAdmin && !access.AllowEdit && !access.AllowPost))
+                {
+                    TempData["Error"] = "You are not authorized to perform an administrative edit.";
+                    return RedirectToAction("Posting", "Requests");
+                }
+
+                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, resolvedRequestId);
+                if (cartEntity == null || ProcurementCartService.GetCartMode(cartEntity) != CartModes.AdminEdit)
+                {
+                    TempData["Error"] = "Admin Edit cart not found or has expired.";
+                    return RedirectToAction("Posting", "Requests");
+                }
+
+                Session["ActiveAdminEditRequestId"] = cartEntity.RequestId;
+                var cart = _cartService.MapEntityToViewModel(cartEntity);
+                if (!CanWriteAdminEditCart(cart))
+                {
+                    TempData["Error"] = "This Purchase Request is no longer available for administrative edit.";
+                    return RedirectToAction("Posting", "Requests");
+                }
+                return View(cart);
             }
-            return View(cart);
+
+            if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
+            {
+                var resolvedRequestId = requestId ?? (Session["ActiveRevisionRequestId"] as Guid?);
+                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, resolvedRequestId);
+                if (cartEntity == null)
+                {
+                    TempData["Message"] = "Revision cart not found or has expired.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                var cart = _cartService.MapEntityToViewModel(cartEntity);
+                if (!CanWriteRevisionCart(cart))
+                {
+                    await _cartService.ClearCartAsync(userId, User.Identity.Name, CartModes.Revision, cart.RequestId);
+                    TempData["Message"] = "This Purchase Request is no longer available for revision.";
+                    return RedirectToAction("Index", "Requests");
+                }
+                return View(cart);
+            }
+
+            // Normal Cart (Default, e.g. clicking global navbar "My Cart")
+            var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
+            return View(normalCart);
         }
 
         [HttpPost]
-        public ActionResult CartSubItemsRead(
+        public async Task<ActionResult> CartSubItemsRead(
             [DataSourceRequest] DataSourceRequest request,
-            Guid parentItemId)
+            Guid parentItemId, string mode = null, Guid? requestId = null)
         {
-            var cartItem = GetCart().Items.SingleOrDefault(x => x.Id == parentItemId);
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            var cartItem = cart.Items.SingleOrDefault(x => x.Id == parentItemId);
             var subItems = cartItem == null
                 ? new List<CartSubItemViewModel>()
-                : EnsureSubItems(cartItem);
+                : cartItem.SubItems;
 
             return Json(subItems.ToDataSourceResult(request));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateCartSubItem(
+        public async Task<ActionResult> CreateCartSubItem(
             [DataSourceRequest] DataSourceRequest request,
             Guid parentItemId,
-            CartSubItemViewModel subItem)
+            CartSubItemViewModel subItem, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart)) ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            var userId = User.Identity.GetUserId();
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(cart))
+            {
+                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            }
+
             var cartItem = cart.Items.SingleOrDefault(x => x.Id == parentItemId);
 
-            // These values are generated and assigned by the server. Kendo sends
-            // an empty Id for a newly inserted row, which MVC records as a
-            // binding error for the non-nullable Guid before this action runs.
             ModelState.Remove("Id");
             ModelState.Remove("subItem.Id");
             ModelState.Remove("ParentItemId");
@@ -407,11 +411,14 @@ namespace iLgs.Controllers
 
             if (ModelState.IsValid)
             {
-                subItem.Id = Guid.NewGuid();
-                subItem.ParentItemId = parentItemId;
-                EnsureSubItems(cartItem).Add(subItem);
-                RenumberCartSubItems(cartItem);
-                SaveCart(cart);
+                try
+                {
+                    subItem = await _cartService.AddSubItemAsync(userId, parentItemId, subItem, User.Identity.Name, mode, requestId);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             return Json(new[] { subItem }.ToDataSourceResult(request, ModelState));
@@ -419,32 +426,28 @@ namespace iLgs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UpdateCartSubItem(
+        public async Task<ActionResult> UpdateCartSubItem(
             [DataSourceRequest] DataSourceRequest request,
             Guid parentItemId,
-            CartSubItemViewModel subItem)
+            CartSubItemViewModel subItem, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart)) ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
-            var cartItem = cart.Items.SingleOrDefault(x => x.Id == parentItemId);
-            var existing = cartItem == null
-                ? null
-                : EnsureSubItems(cartItem).SingleOrDefault(x => x.Id == subItem.Id);
-
-            if (existing == null)
+            var userId = User.Identity.GetUserId();
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(cart))
             {
-                ModelState.AddModelError("", "The cart sub-item no longer exists.");
+                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
             }
 
             if (ModelState.IsValid)
             {
-                existing.Description = subItem.Description;
-                existing.Unit = subItem.Unit;
-                existing.Quantity = subItem.Quantity;
-                existing.UnitCost = subItem.UnitCost;
-                RenumberCartSubItems(cartItem);
-                SaveCart(cart);
-                subItem = existing;
+                try
+                {
+                    subItem = await _cartService.UpdateSubItemAsync(userId, parentItemId, subItem, User.Identity.Name, mode, requestId);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             return Json(new[] { subItem }.ToDataSourceResult(request, ModelState));
@@ -452,32 +455,39 @@ namespace iLgs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult RemoveCartSubItem(
+        public async Task<ActionResult> RemoveCartSubItem(
             [DataSourceRequest] DataSourceRequest request,
             Guid parentItemId,
-            CartSubItemViewModel subItem)
+            CartSubItemViewModel subItem, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart)) ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
-            var cartItem = cart.Items.SingleOrDefault(x => x.Id == parentItemId);
-            var existing = cartItem == null
-                ? null
-                : EnsureSubItems(cartItem).SingleOrDefault(x => x.Id == subItem.Id);
-
-            if (existing != null && ModelState.IsValid)
+            var userId = User.Identity.GetUserId();
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(cart))
             {
-                cartItem.SubItems.Remove(existing);
-                RenumberCartSubItems(cartItem);
-                SaveCart(cart);
+                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _cartService.RemoveSubItemAsync(userId, parentItemId, subItem.Id, User.Identity.Name, mode, requestId);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             return Json(new[] { subItem }.ToDataSourceResult(request, ModelState));
         }
 
         [HttpPost]
-        public ActionResult CartRead([DataSourceRequest] DataSourceRequest request)
+        public async Task<ActionResult> CartRead([DataSourceRequest] DataSourceRequest request, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
 
             return Json(
                 cart.Items.ToDataSourceResult(request),
@@ -489,10 +499,15 @@ namespace iLgs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateCartItem(
             [DataSourceRequest] DataSourceRequest request,
-            CartItemViewModel updatedItem)
+            CartItemViewModel updatedItem, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart)) ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(cart))
+            {
+                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            }
 
             var cartItem = cart.Items.SingleOrDefault(x => x.Id == updatedItem.Id);
 
@@ -504,71 +519,65 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("Quantity", "Quantity must be at least 1.");
             }
-            else if (String.IsNullOrWhiteSpace(updatedItem.Description))
+            else if (string.IsNullOrWhiteSpace(updatedItem.Description))
             {
                 ModelState.AddModelError("Description", "Description is required.");
             }
             else
             {
-                // Get the current remaining quantity from your procurement-plan source.
-                var procurementItem = await _ppmpService.PPMPItem.GetByIdAsync(updatedItem.Id);
-
-                if (procurementItem == null)
+                try
                 {
-                    ModelState.AddModelError("", "The procurement item no longer exists.");
+                    var result = await _cartService.UpdateItemAsync(
+                        userId, updatedItem.Id, updatedItem.Quantity, updatedItem.Description, User.Identity.Name, mode, requestId);
+                    if (result != null)
+                    {
+                        cartItem = result;
+                    }
                 }
-                else if (updatedItem.Quantity > procurementItem.QtyBal.GetValueOrDefault() +
-                    (cart.IsRevision && cart.RequestId.HasValue
-                        ? (await _db.PPMPItemUsages.Where(x => x.PrId == cart.RequestId.Value && x.PpmpItemId == updatedItem.Id)
-                            .Select(x => x.Qty).FirstOrDefaultAsync()).GetValueOrDefault()
-                        : 0))
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError(
-                        "Quantity",
-                        "Quantity cannot exceed the remaining quantity of " +
-                        procurementItem.QtyBal + "."
-                    );
-                }
-                else
-                {
-                    // Description is intentionally user-editable for the PR.
-                    // Item identity, unit, and cost remain server-controlled.
-                    cartItem.Description = updatedItem.Description.Trim();
-                    cartItem.Quantity = updatedItem.Quantity;
-
-                    SaveCart(cart);
+                    ModelState.AddModelError("Quantity", ex.Message);
                 }
             }
 
-            return Json(new[] { cartItem ?? updatedItem }
-                .ToDataSourceResult(request, ModelState));
+            return Json(new[] { cartItem ?? updatedItem }.ToDataSourceResult(request, ModelState));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult RemoveCartItem(
+        public async Task<ActionResult> RemoveCartItem(
             [DataSourceRequest] DataSourceRequest request,
-            CartItemViewModel item)
+            CartItemViewModel item, string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
-            if (!CanWriteRevisionCart(cart)) ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
-
-            var cartItem = cart.Items.SingleOrDefault(x => x.Id == item.Id);
-
-            if (cartItem != null && ModelState.IsValid)
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(cart))
             {
-                cart.Items.Remove(cartItem);
-                RenumberCartItems(cart);
-                SaveCart(cart);
+                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _cartService.RemoveItemAsync(userId, item.Id, User.Identity.Name, mode, requestId);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             return Json(new[] { item }.ToDataSourceResult(request, ModelState));
         }
 
         [HttpGet]
-        public JsonResult CartSummary()
+        public async Task<JsonResult> CartSummary(string mode = null, Guid? requestId = null)
         {
-            var cart = GetCart();
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
+            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
 
             return Json(new
             {
@@ -576,16 +585,60 @@ namespace iLgs.Controllers
                 itemCount = cart.Items.Count,
                 estimatedTotal = cart.EstimatedTotal
             }, JsonRequestBehavior.AllowGet);
-        }        
+        }
 
         [HttpGet]
-        public async Task<ActionResult> Checkout()
+        public async Task<JsonResult> CartCount()
         {
-            var cart = GetCart();
+            var userId = User.Identity.GetUserId();
+            var count = await _cartService.GetCartCountAsync(userId);
+
+            return Json(new
+            {
+                cartCount = count
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Checkout(string mode = null, Guid? requestId = null)
+        {
+            var userId = User.Identity.GetUserId();
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue)
+            {
+                requestId = Session["ActiveAdminEditRequestId"] as Guid?;
+            }
+            else if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue)
+            {
+                requestId = Session["ActiveRevisionRequestId"] as Guid?;
+            }
+
+            ProcurementCart cartEntity = null;
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId);
+            }
+            else if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId);
+            }
+            else
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+            }
+            if (cartEntity == null)
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId);
+            }
+            if (cartEntity == null)
+            {
+                TempData["Message"] = "Your procurement cart is empty.";
+                return RedirectToAction("Annual");
+            }
+            var cart = _cartService.MapEntityToViewModel(cartEntity);
 
             if (!CanWriteRevisionCart(cart))
             {
-                SaveCart(new CartViewModel());
+                await _cartService.ClearCartAsync(userId, User.Identity.Name, CartModes.Revision, cart.RequestId);
                 TempData["Message"] = "This Purchase Request is no longer available for revision.";
                 return RedirectToAction("Index", "Requests");
             }
@@ -600,6 +653,20 @@ namespace iLgs.Controllers
             {
                 TempData["Message"] = "Your department info is empty.";
                 return RedirectToAction("Annual");
+            }
+
+            var access = await Access(userId, "requests");
+            if (!access.IsAllowed)
+            {
+                return new HttpStatusCodeResult(403, "Access to Purchase Requests is denied.");
+            }
+            if (!cart.IsRevision && !access.AllowAdd)
+            {
+                return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+            }
+            if (cart.IsRevision && !access.AllowEdit)
+            {
+                return new HttpStatusCodeResult(403, "You are not authorized to edit Purchase Requests.");
             }
 
             var departments = await GetAuthorizedDepartmentsAsync();
@@ -621,6 +688,7 @@ namespace iLgs.Controllers
             var model = new PurchaseRequestViewModel
             {
                 CheckoutToken = checkoutToken,
+                CartId = cartEntity.Id,
                 ProcurementFiscalYear = cart.FiscalYear.Value,
                 DeptId = selectedDepartment.Id,
                 Department = selectedDepartment.Description,
@@ -655,22 +723,86 @@ namespace iLgs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Checkout(PurchaseRequestViewModel model)
         {
-            var cart = GetCart();
+            var userId = User.Identity.GetUserId();
+            ProcurementCart cartEntity = null;
+            if (string.Equals(model.CartMode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
+            {
+                var reqId = model.SourceRequestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, reqId);
+            }
+            else if (string.Equals(model.CartMode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, model.SourceRequestId);
+            }
+            else
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+            }
+            if (cartEntity == null)
+            {
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId);
+            }
+            if (cartEntity == null)
+            {
+                ModelState.AddModelError("", "Your procurement cart is empty or has expired.");
+                return View(model);
+            }
+            var cart = _cartService.MapEntityToViewModel(cartEntity);
 
             // Do not use Items, costs, or quantities posted by the browser.
+            model.CartId = cartEntity.Id;
             model.Items = cart.Items;
             model.RequestId = cart.RequestId;
             model.IsRevision = cart.IsRevision;
             model.Status = cart.Status;
             model.ReviewComment = cart.ReviewComment;
             model.RevisionNo = cart.RevisionNo;
+            model.CartMode = cart.CartMode;
+            model.SourceRequestId = cart.SourceRequestId;
 
-            if (!CanWriteRevisionCart(cart))
+            var access = await Access(userId, "requests");
+            if (!access.IsAllowed)
+            {
+                return new HttpStatusCodeResult(403, "Access to Purchase Requests is denied.");
+            }
+            if (cart.IsAdminEdit)
+            {
+                if (!access.AllowEdit && !access.IsAdmin)
+                {
+                    return new HttpStatusCodeResult(403, "You are not authorized to perform an administrative edit on Purchase Requests.");
+                }
+            }
+            else if (!cart.IsRevision && !access.AllowAdd)
+            {
+                return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+            }
+            if (cart.IsRevision && !access.AllowEdit)
+            {
+                return new HttpStatusCodeResult(403, "You are not authorized to edit Purchase Requests.");
+            }
+            if (cart.IsRevision)
+            {
+                if (!access.IsAdmin && !string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new HttpStatusCodeResult(403, "Only the original requester can submit this revision.");
+                }
+            }
+
+            if (cart.IsAdminEdit)
+            {
+                if (!CanWriteAdminEditCart(cart))
+                {
+                    ModelState.AddModelError("", "This Purchase Request is no longer available for administrative edit.");
+                }
+            }
+            else if (!CanWriteRevisionCart(cart))
+            {
                 ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+            }
 
             var expectedToken = Session[CheckoutTokenSessionKey] as string;
-            if (String.IsNullOrWhiteSpace(expectedToken) ||
-                !String.Equals(expectedToken, model.CheckoutToken, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(expectedToken) ||
+                !string.Equals(expectedToken, model.CheckoutToken, StringComparison.Ordinal))
             {
                 ModelState.AddModelError(
                     "",
@@ -703,10 +835,10 @@ namespace iLgs.Controllers
 
             foreach (var cartItem in cart.Items)
             {
-                foreach (var subItem in EnsureSubItems(cartItem))
+                foreach (var subItem in cartItem.SubItems ?? Enumerable.Empty<CartSubItemViewModel>())
                 {
-                    if (String.IsNullOrWhiteSpace(subItem.Description) ||
-                        String.IsNullOrWhiteSpace(subItem.Unit) ||
+                    if (string.IsNullOrWhiteSpace(subItem.Description) ||
+                        string.IsNullOrWhiteSpace(subItem.Unit) ||
                         subItem.Quantity <= 0 ||
                         subItem.UnitCost < 0)
                     {
@@ -725,7 +857,6 @@ namespace iLgs.Controllers
                         "",
                         cartItem.Code + " no longer exists in the procurement plan."
                     );
-
                     continue;
                 }
 
@@ -740,7 +871,7 @@ namespace iLgs.Controllers
                     continue;
                 }
 
-                var ownUsage = cart.IsRevision && cart.RequestId.HasValue
+                var ownUsage = (cart.IsRevision || cart.IsAdminEdit) && cart.RequestId.HasValue
                     ? await _db.PPMPItemUsages.Where(x => x.PrId == cart.RequestId.Value && x.PpmpItemId == cartItem.Id)
                         .Select(x => x.Qty).FirstOrDefaultAsync()
                     : 0;
@@ -772,28 +903,25 @@ namespace iLgs.Controllers
                 return View(model);
             }
 
-            /*
-               Create the Purchase Request and its request lines here using
-               _requestService. Use model.Purpose, model.Department, model.FundCluster,
-               model.RequestedBy, and cart.Items.
-
-               Do not use the PurchaseRequestNo posted by the client. Generate it
-               server-side in the service/database.
-            */
-
-            // Example:
-            // var requestId = await _requestService.CreateAsync(model, cart.Items);
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var pr = cart.IsRevision
-                ? await _requestService.SaveRevisionCheckoutAsync(model, user, DateTime.Now)
-                : await _requestService.SaveCheckoutAsync(model, user, DateTime.Now);
+            var pr = cart.IsAdminEdit
+                ? await _requestService.SaveAdminEditCheckoutAsync(model, user, DateTime.Now)
+                : (cart.IsRevision
+                    ? await _requestService.SaveRevisionCheckoutAsync(model, user, DateTime.Now)
+                    : await _requestService.SaveCheckoutAsync(model, user, DateTime.Now));
 
             Session.Remove(CheckoutTokenSessionKey);
-            SaveCart(new CartViewModel());
+            Session.Remove("ActiveAdminEditRequestId");
+
+            if (cart.IsAdminEdit)
+            {
+                TempData["Message"] = "Purchase Request updated successfully. Please review the changes before posting.";
+                return RedirectToAction("Posting", "Requests");
+            }
 
             TempData["Message"] = cart.IsRevision
-                ? $"Purchase request revision {pr.RevisionNo} was resubmitted successfully. Control Number is {pr.CtrlNo}."
-                : $"Purchase request was submitted successfully. Control Number is {pr.CtrlNo}.";
+                ? string.Format("Purchase request revision {0} was resubmitted successfully. Control Number is {1}.", pr.RevisionNo, pr.CtrlNo)
+                : string.Format("Purchase request was submitted successfully. Control Number is {0}.", pr.CtrlNo);
 
             return RedirectToAction("Annual");
         }
@@ -806,85 +934,66 @@ namespace iLgs.Controllers
                 .ToList();
         }
 
-        private bool CanWriteRevisionCart(CartViewModel cart)
+                [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
+        public async Task<ActionResult> CancelAdminEdit(Guid? requestId = null)
         {
-            if (cart == null || !cart.IsRevision)
+            var userId = User.Identity.GetUserId();
+            var activeAdminEditId = requestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
+            var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, activeAdminEditId);
+            if (cartEntity != null && ProcurementCartService.GetCartMode(cartEntity) == CartModes.AdminEdit)
+            {
+                await _cartService.AbandonCartAsync(cartEntity.Id, User.Identity.Name);
+            }
+            Session.Remove("ActiveAdminEditRequestId");
+            TempData["Message"] = "Admin Edit cancelled. No changes were made to the Purchase Request.";
+            return RedirectToAction("Posting", "Requests");
+        }
+
+        private bool CanWriteAdminEditCart(CartViewModel cart)
+        {
+            if (cart == null || !cart.IsAdminEdit)
+            {
                 return true;
+            }
             if (!cart.RequestId.HasValue || cart.RequestId.Value == Guid.Empty)
+            {
                 return false;
+            }
 
             var requestExists = _db.Requests.AsNoTracking().Any(x => x.Id == cart.RequestId.Value);
-            if (!requestExists || !String.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            if (!requestExists)
+            {
                 return false;
+            }
             var status = _db.DocumentStatusHistories.AsNoTracking()
                 .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == cart.RequestId.Value)
                 .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
                 .Select(x => x.ToStatus).FirstOrDefault();
-            return String.Equals(status, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(status, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(status, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
         }
 
-        private CartViewModel GetCart()
+        private bool CanWriteRevisionCart(CartViewModel cart)
         {
-            var cart = Session[CartSessionKey] as CartViewModel;
-
-            if (cart == null)
+            if (cart == null || !cart.IsRevision)
             {
-                cart = new CartViewModel();
+                return true;
             }
-            else if (cart.Items == null)
+            if (!cart.RequestId.HasValue || cart.RequestId.Value == Guid.Empty)
             {
-                cart.Items = new List<CartItemViewModel>();
-            }
-
-            RenumberCartItems(cart);
-            Session[CartSessionKey] = cart;
-
-            return cart;
-        }
-
-        private void SaveCart(CartViewModel cart)
-        {
-            Session[CartSessionKey] = cart;
-        }
-
-        [HttpGet]
-        public JsonResult CartCount()
-        {
-            var cart = GetCart();
-
-            return Json(new
-            {
-                cartCount = cart.Items.Count
-            }, JsonRequestBehavior.AllowGet);
-        }
-
-        private static void RenumberCartItems(CartViewModel cart)
-        {
-            for (var index = 0; index < cart.Items.Count; index++)
-            {
-                cart.Items[index].ItemNo = (index + 1).ToString();
-                RenumberCartSubItems(cart.Items[index]);
-            }
-        }
-
-        private static IList<CartSubItemViewModel> EnsureSubItems(CartItemViewModel cartItem)
-        {
-            if (cartItem.SubItems == null)
-            {
-                cartItem.SubItems = new List<CartSubItemViewModel>();
+                return false;
             }
 
-            return cartItem.SubItems;
-        }
-
-        private static void RenumberCartSubItems(CartItemViewModel cartItem)
-        {
-            var subItems = EnsureSubItems(cartItem);
-            for (var index = 0; index < subItems.Count; index++)
+            var requestExists = _db.Requests.AsNoTracking().Any(x => x.Id == cart.RequestId.Value);
+            if (!requestExists || !string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                subItems[index].ParentItemId = cartItem.Id;
-                subItems[index].ItemNo = cartItem.ItemNo + "." + (index + 1);
+                return false;
             }
+            var status = _db.DocumentStatusHistories.AsNoTracking()
+                .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == cart.RequestId.Value)
+                .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
+                .Select(x => x.ToStatus).FirstOrDefault();
+            return string.Equals(status, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

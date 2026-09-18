@@ -1,0 +1,79 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var activity = Model != null && Model.UserDashboard != null ? Model.UserDashboard.MyMonthlyActivity : null;
+    var months = new List<string>();
+    var counts = new List<int>();
+
+    if (activity != null && activity.Any())
+    {
+        foreach (var a in activity)
+        {
+            months.Add(a.MonthName);
+            counts.Add(a.CompletedCount);
+        }
+    }
+    var totalActivity = counts.Sum();
+}
+
+<div class="chart-card user-activity-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-chart-line chart-icon"></span>
+            <div>
+                <h3 class="chart-title">My Activity This Fiscal Year</h3>
+                <span class="chart-subtitle">Monthly transaction events and submissions by you</span>
+            </div>
+        </div>
+        <span class="dash-count-badge badge-neutral">@totalActivity Total</span>
+    </div>
+
+    <div class="chart-card-body">
+        @if (totalActivity > 0)
+        {
+            <div id="userActivityTrendChart" class="kendo-dash-chart" style="height: 180px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var months = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(months));
+                    var data = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(counts));
+
+                    $("#userActivityTrendChart").kendoChart({
+                        title: { visible: false },
+                        legend: { visible: false },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "column",
+                            color: "#0284c7"
+                        },
+                        series: [
+                            {
+                                name: "Completed Actions",
+                                data: data
+                            }
+                        ],
+                        categoryAxis: {
+                            categories: months,
+                            majorGridLines: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: { format: "{0:N0}" }
+                        },
+                        tooltip: {
+                            visible: true,
+                            template: "#= category #: <strong>#= value # actions</strong>"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 180px;">
+                <span class="k-icon k-i-clock empty-icon"></span>
+                <div class="empty-title">No Recorded Activity This FY</div>
+                <p class="empty-subtext">Transactions will register here as you create and submit documents.</p>
+            </div>
+        }
+    </div>
+</div>

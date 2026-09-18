@@ -1,0 +1,93 @@
+@model iLgs.Models.PropertyCardComponentVM
+
+<div class="pc-component-editor p-3">
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.PsCardItemId)
+    @Html.HiddenFor(m => m.AIRSubItemId)
+    @Html.HiddenFor(m => m.IsAirSource)
+
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
+    <div id="pcComponentAirAlert" class="alert alert-info" style="display: none;">
+        <i class="fa fa-shield"></i> <strong>Sourced from AIR:</strong> Core definition fields (Description, Qty, Qty Per Parent, Source Type, Bundle Requirement) are source-controlled and cannot be edited.
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Sub Item No.</label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.SubItemNo, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", placeholder = "Auto-generated if blank" })
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Description <span class="text-danger">*</span></label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.Description, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", required = "required" })
+            @Html.ValidationMessageFor(m => m.Description)
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Unit <span class="text-danger">*</span></label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.Unit, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", required = "required", placeholder = "pc, set, unit..." })
+            @Html.ValidationMessageFor(m => m.Unit)
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Total Qty <span class="text-danger">*</span></label>
+        <div class="col-sm-9">
+            @(Html.Kendo().NumericTextBoxFor(m => m.Qty)
+                .Min(1)
+                .Decimals(0)
+                .Format("n0")
+                .HtmlAttributes(new { style = "width:100%; max-width: 100%;", @class = "w-100", required = "required" }))
+            @Html.ValidationMessageFor(m => m.Qty)
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Qty Per Parent</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().NumericTextBoxFor(m => m.QtyPerParent)
+                .Min(0)
+                .Decimals(0)
+                .Format("n0")
+                .HtmlAttributes(new { style = "width:100%; max-width: 100%;", @class = "w-100", placeholder = "e.g. 1 or 2 per parent unit" }))
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Source Type</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().DropDownListFor(m => m.SourceType)
+                .BindTo(new[] { "ORDERED", "FREEBIE", "INSPECTION_ADDED", "MANUAL" })
+                .HtmlAttributes(new { style = "width:100%; max-width: 100%;", @class = "w-100" }))
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Bundle Req.</label>
+        <div class="col-sm-9 d-flex align-items-center" style="padding-top: 6px;">
+            @Html.CheckBoxFor(m => m.IsRequiredForBundle, new { id = "IsRequiredForBundle" })
+            <label for="IsRequiredForBundle" style="margin-left: 8px; margin-bottom: 0; font-weight: normal; cursor: pointer;">Required for Bundle</label>
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Unit Cost</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost)
+                .Min(0)
+                .Format("n2")
+                .HtmlAttributes(new { style = "width:100%; max-width: 100%;", @class = "w-100" }))
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Remarks</label>
+        <div class="col-sm-9">
+            @Html.TextAreaFor(m => m.Remarks, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", rows = "2" })
+        </div>
+    </div>
+</div>

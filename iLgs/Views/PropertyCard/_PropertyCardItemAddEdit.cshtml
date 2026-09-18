@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItemVM
+@model iLgs.Models.PsCardItemVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -9,6 +9,7 @@
     @Html.HiddenFor(model => model.PsCardId)
     @Html.HiddenFor(model => model.OrderItemRequestId)
 
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -247,6 +248,10 @@
     $("#btnSave_" + '@ViewData["cardId"]').click(function (e) {
         e.preventDefault();
         var btn = this;
+        var $popup = $("#btnSave_" + '@ViewData["cardId"]').closest(".k-window-content");
+        if (typeof clearPropertyCardPopupError === 'function') {
+            clearPropertyCardPopupError($popup);
+        }
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
@@ -260,13 +265,22 @@
                 data: $("#form").serialize()
             }).done(function (result) {
                 if (result.Errors == "") {
-                    $("#btnSave_" + '@ViewData["cardId"]').closest(".k-window-content").data("kendoWindow").close();
+                    $popup.data("kendoWindow").close();
                 }
                 else {
-                    alert(result.Errors);
+                    if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                        showPropertyCardPopupError($popup, result.Errors);
+                    } else {
+                        notifyWarning(result.Errors);
+                    }
                 }
             }).fail(function (req) {
-                alert(req.responseText);
+                var msg = typeof ajaxFailureMessage === 'function' ? ajaxFailureMessage(req, "Failed to save item.") : "Failed to save item.";
+                if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                    showPropertyCardPopupError($popup, msg);
+                } else {
+                    notifyWarning(msg);
+                }
             }).always(function () {
                 propertyCardButtonStop(btn);
             });

@@ -1,0 +1,67 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var kpis = Model != null && Model.UserDashboard != null ? Model.UserDashboard.PersonalKpis : null;
+    if (kpis == null) { kpis = new iLgs.Models.UserPersonalKpiVM(); }
+}
+
+<div class="user-kpi-strip">
+    <!-- 1. My Open Work -->
+    <a href="@Url.Action("Index", "Requests")" class="user-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">My Open Work</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-file-add"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.MyOpenWork.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.MyDrafts.ToString("N0") drafts</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.MyInProgress.ToString("N0") in-progress</span>
+        </div>
+    </a>
+
+    <!-- 2. Needs My Attention -->
+    <a href="#userAttentionSection" class="user-kpi-card @(kpis.NeedsMyAttention > 0 ? "kpi-card-attention" : "")">
+        <div class="kpi-top">
+            <span class="kpi-label @(kpis.NeedsMyAttention > 0 ? "label-attention" : "")">Needs My Attention</span>
+            <div class="kpi-icon-box @(kpis.NeedsMyAttention > 0 ? "kpi-box-danger" : "")">
+                <span class="k-icon k-i-bell"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val @(kpis.NeedsMyAttention > 0 ? "val-danger" : "")">@kpis.NeedsMyAttention.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@(kpis.NeedsMyAttention > 0 ? "Requires correction/action" : "All caught up")</span>
+        </div>
+    </a>
+
+    <!-- 3. My Property Accountability -->
+    <a href="@Url.Action("Index", "IcsSet")" class="user-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">My Accountability</span>
+            <div class="kpi-icon-box">
+                <span class="k-icon k-i-user"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val">@kpis.MyAccountabilityCount.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>@kpis.MyParCount.ToString("N0") PAR</span>
+            <span class="kpi-sep">&bull;</span>
+            <span>@kpis.MyIcsCount.ToString("N0") ICS</span>
+        </div>
+    </a>
+
+    <!-- 4. Completed This Fiscal Year -->
+    <a href="@Url.Action("Index", "Requests")" class="user-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">Completed This FY</span>
+            <div class="kpi-icon-box kpi-box-success">
+                <span class="k-icon k-i-check-circle"></span>
+            </div>
+        </div>
+        <div class="kpi-main-val val-success">@kpis.CompletedThisFiscalYear.ToString("N0")</div>
+        <div class="kpi-sub-text">
+            <span>Posted in FY @(Model != null ? Model.FiscalYear : DateTime.Now.Year)</span>
+        </div>
+    </a>
+</div>

@@ -30,8 +30,8 @@ namespace iLgs.Models
 
 
         //[Required]
-        //[Display(Name = "Department")]
-        //public Nullable<System.Guid> DeptId { get; set; }
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
 
         [Display(Name = "Department Display")]
         public string Department { get; set; }

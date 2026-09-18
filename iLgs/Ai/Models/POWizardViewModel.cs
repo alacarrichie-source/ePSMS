@@ -44,6 +44,8 @@ namespace iLgs.Ai.Models
         public string GroupName { get; set; } // e.g. "PO Group 1"
         public string PONumber { get; set; }
         public string PRNumber { get; set; }
+        public Guid? DeptId { get; set; }
+        public string Department { get; set; }
         public string DepartmentName { get; set; }
         public List<POGroupSourcePRViewModel> SourcePRs { get; set; }
         public Guid? SupplierId { get; set; }
@@ -122,6 +124,8 @@ namespace iLgs.Ai.Models
         public string PRNumber { get; set; }
         public Guid? DepartmentId { get; set; }
         public string DepartmentName { get; set; }
+        public Guid? DeptId { get => DepartmentId; set => DepartmentId = value; }
+        public string Department { get => DepartmentName; set => DepartmentName = value; }
     }
 
     public class POItemAllocationDraftViewModel

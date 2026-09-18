@@ -1,4 +1,4 @@
-﻿@*Index.cshtml*@
+@*Index.cshtml*@
 @using Kendo.Mvc.UI
 @using iLgs.Ai.Models
 
@@ -11,182 +11,263 @@
     var resumeDraftUrl = Url.Action("Wizard", "PurchaseOrders");
 }
 
-<div class="epsms-procurement po-wizard">
-    @Html.AntiForgeryToken()
-    <!-- Breadcrumbs -->
-    @*<div class="breadcrumbs">
-        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
-        <a href="@Url.Action("Index", "Procurement")">Procurement</a> &gt;
-        <span>Purchase Orders</span>
-    </div>*@
+<link href="@Url.Content("~/Content/purchase-orders.css")?v=20260916_1" rel="stylesheet" type="text/css" />
 
-    <!-- Header Bar -->
-    <div class="header-bar">
-        <div>
-            <h1>Purchase Orders</h1>
-            <p class="subtitle">Local Government Unit procurement obligations, PO status tracking, and GAM Form 101-A generation.</p>
+<div class="po-workspace epsms-purchase-orders">
+    @Html.AntiForgeryToken()
+
+    <!-- PAGE HEADER (Aligned with PpmpAcctgCode/Index) -->
+    <div class="po-header">
+        <div class="po-title-group">
+            <h2>
+                <span class="po-title-icon"><span class="k-icon k-i-file-data"></span></span>
+                Purchase Orders
+            </h2>
+            <p class="po-subtitle">Local Government Unit procurement obligations, PO status tracking, and GAM Form 101-A generation.</p>
         </div>
-        <div class="action-toolbar">
-            <a href="@Url.Action("Wizard", "PurchaseOrders")" class="k-button k-button-solid-primary k-rounded-md">
+        <div class="po-header-actions">
+            <a href="@Url.Action("Wizard", "PurchaseOrders")" class="btn-primary-action">
                 <span class="k-icon k-i-plus"></span> Generate New PO
             </a>
+            <button type="button" class="btn-secondary-action" onclick="refreshPOGrid()" title="Refresh Purchase Orders grid">
+                <span class="k-icon k-i-reload"></span> Refresh
+            </button>
         </div>
     </div>
 
-    <section class="wizard-drafts-card" aria-labelledby="wizardDraftsHeading">
-        <div class="wizard-drafts-header">
-            <div>
-                <h2 id="wizardDraftsHeading">My Drafts</h2>
-                <p>Continue an unfinished Purchase Order wizard from where you stopped.</p>
+    <!-- KPI SUMMARY CARDS (Aligned with PpmpAcctgCode/Index) -->
+    <div class="po-metrics-row">
+        <div class="po-metric-card active" id="cardKpiTotal" onclick="filterByKpi('')" title="Click to view all Purchase Orders">
+            <div class="po-metric-header">
+                <span class="po-metric-label">Total Purchase Orders</span>
+                <span class="po-metric-dot dot-total"></span>
             </div>
-            <span class="k-icon k-i-save wizard-drafts-icon" aria-hidden="true"></span>
+            <div class="po-metric-value-row">
+                <span class="po-metric-number" id="kpiTotalOrders">0</span>
+                <span class="po-metric-subtext">All Orders</span>
+            </div>
         </div>
 
-        @(Html.Kendo().Grid<POWizardDraftListItemViewModel>()
-            .Name("MyWizardDraftsGrid")
-            .Columns(columns =>
-            {
-                columns.Bound(d => d.DraftName).Title("Draft").Width(190);
-                columns.Bound(d => d.SelectedPRCount).Title("Selected PRs").Width(110)
-                    .HtmlAttributes(new { @class = "text-center" });
-                columns.Bound(d => d.CurrentStep).Title("Progress").Width(190)
-                    .ClientTemplate(
-                        "<span class='wizard-draft-step'>Step #=CurrentStep# of 4</span>" +
-                        "<span class='wizard-draft-step-name'>#=wizardDraftStepName(CurrentStep)#</span>");
-                columns.Bound(d => d.LastUpdatedAt).Title("Last Saved")
-                    .Format("{0:MMM dd, yyyy h:mm tt}").Width(190);
-                columns.Bound(d => d.Id).Title("Actions").Width(180)
-                    .Sortable(false).Filterable(false)
-                    .ClientTemplate(
-                        "<div class='wizard-draft-actions'>" +
-                            "<a class='btn-procurement-primary' href='" + resumeDraftUrl + "?draftId=#=Id#'>" +
-                                "<span class='k-icon k-i-arrow-right'></span> Resume" +
-                            "</a>" +
-                            "<button type='button' class='btn-procurement-secondary' onclick=\"discardWizardDraft('#=Id#')\">Discard</button>" +
-                        "</div>");
-            })
-            .NoRecords()
-            .Sortable()
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(10)
-                .Read(read => read.Action("MyWizardDrafts_Read", "PurchaseOrders"))
-                .Sort(sort => sort.Add(d => d.LastUpdatedAt).Descending())
-            )
-        )
-    </section>
-
-    <!-- Filter Panel -->
-    <div class="filter-panel">
-        <div class="filter-row">
-            <div class="search">
-                <label for="searchPO">Search Purchase Orders</label>
-                <input id="searchPO" type="text" class="form-control-custom" placeholder="Search by PO Number, Supplier name, PR reference..." onkeyup="onSearchFilter(this.value)" />
+        <div class="po-metric-card" id="cardKpiPosted" onclick="filterByKpi('Posted')" title="Click to filter by Posted obligations">
+            <div class="po-metric-header">
+                <span class="po-metric-label">Posted</span>
+                <span class="po-metric-dot dot-posted"></span>
             </div>
-            <div>
-                <label for="statusFilter">Status Filter</label>
-                <select id="statusFilter" class="form-control-custom" onchange="onStatusFilter(this.value)">
+            <div class="po-metric-value-row">
+                <span class="po-metric-number" id="kpiPostedOrders">0</span>
+                <span class="po-metric-subtext">Obligated</span>
+            </div>
+        </div>
+
+        @*<div class="po-metric-card" id="cardKpiDraft" onclick="filterByKpi('Draft')" title="Click to filter by Draft Purchase Orders">
+            <div class="po-metric-header">
+                <span class="po-metric-label">Draft Orders</span>
+                <span class="po-metric-dot dot-draft"></span>
+            </div>
+            <div class="po-metric-value-row">
+                <span class="po-metric-number" id="kpiDraftOrders">0</span>
+                <span class="po-metric-subtext">Unposted</span>
+            </div>
+        </div>*@
+
+        <div class="po-metric-card" id="cardKpiWithAir" onclick="filterByKpi('WithAIR')" title="Click to filter by orders with Inspection & Acceptance Report">
+            <div class="po-metric-header">
+                <span class="po-metric-label">With AIR</span>
+                <span class="po-metric-dot dot-air"></span>
+            </div>
+            <div class="po-metric-value-row">
+                <span class="po-metric-number" id="kpiWithAirOrders">0</span>
+                <span class="po-metric-subtext">Inspected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN PURCHASE ORDERS DIRECTORY CARD -->
+    <div class="po-card">
+        <div class="po-card-header">
+            <h3 class="po-card-title">
+                <span class="k-icon k-i-grid"></span> Purchase Orders Directory
+            </h3>
+            <span id="poGridStats" class="po-card-stats">Showing all records</span>
+        </div>
+
+        <!-- Integrated Search & Filter Toolbar (Directly above Grid) -->
+        <div class="po-toolbar">
+            <div class="po-search-container">
+                <span class="k-icon k-i-search po-search-icon"></span>
+                <input id="searchPO" type="text" class="po-search-input"
+                       placeholder="Search by PO Number, Supplier name, PR reference..." />
+            </div>
+
+            <div class="po-filter-group">
+                <select id="statusFilter" class="po-select" onchange="onStatusFilter(this.value)">
                     <option value="">All Statuses</option>
                     <option value="Posted">Posted</option>
                     <option value="Draft">Draft</option>
                     <option value="Cancelled">Cancelled</option>
+                    <option value="WithAIR">With AIR</option>
                 </select>
+
+                <button type="button" class="po-btn-reset" onclick="resetPOFilters()" title="Clear search and filters">
+                    <span class="k-icon k-i-reload"></span> Clear
+                </button>
             </div>
+        </div>
+
+        <!-- Main Kendo Grid Workspace -->
+        <div class="po-card-body">
+            @(Html.Kendo().Grid<PurchaseOrderGridViewModel>()
+                .Name("PurchaseOrdersGrid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.PONumber).Title("PO No.").Width(150).ClientTemplate(
+                        "<a href='javascript:void(0);' class='po-number-link' onclick=\"openPODetails('#=Id#')\">#=kendo.htmlEncode(PONumber)#</a>"
+                    );
+                    columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(130)
+                        .ClientTemplate("<span class='po-date-text'>#=PODate ? kendo.toString(kendo.parseDate(PODate), 'MMM dd, yyyy') : '&mdash;'#</span>");
+                    columns.Bound(p => p.SupplierName).Title("Supplier").Width(220)
+                        .ClientTemplate("<span class='po-supplier-text' title='#=SupplierName ? kendo.htmlEncode(SupplierName) : \"\"#'>#=SupplierName ? kendo.htmlEncode(SupplierName) : \"&mdash;\"#</span>");
+                    columns.Bound(p => p.SourcePRs).Title("Source PR(s)").Width(160)
+                        .ClientTemplate("# if (SourcePRs) { #<span class='po-pr-pill' title='#=kendo.htmlEncode(SourcePRs)#'>#=kendo.htmlEncode(SourcePRs)#</span># } else { #<span class='text-muted'>&mdash;</span># } #");
+                    columns.Bound(p => p.ItemCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
+                    columns.Bound(p => p.TotalAmount).Title("Total Amount").Format("{0:n2}").Width(160)
+                        .HtmlAttributes(new { style = "text-align:right;", @class = "text-right" })
+                        //.HeaderHtmlAttributes(new { style = "text-align:right;" })
+                        .ClientTemplate("<span class='po-amount-text'>#=kendo.toString(TotalAmount, 'n2')#</span>");
+                    columns.Bound(p => p.Status).Title("Status").Width(130).ClientTemplate(
+                        "# if (Status == 'Posted') { #" +
+                            "<span class='po-status-badge status-posted'><span class='po-badge-dot dot-badge-posted'></span>Posted</span>" +
+                        "# } else if (Status == 'Draft') { #" +
+                            "<span class='po-status-badge status-draft'><span class='po-badge-dot dot-badge-draft'></span>Draft</span>" +
+                        "# } else if (Status == 'Cancelled') { #" +
+                            "<span class='po-status-badge status-cancelled'><span class='po-badge-dot dot-badge-cancelled'></span>Cancelled</span>" +
+                        "# } else { #" +
+                            "<span class='po-status-badge'>#=kendo.htmlEncode(Status)#</span>" +
+                        "# } #"
+                    );
+                    columns.Bound(p => p.Id)
+                        .Title("Actions")
+                        .Width(150)
+                        .Sortable(false)
+                        .Filterable(false)
+                        .HtmlAttributes(new { @class = "text-right" })
+                        .HeaderHtmlAttributes(new { @class = "text-right" })
+                        .ClientTemplate(
+                            "<div class='po-actions-wrap'>" +
+                                "<button type='button' class='btn-action-icon btn-view' title='View Details' onclick=\"openPODetails('#=Id#')\">" +
+                                    "<span class='k-icon k-i-eye'></span>" +
+                                "</button>" +
+                                "<a href='" + printUrl + "?id=#=Id#' target='_blank' class='btn-action-icon btn-print' title='Print Form 101-A'>" +
+                                    "<span class='k-icon k-i-print'></span>" +
+                                "</a>" +
+                                "# if (Status && Status.toUpperCase() != 'POSTED' && !HasAIR) { #" +
+                                    "<a class='btn-secondary-action btn-sm' href='" + resumeDraftUrl + "?orderId=#=Id#'>Edit / Repost</a>" +
+                                    "<button type='button' class='btn-secondary-action btn-sm btn-danger-action' onclick=\"poLifecycleAction('#=Id#','delete')\">Delete</button>" +
+                                "# } else if (Status && Status.toUpperCase() == 'POSTED' && !HasPostedAIR) { #" +
+                                    "<button type='button' class='btn-secondary-action btn-sm btn-warning-action' onclick=\"poLifecycleAction('#=Id#','unpost')\">Unpost</button>" +
+                                "# } #" +
+                            //"<a href='" + pdfUrl + "/#=Id#' class='btn-action-icon btn-pdf' title='Download PDF'>" +
+                            //    "<span class='k-icon k-i-pdf'></span>" +
+                            //"</a>" +
+                            "</div>"
+                        );
+                })
+                .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }).Refresh(true))
+                .Sortable()
+                .Filterable()
+                .Groupable()
+                .Resizable(r => r.Columns(true))
+                .NoRecords(n => n.Template(
+                    "<div class='po-empty-state'>" +
+                        "<span class='k-icon k-i-folder-open po-empty-icon'></span>" +
+                        "<p>No Purchase Orders found</p>" +
+                        "<span class='po-empty-sub'>No records match your search query or selected status filter.</span>" +
+                        "<div style='margin-top: 10px;'><button type='button' class='btn-secondary-action' onclick='resetPOFilters()'><span class='k-icon k-i-reload'></span> Reset Filters</button></div>" +
+                    "</div>"
+                ))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read(read => read.Action("PurchaseOrders_Read", "PurchaseOrders"))
+                    .Sort(s => s.Add(p => p.PODate).Descending())
+                )
+                .Events(e => e.DataBound("onPoGridDataBound"))
+            )
         </div>
     </div>
 
-    <!-- Data Card: Kendo Grid -->
-    <div class="data-card">
-        @(Html.Kendo().Grid<PurchaseOrderGridViewModel>()
-            .Name("PurchaseOrdersGrid")
-            .Columns(columns =>
-            {
-                columns.Bound(p => p.PONumber).Title("PO No.").Width(150).ClientTemplate(
-                    "<a href='javascript:void(0);' class='fw-bold text-primary' onclick=\"openPODetails('#=Id#')\">#=PONumber#</a>"
-                );
-                columns.Bound(p => p.PODate).Title("PO Date").Format("{0:MMM dd, yyyy}").Width(130);
-                columns.Bound(p => p.SupplierName).Title("Supplier").Width(220);
-                columns.Bound(p => p.SourcePRs).Title("Source PR(s)").Width(160);
-                columns.Bound(p => p.ItemCount).Title("Items").Width(90).HtmlAttributes(new { @class = "text-center" });
-                columns.Bound(p => p.TotalAmount).Title("Total Amount").Format("{0:n2}").Width(160)
-                    .HtmlAttributes(new { style = "text-align:right;", @class = "text-right font-weight-bold" })
-                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                columns.Bound(p => p.Status).Title("Status").Width(130).ClientTemplate(
-                    "# if (Status == 'Posted') { #" +
-                        "<span class='status-badge status-posted'>Posted</span>" +
-                    "# } else if (Status == 'Draft') { #" +
-                        "<span class='status-badge status-draft'>Draft</span>" +
-                    "# } else if (Status == 'Cancelled') { #" +
-                        "<span class='status-badge status-cancelled'>Cancelled</span>" +
-                    "# } else { #" +
-                        "<span class='status-badge'>#=Status#</span>" +
-                    "# } #"
-                );
-                // ACTIONS
-                columns.Bound(p => p.Id)
-                    .Title("Actions")
-                    .Width(260)
-                    .Sortable(false)
-                    .Filterable(false)
-                    .ClientTemplate(
-                        "<div class='d-flex gap-1 justify-content-end'>" +
+    <!-- MANDATORY PRESERVED: MY WIZARD DRAFTS SECTION -->
+    <section class="po-card po-drafts-card" aria-labelledby="wizardDraftsHeading">
+        <div class="po-card-header">
+            <div class="po-drafts-header-text">
+                <h3 id="wizardDraftsHeading">
+                    <span class="k-icon k-i-save" style="color: #0284c7;"></span>
+                    My Drafts
+                </h3>
+                <p>Continue an unfinished Purchase Order wizard from where you stopped.</p>
+            </div>
+            <span id="wizardDraftsCountBadge" class="po-card-stats">Active Drafts</span>
+        </div>
 
-                            // View
-                            "<button type='button' " +
-                                "class='k-button k-button-sm k-button-flat-primary' " +
-                                "title='View Details' " +
-                                "onclick=\"openPODetails('#=Id#')\">" +
-                                "<span class='k-icon k-i-eye'></span>" +
-                            "</button>" +
-
-                            // Print
-                            "<a href='" + printUrl + "?id=#=Id#' " +
-                                "target='_blank' " +
-                                "class='k-button k-button-sm k-button-flat-secondary' " +
-                                "title='Print Form 101-A'>" +
-                                "<span class='k-icon k-i-print'></span>" +
-                            "</a>" +
-
-                            "# if (Status.toUpperCase() != 'POSTED' && !HasAIR) { #" +
-                                "<a class='k-button k-button-sm' href='" + resumeDraftUrl + "?orderId=#=Id#'>Edit / Repost</a>" +
-                                "<button type='button' class='k-button k-button-sm' onclick=\"poLifecycleAction('#=Id#','delete')\">Delete</button>" +
-                            "# } else if (Status.toUpperCase() == 'POSTED' && !HasPostedAIR) { #" +
-                                "<button type='button' class='k-button k-button-sm' onclick=\"poLifecycleAction('#=Id#','unpost')\">Unpost</button>" +
-                            "# } #" +
-
-                            // PDF
-                            "<a href='" + pdfUrl + "/#=Id#' " +
-                                "class='k-button k-button-sm k-button-flat-secondary' " +
-                                "title='Download PDF'>" +
-                                "<span class='k-icon k-i-pdf'></span>" +
-                            "</a>" +
-
-                        "</div>"
-                    );
-            })
-            .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }).Refresh(true))
-            .Sortable()
-            .Filterable()
-            .Groupable()
-            .Resizable(r => r.Columns(true))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(20)
-                .Read(read => read.Action("PurchaseOrders_Read", "PurchaseOrders"))
-                .Sort(s => s.Add(p => p.PODate).Descending())
+        <div class="po-card-body">
+            @(Html.Kendo().Grid<POWizardDraftListItemViewModel>()
+                .Name("MyWizardDraftsGrid")
+                .Columns(columns =>
+                {
+                    columns.Bound(d => d.DraftName).Title("Draft").Width(200)
+                        .ClientTemplate("<strong>#=DraftName ? kendo.htmlEncode(DraftName) : 'Untitled Draft'#</strong>");
+                    columns.Bound(d => d.SelectedPRCount).Title("Selected PRs").Width(120)
+                        .HtmlAttributes(new { @class = "text-center" });
+                    columns.Bound(d => d.CurrentStep).Title("Progress").Width(210)
+                        .ClientTemplate(
+                            "<span class='wizard-draft-step'>Step #=CurrentStep# of 4</span>" +
+                            "<span class='wizard-draft-step-name'>#=wizardDraftStepName(CurrentStep)#</span>"
+                        );
+                    columns.Bound(d => d.LastUpdatedAt).Title("Last Saved")
+                        .Format("{0:MMM dd, yyyy h:mm tt}").Width(190);
+                    columns.Bound(d => d.Id).Title("Actions").Width(190)
+                        .Sortable(false).Filterable(false)
+                        .ClientTemplate(
+                            "<div class='wizard-draft-actions'>" +
+                                "<a class='btn-primary-action btn-sm' href='" + resumeDraftUrl + "?draftId=#=Id#'>" +
+                                    "<span class='k-icon k-i-arrow-right'></span> Resume" +
+                                "</a>" +
+                                "<button type='button' class='btn-secondary-action btn-sm' onclick=\"discardWizardDraft('#=Id#')\">" +
+                                    "<span class='k-icon k-i-trash'></span> Discard" +
+                                "</button>" +
+                            "</div>"
+                        );
+                })
+                .NoRecords(n => n.Template(
+                    "<div class='po-empty-state' style='padding: 20px;'>" +
+                        "<span class='k-icon k-i-save po-empty-icon' style='font-size: 24px;'></span>" +
+                        "<p style='font-size: 13px;'>No unfinished wizard drafts</p>" +
+                        "<span class='po-empty-sub'>All purchase orders in progress have been completed or discarded.</span>" +
+                    "</div>"
+                ))
+                .Sortable()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+                    .Read(read => read.Action("MyWizardDrafts_Read", "PurchaseOrders"))
+                    .Sort(sort => sort.Add(d => d.LastUpdatedAt).Descending())
+                )
+                .Events(e => e.DataBound("onDraftsGridDataBound"))
             )
-        )
-    </div>
+        </div>
+    </section>
 </div>
-
-
 
 <!-- PO Details Modal Window -->
 <div id="poDetailsWindow"></div>
-<script src="@Url.Content("~/Scripts/purchase-orders-existing.js")"></script>
-<script>var poUnpostUrl="@Url.Action("UnpostPO")",poDeleteUrl="@Url.Action("DeletePO")";</script>
 
+<script src="@Url.Content("~/Scripts/purchase-orders-existing.js")"></script>
 <script>
+    var poUnpostUrl = "@Url.Action("UnpostPO")";
+    var poDeleteUrl = "@Url.Action("DeletePO")";
+    var searchTimer = null;
+    var currentKpiFilter = "";
+
     function wizardDraftStepName(step) {
         return {
             1: "Select PRs",
@@ -236,10 +317,54 @@
         wnd.center().open();
     }
 
-    function onSearchFilter(query) {
+    // Grid DataBound: Recalculate KPIs from loaded dataset
+    function onPoGridDataBound(e) {
+        var grid = e.sender;
+        var rawData = grid.dataSource.data();
+        updatePoKpis(rawData, grid.dataSource.total());
+    }
+
+    function onDraftsGridDataBound(e) {
+        var grid = e.sender;
+        var totalDrafts = grid.dataSource.total() || 0;
+        $("#wizardDraftsCountBadge").text(totalDrafts + " " + (totalDrafts === 1 ? "draft" : "drafts"));
+    }
+
+    function updatePoKpis(data, totalCount) {
+        if (!data) return;
+
+        var postedCount = 0;
+        var draftCount = 0;
+        var withAirCount = 0;
+
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var st = item.Status || "";
+            if (st === "Posted") postedCount++;
+            if (st === "Draft") draftCount++;
+            if (item.HasAIR === true) withAirCount++;
+        }
+
+        var effectiveTotal = totalCount !== undefined ? totalCount : data.length;
+        $("#kpiTotalOrders").text(effectiveTotal);
+        $("#kpiPostedOrders").text(postedCount);
+        //$("#kpiDraftOrders").text(draftCount);
+        $("#kpiWithAirOrders").text(withAirCount);
+
+        $("#poGridStats").text("Total records: " + effectiveTotal);
+    }
+
+    // Unified Search & Filter Handlers
+    function executeCombinedPoFilter() {
         var grid = $("#PurchaseOrdersGrid").data("kendoGrid");
+        if (!grid) return;
+
+        var query = $.trim($("#searchPO").val());
+        var status = $("#statusFilter").val();
+        var filters = [];
+
         if (query) {
-            grid.dataSource.filter({
+            filters.push({
                 logic: "or",
                 filters: [
                     { field: "PONumber", operator: "contains", value: query },
@@ -247,17 +372,77 @@
                     { field: "SourcePRs", operator: "contains", value: query }
                 ]
             });
-        } else {
-            grid.dataSource.filter({});
         }
+
+        if (status) {
+            if (status === "WithAIR") {
+                filters.push({ field: "HasAIR", operator: "eq", value: true });
+            } else {
+                filters.push({ field: "Status", operator: "eq", value: status });
+            }
+        }
+
+        grid.dataSource.filter(filters.length ? { logic: "and", filters: filters } : {});
+    }
+
+    function onSearchFilter(query) {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+            executeCombinedPoFilter();
+        }, 250);
     }
 
     function onStatusFilter(status) {
-        var grid = $("#PurchaseOrdersGrid").data("kendoGrid");
-        if (status) {
-            grid.dataSource.filter({ field: "Status", operator: "eq", value: status });
-        } else {
-            grid.dataSource.filter({});
+        currentKpiFilter = status;
+        updateKpiCardHighlight(status);
+        executeCombinedPoFilter();
+    }
+
+    function filterByKpi(status) {
+        $("#statusFilter").val(status);
+        onStatusFilter(status);
+    }
+
+    function updateKpiCardHighlight(status) {
+        $(".po-metric-card").removeClass("active");
+        if (!status) {
+            $("#cardKpiTotal").addClass("active");
+        } else if (status === "Posted") {
+            $("#cardKpiPosted").addClass("active");
+        } else if (status === "Draft") {
+            $("#cardKpiDraft").addClass("active");
+        } else if (status === "WithAIR") {
+            $("#cardKpiWithAir").addClass("active");
         }
     }
+
+    function resetPOFilters() {
+        $("#searchPO").val("");
+        $("#statusFilter").val("");
+        currentKpiFilter = "";
+        updateKpiCardHighlight("");
+        executeCombinedPoFilter();
+    }
+
+    function refreshPOGrid() {
+        var poGrid = $("#PurchaseOrdersGrid").data("kendoGrid");
+        if (poGrid) poGrid.dataSource.read();
+
+        var draftsGrid = $("#MyWizardDraftsGrid").data("kendoGrid");
+        if (draftsGrid) draftsGrid.dataSource.read();
+    }
+
+    $(document).ready(function () {
+        $("#searchPO").on("input", function () {
+            onSearchFilter($(this).val());
+        });
+
+        $(window).on("resize", function () {
+            var grid1 = $("#PurchaseOrdersGrid").data("kendoGrid");
+            if (grid1) grid1.resize();
+
+            var grid2 = $("#MyWizardDraftsGrid").data("kendoGrid");
+            if (grid2) grid2.resize();
+        });
+    });
 </script>

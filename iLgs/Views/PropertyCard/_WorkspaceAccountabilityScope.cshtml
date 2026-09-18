@@ -1,2 +1,334 @@
-<h4>@ViewData["scopeLabel"]</h4>
-@Html.Partial("~/Views/ItemCard/_ParIcs.cshtml")
+@model iLgs.Models.PropertyCardUnitAccountabilityVM
+@if (Model == null)
+{
+    <div class="alert alert-warning">Unit not found or does not belong to this Property Card.</div>
+    return;
+}
+
+<div class="pc-accountability-scope" data-unit-id="@Model.UnitId" style="margin-bottom: 28px;">
+    <!-- Physical Unit Header Card -->
+    <div class="pc-panel" style="background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <span class="pc-eyebrow" style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">PHYSICAL UNIT ACCOUNTABILITY</span>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 6px 0;">
+                    @if (Model.ContentNo.HasValue)
+                    {
+                        <span class="pc-acct-unit-badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; font-size: 13px; padding: 2px 10px; border-radius: 4px; display: inline-flex; align-items: center;">
+                            <i class="fa fa-cube" style="font-size: 11px; margin-right: 5px;"></i>Unit #@Model.ContentNo
+                        </span>
+                    }
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">
+                        @(string.IsNullOrWhiteSpace(Model.PropertyNo) ? (Model.CustItemNo ?? "Unnumbered Unit") : Model.PropertyNo)
+                    </h2>
+                </div>
+                <div style="font-size: 13px; color: #475569;">
+                    <strong>@Model.Description</strong>
+                    @if (!string.IsNullOrWhiteSpace(Model.PoNo))
+                    {
+                        <span style="color: #94a3b8; margin: 0 6px;">&bull;</span>
+                        <span>PO: @Model.PoNo</span>
+                    }
+                </div>
+            </div>
+            <div>
+                @if (Model.DerivedStatus == "PAR POSTED")
+                {
+                    <span class="k-badge k-badge-solid-primary" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-user-check" style="margin-right: 4px;"></i> PAR POSTED</span>
+                }
+                else if (Model.DerivedStatus == "ICS POSTED")
+                {
+                    <span class="k-badge k-badge-solid-primary" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-user-check" style="margin-right: 4px;"></i> ICS POSTED</span>
+                }
+                else if (Model.DerivedStatus == "TRANSFER PENDING")
+                {
+                    <span class="k-badge k-badge-solid-warning" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-exchange-alt" style="margin-right: 4px;"></i> TRANSFER PENDING</span>
+                }
+                else if (Model.DerivedStatus == "PAR DRAFT" || Model.DerivedStatus == "ICS DRAFT")
+                {
+                    <span class="k-badge k-badge-solid-info" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-file-alt" style="margin-right: 4px;"></i> @Model.DerivedStatus</span>
+                }
+                else if (Model.DerivedStatus == "TRANSFERRED")
+                {
+                    <span class="k-badge k-badge-solid-secondary" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-history" style="margin-right: 4px;"></i> TRANSFERRED</span>
+                }
+                else
+                {
+                    <span class="k-badge k-badge-solid-success" style="font-size: 13px; padding: 6px 12px; font-weight: 600;"><i class="fa fa-check-circle" style="margin-right: 4px;"></i> AVAILABLE</span>
+                }
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; font-size: 12px;">
+            <div>
+                <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Unit Number:</span>
+                <strong style="display: block; color: #1e293b; font-size: 13px;">@(Model.ContentNo.HasValue ? Model.ContentNo.Value.ToString() : "â€”")</strong>
+            </div>
+            <div>
+                <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Property No.:</span>
+                <strong style="display: block; color: #1e293b; font-size: 13px;">@(string.IsNullOrWhiteSpace(Model.PropertyNo) ? (Model.CustItemNo ?? "â€”") : Model.PropertyNo)</strong>
+            </div>
+            <div>
+                <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Serial / MV File No:</span>
+                <strong style="display: block; color: #1e293b; font-size: 13px;">@(string.IsNullOrWhiteSpace(Model.SerialOrPlateNo) ? "â€”" : Model.SerialOrPlateNo)</strong>
+            </div>
+            <div>
+                <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Remarks:</span>
+                <strong style="display: block; color: #1e293b; font-size: 13px;">@(string.IsNullOrWhiteSpace(Model.Remarks) ? "-" : Model.Remarks)</strong>
+            </div>
+            <div>
+                <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Acquisition Cost:</span>
+                <strong style="display: block; color: #1e293b; font-size: 13px;">@(Model.AcquisitionCost.HasValue ? Model.AcquisitionCost.Value.ToString("N2") : "â€”")</strong>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.HasAccountability)
+    {
+        <div class="alert alert-info" style="background: #f0fdf4; border-color: #bbf7d0; color: #166534; padding: 16px; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa fa-info-circle" style="font-size: 20px;"></i>
+                <div>
+                    <strong style="font-size: 14px;">This unit is currently AVAILABLE for assignment.</strong>
+                    <div style="font-size: 12px; margin-top: 4px; color: #15803d;">
+                        No draft or posted PAR/ICS accountability record currently exists for this physical unit. Generation of new PAR or ICS can be performed from the PAR/ICS module.
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        if (Model.HasDraftSuccessor)
+        {
+            <div class="alert alert-warning" style="background: #fffbeb; border-color: #fde68a; color: #92400e; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
+                <i class="fa fa-exclamation-triangle" style="margin-right: 6px;"></i>
+                <strong>Transfer Pending:</strong> A draft successor transfer (@(Model.DraftSuccessorRefNo ?? "Draft")) has been initiated for this physical unit. Current accountable officer remains legally responsible until the transfer record is posted.
+            </div>
+        }
+
+        <!-- Current Accountability Card -->
+        <div class="pc-panel" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #3b82f6;">
+                <h4 style="margin: 0; color: #1e3a8a; font-size: 15px; font-weight: 700; text-transform: uppercase;">
+                    <i class="fa fa-id-badge" style="margin-right: 6px;"></i> Current Accountability Assignment
+                </h4>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    @if (Model.ContentNo.HasValue)
+                    {
+                        <span class="k-badge k-badge-solid-info" style="font-size: 11px;">Unit #@Model.ContentNo</span>
+                    }
+                    <span style="font-size: 12px; color: #64748b;">
+                        Status: <strong style="color: #0f172a;">@Model.TransferStatus</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; font-size: 13px;">
+                <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <span style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px;">ACCOUNTABLE OFFICER (CURRENT)</span>
+                    <strong style="font-size: 15px; color: #0f172a; display: block; margin-bottom: 2px;">
+                        @(string.IsNullOrWhiteSpace(Model.CurrentOfficer) ? "â€”" : Model.CurrentOfficer)
+                    </strong>
+                    <div style="color: #475569; font-size: 12px;">@(Model.CurrentPosition ?? "â€”")</div>
+                    <div style="color: #64748b; font-size: 12px;">Dept: @(Model.CurrentDepartment ?? "â€”")</div>
+                    <div style="color: #64748b; font-size: 12px;">Loc: @(Model.CurrentLocation ?? "â€”")</div>
+                </div>
+
+                <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <span style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px;">REFERENCE DOCUMENT</span>
+                    <strong style="font-size: 15px; color: #1d4ed8; display: block; margin-bottom: 2px;">
+                        @Model.RefType No. @Model.RefNo
+                    </strong>
+                    <div style="color: #475569; font-size: 12px;">
+                        Date: @(Model.RefDate.HasValue ? Model.RefDate.Value.ToString("MMMM dd, yyyy") : "â€”")
+                    </div>
+                    <div style="color: #64748b; font-size: 12px; margin-top: 4px;">
+                        @if (Model.IsPosted)
+                        {
+                            <span>Posted by <strong>@(Model.PostedBy ?? "Authorized User")</strong> on @(Model.PostedDt.HasValue ? Model.PostedDt.Value.ToString("MM/dd/yyyy HH:mm") : "")</span>
+                        }
+                        else
+                        {
+                            <span style="color: #b45309; font-weight: 600;"><i class="fa fa-clock"></i> Draft Record (Unposted)</span>
+                        }
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <span style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px;">TRANSFER LINEAGE</span>
+                    <div style="margin-bottom: 6px;">
+                        <span style="color: #64748b; font-size: 11px;">Original Custodian:</span>
+                        <div style="font-weight: 600; color: #334155;">@(Model.OriginalOfficer ?? "â€”")</div>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-size: 11px;">Immediate Previous Custodian:</span>
+                        <div style="font-weight: 600; color: #334155;">@(Model.PreviousOfficer ?? "None (Initial Issue)")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Read-Only Component Bundle Table -->
+        <div class="pc-panel" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                    <h4 style="margin: 0; color: #0f172a; font-size: 14px; font-weight: 700;">
+                        <i class="fa fa-cubes" style="margin-right: 6px; color: #3b82f6;"></i> Assigned Component Bundle
+                    </h4>
+                    <p class="pc-note" style="margin: 2px 0 0 0; font-size: 11px;">
+                        Components assigned to this unit in @Model.RefType No. @Model.RefNo. Read-only. (Component bundling is managed authoritative in PAR/ICS).
+                    </p>
+                </div>
+                <span class="k-badge k-badge-solid-base" style="font-size: 11px;">
+                    @Model.Components.Count Component@(Model.Components.Count == 1 ? "" : "s")
+                </span>
+            </div>
+
+            @if (Model.Components.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" style="margin: 0; font-size: 12px; border-collapse: collapse; width: 100%;">
+                        <thead style="background: #f1f5f9; color: #334155;">
+                            <tr>
+                                <th style="width: 70px; text-align: center;">Item #</th>
+                                <th>Component Description</th>
+                                <th style="width: 170px;">Physical ID / Track</th>
+                                <th style="width: 140px;">Serial No.</th>
+                                <th style="width: 80px; text-align: center;">Qty</th>
+                                <th style="width: 90px; text-align: center;">Source</th>
+                                <th style="width: 80px; text-align: center;">Required</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Components)
+                            {
+                                <tr>
+                                    <td style="text-align: center; font-weight: 600; color: #475569;">@c.SubItemNo</td>
+                                    <td style="font-weight: 600; color: #1e293b;">@c.Description</td>
+                                    <td>
+                                        @if (c.IsIndividuallyTracked)
+                                        {
+                                            <span style="color: #0f172a; font-weight: 600;"><i class="fa fa-tag" style="color: #3b82f6; margin-right: 4px;"></i>@c.PhysicalUnitCode</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted"><i class="fa fa-layer-group" style="margin-right: 4px;"></i>Quantity Only</span>
+                                        }
+                                    </td>
+                                    <td style="font-family: monospace; font-size: 11px;">@(string.IsNullOrWhiteSpace(c.SerialNo) ? "â€”" : c.SerialNo)</td>
+                                    <td style="text-align: center;">@c.Qty.ToString("N0") @c.Unit</td>
+                                    <td style="text-align: center;">
+                                        <span class="k-badge k-badge-solid-secondary" style="font-size: 10px;">@c.SourceType</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        @if (c.IsRequiredForBundle)
+                                        {
+                                            <span style="color: #15803d; font-weight: 600;"><i class="fa fa-check"></i> Yes</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No</span>
+                                        }
+                                    </td>
+                                    <td style="color: #64748b; font-size: 11px;">@(string.IsNullOrWhiteSpace(c.Remarks) ? "â€”" : c.Remarks)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 16px; text-align: center; color: #64748b;">
+                    <i class="fa fa-box-open" style="font-size: 20px; display: block; margin-bottom: 6px; color: #94a3b8;"></i>
+                    No components are assigned to this unit in the active bundle.
+                </div>
+            }
+        </div>
+
+        <!-- Accountability History Timeline -->
+        <div class="pc-panel" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                    <h4 style="margin: 0; color: #0f172a; font-size: 14px; font-weight: 700;">
+                        <i class="fa fa-history" style="margin-right: 6px; color: #3b82f6;"></i> Accountability History & Transfer Lineage
+                    </h4>
+                    <p class="pc-note" style="margin: 2px 0 0 0; font-size: 11px;">
+                        Sequential lifecycle of this unit from initial receipt to current custodian.
+                    </p>
+                </div>
+                <span class="k-badge k-badge-solid-base" style="font-size: 11px;">
+                    @Model.History.Count Event@(Model.History.Count == 1 ? "" : "s")
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="margin: 0; font-size: 12px; width: 100%;">
+                    <thead style="background: #f1f5f9; color: #334155;">
+                        <tr>
+                            <th style="width: 40px; text-align: center;">#</th>
+                            <th style="width: 150px;">Document No.</th>
+                            <th style="width: 90px; text-align: center;">Ref. Date</th>
+                            <th>Accountable Officer</th>
+                            <th>Designation / Dept</th>
+                            <th style="width: 110px; text-align: center;">Status</th>
+                            <th style="width: 160px;">Posted Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var h in Model.History)
+                        {
+                            <tr style="@(h.IsCurrent ? "background: #eff6ff; font-weight: 500;" : "")">
+                                <td style="text-align: center; color: #64748b;">@h.Sequence</td>
+                                <td>
+                                    <strong>@h.RefType No. @h.RefNo</strong>
+                                    @if (h.IsCurrent)
+                                    {
+                                        <span class="k-badge k-badge-solid-primary" style="font-size: 9px; margin-left: 4px;">CURRENT</span>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    @(h.RefDate.HasValue ? h.RefDate.Value.ToString("MM/dd/yyyy") : "â€”")
+                                </td>
+                                <td style="color: #0f172a; font-weight: 600;">
+                                    @h.AccountableOfficer
+                                </td>
+                                <td style="color: #475569; font-size: 11px;">
+                                    <div>@(h.AccountableOfficerPosition ?? "â€”")</div>
+                                    <div style="color: #64748b;">@(h.AccountableOfficerDepartment ?? "")</div>
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (h.TransferStatus == "CURRENT")
+                                    {
+                                        <span class="k-badge k-badge-solid-success" style="font-size: 10px;">CURRENT</span>
+                                    }
+                                    else if (h.TransferStatus == "TRANSFERRED")
+                                    {
+                                        <span class="k-badge k-badge-solid-secondary" style="font-size: 10px;">TRANSFERRED</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="k-badge k-badge-solid-warning" style="font-size: 10px;">@h.TransferStatus</span>
+                                    }
+                                </td>
+                                <td style="font-size: 11px; color: #64748b;">
+                                    @if (h.PostedDt.HasValue)
+                                    {
+                                        <div>Posted: @h.PostedDt.Value.ToString("MM/dd/yyyy HH:mm")</div>
+                                        <div>By: @(h.PostedBy ?? "â€”")</div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #b45309;">Draft (Unposted)</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

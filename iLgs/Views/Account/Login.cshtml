@@ -1,336 +1,328 @@
 ﻿@using iLgs.Models
 @model LoginViewModel
 @{
-    ViewBag.Title = "ePSMS - Log in";
+    ViewBag.Title = "ePSMS - Sign In";
     Layout = "";
 }
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ePSMS - eProperty and Supply Management System. City Government of Las Pinas." />
     <title>@ViewBag.Title</title>
+
+    @* Bootstrap and project base styles *@
     @Styles.Render("~/Content/css")
-
-    @Styles.Render("~/Content/kendo/css")
-
-    @Scripts.Render("~/bundles/modernizr")
-
-
-
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/kendo")
-
-    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.mobile.all.min.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.dataviz.min.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.bootstrap-v4.min.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.dataviz.bootstrap-v4.min.css")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/grid.css")" rel="stylesheet" type="text/css" />
-    @*<link href="@Url.Content("~/Content/base-min.css")" rel="stylesheet" type="text/css" />*@
-    <link href="@Url.Content("~/Content/kd-sidebar.css")" rel="stylesheet" type="text/css" />
+
+    @* Login-specific stylesheet *@
+    <link href="@Url.Content("~/Content/login.css?v=20260916_1")" rel="stylesheet" type="text/css" />
+
+    @* jQuery for form submission guard *@
     <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jquery.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jszip.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.all.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.aspnetmvc.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
-    <script>
-        $(document).ready(function () { $('.dropdown-toggle').dropdown(); });
-    </script>
+    @Scripts.Render("~/bundles/jqueryval")
 </head>
+<body>
 
+<div class="epsms-login">
+    <div class="login-shell">
 
-@using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-{
-    <div class="signin">
-        <div class="back-img">
-            <div class="sign-in-text">
-                <h2 class="active">ePSMS</h2>
-                @*<h2 class="nonactive">Sign Up</h2>*@
-            </div><!--/.sign-in-text-->
-            <div class="layer">
-            </div><!--/.layer-->
-            <p class="point">&#9650;</p>
-        </div><!--/.back-img-->
-        <div class="form-section">
+        @* ================================================================
+           LEFT PANEL: Branding, seal watermark, asset tag + QR
+           ================================================================ *@
+        <div class="login-brand" aria-hidden="true">
 
-            <form action="#">
-                @*<!--Email-->
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="email" id="sample3">
-                        <label class="mdl-textfield__label" for="sample3">User Name</label>
-                        <span class="mdl-textfield__error">Enter a correct Email</span>
-                    </div>
-                    <br />
-                    <br />
-                    <!--Password-->
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input pattern=".{8,}" class="mdl-textfield__input" type="password" id="sample3">
-                        <label class="mdl-textfield__label" for="sample3">Password</label>
-                        <span class="mdl-textfield__error">Minimum 8 characters</span>
-                    </div>
-                    <br />
-                    <p class="forgot-text">Forgot Password ?</p>
-                    <!--CheckBox-->
-                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
-                        <input type="checkbox" id="checkbox-1" class="mdl-checkbox__input" checked>
-                        <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
-                    </label>*@
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    @Html.AntiForgeryToken()
-                    @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
-                    <div class="col-lg-8">
-                        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-                <br />
-                <br />
-                <!--Password-->
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
-                    <div class="col-lg-8">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
-                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-                <br />
-                <p class="forgot-text">@Html.ActionLink("Forgot your password?", "ForgotPassword")</p>
-                <!--CheckBox-->
-                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
-                    @Html.CheckBoxFor(m => m.RememberMe)
-                    <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
-                </label>
-
-                @*<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        @Html.AntiForgeryToken()
-                        @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
-                    </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
-                        <div class="col-lg-8">
-                            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
-                        <div class="col-lg-8">
-                            @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
-                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="row k-mb-2"></div>
-                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
-                        @Html.CheckBoxFor(m => m.RememberMe)
-                        <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
-                    </label>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <div class="col-lg-10">
-                            @Html.ActionLink("Forgot your password?", "ForgotPassword")
-                        </div>
-                    </div>*@
-            </form>
-        </div><!--/.form-section-->
-
-        <button class="sign-in-btn mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
-            Log In
-        </button><!--/button-->
-    </div><!--/.signin-->
-}
-<style>
-    /*Background Img*/
-    .back-img{
-      position: relative;
-      width: 100%;
-      height: 250px;
-      background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
-    background-size: cover;
-    }
-</style>
-
-<style>    
-    body{
-      /*padding-top: 80px!important;*/
-      /*font-family: 'Roboto', sans-serif;*/
-      background-color: #F5F5F5;
-        padding-top: 10px!important;
-        padding-bottom: 10px!important;
-    }
-    /*Sign In Form*/
-    
-    .signin{
-      position: relative;
-      height: 580px;
-      width: 500px;
-      margin: auto;
-      box-shadow: 0px 30px 125px -5px #000;}    
-
-    .layer {
-        background-color: rgba(33,150,243,0.5);
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-    }
-    .active{
-      padding-left: 25px;
-      color: #fff;
-    }
-    .nonactive {
-      color: rgba(255, 255, 255, 0.6);
-    }
-    .sign-in-text{
-      top: 175px;
-      position: absolute;
-      z-index: 1;
-    }
-    h2 {
-      padding-left: 15px;
-      font-size: 25px;
-      /*text-transform: uppercase;*/
-      display: inline-block;
-      font-weight: 300;
-    }
-    .point{
-      position: absolute;
-      z-index: 1;
-      color: #fff;
-      top: 235px;
-      padding-left: 50px;
-      font-size: 20px;
-    }
-
-    /*form-section*/
-    .form-section{
-      padding: 70px 90px 70px 90px;
-    }
-    .keep-text{
-      font-size: 15px;
-      color: #BDBDBD;
-    }
-    .forgot-text{
-      font-size: 12px;
-      color: #BDBDBD;
-      text-align: right;
-    }
-    /*sign-in-btn*/
-    .sign-in-btn{
-      width: 100%;
-      height: 75px;
-      position:absolute;
-      bottom:0;
-      border-radius: 0px;
-      background-color: rgba(63, 78, 191, 1);
-    }
-
-</style>
-
-
-@*<div style="margin-left:-50px;margin-right:-50px;">
-        <div class="jumbotron">
-            <div class="container push-spaces">
-                <h1 class="text-primary text-right" style="color:whitesmoke;">AppMan</h1>
-                <p class="lead text-info text-right">"Application Manager"</p>
+            @* City seal watermark (bottom-right, very faint) *@
+            <div class="login-watermark">
+                <img src="@Url.Content("~/Assets/official-seal.jpg")" alt="" role="presentation" />
             </div>
-        </div>
-    </div>
-    <div class="well col-lg-3">
-        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-        {
-            <fieldset>
-                <legend>@ViewBag.Title</legend>
 
-                <div class="form-group">
-                    @Html.AntiForgeryToken()
-                    @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
-                </div>
-                <div class="form-group">
-                    @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
-                    <div class="col-lg-8">
-                        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+            @* Top branding content *@
+            <div class="brand-top">
+                @* City logo + gov text *@
+                <div class="brand-logo-row">
+                    <img class="brand-seal-small"
+                         src="@Url.Content("~/Assets/official-seal.jpg")"
+                         alt="City Government of Las Pinas seal" />
+                    <div class="brand-gov-text">
+                        <span class="brand-gov-title">City Government</span>
+                        <span class="brand-gov-sub">Las Pi&ntilde;as City</span>
                     </div>
                 </div>
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
-                    <div class="col-lg-8">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
-                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                    </div>
+
+                @* System identity *@
+                <div class="brand-system-name">ePSMS</div>
+                <div class="brand-system-sub">eProperty and Supplies<br />Management System</div>
+
+                <hr class="brand-divider" />
+
+                @* Procurement lifecycle - decorative, not interactive *@
+                <div class="brand-lifecycle">
+                    <span class="lifecycle-step">PR</span>
+                    <span class="lifecycle-arrow">&rarr;</span>
+                    <span class="lifecycle-step">PO</span>
+                    <span class="lifecycle-arrow">&rarr;</span>
+                    <span class="lifecycle-step">AIR</span>
+                    <span class="lifecycle-arrow">&rarr;</span>
+                    <span class="lifecycle-step">Inventory</span>
+                    <span class="lifecycle-arrow">&rarr;</span>
+                    <span class="lifecycle-step">PAR / ICS</span>
                 </div>
-                <div class="form-group">
-                    <div class="col-lg-4">
+                <div class="brand-lifecycle-label">End-to-end procurement &amp; property lifecycle</div>
+            </div>
+
+            @* Property Asset Tag Card *@
+            <div class="asset-tag" aria-label="Sample Property Asset Tag">
+                <div class="asset-tag-header">
+                    <span class="asset-tag-title">Property Asset Tag</span>
+                    <span class="asset-tag-badge">
+                        <span class="asset-tag-dot"></span>
+                        Accountable
+                    </span>
+                </div>
+
+                <div class="asset-tag-body">
+                    @* QR Code - decorative only, encodes no sensitive data *@
+                    <div class="asset-qr" title="Property QR Code (decorative)">
+                        <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            @* Finder pattern top-left *@
+                            <rect x="1" y="1" width="13" height="13" rx="1" fill="#0f172a"/>
+                            <rect x="3" y="3" width="9" height="9" rx="0.5" fill="white"/>
+                            <rect x="5" y="5" width="5" height="5" fill="#0f172a"/>
+                            @* Finder pattern top-right *@
+                            <rect x="27" y="1" width="13" height="13" rx="1" fill="#0f172a"/>
+                            <rect x="29" y="3" width="9" height="9" rx="0.5" fill="white"/>
+                            <rect x="31" y="5" width="5" height="5" fill="#0f172a"/>
+                            @* Finder pattern bottom-left *@
+                            <rect x="1" y="27" width="13" height="13" rx="1" fill="#0f172a"/>
+                            <rect x="3" y="29" width="9" height="9" rx="0.5" fill="white"/>
+                            <rect x="5" y="31" width="5" height="5" fill="#0f172a"/>
+                            @* Data modules (decorative pattern) *@
+                            <rect x="16" y="1" width="3" height="3" fill="#0f172a"/>
+                            <rect x="20" y="1" width="3" height="3" fill="#0f172a"/>
+                            <rect x="16" y="5" width="3" height="3" fill="#0f172a"/>
+                            <rect x="22" y="5" width="3" height="3" fill="#0f172a"/>
+                            <rect x="16" y="9" width="5" height="3" fill="#0f172a"/>
+                            <rect x="1" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="5" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="9" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="1" y="20" width="5" height="3" fill="#0f172a"/>
+                            <rect x="7" y="20" width="3" height="3" fill="#0f172a"/>
+                            <rect x="1" y="24" width="3" height="3" fill="#0f172a"/>
+                            <rect x="9" y="24" width="3" height="3" fill="#0f172a"/>
+                            <rect x="16" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="20" y="16" width="5" height="3" fill="#0f172a"/>
+                            <rect x="16" y="20" width="3" height="5" fill="#0f172a"/>
+                            <rect x="20" y="20" width="3" height="3" fill="#0f172a"/>
+                            <rect x="24" y="20" width="5" height="3" fill="#0f172a"/>
+                            <rect x="24" y="24" width="3" height="3" fill="#0f172a"/>
+                            <rect x="28" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="32" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="36" y="16" width="3" height="3" fill="#0f172a"/>
+                            <rect x="28" y="20" width="3" height="3" fill="#0f172a"/>
+                            <rect x="34" y="20" width="5" height="3" fill="#0f172a"/>
+                            <rect x="30" y="24" width="5" height="3" fill="#0f172a"/>
+                            <rect x="28" y="28" width="5" height="3" fill="#0f172a"/>
+                            <rect x="34" y="28" width="5" height="3" fill="#0f172a"/>
+                            <rect x="28" y="32" width="3" height="7" fill="#0f172a"/>
+                            <rect x="32" y="34" width="7" height="3" fill="#0f172a"/>
+                            <rect x="36" y="32" width="3" height="3" fill="#0f172a"/>
+                            <rect x="20" y="28" width="3" height="3" fill="#0f172a"/>
+                            <rect x="16" y="30" width="3" height="3" fill="#0f172a"/>
+                            <rect x="22" y="32" width="5" height="3" fill="#0f172a"/>
+                            <rect x="16" y="34" width="5" height="5" fill="#0f172a"/>
+                        </svg>
                     </div>
-                    <div class="col-lg-8">
-                        <div class="checkbox">
-                            @Html.CheckBoxFor(m => m.RememberMe)
-                            @Html.LabelFor(m => m.RememberMe)
+
+                    @* Tag fields *@
+                    <div class="asset-tag-fields">
+                        <div class="tag-field">
+                            <span class="tag-field-label">Property No.</span>
+                            <span class="tag-field-value tag-prop-no">LPC-2026-000001</span>
+                        </div>
+                        <div class="tag-field">
+                            <span class="tag-field-label">Category</span>
+                            <span class="tag-field-value">ICT Equipment</span>
+                        </div>
+                        <div class="tag-field">
+                            <span class="tag-field-label">Office</span>
+                            <span class="tag-field-value">General Services Office</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
+        </div>
 
-                <div class="form-group">
-                    <div class="col-lg-10 col-lg-offset-4">
-                        <button class="btn btn-primary" type="submit">Login</button>
-                    </div>
+        @* ================================================================
+           RIGHT PANEL: Login form
+           ================================================================ *@
+        <div class="login-panel">
+
+            @* Welcome heading *@
+            <div class="login-welcome">
+                <h1 class="login-heading">Welcome Back</h1>
+                <p class="login-subheading">Sign in to continue to ePSMS.</p>
+            </div>
+
+            @* BEGIN FORM - preserves all authentication wiring *@
+            @using (Html.BeginForm("Login", "Account",
+                        new { ReturnUrl = ViewBag.ReturnUrl },
+                        FormMethod.Post,
+                        new { id = "loginForm", @class = "login-form", role = "form", autocomplete = "off" }))
+            {
+                @Html.AntiForgeryToken()
+
+                @* Server-side validation summary - styled for scoped CSS *@
+                <div class="login-validation-summary">
+                    @Html.ValidationSummary(true, "", new { @class = "" })
                 </div>
-                <div class="form-group">
-                    <div class="col-lg-10">
-                        @Html.ActionLink("Forgot your password?", "ForgotPassword")
-                    </div>
+
+                @* Username field *@
+                <div class="login-field">
+                    @Html.LabelFor(m => m.UserName, "User Name", new { @class = "login-label", @for = "UserName" })
+                    @Html.TextBoxFor(m => m.UserName,
+                        new {
+                            @class = "login-input",
+                            id = "UserName",
+                            placeholder = "Enter your username",
+                            autocomplete = "username",
+                            autofocus = "autofocus"
+                        })
+                    @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "field-validation-error" })
                 </div>
-            </fieldset>
-        }
+
+                @* Password field with show/hide toggle *@
+                <div class="login-field">
+                    @Html.LabelFor(m => m.Password, "Password", new { @class = "login-label", @for = "Password" })
+                    <div class="login-pass-wrap">
+                        @Html.PasswordFor(m => m.Password,
+                            new {
+                                @class = "login-input",
+                                id = "Password",
+                                placeholder = "Enter your password",
+                                autocomplete = "current-password"
+                            })
+                        <button type="button"
+                                class="pass-toggle-btn"
+                                id="passToggleBtn"
+                                aria-label="Show or hide password"
+                                title="Show / hide password">
+                            <svg id="passIconEye" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M1 12C1 12 5 5 12 5C19 5 23 12 23 12C23 12 19 19 12 19C5 19 1 12 1 12Z"
+                                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <svg id="passIconEyeOff" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:none;">
+                                <path d="M17.94 17.94C16.23 19.24 14.17 20 12 20C5 20 1 12 1 12C2.24 10.18 3.81 8.54 5.64 7.26M9.9 4.24C10.58 4.08 11.29 4 12 4C19 4 23 12 23 12C22.45 12.89 21.82 13.73 21.12 14.5M1 1L23 23"
+                                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "field-validation-error" })
+                </div>
+
+                @* Remember Me + Forgot Password *@
+                <div class="login-options-row">
+                    <label class="login-remember">
+                        @Html.CheckBoxFor(m => m.RememberMe, new { @class = "login-remember-check", id = "RememberMe" })
+                        <span class="login-remember-label">Keep me signed in</span>
+                    </label>
+                    @Html.ActionLink("Forgot password?", "ForgotPassword", null, new { @class = "login-forgot" })
+                </div>
+
+                @* Sign In Button *@
+                <button type="submit" id="loginSubmitBtn" class="login-btn" aria-label="Sign in">
+                    <span class="login-btn-text">Sign In</span>
+                    <span class="login-btn-spin">Signing in...</span>
+                </button>
+            }
+            @* END FORM *@
+
+            <p class="login-footer-note">
+                &copy; @DateTime.Now.Year City Government of Las Pi&ntilde;as &mdash; ePSMS v2.0
+            </p>
+
+        </div>
+        @* END .login-panel *@
+
     </div>
+    @* END .login-shell *@
+</div>
+@* END .epsms-login *@
 
+<script type="text/javascript">
+    (function () {
+        'use strict';
 
+        // --- Password visibility toggle ---
+        var passInput = document.getElementById('Password');
+        var passToggleBtn = document.getElementById('passToggleBtn');
+        var passIconEye = document.getElementById('passIconEye');
+        var passIconEyeOff = document.getElementById('passIconEyeOff');
 
-    @section Scripts {
-        @Scripts.Render("~/bundles/jqueryval")
-    }
-
-    <style>
-
-
-        .well {
-            /*top: 30px;*/
-            top: 90px;
-            position: fixed;
-            margin-left: 20px;
-        }
-        .checkbox {
-            padding: 20px;
-        }
-
-        .jumbotron h1 {
-            margin-top: 0px;
-        }
-
-        .push-spaces {
-            height: 470px;
+        if (passToggleBtn && passInput) {
+            passToggleBtn.addEventListener('click', function () {
+                var isPassword = passInput.type === 'password';
+                passInput.type = isPassword ? 'text' : 'password';
+                if (passIconEye) { passIconEye.style.display = isPassword ? 'none' : ''; }
+                if (passIconEyeOff) { passIconEyeOff.style.display = isPassword ? '' : 'none'; }
+                passToggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+            });
         }
 
-        .jumbotron {
-            //background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
-            background-size: 100% 100%;
-            opacity: .7;
+        // --- Submission guard: show loading state, prevent double-submit ---
+        var loginForm = document.getElementById('loginForm');
+        var loginBtn = document.getElementById('loginSubmitBtn');
+        var submitted = false;
 
-            /*
-            min-height: 300px;
-            min-width: 100%;
+        if (loginForm && loginBtn) {
+            loginForm.addEventListener('submit', function (e) {
+                // jQuery Validate runs first - only guard if form passes client validation
+                if (submitted) {
+                    e.preventDefault();
+                    return false;
+                }
+                submitted = true;
+                loginBtn.classList.add('is-loading');
+                loginBtn.disabled = true;
 
-            height: auto;
-            width: auto;
+                // Safety: re-enable after 8s in case of server error that doesn't reload
+                setTimeout(function () {
+                    submitted = false;
+                    loginBtn.classList.remove('is-loading');
+                    loginBtn.disabled = false;
+                }, 8000);
+            });
 
-            padding-bottom: 20px;
-            */
+            // Also re-enable if page is shown from bfcache (back/forward navigation)
+            window.addEventListener('pageshow', function (evt) {
+                if (evt.persisted) {
+                    submitted = false;
+                    loginBtn.classList.remove('is-loading');
+                    loginBtn.disabled = false;
+                }
+            });
         }
 
-    </style>*@
+        // --- Add error class to invalid inputs after validation summary appears ---
+        $(document).ready(function () {
+            // If there are server errors on page load, apply error styling
+            var summary = document.querySelector('.login-validation-summary .validation-summary-errors');
+            if (summary) {
+                // Don't auto-clear password on re-display; MVC already handles this
+            }
+            // jQuery Validate integration: apply our error class
+            $('input.login-input').on('invalid', function () {
+                $(this).addClass('input-error');
+            });
+        });
+
+    }());
+</script>
+
+</body>
+</html>

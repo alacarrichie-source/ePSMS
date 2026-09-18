@@ -1,0 +1,83 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var backlog = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.OperationalBacklog : null;
+    var categories = new List<string>();
+    var counts = new List<int>();
+
+    if (backlog != null && backlog.Any())
+    {
+        // For horizontal bar chart, reverse so the largest appears at the top
+        var reversed = backlog.AsEnumerable().Reverse().ToList();
+        foreach (var b in reversed)
+        {
+            categories.Add(b.Category);
+            counts.Add(b.Count);
+        }
+    }
+    var totalBacklog = counts.Sum();
+}
+
+<div class="chart-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-warning chart-icon" style="color: #dc2626;"></span>
+            <div>
+                <h3 class="chart-title">Operational Backlog &amp; Pressure Points</h3>
+                <span class="chart-subtitle">Exception queues sorted by pending volume</span>
+            </div>
+        </div>
+        <span class="dash-count-badge @(totalBacklog > 0 ? "badge-danger" : "badge-neutral")">@totalBacklog Total</span>
+    </div>
+
+    <div class="chart-card-body">
+        @if (totalBacklog > 0)
+        {
+            <div id="adminOperationalBacklogChart" class="kendo-dash-chart" style="height: 250px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var cats = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(categories));
+                    var dataVals = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(counts));
+
+                    $("#adminOperationalBacklogChart").kendoChart({
+                        title: { visible: false },
+                        legend: { visible: false },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "bar"
+                        },
+                        series: [
+                            {
+                                name: "Backlog Items",
+                                data: dataVals,
+                                color: "#b91c1c"
+                            }
+                        ],
+                        categoryAxis: {
+                            categories: cats,
+                            majorGridLines: { visible: false },
+                            line: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: { format: "{0:N0}" }
+                        },
+                        tooltip: {
+                            visible: true,
+                            format: "{0:N0}",
+                            template: "#= category #: <strong>#= value # items</strong>"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 250px;">
+                <span class="k-icon k-i-check-outline empty-icon icon-success"></span>
+                <div class="empty-title">Zero Operational Backlog</div>
+                <p class="empty-subtext">There are currently no stalled or returned exception queues.</p>
+            </div>
+        }
+    </div>
+</div>

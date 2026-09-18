@@ -1,40 +1,53 @@
-﻿@(Html.Kendo().Grid<iLgs.Models.RequestItemVM>()
+﻿<script type="text/javascript">
+    function renderRequestItemDesc(data) {
+        if (!data) return "";
+        var pad = data.Padding || 0;
+        var desc = kendo.htmlEncode(data.Description || "");
+        var otherDesc = data.OtherDesc ? kendo.htmlEncode(data.OtherDesc) : "";
+        var isSetOrLot = data.Unit === "set" || data.Unit === "lot";
+        var html = "<div style='padding-left: " + pad + "px;'>";
+        if (isSetOrLot) {
+            html += "<strong>" + desc + "</strong>";
+        } else {
+            html += desc;
+        }
+        if (otherDesc) {
+            html += "<div class='text-muted' style='font-size: 11px; margin-top: 2px;'>" + otherDesc + "</div>";
+        }
+        html += "</div>";
+        return html;
+    }
+</script>
+
+@(Html.Kendo().Grid<iLgs.Models.RequestItemVM>()
         .Name("gridItems_" + @ViewData["requestId"])
         .Columns(columns =>
         {
-            columns.Bound(o => o.ItemNo).Width(50);
-            columns.Bound(c => c.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>" +
-                                                                       "<div>" +
-                                                                           "# if (Unit == 'set' || Unit == 'lot') { #" +
-                                                                               "<strong>#= kendo.htmlEncode(Description) #</strong>" +
-                                                                           "# } else { #" +
-                                                                               "#= kendo.htmlEncode(Description) #" +
-                                                                           "# } #" +
-                                                                       "</div>" +
-                                                                       "<div>#= OtherDesc ? OtherDesc : '' #</div>" +
-                                                                   "</div>");
-            //columns.Bound(o => o.Description).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
-            //columns.Bound(o => o.OtherDesc).Width(100).ClientTemplate("<div style='padding-left: #= Padding #px;'>#= OtherDesc #</div>");
-            columns.Bound(o => o.Unit).Width(30);
-            columns.Bound(o => o.Qty).Width(50)
+            columns.Bound(o => o.ItemNo).Title("Item #").Width(70)
+                .HtmlAttributes(new { @class = "font-weight-bold font-mono" });
+            columns.Bound(c => c.Description).Title("Item Description").Width(260)
+                .ClientTemplate("#= renderRequestItemDesc(data) #");
+            columns.Bound(o => o.Unit).Title("Unit").Width(60)
+                .HtmlAttributes(new { @class = "text-center text-muted" })
+                .HeaderHtmlAttributes(new { @class = "text-center" });
+            columns.Bound(o => o.Qty).Title("Qty").Width(70)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                //.ClientFooterTemplate("#=kendo.format('{0:n0}', getQtySumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(o => o.UnitCost).Width(70)
+            columns.Bound(o => o.UnitCost).Title("Unit Cost").Width(100)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(o => o.TotalCost).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            columns.Bound(o => o.TotalCost).Title("Total Cost").Width(110)
+                .HtmlAttributes(new { style = "text-align:right;", @class = "font-weight-bold" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', getTotalCostSumExcludingSet())#")
+                .FooterHtmlAttributes(new { style = "text-align:right; font-weight: 700; color: #0284c7;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //columns.Bound(c => c.SetLotNo).Width(50);
             if (ViewBag.CanRevise == true)
             {
                 columns.Command(command =>
                 {
                     command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
                     command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
-                }).Width(70);
+                }).Title("Actions").Width(120);
             }
         })
         .ToolBar(toolbar =>
@@ -42,8 +55,8 @@
             if (ViewBag.CanRevise == true)
             {
                 toolbar.Template(@<text>
-                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRequestItem")))
-                    @(Html.Kendo().Button().Name("btnAddPpmpItem_" + ViewData["requestId"]).Content("Add from PPMP").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddPpmpItem")))
+                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Icon("k-icon k-i-plus").HtmlAttributes(new { @class = "btn-primary-action", style = "font-size: 12px; padding: 5px 10px;" }).Events(e => e.Click("onClickBtnAddRequestItem")))
+                    @(Html.Kendo().Button().Name("btnAddPpmpItem_" + ViewData["requestId"]).Content("Add from PPMP").Icon("k-icon k-i-plus").HtmlAttributes(new { @class = "btn-secondary-action", style = "font-size: 12px; padding: 5px 10px;" }).Events(e => e.Click("onClickBtnAddPpmpItem")))
                 </text>);
             }
         })
@@ -57,9 +70,8 @@
             .ButtonCount(5)
         )
         .Filterable()
-        .NoRecords()
+        .NoRecords(n => n.Template("<div style='padding: 20px; text-align: center; color: #64748b;'><span class='k-icon k-i-folder-open' style='font-size: 24px; color: #cbd5e1;'></span><p style='margin: 4px 0 0; font-size: 13px;'>No requisition items recorded.</p></div>"))
         .Resizable(r => r.Columns(true))
-        //.Scrollable(s => s.Height(180))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
         .DataSource(dataSource => dataSource
@@ -73,11 +85,10 @@
             .Sort(s => s.Add(a => a.ItemNoIndex)) 
             .Aggregates(a =>
             {
-                //a.Add(p => p.Qty).Sum();
                 a.Add(p => p.TotalCost).Sum();
             })
             .Read(read => read.Action("_RequestItemRead", "Requests", new { prId = @ViewData["requestId"] }))
-            .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
+            .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests").Data("addRequestItemAntiForgery"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
@@ -86,3 +97,13 @@
         )
         .AutoBind(true)        
 )
+<script type="text/javascript">
+    function addRequestItemAntiForgery(data) {
+        data = data || {};
+        var token = input[name="__RequestVerificationToken"].first().val();
+        if (token) {
+            data.__RequestVerificationToken = token;
+        }
+        return data;
+    }
+</script>

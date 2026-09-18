@@ -1,4 +1,4 @@
-﻿@model iLgs.Controllers.GetPsNoVM
+@model iLgs.Controllers.GetPsNoVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -9,6 +9,7 @@
     @Html.HiddenFor(model => model.PsCardItemId)
 
 
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -122,6 +123,10 @@
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
+        var $popup = $("#btnSave").closest(".k-window-content");
+        if (typeof clearPropertyCardPopupError === 'function') {
+            clearPropertyCardPopupError($popup);
+        }
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
@@ -135,14 +140,24 @@
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
-                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        $popup.data("kendoWindow").close();
                     }
                     else {
-                        alert(result.Errors);
+                        if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                            showPropertyCardPopupError($popup, result.Errors);
+                        } else {
+                            notifyWarning(result.Errors);
+                        }
                     }
                 },
                 error: function (req, status, errorObj) {
-                    alert(req.responseText);
+                    window.kendo.ui.progress($("#form"), false);
+                    var msg = typeof ajaxFailureMessage === 'function' ? ajaxFailureMessage(req, "Transfer failed.") : "Transfer failed.";
+                    if (typeof showPropertyCardPopupError === 'function' && $popup.find(".pc-popup-validation").length) {
+                        showPropertyCardPopupError($popup, msg);
+                    } else {
+                        notifyWarning(msg);
+                    }
                 }
             });
             disabled.attr('disabled', 'disabled');

@@ -1,5 +1,131 @@
-<section class="pc-tab-section">
-<h3>Individual Units</h3><p>Choose an acquisition/location to manage its identifiable property units. Search by PO or location if it is not in the first 100 matches.</p>
-<label for="pcAcquisitionChoice">Acquisition / Location</label><input id="pcAcquisitionChoice" class="pc-choice" />
-<div id="pcUnitContext" class="pc-note"></div><div id="pcUnitsHost"></div>
+@model dynamic
+@{
+    var cardId = ViewData["cardId"];
+}
+
+<section class="pc-tab-section" data-tab-name="Individual Units">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h3 class="mb-1">Individual Units</h3>
+            <p class="text-muted mb-0">Persistent master-detail view of acquisitions and their identifiable physical units.</p>
+        </div>
+    </div>
+
+    <div class="pc-master-detail">
+        @Html.Partial("_PropertyCardAcquisitionList")
+
+        <section class="pc-detail-pane">
+            <!-- Selected Acquisition Header -->
+            <div class="pc-detail-header-card">
+                <div class="pc-detail-header-main">
+                    <div class="pc-detail-title-row">
+                        <span class="pc-eyebrow">SELECTED ACQUISITION</span>
+                        <h4 id="pcUnitAcqPo" class="pc-detail-heading">Select an Acquisition</h4>
+                    </div>
+                    <div id="pcUnitAcqDesc" class="pc-detail-subtext">Choose an acquisition card from the left panel to browse its individual units.</div>
+                </div>
+                <div class="pc-detail-header-actions">
+                    <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary" id="pcBtnAddUnit" onclick="pcTriggerAddUnit()" style="display:none;">
+                        <i class="fa fa-plus"></i> Add Individual Unit
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fallback hidden input/label for legacy compatibility -->
+            <input id="pcAcquisitionChoice" type="hidden" />
+            <div id="pcUnitContext" style="display:none;"></div>
+
+            <div id="pcUnitsPostedLockBanner" class="pc-posted-lock-banner" style="display:none;">
+                <i class="fa fa-lock"></i> This acquisition is posted. Individual units are read-only.
+            </div>
+
+            <!-- Summary Banner -->
+            <div id="pcUnitSummaryBanner" class="pc-position" style="display:none; margin: 0 0 12px;">
+                <div style="flex: 2 0 220px;">
+                    <span>Acquisition</span>
+                    <strong id="pcUnitAcqPoBanner" style="font-size: 16px; color: #002576;">—</strong>
+                    <small id="pcUnitAcqDescBanner" class="pc-cell-secondary" style="margin-top: 2px;"></small>
+                </div>
+                <div>
+                    <span>Received Qty</span>
+                    <strong id="pcUnitQtyReceived">0</strong>
+                </div>
+                <div>
+                    <span>Physical Units</span>
+                    <strong id="pcUnitQtyUnits">0</strong>
+                </div>
+                <div class="pc-position-balance">
+                    <span>Available</span>
+                    <strong id="pcUnitQtyAvailable" style="color: #166534;">0</strong>
+                </div>
+                <div>
+                    <span>Accountable</span>
+                    <strong id="pcUnitQtyAccountable" style="color: #1e40af;">0</strong>
+                </div>
+                <div style="border-left: 2px solid #cbd5e1; padding-left: 14px;">
+                    <span>Remaining to Create</span>
+                    <strong id="pcUnitQtyRemaining" style="color: #d97706; font-size: 18px;">0</strong>
+                </div>
+            </div>
+
+            <!-- Add Unit Action Bar & Empty State -->
+            <div id="pcUnitActionArea" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div id="pcUnitRemainingStatus" class="font-weight-bold" style="color: #475569; font-size: 13px;"></div>
+                </div>
+
+                <div id="pcUnitsEmptyState" style="display:none; text-align:center; padding: 36px 20px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; margin: 8px 0 14px;">
+                    <i class="fa fa-cubes" style="font-size: 32px; color: #94a3b8; margin-bottom: 10px; display:block;"></i>
+                    <h4 style="margin: 0 0 6px; color: #334155; font-size: 16px;">No individual physical units have been defined yet.</h4>
+                    <p style="margin: 0 0 16px; color: #64748b; font-size: 13px;">Create up to <strong id="pcEmptyMaxQty">0</strong> units for this acquisition.</p>
+                    <button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary" id="pcBtnAddFirstUnit" onclick="pcTriggerAddUnit()">
+                        <i class="fa fa-plus"></i> Add First Individual Unit
+                    </button>
+                </div>
+            </div>
+
+            <!-- Individual Units Grid -->
+            <div id="pcUnitsGridContainer" style="display:none;">
+                @(Html.Kendo().Grid<iLgs.Models.PropertyCardUnitVM>()
+                    .Name("gridUnits_" + cardId)
+                    .HtmlAttributes(new { @class = "pc-units-grid" })
+                    .Columns(c => {
+                        c.Bound(x => x.ContentNo).Title("Unit #").Width(75).HtmlAttributes(new { @class = "text-center font-weight-bold" });                
+                        c.Bound(x => x.SerialNo).Title("Serial / Vehicle No.").Width(150);
+                        c.Bound(x => x.PropertyNo).Title("Property No.").Width(140);
+                        c.Bound(x => x.Remarks).Title("Remarks").Width(140);
+                        c.Bound(x => x.AcquisitionCost).Title("Acq. Cost").Width(110).Format("{0:n2}").HtmlAttributes(new { @class = "text-right" });
+                        c.Bound(x => x.AccountabilityStatus).Title("Status").Width(160).ClientTemplate("#= pcUnitStatusBadge(data) #");
+                        c.Command(commands => {
+                            commands.Edit().Text("Edit");
+                            commands.Destroy().Text("Delete");
+                            commands.Custom("Documents").Click("pcUnitDocuments").Text("Documents");
+                            commands.Custom("Accountability").Click("pcUnitAccountability").Text("Accountability");
+                        }).Width(290).Title("Actions");
+                    })
+                    .Editable(e => e.Mode(GridEditMode.PopUp).TemplateName("_WorkspaceUnitTemplate").DisplayDeleteConfirmation(false).Window(w => w.Width(620).Title("Individual Physical Unit")))
+                    .Selectable().Navigatable().NoRecords("No individual physical units found for this acquisition.")
+                    .Sortable().Filterable().Scrollable().Resizable(r => r.Columns(true))
+                    .Pageable(p => p.PageSizes(new int[] { 10, 20, 50 }).Refresh(true))
+                    .AutoBind(false)
+                    .DataSource(d => d.Ajax().PageSize(20)
+                        .Model(m => {
+                            m.Id(x => x.Id);
+                            m.Field(x => x.Id).DefaultValue(Guid.Empty);
+                            m.Field(x => x.PsCardItemId).DefaultValue(Guid.Empty);
+                            m.Field(x => x.PsCardSubItemId).DefaultValue(null);
+                            m.Field(x => x.Condition).DefaultValue("Good");
+                        })
+                        .Sort(s => s.Add(x => x.ContentNo))
+                        .Events(e => e.Error("onErrorGridUnits").RequestEnd("onRequestEndGridUnits"))
+                        .Read(r => r.Action("WorkspaceUnitRead", "PropertyCard", new { id = cardId }).Data("pcUnitReadData"))
+                        .Create(c => c.Action("WorkspaceUnitCreate", "PropertyCard", new { cardId = cardId }).Data("pcIndividualUnitCreateData"))
+                        .Update(u => u.Action("WorkspaceUnitUpdate", "PropertyCard", new { cardId = cardId }))
+                        .Destroy(x => x.Action("WorkspaceUnitDestroy", "PropertyCard", new { cardId = cardId }))
+                    )
+                    .Events(e => e.Edit("onEditGridUnits").DataBound("onDataBoundGridUnits").Remove("onRemoveGridUnits"))
+                )
+            </div>
+        </section>
+    </div>
 </section>

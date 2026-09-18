@@ -1,0 +1,77 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var s = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.OperationalSummary : null;
+    if (s == null) { s = new iLgs.Models.AdminOperationalSummaryVM(); }
+
+    var hasData = s.PrTotal > 0 || s.PoTotal > 0 || s.AirTotal > 0 || s.RisTotal > 0;
+    var risPending = s.RisPendingApproval + s.RisPendingIssuance;
+    var prPending = s.PrSubmitted;
+    var airPending = s.AirPendingInspection;
+    var poDraft = s.PoDraft;
+    var prDraft = s.PrDraft;
+    var prReturned = s.PrReturned;
+    var risPosted = s.RisPosted;
+    var airInspected = s.AirInspected;
+    var poPosted = s.PoPosted;
+    var prPosted = s.PrPosted;
+}
+
+<div class="chart-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-chart-column-stacked chart-icon"></span>
+            <div>
+                <h3 class="chart-title">Current Workload &amp; Status Distribution</h3>
+                <span class="chart-subtitle">Active document distribution across workflow stages</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card-body">
+        @if (hasData)
+        {
+            <div id="adminWorkloadDistributionChart" class="kendo-dash-chart" style="height: 250px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $("#adminWorkloadDistributionChart").kendoChart({
+                        title: { visible: false },
+                        legend: { position: "bottom" },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "bar",
+                            stack: true
+                        },
+                        series: [
+                            { name: "Draft", data: [0, 0, @poDraft, @prDraft], color: "#94a3b8" },
+                            { name: "In Progress / Pending", data: [@risPending, @airPending, 0, @prPending], color: "#0284c7" },
+                            { name: "Returned for Revision", data: [0, 0, 0, @prReturned], color: "#dc2626" },
+                            { name: "Completed / Posted", data: [@risPosted, @airInspected, @poPosted, @prPosted], color: "#16a34a" }
+                        ],
+                        categoryAxis: {
+                            categories: ["Requisitions (RIS)", "Inspection (AIR)", "Purchase Orders", "Purchase Requests"],
+                            majorGridLines: { visible: false },
+                            line: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: { format: "{0:N0}" }
+                        },
+                        tooltip: {
+                            visible: true,
+                            format: "{0:N0}"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 250px;">
+                <span class="k-icon k-i-chart-column-stacked empty-icon"></span>
+                <div class="empty-title">No Workflow Distribution Data</div>
+                <p class="empty-subtext">There are currently no active procurement documents to distribute.</p>
+            </div>
+        }
+    </div>
+</div>

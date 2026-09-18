@@ -17,6 +17,7 @@
         public const string Returned = "Returned";
         public const string Revising = "Revising";
         public const string Posted = "Posted";
+        public const string Unposted = "Unposted";
         public const string Cancelled = "Cancelled";
     }
 
@@ -68,5 +69,6 @@
         public const string ForDistribution = "ForDistribution";
     }
 }
+
 
 

@@ -1,0 +1,87 @@
+@model iLgs.Models.PropertyCardUnitVM
+
+<div class="pc-unit-editor p-3">
+    @Html.HiddenFor(m => m.Id)
+        
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
+    <div id="pcUnitAccountableAlert" class="alert alert-warning" style="display: none; margin-bottom: 15px;">
+        <i class="fa fa-lock"></i> <strong>Assigned to PAR/ICS:</strong> Identity fields (Property No., Serial / Plate No.) are locked against modification.
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label font-weight-bold">Serial / MV File No. <span class="text-danger">*</span></label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.SerialNo, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", required = "required", placeholder = "e.g. Serial No., Plate No., or PIN" })
+            @Html.ValidationMessageFor(m => m.SerialNo)
+        </div>
+    </div>
+
+    @*<div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label font-weight-bold">Property No.</label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.PropertyNo, new { @class = "k-textbox w-100", placeholder = "Property tracking number / sticker" })
+            @Html.ValidationMessageFor(m => m.PropertyNo)
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Custodian Item No.</label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.CustItemNo, new { @class = "k-textbox w-100", placeholder = "Optional custodian tracking code" })
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Location</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Location")
+                .DataTextField("Code")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetLandLocation", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("60");
+                    c.Add().Field("Desc2").Title("Location").Width("260");
+                })
+            )
+            @Html.ValidationMessageFor(m => m.LocationId)
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Condition</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().DropDownListFor(m => m.Condition)
+                .BindTo(new[] { "Good", "Serviceable", "Fair", "Needs Repair", "Unserviceable" })
+                .HtmlAttributes(new { style = "width:100%;" }))
+        </div>
+    </div>*@
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Acq. Cost</label>
+        <div class="col-sm-9">
+            @(Html.Kendo().NumericTextBoxFor(m => m.AcquisitionCost)
+                .Min(0)
+                .Format("n2")
+                .HtmlAttributes(new { style = "width:100%; max-width: 100%;" }))
+        </div>
+    </div>
+
+    <div class="form-group row mb-2">
+        <label class="col-sm-3 col-form-label">Remarks</label>
+        <div class="col-sm-9">
+            @Html.TextBoxFor(m => m.Remarks, new { style = "width:100%; max-width: 100%;", @class = "k-textbox w-100", placeholder = "Physical details, brand, model, or notes" })
+        </div>
+    </div>
+</div>

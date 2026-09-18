@@ -1,0 +1,48 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var isAdmin = Model != null && Model.IsAdmin;
+    var userFull = Model != null && !string.IsNullOrEmpty(Model.UserFullName) ? Model.UserFullName : "User";
+    var dept = Model != null && !string.IsNullOrEmpty(Model.DepartmentName) ? Model.DepartmentName : (isAdmin ? "General Services Office" : "City Government Department");
+    var fiscalYear = Model != null && Model.FiscalYear > 0 ? Model.FiscalYear : DateTime.Now.Year;
+    var dateText = Model != null && !string.IsNullOrEmpty(Model.CurrentDateText) ? Model.CurrentDateText : DateTime.Now.ToString("dddd, MMMM d, yyyy");
+}
+
+<div class="dashboard-header">
+    <div class="header-brand-wrap">
+        <img src="~/Images/logo-seal.png" alt="Las Pinas Seal" class="header-logo" onerror="this.style.display='none'" />
+        <div class="header-titles">
+            @if (isAdmin)
+            {
+                <h1 class="header-main-title">ePSMS Operational Command Center</h1>
+                <p class="header-subtitle">System-wide procurement, inventory, and property operations</p>
+            }
+            else
+            {
+                <h1 class="header-main-title">Welcome, @userFull</h1>
+                <p class="header-subtitle">Personal Procurement &amp; Property Management Workbench</p>
+            }
+        </div>
+    </div>
+
+    <div class="header-controls">
+        <div class="header-chip chip-date">
+            <span class="k-icon k-i-calendar chip-icon"></span>
+            <span>@dateText</span>
+        </div>
+
+        <div class="header-chip chip-dept">
+            <span class="k-icon @(isAdmin ? "k-i-shield" : "k-i-user") chip-icon @(isAdmin ? "icon-admin" : "icon-user")"></span>
+            <strong class="chip-dept-name">@dept</strong>
+            <span class="chip-separator">&bull;</span>
+            <span class="fy-tag">FY @fiscalYear</span>
+        </div>
+
+        @if (isAdmin)
+        {
+            <button type="button" class="header-refresh-btn" onclick="window.location.reload();" title="Refresh dashboard data">
+                <span class="k-icon k-i-reload"></span>
+                <span>Refresh</span>
+            </button>
+        }
+    </div>
+</div>

@@ -3,8 +3,9 @@
     .HtmlAttributes(new { @class = "pc-acquisitions" })
     .Columns(c => {
         c.Bound(x => x.PoNo).Title("Reference").Width(180).ClientTemplate("#= pcAcquisitionReference(data) #");
-        c.Bound(x => x.UnitCost).Title("Acquisition").Width(175).ClientTemplate("#= pcAcquisitionCost(data) #");
-        c.Bound(x => x.Department).Title("PO Owner / Location").Width(200).ClientTemplate("#= pcAcquisitionLocation(data) #");
+        c.Bound(x => x.Department).Title("PO Owner").Width(200).ClientTemplate("#= pcAcquisitionLocation(data) #");
+        c.Bound(x => x.Description).Title("Description").Width(175).ClientTemplate("#= pcDescription(data) #");
+        c.Bound(x => x.UnitCost).Title("Acquisition").Width(175).ClientTemplate("#= pcAcquisitionCost(data) #");        
         c.Bound(x => x.TransferIn).Title("Movement").Width(140).ClientTemplate("#= pcAcquisitionMovement(data) #");
         c.Bound(x => x.QtyBal).Title("Balance").Width(100).ClientTemplate("<strong class='pc-balance'>#: kendo.toString(QtyBal || 0, 'n0') #</strong><br>#: Unit || '' #");
         c.Bound(x => x.PostedDt).Title("Posting").Width(145).ClientTemplate("#= pcAcquisitionStatus(data) #");
@@ -32,3 +33,4 @@
         .Create("ItemCreate", "PropertyCard").Update("ItemUpdate", "PropertyCard").Destroy("ItemDestroy", "PropertyCard"))
     .Events(e => e.Edit("onEditGridItems").Change("onChangeGridItems").DataBound("onDataBoundGridItems").Remove("onRemoveGridItems"))
 )
+<div id="pcAcquisitionDetailHost" class="pc-acquisition-detail-host" style="margin-top: 18px;"></div>

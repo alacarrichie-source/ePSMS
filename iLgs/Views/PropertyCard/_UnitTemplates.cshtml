@@ -1,4 +1,4 @@
-﻿<script id="default-template" type="text/kendo-tmpl">
+<script id="default-template" type="text/kendo-tmpl">
     <h4>Loading..</h4>
 </script>
 
@@ -7,22 +7,24 @@
     .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
-        col.Bound(c => c.ContentNo).Width(50);
-        col.Bound(c => c.PropNo).Width(100);
-        col.Bound(c => c.CustItemNo).Width(100);
-        col.Bound(c => c.SeriesNo).Width(50);
-        col.Bound(c => c.ConductionNo).Width(50);
-        col.Bound(c => c.PlateNo).Width(50);
-        col.Bound(c => c.Location).Width(150);
-        col.Bound(c => c.Condition).Width(100).Title("Condition");        
+        col.Bound(c => c.ContentNo).Width(65).Title("Unit #");
+        col.Bound(c => c.Description).Width(160).Title("Description");
+        col.Bound(c => c.PropNo).Width(130).Title("Property No.");
+        col.Bound(c => c.CustItemNo).Width(120).Title("Custodian Item No.");
+        col.Bound(c => c.PlateNo).Width(90).Title("Plate No.");
+        col.Bound(c => c.ConductionNo).Width(100).Title("Conduction No.");
+        col.Bound(c => c.SeriesNo).Width(80).Title("Series No.");
+        col.Bound(c => c.Location).Width(140).Title("Location");
+        col.Bound(c => c.Condition).Width(95).Title("Condition");
+        col.Bound(c => c.AcqCost).Width(110).Title("Acq. Cost").Format("{0:n2}");
+        col.Bound(c => c.AccountabilityStatus).Width(170).Title("Accountability").ClientTemplate("#= pcUnitStatusBadge(data) #");
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").Click("pcDeleteUnit");
             command.Custom("Documents").Click("pcUnitDocuments");
             command.Custom("Accountability").Click("pcUnitAccountability");
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemExtnDeleteClick").SendDataKeys(true);
-        }).Width(260);
+        }).Width(270);
     })
     .ToolBar(t =>
     {
@@ -33,7 +35,6 @@
     .Scrollable().Resizable(r => r.Columns(true))
     .Sortable()
     .NoRecords()
-    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax().PageSize(20)
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -63,20 +64,22 @@
     .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
+        col.Bound(c => c.ContentNo).Width(65).Title("Unit #");
+        col.Bound(c => c.Description).Width(160).Title("Description");
         col.Bound(c => c.PropNo).Width(150).Title("Property No.");
-        col.Bound(c => c.CustItemNo).Width(130);
-        col.Bound(c => c.SerialNo).Width(100);
-        col.Bound(c => c.Location).Width(150);
-        col.Bound(c => c.Condition).Width(100).Title("Condition");
-        //col.Bound(c => c.Condition).Width(100);
+        col.Bound(c => c.CustItemNo).Width(130).Title("Custodian Item No.");
+        col.Bound(c => c.SerialNo).Width(110).Title("Serial No.");
+        col.Bound(c => c.Location).Width(150).Title("Location");
+        col.Bound(c => c.Condition).Width(95).Title("Condition");
+        col.Bound(c => c.AcqCost).Width(110).Title("Acq. Cost").Format("{0:n2}");
+        col.Bound(c => c.AccountabilityStatus).Width(170).Title("Accountability").ClientTemplate("#= pcUnitStatusBadge(data) #");
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").Click("pcDeleteUnit");
             command.Custom("Documents").Click("pcUnitDocuments");
             command.Custom("Accountability").Click("pcUnitAccountability");
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemExtnDeleteClick").SendDataKeys(true);
-        }).Width(260);
+        }).Width(270);
     })
     .ToolBar(t =>
     {        
@@ -87,7 +90,6 @@
     .Scrollable().Resizable(r => r.Columns(true))
     .Sortable()
     .NoRecords()
-    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax().PageSize(20)
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -117,19 +119,23 @@
     .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
+        col.Bound(c => c.ContentNo).Width(65).Title("Unit #");
+        col.Bound(c => c.Description).Width(160).Title("Description");
         col.Bound(c => c.PropNo).Width(150).Title("Property No.");
-        col.Bound(c => c.CustItemNo).Width(130);
-        col.Bound(c => c.TctNo).Width(100);
-        col.Bound(c => c.Location).Width(150);
-        col.Bound(c => c.Condition).Width(100).Title("Condition");
-        col.Bound(c => c.DRPNo).Width(100);
+        col.Bound(c => c.CustItemNo).Width(130).Title("Custodian Item No.");
+        col.Bound(c => c.TctNo).Width(100).Title("TCT No.");
+        col.Bound(c => c.DRPNo).Width(100).Title("DRP No.");
+        col.Bound(c => c.Location).Width(150).Title("Location");
+        col.Bound(c => c.Condition).Width(95).Title("Condition");
+        col.Bound(c => c.AcqCost).Width(110).Title("Acq. Cost").Format("{0:n2}");
+        col.Bound(c => c.AccountabilityStatus).Width(170).Title("Accountability").ClientTemplate("#= pcUnitStatusBadge(data) #");
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").Click("pcDeleteUnit");
             command.Custom("Documents").Click("pcUnitDocuments");
             command.Custom("Accountability").Click("pcUnitAccountability");            
-        }).Width(260);
+        }).Width(270);
     })
     .ToolBar(t =>
     {
@@ -140,7 +146,6 @@
     .Scrollable().Resizable(r => r.Columns(true))
     .Sortable()
     .NoRecords()
-    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax().PageSize(20)
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -170,19 +175,23 @@
     .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
+        col.Bound(c => c.ContentNo).Width(65).Title("Unit #");
+        col.Bound(c => c.Description).Width(160).Title("Description");
         col.Bound(c => c.PropNo).Width(150).Title("Property No.");
-        col.Bound(c => c.CustItemNo).Width(130);
-        col.Bound(c => c.BuildingItem).Width(100);
-        col.Bound(c => c.Location).Width(150);
-        col.Bound(c => c.Condition).Width(100).Title("Condition");
-        col.Bound(c => c.BuildingType).Width(100);
+        col.Bound(c => c.CustItemNo).Width(130).Title("Custodian Item No.");
+        col.Bound(c => c.BuildingItem).Width(110).Title("Building Item");
+        col.Bound(c => c.BuildingType).Width(100).Title("Building Type");
+        col.Bound(c => c.Location).Width(150).Title("Location");
+        col.Bound(c => c.Condition).Width(95).Title("Condition");
+        col.Bound(c => c.AcqCost).Width(110).Title("Acq. Cost").Format("{0:n2}");
+        col.Bound(c => c.AccountabilityStatus).Width(170).Title("Accountability").ClientTemplate("#= pcUnitStatusBadge(data) #");
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").Click("pcDeleteUnit");
             command.Custom("Documents").Click("pcUnitDocuments");
             command.Custom("Accountability").Click("pcUnitAccountability");
-        }).Width(260);
+        }).Width(270);
     })
     .ToolBar(t =>
     {
@@ -193,7 +202,6 @@
     .Scrollable().Resizable(r => r.Columns(true))
     .Sortable()
     .NoRecords()
-    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax().PageSize(20)
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -231,5 +239,3 @@
         })
         .ToClientTemplate())
 </script>
-
-

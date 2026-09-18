@@ -1,4 +1,4 @@
-/* Existing Purchase Order mode reuses the four wizard steps and never saves creation progress. */
+﻿/* Existing Purchase Order mode reuses the four wizard steps and never saves creation progress. */
 var poExistingSaveInFlight = false;
 var existingAllocationsChanged = false;
 
@@ -10,7 +10,7 @@ function restoreExistingPO() {
     group.poNumber = source.PONumber;
     group.poDate = source.PODate;
     group.PRNumber = source.PRNumber;
-    group.DepartmentName = source.DepartmentName;
+    group.deptId = source.DeptId || group.deptId || null; group.department = source.Department || group.department || ""; group.DepartmentName = source.Department || source.DepartmentName || "";
     group.poCopyDoc = source.POCopyDoc;
     group.sourcePRs = source.SourcePRs || [];
     group.items = (source.Items || []).map(function(item) {

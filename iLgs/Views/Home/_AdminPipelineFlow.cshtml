@@ -1,0 +1,75 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var s = Model != null && Model.AdminDashboard != null ? Model.AdminDashboard.OperationalSummary : null;
+    if (s == null) { s = new iLgs.Models.AdminOperationalSummaryVM(); }
+}
+
+<div class="content-panel admin-pipeline-panel">
+    <div class="panel-inner-header">
+        <h3 class="panel-inner-title">
+            <span class="k-icon k-i-arrow-end title-icon-primary"></span>
+            <span>Procurement &amp; Property Pipeline</span>
+        </h3>
+        <span class="panel-inner-subtitle">End-to-end lifecycle throughput</span>
+    </div>
+
+    <div class="pipeline-track-wrapper">
+        <!-- Stage 1: PR -->
+        <a href="@Url.Action("Index", "Requests")" class="pipeline-stage-card">
+            <div class="stage-badge-icon">
+                <span class="k-icon k-i-file-add"></span>
+            </div>
+            <div class="stage-metric-val">@s.PrSubmitted.ToString("N0")</div>
+            <div class="stage-label">Purchase Requests</div>
+            <div class="stage-sub-status">Submitted</div>
+        </a>
+
+        <div class="pipeline-connector-arrow">&rarr;</div>
+
+        <!-- Stage 2: PO -->
+        <a href="@Url.Action("Index", "Orders")" class="pipeline-stage-card">
+            <div class="stage-badge-icon">
+                <span class="k-icon k-i-cart"></span>
+            </div>
+            <div class="stage-metric-val">@s.PoPosted.ToString("N0")</div>
+            <div class="stage-label">Purchase Orders</div>
+            <div class="stage-sub-status">Committed</div>
+        </a>
+
+        <div class="pipeline-connector-arrow">&rarr;</div>
+
+        <!-- Stage 3: AIR -->
+        <a href="@Url.Action("Index", "AIRs")" class="pipeline-stage-card">
+            <div class="stage-badge-icon">
+                <span class="k-icon k-i-search"></span>
+            </div>
+            <div class="stage-metric-val @(s.AirPendingInspection > 0 ? "val-alert" : "")">@s.AirPendingInspection.ToString("N0")</div>
+            <div class="stage-label">Inspection &amp; AIR</div>
+            <div class="stage-sub-status">Awaiting Check</div>
+        </a>
+
+        <div class="pipeline-connector-arrow">&rarr;</div>
+
+        <!-- Stage 4: Cards -->
+        <a href="@Url.Action("Index", "PropertyCard")" class="pipeline-stage-card">
+            <div class="stage-badge-icon">
+                <span class="k-icon k-i-grid"></span>
+            </div>
+            <div class="stage-metric-val">@(s.PropertyCardCount + s.StockCardCount).ToString("N0")</div>
+            <div class="stage-label">Ledger Registry</div>
+            <div class="stage-sub-status">PPE &amp; Supplies</div>
+        </a>
+
+        <div class="pipeline-connector-arrow">&rarr;</div>
+
+        <!-- Stage 5: PAR / ICS -->
+        <a href="@Url.Action("Index", "ParSet")" class="pipeline-stage-card">
+            <div class="stage-badge-icon">
+                <span class="k-icon k-i-user"></span>
+            </div>
+            <div class="stage-metric-val">@(s.ParCount + s.IcsCount).ToString("N0")</div>
+            <div class="stage-label">Accountability</div>
+            <div class="stage-sub-status">PAR &amp; ICS Issued</div>
+        </a>
+    </div>
+</div>

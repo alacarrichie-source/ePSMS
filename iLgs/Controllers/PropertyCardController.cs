@@ -1,4 +1,5 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
+using System.Data.Entity;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
@@ -53,6 +54,11 @@ namespace iLgs.Controllers
             return new PropertyCardWorkspaceService(_db, _propertyCardService.PsCardItem);
         }
 
+        private PropertyCardSubItemService SubItemService()
+        {
+            return new PropertyCardSubItemService(_db);
+        }
+
         private bool IsWorkspaceCard(Guid id)
         {
             return _db.PsCards.Any(x => x.Id == id && x.CardCategory == "P");
@@ -79,6 +85,7 @@ namespace iLgs.Controllers
             {
                 case "Acquisitions": return PartialView("_PropertyCardItem");
                 case "Individual Units": return PartialView("_WorkspaceUnits");
+                case "Components": return PartialView("_WorkspaceComponents");
                 case "Accountability": return PartialView("_WorkspaceAccountability");
                 case "History": return PartialView("_WorkspaceHistory");
                 case "Documents": return PartialView("_WorkspaceDocuments");
@@ -92,16 +99,355 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = WorkspaceService().History(id).ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
+        public ActionResult WorkspaceUnitRead([DataSourceRequest] DataSourceRequest request, Guid id, Guid? acquisitionId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var units = WorkspaceService().WorkspaceUnits(id, acquisitionId);
+            return new JsonNetResult { Data = units.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceUnitCreate(
+            [DataSourceRequest] DataSourceRequest request,
+            Guid cardId,
+            [Bind(Prefix = "")] PropertyCardUnitVM model,
+            Guid? psCardItemId = null,
+            Guid? acquisitionId = null)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model == null)
+                {
+                    ModelState.AddModelError("", "Invalid unit payload.");
+                }
+                else
+                {
+                    ModelState.Remove("PsCardItemId");
+                    ModelState.Remove("PsCardSubItemId");
+
+                    Guid? selectedAcq = (psCardItemId.HasValue && psCardItemId.Value != Guid.Empty)
+                        ? psCardItemId
+                        : ((acquisitionId.HasValue && acquisitionId.Value != Guid.Empty) ? acquisitionId : (Guid?)null);
+
+                    if (ModelState.IsValid)
+                    {
+                        string user = User.Identity.Name;
+                        await WorkspaceService().CreateUnitAsync(cardId, model, user, ModelState, selectedAcq);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model ?? new PropertyCardUnitVM() }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceUnitUpdate(
+            [DataSourceRequest] DataSourceRequest request,
+            Guid cardId,
+            [Bind(Prefix = "")] PropertyCardUnitVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model == null)
+                {
+                    ModelState.AddModelError("", "Invalid unit payload.");
+                }
+                else
+                {
+                    ModelState.Remove("PsCardSubItemId");
+
+                    if (ModelState.IsValid)
+                    {
+                        string user = User.Identity.Name;
+                        await WorkspaceService().UpdateUnitAsync(cardId, model, user, ModelState);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model ?? new PropertyCardUnitVM() }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceUnitDestroy([DataSourceRequest] DataSourceRequest request, Guid cardId, PropertyCardUnitVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = User.Identity.Name;
+                    await WorkspaceService().DestroyUnitAsync(cardId, model, user, ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public ActionResult WorkspaceComponentRead([DataSourceRequest] DataSourceRequest request, Guid id, Guid? acquisitionId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var components = SubItemService().GetComponents(id, acquisitionId);
+            return new JsonNetResult { Data = components.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentCreate([DataSourceRequest] DataSourceRequest request, Guid cardId, PropertyCardComponentVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = User.Identity.Name;
+                    await SubItemService().CreateComponentAsync(cardId, model, user, ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentUpdate([DataSourceRequest] DataSourceRequest request, Guid cardId, PropertyCardComponentVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = User.Identity.Name;
+                    await SubItemService().UpdateComponentAsync(cardId, model, user, ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentDestroy([DataSourceRequest] DataSourceRequest request, Guid cardId, PropertyCardComponentVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = User.Identity.Name;
+                    await SubItemService().DeleteComponentAsync(cardId, model.Id, user, ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #region Phase 3: Component Physical Units Actions
+
+        public ActionResult WorkspaceComponentUnitRead([DataSourceRequest] DataSourceRequest request, Guid id, Guid componentId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var units = SubItemService().GetComponentUnits(id, componentId);
+            return new JsonNetResult { Data = units.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentUnitCreate(
+            [DataSourceRequest] DataSourceRequest request,
+            Guid cardId,
+            [Bind(Prefix = "")] PropertyCardUnitVM model,
+            Guid? componentId = null,
+            Guid? psCardItemId = null)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model == null)
+                {
+                    ModelState.AddModelError("", "Invalid unit payload.");
+                }
+                else
+                {
+                    // Clean up routing/prefix noise
+                    ModelState.Remove("componentId");
+                    ModelState.Remove("psCardItemId");
+                    ModelState.Remove("PsCardItemId");
+                    ModelState.Remove("PsCardSubItemId");
+
+                    Guid targetComponentId = (componentId.HasValue && componentId.Value != Guid.Empty)
+                        ? componentId.Value
+                        : (model.PsCardSubItemId.HasValue && model.PsCardSubItemId.Value != Guid.Empty
+                            ? model.PsCardSubItemId.Value
+                            : Guid.Empty);
+
+                    Guid targetCardItemId = (psCardItemId.HasValue && psCardItemId.Value != Guid.Empty)
+                        ? psCardItemId.Value
+                        : (model.PsCardItemId != Guid.Empty ? model.PsCardItemId : Guid.Empty);
+
+                    if (targetComponentId == Guid.Empty)
+                    {
+                        ModelState.AddModelError("", "Component reference is required. Refresh the Property Card and try again.");
+                    }
+                    else
+                    {
+                        if (targetCardItemId != Guid.Empty)
+                        {
+                            model.PsCardItemId = targetCardItemId;
+                        }
+                        model.PsCardSubItemId = targetComponentId;
+
+                        if (ModelState.IsValid)
+                        {
+                            string user = User.Identity.Name;
+                            await SubItemService().CreateComponentUnitAsync(cardId, targetComponentId, model, user, ModelState);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model ?? new PropertyCardUnitVM() }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentUnitUpdate(
+            [DataSourceRequest] DataSourceRequest request,
+            Guid cardId,
+            [Bind(Prefix = "")] PropertyCardUnitVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model == null)
+                {
+                    ModelState.AddModelError("", "Invalid unit payload.");
+                }
+                else
+                {
+                    ModelState.Remove("PsCardItemId");
+                    ModelState.Remove("PsCardSubItemId");
+
+                    if (ModelState.IsValid)
+                    {
+                        string user = User.Identity.Name;
+                        await SubItemService().UpdateComponentUnitAsync(cardId, model, user, ModelState);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model ?? new PropertyCardUnitVM() }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> WorkspaceComponentUnitDestroy(
+            [DataSourceRequest] DataSourceRequest request,
+            Guid cardId,
+            [Bind(Prefix = "")] PropertyCardUnitVM model)
+        {
+            try
+            {
+                var access = await Access(User.Identity.GetUserId(), "property_card");
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = User.Identity.Name;
+                    await SubItemService().DeleteComponentUnitAsync(cardId, model.Id, user, ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            return Json(new[] { model ?? new PropertyCardUnitVM() }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
+
         public ActionResult WorkspaceChoices(Guid id, string kind, string text)
         {
             if (!IsWorkspaceCard(id)) return HttpNotFound();
             IQueryable<PropertyCardUnitChoiceVM> choices;
             if (kind == "acquisitions")
             {
-                choices = _db.PsCardItemTransfers.Where(x => x.PsCardItem.PsCardId == id)
+                choices = _db.PsCardItems.Include(i => i.Codextn).Where(x => x.PsCardId == id)
                     .Select(x => new PropertyCardUnitChoiceVM {
-                        Id = x.Id, AcquisitionId = x.PsCardItemId, PoNo = x.PsCardItem.PoNo,
-                        Label = (x.PsCardItem.PoNo ?? "No PO") + " / " + (x.Codextn.Code ?? "Origin") + " / " + (x.Codextn.Description ?? "")
+                        Id = x.Id, AcquisitionId = x.Id, PoNo = x.PoNo,
+                        Label = (x.PoNo ?? "No PO") + " / " + (x.Description) + " / " + (x.Codextn.Code ?? "Origin") + " / " + (x.Codextn.Description ?? "")
                     });
             }
             else
@@ -121,10 +467,34 @@ namespace iLgs.Controllers
             return Json(choices.OrderBy(x => x.Label).Take(100).ToList(), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult WorkspaceAcquisition(Guid id, Guid acquisitionId)
+        {
+            if (!IsWorkspaceCard(id)) return HttpNotFound();
+            var item = _propertyCardService.PsCardItem.GetTransitByCardId(id, null)
+                .FirstOrDefault(x => x.Id == acquisitionId);
+            if (item == null)
+            {
+                var psCardItem = _db.PsCardItems.AsNoTracking()
+                    .FirstOrDefault(x => x.PsCardId == id && (x.Id == acquisitionId || x.GroupId == acquisitionId));
+                if (psCardItem == null) return HttpNotFound();
+                item = _propertyCardService.PsCardItem.GetTransitByCardId(id, null)
+                    .FirstOrDefault(x => x.Id == psCardItem.Id);
+            }
+            if (item == null) return HttpNotFound();
+
+            ViewData["cardId"] = id;
+            ViewData["acquisitionId"] = acquisitionId;
+            return PartialView("_WorkspaceAcquisitionScope", item);
+        }
+
         public ActionResult WorkspaceUnits(Guid id, Guid transferId)
         {
             if (!IsWorkspaceCard(id)) return HttpNotFound();
             var row = _propertyCardService.PsCardItem.GetTransitByCardId(id, null).FirstOrDefault(x => x.TransferId == transferId);
+            if (row == null)
+            {
+                row = _propertyCardService.PsCardItem.GetTransitByCardId(id, null).FirstOrDefault(x => x.Id == transferId || x.GroupId == transferId);
+            }
             if (row == null) return HttpNotFound();
             var template = _propertyCardService.GetItemExtnName(row.Id);
             return new JsonNetResult { Data = new { Row = row, Template = template }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
@@ -132,10 +502,12 @@ namespace iLgs.Controllers
 
         public ActionResult WorkspaceAccountability(Guid id, Guid unitId)
         {
-            if (!IsWorkspaceCard(id) || !_db.PsCardItemExtns.Any(x => x.Id == unitId && x.PsCardItem.PsCardId == id)) return HttpNotFound();
+            if (!IsWorkspaceCard(id) || !_db.PsCardItemExtns.Any(x => x.Id == unitId && x.PsCardItem.PsCardId == id && x.PsCardSubItemId == null)) return HttpNotFound();
+            var model = WorkspaceService().GetUnitAccountabilityDetails(id, unitId);
+            if (model == null) return HttpNotFound();
             ViewData["psCardItemExtnId"] = unitId;
-            ViewData["scopeLabel"] = WorkspaceService().Units(id).Where(x => x.Id == unitId).Select(x => x.Label).FirstOrDefault();
-            return PartialView("_WorkspaceAccountabilityScope");
+            ViewData["scopeLabel"] = (model.PoNo ?? "No PO") + " / " + (model.Description ?? "-") + " / "  +  (model.SerialOrPlateNo ?? "Unnumbered unit");
+            return PartialView("_WorkspaceAccountabilityScope", model);
         }
 
         public ActionResult WorkspaceDocuments(Guid id, Guid imageId)
@@ -815,6 +1187,11 @@ namespace iLgs.Controllers
 
         public ActionResult StockCardRpt(Guid? selectedId)
         {
+            if (!selectedId.HasValue) return HttpNotFound();
+            var card = _propertyCardService.GetById(selectedId.Value);
+            if (card == null || string.IsNullOrWhiteSpace(card.PsNo)) return HttpNotFound();
+            var stockNo = card.PsNo;
+
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
             string rptKey = ConfigurationManager.AppSettings["RptKey"];
@@ -841,9 +1218,8 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
-            var stockNo = _propertyCardService.GetById((Guid)selectedId)?.PsNo;
-            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
-            var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description ?? "";
+            var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault()?.Description ?? "";
 
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
@@ -854,6 +1230,8 @@ namespace iLgs.Controllers
             rpt.Dispose();
             return File(stream, "application/pdf");
         }
+
+        public ActionResult PropertyCardRpt(Guid? selectedId) => StockCardRpt(selectedId);
 
         /// <summary>
         /// Prints the PO (acquisition) report for a given PsCardItem (acquisition record).

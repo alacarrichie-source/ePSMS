@@ -1,42 +1,889 @@
-.epsms-property-card { padding: 16px 12px; }
-.epsms-property-card [hidden] { display: none !important; }
-.epsms-property-card .pc-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-.epsms-property-card .pc-header h1 { margin: 0 0 5px; color: #002576; font-size: 22px; font-weight: 600; }
-.epsms-property-card .pc-header p, .epsms-property-card .pc-catalogue-help { margin: 0; color: #526174; font-size: 12px; }
-.epsms-property-card .pc-view-switch { display: flex; gap: 4px; }
-.epsms-property-card .pc-filter-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
-.epsms-property-card .pc-encoder-filter { margin-bottom: 8px; }
-.epsms-property-card .pc-article { white-space: normal; overflow-wrap: break-word; }
-.epsms-property-card #grid > .k-grid-toolbar { display: flex; flex-wrap: wrap; gap: 6px; }
-.epsms-property-card #grid > .k-grid-toolbar .k-grid-search { min-width: 180px; }
-.epsms-property-card.pc-catalogue-mode #grid > .k-grid-header,
-.epsms-property-card.pc-catalogue-mode #grid > .k-grid-content,
-.epsms-property-card.pc-catalogue-mode #grid > .k-pager-wrap { display: none; }
-.epsms-property-card.pc-catalogue-mode #grid { height: auto !important; }
-.epsms-property-card .pc-catalogue-help { padding: 12px 0; }
-.epsms-property-card #pcCatalogue { border: 0; background: transparent; }
-.epsms-property-card #pcCatalogue > .k-listview-content { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 0 0 14px; }
-.epsms-property-card .pc-card { display: flex; flex-direction: column; min-width: 0; padding: 16px; background: #fff; border: 1px solid #dce2e9; border-radius: 6px; overflow-wrap: break-word; }
-.epsms-property-card .pc-card-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.epsms-property-card .pc-card-number { color: #002576; font-size: 14px; font-weight: 700; }
-.epsms-property-card .pc-fund { flex-shrink: 0; font-size: 11px; color: #475569; }
-.epsms-property-card .pc-card h2 { font-size: 16px; line-height: 1.4; margin: 10px 0 8px; color: #26364b; }
-.epsms-property-card .pc-account { font-weight: 600; margin: 0 0 5px; }
-.epsms-property-card .pc-subaccounts, .epsms-property-card .pc-created { color: #526174; font-size: 12px; }
-.epsms-property-card .pc-card-counts { display: flex; gap: 26px; margin: auto 0 12px; padding-top: 14px; }
-.epsms-property-card .pc-card-counts dt { font-size: 11px; color: #526174; font-weight: 400; }
-.epsms-property-card .pc-card-counts dd { margin: 3px 0 0; font-size: 16px; font-weight: 600; }
-.epsms-property-card .pc-card-actions { display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px solid #edf0f4; padding-top: 12px; }
-.epsms-property-card .pc-empty { grid-column: 1 / -1; padding: 28px 12px; text-align: center; }
-.epsms-property-card .k-button:focus-visible { outline: 2px solid #002576; outline-offset: 2px; }
-@media (max-width: 1100px) {
-    .epsms-property-card #pcCatalogue > .k-listview-content { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 650px) {
-    .epsms-property-card { padding: 12px 6px; }
-    .epsms-property-card #pcCatalogue > .k-listview-content { grid-template-columns: minmax(0, 1fr); }
-    .epsms-property-card #grid > .k-grid-toolbar .k-grid-search { width: 100%; margin-left: 0; }
-    .epsms-property-card .pc-header h1 { font-size: 20px; }
+/* ==========================================================================
+   Property Card Index & Catalogue Stylesheet
+   Scoped strictly under .epsms-property-card to avoid global bleeding.
+   ========================================================================== */
+
+.epsms-property-card {
+    padding: 16px 20px;
+    color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.epsms-property-card.pc-catalogue-mode #grid .k-grid-btnPrintCard { display: none; }
+/* --------------------------------------------------------------------------
+   1. Header Section & Segmented View Switch
+   -------------------------------------------------------------------------- */
+.epsms-property-card .pc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.epsms-property-card .pc-header-title h1 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.epsms-property-card .pc-header-title p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Compact Segmented Control */
+.epsms-property-card .pc-view-switch {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    gap: 2px;
+}
+
+.epsms-property-card .pc-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 0 !important;
+    transition: all 150ms ease;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.epsms-property-card .pc-view-btn[aria-pressed="true"] {
+    background: #002576 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 37, 118, 0.25) !important;
+}
+
+.epsms-property-card .pc-view-btn[aria-pressed="false"] {
+    background: transparent !important;
+    color: #475569 !important;
+}
+
+.epsms-property-card .pc-view-btn[aria-pressed="false"]:hover {
+    background: rgba(255, 255, 255, 0.7) !important;
+    color: #0f172a !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. Responsive Filter Panel (Quick Search + Primary + More Filters Drawer)
+   -------------------------------------------------------------------------- */
+.epsms-property-card .pc-filter-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Quick Search Row */
+.pc-quick-search-row {
+    margin-bottom: 12px;
+}
+
+.pc-search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.pc-search-icon {
+    position: absolute;
+    left: 12px;
+    color: #94a3b8;
+    font-size: 15px;
+    pointer-events: none;
+}
+
+.pc-quick-search-input {
+    width: 100% !important;
+    padding: 8px 36px 8px 36px !important;
+    height: 38px !important;
+    font-size: 13.5px !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    transition: border-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.pc-quick-search-input:focus {
+    border-color: #002576 !important;
+    box-shadow: 0 0 0 3px rgba(0, 37, 118, 0.1) !important;
+}
+
+.pc-search-clear-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: 0;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-search-clear-btn:hover {
+    color: #334155;
+    background: #f1f5f9;
+}
+
+/* Primary Filter Row */
+.pc-primary-filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pc-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 180px;
+    min-width: 160px;
+}
+
+.pc-filter-group-encoder {
+    flex: 1.2 1 220px;
+    min-width: 200px;
+}
+
+.pc-filter-control {
+    width: 100%;
+}
+
+.pc-filter-control .k-combobox,
+.pc-filter-control .k-multicolumncombobox {
+    width: 100% !important;
+}
+
+.pc-filter-control .k-combobox .k-input,
+.pc-filter-control .k-multicolumncombobox .k-input {
+    height: 32px !important;
+    font-size: 13px !important;
+}
+
+.pc-filter-label {
+    margin: 0;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+}
+
+.pc-filter-input {
+    width: 100% !important;
+    height: 34px !important;
+    font-size: 13px !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 5px 10px !important;
+}
+
+.pc-filter-input:focus {
+    border-color: #002576 !important;
+    box-shadow: 0 0 0 2px rgba(0, 37, 118, 0.1) !important;
+}
+
+.pc-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: nowrap;
+}
+
+.pc-btn-more-filters,
+.pc-btn-clear-filters {
+    height: 34px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+}
+
+.pc-btn-more-filters:hover,
+.pc-btn-clear-filters:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+.pc-btn-more-filters[aria-expanded="true"] {
+    background: #e2e8f0 !important;
+    border-color: #94a3b8 !important;
+    color: #002576 !important;
+}
+
+.pc-chevron-icon {
+    font-size: 11px;
+    transition: transform 180ms ease;
+}
+
+/* Collapsible More Filters Drawer */
+.pc-more-filters-drawer {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.pc-drawer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+/* Filter Status Bar */
+.pc-filter-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pc-status-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pc-result-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: #002576;
+    background: #eef2ff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid #e0e7ff;
+}
+
+.pc-active-filter-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d97706;
+    background: #fffbeb;
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid #fef3c7;
+}
+
+/* --------------------------------------------------------------------------
+   3. Grid Adjustments & Custom Columns
+   -------------------------------------------------------------------------- */
+.epsms-property-card .pc-col-psno {
+    font-weight: 600;
+    color: #002576;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.epsms-property-card .pc-col-article {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.35;
+    font-size: 13px;
+    color: #1e293b;
+}
+
+.epsms-property-card .pc-col-classification {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12.5px;
+    color: #475569;
+}
+
+.epsms-property-card .pc-article {
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* Row Action Buttons in List View */
+.epsms-property-card .pc-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.epsms-property-card .pc-row-actions .k-button {
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    height: 28px !important;
+    border-radius: 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+}
+
+.epsms-property-card .pc-grid-view-btn {
+    background: #002576 !important;
+    border-color: #002576 !important;
+    color: #ffffff !important;
+}
+
+.epsms-property-card .pc-grid-view-btn:hover {
+    background: #001c59 !important;
+    border-color: #001c59 !important;
+}
+
+.epsms-property-card .pc-grid-edit-btn,
+.epsms-property-card .pc-grid-more-btn {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+.epsms-property-card .pc-grid-edit-btn:hover,
+.epsms-property-card .pc-grid-more-btn:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+.epsms-property-card .pc-more-caret {
+    font-size: 9px;
+    margin-left: 2px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+/* Grid Toolbar */
+.epsms-property-card #grid > .k-grid-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.epsms-property-card.pc-catalogue-mode #grid > .k-grid-header,
+.epsms-property-card.pc-catalogue-mode #grid > .k-grid-content,
+.epsms-property-card.pc-catalogue-mode #grid > .k-pager-wrap {
+    display: none;
+}
+
+.epsms-property-card.pc-catalogue-mode #grid {
+    height: auto !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.epsms-property-card.pc-catalogue-mode #grid > .k-grid-toolbar {
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.epsms-property-card.pc-catalogue-mode #grid .k-grid-btnPrintCard {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Catalogue Help Bar & Sort Selector
+   -------------------------------------------------------------------------- */
+.epsms-property-card .pc-catalogue-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 6px 4px;
+}
+
+.epsms-property-card .pc-catalogue-help {
+    margin: 0;
+    color: #64748b;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.epsms-property-card .pc-catalogue-help .k-icon {
+    color: #3b82f6;
+    font-size: 14px;
+}
+
+.epsms-property-card .pc-catalogue-sort-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.epsms-property-card .pc-sort-label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   5. Responsive Catalogue Grid & Cards
+   -------------------------------------------------------------------------- */
+.epsms-property-card #pcCatalogue {
+    border: 0;
+    background: transparent;
+}
+
+.epsms-property-card #pcCatalogue > .k-listview-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 0 0 16px;
+}
+
+/* Modern Government Asset Card */
+.epsms-property-card .pc-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow-wrap: break-word;
+    position: relative;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.epsms-property-card .pc-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 18px rgba(0, 37, 118, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Card Heading: Property No + Fund + Status */
+.epsms-property-card .pc-card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.epsms-property-card .pc-card-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.epsms-property-card .pc-card-number {
+    color: #002576;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.epsms-property-card .pc-fund {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    width: fit-content;
+}
+
+/* Status Pill */
+.epsms-property-card .pc-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.epsms-property-card .pc-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.epsms-property-card .pc-status-pending {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fef3c7;
+}
+
+.epsms-property-card .pc-status-pending .pc-status-dot {
+    background: #f59e0b;
+}
+
+.epsms-property-card .pc-status-posted {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #d1fae5;
+}
+
+.epsms-property-card .pc-status-posted .k-icon {
+    font-size: 11px;
+    color: #10b981;
+}
+
+.epsms-property-card .pc-status-new {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.epsms-property-card .pc-status-new .pc-status-dot {
+    background: #94a3b8;
+}
+
+/* Card Body */
+.epsms-property-card .pc-card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.epsms-property-card .pc-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+    margin: 0 0 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 42px;
+}
+
+.epsms-property-card .pc-card-type {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Classification Breadcrumb Box */
+.epsms-property-card .pc-card-classification {
+    background: #f8fafc;
+    border-left: 3px solid #002576;
+    border-radius: 0 6px 6px 0;
+    padding: 6px 10px;
+    margin-bottom: 14px;
+}
+
+.epsms-property-card .pc-classification-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 2px;
+}
+
+/* Stat Blocks: Item Count & Not Posted */
+.epsms-property-card .pc-card-counts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 0 0 12px 0;
+}
+
+.epsms-property-card .pc-card-stat {
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.epsms-property-card .pc-card-stat strong {
+    display: block;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.epsms-property-card .pc-card-stat span {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    margin-top: 3px;
+}
+
+.epsms-property-card .pc-stat-notposted.pc-has-unposted strong {
+    color: #b45309;
+}
+
+.epsms-property-card .pc-stat-notposted.pc-is-posted strong {
+    color: #047857;
+}
+
+/* Metadata Footer: Created by */
+.epsms-property-card .pc-created {
+    font-size: 11.5px;
+    color: #64748b;
+    margin: 0 0 14px 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.epsms-property-card .pc-created strong {
+    color: #334155;
+    margin-left: 3px;
+}
+
+/* Card Actions */
+.epsms-property-card .pc-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 12px;
+    margin-top: auto;
+    cursor: default;
+}
+
+.epsms-property-card .pc-open-card {
+    flex: 1 1 auto;
+    font-weight: 600;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #002576 !important;
+    border-color: #002576 !important;
+    color: #ffffff !important;
+}
+
+.epsms-property-card .pc-open-card:hover {
+    background: #001c59 !important;
+    border-color: #001c59 !important;
+}
+
+.epsms-property-card .pc-edit-card,
+.epsms-property-card .pc-card-more-btn {
+    font-size: 12.5px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+.epsms-property-card .pc-edit-card:hover,
+.epsms-property-card .pc-card-more-btn:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. Overflow More Menu (Shared by List & Catalog)
+   -------------------------------------------------------------------------- */
+.pc-index-more-menu {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+    min-width: 140px;
+    z-index: 10005;
+    position: absolute;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.pc-index-more-menu li {
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 120ms ease;
+}
+
+.pc-index-more-menu li[data-action]:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.pc-index-more-menu li .k-icon {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.pc-index-more-menu li:hover .k-icon {
+    color: #002576;
+}
+
+.pc-index-more-menu li.pc-menu-item-danger {
+    color: #dc2626;
+}
+
+.pc-index-more-menu li.pc-menu-item-danger .k-icon {
+    color: #dc2626;
+}
+
+.pc-index-more-menu li.pc-menu-item-danger:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+.pc-index-more-menu .pc-menu-separator {
+    height: 1px;
+    margin: 4px 0;
+    overflow: hidden;
+    background-color: #e2e8f0;
+    padding: 0 !important;
+}
+
+.pc-index-more-menu li[data-action] {
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   7. Modern Empty State
+   -------------------------------------------------------------------------- */
+.epsms-property-card .pc-catalogue-empty {
+    grid-column: 1 / -1;
+    padding: 48px 20px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    margin: 12px 0 24px;
+}
+
+.epsms-property-card .pc-empty-icon {
+    font-size: 36px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.epsms-property-card .pc-empty-title {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.epsms-property-card .pc-empty-desc {
+    margin: 0 0 18px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.epsms-property-card .pc-empty-clear {
+    background: #002576 !important;
+    border-color: #002576 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   8. Pager Styling
+   -------------------------------------------------------------------------- */
+.epsms-property-card #pcCataloguePager {
+    margin-top: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+/* --------------------------------------------------------------------------
+   9. Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+    .epsms-property-card #pcCatalogue > .k-listview-content {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .epsms-property-card {
+        padding: 12px 10px;
+    }
+    .epsms-property-card .pc-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .epsms-property-card .pc-view-switch {
+        align-self: flex-start;
+    }
+    .epsms-property-card .pc-primary-filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .epsms-property-card .pc-filter-actions {
+        margin-left: 0;
+        justify-content: space-between;
+    }
+    .epsms-property-card .pc-drawer-grid {
+        grid-template-columns: 1fr;
+    }
+    .epsms-property-card #pcCatalogue > .k-listview-content {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.epsms-property-card .k-button:focus-visible {
+    outline: 2px solid #002576;
+    outline-offset: 2px;
+}

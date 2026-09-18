@@ -1,0 +1,81 @@
+@model iLgs.Models.DashboardViewModel
+@{
+    var workload = Model != null && Model.UserDashboard != null ? Model.UserDashboard.MyWorkload : null;
+    var categories = new List<string>();
+    var counts = new List<int>();
+
+    if (workload != null && workload.Any())
+    {
+        var reversed = workload.AsEnumerable().Reverse().ToList();
+        foreach (var w in reversed)
+        {
+            categories.Add(w.Module);
+            counts.Add(w.Count);
+        }
+    }
+    var totalWorkload = counts.Sum();
+}
+
+<div class="chart-card user-workload-card">
+    <div class="chart-card-header">
+        <div class="chart-title-wrap">
+            <span class="k-icon k-i-chart-column-stacked chart-icon"></span>
+            <div>
+                <h3 class="chart-title">My Workload</h3>
+                <span class="chart-subtitle">Active transactions and accountability items assigned to you</span>
+            </div>
+        </div>
+        <span class="dash-count-badge badge-neutral">@totalWorkload Active Items</span>
+    </div>
+
+    <div class="chart-card-body">
+        @if (totalWorkload > 0)
+        {
+            <div id="userWorkloadChart" class="kendo-dash-chart" style="height: 180px;"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var cats = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(categories));
+                    var data = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(counts));
+
+                    $("#userWorkloadChart").kendoChart({
+                        title: { visible: false },
+                        legend: { visible: false },
+                        chartArea: { background: "transparent" },
+                        seriesDefaults: {
+                            type: "bar",
+                            color: "#002576"
+                        },
+                        series: [
+                            {
+                                name: "My Active Items",
+                                data: data
+                            }
+                        ],
+                        categoryAxis: {
+                            categories: cats,
+                            majorGridLines: { visible: false },
+                            line: { visible: false }
+                        },
+                        valueAxis: {
+                            line: { visible: false },
+                            minorGridLines: { visible: false },
+                            labels: { format: "{0:N0}" }
+                        },
+                        tooltip: {
+                            visible: true,
+                            template: "#= category #: <strong>#= value # items</strong>"
+                        }
+                    });
+                });
+            </script>
+        }
+        else
+        {
+            <div class="chart-empty-state" style="height: 180px;">
+                <span class="k-icon k-i-check-outline empty-icon icon-success"></span>
+                <div class="empty-title">Zero Active Workload</div>
+                <p class="empty-subtext">You currently have no open or pending documents assigned.</p>
+            </div>
+        }
+    </div>
+</div>

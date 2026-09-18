@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.Upload
+@model iLgs.Models.Upload
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formUpload", id = "formUpload" }))
 {
@@ -8,6 +8,7 @@
     @Html.HiddenFor(model => model.ImageId)
     @Html.HiddenFor(model => model.PsCardItemId)
 
+    <div class="pc-popup-validation alert alert-danger" style="display:none;" role="alert"></div>
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
