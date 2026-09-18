@@ -97,7 +97,7 @@ namespace iLgs.Controllers
             }
 
             var result = data.ToDataSourceResult(request);
-            var pageItems = (result.Data as System.Collections.IEnumerable)?.OfType<RequestVM>().ToList();
+            var _dataEnum = result.Data as System.Collections.IEnumerable; var pageItems = _dataEnum != null ? _dataEnum.OfType<RequestVM>().ToList() : null;
             if (pageItems != null && pageItems.Any())
             {
                 var pageIds = pageItems.Select(x => x.Id).ToList();
@@ -112,6 +112,10 @@ namespace iLgs.Controllers
                     .GroupBy(x => x.DocumentId)
                     .ToDictionary(x => x.Key, x => x.First());
 
+                var currentUserId = User.Identity.GetUserId();
+                var currentUserName = User.Identity.Name;
+                var postingAccess = await Access(currentUserId, "requests_posting");
+                var mainAccess = await Access(currentUserId, "requests");
                 foreach (var purchaseRequest in pageItems)
                 {
                     if (!string.IsNullOrWhiteSpace(purchaseRequest.Status))
@@ -133,6 +137,50 @@ namespace iLgs.Controllers
                         purchaseRequest.StatusRemarks = hist.Remarks;
                         purchaseRequest.StatusUser = hist.ChangedBy;
                         purchaseRequest.StatusDate = hist.ChangedDt;
+                }
+                    var isOwner = string.Equals(purchaseRequest.InsertedBy, currentUserName, StringComparison.OrdinalIgnoreCase);
+                    var isOwnerOrAdmin = isOwner || mainAccess.IsAdmin || postingAccess.IsAdmin;
+                    var prStatus = purchaseRequest.Status ?? "";
+
+                    purchaseRequest.CanView = true;
+                    if (isSubmitted == true)
+                    {
+                        bool isSubmittedOrUnposted = string.Equals(prStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) ||
+                                                    string.Equals(prStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
+                        bool isPosted = string.Equals(prStatus, PrStatuses.Posted, StringComparison.OrdinalIgnoreCase);
+
+                        if (isSubmittedOrUnposted)
+                        {
+                            purchaseRequest.CanReview = postingAccess.IsAllowed;
+                            purchaseRequest.CanPost = postingAccess.IsAllowed && postingAccess.AllowPost;
+                            purchaseRequest.CanAdminEdit = postingAccess.IsAllowed && (postingAccess.IsAdmin || postingAccess.AllowEdit || postingAccess.AllowPost);
+                            purchaseRequest.CanReturnForRevision = postingAccess.IsAllowed && postingAccess.AllowPost;
+                        }
+                        else if (isPosted)
+                        {
+                            purchaseRequest.CanPrint = true;
+                            purchaseRequest.CanUnpost = postingAccess.IsAllowed && postingAccess.AllowUnpost;
+                        }
+                    }
+                    else
+                    {
+                        if (string.Equals(prStatus, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+                        {
+                            purchaseRequest.CanContinue = isOwnerOrAdmin;
+                            purchaseRequest.CanDelete = isOwnerOrAdmin && mainAccess.AllowDelete;
+                        }
+                        else if (string.Equals(prStatus, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase))
+                        {
+                            purchaseRequest.CanRevise = isOwnerOrAdmin;
+                        }
+                        else if (string.Equals(prStatus, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase))
+                        {
+                            purchaseRequest.CanContinue = isOwnerOrAdmin;
+                        }
+                        else if (string.Equals(prStatus, PrStatuses.Posted, StringComparison.OrdinalIgnoreCase))
+                        {
+                            purchaseRequest.CanPrint = true;
+                        }
                     }
                 }
             }
@@ -144,13 +192,138 @@ namespace iLgs.Controllers
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
         }
+        [HttpGet]
+        public async Task<ActionResult> GetStatusCounts(bool? isSubmitted)
+        {
+            try
+            {
+                var userId = User.Identity.GetUserId();
+                var data = isSubmitted.HasValue
+                    ? await _requestService.GetAllAsync(userId, isSubmitted)
+                    : await _requestService.GetAllAsync(userId);
+
+                var items = await data.Select(x => new
+                {
+                    x.Id,
+                    x.Status,
+                    x.Department,
+                    x.PostedBy,
+                    x.SubmittedBy
+                }).ToListAsync();
+
+                int draftCount = 0;
+                int submittedCount = 0;
+                int returnedCount = 0;
+                int revisingCount = 0;
+                int unpostedCount = 0;
+                int postedCount = 0;
+
+                var departments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var item in items)
+                {
+                    var st = NormalizePrStatus(item.Status);
+                    if (string.IsNullOrWhiteSpace(st))
+                    {
+                        if (!string.IsNullOrWhiteSpace(item.PostedBy)) st = PrStatuses.Posted;
+                        else if (!string.IsNullOrWhiteSpace(item.SubmittedBy)) st = PrStatuses.Submitted;
+                        else st = PrStatuses.Draft;
+                    }
+
+                    if (string.Equals(st, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase)) draftCount++;
+                    else if (string.Equals(st, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase)) submittedCount++;
+                    else if (string.Equals(st, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase)) returnedCount++;
+                    else if (string.Equals(st, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase)) revisingCount++;
+                    else if (string.Equals(st, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase)) unpostedCount++;
+                    else if (string.Equals(st, PrStatuses.Posted, StringComparison.OrdinalIgnoreCase)) postedCount++;
+
+                    if (!string.IsNullOrWhiteSpace(item.Department))
+                    {
+                        departments.Add(item.Department.Trim());
+                    }
+                }
+
+                int totalCount = isSubmitted == true
+                    ? (submittedCount + unpostedCount + returnedCount + revisingCount + postedCount)
+                    : items.Count;
+
+                return Json(new
+                {
+                    success = true,
+                    total = totalCount,
+                    draft = draftCount,
+                    submitted = submittedCount,
+                    returned = returnedCount,
+                    revising = revisingCount,
+                    unposted = unpostedCount,
+                    posted = postedCount,
+                    departments = departments.OrderBy(d => d).ToList()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public async Task<ActionResult> MyDrafts_Read([DataSourceRequest] DataSourceRequest request)
+        {
+            var userId = User.Identity.GetUserId();
+            var userName = User.Identity.Name;
+            var data = await _requestService.GetAllAsync(userId);
+            var drafts = data.Where(w => (w.SubmittedBy == null || w.SubmittedBy == "") &&
+                                         (w.PostedBy == null || w.PostedBy == "") &&
+                                         string.Equals(w.InsertedBy, userName, StringComparison.OrdinalIgnoreCase))
+                             .OrderByDescending(o => o.InsertedDt ?? o.PrDate);
+
+            var result = drafts.ToDataSourceResult(request);
+            return new JsonNetResult
+            {
+                Data = result,
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ContinueDraft(Guid id)
+        {
+            var userId = User.Identity.GetUserId();
+            var access = await Access(userId, "requests");
+            if (!await CanEditDraftRequestAsync(id, access))
+            {
+                return Json(new { success = false, message = "You are not authorized to edit this draft Purchase Request." }, JsonRequestBehavior.AllowGet);
+            }
+
+            var activeCart = await _db.ProcurementCarts
+                .Where(c => c.UserId == userId && c.RequestId == id && c.Status == "ACTIVE")
+                .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                .FirstOrDefaultAsync();
+
+            if (activeCart != null)
+            {
+                return Json(new
+                {
+                    success = true,
+                    mode = "CART",
+                    redirectUrl = Url.Action("Cart", "Procurement", new { requestId = id })
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                success = true,
+                mode = "POPUP",
+                id = id
+            }, JsonRequestBehavior.AllowGet);
+        }
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> RequestCreate([DataSourceRequest] DataSourceRequest request, RequestVM model)
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);                
                 Access access = await accessTask;
@@ -167,17 +340,20 @@ namespace iLgs.Controllers
                     model = await _requestService.CreateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -201,11 +377,9 @@ namespace iLgs.Controllers
                 }
 
                 var isDraftEdit = await CanEditDraftRequestAsync(model.Id, access);
-                var isAdminEdit = !isDraftEdit && await CanAdminEditRequestAsync(model.Id, access);
-
-                if (!isDraftEdit && !isAdminEdit)
+                if (!isDraftEdit)
                 {
-                    ModelState.AddModelError("Status", "Only an authorized Draft or Submitted/Unposted Purchase Request can be edited.");
+                    ModelState.AddModelError("Status", "Only an authorized Draft Purchase Request can be edited directly.");
                 }
 
                 if (ModelState.IsValid)
@@ -213,21 +387,26 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id, allowAdminEdit: isAdminEdit);
-                    model = await _requestService.UpdateAsync(model, user, date, allowAdminEdit: isAdminEdit);
+                    await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.Id, allowAdminEdit: false);
+                    model = await _requestService.UpdateAsync(model, user, date, allowAdminEdit: false);
                 }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
+
+
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -565,7 +744,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
@@ -588,7 +767,18 @@ namespace iLgs.Controllers
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -601,7 +791,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _RequestItem(Guid requestId)
         {
             var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            ViewBag.CanRevise = await CanEditDraftOrAdminEditAsync(requestId, access);
+            ViewBag.CanRevise = await CanEditDraftRequestAsync(requestId, access);
             ViewData["requestId"] = requestId;
             return PartialView();
         }
@@ -609,9 +799,9 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId, string setLotNo)
         {
             var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            if (!await CanEditDraftOrAdminEditAsync(prId, access))
+            if (!await CanEditDraftRequestAsync(prId, access))
             {
-                return new HttpStatusCodeResult(403, "Only an authorized Draft or Submitted/Unposted Purchase Request can be edited here.");
+                return new HttpStatusCodeResult(403, "Only an authorized Draft Purchase Request can be edited here.");
             }
 
             var data = await _requestService.RequestItem.GetVmByIdAsync(requestItemId);
@@ -634,7 +824,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests", "requests_posting");
                 Access access = await accessTask;
@@ -642,11 +832,11 @@ namespace iLgs.Controllers
                 var entity = await _requestService.RequestItem.GetByIdAsync(model.Id);
                 var requestId = entity == null ? model.PrId : entity.PrId;
                 var isDraftEdit = requestId.HasValue && await CanEditDraftRequestAsync(requestId.Value, access);
-                var isAdminEdit = !isDraftEdit && requestId.HasValue && await CanAdminEditRequestAsync(requestId.Value, access);
 
-                if (!isDraftEdit && !isAdminEdit)
+
+                if (!isDraftEdit)
                 {
-                    ModelState.AddModelError("Status", "Only an authorized Draft or Submitted/Unposted Purchase Request item can be edited.");
+                    ModelState.AddModelError("Status", "Only an authorized Draft Purchase Request item can be edited directly.");
                 }
                 if (entity == null)
                 {
@@ -665,31 +855,34 @@ namespace iLgs.Controllers
 
                 if (model != null && ModelState.IsValid)
                 {
-                    if (requestId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(requestId.Value, allowAdminEdit: isAdminEdit); }
+                    if (requestId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(requestId.Value, allowAdminEdit: false); }
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
                     if (entity == null)
                     {
-                        model = await _requestService.RequestItem.CreateAsync(model, user, date, allowAdminEdit: isAdminEdit);
+                        model = await _requestService.RequestItem.CreateAsync(model, user, date, allowAdminEdit: false);
                     }
                     else
                     {
-                        model = await _requestService.RequestItem.UpdateAsync(model, user, date, allowAdminEdit: isAdminEdit);
+                        model = await _requestService.RequestItem.UpdateAsync(model, user, date, allowAdminEdit: false);
                     }
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
                 }
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -734,16 +927,16 @@ namespace iLgs.Controllers
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests", "requests_posting");
                 Access access = await accessTask;
                 var isDraftEdit = model.PrId.HasValue && await CanEditDraftRequestAsync(model.PrId.Value, access);
-                var isAdminEdit = !isDraftEdit && model.PrId.HasValue && await CanAdminEditRequestAsync(model.PrId.Value, access);
 
-                if (!isDraftEdit && !isAdminEdit)
+
+                if (!isDraftEdit)
                 {
-                    ModelState.AddModelError("DeleteError", "Only an authorized Draft or Submitted/Unposted Purchase Request item can be deleted.");
+                    ModelState.AddModelError("DeleteError", "Only an authorized Draft Purchase Request item can be deleted directly.");
                 }
                 if (!access.AllowDelete)
                 {
@@ -754,13 +947,24 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    if (model.PrId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.PrId.Value, allowAdminEdit: isAdminEdit); }
-                    model = await _requestService.RequestItem.DeleteAsync(model, user, date, allowAdminEdit: isAdminEdit);
+                    if (model.PrId.HasValue) { await new PurchaseRequestLifecycleService(_db).EnsureEditableAsync(model.PrId.Value, allowAdminEdit: false); }
+                    model = await _requestService.RequestItem.DeleteAsync(model, user, date, allowAdminEdit: false);
                 }
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -791,17 +995,20 @@ namespace iLgs.Controllers
                     await _requestService.PostAsync(requestId, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -879,17 +1086,20 @@ namespace iLgs.Controllers
                     }, JsonRequestBehavior.AllowGet);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -916,7 +1126,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
@@ -933,17 +1143,20 @@ namespace iLgs.Controllers
                     await _requestService.SubmitAsync(requestId, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -969,7 +1182,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                _menuId = TempData["requests"]?.ToString();
+                _menuId = (TempData["requests"] != null ? TempData["requests"].ToString() : null);
                 TempData.Keep("requests");
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _menuId);
                 Access access = await accessTask;
@@ -986,17 +1199,20 @@ namespace iLgs.Controllers
                     await _requestService.UnsubmitAsync(requestId, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -1015,21 +1231,21 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
-
+        // 
         //#region UNIT GROUP
         //public ActionResult _UnitGroup(Guid requestId)
         //{
         //    ViewData["requestId"] = requestId;
         //    return PartialView();
         //}
-
+        // 
         //public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? requestId)
         //{
         //    var data = _unitGroupService.GetByPrId(requestId);
-
+        // 
         //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         //}
-
+        // 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _UnitGroupUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupVM model)
         //{
@@ -1041,35 +1257,38 @@ namespace iLgs.Controllers
         //        {
         //            ModelState.AddModelError("UpdateError", "Update Access Denied!");
         //        }
-
+        // 
         //        if (ModelState.IsValid)
         //        {
         //            string user = ControllerContext.HttpContext.User.Identity.Name;
         //            DateTime date = System.DateTime.Now;
-
+        // 
         //            model = await _unitGroupService.UpdateAsync(model, user, date);
         //        }
         //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError("UpdateError", error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-        //    }
+        // catch (ValidationException validationException)
+        // {
+        // var errors = validationException.GetErrorsForModelState();
+        // if (errors != null && errors.Any())
+        // {
+        // foreach (var error in errors)
+        // {
+        // ModelState.AddModelError(error.Item1, error.Item2);
+        // }
+        // }
+        // else
+        // {
+        // ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+        // }
+        // }
         //    catch (Exception e)
         //    {
         //        ModelState.AddModelError("UpdateError", e.Message);
         //    }
-
+        // 
         //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         //}
-
+        // 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _UnitGroupDestroy([DataSourceRequest]DataSourceRequest request, RequestItemUnitGroupVM model)
         //{
@@ -1085,38 +1304,49 @@ namespace iLgs.Controllers
         //        {
         //            string user = ControllerContext.HttpContext.User.Identity.Name;
         //            DateTime date = System.DateTime.Now;
-
+        // 
         //            model = await _unitGroupService.DeleteAsync(model, user, date);
         //        }
         //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-        //    }
+        // catch (ValidationException validationException)
+        // {
+        // var errors = validationException.GetErrorsForModelState();
+        // if (errors != null && errors.Any())
+        // {
+        // foreach (var error in errors)
+        // {
+        // ModelState.AddModelError(error.Item1, error.Item2);
+        // }
+        // }
+        // else
+        // {
+        // ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+        // }
+        // }
         //    catch (Exception e)
         //    {
         //        ModelState.AddModelError("DeleteError", e.Message);
         //    }
-
+        // 
         //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         //}
-
+        // 
         //#endregion
-
+        // 
         //#region UNIT GROUP DESCRIPTION
         //public ActionResult _UnitGroupDescription(Guid unitGroupId)
         //{
         //    ViewData["unitGroupId"] = unitGroupId;
         //    return PartialView();
         //}
-
+        // 
         //public ActionResult _UnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
         //{
         //    var data = _unitGroupDescriptionService.GetByUnitGroupId(unitGroupId);
-
+        // 
         //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         //}
-
+        // 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _UnitGroupDescriptionUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupDescriptionVM model)
         //{
@@ -1128,45 +1358,48 @@ namespace iLgs.Controllers
         //        {
         //            ModelState.AddModelError("UpdateError", "Update Access Denied!");
         //        }
-
+        // 
         //        if (ModelState.IsValid)
         //        {
         //            string user = ControllerContext.HttpContext.User.Identity.Name;
         //            DateTime date = System.DateTime.Now;
-
+        // 
         //            model = await _unitGroupDescriptionService.UpdateAsync(model, user, date);
         //        }
         //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError("UpdateError", error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-        //    }
+        // catch (ValidationException validationException)
+        // {
+        // var errors = validationException.GetErrorsForModelState();
+        // if (errors != null && errors.Any())
+        // {
+        // foreach (var error in errors)
+        // {
+        // ModelState.AddModelError(error.Item1, error.Item2);
+        // }
+        // }
+        // else
+        // {
+        // ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+        // }
+        // }
         //    catch (Exception e)
         //    {
         //        ModelState.AddModelError("UpdateError", e.Message);
         //    }
-
+        // 
         //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         //}
-
+        // 
         //#endregion
-
+        // 
         //#region UNIT GROUP DESCRIPTION ITEMS        
         //public ActionResult _UnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
         //{
         //    var data = _unitGroupDescriptionItemService.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
-
+        // 
         //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         //}
-
+        // 
         //[AcceptVerbs(HttpVerbs.Post)]
         //public async Task<ActionResult> _UnitGroupDescriptionItemUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupDescriptionItemVM model)
         //{
@@ -1178,36 +1411,39 @@ namespace iLgs.Controllers
         //        {
         //            ModelState.AddModelError("UpdateError", "Update Access Denied!");
         //        }
-
+        // 
         //        if (ModelState.IsValid)
         //        {
         //            string user = ControllerContext.HttpContext.User.Identity.Name;
         //            DateTime date = System.DateTime.Now;
-
+        // 
         //            model = await _unitGroupDescriptionItemService.UpdateAsync(model, user, date);
         //        }
         //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError("UpdateError", error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-        //    }
+        // catch (ValidationException validationException)
+        // {
+        // var errors = validationException.GetErrorsForModelState();
+        // if (errors != null && errors.Any())
+        // {
+        // foreach (var error in errors)
+        // {
+        // ModelState.AddModelError(error.Item1, error.Item2);
+        // }
+        // }
+        // else
+        // {
+        // ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+        // }
+        // }
         //    catch (Exception e)
         //    {
         //        ModelState.AddModelError("UpdateError", e.Message);
         //    }
-
+        // 
         //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         //}
         //#endregion
-
+        // 
         #region PRINTOUTS
         public ActionResult PurchaseRequestRpt(string ctrlNo)
         {
@@ -1255,10 +1491,10 @@ namespace iLgs.Controllers
 
             var model = new RequestVM()
             {
-                ApprovedBy = approved?.Description,
-                ApprovedDesig = approved?.Desc2,
-                Availability = availability?.Description,
-                AvaialbilityDesig = availability?.Desc2
+                ApprovedBy = approved != null ? approved.Description : null,
+                ApprovedDesig = approved != null ? approved.Desc2 : null,
+                Availability = availability != null ? availability.Description : null,
+                AvaialbilityDesig = availability != null ? availability.Desc2 : null
             };
 
             return Json(new { model }, JsonRequestBehavior.AllowGet);
@@ -1301,17 +1537,20 @@ namespace iLgs.Controllers
                     await _requestService.RequestItem.CreateFromPpmpItemAsync(prId, selectedIds, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                var errors = validationException.GetErrorsForModelState();
+                if (errors != null && errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Item1, error.Item2);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", validationException.InnerException != null ? validationException.InnerException.Message : validationException.Message);
+                }
             }
             catch (Exception e)
             {
@@ -1411,14 +1650,14 @@ namespace iLgs.Controllers
             return postingAccess.IsAllowed && postingAccess.AllowEdit;
         }
 
+        [Obsolete("Use CanEditDraftRequestAsync.")]
         private async Task<bool> CanEditDraftOrAdminEditAsync(Guid requestId, Access access)
         {
-            if (await CanEditDraftRequestAsync(requestId, access))
-            {
-                return true;
-            }
-            return await CanAdminEditRequestAsync(requestId, access);
+            return await CanEditDraftRequestAsync(requestId, access);
         }
+
+
+
 
         [Obsolete("Use CanEditDraftRequestAsync.")]
         private async Task<bool> CanReviseRequestAsync(Guid requestId, Access access)

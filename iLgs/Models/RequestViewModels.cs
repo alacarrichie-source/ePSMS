@@ -69,6 +69,16 @@ namespace iLgs.Models
         public string StatusUser { get; set; }
         public DateTime StatusDate { get; set; }
         public string StatusRemarks { get; set; }
+        public bool CanContinue { get; set; }
+        public bool CanDelete { get; set; }
+        public bool CanRevise { get; set; }
+        public bool CanReview { get; set; }
+        public bool CanPost { get; set; }
+        public bool CanAdminEdit { get; set; }
+        public bool CanReturnForRevision { get; set; }
+        public bool CanUnpost { get; set; }
+        public bool CanPrint { get; set; }
+        public bool CanView { get; set; }
 
         // TRANSIENTS 
         // From RIS

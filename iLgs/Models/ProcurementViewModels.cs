@@ -111,6 +111,9 @@ namespace iLgs.Models
         public string AdminEditCtrlNo { get; set; }
         public string AdminEditDepartment { get; set; }
         public string AdminEditStatus { get; set; }
+        public bool PostAfterAdminEdit { get; set; }
+        public string AdminEditPrNoInput { get; set; }
+        public DateTime? AdminEditPrDateInput { get; set; }
         public IList<CartItemViewModel> Items { get; set; }
         public decimal EstimatedTotal { get { return (Items ?? new List<CartItemViewModel>()).Sum(x => x.EstimatedAmount); } }
     }
