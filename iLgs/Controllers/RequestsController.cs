@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using CrystalDecisions.CrystalReports.Engine;
 using iLgs.Ai.Services;
@@ -270,6 +270,7 @@ namespace iLgs.Controllers
         {
             var userId = User.Identity.GetUserId();
             var userName = User.Identity.Name;
+            var mainAccess = await Access(userId, "requests");
             var data = await _requestService.GetAllAsync(userId);
             var drafts = data.Where(w => (w.SubmittedBy == null || w.SubmittedBy == "") &&
                                          (w.PostedBy == null || w.PostedBy == "") &&
@@ -277,6 +278,18 @@ namespace iLgs.Controllers
                              .OrderByDescending(o => o.InsertedDt ?? o.PrDate);
 
             var result = drafts.ToDataSourceResult(request);
+            var _draftsEnum = result.Data as System.Collections.IEnumerable;
+            var pageDrafts = _draftsEnum != null ? _draftsEnum.OfType<RequestVM>().ToList() : null;
+            if (pageDrafts != null)
+            {
+                foreach (var d in pageDrafts)
+                {
+                    d.CanView = true;
+                    d.CanContinue = true;
+                    d.CanDelete = mainAccess.AllowDelete;
+                }
+            }
+
             return new JsonNetResult
             {
                 Data = result,
@@ -450,7 +463,6 @@ namespace iLgs.Controllers
                 var cartService = new ProcurementCartService(_db);
                 var adminCart = await cartService.StartAdminEditCartAsync(id, User.Identity.GetUserId(), User.Identity.Name, access);
 
-                Session["ActiveAdminEditRequestId"] = id;
 
                 var redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.AdminEdit, requestId = id });
                 if (Request.IsAjaxRequest())
@@ -1648,21 +1660,6 @@ namespace iLgs.Controllers
 
             var postingAccess = await Access(User.Identity.GetUserId(), "requests_posting");
             return postingAccess.IsAllowed && postingAccess.AllowEdit;
-        }
-
-        [Obsolete("Use CanEditDraftRequestAsync.")]
-        private async Task<bool> CanEditDraftOrAdminEditAsync(Guid requestId, Access access)
-        {
-            return await CanEditDraftRequestAsync(requestId, access);
-        }
-
-
-
-
-        [Obsolete("Use CanEditDraftRequestAsync.")]
-        private async Task<bool> CanReviseRequestAsync(Guid requestId, Access access)
-        {
-            return await CanEditDraftRequestAsync(requestId, access);
         }
 
         private string NormalizePrStatus(string status)

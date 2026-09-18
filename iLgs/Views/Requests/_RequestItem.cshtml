@@ -100,7 +100,7 @@
 <script type="text/javascript">
     function addRequestItemAntiForgery(data) {
         data = data || {};
-        var token = input[name="__RequestVerificationToken"].first().val();
+        var token = $('input[name="__RequestVerificationToken"]').first().val();
         if (token) {
             data.__RequestVerificationToken = token;
         }

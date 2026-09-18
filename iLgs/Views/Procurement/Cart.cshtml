@@ -150,14 +150,16 @@
             columns.Bound(x => x.Description)
                 .HtmlAttributes(new { @class = "cart-multiline-description" });
             columns.Bound(x => x.Unit)
-                .Width(95);
+                .Width(95)
+                .Editor("cartItemUnitEditor");
             columns.Bound(x => x.Quantity)
                 .Width(110)
                 .Title("Quantity");
             columns.Bound(x => x.UnitCost)
                 .Title("Unit Cost")
                 .Width(130)
-                .ClientTemplate("#= renderCartUnitCost(data) #");
+                .ClientTemplate("#= renderCartUnitCost(data) #")
+                .Editor("cartItemUnitCostEditor");
             columns.Bound(x => x.EstimatedAmount)
                 .Title("Est. Amount")
                 .Width(140)
@@ -188,9 +190,9 @@
                 model.Field(x => x.ItemNo).Editable(false);
                 model.Field(x => x.Code).Editable(false);
                 model.Field(x => x.Description).Editable(true);
-                model.Field(x => x.Unit).Editable(false);
+                model.Field(x => x.Unit).Editable(Model.IsAdminEdit);
                 model.Field(x => x.Quantity).Editable(true);
-                model.Field(x => x.UnitCost).Editable(false);
+                model.Field(x => x.UnitCost).Editable(Model.IsAdminEdit);
                 model.Field(x => x.EstimatedAmount).Editable(false);
             })
             .Read(read => read.Action("CartRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))
@@ -239,6 +241,78 @@
             destroy: "@Url.Action("RemoveCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
             units: "@Url.Action("GetUnits", "Getters")"
         };
+
+        var isAdminEditMode = @(Model.IsAdminEdit ? "true" : "false");
+
+        function cartItemUnitEditor(container, options) {
+            if (!isAdminEditMode) {
+                container.text(options.model[options.field] || "");
+                return;
+            }
+            var $input =
+                $("<input required name='" + options.field +
+                    "' data-bind='value:" + options.field + "' />")
+                    .appendTo(container);
+
+            $input.kendoMultiColumnComboBox({
+                placeholder: "Select unit",
+                dataTextField: "Code",
+                dataValueField: "Code",
+                valuePrimitive: true,
+                filter: "contains",
+                autoBind: false,
+                suggest: true,
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: cartSubItemUrls.units,
+                            dataType: "json",
+                            data: function () {
+                                var widget =
+                                    $input.data("kendoMultiColumnComboBox");
+                                return {
+                                    text: widget ? widget.input.val() : ""
+                                };
+                            }
+                        }
+                    },
+                    serverFiltering: true
+                },
+                columns: [
+                    { field: "Code", title: "Code", width: 100 },
+                    {
+                        field: "Description",
+                        title: "Description",
+                        width: 220,
+                        template: "#= columnTemplate(data.Description) #"
+                    },
+                    {
+                        field: "Desc2",
+                        title: "Category",
+                        width: 180,
+                        template: "#= columnTemplate(data.Desc2) #"
+                    }
+                ]
+            });
+        }
+
+        function cartItemUnitCostEditor(container, options) {
+            if (!isAdminEditMode) {
+                container.text(kendo.toString(options.model[options.field], "c2"));
+                return;
+            }
+            var $input =
+                $("<input required name='" + options.field +
+                    "' data-bind='value:" + options.field + "' />")
+                    .appendTo(container);
+
+            $input.kendoNumericTextBox({
+                format: "n2",
+                decimals: 2,
+                min: 0.01,
+                placeholder: "0.00"
+            });
+        }
 
         function columnTemplate(value) {
             var encodedValue = kendo.htmlEncode(value || "");
@@ -606,6 +680,15 @@
 
             if (!isNaN(maxQuantity) && maxQuantity > 0) {
                 quantityInput.max(maxQuantity);
+            }
+
+            if (isAdminEditMode) {
+                var unitCostInput = e.container
+                    .find("input[name='UnitCost']")
+                    .data("kendoNumericTextBox");
+                if (unitCostInput) {
+                    unitCostInput.min(0.01);
+                }
             }
         }
 

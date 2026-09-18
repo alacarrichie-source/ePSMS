@@ -65,46 +65,62 @@ namespace iLgs.Services.PurchaseRequest
 
             if (string.Equals(preferredMode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
             {
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    return null;
+                }
+
                 var adminQuery = query
                     .Where(c => (c.RevisionUser != null && c.RevisionUser.StartsWith("ADMIN_EDIT:")) ||
- (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")));
- if (requestId.HasValue && requestId.Value != Guid.Empty)
- {
- adminQuery = adminQuery.Where(c => c.RequestId == requestId.Value);
- }
- return await adminQuery
- .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
- .FirstOrDefaultAsync();
- }
+                                (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
+                    .Where(c => c.RequestId == requestId.Value);
 
- if (string.Equals(preferredMode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
- {
- var revQuery = query
- .Where(c => c.IsRevision &&
- (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
- (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")));
- if (requestId.HasValue && requestId.Value != Guid.Empty)
- {
- revQuery = revQuery.Where(c => c.RequestId == requestId.Value);
- }
- return await revQuery
- .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
- .FirstOrDefaultAsync();
- }
+                return await adminQuery
+                    .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                    .FirstOrDefaultAsync();
+            }
 
- if (string.Equals(preferredMode, CartModes.Normal, StringComparison.OrdinalIgnoreCase))
- {
- return await query
- .Where(c => !c.IsRevision &&
- c.RequestId == null &&
- (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
- (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
- .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
- .FirstOrDefaultAsync();
- }
+            if (string.Equals(preferredMode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    return null;
+                }
 
- return null;
- }
+                var revQuery = query
+                    .Where(c => c.IsRevision &&
+                                (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
+                                (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
+                    .Where(c => c.RequestId == requestId.Value);
+
+                return await revQuery
+                    .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (string.Equals(preferredMode, CartModes.Normal, StringComparison.OrdinalIgnoreCase))
+            {
+                var normQuery = query
+                    .Where(c => !c.IsRevision &&
+                                (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
+                                (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")));
+
+                if (requestId.HasValue && requestId.Value != Guid.Empty)
+                {
+                    normQuery = normQuery.Where(c => c.RequestId == requestId.Value);
+                }
+                else
+                {
+                    normQuery = normQuery.Where(c => c.RequestId == null);
+                }
+
+                return await normQuery
+                    .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                    .FirstOrDefaultAsync();
+            }
+
+            return null;
+        }
 
                 public async Task<CartViewModel> GetActiveCartViewModelAsync(string userId)
         {
@@ -422,12 +438,17 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<CartItemViewModel> UpdateItemAsync(string userId, Guid ppmpItemId, int quantity, string description, string userName, string preferredMode, Guid? requestId)
         {
+            return await UpdateItemAsync(userId, ppmpItemId, quantity, description, userName, preferredMode, requestId, null, null);
+        }
+
+        public async Task<CartItemViewModel> UpdateItemAsync(string userId, Guid ppmpItemId, int quantity, string description, string userName, string preferredMode, Guid? requestId, string unit, decimal? unitCost)
+        {
             ProcurementCart cart = null;
             if (!string.IsNullOrEmpty(preferredMode))
             {
                 cart = await GetActiveCartEntityAsync(userId, preferredMode, requestId);
             }
-            if (cart == null)
+            else
             {
                 var targetItem = await _db.ProcurementCartItems
                     .Include(x => x.ProcurementCart.ProcurementCartItems.Select(s => s.ProcurementCartSubItems))
@@ -436,10 +457,10 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     cart = targetItem.ProcurementCart;
                 }
-            }
-            if (cart == null)
-            {
-                cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                if (cart == null)
+                {
+                    cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                }
             }
             if (cart == null)
             {
@@ -490,6 +511,17 @@ namespace iLgs.Services.PurchaseRequest
 
             item.Description = description.Trim();
             item.Quantity = quantity;
+            if (string.Equals(GetCartMode(cart), CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    item.Unit = unit.Trim();
+                }
+                if (unitCost.HasValue && unitCost.Value >= 0)
+                {
+                    item.UnitCost = unitCost.Value;
+                }
+            }
             cart.UpdatedBy = userName;
             cart.UpdatedDt = DateTime.Now;
 
@@ -511,7 +543,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 cart = await GetActiveCartEntityAsync(userId, preferredMode, requestId);
             }
-            if (cart == null)
+            else
             {
                 var targetItem = await _db.ProcurementCartItems
                     .Include(x => x.ProcurementCart.ProcurementCartItems.Select(s => s.ProcurementCartSubItems))
@@ -520,10 +552,10 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     cart = targetItem.ProcurementCart;
                 }
-            }
-            if (cart == null)
-            {
-                cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                if (cart == null)
+                {
+                    cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                }
             }
             if (cart == null)
             {
@@ -564,7 +596,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 cart = await GetActiveCartEntityAsync(userId, preferredMode, requestId);
             }
-            if (cart == null)
+            else
             {
                 var targetItem = await _db.ProcurementCartItems
                     .Include(x => x.ProcurementCart.ProcurementCartItems.Select(s => s.ProcurementCartSubItems))
@@ -573,10 +605,10 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     cart = targetItem.ProcurementCart;
                 }
-            }
-            if (cart == null)
-            {
-                cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                if (cart == null)
+                {
+                    cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                }
             }
             if (cart == null)
             {
@@ -641,7 +673,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 cart = await GetActiveCartEntityAsync(userId, preferredMode, requestId);
             }
-            if (cart == null)
+            else
             {
                 var targetItem = await _db.ProcurementCartItems
                     .Include(x => x.ProcurementCart.ProcurementCartItems.Select(s => s.ProcurementCartSubItems))
@@ -650,10 +682,10 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     cart = targetItem.ProcurementCart;
                 }
-            }
-            if (cart == null)
-            {
-                cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                if (cart == null)
+                {
+                    cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                }
             }
             if (cart == null)
             {
@@ -708,7 +740,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 cart = await GetActiveCartEntityAsync(userId, preferredMode, requestId);
             }
-            if (cart == null)
+            else
             {
                 var targetItem = await _db.ProcurementCartItems
                     .Include(x => x.ProcurementCart.ProcurementCartItems.Select(s => s.ProcurementCartSubItems))
@@ -717,10 +749,10 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     cart = targetItem.ProcurementCart;
                 }
-            }
-            if (cart == null)
-            {
-                cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                if (cart == null)
+                {
+                    cart = await GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                }
             }
             if (cart == null)
             {

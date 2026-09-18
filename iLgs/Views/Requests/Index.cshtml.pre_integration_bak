@@ -1,4 +1,4 @@
-@{
+﻿@{
     var isSubmittedMode = ViewBag.IsSubmitted == true;
     ViewBag.Title = isSubmittedMode ? "Purchase Request Posting & Review" : "Purchase Requests";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
@@ -30,10 +30,6 @@
         html += "<span class='pr-ctrl-sub'>Ctrl: " + kendo.htmlEncode(ctrlNo) + "</span>";
         html += "</div>";
         return html;
-    }
-
-    function renderPrNo(data) {
-        return renderPrNumber(data);
     }
 
     function renderPrDepartment(data) {
@@ -104,7 +100,7 @@
             kendo.htmlEncode(value) + "</span>";
     }
 
-        function renderPrActions(item) {
+    function renderPrActions(item) {
         if (!item) return "";
         var id = item.Id;
         var status = item.Status ? (item.Status + "").replace(/^\s+|\s+$/g, "") : "Draft";
@@ -115,137 +111,95 @@
             // REQUESTS / POSTING - ADMINISTRATIVE MATRIX
             // ==========================================
             if (status === "Submitted" || status === "Unposted") {
-                // PRIMARY: Review (only if CanReview), Post (only if CanPost)
-                if (item.CanReview) {
-                    html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openPurchaseRequestReview('" + id + "')\" title='Review Purchase Request'><span class='k-icon k-i-search'></span> Review</button>";
-                }
-                if (item.CanPost) {
-                    html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openReviewPostDialogForPr('" + id + "')\" title='Post Purchase Request'><span class='k-icon k-i-check'></span> Post</button>";
-                }
+                // PRIMARY: Review, Post
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openPurchaseRequestReview('" + id + "')\" title='Review Purchase Request'><span class='k-icon k-i-search'></span> Review</button>";
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"openReviewPostDialogForPr('" + id + "')\" title='Post Purchase Request'><span class='k-icon k-i-check'></span> Post</button>";
 
-                // SECONDARY / MORE: Admin Edit (only if CanAdminEdit), Return for Revision (only if CanReturnForRevision), View (if CanView)
-                var moreItems = [];
-                if (item.CanAdminEdit) {
-                    moreItems.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); startPurchaseRequestAdminEdit('" + id + "')\"><span class='k-icon k-i-edit'></span> Admin Edit</a>");
-                }
-                if (item.CanReturnForRevision) {
-                    moreItems.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); openReviewReturnDialogForPr('" + id + "')\"><span class='k-icon k-i-undo'></span> Return for Revision</a>");
-                }
-                if (item.CanView) {
-                    moreItems.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>");
-                }
+                // SECONDARY / MORE: Admin Edit, Return for Revision, View
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); startPurchaseRequestAdminEdit('" + id + "')\"><span class='k-icon k-i-edit'></span> Admin Edit</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); openReviewReturnDialogForPr('" + id + "')\"><span class='k-icon k-i-undo'></span> Return for Revision</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
+            } else if (status === "Returned") {
+                // PRIMARY: View
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
 
-                if (moreItems.length > 0) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    for (var i = 0; i < moreItems.length; i++) {
-                        html += moreItems[i];
-                    }
-                    html += "</div></div>";
-                }
-            } else if (status === "Returned" || status === "Revising") {
-                // Returned / Revising in Posting: View, Review Comment
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
-                }
+                // SECONDARY / MORE: Review Comment
                 html += "<div class='pr-dropdown-wrapper'>";
                 html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
                 html += "<div class='pr-action-menu' style='display:none;'>";
                 html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
                 html += "</div></div>";
             } else if (status === "Posted") {
-                // Posted in Posting: PRIMARY: View; SECONDARY / MORE: Print (if CanPrint), Unpost (if CanUnpost)
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+                // PRIMARY: View
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+
+                // SECONDARY / MORE: Print, Unpost
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
+                if (canUnpostPr) {
+                    html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); unpostPurchaseRequest(this, '" + id + "')\"><span class='k-icon k-i-unlock'></span> Unpost</a>";
                 }
-                var postedMore = [];
-                if (item.CanPrint) {
-                    postedMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
-                }
-                if (item.CanUnpost) {
-                    postedMore.push("<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); unpostPurchaseRequest(this, '" + id + "')\"><span class='k-icon k-i-unlock'></span> Unpost</a>");
-                }
-                if (postedMore.length > 0) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    for (var p = 0; p < postedMore.length; p++) {
-                        html += postedMore[p];
-                    }
-                    html += "</div></div>";
-                }
+                html += "</div></div>";
             } else {
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
-                }
+                // Draft or other statuses (normally not shown in Posting queue)
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
             }
         } else {
             // ==========================================
             // REQUESTS / INDEX - REQUESTER MATRIX
             // ==========================================
             if (status === "Draft") {
-                // Draft: Continue (only if CanContinue), Delete (only if CanDelete), View (if CanView)
-                if (item.CanContinue) {
-                    html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continueDraftPurchaseRequest('" + id + "')\" title='Continue Draft'><span class='k-icon k-i-pencil'></span> Continue</button>";
-                }
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
-                }
-                if (item.CanDelete) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); deletePurchaseRequest('" + id + "')\"><span class='k-icon k-i-delete'></span> Delete</a>";
-                    html += "</div></div>";
-                }
+                // PRIMARY: Continue
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continueDraftPurchaseRequest('" + id + "')\" title='Continue Draft PR'><span class='k-icon k-i-arrow-right'></span> Continue</button>";
+
+                // SECONDARY / MORE: View, Delete
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-danger' onclick=\"closeAllPrActionMenus(); deletePurchaseRequest('" + id + "')\"><span class='k-icon k-i-trash'></span> Delete</a>";
+                html += "</div></div>";
             } else if (status === "Returned") {
-                // Returned: Revise PR (only if CanRevise), Review Comment, View (if CanView)
-                if (item.CanRevise) {
-                    html += "<button type='button' class='pr-btn-sm-primary' onclick=\"startPurchaseRequestRevision('" + id + "')\" title='Revise Purchase Request'><span class='k-icon k-i-edit'></span> Revise PR</button>";
-                }
-                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"showReturnComment('" + id + "')\" title='Review Comment'><span class='k-icon k-i-comment'></span> Review Comment</button>";
-                if (item.CanView) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
-                    html += "</div></div>";
-                }
+                // PRIMARY: Revise PR
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"startPurchaseRequestRevision('" + id + "')\" title='Revise Returned PR'><span class='k-icon k-i-edit'></span> Revise PR</button>";
+
+                // SECONDARY / MORE: Review Comment, View
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
             } else if (status === "Revising") {
-                // Revising: Continue Revision (only if CanContinue), Review Comment, View (if CanView)
-                if (item.CanContinue) {
-                    html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continuePurchaseRequestRevision('" + id + "')\" title='Continue Revision'><span class='k-icon k-i-pencil'></span> Continue Revision</button>";
-                }
-                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"showReturnComment('" + id + "')\" title='Review Comment'><span class='k-icon k-i-comment'></span> Review Comment</button>";
-                if (item.CanView) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
-                    html += "</div></div>";
-                }
+                // Revising: Continue Revision
+                html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continuePurchaseRequestRevision()\" title='Continue Revision in Cart'><span class='k-icon k-i-arrow-right'></span> Continue Revision</button>";
+
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
+                html += "</div></div>";
             } else if (status === "Submitted" || status === "Unposted") {
-                // Submitted / Unposted: View only (strictly read-only)
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
-                }
+                // Submitted / Unposted: PRIMARY: View only (strictly read-only)
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
             } else if (status === "Posted") {
-                // Posted: View (if CanView), Print (only if CanPrint)
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
-                }
-                if (item.CanPrint) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
-                    html += "</div></div>";
-                }
+                // Posted: PRIMARY: View, SECONDARY / MORE: Print
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+
+                html += "<div class='pr-dropdown-wrapper'>";
+                html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+                html += "<div class='pr-action-menu' style='display:none;'>";
+                html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
+                html += "</div></div>";
             } else {
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
-                }
+                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
             }
         }
 
@@ -357,6 +311,10 @@
 
     function onDataBoundGrid(e) {
         var grid = (e && e.sender) ? e.sender : this;
+        var rawData = (grid && grid.dataSource) ? grid.dataSource.data() : [];
+        if (typeof updateQuickFilterCountsAndDept === "function") {
+            updateQuickFilterCountsAndDept(rawData);
+        }
 
         if (selectedId && grid && grid.dataSource) {
             var dataItem = grid.dataSource.get(selectedId);
@@ -536,19 +494,16 @@
             </div>
         </div>
 
-        @if (!isSubmittedMode)
-        {
-            <div class="requests-metric-card" id="cardMetricDraft" data-status="Draft" onclick="filterByStatusPill('Draft')" title="Click to filter by draft">
-                <div class="requests-metric-header">
-                    <span class="requests-metric-label">Draft</span>
-                    <span class="requests-metric-dot dot-draft"></span>
-                </div>
-                <div class="requests-metric-value-row">
-                    <span class="requests-metric-number" id="metricDraft">0</span>
-                    <span class="requests-metric-subtext">In preparation</span>
-                </div>
+        <div class="requests-metric-card" id="cardMetricDraft" data-status="Draft" onclick="filterByStatusPill('Draft')" title="Click to filter by draft">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Draft</span>
+                <span class="requests-metric-dot dot-draft"></span>
             </div>
-        }
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricDraft">0</span>
+                <span class="requests-metric-subtext">In preparation</span>
+            </div>
+        </div>
 
         <div class="requests-metric-card" id="cardMetricSubmitted" data-status="Submitted" onclick="filterByStatusPill('Submitted')" title="Click to filter by submitted">
             <div class="requests-metric-header">
@@ -594,74 +549,6 @@
             </div>
         </div>
     </div>
-
-    @if (!isSubmittedMode)
-    {
-        <!-- MY DRAFTS WORKSPACE -->
-        <div class="requests-card" id="myDraftsSection" style="margin-bottom: 24px;">
-            <div class="requests-card-header" style="border-bottom: 1px solid #e2e8f0; padding: 14px 20px;">
-                <div class="requests-card-title-group">
-                    <h3 class="requests-card-title" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #1e293b;">
-                        <span class="k-icon k-i-pencil" style="color: #6366f1;"></span> MY DRAFTS
-                    </h3>
-                    <p class="requests-card-subtitle" style="margin: 4px 0 0; font-size: 12.5px; color: #64748b;">
-                        Your active draft purchase requests in preparation. Continue drafting, view details, or delete.
-                    </p>
-                </div>
-                <div class="requests-card-header-actions">
-                    <button type="button" class="btn-secondary-action" onclick="refreshMyDraftsGrid()" title="Refresh My Drafts">
-                        <span class="k-icon k-i-reload"></span> Refresh
-                    </button>
-                </div>
-            </div>
-            <div class="requests-grid-container" style="padding: 12px 16px;">
-                @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
-                    .Name("gridMyDrafts")
-                    .Columns(col =>
-                    {
-                        col.Bound(c => c.CtrlNo).Title("Control No.").Width(130).ClientTemplate("#= renderPrNo(data) #");
-                        col.Bound(c => c.Department).Title("Department / Fund").Width(180).ClientTemplate("#= renderPrDepartment(data) #");
-                        col.Bound(c => c.Purpose).Title("Purpose").ClientTemplate("#= renderPrPurpose(data) #");
-                        col.Bound(c => c.TotalAmount).Title("Estimated Amount").Width(140)
-                            .HtmlAttributes(new { @class = "text-right" }).HeaderHtmlAttributes(new { @class = "text-right" })
-                            .ClientTemplate("#= renderPrAmount(data) #");
-                        col.Bound(c => c.PrDate).Title("Date Created").Width(120).ClientTemplate("#= renderPrDate(data) #");
-                        col.Bound(c => c.Status).Title("Status").Width(100).ClientTemplate("#= renderPrStatus(data.Status) #");
-                        col.Bound(c => c.Id).Title("Actions").Width(190).Sortable(false).Filterable(false)
-                            .HtmlAttributes(new { @class = "text-right" })
-                            .HeaderHtmlAttributes(new { @class = "text-right" })
-                            .ClientTemplate("#= renderPrActions(data) #");
-                    })
-                    .Pageable(pager => pager
-                        .Input(false)
-                        .Numeric(true)
-                        .Info(true)
-                        .PreviousNext(true)
-                        .Refresh(true)
-                        .PageSizes(new[] { 5, 10, 20 })
-                        .ButtonCount(5)
-                    )
-                    .Sortable()
-                    .Scrollable()
-                    .NoRecords(n => n.Template(
-                        "<div class='item-empty-state pr-empty-state' style='padding: 20px; text-align: center;'>" +
-                            "<span class='k-icon k-i-file-add pr-empty-icon' style='font-size: 24px; color: #94a3b8;'></span>" +
-                            "<p style='margin: 6px 0 2px; font-weight: 600; color: #475569;'>No active drafts</p>" +
-                            "<span class='item-empty-sub pr-empty-sub' style='font-size: 12px; color: #94a3b8;'>You don't have any purchase requests in draft status.</span>" +
-                        "</div>"
-                    ))
-                    .DataSource(dataSource => dataSource
-                        .Ajax()
-                        .PageSize(10)
-                        .Model(model => { model.Id(p => p.Id); })
-                        .Sort(s => s.Add(a => a.InsertedDt).Descending())
-                        .Read(read => read.Action("MyDrafts_Read", "Requests"))
-                    )
-                    .Events(events => events.Change("onChangeMyDraftsGrid"))
-                )
-            </div>
-        </div>
-    }
 
     <!-- MAIN UNIFIED WORKSPACE CARD -->
     <div class="requests-card">
@@ -1061,15 +948,7 @@
     function getPurchaseRequestRow(id) {
         var grid = $("#grid").data("kendoGrid");
         var item = grid ? grid.dataSource.get(id) : null;
-        if (item) {
-            return { grid: grid, item: item, row: grid.tbody.find("tr[data-uid='" + item.uid + "']") };
-        }
-        var draftGrid = $("#gridMyDrafts").data("kendoGrid");
-        var draftItem = draftGrid ? draftGrid.dataSource.get(id) : null;
-        if (draftItem) {
-            return { grid: draftGrid, item: draftItem, row: draftGrid.tbody.find("tr[data-uid='" + draftItem.uid + "']") };
-        }
-        return null;
+        return item ? { grid: grid, item: item, row: grid.tbody.find("tr[data-uid='" + item.uid + "']") } : null;
     }
 
     function viewPurchaseRequest(id) {
@@ -1084,8 +963,7 @@
         var target = getPurchaseRequestRow(id);
         if (!target) return;
         var st = target.item.Status;
-        // Strictly restrict legacy direct editing to true Draft only
-        if (st !== "Draft") return;
+        if (st !== "Draft" && st !== "Returned" && st !== "Submitted" && st !== "Unposted") return;
         target.grid.select(target.row);
         target.grid.editRow(target.row);
     }
@@ -1143,32 +1021,16 @@
         });
     }
 
-    function continuePurchaseRequestRevision(id) {
-        if (!id) return;
-        window.location.href = '@Url.Action("Cart", "Procurement")' + '?mode=REVISION&requestId=' + encodeURIComponent(id);
+    function continuePurchaseRequestRevision() {
+        window.location.href = '@Url.Action("Cart", "Procurement")';
     }
 
     function deletePurchaseRequest(id) {
         var target = getPurchaseRequestRow(id);
-        var grid = null;
-        var item = null;
-        if (target) {
-            grid = target.grid;
-            item = target.item;
-        } else {
-            var dGrid = $("#gridMyDrafts").data("kendoGrid");
-            if (dGrid) {
-                item = dGrid.dataSource.get(id);
-                if (item) grid = dGrid;
-            }
-        }
-        if (!item || item.Status !== "Draft") return;
+        if (!target || target.item.Status !== "Draft") return;
         if (!window.confirm("Delete this draft Purchase Request?")) return;
-        grid.dataSource.remove(item);
-        grid.dataSource.sync();
-        setTimeout(function () {
-            refreshPrGrid();
-        }, 500);
+        target.grid.dataSource.remove(target.item);
+        target.grid.dataSource.sync();
     }
 
     function printPurchaseRequest(id) {
@@ -1178,34 +1040,8 @@
             encodeURIComponent(target.item.CtrlNo), "_blank");
     }
 
-    var continueDraftUrl = '@Url.Action("ContinueDraft", "Requests")';
-
     function continueDraftPurchaseRequest(id) {
-        if (!id) return;
-        $.ajax({
-            url: continueDraftUrl,
-            type: "GET",
-            data: { id: id }
-        }).done(function (result) {
-            if (result && result.success) {
-                if (result.mode === "CART" && result.redirectUrl) {
-                    window.location.href = result.redirectUrl;
-                } else if (result.mode === "POPUP") {
-                    editPurchaseRequest(id);
-                } else {
-                    window.location.href = '@Url.Action("Cart", "Procurement")' + '?requestId=' + encodeURIComponent(id);
-                }
-            } else {
-                var msg = (result && result.message) ? result.message : "Could not continue draft Purchase Request.";
-                if (window.kendo && kendo.alert) {
-                    kendo.alert(kendo.htmlEncode(msg));
-                } else {
-                    alert(msg);
-                }
-            }
-        }).fail(function () {
-            alert("Failed to continue draft Purchase Request.");
-        });
+        window.location.href = '@Url.Action("Cart", "Procurement")';
     }
 
     var getReturnCommentUrl = '@Url.Action("GetReturnComment", "Requests")';
@@ -1555,65 +1391,53 @@
         filterByStatusPill(defaultStatus);
     }
 
-    var getStatusCountsUrl = '@Url.Action("GetStatusCounts", "Requests")';
-
-    function loadAuthoritativeCountsAndDepts() {
-        $.ajax({
-            url: getStatusCountsUrl,
-            type: "GET",
-            data: { isSubmitted: isPrReviewMode ? true : false }
-        }).done(function (res) {
-            if (!res || !res.success) return;
-
-            $("#metricTotal").text(res.total || 0);
-            $("#metricDraft").text(res.draft || 0);
-            $("#metricSubmitted").text(res.submitted || 0);
-            $("#metricReturned").text(res.returned || 0);
-            $("#metricUnposted").text(res.unposted || 0);
-            $("#metricPosted").text(res.posted || 0);
-            $("#pillCountAllBadge").text(res.total || 0);
-
-            var deptSelect = $("#prDeptFilter");
-            var currentDept = deptSelect.val();
-            deptSelect.find("option:not(:first)").remove();
-            if (res.departments && res.departments.length) {
-                for (var i = 0; i < res.departments.length; i++) {
-                    var d = res.departments[i];
-                    deptSelect.append($("<option>", { value: d, text: d }));
-                }
-            }
-            if (currentDept) {
-                deptSelect.val(currentDept);
-            }
-        });
-    }
-
     function refreshPrGrid() {
         var grid = $("#grid").data("kendoGrid");
         if (grid) grid.dataSource.read();
-        refreshMyDraftsGrid();
-        loadAuthoritativeCountsAndDepts();
     }
 
-    function refreshMyDraftsGrid() {
-        var draftGrid = $("#gridMyDrafts").data("kendoGrid");
-        if (draftGrid) draftGrid.dataSource.read();
-    }
+    function updateQuickFilterCountsAndDept(data) {
+        if (!data) return;
 
-    function onChangeMyDraftsGrid(e) {
-        var grid = (e && e.sender) ? e.sender : this;
-        var row = grid.select();
-        if (row && row.length > 0) {
-            var dataItem = grid.dataItem(row);
-            if (dataItem) {
-                selectedId = dataItem.Id;
-                selectedPrNo = dataItem.PrNo;
-                selectedCtrlNo = dataItem.CtrlNo;
+        var totalCount = data.length;
+        var draftCount = 0;
+        var submittedCount = 0;
+        var returnedCount = 0;
+        var unpostedCount = 0;
+        var postedCount = 0;
+
+        var deptSelect = $("#prDeptFilter");
+        var currentDept = deptSelect.val();
+
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+
+            var st = item.Status || "Draft";
+            if (st === "Draft" || st === "Revising") draftCount++;
+            if (st === "Submitted") submittedCount++;
+            if (st === "Returned") returnedCount++;
+            if (st === "Unposted") unpostedCount++;
+            if (st === "Posted") postedCount++;
+
+            if (item.Department && !knownDepartments[item.Department]) {
+                knownDepartments[item.Department] = true;
+                deptSelect.append($("<option>", { value: item.Department, text: item.Department }));
             }
         }
+
+        if (currentDept) deptSelect.val(currentDept);
+
+        // Update KPI metrics and badge
+        $("#metricTotal").text(totalCount);
+        $("#metricDraft").text(draftCount);
+        $("#metricSubmitted").text(submittedCount);
+        $("#metricReturned").text(returnedCount);
+        $("#metricUnposted").text(unpostedCount);
+        $("#metricPosted").text(postedCount);
+        $("#pillCountAllBadge").text(totalCount);
     }
 
-    // Attach debounced search listener and initialize workspace
+    // Attach debounced search listener
     $(document).ready(function () {
         $("#searchPR").on("input", function () {
             clearTimeout(searchTimer);
@@ -1622,31 +1446,16 @@
             }, 250);
         });
 
-        // Load authoritative server-side KPI totals and departments
-        loadAuthoritativeCountsAndDepts();
-
         if (isPrReviewMode) {
-            // Posting mode: default filter is Submitted in UI AND actually filtered in the grid
             $("#prStatusFilter").val("Submitted");
             $(".requests-metric-card").removeClass("active");
             $(".requests-metric-card[data-status='Submitted']").addClass("active");
-
-            setTimeout(function () {
-                var grid = $("#grid").data("kendoGrid");
-                if (grid && grid.dataSource) {
-                    grid.dataSource.filter({ field: "Status", operator: "eq", value: "Submitted" });
-                }
-            }, 100);
         }
 
         $(window).on("resize", function () {
             var grid = $("#grid").data("kendoGrid");
             if (grid) {
                 grid.resize();
-            }
-            var draftGrid = $("#gridMyDrafts").data("kendoGrid");
-            if (draftGrid) {
-                draftGrid.resize();
             }
         });
     });

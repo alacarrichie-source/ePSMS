@@ -54,14 +54,7 @@ namespace iLgs.Controllers
                 return new HttpStatusCodeResult(403, "Access to Procurement and Purchase Requests is denied.");
             }
 
-            var activeAdminEditId = Session["ActiveAdminEditRequestId"] as Guid?;
-            var activeCart = await _cartService.GetActiveCartViewModelAsync(userId, activeAdminEditId.HasValue ? CartModes.AdminEdit : null, activeAdminEditId);
-
-            if (activeCart.IsAdminEdit)
-            {
-                TempData["Message"] = "New procurement items cannot be added while performing an administrative PR edit.";
-                return RedirectToAction("Cart", new { mode = CartModes.AdminEdit, requestId = activeAdminEditId });
-            }
+            var activeCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
             var hasIncomingFilters =
                 Request.QueryString["fiscalYear"] != null ||
                 Request.QueryString["department"] != null ||
@@ -314,23 +307,26 @@ namespace iLgs.Controllers
 
             if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
             {
-                var resolvedRequestId = requestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    TempData["Error"] = "Admin Edit context is missing or no longer available.";
+                    return RedirectToAction("Posting", "Requests");
+                }
 
-                var access = await Access(userId, "requests");
-                if (!access.IsAllowed || (!access.IsAdmin && !access.AllowEdit && !access.AllowPost))
+                var adminAccess = await Access(userId, "requests");
+                if (!adminAccess.IsAllowed || (!adminAccess.IsAdmin && !adminAccess.AllowEdit && !adminAccess.AllowPost))
                 {
                     TempData["Error"] = "You are not authorized to perform an administrative edit.";
                     return RedirectToAction("Posting", "Requests");
                 }
 
-                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, resolvedRequestId);
+                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
                 if (cartEntity == null || ProcurementCartService.GetCartMode(cartEntity) != CartModes.AdminEdit)
                 {
                     TempData["Error"] = "Admin Edit cart not found or has expired.";
                     return RedirectToAction("Posting", "Requests");
                 }
 
-                Session["ActiveAdminEditRequestId"] = cartEntity.RequestId;
                 var cart = _cartService.MapEntityToViewModel(cartEntity);
                 if (!CanWriteAdminEditCart(cart))
                 {
@@ -342,8 +338,13 @@ namespace iLgs.Controllers
 
             if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
             {
-                var resolvedRequestId = requestId ?? (Session["ActiveRevisionRequestId"] as Guid?);
-                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, resolvedRequestId);
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    TempData["Message"] = "Revision context is missing or no longer available.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId.Value);
                 if (cartEntity == null)
                 {
                     TempData["Message"] = "Revision cart not found or has expired.";
@@ -360,8 +361,8 @@ namespace iLgs.Controllers
                 return View(cart);
             }
 
-            // Normal Cart (Default, e.g. clicking global navbar "My Cart")
-            var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
+            // Normal Cart (Default, e.g. clicking global navbar "My Cart") or cart-backed Draft
+            var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, requestId);
             return View(normalCart);
         }
 
@@ -371,7 +372,6 @@ namespace iLgs.Controllers
             Guid parentItemId, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
             var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
             var cartItem = cart.Items.SingleOrDefault(x => x.Id == parentItemId);
             var subItems = cartItem == null
@@ -486,7 +486,6 @@ namespace iLgs.Controllers
         public async Task<ActionResult> CartRead([DataSourceRequest] DataSourceRequest request, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
             var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
 
             return Json(
@@ -502,16 +501,110 @@ namespace iLgs.Controllers
             CartItemViewModel updatedItem, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
-            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
-            if (!CanWriteRevisionCart(cart))
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    ModelState.AddModelError("", "Admin Edit context is missing.");
+                    return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                }
+
+                var adminAccess = await Access(userId, "requests");
+                if (!adminAccess.IsAllowed || (!adminAccess.IsAdmin && !adminAccess.AllowEdit && !adminAccess.AllowPost))
+                {
+                    ModelState.AddModelError("", "You are not authorized to perform an administrative edit.");
+                    return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                }
+
+                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
+                if (cartEntity == null)
+                {
+                    ModelState.AddModelError("", "Admin Edit cart not found or has expired.");
+                    return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                }
+
+                var cart = _cartService.MapEntityToViewModel(cartEntity);
+                if (!CanWriteAdminEditCart(cart))
+                {
+                    ModelState.AddModelError("", "This Purchase Request is no longer available for administrative edit.");
+                    return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                }
+
+                var cartItem = cart.Items.SingleOrDefault(x => x.Id == updatedItem.Id);
+                if (cartItem == null)
+                {
+                    ModelState.AddModelError("", "The cart item no longer exists.");
+                    return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                }
+
+                if (cartItem.RequestItemId.HasValue)
+                {
+                    var reqItemExists = await _db.RequestItems.AnyAsync(ri => ri.Id == cartItem.RequestItemId.Value && ri.PrId == cart.RequestId.Value);
+                    if (!reqItemExists)
+                    {
+                        ModelState.AddModelError("", "The item does not belong to the Purchase Request being edited.");
+                        return Json(new[] { updatedItem }.ToDataSourceResult(request, ModelState));
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(updatedItem.Description))
+                {
+                    ModelState.AddModelError("Description", "Description is required.");
+                }
+
+                if (updatedItem.Quantity <= 0)
+                {
+                    ModelState.AddModelError("Quantity", "Quantity must be at least 1.");
+                }
+
+                if (string.IsNullOrWhiteSpace(updatedItem.Unit))
+                {
+                    ModelState.AddModelError("Unit", "Unit is required.");
+                }
+                else
+                {
+                    var trimmedUnit = updatedItem.Unit.Trim();
+                    var validUnit = await _db.Codextns.AnyAsync(c => c.CodeMast.Code == "UNIT" && c.Code == trimmedUnit);
+                    if (!validUnit)
+                    {
+                        ModelState.AddModelError("Unit", string.Format("Invalid unit '{0}'. Please select a valid unit.", trimmedUnit));
+                    }
+                }
+
+                if (!updatedItem.UnitCost.HasValue || updatedItem.UnitCost.Value <= 0)
+                {
+                    ModelState.AddModelError("UnitCost", "Unit Cost must be greater than zero.");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        var result = await _cartService.UpdateItemAsync(
+                            userId, updatedItem.Id, updatedItem.Quantity, updatedItem.Description, User.Identity.Name, mode, requestId, updatedItem.Unit, updatedItem.UnitCost);
+                        if (result != null)
+                        {
+                            cartItem = result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", ex.Message);
+                    }
+                }
+
+                return Json(new[] { cartItem ?? updatedItem }.ToDataSourceResult(request, ModelState));
+            }
+
+            var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            if (!CanWriteRevisionCart(normalCart))
             {
                 ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
             }
 
-            var cartItem = cart.Items.SingleOrDefault(x => x.Id == updatedItem.Id);
+            var normItem = normalCart.Items.SingleOrDefault(x => x.Id == updatedItem.Id);
 
-            if (cartItem == null)
+            if (normItem == null)
             {
                 ModelState.AddModelError("", "The cart item no longer exists.");
             }
@@ -531,7 +624,7 @@ namespace iLgs.Controllers
                         userId, updatedItem.Id, updatedItem.Quantity, updatedItem.Description, User.Identity.Name, mode, requestId);
                     if (result != null)
                     {
-                        cartItem = result;
+                        normItem = result;
                     }
                 }
                 catch (Exception ex)
@@ -540,7 +633,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            return Json(new[] { cartItem ?? updatedItem }.ToDataSourceResult(request, ModelState));
+            return Json(new[] { normItem ?? updatedItem }.ToDataSourceResult(request, ModelState));
         }
 
         [HttpPost]
@@ -550,7 +643,6 @@ namespace iLgs.Controllers
             CartItemViewModel item, string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
             var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
             if (!CanWriteRevisionCart(cart))
             {
@@ -576,7 +668,6 @@ namespace iLgs.Controllers
         public async Task<JsonResult> CartSummary(string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue) { requestId = Session["ActiveAdminEditRequestId"] as Guid?; }
             var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
 
             return Json(new
@@ -603,32 +694,50 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Checkout(string mode = null, Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue)
-            {
-                requestId = Session["ActiveAdminEditRequestId"] as Guid?;
-            }
-            else if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase) && !requestId.HasValue)
-            {
-                requestId = Session["ActiveRevisionRequestId"] as Guid?;
-            }
 
             ProcurementCart cartEntity = null;
             if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
             {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId);
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    TempData["Error"] = "Admin Edit context is missing or no longer available.";
+                    return RedirectToAction("Posting", "Requests");
+                }
+
+                var adminAccess = await Access(userId, "requests");
+                if (!adminAccess.IsAllowed || (!adminAccess.IsAdmin && !adminAccess.AllowEdit && !adminAccess.AllowPost))
+                {
+                    TempData["Error"] = "You are not authorized to perform an administrative edit.";
+                    return RedirectToAction("Posting", "Requests");
+                }
+
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
+                if (cartEntity == null)
+                {
+                    TempData["Error"] = "Admin Edit cart not found or has expired.";
+                    return RedirectToAction("Posting", "Requests");
+                }
             }
             else if (string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
             {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId);
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    TempData["Message"] = "Revision context is missing or no longer available.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId.Value);
+                if (cartEntity == null)
+                {
+                    TempData["Message"] = "Revision cart not found or has expired.";
+                    return RedirectToAction("Index", "Requests");
+                }
             }
             else
             {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, requestId);
             }
-            if (cartEntity == null)
-            {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId);
-            }
+
             if (cartEntity == null)
             {
                 TempData["Message"] = "Your procurement cart is empty.";
@@ -660,17 +769,34 @@ namespace iLgs.Controllers
             {
                 return new HttpStatusCodeResult(403, "Access to Purchase Requests is denied.");
             }
-            if (!cart.IsRevision && !access.AllowAdd)
+            if (cart.IsAdminEdit)
             {
-                return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+                if (!access.IsAdmin && !access.AllowEdit && !access.AllowPost)
+                {
+                    return new HttpStatusCodeResult(403, "You are not authorized to perform an administrative edit.");
+                }
             }
-            if (cart.IsRevision && !access.AllowEdit)
+            else if (cart.IsRevision)
             {
-                return new HttpStatusCodeResult(403, "You are not authorized to edit Purchase Requests.");
+                if (!access.AllowEdit)
+                {
+                    return new HttpStatusCodeResult(403, "You are not authorized to edit Purchase Requests.");
+                }
+            }
+            else
+            {
+                if (!access.AllowAdd)
+                {
+                    return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+                }
             }
 
             var departments = await GetAuthorizedDepartmentsAsync();
             var selectedDepartment = departments.FirstOrDefault(x => x.Id == cart.DepartmentId.Value);
+            if (selectedDepartment == null && cart.IsAdminEdit && cart.DepartmentId.HasValue)
+            {
+                selectedDepartment = await _db.Codextns.FirstOrDefaultAsync(x => x.Id == cart.DepartmentId.Value);
+            }
             if (selectedDepartment == null)
             {
                 return new HttpStatusCodeResult(403, "You are not authorized to use the cart department.");
@@ -689,6 +815,8 @@ namespace iLgs.Controllers
             {
                 CheckoutToken = checkoutToken,
                 CartId = cartEntity.Id,
+                CartMode = cart.CartMode,
+                SourceRequestId = cart.SourceRequestId,
                 ProcurementFiscalYear = cart.FiscalYear.Value,
                 DeptId = selectedDepartment.Id,
                 Department = selectedDepartment.Description,
@@ -700,7 +828,7 @@ namespace iLgs.Controllers
                 RevisionNo = cart.RevisionNo
             };
 
-            if (cart.IsRevision && cart.RequestId.HasValue)
+            if ((cart.IsRevision || cart.IsAdminEdit) && cart.RequestId.HasValue)
             {
                 var existing = await _db.Requests.AsNoTracking().FirstAsync(x => x.Id == cart.RequestId.Value);
                 model.Fund = existing.Fund;
@@ -714,6 +842,13 @@ namespace iLgs.Controllers
                 model.ApprovedBy = existing.ApprovedBy;
                 model.ApprovedDesig = existing.ApprovedDesig;
                 model.CtrlNo = existing.CtrlNo;
+                if (cart.IsAdminEdit)
+                {
+                    model.AdminEditPrNo = existing.PrNo;
+                    model.AdminEditCtrlNo = existing.CtrlNo;
+                    model.AdminEditDepartment = existing.Department;
+                    model.AdminEditStatus = cart.AdminEditStatus;
+                }
             }
 
             return View(model);
@@ -727,21 +862,36 @@ namespace iLgs.Controllers
             ProcurementCart cartEntity = null;
             if (string.Equals(model.CartMode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
             {
-                var reqId = model.SourceRequestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, reqId);
+                if (!model.SourceRequestId.HasValue || model.SourceRequestId.Value == Guid.Empty)
+                {
+                    ModelState.AddModelError("", "Admin Edit context is missing or no longer available.");
+                    return View(model);
+                }
+
+                var adminAccess = await Access(userId, "requests");
+                if (!adminAccess.IsAllowed || (!adminAccess.IsAdmin && !adminAccess.AllowEdit && !adminAccess.AllowPost))
+                {
+                    ModelState.AddModelError("", "You are not authorized to perform an administrative edit.");
+                    return View(model);
+                }
+
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, model.SourceRequestId.Value);
             }
             else if (string.Equals(model.CartMode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
             {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, model.SourceRequestId);
+                if (!model.SourceRequestId.HasValue || model.SourceRequestId.Value == Guid.Empty)
+                {
+                    ModelState.AddModelError("", "Revision context is missing or no longer available.");
+                    return View(model);
+                }
+
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, model.SourceRequestId.Value);
             }
             else
             {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, null);
+                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, model.SourceRequestId);
             }
-            if (cartEntity == null)
-            {
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId);
-            }
+
             if (cartEntity == null)
             {
                 ModelState.AddModelError("", "Your procurement cart is empty or has expired.");
@@ -801,7 +951,7 @@ namespace iLgs.Controllers
             }
 
             var expectedToken = Session[CheckoutTokenSessionKey] as string;
-            if (string.IsNullOrWhiteSpace(expectedToken) ||
+            if (!string.IsNullOrWhiteSpace(expectedToken) &&
                 !string.Equals(expectedToken, model.CheckoutToken, StringComparison.Ordinal))
             {
                 ModelState.AddModelError(
@@ -818,6 +968,10 @@ namespace iLgs.Controllers
             var selectedDepartment = cart.DepartmentId.HasValue
                 ? departments.FirstOrDefault(x => x.Id == cart.DepartmentId.Value)
                 : null;
+            if (selectedDepartment == null && cart.IsAdminEdit && cart.DepartmentId.HasValue)
+            {
+                selectedDepartment = await _db.Codextns.FirstOrDefaultAsync(x => x.Id == cart.DepartmentId.Value);
+            }
 
             if (selectedDepartment == null || !cart.FiscalYear.HasValue)
             {
@@ -894,8 +1048,11 @@ namespace iLgs.Controllers
                 }
 
                 cartItem.Code = ppmpItem.Code;
-                cartItem.Unit = ppmpItem.Unit;
-                cartItem.UnitCost = ppmpItem.UnitCost;
+                if (!cart.IsAdminEdit)
+                {
+                    cartItem.Unit = ppmpItem.Unit;
+                    cartItem.UnitCost = ppmpItem.UnitCost;
+                }
             }
 
             if (!ModelState.IsValid)
@@ -911,11 +1068,13 @@ namespace iLgs.Controllers
                     : await _requestService.SaveCheckoutAsync(model, user, DateTime.Now));
 
             Session.Remove(CheckoutTokenSessionKey);
-            Session.Remove("ActiveAdminEditRequestId");
 
             if (cart.IsAdminEdit)
             {
-                TempData["Message"] = "Purchase Request updated successfully. Please review the changes before posting.";
+                var isPostAfter = string.Equals(Request.Form["PostAfterAdminEdit"], "true", StringComparison.OrdinalIgnoreCase) || string.Equals(Request.Form["PostAfterAdminEdit"], "on", StringComparison.OrdinalIgnoreCase);
+                TempData["Message"] = isPostAfter
+                    ? string.Format("Purchase Request {0} was updated and posted successfully.", pr.AdminEditPrNo ?? pr.CtrlNo)
+                    : "Purchase Request updated successfully. Please review the changes before posting.";
                 return RedirectToAction("Posting", "Requests");
             }
 
@@ -938,13 +1097,16 @@ namespace iLgs.Controllers
         public async Task<ActionResult> CancelAdminEdit(Guid? requestId = null)
         {
             var userId = User.Identity.GetUserId();
-            var activeAdminEditId = requestId ?? (Session["ActiveAdminEditRequestId"] as Guid?);
-            var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, activeAdminEditId);
+            if (!requestId.HasValue || requestId.Value == Guid.Empty)
+            {
+                TempData["Error"] = "Admin Edit context is missing.";
+                return RedirectToAction("Posting", "Requests");
+            }
+            var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
             if (cartEntity != null && ProcurementCartService.GetCartMode(cartEntity) == CartModes.AdminEdit)
             {
                 await _cartService.AbandonCartAsync(cartEntity.Id, User.Identity.Name);
             }
-            Session.Remove("ActiveAdminEditRequestId");
             TempData["Message"] = "Admin Edit cancelled. No changes were made to the Purchase Request.";
             return RedirectToAction("Posting", "Requests");
         }

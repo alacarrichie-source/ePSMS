@@ -352,6 +352,34 @@
                     </strong>
                 </div>
 
+                @if (Model.IsAdminEdit)
+                {
+                    <div class="admin-edit-post-options" style="margin-bottom: 16px; padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <label style="font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 0;">
+                            <input type="checkbox" name="PostAfterAdminEdit" id="postAfterAdminEdit" value="true" />
+                            <span>Post Purchase Request after saving changes</span>
+                        </label>
+                        <p style="margin: 4px 0 0 24px; font-size: 0.8rem; color: #64748b;">
+                            When checked, changes will be saved and the Purchase Request will be posted immediately in one coordinated transaction.
+                        </p>
+
+                        <div id="adminEditPostingFields" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 2px;">PR Number (Leave blank to auto-generate)</label>
+                                <input type="text" name="AdminEditPrNoInput" id="AdminEditPrNoInput" class="k-textbox" style="width: 100%;" placeholder="Auto-generated if left blank" />
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 2px;">PR Date</label>
+                                @(Html.Kendo().DatePicker()
+                                    .Name("AdminEditPrDateInput")
+                                    .Value(DateTime.Today)
+                                    .Max(DateTime.Today)
+                                    .HtmlAttributes(new { style = "width: 100%;" }))
+                            </div>
+                        </div>
+                    </div>
+                }
+
                 <div class="submit-confirmation">
                     <label>
                         <input type="checkbox" id="confirmCheckout"
@@ -528,6 +556,28 @@
                 }
             });
         });
+
+        $("#postAfterAdminEdit").change(function () {
+            if ($(this).is(":checked")) {
+                $("#adminEditPostingFields").slideDown();
+            } else {
+                $("#adminEditPostingFields").slideUp();
+            }
+        });
+        if ($("#postAfterAdminEdit").is(":checked")) {
+            $("#adminEditPostingFields").show();
+        }
+
+        $("#postAfterAdminEdit").change(function () {
+            if ($(this).is(":checked")) {
+                $("#adminEditPostingFields").slideDown();
+            } else {
+                $("#adminEditPostingFields").slideUp();
+            }
+        });
+        if ($("#postAfterAdminEdit").is(":checked")) {
+            $("#adminEditPostingFields").show();
+        }
 
         function onBackToCart() {
             window.location.href = '@Url.Action("Cart", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })';
