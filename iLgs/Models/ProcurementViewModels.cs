@@ -96,6 +96,7 @@ namespace iLgs.Models
             Items = new List<CartItemViewModel>();
         }
 
+        public Guid? CartId { get; set; }
         public Guid? DepartmentId { get; set; }
         public int? FiscalYear { get; set; }
         public Guid? RequestId { get; set; }

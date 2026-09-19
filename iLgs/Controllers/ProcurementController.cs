@@ -369,7 +369,9 @@ namespace iLgs.Controllers
                     return RedirectToAction("Posting", "Requests");
                 }
 
-                var cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
+                var cartEntity = cartId.HasValue && cartId.Value != Guid.Empty
+                    ? await _cartService.GetActiveCartEntityByIdAsync(userId, cartId.Value, CartModes.AdminEdit, requestId.Value)
+                    : await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
                 if (cartEntity == null || ProcurementCartService.GetCartMode(cartEntity) != CartModes.AdminEdit)
                 {
                     TempData["Error"] = "Admin Edit cart not found or has expired.";
@@ -532,10 +534,27 @@ namespace iLgs.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CartRead([DataSourceRequest] DataSourceRequest request, string mode = null, Guid? requestId = null)
+        public async Task<ActionResult> CartRead([DataSourceRequest] DataSourceRequest request, string mode = null, Guid? requestId = null, Guid? cartId = null)
         {
             var userId = User.Identity.GetUserId();
-            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            CartViewModel cart;
+
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) &&
+                cartId.HasValue && cartId.Value != Guid.Empty)
+            {
+                var cartEntity = await _cartService.GetActiveCartEntityByIdAsync(
+                    userId,
+                    cartId.Value,
+                    CartModes.AdminEdit,
+                    requestId);
+                cart = cartEntity == null
+                    ? new CartViewModel()
+                    : _cartService.MapEntityToViewModel(cartEntity);
+            }
+            else
+            {
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            }
 
             return Json(
                 cart.Items.ToDataSourceResult(request),
@@ -714,10 +733,27 @@ namespace iLgs.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> CartSummary(string mode = null, Guid? requestId = null)
+        public async Task<JsonResult> CartSummary(string mode = null, Guid? requestId = null, Guid? cartId = null)
         {
             var userId = User.Identity.GetUserId();
-            var cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            CartViewModel cart;
+
+            if (string.Equals(mode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) &&
+                cartId.HasValue && cartId.Value != Guid.Empty)
+            {
+                var cartEntity = await _cartService.GetActiveCartEntityByIdAsync(
+                    userId,
+                    cartId.Value,
+                    CartModes.AdminEdit,
+                    requestId);
+                cart = cartEntity == null
+                    ? new CartViewModel()
+                    : _cartService.MapEntityToViewModel(cartEntity);
+            }
+            else
+            {
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
+            }
 
             return Json(new
             {
@@ -740,7 +776,7 @@ namespace iLgs.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Checkout(string mode = null, Guid? requestId = null)
+        public async Task<ActionResult> Checkout(string mode = null, Guid? requestId = null, Guid? cartId = null)
         {
             var userId = User.Identity.GetUserId();
 
@@ -760,7 +796,9 @@ namespace iLgs.Controllers
                     return RedirectToAction("Posting", "Requests");
                 }
 
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
+                cartEntity = cartId.HasValue && cartId.Value != Guid.Empty
+                    ? await _cartService.GetActiveCartEntityByIdAsync(userId, cartId.Value, CartModes.AdminEdit, requestId.Value)
+                    : await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId.Value);
                 if (cartEntity == null)
                 {
                     TempData["Error"] = "Admin Edit cart not found or has expired.";
@@ -924,7 +962,9 @@ namespace iLgs.Controllers
                     return View(model);
                 }
 
-                cartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, model.SourceRequestId.Value);
+                cartEntity = model.CartId.HasValue && model.CartId.Value != Guid.Empty
+                    ? await _cartService.GetActiveCartEntityByIdAsync(userId, model.CartId.Value, CartModes.AdminEdit, model.SourceRequestId.Value)
+                    : await _cartService.GetActiveCartEntityAsync(userId, CartModes.AdminEdit, model.SourceRequestId.Value);
             }
             else if (string.Equals(model.CartMode, CartModes.Revision, StringComparison.OrdinalIgnoreCase))
             {

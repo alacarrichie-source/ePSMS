@@ -76,7 +76,8 @@ namespace iLgs.Services.PurchaseRequest
                     .Where(c => c.RequestId == requestId.Value);
 
                 return await adminQuery
-                    .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                    .OrderByDescending(c => c.ProcurementCartItems.Any())
+                    .ThenByDescending(c => c.UpdatedDt ?? c.InsertedDt)
                     .FirstOrDefaultAsync();
             }
 
@@ -122,7 +123,43 @@ namespace iLgs.Services.PurchaseRequest
             return null;
         }
 
-                public async Task<CartViewModel> GetActiveCartViewModelAsync(string userId)
+        public async Task<ProcurementCart> GetActiveCartEntityByIdAsync(string userId, Guid cartId, string preferredMode, Guid? requestId)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || cartId == Guid.Empty)
+            {
+                return null;
+            }
+
+            var entity = await _db.ProcurementCarts
+                .Include(c => c.ProcurementCartItems.Select(i => i.ProcurementCartSubItems))
+                .FirstOrDefaultAsync(c => c.Id == cartId &&
+                                          c.UserId == userId &&
+                                          c.Status == StatusActive);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            var expectedMode = string.IsNullOrWhiteSpace(preferredMode)
+                ? CartModes.Normal
+                : preferredMode;
+
+            if (!string.Equals(GetCartMode(entity), expectedMode, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            if (requestId.HasValue && requestId.Value != Guid.Empty &&
+                entity.RequestId != requestId.Value)
+            {
+                return null;
+            }
+
+            return entity;
+        }
+
+        public async Task<CartViewModel> GetActiveCartViewModelAsync(string userId)
         {
             return await GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
         }
@@ -169,6 +206,7 @@ namespace iLgs.Services.PurchaseRequest
             var mode = GetCartMode(entity);
             var vm = new CartViewModel
             {
+                CartId = entity.Id,
                 DepartmentId = entity.DepartmentId,
                 FiscalYear = entity.FiscalYear,
                 RequestId = entity.RequestId,
@@ -838,20 +876,51 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("Admin Edit access denied.");
             }
 
-            var existingCart = await GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId);
-            if (existingCart != null && existingCart.RequestId == requestId && GetCartMode(existingCart) == CartModes.AdminEdit)
+            var activeAdminCarts = await _db.ProcurementCarts
+                .Include(c => c.ProcurementCartItems.Select(i => i.ProcurementCartSubItems))
+                .Where(c => c.UserId == userId &&
+                            c.RequestId == requestId &&
+                            c.Status == StatusActive &&
+                            ((c.RevisionUser != null && c.RevisionUser.StartsWith("ADMIN_EDIT:")) ||
+                             (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]"))))
+                .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                .ToListAsync();
+
+            var existingCart = activeAdminCarts
+                .FirstOrDefault(c => c.ProcurementCartItems != null && c.ProcurementCartItems.Any())
+                ?? activeAdminCarts.FirstOrDefault();
+
+            if (existingCart != null)
             {
                 var prHasItems = await _db.RequestItems.AnyAsync(x => x.PrId == requestId);
                 if (existingCart.ProcurementCartItems != null && existingCart.ProcurementCartItems.Any())
                 {
+                    var duplicateCarts = activeAdminCarts.Where(c => c.Id != existingCart.Id).ToList();
+                    foreach (var duplicate in duplicateCarts)
+                    {
+                        duplicate.Status = StatusAbandoned;
+                        duplicate.UpdatedBy = userName;
+                        duplicate.UpdatedDt = DateTime.Now;
+                    }
+
+                    if (duplicateCarts.Any())
+                    {
+                        await _db.SaveChangesAsync();
+                    }
+
                     return existingCart;
                 }
-                else if (prHasItems)
+
+                if (prHasItems)
                 {
-                    // Stale or empty initialization cart from previous attempt - abandon and rebuild from PR
-                    existingCart.Status = StatusAbandoned;
-                    existingCart.UpdatedBy = userName;
-                    existingCart.UpdatedDt = DateTime.Now;
+                    // All empty/stale ADMIN_EDIT carts are abandoned before rebuilding.
+                    foreach (var staleCart in activeAdminCarts)
+                    {
+                        staleCart.Status = StatusAbandoned;
+                        staleCart.UpdatedBy = userName;
+                        staleCart.UpdatedDt = DateTime.Now;
+                    }
+
                     await _db.SaveChangesAsync();
                 }
                 else
@@ -987,10 +1056,35 @@ namespace iLgs.Services.PurchaseRequest
                         }
                     }
 
+                    var duplicateActiveCarts = await _db.ProcurementCarts
+                        .Where(c => c.Id != adminCart.Id &&
+                                    c.UserId == userId &&
+                                    c.RequestId == requestId &&
+                                    c.Status == StatusActive &&
+                                    ((c.RevisionUser != null && c.RevisionUser.StartsWith("ADMIN_EDIT:")) ||
+                                     (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]"))))
+                        .ToListAsync();
+
+                    foreach (var duplicate in duplicateActiveCarts)
+                    {
+                        duplicate.Status = StatusAbandoned;
+                        duplicate.UpdatedBy = userName;
+                        duplicate.UpdatedDt = DateTime.Now;
+                    }
+
+                    if (duplicateActiveCarts.Any())
+                    {
+                        await _db.SaveChangesAsync();
+                    }
+
                     transaction.Commit();
 
-                    // Reload from DB to ensure the returned entity matches persisted state
-                    var persistedCart = await GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId);
+                    // Reload the exact cart by Id so the caller gets the same verified cart.
+                    var persistedCart = await GetActiveCartEntityByIdAsync(
+                        userId,
+                        adminCart.Id,
+                        CartModes.AdminEdit,
+                        requestId);
                     return persistedCart ?? adminCart;
                 }
                 catch

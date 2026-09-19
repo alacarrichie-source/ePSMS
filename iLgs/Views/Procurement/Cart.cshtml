@@ -193,7 +193,7 @@
                 model.Field(x => x.UnitCost).Editable(Model.IsAdminEdit);
                 model.Field(x => x.EstimatedAmount).Editable(false);
             })
-            .Read(read => read.Action("CartRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))
+            .Read(read => read.Action("CartRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId }))
             .Update(update => update
                 .Action("UpdateCartItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })
                 .Data("addAntiForgeryToken"))
@@ -546,7 +546,7 @@
         }
 
         function refreshCartSummary() {
-            $.get("@Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })", function (result) {
+            $.get("@Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId })", function (result) {
                 $("#cartEstimatedTotal").text(
                     kendo.toString(result.estimatedTotal, "c2")
                         .replace("$", "\u20B1")
@@ -678,7 +678,7 @@
         }
 
         function proceedToCheckout(e) {
-            window.location.href = "@Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })";
+            window.location.href = "@Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId })";
         }
 
         $(document).ready(function () {

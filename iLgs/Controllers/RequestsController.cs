@@ -476,7 +476,7 @@ namespace iLgs.Controllers
                 var adminCart = await cartService.StartAdminEditCartAsync(id, User.Identity.GetUserId(), User.Identity.Name, access);
 
 
-                var redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.AdminEdit, requestId = id });
+                var redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.AdminEdit, requestId = id, cartId = adminCart.Id });
                 if (Request.IsAjaxRequest())
                 {
                     return Json(new { success = true, redirectUrl = redirectUrl }, JsonRequestBehavior.AllowGet);
