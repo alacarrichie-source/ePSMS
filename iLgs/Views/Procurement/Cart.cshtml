@@ -633,21 +633,27 @@
                 .find("input[name='Quantity']")
                 .data("kendoNumericTextBox");
 
-            if (!quantityInput) {
-                return;
-            }
+            if (quantityInput) {
+                var maxQuantity = Number(e.model.QtyBal);
 
-            var maxQuantity = Number(e.model.QtyBal);
+                quantityInput.min(1);
 
-            quantityInput.min(1);
-
-            if (!isNaN(maxQuantity) && maxQuantity > 0) {
-                quantityInput.max(maxQuantity);
+                if (!isNaN(maxQuantity) && maxQuantity > 0) {
+                    quantityInput.max(maxQuantity);
+                }
             }
 
             if (canEditCartItemUnitAndCost) {
                 var unitInput = e.container.find("input[name='Unit']");
-                initializeCartUnitComboBox(unitInput);
+                if (unitInput.length) {
+                    unitInput.attr("data-bind", "value:Unit");
+                    initializeCartUnitComboBox(unitInput);
+
+                    var unitWidget = unitInput.data("kendoMultiColumnComboBox");
+                    if (unitWidget) {
+                        unitWidget.value(e.model.Unit || "");
+                    }
+                }
 
                 var defaultUnitCost = Number(e.model.DefaultUnitCost);
                 var unitCostInput = e.container.find("input[name='UnitCost']");
