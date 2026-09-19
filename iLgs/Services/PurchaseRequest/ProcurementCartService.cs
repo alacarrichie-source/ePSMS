@@ -275,6 +275,18 @@ namespace iLgs.Services.PurchaseRequest
                 .ThenBy(i => i.ItemNo)
                 .ToList();
 
+            var ppmpItemIds = orderedItems
+                .Select(i => i.PpmpItemId)
+                .Distinct()
+                .ToList();
+
+            var defaultUnitCosts = _db.PPMPItems
+                .AsNoTracking()
+                .Where(x => ppmpItemIds.Contains(x.Id))
+                .Select(x => new { x.Id, x.UnitCost })
+                .ToList()
+                .ToDictionary(x => x.Id, x => x.UnitCost);
+
             foreach (var item in orderedItems)
             {
                 var itemVm = new CartItemViewModel
@@ -287,6 +299,9 @@ namespace iLgs.Services.PurchaseRequest
                     TechnicalSpecifications = item.TechnicalSpecifications,
                     Unit = item.Unit,
                     UnitCost = item.UnitCost,
+                    DefaultUnitCost = defaultUnitCosts.ContainsKey(item.PpmpItemId)
+                        ? defaultUnitCosts[item.PpmpItemId]
+                        : item.UnitCost,
                     Quantity = item.Quantity,
                     SubItems = new List<CartSubItemViewModel>()
                 };
@@ -583,17 +598,55 @@ namespace iLgs.Services.PurchaseRequest
 
             item.Description = description.Trim();
             item.Quantity = quantity;
-            if (string.Equals(GetCartMode(cart), CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase))
+
+            var cartMode = GetCartMode(cart);
+            var canEditUnitAndCost =
+                string.Equals(cartMode, CartModes.AdminEdit, StringComparison.OrdinalIgnoreCase) ||
+                (string.Equals(cartMode, CartModes.Normal, StringComparison.OrdinalIgnoreCase) &&
+                 cart.RequestId.HasValue &&
+                 cart.RequestId.Value != Guid.Empty);
+
+            if (canEditUnitAndCost)
             {
-                if (!string.IsNullOrWhiteSpace(unit))
+                if (string.IsNullOrWhiteSpace(unit))
                 {
-                    item.Unit = unit.Trim();
+                    throw new InvalidOperationException("Unit is required.");
                 }
-                if (unitCost.HasValue && unitCost.Value >= 0)
+
+                var trimmedUnit = unit.Trim();
+                var validUnit = await _db.Codextns.AnyAsync(c =>
+                    c.CodeMast.Code == "UNIT" &&
+                    c.Code == trimmedUnit);
+
+                if (!validUnit)
                 {
-                    item.UnitCost = unitCost.Value;
+                    throw new InvalidOperationException(
+                        string.Format("Invalid unit '{0}'. Please select a valid unit.", trimmedUnit));
                 }
+
+                if (!unitCost.HasValue || unitCost.Value <= 0)
+                {
+                    throw new InvalidOperationException("Unit Cost must be greater than zero.");
+                }
+
+                if (!ppmpItem.UnitCost.HasValue || ppmpItem.UnitCost.Value <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "The Annual Procurement item does not have a valid default Unit Cost.");
+                }
+
+                if (unitCost.Value > ppmpItem.UnitCost.Value)
+                {
+                    throw new InvalidOperationException(
+                        string.Format(
+                            "Unit Cost cannot exceed the Annual Procurement default Unit Cost of {0:N2}.",
+                            ppmpItem.UnitCost.Value));
+                }
+
+                item.Unit = trimmedUnit;
+                item.UnitCost = unitCost.Value;
             }
+
             cart.UpdatedBy = userName;
             cart.UpdatedDt = DateTime.Now;
 

@@ -471,6 +471,13 @@ namespace iLgs.Services.PurchaseRequest
                         throw new InvalidOperationException("One or more procurement items no longer exist.");
                     }
 
+                    var validUnits = new HashSet<string>(
+                        await _db.Codextns
+                            .Where(x => x.CodeMast.Code == "UNIT")
+                            .Select(x => x.Code)
+                            .ToListAsync(),
+                        StringComparer.OrdinalIgnoreCase);
+
                     foreach (var item in model.Items)
                     {
                         var ppmpItem = ppmpItems.Single(x => x.Id == item.Id);
@@ -492,6 +499,28 @@ namespace iLgs.Services.PurchaseRequest
                         if (!ppmpItem.UnitCost.HasValue || string.IsNullOrWhiteSpace(item.Description))
                         {
                             throw new InvalidOperationException(item.Code + " has incomplete item details.");
+                        }
+
+                        if (string.IsNullOrWhiteSpace(item.Unit) ||
+                            !validUnits.Contains(item.Unit.Trim()))
+                        {
+                            throw new InvalidOperationException(
+                                item.Code + " must use a valid Unit of Measure.");
+                        }
+
+                        if (!item.UnitCost.HasValue || item.UnitCost.Value <= 0)
+                        {
+                            throw new InvalidOperationException(
+                                item.Code + " must have a Unit Cost greater than zero.");
+                        }
+
+                        if (item.UnitCost.Value > ppmpItem.UnitCost.Value)
+                        {
+                            throw new InvalidOperationException(
+                                string.Format(
+                                    "{0} Unit Cost cannot exceed the Annual Procurement default Unit Cost of {1:N2}.",
+                                    item.Code,
+                                    ppmpItem.UnitCost.Value));
                         }
                     }
 
@@ -542,9 +571,9 @@ namespace iLgs.Services.PurchaseRequest
                         requestItem.Description = item.Description.Trim();
                         requestItem.OtherDesc = item.TechnicalSpecifications == null ? "" : item.TechnicalSpecifications.Trim();
                         requestItem.Qty = item.Quantity;
-                        requestItem.Unit = ppmpItem.Unit;
-                        requestItem.UnitCost = ppmpItem.UnitCost;
-                        requestItem.TotalCost = item.Quantity * ppmpItem.UnitCost.GetValueOrDefault();
+                        requestItem.Unit = item.Unit.Trim();
+                        requestItem.UnitCost = item.UnitCost.Value;
+                        requestItem.TotalCost = item.Quantity * item.UnitCost.Value;
                         requestItem.PpmpItemId = ppmpItem.Id;
                         requestItem.PpmpCode = ppmpItem.Code;
                         requestItem.UpdatedBy = user;

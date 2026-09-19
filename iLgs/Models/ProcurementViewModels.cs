@@ -55,6 +55,7 @@ namespace iLgs.Models
         public string ItemNo { get; set; }
         public Guid? RequestItemId { get; set; }
         public string TechnicalSpecifications { get; set; }
+        public decimal? DefaultUnitCost { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }

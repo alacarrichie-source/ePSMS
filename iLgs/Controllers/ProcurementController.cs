@@ -745,6 +745,26 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("UnitCost", "Unit Cost must be greater than zero.");
                 }
+                else
+                {
+                    var defaultUnitCost = await _db.PPMPItems
+                        .Where(x => x.Id == updatedItem.Id)
+                        .Select(x => x.UnitCost)
+                        .FirstOrDefaultAsync();
+
+                    if (!defaultUnitCost.HasValue || defaultUnitCost.Value <= 0)
+                    {
+                        ModelState.AddModelError("UnitCost", "The Annual Procurement item does not have a valid default Unit Cost.");
+                    }
+                    else if (updatedItem.UnitCost.Value > defaultUnitCost.Value)
+                    {
+                        ModelState.AddModelError(
+                            "UnitCost",
+                            string.Format(
+                                "Unit Cost cannot exceed the Annual Procurement default Unit Cost of {0:N2}.",
+                                defaultUnitCost.Value));
+                    }
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -769,29 +789,96 @@ namespace iLgs.Controllers
             var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, mode, requestId);
             if (!CanWriteRevisionCart(normalCart))
             {
-                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+                ModelState.AddModelError(
+                    "",
+                    normalCart.RequestId.HasValue
+                        ? "This Draft Purchase Request is no longer available to edit."
+                        : "This procurement cart is no longer available.");
             }
 
             var normItem = normalCart.Items.SingleOrDefault(x => x.Id == updatedItem.Id);
+            var isDraftCart = normalCart.RequestId.HasValue &&
+                              normalCart.RequestId.Value != Guid.Empty &&
+                              !normalCart.IsRevision &&
+                              !normalCart.IsAdminEdit;
 
             if (normItem == null)
             {
                 ModelState.AddModelError("", "The cart item no longer exists.");
             }
-            else if (updatedItem.Quantity <= 0)
+
+            if (updatedItem.Quantity <= 0)
             {
                 ModelState.AddModelError("Quantity", "Quantity must be at least 1.");
             }
-            else if (string.IsNullOrWhiteSpace(updatedItem.Description))
+
+            if (string.IsNullOrWhiteSpace(updatedItem.Description))
             {
                 ModelState.AddModelError("Description", "Description is required.");
             }
-            else
+
+            if (isDraftCart)
+            {
+                if (string.IsNullOrWhiteSpace(updatedItem.Unit))
+                {
+                    ModelState.AddModelError("Unit", "Unit is required.");
+                }
+                else
+                {
+                    var trimmedUnit = updatedItem.Unit.Trim();
+                    var validUnit = await _db.Codextns.AnyAsync(c =>
+                        c.CodeMast.Code == "UNIT" &&
+                        c.Code == trimmedUnit);
+
+                    if (!validUnit)
+                    {
+                        ModelState.AddModelError(
+                            "Unit",
+                            string.Format("Invalid unit '{0}'. Please select a valid unit.", trimmedUnit));
+                    }
+                }
+
+                if (!updatedItem.UnitCost.HasValue || updatedItem.UnitCost.Value <= 0)
+                {
+                    ModelState.AddModelError("UnitCost", "Unit Cost must be greater than zero.");
+                }
+                else
+                {
+                    var defaultUnitCost = await _db.PPMPItems
+                        .Where(x => x.Id == updatedItem.Id)
+                        .Select(x => x.UnitCost)
+                        .FirstOrDefaultAsync();
+
+                    if (!defaultUnitCost.HasValue || defaultUnitCost.Value <= 0)
+                    {
+                        ModelState.AddModelError("UnitCost", "The Annual Procurement item does not have a valid default Unit Cost.");
+                    }
+                    else if (updatedItem.UnitCost.Value > defaultUnitCost.Value)
+                    {
+                        ModelState.AddModelError(
+                            "UnitCost",
+                            string.Format(
+                                "Unit Cost cannot exceed the Annual Procurement default Unit Cost of {0:N2}.",
+                                defaultUnitCost.Value));
+                    }
+                }
+            }
+
+            if (ModelState.IsValid)
             {
                 try
                 {
                     var result = await _cartService.UpdateItemAsync(
-                        userId, updatedItem.Id, updatedItem.Quantity, updatedItem.Description, User.Identity.Name, mode, requestId);
+                        userId,
+                        updatedItem.Id,
+                        updatedItem.Quantity,
+                        updatedItem.Description,
+                        User.Identity.Name,
+                        mode,
+                        requestId,
+                        isDraftCart ? updatedItem.Unit : null,
+                        isDraftCart ? updatedItem.UnitCost : null);
+
                     if (result != null)
                     {
                         normItem = result;
@@ -799,7 +886,7 @@ namespace iLgs.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("Quantity", ex.Message);
+                    ModelState.AddModelError("", ex.Message);
                 }
             }
 
