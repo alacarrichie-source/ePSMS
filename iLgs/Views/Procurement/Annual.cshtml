@@ -76,9 +76,14 @@
                 <strong>Continuing Draft Purchase Request</strong>
                 <div style="font-size: 12px; color: #475569;">Add approved procurement items, then return to the same Draft cart to complete and submit the request.</div>
             </div>
-            <a href="@Url.Action("Cart", "Procurement", new { mode = "NORMAL", requestId = Model.RequestId })" class="k-button k-primary">
-                <span class="k-icon k-i-cart"></span> Return to Draft Cart
-            </a>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span style="background-color:#e2e8f0; color:#334155; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600;">
+                    My Cart: <span id="cartCount">@Model.CartCount</span> @(Model.CartCount == 1 ? "item" : "items")
+                </span>
+                <a href="@Url.Action("Cart", "Procurement")" class="k-button k-primary">
+                    <span class="k-icon k-i-cart"></span> Return to My Cart
+                </a>
+            </div>
         </div>
     }
 
@@ -1271,6 +1276,15 @@
             $("#cartCount").text(
                 cartCount
             );
+
+            @if (!Model.IsRevision)
+            {
+                <text>
+                if (typeof updateCartBadge === "function") {
+                    updateCartBadge(cartCount);
+                }
+                </text>
+            }
 
         }
 

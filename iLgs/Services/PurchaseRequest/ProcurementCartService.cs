@@ -123,6 +123,40 @@ namespace iLgs.Services.PurchaseRequest
             return null;
         }
 
+        public async Task<ProcurementCart> GetActiveWorkingNormalCartEntityAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return null;
+            }
+
+            return await _db.ProcurementCarts
+                .Include(c => c.ProcurementCartItems.Select(i => i.ProcurementCartSubItems))
+                .Where(c => c.UserId == userId &&
+                            c.Status == StatusActive &&
+                            !c.IsRevision &&
+                            (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
+                            (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
+                .OrderByDescending(c => c.ProcurementCartItems.Any())
+                .ThenByDescending(c => !c.RequestId.HasValue)
+                .ThenByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<CartViewModel> GetActiveWorkingNormalCartViewModelAsync(string userId)
+        {
+            var entity = await GetActiveWorkingNormalCartEntityAsync(userId);
+            return entity == null ? new CartViewModel() : MapEntityToViewModel(entity);
+        }
+
+        public async Task<int> GetWorkingNormalCartCountAsync(string userId)
+        {
+            var entity = await GetActiveWorkingNormalCartEntityAsync(userId);
+            return entity == null || entity.ProcurementCartItems == null
+                ? 0
+                : entity.ProcurementCartItems.Count;
+        }
+
         public async Task<ProcurementCart> GetActiveCartEntityByIdAsync(string userId, Guid cartId, string preferredMode, Guid? requestId)
         {
             if (string.IsNullOrWhiteSpace(userId) || cartId == Guid.Empty)
@@ -876,10 +910,9 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("Draft edit access denied.");
             }
 
-            var activeDraftCarts = await _db.ProcurementCarts
+            var activeNormalCarts = await _db.ProcurementCarts
                 .Include(c => c.ProcurementCartItems.Select(i => i.ProcurementCartSubItems))
                 .Where(c => c.UserId == userId &&
-                            c.RequestId == requestId &&
                             c.Status == StatusActive &&
                             !c.IsRevision &&
                             (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
@@ -887,20 +920,30 @@ namespace iLgs.Services.PurchaseRequest
                 .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
                 .ToListAsync();
 
-            var existingCart = activeDraftCarts
-                .FirstOrDefault(c => c.ProcurementCartItems != null && c.ProcurementCartItems.Any());
+            var activeDraftCarts = activeNormalCarts
+                .Where(c => c.RequestId == requestId)
+                .ToList();
 
-            if (existingCart != null)
+            var existingCart = activeDraftCarts
+                .FirstOrDefault(c => c.ProcurementCartItems != null && c.ProcurementCartItems.Any())
+                ?? activeDraftCarts.FirstOrDefault();
+
+            if (existingCart != null &&
+                existingCart.ProcurementCartItems != null &&
+                existingCart.ProcurementCartItems.Any())
             {
-                var duplicates = activeDraftCarts.Where(c => c.Id != existingCart.Id).ToList();
-                foreach (var duplicate in duplicates)
+                var cartsToAbandon = activeNormalCarts
+                    .Where(c => c.Id != existingCart.Id)
+                    .ToList();
+
+                foreach (var cartToAbandon in cartsToAbandon)
                 {
-                    duplicate.Status = StatusAbandoned;
-                    duplicate.UpdatedBy = userName;
-                    duplicate.UpdatedDt = DateTime.Now;
+                    cartToAbandon.Status = StatusAbandoned;
+                    cartToAbandon.UpdatedBy = userName;
+                    cartToAbandon.UpdatedDt = DateTime.Now;
                 }
 
-                if (duplicates.Any())
+                if (cartsToAbandon.Any())
                 {
                     await _db.SaveChangesAsync();
                 }
@@ -968,7 +1011,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 try
                 {
-                    foreach (var stale in activeDraftCarts)
+                    foreach (var stale in activeNormalCarts)
                     {
                         stale.Status = StatusAbandoned;
                         stale.UpdatedBy = userName;

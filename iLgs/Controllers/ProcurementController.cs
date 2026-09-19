@@ -103,20 +103,38 @@ namespace iLgs.Controllers
             }
             else
             {
-                activeCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
-                var hasIncomingFilters =
-                    Request.QueryString["fiscalYear"] != null ||
-                    Request.QueryString["department"] != null ||
-                    Request.QueryString["category"] != null ||
-                    Request.QueryString["searchText"] != null;
-                var savedFilter = Session[AnnualFilterSessionKey] as AnnualFilterState;
+                activeCart = await _cartService.GetActiveWorkingNormalCartViewModelAsync(userId);
 
-                if (!hasIncomingFilters && savedFilter != null)
+                if (activeCart.RequestId.HasValue && activeCart.RequestId.Value != Guid.Empty)
                 {
-                    fiscalYear = savedFilter.FiscalYear;
-                    department = savedFilter.Department;
-                    category = savedFilter.Category;
-                    searchText = savedFilter.SearchText;
+                    isDraftResume = true;
+                    requestId = activeCart.RequestId;
+
+                    if (!CanWriteRevisionCart(activeCart))
+                    {
+                        TempData["Error"] = "This Draft Purchase Request is no longer available to continue.";
+                        return RedirectToAction("Index", "Requests");
+                    }
+
+                    fiscalYear = activeCart.FiscalYear;
+                    department = activeCart.DepartmentId;
+                }
+                else
+                {
+                    var hasIncomingFilters =
+                        Request.QueryString["fiscalYear"] != null ||
+                        Request.QueryString["department"] != null ||
+                        Request.QueryString["category"] != null ||
+                        Request.QueryString["searchText"] != null;
+                    var savedFilter = Session[AnnualFilterSessionKey] as AnnualFilterState;
+
+                    if (!hasIncomingFilters && savedFilter != null)
+                    {
+                        fiscalYear = savedFilter.FiscalYear;
+                        department = savedFilter.Department;
+                        category = savedFilter.Category;
+                        searchText = savedFilter.SearchText;
+                    }
                 }
             }
 
@@ -261,6 +279,47 @@ namespace iLgs.Controllers
             var isDraftResume = string.Equals(mode, CartModes.Normal, StringComparison.OrdinalIgnoreCase) &&
                                 requestId.HasValue &&
                                 requestId.Value != Guid.Empty;
+            CartViewModel cart;
+
+            if (isRevision)
+            {
+                if (!requestId.HasValue || requestId.Value == Guid.Empty)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { success = false, message = "A valid Purchase Request is required for revision." });
+                }
+
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Revision, requestId.Value);
+                if (!CanWriteRevisionCart(cart))
+                {
+                    Response.StatusCode = 403;
+                    return Json(new { success = false, message = "This Purchase Request is no longer available for revision." });
+                }
+            }
+            else if (isDraftResume)
+            {
+                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, requestId.Value);
+                if (!CanWriteRevisionCart(cart))
+                {
+                    Response.StatusCode = 403;
+                    return Json(new { success = false, message = "This Draft Purchase Request is no longer available to edit." });
+                }
+            }
+            else
+            {
+                cart = await _cartService.GetActiveWorkingNormalCartViewModelAsync(userId);
+                if (cart.RequestId.HasValue && cart.RequestId.Value != Guid.Empty)
+                {
+                    isDraftResume = true;
+                    requestId = cart.RequestId;
+
+                    if (!CanWriteRevisionCart(cart))
+                    {
+                        Response.StatusCode = 403;
+                        return Json(new { success = false, message = "This Draft Purchase Request is no longer available to edit." });
+                    }
+                }
+            }
 
             var hasRequiredAccess = isRevision || isDraftResume
                 ? access.AllowEdit
@@ -277,49 +336,6 @@ namespace iLgs.Controllers
                         : "Add to cart access denied."
                 });
             }
-            CartViewModel cart;
-
-            if (isRevision)
-            {
-                if (!requestId.HasValue || requestId.Value == Guid.Empty)
-                {
-                    Response.StatusCode = 400;
-                    return Json(new { success = false, message = "A valid Purchase Request is required for revision." });
-                }
-
-                var revisionCartEntity = await _cartService.GetActiveCartEntityAsync(userId, CartModes.Revision, requestId.Value);
-                if (revisionCartEntity == null)
-                {
-                    Response.StatusCode = 400;
-                    return Json(new { success = false, message = "The revision cart for this Purchase Request is no longer active." });
-                }
-
-                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Revision, requestId.Value);
-                if (!CanWriteRevisionCart(cart))
-                {
-                    Response.StatusCode = 403;
-                    return Json(new { success = false, message = "This Purchase Request is no longer available for revision." });
-                }
-            }
-            else
-            {
-                cart = await _cartService.GetActiveCartViewModelAsync(
-                    userId,
-                    CartModes.Normal,
-                    isDraftResume ? requestId : null);
-
-                if (isDraftResume && !CanWriteRevisionCart(cart))
-                {
-                    Response.StatusCode = 403;
-                    return Json(new { success = false, message = "This Draft Purchase Request is no longer available to edit." });
-                }
-
-                if (cart.IsAdminEdit)
-                {
-                    return Json(new { success = false, message = "New procurement items cannot be added while performing an administrative PR edit." });
-                }
-            }
-
             var item = await _ppmpService.PPMPItem.GetByIdAsync(id);
             if (item == null)
             {
@@ -459,31 +475,42 @@ namespace iLgs.Controllers
                 return View(cart);
             }
 
-            // Normal Cart (global My Cart) or request-bound Draft cart.
+            // My Cart is the user's one active NORMAL working cart.
+            // It may represent a new PR or an existing Draft PR.
             CartViewModel normalCart;
-            if (requestId.HasValue && requestId.Value != Guid.Empty &&
-                cartId.HasValue && cartId.Value != Guid.Empty)
-            {
-                var normalEntity = await _cartService.GetActiveCartEntityByIdAsync(
-                    userId,
-                    cartId.Value,
-                    CartModes.Normal,
-                    requestId.Value);
 
-                normalCart = normalEntity == null
-                    ? new CartViewModel()
-                    : _cartService.MapEntityToViewModel(normalEntity);
+            if (requestId.HasValue && requestId.Value != Guid.Empty)
+            {
+                if (cartId.HasValue && cartId.Value != Guid.Empty)
+                {
+                    var normalEntity = await _cartService.GetActiveCartEntityByIdAsync(
+                        userId,
+                        cartId.Value,
+                        CartModes.Normal,
+                        requestId.Value);
+
+                    normalCart = normalEntity == null
+                        ? new CartViewModel()
+                        : _cartService.MapEntityToViewModel(normalEntity);
+                }
+                else
+                {
+                    normalCart = await _cartService.GetActiveCartViewModelAsync(
+                        userId,
+                        CartModes.Normal,
+                        requestId);
+                }
             }
             else
             {
-                normalCart = await _cartService.GetActiveCartViewModelAsync(
-                    userId,
-                    CartModes.Normal,
-                    requestId);
+                normalCart = await _cartService.GetActiveWorkingNormalCartViewModelAsync(userId);
+                if (normalCart.RequestId.HasValue)
+                {
+                    requestId = normalCart.RequestId;
+                }
             }
 
-            if (requestId.HasValue && requestId.Value != Guid.Empty &&
-                !CanWriteRevisionCart(normalCart))
+            if (normalCart.RequestId.HasValue && !CanWriteRevisionCart(normalCart))
             {
                 TempData["Message"] = "This Draft Purchase Request is no longer available to continue.";
                 return RedirectToAction("Index", "Requests");
@@ -842,7 +869,7 @@ namespace iLgs.Controllers
         public async Task<JsonResult> CartCount()
         {
             var userId = User.Identity.GetUserId();
-            var count = await _cartService.GetCartCountAsync(userId);
+            var count = await _cartService.GetWorkingNormalCartCountAsync(userId);
 
             return Json(new
             {

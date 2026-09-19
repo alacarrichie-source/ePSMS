@@ -139,7 +139,7 @@ namespace iLgs.Controllers
             if (!string.IsNullOrEmpty(userId))
             {
                 var cartService = new iLgs.Services.PurchaseRequest.ProcurementCartService(_db);
-                model.CartItemCount = await cartService.GetCartCountAsync(userId);
+                model.CartItemCount = await cartService.GetWorkingNormalCartCountAsync(userId);
             }
 
 

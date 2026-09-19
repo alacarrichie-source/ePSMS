@@ -773,6 +773,23 @@
     </div>
 </div>
 
+<!-- Continue Draft / My Cart takeover modal - AIR workflow style -->
+<div id="continueDraftWindow" class="po-wizard" style="display:none;">
+    <div class="p-3">
+        <p id="continueDraftModalSubtitle" class="mb-3 text-muted">This Draft Purchase Request will become the contents of My Cart.</p>
+        <div id="continueDraftCartWarning" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px 14px; margin-bottom:14px; color:#334155; line-height:1.5;"></div>
+        <div style="font-size:12px; color:#64748b; margin-bottom:14px;">
+            Continuing the Draft keeps the same Purchase Request. It does not create a new PR.
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn-procurement-secondary" onclick="closeContinueDraftDialog()">Cancel</button>
+            <button type="button" id="btnConfirmContinueDraft" class="btn-procurement-primary" onclick="confirmContinueDraft()">
+                <span class="k-icon k-i-edit"></span> Continue
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Review Comment Modal Window -->
 <div id="reviewCommentWindow" style="display:none;">
     <div class="pr-return-form" style="padding: 10px 0;">
@@ -1167,36 +1184,143 @@
         });
     }
 
+    var continueDraftInfoUrl = '@Url.Action("ContinueDraftInfo", "Requests")';
     var continueDraftUrl = '@Url.Action("ContinueDraft", "Requests")';
+    var pendingContinueDraftId = null;
+
+    function ensureContinueDraftWindow() {
+        var $window = $("#continueDraftWindow");
+        var wnd = $window.data("kendoWindow");
+
+        if (!wnd) {
+            $window.kendoWindow({
+                title: "Continue Purchase Request",
+                width: 520,
+                modal: true,
+                visible: false,
+                resizable: false,
+                actions: ["Close"]
+            });
+            wnd = $window.data("kendoWindow");
+        }
+
+        return wnd;
+    }
+
+    function closeContinueDraftDialog() {
+        var wnd = $("#continueDraftWindow").data("kendoWindow");
+        if (wnd) wnd.close();
+        pendingContinueDraftId = null;
+    }
 
     function continueDraftPurchaseRequest(id) {
         if (!id) return;
+
         $.ajax({
-            url: continueDraftUrl,
+            url: continueDraftInfoUrl,
             type: "GET",
             data: { id: id }
         }).done(function (result) {
-            if (result && result.success) {
-                if (result.mode === "CART" && result.redirectUrl) {
-                    window.location.href = result.redirectUrl;
-                } else {
-                    var openMessage = "The Draft Purchase Request cart could not be opened.";
-                    if (window.kendo && kendo.alert) {
-                        kendo.alert(openMessage);
-                    } else {
-                        alert(openMessage);
-                    }
-                }
-            } else {
-                var msg = (result && result.message) ? result.message : "Could not continue draft Purchase Request.";
+            if (!result || !result.success) {
+                var message = result && result.message
+                    ? result.message
+                    : "Could not continue this Draft Purchase Request.";
                 if (window.kendo && kendo.alert) {
-                    kendo.alert(kendo.htmlEncode(msg));
+                    kendo.alert(kendo.htmlEncode(message));
                 } else {
-                    alert(msg);
+                    alert(message);
                 }
+                return;
+            }
+
+            pendingContinueDraftId = id;
+
+            var reference = result.reference || "Draft Purchase Request";
+            var draftItemCount = result.draftItemCount || 0;
+            var currentCartCount = result.currentCartCount || 0;
+            var sameDraft = result.currentCartIsSameDraft === true;
+
+            $("#continueDraftModalSubtitle").text(
+                reference + " contains " + draftItemCount + (draftItemCount === 1 ? " item." : " items.")
+            );
+
+            if (sameDraft) {
+                $("#continueDraftCartWarning").text(
+                    "This Draft Purchase Request is already the current My Cart. Continue editing the same cart?"
+                );
+                $("#btnConfirmContinueDraft").html(
+                    "<span class='k-icon k-i-edit'></span> Continue Editing"
+                );
+            } else if (currentCartCount > 0) {
+                $("#continueDraftCartWarning").text(
+                    "You currently have " + currentCartCount +
+                    (currentCartCount === 1 ? " item" : " items") +
+                    " in My Cart. Continuing this Draft will abandon those current cart contents and replace them with the items from this Purchase Request."
+                );
+                $("#btnConfirmContinueDraft").html(
+                    "<span class='k-icon k-i-check'></span> Continue and Replace My Cart"
+                );
+            } else {
+                $("#continueDraftCartWarning").text(
+                    "The items from this Draft Purchase Request will become the contents of My Cart. Your current My Cart is empty."
+                );
+                $("#btnConfirmContinueDraft").html(
+                    "<span class='k-icon k-i-check'></span> Continue"
+                );
+            }
+
+            var wnd = ensureContinueDraftWindow();
+            wnd.center().open();
+        }).fail(function () {
+            if (window.kendo && kendo.alert) {
+                kendo.alert("Failed to prepare this Draft Purchase Request for editing.");
+            } else {
+                alert("Failed to prepare this Draft Purchase Request for editing.");
+            }
+        });
+    }
+
+    function confirmContinueDraft() {
+        if (!pendingContinueDraftId) return;
+
+        var id = pendingContinueDraftId;
+        var $button = $("#btnConfirmContinueDraft");
+        $button.prop("disabled", true);
+
+        $.ajax({
+            url: continueDraftUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                id: id,
+                confirmReplace: true
+            }
+        }).done(function (result) {
+            if (result && result.success && result.redirectUrl) {
+                if (typeof updateCartBadge === "function") {
+                    updateCartBadge(result.cartCount || 0);
+                }
+                window.location.href = result.redirectUrl;
+                return;
+            }
+
+            $button.prop("disabled", false);
+            var message = result && result.message
+                ? result.message
+                : "The Draft Purchase Request could not become the current My Cart.";
+
+            if (window.kendo && kendo.alert) {
+                kendo.alert(kendo.htmlEncode(message));
+            } else {
+                alert(message);
             }
         }).fail(function () {
-            alert("Failed to continue draft Purchase Request.");
+            $button.prop("disabled", false);
+            if (window.kendo && kendo.alert) {
+                kendo.alert("Failed to continue this Draft Purchase Request.");
+            } else {
+                alert("Failed to continue this Draft Purchase Request.");
+            }
         });
     }
 

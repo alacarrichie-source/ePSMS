@@ -314,33 +314,107 @@ namespace iLgs.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> ContinueDraft(Guid id)
+        public async Task<ActionResult> ContinueDraftInfo(Guid id)
         {
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
+
             if (!access.IsAllowed || !access.AllowEdit || !await CanEditDraftRequestAsync(id, access))
             {
-                return Json(new { success = false, message = "Only the original requester may continue this draft Purchase Request." }, JsonRequestBehavior.AllowGet);
+                return Json(new
+                {
+                    success = false,
+                    message = "Only the original requester may continue this Draft Purchase Request."
+                }, JsonRequestBehavior.AllowGet);
             }
 
             var cartService = new ProcurementCartService(_db);
-            var draftCart = await cartService.StartDraftCartAsync(
-                id,
-                userId,
-                User.Identity.Name,
-                access);
+            var currentCart = await cartService.GetActiveWorkingNormalCartEntityAsync(userId);
+            var currentCartCount = currentCart == null || currentCart.ProcurementCartItems == null
+                ? 0
+                : currentCart.ProcurementCartItems.Count;
+
+            var draftInfo = await _db.Requests
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new
+                {
+                    x.CtrlNo,
+                    ItemCount = x.RequestItems.Count()
+                })
+                .FirstOrDefaultAsync();
+
+            if (draftInfo == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "The Draft Purchase Request no longer exists."
+                }, JsonRequestBehavior.AllowGet);
+            }
 
             return Json(new
             {
                 success = true,
-                mode = "CART",
-                redirectUrl = Url.Action("Cart", "Procurement", new
-                {
-                    mode = CartModes.Normal,
-                    requestId = id,
-                    cartId = draftCart.Id
-                })
+                currentCartCount = currentCartCount,
+                currentCartIsSameDraft = currentCart != null && currentCart.RequestId == id,
+                draftItemCount = draftInfo.ItemCount,
+                reference = draftInfo.CtrlNo ?? "Draft Purchase Request"
             }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ContinueDraft(Guid id, bool confirmReplace)
+        {
+            var userId = User.Identity.GetUserId();
+            var access = await Access(userId, "requests");
+
+            if (!access.IsAllowed || !access.AllowEdit || !await CanEditDraftRequestAsync(id, access))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Only the original requester may continue this Draft Purchase Request."
+                });
+            }
+
+            if (!confirmReplace)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Please confirm that this Draft Purchase Request should become the current My Cart."
+                });
+            }
+
+            try
+            {
+                var cartService = new ProcurementCartService(_db);
+                var draftCart = await cartService.StartDraftCartAsync(
+                    id,
+                    userId,
+                    User.Identity.Name,
+                    access);
+
+                return Json(new
+                {
+                    success = true,
+                    mode = "CART",
+                    cartCount = draftCart.ProcurementCartItems == null
+                        ? 0
+                        : draftCart.ProcurementCartItems.Count,
+                    redirectUrl = Url.Action("Cart", "Procurement")
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
