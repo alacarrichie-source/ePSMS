@@ -138,6 +138,128 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
+        public async Task RecallSubmissionAsync(Guid requestId, string userName, DateTime date)
+        {
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var pr = await _db.Requests
+                        .Include(x => x.RequestItems)
+                        .FirstOrDefaultAsync(x => x.Id == requestId);
+
+                    if (pr == null)
+                    {
+                        throw new InvalidOperationException("Purchase Request not found.");
+                    }
+
+                    var latestStatus = await _db.DocumentStatusHistories
+                        .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == requestId)
+                        .OrderByDescending(x => x.ChangedDt)
+                        .ThenByDescending(x => x.Id)
+                        .Select(x => x.ToStatus)
+                        .FirstOrDefaultAsync();
+
+                    if (string.IsNullOrWhiteSpace(latestStatus))
+                    {
+                        latestStatus = !string.IsNullOrWhiteSpace(pr.SubmittedBy)
+                            ? PrStatuses.Submitted
+                            : PrStatuses.Draft;
+                    }
+
+                    if (!string.Equals(latestStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Only a Submitted Purchase Request can be recalled.");
+                    }
+
+                    if (!string.Equals(pr.InsertedBy, userName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Only the original requester can recall this Purchase Request.");
+                    }
+
+                    if (pr.PostedDt.HasValue || !string.IsNullOrWhiteSpace(pr.PostedBy))
+                    {
+                        throw new InvalidOperationException("A Posted Purchase Request cannot be recalled. Use the controlled unpost process instead.");
+                    }
+
+                    var hasItemOrderDependency = await _db.RequestItems
+                        .Where(x => x.PrId == requestId)
+                        .AnyAsync(x => x.OrderItemRequests.Any());
+
+                    var hasHeaderOrderDependency = await _db.OrderRequests
+                        .AnyAsync(x => x.PrId == requestId);
+
+                    if (hasItemOrderDependency || hasHeaderOrderDependency)
+                    {
+                        throw new InvalidOperationException("This Purchase Request already has a Purchase Order dependency and cannot be recalled.");
+                    }
+
+                    var hasActiveAdminEdit = await _db.ProcurementCarts.AnyAsync(c =>
+                        c.RequestId == requestId &&
+                        c.Status == ProcurementCartService.StatusActive &&
+                        ((c.RevisionUser != null && c.RevisionUser.StartsWith("ADMIN_EDIT:")) ||
+                         (c.ReviewComment != null && c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]"))));
+
+                    if (hasActiveAdminEdit)
+                    {
+                        throw new InvalidOperationException("This Purchase Request is currently being administratively edited and cannot be recalled.");
+                    }
+
+                    // Any non-admin cart for a Submitted PR is stale at recall time.
+                    // Abandon it so Continue rebuilds from the authoritative RequestItems.
+                    var staleContextCarts = await _db.ProcurementCarts
+                        .Where(c => c.RequestId == requestId &&
+                                    c.Status == ProcurementCartService.StatusActive &&
+                                    (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
+                                    (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
+                        .ToListAsync();
+
+                    foreach (var staleCart in staleContextCarts)
+                    {
+                        staleCart.Status = ProcurementCartService.StatusAbandoned;
+                        staleCart.UpdatedBy = userName;
+                        staleCart.UpdatedDt = date;
+                    }
+
+                    var usages = await _db.PPMPItemUsages
+                        .Where(x => x.PrId == requestId)
+                        .ToListAsync();
+
+                    if (usages.Any())
+                    {
+                        _db.PPMPItemUsages.RemoveRange(usages);
+                    }
+
+                    pr.SubmittedBy = null;
+                    pr.SubmittedDt = null;
+                    pr.UpdatedBy = userName;
+                    pr.UpdatedDt = date;
+
+                    _db.DocumentStatusHistories.Add(new DocumentStatusHistory
+                    {
+                        Id = Guid.NewGuid(),
+                        DocumentType = DocumentTypes.PurchaseRequest,
+                        DocumentId = pr.Id,
+                        DocumentNo = pr.PrNo ?? pr.CtrlNo,
+                        FromStatus = PrStatuses.Submitted,
+                        ToStatus = PrStatuses.Draft,
+                        Action = "Submission Recalled",
+                        Remarks = "Purchase Request submission recalled by the original requester.",
+                        ChangedBy = userName,
+                        ChangedDt = date
+                    });
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
         public async Task<Request> LockAsync(Guid id)
         {
             var ids = await _db.Database.SqlQuery<Guid>(

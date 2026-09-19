@@ -50,6 +50,7 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask UnsubmitAsync(Guid requestId, string user, DateTime date);
 
         ValueTask<PurchaseRequestViewModel> SaveCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
+        ValueTask<PurchaseRequestViewModel> SaveDraftCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
         ValueTask<PurchaseRequestViewModel> SaveRevisionCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
         ValueTask<PurchaseRequestViewModel> SaveAdminEditCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date);
 
@@ -397,6 +398,265 @@ namespace iLgs.Services.PurchaseRequest
                     await _db.SaveChangesAsync();
 
                     transaction.Commit();
+                    return model;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        });
+
+        public ValueTask<PurchaseRequestViewModel> SaveDraftCheckoutAsync(PurchaseRequestViewModel model, string user, DateTime date) =>
+        _prCheckoutExceptionService.TryCatch(async () =>
+        {
+            if (!model.RequestId.HasValue || model.RequestId.Value == Guid.Empty)
+            {
+                throw new InvalidOperationException("The Draft Purchase Request reference is missing.");
+            }
+
+            using (var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var requestId = model.RequestId.Value;
+                    var entity = await _db.Requests
+                        .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
+                        .FirstOrDefaultAsync(x => x.Id == requestId);
+
+                    if (entity == null)
+                    {
+                        throw new InvalidOperationException("The Purchase Request no longer exists.");
+                    }
+
+                    var latestStatus = await _db.DocumentStatusHistories
+                        .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == requestId)
+                        .OrderByDescending(x => x.ChangedDt)
+                        .ThenByDescending(x => x.Id)
+                        .Select(x => x.ToStatus)
+                        .FirstOrDefaultAsync();
+
+                    if (string.IsNullOrWhiteSpace(latestStatus))
+                    {
+                        latestStatus = !string.IsNullOrWhiteSpace(entity.SubmittedBy)
+                            ? PrStatuses.Submitted
+                            : PrStatuses.Draft;
+                    }
+
+                    if (!string.Equals(latestStatus, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Only a Draft Purchase Request can be submitted from this cart.");
+                    }
+
+                    if (!string.Equals(entity.InsertedBy, user, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Only the original requester can submit this Draft Purchase Request.");
+                    }
+
+                    if (model.Items == null || !model.Items.Any())
+                    {
+                        throw new InvalidOperationException("The Purchase Request must contain at least one item.");
+                    }
+
+                    var ppmpIds = model.Items.Select(x => x.Id).Distinct().ToList();
+                    var ppmpItems = await _db.PPMPItems
+                        .Include(x => x.PPMP)
+                        .Include(x => x.PPMPItemUsages)
+                        .Where(x => ppmpIds.Contains(x.Id))
+                        .ToListAsync();
+
+                    if (ppmpItems.Count != ppmpIds.Count)
+                    {
+                        throw new InvalidOperationException("One or more procurement items no longer exist.");
+                    }
+
+                    foreach (var item in model.Items)
+                    {
+                        var ppmpItem = ppmpItems.Single(x => x.Id == item.Id);
+                        var usedByOthers = ppmpItem.PPMPItemUsages
+                            .Where(x => x.PrId != requestId)
+                            .Sum(x => x.Qty)
+                            .GetValueOrDefault();
+                        var available = ppmpItem.Qty.GetValueOrDefault() - usedByOthers;
+
+                        if (ppmpItem.PPMP == null ||
+                            ppmpItem.PPMP.DeptId != entity.DeptId ||
+                            ppmpItem.PPMP.ForYear != model.ProcurementFiscalYear ||
+                            item.Quantity <= 0 ||
+                            item.Quantity > available)
+                        {
+                            throw new InvalidOperationException(item.Code + " is no longer available for the requested quantity.");
+                        }
+
+                        if (!ppmpItem.UnitCost.HasValue || string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            throw new InvalidOperationException(item.Code + " has incomplete item details.");
+                        }
+                    }
+
+                    entity.Fund = model.Fund == null ? null : model.Fund.Trim().ToUpper();
+                    entity.FundSpecific = model.FundSpecific;
+                    entity.FPP = model.FPP;
+                    entity.Purpose = model.Purpose == null ? "" : model.Purpose.Trim();
+                    entity.RequestedBy = model.RequestedBy == null ? "" : model.RequestedBy.Trim();
+                    entity.RequestedDesig = model.RequestedDesig == null ? "" : model.RequestedDesig.Trim();
+                    entity.Availability = model.Availability == null ? "" : model.Availability.Trim();
+                    entity.AvaialbilityDesig = model.AvaialbilityDesig == null ? "" : model.AvaialbilityDesig.Trim();
+                    entity.ApprovedBy = model.ApprovedBy == null ? "" : model.ApprovedBy.Trim();
+                    entity.ApprovedDesig = model.ApprovedDesig == null ? "" : model.ApprovedDesig.Trim();
+                    entity.SubmittedBy = user;
+                    entity.SubmittedDt = date;
+                    entity.UpdatedBy = user;
+                    entity.UpdatedDt = date;
+
+                    var retainedItemIds = new HashSet<Guid>();
+                    foreach (var item in model.Items)
+                    {
+                        var ppmpItem = ppmpItems.Single(x => x.Id == item.Id);
+                        var requestItem = item.RequestItemId.HasValue
+                            ? entity.RequestItems.SingleOrDefault(x => x.Id == item.RequestItemId.Value)
+                            : null;
+
+                        if (item.RequestItemId.HasValue && requestItem == null)
+                        {
+                            throw new InvalidOperationException("A Purchase Request item changed in another session. Reload the Draft.");
+                        }
+
+                        if (requestItem == null)
+                        {
+                            requestItem = new RequestItem
+                            {
+                                Id = Guid.NewGuid(),
+                                PrId = entity.Id,
+                                InsertedBy = user,
+                                InsertedDt = date
+                            };
+                            entity.RequestItems.Add(requestItem);
+                            item.RequestItemId = requestItem.Id;
+                        }
+
+                        retainedItemIds.Add(requestItem.Id);
+                        requestItem.ItemNo = item.ItemNo;
+                        requestItem.ItemNoIndex = Utility.GetItemNoIndex(item.ItemNo);
+                        requestItem.Description = item.Description.Trim();
+                        requestItem.OtherDesc = item.TechnicalSpecifications == null ? "" : item.TechnicalSpecifications.Trim();
+                        requestItem.Qty = item.Quantity;
+                        requestItem.Unit = ppmpItem.Unit;
+                        requestItem.UnitCost = ppmpItem.UnitCost;
+                        requestItem.TotalCost = item.Quantity * ppmpItem.UnitCost.GetValueOrDefault();
+                        requestItem.PpmpItemId = ppmpItem.Id;
+                        requestItem.PpmpCode = ppmpItem.Code;
+                        requestItem.UpdatedBy = user;
+                        requestItem.UpdatedDt = date;
+
+                        var retainedSubItemIds = new HashSet<Guid>();
+                        foreach (var subItem in item.SubItems ?? Enumerable.Empty<CartSubItemViewModel>())
+                        {
+                            if (string.IsNullOrWhiteSpace(subItem.Description) ||
+                                string.IsNullOrWhiteSpace(subItem.Unit) ||
+                                subItem.Quantity <= 0 ||
+                                subItem.UnitCost < 0)
+                            {
+                                throw new InvalidOperationException("A sub-item under " + item.Code + " contains invalid values.");
+                            }
+
+                            var entitySubItem = requestItem.RequestSubItems.SingleOrDefault(x => x.Id == subItem.Id);
+                            if (entitySubItem == null)
+                            {
+                                entitySubItem = new RequestSubItem
+                                {
+                                    Id = subItem.Id == Guid.Empty ? Guid.NewGuid() : subItem.Id,
+                                    RequestItemId = requestItem.Id,
+                                    InsertedBy = user,
+                                    InsertedDt = date
+                                };
+                                requestItem.RequestSubItems.Add(entitySubItem);
+                                subItem.Id = entitySubItem.Id;
+                            }
+
+                            retainedSubItemIds.Add(entitySubItem.Id);
+                            entitySubItem.ItemNo = subItem.ItemNo;
+                            entitySubItem.ItemNoIndex = Utility.GetItemNoIndex(subItem.ItemNo);
+                            entitySubItem.Description = subItem.Description.Trim();
+                            entitySubItem.Unit = subItem.Unit.Trim();
+                            entitySubItem.Qty = subItem.Quantity;
+                            entitySubItem.UnitCost = subItem.UnitCost;
+                            entitySubItem.Total = subItem.Total;
+                            entitySubItem.UpdatedBy = user;
+                            entitySubItem.UpdatedDt = date;
+                        }
+
+                        _db.RequestSubItems.RemoveRange(
+                            requestItem.RequestSubItems
+                                .Where(x => !retainedSubItemIds.Contains(x.Id))
+                                .ToList());
+                    }
+
+                    var removedItems = entity.RequestItems
+                        .Where(x => !retainedItemIds.Contains(x.Id))
+                        .ToList();
+
+                    _db.RequestSubItems.RemoveRange(removedItems.SelectMany(x => x.RequestSubItems).ToList());
+                    _db.RequestItems.RemoveRange(removedItems);
+
+                    var usages = await _db.PPMPItemUsages
+                        .Where(x => x.PrId == requestId)
+                        .ToListAsync();
+
+                    foreach (var item in model.Items)
+                    {
+                        var usage = usages.FirstOrDefault(x => x.PpmpItemId == item.Id);
+                        if (usage == null)
+                        {
+                            usage = new PPMPItemUsage
+                            {
+                                Id = Guid.NewGuid(),
+                                PpmpItemId = item.Id,
+                                PrId = requestId,
+                                InsertedBy = user,
+                                InsertedDt = date
+                            };
+                            _db.PPMPItemUsages.Add(usage);
+                        }
+
+                        usage.Type = string.IsNullOrWhiteSpace(entity.PrNo) ? "PR-CN" : "PR";
+                        usage.Reference = entity.PrNo ?? entity.CtrlNo;
+                        usage.Qty = item.Quantity;
+                        usage.UpdatedBy = user;
+                        usage.UpdatedDt = date;
+                    }
+
+                    _db.PPMPItemUsages.RemoveRange(
+                        usages.Where(x => !x.PpmpItemId.HasValue || !ppmpIds.Contains(x.PpmpItemId.Value)).ToList());
+
+                    _documentHistoryService.AddStatusHistory(
+                        DocumentTypes.PurchaseRequest,
+                        requestId,
+                        entity.PrNo ?? entity.CtrlNo,
+                        PrStatuses.Draft,
+                        PrStatuses.Submitted,
+                        "Submit",
+                        "Purchase Request submitted by the original requester.",
+                        user);
+
+                    if (model.CartId.HasValue)
+                    {
+                        var cartEntity = await _db.ProcurementCarts
+                            .FirstOrDefaultAsync(c => c.Id == model.CartId.Value);
+
+                        if (cartEntity != null)
+                        {
+                            cartEntity.Status = ProcurementCartService.StatusCompleted;
+                            cartEntity.UpdatedBy = user;
+                            cartEntity.UpdatedDt = date;
+                        }
+                    }
+
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+
+                    model.CtrlNo = entity.CtrlNo;
                     return model;
                 }
                 catch

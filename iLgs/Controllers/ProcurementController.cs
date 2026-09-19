@@ -55,6 +55,9 @@ namespace iLgs.Controllers
             }
 
             var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
+            var isDraftResume = string.Equals(mode, CartModes.Normal, StringComparison.OrdinalIgnoreCase) &&
+                                requestId.HasValue &&
+                                requestId.Value != Guid.Empty;
             CartViewModel activeCart;
 
             if (isRevision)
@@ -76,6 +79,22 @@ namespace iLgs.Controllers
                 if (!CanWriteRevisionCart(activeCart))
                 {
                     TempData["Error"] = "This Purchase Request is no longer available for revision.";
+                    return RedirectToAction("Index", "Requests");
+                }
+
+                fiscalYear = activeCart.FiscalYear;
+                department = activeCart.DepartmentId;
+            }
+            else if (isDraftResume)
+            {
+                activeCart = await _cartService.GetActiveCartViewModelAsync(
+                    userId,
+                    CartModes.Normal,
+                    requestId.Value);
+
+                if (!activeCart.RequestId.HasValue || !CanWriteRevisionCart(activeCart))
+                {
+                    TempData["Error"] = "This Draft Purchase Request is no longer available to continue.";
                     return RedirectToAction("Index", "Requests");
                 }
 
@@ -188,6 +207,7 @@ namespace iLgs.Controllers
                 Items = items,
                 CartCount = activeCart.Items.Count,
                 IsRevision = activeCart.IsRevision,
+                IsDraftResume = isDraftResume,
                 RequestId = activeCart.RequestId,
                 FiscalYears = fiscalYears.Select(x => new SelectListItem
                 {
@@ -238,11 +258,24 @@ namespace iLgs.Controllers
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
             var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
+            var isDraftResume = string.Equals(mode, CartModes.Normal, StringComparison.OrdinalIgnoreCase) &&
+                                requestId.HasValue &&
+                                requestId.Value != Guid.Empty;
 
-            if (!access.IsAllowed || (isRevision ? !access.AllowEdit : !access.AllowAdd))
+            var hasRequiredAccess = isRevision || isDraftResume
+                ? access.AllowEdit
+                : access.AllowAdd;
+
+            if (!access.IsAllowed || !hasRequiredAccess)
             {
                 Response.StatusCode = 403;
-                return Json(new { success = false, message = isRevision ? "Revision edit access denied." : "Add to cart access denied." });
+                return Json(new
+                {
+                    success = false,
+                    message = (isRevision || isDraftResume)
+                        ? "Purchase Request edit access denied."
+                        : "Add to cart access denied."
+                });
             }
             CartViewModel cart;
 
@@ -270,7 +303,17 @@ namespace iLgs.Controllers
             }
             else
             {
-                cart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, null);
+                cart = await _cartService.GetActiveCartViewModelAsync(
+                    userId,
+                    CartModes.Normal,
+                    isDraftResume ? requestId : null);
+
+                if (isDraftResume && !CanWriteRevisionCart(cart))
+                {
+                    Response.StatusCode = 403;
+                    return Json(new { success = false, message = "This Draft Purchase Request is no longer available to edit." });
+                }
+
                 if (cart.IsAdminEdit)
                 {
                     return Json(new { success = false, message = "New procurement items cannot be added while performing an administrative PR edit." });
@@ -290,8 +333,12 @@ namespace iLgs.Controllers
             var filter = Session[AnnualFilterSessionKey] as AnnualFilterState;
             var departments = await GetAuthorizedDepartmentsAsync();
 
-            var targetDept = isRevision ? cart.DepartmentId : (filter != null ? filter.Department : null);
-            var targetYear = isRevision ? cart.FiscalYear : (filter != null ? filter.FiscalYear : null);
+            var targetDept = (isRevision || isDraftResume)
+                ? cart.DepartmentId
+                : (filter != null ? filter.Department : null);
+            var targetYear = (isRevision || isDraftResume)
+                ? cart.FiscalYear
+                : (filter != null ? filter.FiscalYear : null);
 
             if (!targetDept.HasValue ||
                 !targetYear.HasValue ||
@@ -332,7 +379,7 @@ namespace iLgs.Controllers
             try
             {
                 var targetMode = isRevision ? CartModes.Revision : CartModes.Normal;
-                var targetRequestId = isRevision ? requestId : null;
+                var targetRequestId = (isRevision || isDraftResume) ? requestId : null;
                 var updatedCart = await _cartService.AddItemAsync(userId, id, User.Identity.Name, targetDept, targetYear, targetMode, targetRequestId);
                 return Json(new
                 {
@@ -412,8 +459,36 @@ namespace iLgs.Controllers
                 return View(cart);
             }
 
-            // Normal Cart (Default, e.g. clicking global navbar "My Cart") or cart-backed Draft
-            var normalCart = await _cartService.GetActiveCartViewModelAsync(userId, CartModes.Normal, requestId);
+            // Normal Cart (global My Cart) or request-bound Draft cart.
+            CartViewModel normalCart;
+            if (requestId.HasValue && requestId.Value != Guid.Empty &&
+                cartId.HasValue && cartId.Value != Guid.Empty)
+            {
+                var normalEntity = await _cartService.GetActiveCartEntityByIdAsync(
+                    userId,
+                    cartId.Value,
+                    CartModes.Normal,
+                    requestId.Value);
+
+                normalCart = normalEntity == null
+                    ? new CartViewModel()
+                    : _cartService.MapEntityToViewModel(normalEntity);
+            }
+            else
+            {
+                normalCart = await _cartService.GetActiveCartViewModelAsync(
+                    userId,
+                    CartModes.Normal,
+                    requestId);
+            }
+
+            if (requestId.HasValue && requestId.Value != Guid.Empty &&
+                !CanWriteRevisionCart(normalCart))
+            {
+                TempData["Message"] = "This Draft Purchase Request is no longer available to continue.";
+                return RedirectToAction("Index", "Requests");
+            }
+
             return View(normalCart);
         }
 
@@ -834,8 +909,10 @@ namespace iLgs.Controllers
 
             if (!CanWriteRevisionCart(cart))
             {
-                await _cartService.ClearCartAsync(userId, User.Identity.Name, CartModes.Revision, cart.RequestId);
-                TempData["Message"] = "This Purchase Request is no longer available for revision.";
+                await _cartService.AbandonCartAsync(cartEntity.Id, User.Identity.Name);
+                TempData["Message"] = cart.IsRevision
+                    ? "This Purchase Request is no longer available for revision."
+                    : "This Draft Purchase Request is no longer available to continue.";
                 return RedirectToAction("Index", "Requests");
             }
 
@@ -872,7 +949,15 @@ namespace iLgs.Controllers
             }
             else
             {
-                if (!access.AllowAdd)
+                var isExistingDraft = cart.RequestId.HasValue && cart.RequestId.Value != Guid.Empty;
+                if (isExistingDraft)
+                {
+                    if (!access.AllowEdit || !CanWriteRevisionCart(cart))
+                    {
+                        return new HttpStatusCodeResult(403, "Only the original requester can continue this Draft Purchase Request.");
+                    }
+                }
+                else if (!access.AllowAdd)
                 {
                     return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
                 }
@@ -915,7 +1000,7 @@ namespace iLgs.Controllers
                 RevisionNo = cart.RevisionNo
             };
 
-            if ((cart.IsRevision || cart.IsAdminEdit) && cart.RequestId.HasValue)
+            if (cart.RequestId.HasValue)
             {
                 var existing = await _db.Requests.AsNoTracking().FirstAsync(x => x.Id == cart.RequestId.Value);
                 model.Fund = existing.Fund;
@@ -1011,9 +1096,20 @@ namespace iLgs.Controllers
                     return new HttpStatusCodeResult(403, "You are not authorized to perform an administrative edit on Purchase Requests.");
                 }
             }
-            else if (!cart.IsRevision && !access.AllowAdd)
+            else if (!cart.IsRevision)
             {
-                return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+                var isExistingDraft = cart.RequestId.HasValue && cart.RequestId.Value != Guid.Empty;
+                if (isExistingDraft)
+                {
+                    if (!access.AllowEdit || !CanWriteRevisionCart(cart))
+                    {
+                        return new HttpStatusCodeResult(403, "Only the original requester can submit this Draft Purchase Request.");
+                    }
+                }
+                else if (!access.AllowAdd)
+                {
+                    return new HttpStatusCodeResult(403, "You are not authorized to create Purchase Requests.");
+                }
             }
             if (cart.IsRevision && !access.AllowEdit)
             {
@@ -1021,7 +1117,7 @@ namespace iLgs.Controllers
             }
             if (cart.IsRevision)
             {
-                if (!access.IsAdmin && !string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     return new HttpStatusCodeResult(403, "Only the original requester can submit this revision.");
                 }
@@ -1036,7 +1132,11 @@ namespace iLgs.Controllers
             }
             else if (!CanWriteRevisionCart(cart))
             {
-                ModelState.AddModelError("", "This Purchase Request is no longer available for revision.");
+                ModelState.AddModelError(
+                    "",
+                    cart.IsRevision
+                        ? "This Purchase Request is no longer available for revision."
+                        : "This Draft Purchase Request is no longer available to continue.");
             }
 
             var expectedToken = Session[CheckoutTokenSessionKey] as string;
@@ -1114,7 +1214,7 @@ namespace iLgs.Controllers
                     continue;
                 }
 
-                var ownUsage = (cart.IsRevision || cart.IsAdminEdit) && cart.RequestId.HasValue
+                var ownUsage = cart.RequestId.HasValue
                     ? await _db.PPMPItemUsages.Where(x => x.PrId == cart.RequestId.Value && x.PpmpItemId == cartItem.Id)
                         .Select(x => x.Qty).FirstOrDefaultAsync()
                     : 0;
@@ -1150,11 +1250,18 @@ namespace iLgs.Controllers
             }
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
+            var isExistingDraftCart = !cart.IsAdminEdit &&
+                                      !cart.IsRevision &&
+                                      cart.RequestId.HasValue &&
+                                      cart.RequestId.Value != Guid.Empty;
+
             var pr = cart.IsAdminEdit
                 ? await _requestService.SaveAdminEditCheckoutAsync(model, user, DateTime.Now)
                 : (cart.IsRevision
                     ? await _requestService.SaveRevisionCheckoutAsync(model, user, DateTime.Now)
-                    : await _requestService.SaveCheckoutAsync(model, user, DateTime.Now));
+                    : (isExistingDraftCart
+                        ? await _requestService.SaveDraftCheckoutAsync(model, user, DateTime.Now)
+                        : await _requestService.SaveCheckoutAsync(model, user, DateTime.Now)));
 
             Session.Remove(CheckoutTokenSessionKey);
 
@@ -1226,25 +1333,66 @@ namespace iLgs.Controllers
 
         private bool CanWriteRevisionCart(CartViewModel cart)
         {
-            if (cart == null || !cart.IsRevision)
-            {
-                return true;
-            }
-            if (!cart.RequestId.HasValue || cart.RequestId.Value == Guid.Empty)
+            if (cart == null)
             {
                 return false;
             }
 
-            var requestExists = _db.Requests.AsNoTracking().Any(x => x.Id == cart.RequestId.Value);
-            if (!requestExists || !string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            if (cart.IsAdminEdit)
+            {
+                return true;
+            }
+
+            if (!cart.RequestId.HasValue || cart.RequestId.Value == Guid.Empty)
+            {
+                return !cart.IsRevision;
+            }
+
+            var requestRecord = _db.Requests
+                .AsNoTracking()
+                .Where(x => x.Id == cart.RequestId.Value)
+                .Select(x => new
+                {
+                    x.InsertedBy,
+                    x.SubmittedBy
+                })
+                .FirstOrDefault();
+
+            if (requestRecord == null)
             {
                 return false;
             }
+
             var status = _db.DocumentStatusHistories.AsNoTracking()
                 .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == cart.RequestId.Value)
-                .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
-                .Select(x => x.ToStatus).FirstOrDefault();
-            return string.Equals(status, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase);
+                .OrderByDescending(x => x.ChangedDt)
+                .ThenByDescending(x => x.Id)
+                .Select(x => x.ToStatus)
+                .FirstOrDefault();
+
+            if (cart.IsRevision)
+            {
+                if (!string.Equals(cart.RevisionUser, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                return string.Equals(status, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (!string.Equals(requestRecord.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                status = !string.IsNullOrWhiteSpace(requestRecord.SubmittedBy)
+                    ? PrStatuses.Submitted
+                    : PrStatuses.Draft;
+            }
+
+            return string.Equals(status, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

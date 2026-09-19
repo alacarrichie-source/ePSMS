@@ -79,6 +79,7 @@ namespace iLgs.Models
         public bool CanUnpost { get; set; }
         public bool CanPrint { get; set; }
         public bool CanView { get; set; }
+        public bool CanRecallSubmission { get; set; }
 
         // TRANSIENTS 
         // From RIS

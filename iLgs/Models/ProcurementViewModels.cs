@@ -41,6 +41,7 @@ namespace iLgs.Models
         public IEnumerable<PPMPItemVM> Items { get; set; }
         public int CartCount { get; set; }
         public bool IsRevision { get; set; }
+        public bool IsDraftResume { get; set; }
         public Guid? RequestId { get; set; }
     }
 

@@ -33,11 +33,13 @@
                 <span class="k-icon k-i-cart"></span>
             </div>
             <div>
-                <h1>@(Model.IsRevision ? "Add Items to PR Revision" : "Annual Procurement")</h1>
+                <h1>@(Model.IsRevision ? "Add Items to PR Revision" : (Model.IsDraftResume ? "Add Items to Draft PR" : "Annual Procurement"))</h1>
                 <p class="subtitle">
                 @(Model.IsRevision
                     ? "Add approved procurement items to the same returned Purchase Request."
-                    : "Select items from the approved annual procurement plan to create a Purchase Request.")
+                    : (Model.IsDraftResume
+                        ? "Add approved procurement items to the same Draft Purchase Request."
+                        : "Select items from the approved annual procurement plan to create a Purchase Request."))
             </p>
             </div>
         </div>
@@ -67,6 +69,19 @@
         </div>
     }
 
+    @if (Model.IsDraftResume)
+    {
+        <div class="pr-revision-banner" style="display: flex; align-items: center; justify-content: space-between; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 18px; margin-bottom: 16px;">
+            <div>
+                <strong>Continuing Draft Purchase Request</strong>
+                <div style="font-size: 12px; color: #475569;">Add approved procurement items, then return to the same Draft cart to complete and submit the request.</div>
+            </div>
+            <a href="@Url.Action("Cart", "Procurement", new { mode = "NORMAL", requestId = Model.RequestId })" class="k-button k-primary">
+                <span class="k-icon k-i-cart"></span> Return to Draft Cart
+            </a>
+        </div>
+    }
+
     <!-- ========================================================= -->
     <!-- FILTERS -->
     <!-- ========================================================= -->
@@ -82,13 +97,18 @@
             @Html.Hidden("mode", "REVISION")
             @Html.Hidden("requestId", Model.RequestId)
         }
+        else if (Model.IsDraftResume)
+        {
+            @Html.Hidden("mode", "NORMAL")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
         <div class="filter-row">
 
             <div>
                 <label>Fiscal Year</label>
 
                 @(Html.Kendo().DropDownListFor(m => m.FiscalYear)
-                    .Enable(!Model.IsRevision)
+                    .Enable(!Model.IsRevision && !Model.IsDraftResume)
                     .BindTo(Model.FiscalYears)
                     .HtmlAttributes(new
                     {
@@ -100,7 +120,7 @@
                 <label>Department</label>
 
                 @(Html.Kendo().DropDownListFor(m => m.Department)
-                    .Enable(!Model.IsRevision)
+                    .Enable(!Model.IsRevision && !Model.IsDraftResume)
                     .DataTextField("Description")
                     .DataValueField("Id")
                     .Filter(FilterType.Contains)
@@ -237,10 +257,15 @@
 
                         @Html.Hidden("id", item.Id)
                         if (Model.IsRevision)
-                        {
-                            @Html.Hidden("mode", "REVISION")
-                            @Html.Hidden("requestId", Model.RequestId)
-                        }
+        {
+            @Html.Hidden("mode", "REVISION")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
+        else if (Model.IsDraftResume)
+        {
+            @Html.Hidden("mode", "NORMAL")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
 
                         var disabled =
                             item.QtyBal <= 0 ||
@@ -419,10 +444,15 @@
 
                                     @Html.Hidden("id", item.Id)
                                     if (Model.IsRevision)
-                                    {
-                                        @Html.Hidden("mode", "REVISION")
-                                        @Html.Hidden("requestId", Model.RequestId)
-                                    }
+        {
+            @Html.Hidden("mode", "REVISION")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
+        else if (Model.IsDraftResume)
+        {
+            @Html.Hidden("mode", "NORMAL")
+            @Html.Hidden("requestId", Model.RequestId)
+        }
 
                                     var disabled =
                                         item.QtyBal <= 0 ||

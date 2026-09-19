@@ -250,6 +250,9 @@
                 if (item.CanPrint) {
                     readOnlyMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
                 }
+                if (status === "Submitted" && item.CanRecallSubmission) {
+                    readOnlyMore.push("<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); recallPurchaseRequestSubmission('" + id + "')\"><span class='k-icon k-i-undo'></span> Recall Submission</a>");
+                }
                 html += renderPrMoreMenu(readOnlyMore);
             }
         }
@@ -1126,6 +1129,44 @@
             encodeURIComponent(target.item.CtrlNo), "_blank");
     }
 
+    var recallSubmissionUrl = '@Url.Action("RecallSubmission", "Requests")';
+
+    function recallPurchaseRequestSubmission(id) {
+        if (!id) return;
+
+        var message = "Recall this Purchase Request submission? The request will return to Draft, be removed from the Posting queue, and its procurement usage reservation will be released until it is submitted again.";
+        if (!window.confirm(message)) return;
+
+        $.ajax({
+            url: recallSubmissionUrl,
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+                id: id
+            }
+        }).done(function (result) {
+            if (!result || !result.success) {
+                var errorMessage = result && result.message
+                    ? result.message
+                    : "The Purchase Request submission could not be recalled.";
+
+                if (window.kendo && kendo.alert) {
+                    kendo.alert(kendo.htmlEncode(errorMessage));
+                } else {
+                    alert(errorMessage);
+                }
+                return;
+            }
+
+            refreshPrGrid();
+            if (window.kendo && kendo.alert) {
+                kendo.alert(kendo.htmlEncode(result.message || "Purchase Request submission recalled."));
+            }
+        }).fail(function () {
+            alert("The Purchase Request submission could not be recalled.");
+        });
+    }
+
     var continueDraftUrl = '@Url.Action("ContinueDraft", "Requests")';
 
     function continueDraftPurchaseRequest(id) {
@@ -1138,10 +1179,13 @@
             if (result && result.success) {
                 if (result.mode === "CART" && result.redirectUrl) {
                     window.location.href = result.redirectUrl;
-                } else if (result.mode === "POPUP") {
-                    editPurchaseRequest(id);
                 } else {
-                    window.location.href = '@Url.Action("Cart", "Procurement")' + '?requestId=' + encodeURIComponent(id);
+                    var openMessage = "The Draft Purchase Request cart could not be opened.";
+                    if (window.kendo && kendo.alert) {
+                        kendo.alert(openMessage);
+                    } else {
+                        alert(openMessage);
+                    }
                 }
             } else {
                 var msg = (result && result.message) ? result.message : "Could not continue draft Purchase Request.";

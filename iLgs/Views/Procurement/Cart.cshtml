@@ -2,7 +2,12 @@
 @using Kendo.Mvc.UI
 
 @{
-    ViewBag.Title = Model.IsAdminEdit ? "Admin Edit - Purchase Request" : (Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart");
+    var isDraftResume = !Model.IsAdminEdit && !Model.IsRevision && Model.RequestId.HasValue;
+    ViewBag.Title = Model.IsAdminEdit
+        ? "Admin Edit - Purchase Request"
+        : (Model.IsRevision
+            ? "Purchase Request Revision"
+            : (isDraftResume ? "Continue Draft Purchase Request" : "My Procurement Cart"));
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -42,7 +47,7 @@
         {
             <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="@(Model.IsRevision ? Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }) : Url.Action("Annual", "Procurement"))">Annual Procurement</a>
+            <a href="@((Model.IsRevision || isDraftResume) ? Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }) : Url.Action("Annual", "Procurement"))">Annual Procurement</a>
             <span class="breadcrumb-separator">&gt;</span>
             <span>My Cart</span>
         }
@@ -56,7 +61,7 @@
             </div>
             <div>
                 <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:4px;">
-                    <h1 style="margin:0;">@(Model.IsAdminEdit ? "Admin Edit - Purchase Request" : (Model.IsRevision ? "Purchase Request Revision" : "My Procurement Cart"))</h1>
+                    <h1 style="margin:0;">@(Model.IsAdminEdit ? "Admin Edit - Purchase Request" : (Model.IsRevision ? "Purchase Request Revision" : (isDraftResume ? "Continue Draft Purchase Request" : "My Procurement Cart")))</h1>
                     @if (Model.IsAdminEdit)
                     {
                         <span id="adminEditCartCountBadge" class="badge" style="background-color: #e0e7ff; color: #3730a3; font-size: 0.95rem; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
@@ -70,7 +75,7 @@
                         </span>
                     }
                 </div>
-                <p class="subtitle">@(Model.IsAdminEdit ? "Make administrative corrections to the submitted/unposted Purchase Request. Adding new catalog items is disabled." : (Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : "Review quantities before creating your purchase request."))</p>
+                <p class="subtitle">@(Model.IsAdminEdit ? "Make administrative corrections to the submitted/unposted Purchase Request. Adding new catalog items is disabled." : (Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : (isDraftResume ? "Continue updating the same Draft Purchase Request, then proceed to Checkout to submit it." : "Review quantities before creating your purchase request.")))</p>
             </div>
         </div>
         <div class="header-actions">
@@ -88,8 +93,8 @@
             }
             else
             {
-                <a class="k-button btn-secondary-action" href="@Url.Action("Annual", "Procurement")">
-                    <span class="k-icon k-i-arrow-left"></span> Continue Shopping
+                <a class="k-button btn-secondary-action" href="@(isDraftResume ? Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }) : Url.Action("Annual", "Procurement"))">
+                    <span class="k-icon k-i-arrow-left"></span> @(isDraftResume ? "Add More Items" : "Continue Shopping")
                 </a>
             }
         </div>

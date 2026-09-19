@@ -172,6 +172,10 @@ namespace iLgs.Controllers
                             purchaseRequest.CanContinue = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
                             purchaseRequest.CanDelete = isRequester && mainAccess.IsAllowed && mainAccess.AllowDelete;
                         }
+                        else if (string.Equals(prStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+                        {
+                            purchaseRequest.CanRecallSubmission = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
+                        }
                         else if (string.Equals(prStatus, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase))
                         {
                             purchaseRequest.CanRevise = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
@@ -320,23 +324,22 @@ namespace iLgs.Controllers
             }
 
             var cartService = new ProcurementCartService(_db);
-            var activeCart = await cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, id);
-
-            if (activeCart != null)
-            {
-                return Json(new
-                {
-                    success = true,
-                    mode = "CART",
-                    redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.Normal, requestId = id })
-                }, JsonRequestBehavior.AllowGet);
-            }
+            var draftCart = await cartService.StartDraftCartAsync(
+                id,
+                userId,
+                User.Identity.Name,
+                access);
 
             return Json(new
             {
                 success = true,
-                mode = "POPUP",
-                id = id
+                mode = "CART",
+                redirectUrl = Url.Action("Cart", "Procurement", new
+                {
+                    mode = CartModes.Normal,
+                    requestId = id,
+                    cartId = draftCart.Id
+                })
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -637,6 +640,33 @@ namespace iLgs.Controllers
                 returnedBy = history.ReturnedBy,
                 returnedDate = history.ReturnedDate.ToString("MMM dd, yyyy hh:mm tt")
             }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RecallSubmission(Guid id)
+        {
+            var access = await Access(User.Identity.GetUserId(), "requests");
+            if (!access.IsAllowed || !access.AllowEdit)
+            {
+                return Json(new { success = false, message = "Recall Submission access denied." });
+            }
+
+            try
+            {
+                var service = new PurchaseRequestLifecycleService(_db);
+                await service.RecallSubmissionAsync(id, User.Identity.Name, DateTime.Now);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Purchase Request submission recalled. The request is now a Draft and may be continued."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]

@@ -869,6 +869,208 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
+        public async Task<ProcurementCart> StartDraftCartAsync(Guid requestId, string userId, string userName, Access access)
+        {
+            if (!access.IsAllowed || !access.AllowEdit)
+            {
+                throw new InvalidOperationException("Draft edit access denied.");
+            }
+
+            var activeDraftCarts = await _db.ProcurementCarts
+                .Include(c => c.ProcurementCartItems.Select(i => i.ProcurementCartSubItems))
+                .Where(c => c.UserId == userId &&
+                            c.RequestId == requestId &&
+                            c.Status == StatusActive &&
+                            !c.IsRevision &&
+                            (c.RevisionUser == null || !c.RevisionUser.StartsWith("ADMIN_EDIT:")) &&
+                            (c.ReviewComment == null || !c.ReviewComment.StartsWith("[CART_MODE:ADMIN_EDIT]")))
+                .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
+                .ToListAsync();
+
+            var existingCart = activeDraftCarts
+                .FirstOrDefault(c => c.ProcurementCartItems != null && c.ProcurementCartItems.Any());
+
+            if (existingCart != null)
+            {
+                var duplicates = activeDraftCarts.Where(c => c.Id != existingCart.Id).ToList();
+                foreach (var duplicate in duplicates)
+                {
+                    duplicate.Status = StatusAbandoned;
+                    duplicate.UpdatedBy = userName;
+                    duplicate.UpdatedDt = DateTime.Now;
+                }
+
+                if (duplicates.Any())
+                {
+                    await _db.SaveChangesAsync();
+                }
+
+                return existingCart;
+            }
+
+            var entity = await _db.Requests
+                .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
+                .Include(x => x.RequestItems.Select(i => i.PPMPItem.PPMP))
+                .FirstOrDefaultAsync(x => x.Id == requestId);
+
+            if (entity == null)
+            {
+                throw new InvalidOperationException("The Purchase Request no longer exists.");
+            }
+
+            var latestStatus = await _db.DocumentStatusHistories
+                .AsNoTracking()
+                .Where(x => x.DocumentType == DocumentTypes.PurchaseRequest && x.DocumentId == requestId)
+                .OrderByDescending(x => x.ChangedDt)
+                .ThenByDescending(x => x.Id)
+                .Select(x => x.ToStatus)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(latestStatus))
+            {
+                latestStatus = !string.IsNullOrWhiteSpace(entity.SubmittedBy)
+                    ? PrStatuses.Submitted
+                    : PrStatuses.Draft;
+            }
+
+            if (!string.Equals(latestStatus, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Only a Draft Purchase Request can be continued.");
+            }
+
+            if (!string.Equals(entity.InsertedBy, userName, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Only the original requester can continue this Draft Purchase Request.");
+            }
+
+            if (!entity.RequestItems.Any())
+            {
+                throw new InvalidOperationException("The Purchase Request has no items to continue.");
+            }
+
+            if (entity.RequestItems.Any(x => !x.PpmpItemId.HasValue || x.PPMPItem == null || x.PPMPItem.PPMP == null))
+            {
+                throw new InvalidOperationException("A Purchase Request item is no longer linked to the Annual Procurement Plan.");
+            }
+
+            if (entity.RequestItems.Any(x => x.Qty.GetValueOrDefault() <= 0 ||
+                                             x.Qty.GetValueOrDefault() != Math.Truncate(x.Qty.GetValueOrDefault())))
+            {
+                throw new InvalidOperationException("The shared cart requires whole-number item quantities.");
+            }
+
+            var sourceItemCount = entity.RequestItems.Count;
+            var sourceSubItemCount = entity.RequestItems.Sum(x => x.RequestSubItems.Count);
+            var fiscalYear = entity.RequestItems.Select(x => x.PPMPItem.PPMP.ForYear).FirstOrDefault();
+            var now = DateTime.Now;
+
+            using (var transaction = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    foreach (var stale in activeDraftCarts)
+                    {
+                        stale.Status = StatusAbandoned;
+                        stale.UpdatedBy = userName;
+                        stale.UpdatedDt = now;
+                    }
+
+                    var draftCart = new ProcurementCart
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        DepartmentId = entity.DeptId,
+                        FiscalYear = fiscalYear,
+                        RequestId = entity.Id,
+                        IsRevision = false,
+                        RevisionNo = null,
+                        RevisionUser = null,
+                        ReviewComment = null,
+                        Status = StatusActive,
+                        InsertedBy = userName,
+                        InsertedDt = now,
+                        UpdatedBy = userName,
+                        UpdatedDt = now
+                    };
+
+                    var itemOrder = 1;
+                    foreach (var reqItem in entity.RequestItems.OrderBy(x => x.ItemNoIndex))
+                    {
+                        var cartItem = new ProcurementCartItem
+                        {
+                            Id = Guid.NewGuid(),
+                            CartId = draftCart.Id,
+                            PpmpItemId = reqItem.PpmpItemId.Value,
+                            RequestItemId = reqItem.Id,
+                            ItemNo = itemOrder.ToString(),
+                            Code = reqItem.PpmpCode,
+                            Description = reqItem.Description,
+                            TechnicalSpecifications = reqItem.OtherDesc,
+                            Unit = reqItem.Unit,
+                            Quantity = Convert.ToInt32(reqItem.Qty.GetValueOrDefault()),
+                            UnitCost = reqItem.UnitCost,
+                            SortOrder = itemOrder
+                        };
+
+                        var subOrder = 1;
+                        foreach (var reqSubItem in reqItem.RequestSubItems.OrderBy(x => x.ItemNoIndex))
+                        {
+                            cartItem.ProcurementCartSubItems.Add(new ProcurementCartSubItem
+                            {
+                                Id = Guid.NewGuid(),
+                                CartItemId = cartItem.Id,
+                                RequestSubItemId = reqSubItem.Id,
+                                ItemNo = string.Format("{0}.{1}", itemOrder, subOrder),
+                                Description = reqSubItem.Description,
+                                Unit = reqSubItem.Unit,
+                                Quantity = reqSubItem.Qty.GetValueOrDefault(),
+                                UnitCost = reqSubItem.UnitCost.GetValueOrDefault(),
+                                SortOrder = subOrder
+                            });
+                            subOrder++;
+                        }
+
+                        draftCart.ProcurementCartItems.Add(cartItem);
+                        itemOrder++;
+                    }
+
+                    _db.ProcurementCarts.Add(draftCart);
+                    await _db.SaveChangesAsync();
+
+                    var persistedItemCount = await _db.ProcurementCartItems.CountAsync(x => x.CartId == draftCart.Id);
+                    if (persistedItemCount != sourceItemCount)
+                    {
+                        throw new InvalidOperationException("Draft cart initialization failed.");
+                    }
+
+                    if (sourceSubItemCount > 0)
+                    {
+                        var persistedSubItemCount = await _db.ProcurementCartSubItems
+                            .CountAsync(x => x.ProcurementCartItem.CartId == draftCart.Id);
+                        if (persistedSubItemCount != sourceSubItemCount)
+                        {
+                            throw new InvalidOperationException("Draft cart sub-item initialization failed.");
+                        }
+                    }
+
+                    transaction.Commit();
+
+                    var persistedCart = await GetActiveCartEntityByIdAsync(
+                        userId,
+                        draftCart.Id,
+                        CartModes.Normal,
+                        requestId);
+
+                    return persistedCart ?? draftCart;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
         public async Task<ProcurementCart> StartAdminEditCartAsync(Guid requestId, string userId, string userName, Access access)
         {
             if (!access.IsAllowed || (!access.IsAdmin && !access.AllowEdit && !access.AllowPost))
