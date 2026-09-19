@@ -74,6 +74,12 @@
                             Revision Cart: @(Model.Items == null ? 0 : Model.Items.Count) @((Model.Items != null && Model.Items.Count == 1) ? "item" : "items")
                         </span>
                     }
+                    else if (isDraftResume)
+                    {
+                        <span id="draftCartCountBadge" class="badge" style="background-color: #e2e8f0; color: #334155; font-size: 0.95rem; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
+                            Draft Cart: @(Model.Items == null ? 0 : Model.Items.Count) @((Model.Items != null && Model.Items.Count == 1) ? "item" : "items")
+                        </span>
+                    }
                 </div>
                 <p class="subtitle">@(Model.IsAdminEdit ? "Make administrative corrections to the submitted/unposted Purchase Request. Adding new catalog items is disabled." : (Model.IsRevision ? "Update the returned Purchase Request, then proceed to Checkout to resubmit it." : (isDraftResume ? "Continue updating the same Draft Purchase Request, then proceed to Checkout to submit it." : "Review quantities before creating your purchase request.")))</p>
             </div>
@@ -557,8 +563,9 @@
                         .replace("$", "\u20B1")
                 );
 
-                // Uses the badge function created earlier.
-                @if (!Model.IsAdminEdit && !Model.IsRevision)
+                // The global My Cart badge belongs only to the standalone NORMAL cart.
+                // Request-bound Draft, Revision, and Admin Edit carts keep their own local counts.
+                @if (!Model.IsAdminEdit && !Model.IsRevision && !isDraftResume)
                 {
                     <text>
                     if (typeof updateCartBadge === "function") {
@@ -571,6 +578,14 @@
                     <text>
                     $("#adminEditCartCountBadge").text(
                         "Admin Edit Cart: " + result.itemCount + (result.itemCount === 1 ? " item" : " items")
+                    );
+                    </text>
+                }
+                else if (isDraftResume)
+                {
+                    <text>
+                    $("#draftCartCountBadge").text(
+                        "Draft Cart: " + result.itemCount + (result.itemCount === 1 ? " item" : " items")
                     );
                     </text>
                 }
