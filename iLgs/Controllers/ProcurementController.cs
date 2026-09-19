@@ -237,13 +237,13 @@ namespace iLgs.Controllers
         {
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
-            if (!access.IsAllowed || !access.AllowAdd)
+            var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
+
+            if (!access.IsAllowed || (isRevision ? !access.AllowEdit : !access.AllowAdd))
             {
                 Response.StatusCode = 403;
-                return Json(new { success = false, message = "Add to cart access denied." });
+                return Json(new { success = false, message = isRevision ? "Revision edit access denied." : "Add to cart access denied." });
             }
-
-            var isRevision = string.Equals(mode, CartModes.Revision, StringComparison.OrdinalIgnoreCase);
             CartViewModel cart;
 
             if (isRevision)

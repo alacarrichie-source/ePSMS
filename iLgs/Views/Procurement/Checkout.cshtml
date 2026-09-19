@@ -22,6 +22,16 @@
             <span class="breadcrumb-separator">&gt;</span>
             <span class="breadcrumb-current">Checkout</span>
         }
+        else if (Model.IsRevision)
+        {
+            <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Annual", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })">Annual Procurement</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="@Url.Action("Cart", "Procurement", new { mode = Model.CartMode, requestId = Model.SourceRequestId })">Revision Cart</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-current">Checkout</span>
+        }
         else
         {
             <a href="@Url.Action("Index", "Requests")">Purchase Requests</a>

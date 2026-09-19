@@ -714,9 +714,16 @@ namespace iLgs.Services.PurchaseRequest
                             throw new InvalidOperationException((item.Code ?? requestItem.PpmpCode ?? "Item") + " must have a unit cost greater than zero.");
                         }
 
-                        if (requestItem.PpmpItemId.HasValue && requestItem.PpmpItemId.Value != item.Id)
+                        if (!requestItem.PpmpItemId.HasValue)
                         {
-                            throw new InvalidOperationException(string.Format("PPMP Item identity for item '{0}' has been modified.", item.Code ?? requestItem.PpmpCode));
+                            throw new InvalidOperationException(
+                                "The Purchase Request item is no longer linked to the Annual Procurement Plan.");
+                        }
+
+                        if (requestItem.PpmpItemId.Value != item.Id)
+                        {
+                            throw new InvalidOperationException(
+                                "The procurement-plan identity of the Purchase Request item cannot be changed during Admin Edit.");
                         }
 
                         if (requestItem.PpmpItemId.HasValue)
@@ -878,86 +885,15 @@ namespace iLgs.Services.PurchaseRequest
 
                     if (postAfterAdminEdit)
                     {
-                        var postDate = postDateInput.HasValue ? postDateInput.Value : date;
-                        if (postDate == default(DateTime))
-                        {
-                            throw new InvalidOperationException("PR Date is required for posting.");
-                        }
-                        if (postDate.Date > DateTime.Today)
-                        {
-                            throw new InvalidOperationException("Future PR Date is not allowed.");
-                        }
-
-                        var isManualPrNumber = !string.IsNullOrWhiteSpace(prNoInput);
-                        var manualPrNumber = isManualPrNumber ? prNoInput.Trim() : null;
-
-                        if (isManualPrNumber)
-                        {
-                            var validation = ValidatePrNoAndDate(manualPrNumber, postDate);
-                            if (validation != null && validation.Count > 0)
-                            {
-                                var errorList = new List<string>();
-                                foreach (DictionaryEntry entry in validation)
-                                {
-                                    var msgs = entry.Value as IEnumerable<string>;
-                                    if (msgs != null) errorList.AddRange(msgs);
-                                    else if (entry.Value != null) errorList.Add(entry.Value.ToString());
-                                }
-                                if (errorList.Any())
-                                {
-                                    throw new InvalidOperationException(string.Join(" ", errorList));
-                                }
-                            }
-
-                            if (await _db.Requests.AnyAsync(x => x.Id != prId && x.PrNo == manualPrNumber))
-                            {
-                                throw new InvalidOperationException("PR Number already exists.");
-                            }
-                            entity.PrNo = manualPrNumber;
-                            entity.PrDate = postDate.Date;
-                        }
-                        else if (!string.IsNullOrWhiteSpace(entity.PrNo))
-                        {
-                            var existingPrNo = entity.PrNo.Trim();
-                            if (await _db.Requests.AnyAsync(x => x.Id != prId && x.PrNo == existingPrNo))
-                            {
-                                throw new InvalidOperationException("The existing PR Number is already used by another record.");
-                            }
-                            entity.PrDate = postDate.Date;
-                        }
-                        else
-                        {
-                            var generatedPrNo = NextPrNo(postDate);
-                            if (string.IsNullOrWhiteSpace(generatedPrNo))
-                            {
-                                throw new InvalidOperationException("Failed to generate a PR Number. Please try again.");
-                            }
-                            if (await _db.Requests.AnyAsync(x => x.Id != prId && x.PrNo == generatedPrNo))
-                            {
-                                throw new InvalidOperationException("PR Number already exists. Please try posting again.");
-                            }
-                            entity.PrNo = generatedPrNo;
-                            entity.PrDate = postDate.Date;
-                        }
-
-                        entity.PostedBy = user;
-                        entity.PostedDt = date;
-
-                        foreach (var usage in usages)
-                        {
-                            usage.Type = "PR";
-                            usage.Reference = entity.PrNo;
-                        }
-
-                        _documentHistoryService.AddStatusHistory(
-                            DocumentTypes.PurchaseRequest,
-                            prId,
-                            entity.PrNo,
-                            latestStatus,
-                            PrStatuses.Posted,
-                            "Post",
-                            "Purchase Request updated via Admin Edit and posted successfully.",
-                            user);
+                        var postDate = postDateInput.HasValue ? postDateInput.Value : (entity.PrDate.HasValue ? entity.PrDate.Value : date);
+                        var lifecycleService = new PurchaseRequestLifecycleService(_db);
+                        await lifecycleService.ApplyPostingCoreAsync(
+                            entity,
+                            prNoInput,
+                            postDate,
+                            user,
+                            date,
+                            "Purchase Request updated via Admin Edit and posted successfully.");
                     }
                     else
                     {

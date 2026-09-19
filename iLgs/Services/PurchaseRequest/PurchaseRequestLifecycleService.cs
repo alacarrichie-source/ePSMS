@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -165,7 +165,7 @@ namespace iLgs.Services.PurchaseRequest
             return false;
         }
 
-        public async Task<Request> PostAsync(Guid id, string prNumber, DateTime prDate, string user, DateTime date)
+        public async Task<Request> ApplyPostingCoreAsync(Request pr, string prNumber, DateTime prDate, string user, DateTime date, string statusRemarks = "Purchase Request reviewed and posted.")
         {
             if (prDate == default(DateTime))
             {
@@ -176,10 +176,32 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("Future date is not allowed.");
             }
 
+            var isPosted = pr.PostedDt.HasValue || !string.IsNullOrWhiteSpace(pr.PostedBy);
+            var historyStatus = await _db.DocumentStatusHistories
+                .Where(h => h.DocumentType == DocumentTypes.PurchaseRequest && h.DocumentId == pr.Id)
+                .OrderByDescending(h => h.ChangedDt).ThenByDescending(h => h.Id)
+                .Select(h => h.ToStatus).FirstOrDefaultAsync();
+
+            var isPostable = string.Equals(historyStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(historyStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
+
+            if (isPosted || !isPostable)
+            {
+                throw new InvalidOperationException("Only a Submitted or Unposted Purchase Request can be posted. Another reviewer may have already updated this record.");
+            }
+
+            if (string.IsNullOrWhiteSpace(pr.Availability) || string.IsNullOrWhiteSpace(pr.ApprovedBy))
+            {
+                throw new InvalidOperationException("Cash availability and Approved By are required before posting.");
+            }
+
             var isManualPrNumber = !string.IsNullOrWhiteSpace(prNumber);
             var manualPrNumber = isManualPrNumber ? prNumber.Trim() : null;
 
             var requestService = new RequestService(_db);
+
+            string resolvedPrNumber;
+            DateTime resolvedPrDate;
 
             if (isManualPrNumber)
             {
@@ -198,8 +220,99 @@ namespace iLgs.Services.PurchaseRequest
                         throw new InvalidOperationException(string.Join(" ", errorList));
                     }
                 }
+
+                if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == manualPrNumber))
+                {
+                    throw new InvalidOperationException("PR Number already exists.");
+                }
+                resolvedPrNumber = manualPrNumber;
+                resolvedPrDate = prDate.Date;
+            }
+            else if (!string.IsNullOrWhiteSpace(pr.PrNo))
+            {
+                // Reposting an unposted / revised PR that already has an assigned official PR Number:
+                // Preserve the existing official PR Number and official PR Date!
+                var existingPrNo = pr.PrNo.Trim();
+                if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == existingPrNo))
+                {
+                    throw new InvalidOperationException("The existing PR Number is already used by another record.");
+                }
+                resolvedPrNumber = existingPrNo;
+                resolvedPrDate = pr.PrDate.HasValue ? pr.PrDate.Value.Date : prDate.Date;
+            }
+            else
+            {
+                // PR has never received an official PR Number:
+                try
+                {
+                    await _db.Database.ExecuteSqlCommandAsync("EXEC sp_getapplock @Resource = 'PR_NUMBER_GENERATOR', @LockMode = 'Exclusive', @LockOwner = 'Transaction'");
+                }
+                catch
+                {
+                    // sp_getapplock is an optimization; proceed even if permission restricted
+                }
+
+                var generatedPrNo = requestService.NextPrNo(prDate);
+                if (string.IsNullOrWhiteSpace(generatedPrNo))
+                {
+                    throw new InvalidOperationException("Failed to generate a PR Number. Please try again.");
+                }
+
+                var genValidation = requestService.ValidatePrNoAndDate(generatedPrNo, prDate);
+                if (genValidation != null && genValidation.Count > 0)
+                {
+                    var genErrors = new List<string>();
+                    foreach (DictionaryEntry entry in genValidation)
+                    {
+                        var msgs = entry.Value as IEnumerable<string>;
+                        if (msgs != null) genErrors.AddRange(msgs);
+                        else if (entry.Value != null) genErrors.Add(entry.Value.ToString());
+                    }
+                    if (genErrors.Any())
+                    {
+                        throw new InvalidOperationException(string.Join(" ", genErrors));
+                    }
+                }
+
+                if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == generatedPrNo))
+                {
+                    throw new InvalidOperationException("PR Number already exists. Please try posting again.");
+                }
+
+                resolvedPrNumber = generatedPrNo;
+                resolvedPrDate = prDate.Date;
             }
 
+            pr.PrNo = resolvedPrNumber;
+            pr.PrDate = resolvedPrDate;
+            pr.PostedBy = user;
+            pr.PostedDt = date;
+            pr.UpdatedBy = user;
+            pr.UpdatedDt = date;
+
+            var usages = await _db.PPMPItemUsages.Where(x => x.PrId == pr.Id && x.Type != "PR").ToListAsync();
+            foreach (var usage in usages)
+            {
+                usage.Type = "PR";
+                usage.Reference = resolvedPrNumber;
+            }
+
+            new DocumentHistoryService(_db).AddStatusHistory(
+                DocumentTypes.PurchaseRequest,
+                pr.Id,
+                resolvedPrNumber,
+                historyStatus ?? PrStatuses.Submitted,
+                PrStatuses.Posted,
+                "Post",
+                statusRemarks,
+                user);
+
+            return pr;
+        }
+
+        public async Task<Request> PostAsync(Guid id, string prNumber, DateTime prDate, string user, DateTime date)
+        {
+            var isManualPrNumber = !string.IsNullOrWhiteSpace(prNumber);
             int maxAttempts = isManualPrNumber ? 1 : 3;
 
             for (int attempt = 1; attempt <= maxAttempts; attempt++)
@@ -208,136 +321,18 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     var pr = await LockAsync(id);
 
-                    var isPosted = pr.PostedDt.HasValue || !string.IsNullOrWhiteSpace(pr.PostedBy);
-                    var historyStatus = await _db.DocumentStatusHistories
-                        .Where(h => h.DocumentType == DocumentTypes.PurchaseRequest && h.DocumentId == id)
-                        .OrderByDescending(h => h.ChangedDt).ThenByDescending(h => h.Id)
-                        .Select(h => h.ToStatus).FirstOrDefaultAsync();
-
-                    var isPostable = string.Equals(historyStatus, PrStatuses.Submitted, StringComparison.OrdinalIgnoreCase) ||
-                                     string.Equals(historyStatus, PrStatuses.Unposted, StringComparison.OrdinalIgnoreCase);
-
-                    if (isPosted || !isPostable)
-                    {
-                        throw new InvalidOperationException("Only a Submitted or Unposted Purchase Request can be posted. Another reviewer may have already updated this record.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(pr.Availability) || string.IsNullOrWhiteSpace(pr.ApprovedBy))
-                    {
-                        throw new InvalidOperationException("Cash availability and Approved By are required before posting.");
-                    }
-
-                    string resolvedPrNumber;
-                    DateTime resolvedPrDate;
-
-                    if (isManualPrNumber)
-                    {
-                        if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == manualPrNumber))
-                        {
-                            throw new InvalidOperationException("PR Number already exists.");
-                        }
-                        resolvedPrNumber = manualPrNumber;
-                        resolvedPrDate = prDate.Date;
-                    }
-                    else if (!string.IsNullOrWhiteSpace(pr.PrNo))
-                    {
-                        // Reposting an unposted / revised PR that already has an assigned official PR Number:
-                        // Preserve the existing official PR Number and official PR Date
-                        var existingPrNo = pr.PrNo.Trim();
-                        if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == existingPrNo))
-                        {
-                            throw new InvalidOperationException("The existing PR Number is already used by another record.");
-                        }
-                        resolvedPrNumber = existingPrNo;
-                        resolvedPrDate = pr.PrDate.HasValue ? pr.PrDate.Value.Date : prDate.Date;
-                    }
-                    else
-                    {
-                        // PR has never received an official PR Number:
-                        // Acquire app lock for serialization:
-                        try
-                        {
-                            await _db.Database.ExecuteSqlCommandAsync("EXEC sp_getapplock @Resource = 'PR_NUMBER_GENERATOR', @LockMode = 'Exclusive', @LockOwner = 'Transaction'");
-                        }
-                        catch
-                        {
-                            // sp_getapplock is an optimization; proceed even if permission restricted
-                        }
-
-                        var generatedPrNo = requestService.NextPrNo(prDate);
-                        if (string.IsNullOrWhiteSpace(generatedPrNo))
-                        {
-                            throw new InvalidOperationException("Failed to generate a PR Number. Please try again.");
-                        }
-
-                        var genValidation = requestService.ValidatePrNoAndDate(generatedPrNo, prDate);
-                        if (genValidation != null && genValidation.Count > 0)
-                        {
-                            var genErrors = new List<string>();
-                            foreach (DictionaryEntry entry in genValidation)
-                            {
-                                var msgs = entry.Value as IEnumerable<string>;
-                                if (msgs != null) genErrors.AddRange(msgs);
-                                else if (entry.Value != null) genErrors.Add(entry.Value.ToString());
-                            }
-                            if (genErrors.Any())
-                            {
-                                throw new InvalidOperationException(string.Join(" ", genErrors));
-                            }
-                        }
-
-                        if (await _db.Requests.AnyAsync(x => x.Id != pr.Id && x.PrNo == generatedPrNo))
-                        {
-                            if (attempt == maxAttempts)
-                            {
-                                throw new InvalidOperationException("PR Number already exists. Please try posting again.");
-                            }
-                            continue;
-                        }
-
-                        resolvedPrNumber = generatedPrNo;
-                        resolvedPrDate = prDate.Date;
-                    }
-
-                    pr.PrNo = resolvedPrNumber;
-                    pr.PrDate = resolvedPrDate;
-                    pr.PostedBy = user;
-                    pr.PostedDt = date;
-                    pr.UpdatedBy = user;
-                    pr.UpdatedDt = date;
-
-                    var usages = await _db.PPMPItemUsages.Where(x => x.PrId == pr.Id && x.Type != "PR").ToListAsync();
-                    foreach (var usage in usages)
-                    {
-                        usage.Type = "PR";
-                        usage.Reference = resolvedPrNumber;
-                    }
-
-                    new DocumentHistoryService(_db).AddStatusHistory(
-                        DocumentTypes.PurchaseRequest,
-                        pr.Id,
-                        resolvedPrNumber,
-                        historyStatus ?? PrStatuses.Submitted,
-                        PrStatuses.Posted,
-                        "Post",
-                        "Purchase Request reviewed and posted.",
-                        user);
-
                     try
                     {
+                        await ApplyPostingCoreAsync(pr, prNumber, prDate, user, date, "Purchase Request reviewed and posted.");
                         await _db.SaveChangesAsync();
                         transaction.Commit();
                         return pr;
                     }
-                    catch (Exception dbEx)
+                    catch (Exception ex)
                     {
                         transaction.Rollback();
-                        if (IsDuplicateKeyException(dbEx))
+                        if (!isManualPrNumber && (IsDuplicateKeyException(ex) || ex.Message.Contains("PR Number already exists")))
                         {
-                            if (isManualPrNumber)
-                            {
-                                throw new InvalidOperationException("PR Number already exists.");
-                            }
                             if (attempt == maxAttempts)
                             {
                                 throw new InvalidOperationException("Unable to generate a unique PR Number due to a concurrent conflict. Please try again.");

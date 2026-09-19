@@ -242,75 +242,7 @@
 
         var isAdminEditMode = @(Model.IsAdminEdit ? "true" : "false");
 
-        function cartItemUnitEditor(container, options) {
-            if (!isAdminEditMode) {
-                container.text(options.model[options.field] || "");
-                return;
-            }
-            var $input =
-                $("<input required name='" + options.field +
-                    "' data-bind='value:" + options.field + "' />")
-                    .appendTo(container);
 
-            $input.kendoMultiColumnComboBox({
-                placeholder: "Select unit",
-                dataTextField: "Code",
-                dataValueField: "Code",
-                valuePrimitive: true,
-                filter: "contains",
-                autoBind: false,
-                suggest: true,
-                dataSource: {
-                    transport: {
-                        read: {
-                            url: cartSubItemUrls.units,
-                            dataType: "json",
-                            data: function () {
-                                var widget =
-                                    $input.data("kendoMultiColumnComboBox");
-                                return {
-                                    text: widget ? widget.input.val() : ""
-                                };
-                            }
-                        }
-                    },
-                    serverFiltering: true
-                },
-                columns: [
-                    { field: "Code", title: "Code", width: 100 },
-                    {
-                        field: "Description",
-                        title: "Description",
-                        width: 220,
-                        template: "#= columnTemplate(data.Description) #"
-                    },
-                    {
-                        field: "Desc2",
-                        title: "Category",
-                        width: 180,
-                        template: "#= columnTemplate(data.Desc2) #"
-                    }
-                ]
-            });
-        }
-
-        function cartItemUnitCostEditor(container, options) {
-            if (!isAdminEditMode) {
-                container.text(kendo.toString(options.model[options.field], "c2"));
-                return;
-            }
-            var $input =
-                $("<input required name='" + options.field +
-                    "' data-bind='value:" + options.field + "' />")
-                    .appendTo(container);
-
-            $input.kendoNumericTextBox({
-                format: "n2",
-                decimals: 2,
-                min: 0.01,
-                placeholder: "0.00"
-            });
-        }
 
         function columnTemplate(value) {
             var encodedValue = kendo.htmlEncode(value || "");
@@ -613,11 +545,7 @@
             return data;
         }
 
-        function onCartGridRequestEnd(e) {
-            if (e.type !== "update" && e.type !== "destroy") {
-                return;
-            }
-
+        function refreshCartSummary() {
             $.get("@Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })", function (result) {
                 $("#cartEstimatedTotal").text(
                     kendo.toString(result.estimatedTotal, "c2")
@@ -647,6 +575,12 @@
                     checkoutButton.enable(result.itemCount > 0);
                 }
             });
+        }
+
+        function onCartGridRequestEnd(e) {
+            if (e.type === "read" || e.type === "update" || e.type === "destroy") {
+                refreshCartSummary();
+            }
         }
 
         function onCartGridEdit(e) {
@@ -746,5 +680,9 @@
         function proceedToCheckout(e) {
             window.location.href = "@Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })";
         }
+
+        $(document).ready(function () {
+            refreshCartSummary();
+        });
     </script>
 }
