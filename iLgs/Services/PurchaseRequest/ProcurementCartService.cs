@@ -1141,7 +1141,7 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("Only a Returned Purchase Request or an active revision can be opened.");
             }
 
-            if (!access.IsAdmin && !string.Equals(entity.InsertedBy, userName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(entity.InsertedBy, userName, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Only the original requester can revise this Purchase Request.");
             }

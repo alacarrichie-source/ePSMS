@@ -138,8 +138,7 @@ namespace iLgs.Controllers
                         purchaseRequest.StatusUser = hist.ChangedBy;
                         purchaseRequest.StatusDate = hist.ChangedDt;
                 }
-                    var isOwner = string.Equals(purchaseRequest.InsertedBy, currentUserName, StringComparison.OrdinalIgnoreCase);
-                    var isOwnerOrAdmin = isOwner || mainAccess.IsAdmin || postingAccess.IsAdmin;
+                    var isRequester = string.Equals(purchaseRequest.InsertedBy, currentUserName, StringComparison.OrdinalIgnoreCase);
                     var prStatus = purchaseRequest.Status ?? "";
 
                     purchaseRequest.CanView = true;
@@ -164,22 +163,22 @@ namespace iLgs.Controllers
                     }
                     else
                     {
+                        // Department directory: read-only View/Print are department-wide.
+                        // Requester-side mutations belong only to the original requester.
+                        purchaseRequest.CanPrint = true;
+
                         if (string.Equals(prStatus, PrStatuses.Draft, StringComparison.OrdinalIgnoreCase))
                         {
-                            purchaseRequest.CanContinue = isOwnerOrAdmin;
-                            purchaseRequest.CanDelete = isOwnerOrAdmin && mainAccess.AllowDelete;
+                            purchaseRequest.CanContinue = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
+                            purchaseRequest.CanDelete = isRequester && mainAccess.IsAllowed && mainAccess.AllowDelete;
                         }
                         else if (string.Equals(prStatus, PrStatuses.Returned, StringComparison.OrdinalIgnoreCase))
                         {
-                            purchaseRequest.CanRevise = isOwnerOrAdmin;
+                            purchaseRequest.CanRevise = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
                         }
                         else if (string.Equals(prStatus, PrStatuses.Revising, StringComparison.OrdinalIgnoreCase))
                         {
-                            purchaseRequest.CanContinue = isOwnerOrAdmin;
-                        }
-                        else if (string.Equals(prStatus, PrStatuses.Posted, StringComparison.OrdinalIgnoreCase))
-                        {
-                            purchaseRequest.CanPrint = true;
+                            purchaseRequest.CanContinue = isRequester && mainAccess.IsAllowed && mainAccess.AllowEdit;
                         }
                     }
                 }
@@ -315,15 +314,13 @@ namespace iLgs.Controllers
         {
             var userId = User.Identity.GetUserId();
             var access = await Access(userId, "requests");
-            if (!await CanEditDraftRequestAsync(id, access))
+            if (!access.IsAllowed || !access.AllowEdit || !await CanEditDraftRequestAsync(id, access))
             {
-                return Json(new { success = false, message = "You are not authorized to edit this draft Purchase Request." }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Only the original requester may continue this draft Purchase Request." }, JsonRequestBehavior.AllowGet);
             }
 
-            var activeCart = await _db.ProcurementCarts
-                .Where(c => c.UserId == userId && c.RequestId == id && c.Status == "ACTIVE")
-                .OrderByDescending(c => c.UpdatedDt ?? c.InsertedDt)
-                .FirstOrDefaultAsync();
+            var cartService = new ProcurementCartService(_db);
+            var activeCart = await cartService.GetActiveCartEntityAsync(userId, CartModes.Normal, id);
 
             if (activeCart != null)
             {
@@ -331,7 +328,7 @@ namespace iLgs.Controllers
                 {
                     success = true,
                     mode = "CART",
-                    redirectUrl = Url.Action("Cart", "Procurement", new { requestId = id })
+                    redirectUrl = Url.Action("Cart", "Procurement", new { mode = CartModes.Normal, requestId = id })
                 }, JsonRequestBehavior.AllowGet);
             }
 
@@ -590,10 +587,9 @@ namespace iLgs.Controllers
         [ActionName("View")]
         public async Task<ActionResult> ViewRequest(Guid id)
         {
-            var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            if (!access.IsAllowed)
+            if (!await CanAccessRequestRecordAsync(id))
             {
-                return new HttpStatusCodeResult(403, "Purchase Request access denied.");
+                return new HttpStatusCodeResult(403, "You are not authorized to view this Purchase Request.");
             }
 
             var model = await LoadPurchaseRequestReviewModelAsync(id);
@@ -612,10 +608,9 @@ namespace iLgs.Controllers
         [HttpGet]
         public async Task<ActionResult> GetReturnComment(Guid id)
         {
-            var access = await Access(User.Identity.GetUserId(), "requests", "requests_posting");
-            if (!access.IsAllowed)
+            if (!await CanAccessRequestRecordAsync(id))
             {
-                return Json(new { success = false, message = "Access denied." }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "You are not authorized to view this Purchase Request." }, JsonRequestBehavior.AllowGet);
             }
 
             var history = await _db.DocumentStatusHistories
@@ -725,8 +720,7 @@ namespace iLgs.Controllers
                     return Json(new { success = false, message = "Only a Returned Purchase Request can be resubmitted." });
                 }
 
-                if (!access.IsAdmin &&
-                    !String.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                if (!String.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     return Json(new { success = false, message = "Only the original requester can resubmit this Purchase Request." });
                 }
@@ -1469,8 +1463,29 @@ namespace iLgs.Controllers
         //#endregion
         // 
         #region PRINTOUTS
-        public ActionResult PurchaseRequestRpt(string ctrlNo)
+        public async Task<ActionResult> PurchaseRequestRpt(string ctrlNo)
         {
+            if (string.IsNullOrWhiteSpace(ctrlNo))
+            {
+                return new HttpStatusCodeResult(400, "Purchase Request control number is required.");
+            }
+
+            var requestId = await _db.Requests
+                .AsNoTracking()
+                .Where(x => x.CtrlNo == ctrlNo)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefaultAsync();
+
+            if (!requestId.HasValue)
+            {
+                return HttpNotFound("Purchase Request not found.");
+            }
+
+            if (!await CanAccessRequestRecordAsync(requestId.Value))
+            {
+                return new HttpStatusCodeResult(403, "You are not authorized to print this Purchase Request.");
+            }
+
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
             string rptKey = ConfigurationManager.AppSettings["RptKey"];
@@ -1647,7 +1662,7 @@ namespace iLgs.Controllers
                 return false;
             }
 
-            return access.IsAdmin ||
+            return access.IsAllowed &&
                 string.Equals(entity.InsertedBy, User.Identity.Name, StringComparison.OrdinalIgnoreCase);
         }
 
@@ -1672,6 +1687,26 @@ namespace iLgs.Controllers
 
             var postingAccess = await Access(User.Identity.GetUserId(), "requests_posting");
             return postingAccess.IsAllowed && postingAccess.AllowEdit;
+        }
+
+        private async Task<bool> CanAccessRequestRecordAsync(Guid requestId)
+        {
+            var userId = User.Identity.GetUserId();
+            var mainAccess = await Access(userId, "requests");
+            var postingAccess = await Access(userId, "requests_posting", "requests");
+
+            if (!mainAccess.IsAllowed && !postingAccess.IsAllowed)
+            {
+                return false;
+            }
+
+            if (mainAccess.IsAdmin || postingAccess.IsAdmin)
+            {
+                return true;
+            }
+
+            var scopedRequests = await _requestService.GetAllAsync(userId);
+            return await scopedRequests.AnyAsync(x => x.Id == requestId);
         }
 
         private string NormalizePrStatus(string status)

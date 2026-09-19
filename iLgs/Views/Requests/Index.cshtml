@@ -104,6 +104,19 @@
             kendo.htmlEncode(value) + "</span>";
     }
 
+    function renderPrMoreMenu(items) {
+        if (!items || !items.length) return "";
+
+        var html = "<div class='pr-dropdown-wrapper'>";
+        html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
+        html += "<div class='pr-action-menu' style='display:none;'>";
+        for (var i = 0; i < items.length; i++) {
+            html += items[i];
+        }
+        html += "</div></div>";
+        return html;
+    }
+
         function renderPrActions(item) {
         if (!item) return "";
         var id = item.Id;
@@ -182,70 +195,62 @@
             }
         } else {
             // ==========================================
-            // REQUESTS / INDEX - REQUESTER MATRIX
+            // REQUESTS / INDEX - DEPARTMENT DIRECTORY
             // ==========================================
             if (status === "Draft") {
-                // Draft: Continue (only if CanContinue), Delete (only if CanDelete), View (if CanView)
                 if (item.CanContinue) {
                     html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continueDraftPurchaseRequest('" + id + "')\" title='Continue Draft'><span class='k-icon k-i-pencil'></span> Continue</button>";
                 }
+
+                var draftMore = [];
                 if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+                    draftMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>");
+                }
+                if (item.CanPrint) {
+                    draftMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
                 }
                 if (item.CanDelete) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); deletePurchaseRequest('" + id + "')\"><span class='k-icon k-i-delete'></span> Delete</a>";
-                    html += "</div></div>";
+                    draftMore.push("<a href='javascript:void(0)' class='pr-action-menu-item pr-action-menu-item-warn' onclick=\"closeAllPrActionMenus(); deletePurchaseRequest('" + id + "')\"><span class='k-icon k-i-delete'></span> Delete</a>");
                 }
+                html += renderPrMoreMenu(draftMore);
             } else if (status === "Returned") {
-                // Returned: Revise PR (only if CanRevise), Review Comment, View (if CanView)
                 if (item.CanRevise) {
                     html += "<button type='button' class='pr-btn-sm-primary' onclick=\"startPurchaseRequestRevision('" + id + "')\" title='Revise Purchase Request'><span class='k-icon k-i-edit'></span> Revise PR</button>";
                 }
-                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"showReturnComment('" + id + "')\" title='Review Comment'><span class='k-icon k-i-comment'></span> Review Comment</button>";
+
+                var returnedMore = [];
+                returnedMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>");
                 if (item.CanView) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
-                    html += "</div></div>";
+                    returnedMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>");
                 }
+                if (item.CanPrint) {
+                    returnedMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
+                }
+                html += renderPrMoreMenu(returnedMore);
             } else if (status === "Revising") {
-                // Revising: Continue Revision (only if CanContinue), Review Comment, View (if CanView)
                 if (item.CanContinue) {
                     html += "<button type='button' class='pr-btn-sm-primary' onclick=\"continuePurchaseRequestRevision('" + id + "')\" title='Continue Revision'><span class='k-icon k-i-pencil'></span> Continue Revision</button>";
                 }
-                html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"showReturnComment('" + id + "')\" title='Review Comment'><span class='k-icon k-i-comment'></span> Review Comment</button>";
+
+                var revisingMore = [];
+                revisingMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); showReturnComment('" + id + "')\"><span class='k-icon k-i-comment'></span> Review Comment</a>");
                 if (item.CanView) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>";
-                    html += "</div></div>";
-                }
-            } else if (status === "Submitted" || status === "Unposted") {
-                // Submitted / Unposted: View only (strictly read-only)
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
-                }
-            } else if (status === "Posted") {
-                // Posted: View (if CanView), Print (only if CanPrint)
-                if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
+                    revisingMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); viewPurchaseRequest('" + id + "')\"><span class='k-icon k-i-eye'></span> View</a>");
                 }
                 if (item.CanPrint) {
-                    html += "<div class='pr-dropdown-wrapper'>";
-                    html += "<button type='button' class='pr-btn-sm-secondary pr-btn-more' onclick=\"togglePrActionMenu(event, this)\" title='More actions'>More <span class='k-icon k-i-arrow-60-down'></span></button>";
-                    html += "<div class='pr-action-menu' style='display:none;'>";
-                    html += "<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>";
-                    html += "</div></div>";
+                    revisingMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
                 }
+                html += renderPrMoreMenu(revisingMore);
             } else {
                 if (item.CanView) {
-                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Details'><span class='k-icon k-i-eye'></span> View</button>";
+                    html += "<button type='button' class='pr-btn-sm-secondary' onclick=\"viewPurchaseRequest('" + id + "')\" title='View Purchase Request'><span class='k-icon k-i-eye'></span> View</button>";
                 }
+
+                var readOnlyMore = [];
+                if (item.CanPrint) {
+                    readOnlyMore.push("<a href='javascript:void(0)' class='pr-action-menu-item' onclick=\"closeAllPrActionMenus(); printPurchaseRequest('" + id + "')\"><span class='k-icon k-i-print'></span> Print</a>");
+                }
+                html += renderPrMoreMenu(readOnlyMore);
             }
         }
 
@@ -507,7 +512,7 @@
             <p class="requests-subtitle">
                 @(isSubmittedMode
                     ? "Review verified requisitions, return items for corrections, or assign official PR numbers and post."
-                    : "Create, review, track, and manage departmental purchase requests.")
+                    : "Browse, create, view, print, and track purchase requests for your authorized department.")
             </p>
         </div>
         <div class="requests-header-actions">
@@ -572,6 +577,17 @@
             </div>
         </div>
 
+        <div class="requests-metric-card" id="cardMetricRevising" data-status="Revising" onclick="filterByStatusPill('Revising')" title="Click to filter by revising">
+            <div class="requests-metric-header">
+                <span class="requests-metric-label">Revising</span>
+                <span class="requests-metric-dot dot-revising"></span>
+            </div>
+            <div class="requests-metric-value-row">
+                <span class="requests-metric-number" id="metricRevising">0</span>
+                <span class="requests-metric-subtext">Revision in progress</span>
+            </div>
+        </div>
+
         <div class="requests-metric-card" id="cardMetricUnposted" data-status="Unposted" onclick="filterByStatusPill('Unposted')" title="Click to filter by unposted">
             <div class="requests-metric-header">
                 <span class="requests-metric-label">Unposted</span>
@@ -594,74 +610,6 @@
             </div>
         </div>
     </div>
-
-    @if (!isSubmittedMode)
-    {
-        <!-- MY DRAFTS WORKSPACE -->
-        <div class="requests-card" id="myDraftsSection" style="margin-bottom: 24px;">
-            <div class="requests-card-header" style="border-bottom: 1px solid #e2e8f0; padding: 14px 20px;">
-                <div class="requests-card-title-group">
-                    <h3 class="requests-card-title" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #1e293b;">
-                        <span class="k-icon k-i-pencil" style="color: #6366f1;"></span> MY DRAFTS
-                    </h3>
-                    <p class="requests-card-subtitle" style="margin: 4px 0 0; font-size: 12.5px; color: #64748b;">
-                        Your active draft purchase requests in preparation. Continue drafting, view details, or delete.
-                    </p>
-                </div>
-                <div class="requests-card-header-actions">
-                    <button type="button" class="btn-secondary-action" onclick="refreshMyDraftsGrid()" title="Refresh My Drafts">
-                        <span class="k-icon k-i-reload"></span> Refresh
-                    </button>
-                </div>
-            </div>
-            <div class="requests-grid-container" style="padding: 12px 16px;">
-                @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
-                    .Name("gridMyDrafts")
-                    .Columns(col =>
-                    {
-                        col.Bound(c => c.CtrlNo).Title("Control No.").Width(130).ClientTemplate("#= renderPrNo(data) #");
-                        col.Bound(c => c.Department).Title("Department / Fund").Width(180).ClientTemplate("#= renderPrDepartment(data) #");
-                        col.Bound(c => c.Purpose).Title("Purpose").ClientTemplate("#= renderPrPurpose(data) #");
-                        col.Bound(c => c.TotalAmount).Title("Estimated Amount").Width(140)
-                            .HtmlAttributes(new { @class = "text-right" }).HeaderHtmlAttributes(new { @class = "text-right" })
-                            .ClientTemplate("#= renderPrAmount(data) #");
-                        col.Bound(c => c.PrDate).Title("Date Created").Width(120).ClientTemplate("#= renderPrDate(data) #");
-                        col.Bound(c => c.Status).Title("Status").Width(100).ClientTemplate("#= renderPrStatus(data.Status) #");
-                        col.Bound(c => c.Id).Title("Actions").Width(190).Sortable(false).Filterable(false)
-                            .HtmlAttributes(new { @class = "text-right" })
-                            .HeaderHtmlAttributes(new { @class = "text-right" })
-                            .ClientTemplate("#= renderPrActions(data) #");
-                    })
-                    .Pageable(pager => pager
-                        .Input(false)
-                        .Numeric(true)
-                        .Info(true)
-                        .PreviousNext(true)
-                        .Refresh(true)
-                        .PageSizes(new[] { 5, 10, 20 })
-                        .ButtonCount(5)
-                    )
-                    .Sortable()
-                    .Scrollable()
-                    .NoRecords(n => n.Template(
-                        "<div class='item-empty-state pr-empty-state' style='padding: 20px; text-align: center;'>" +
-                            "<span class='k-icon k-i-file-add pr-empty-icon' style='font-size: 24px; color: #94a3b8;'></span>" +
-                            "<p style='margin: 6px 0 2px; font-weight: 600; color: #475569;'>No active drafts</p>" +
-                            "<span class='item-empty-sub pr-empty-sub' style='font-size: 12px; color: #94a3b8;'>You don't have any purchase requests in draft status.</span>" +
-                        "</div>"
-                    ))
-                    .DataSource(dataSource => dataSource
-                        .Ajax()
-                        .PageSize(10)
-                        .Model(model => { model.Id(p => p.Id); })
-                        .Sort(s => s.Add(a => a.InsertedDt).Descending())
-                        .Read(read => read.Action("MyDrafts_Read", "Requests"))
-                    )
-                    .Events(events => events.Change("onChangeMyDraftsGrid"))
-                )
-            </div>
-        </div>
-    }
 
     <!-- MAIN UNIFIED WORKSPACE CARD -->
     <div class="requests-card">
@@ -1569,6 +1517,7 @@
             $("#metricDraft").text(res.draft || 0);
             $("#metricSubmitted").text(res.submitted || 0);
             $("#metricReturned").text(res.returned || 0);
+            $("#metricRevising").text(res.revising || 0);
             $("#metricUnposted").text(res.unposted || 0);
             $("#metricPosted").text(res.posted || 0);
             $("#pillCountAllBadge").text(res.total || 0);
@@ -1591,26 +1540,7 @@
     function refreshPrGrid() {
         var grid = $("#grid").data("kendoGrid");
         if (grid) grid.dataSource.read();
-        refreshMyDraftsGrid();
         loadAuthoritativeCountsAndDepts();
-    }
-
-    function refreshMyDraftsGrid() {
-        var draftGrid = $("#gridMyDrafts").data("kendoGrid");
-        if (draftGrid) draftGrid.dataSource.read();
-    }
-
-    function onChangeMyDraftsGrid(e) {
-        var grid = (e && e.sender) ? e.sender : this;
-        var row = grid.select();
-        if (row && row.length > 0) {
-            var dataItem = grid.dataItem(row);
-            if (dataItem) {
-                selectedId = dataItem.Id;
-                selectedPrNo = dataItem.PrNo;
-                selectedCtrlNo = dataItem.CtrlNo;
-            }
-        }
     }
 
     // Attach debounced search listener and initialize workspace
@@ -1643,10 +1573,6 @@
             var grid = $("#grid").data("kendoGrid");
             if (grid) {
                 grid.resize();
-            }
-            var draftGrid = $("#gridMyDrafts").data("kendoGrid");
-            if (draftGrid) {
-                draftGrid.resize();
             }
         });
     });
