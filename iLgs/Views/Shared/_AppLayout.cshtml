@@ -684,6 +684,10 @@ if (subItems != null)
         }
 
         $(document).on("submit", ".add-to-cart-form", function (e) {
+            // Skip if the page-level Annual.cshtml handler is already registered.
+            // This prevents duplicate AJAX submissions and ensures Revision/AdminEdit
+            // cart counts do not overwrite the global NORMAL My Cart badge.
+            if (window.__annualCartHandlerRegistered) { return; }
             e.preventDefault();
 
             var form = $(this);

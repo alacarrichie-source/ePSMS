@@ -860,12 +860,6 @@ namespace iLgs.Services.PurchaseRequest
                 }
             }
 
-// Multiple Admin Edit carts are isolated per request
-// No collision check needed across different requests
-
-
-
-
             var entity = await _db.Requests
                 .Include(x => x.RequestItems.Select(i => i.RequestSubItems))
                 .Include(x => x.RequestItems.Select(i => i.PPMPItem.PPMP))
@@ -888,74 +882,123 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("A Purchase Request item is no longer linked to the Annual Procurement Plan.");
             }
 
+            if (entity.RequestItems.Any(x => x.Qty.GetValueOrDefault() <= 0 || x.Qty.GetValueOrDefault() != Math.Truncate(x.Qty.GetValueOrDefault())))
+            {
+                throw new InvalidOperationException("The shared cart requires whole-number item quantities.");
+            }
+
+            var sourceItemCount = entity.RequestItems.Count;
+            var sourceSubItemCount = entity.RequestItems.Sum(x => x.RequestSubItems.Count);
             var fiscalYear = entity.RequestItems.Select(x => x.PPMPItem.PPMP.ForYear).FirstOrDefault();
             var now = DateTime.Now;
 
-            var adminCart = new ProcurementCart
+            using (var transaction = _db.Database.BeginTransaction())
             {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                DepartmentId = entity.DeptId,
-                FiscalYear = fiscalYear,
-                RequestId = entity.Id,
-                IsRevision = false,
-                RevisionNo = null,
-                RevisionUser = "ADMIN_EDIT:" + userName,
-                Status = StatusActive,
-                ReviewComment = "[CART_MODE:ADMIN_EDIT][INITIALIZED]",
-                InsertedBy = userName,
-                InsertedDt = now,
-                UpdatedBy = userName,
-                UpdatedDt = now
-            };
-
-            _db.ProcurementCarts.Add(adminCart);
-
-            var itemOrder = 1;
-            foreach (var reqItem in entity.RequestItems.OrderBy(x => x.ItemNoIndex))
-            {
-                var cartItem = new ProcurementCartItem
+                try
                 {
-                    Id = Guid.NewGuid(),
-                    CartId = adminCart.Id,
-                    PpmpItemId = reqItem.PpmpItemId.Value,
-                    RequestItemId = reqItem.Id,
-                    ItemNo = itemOrder.ToString(),
-                    Code = reqItem.PpmpCode,
-                    Description = reqItem.Description,
-                    TechnicalSpecifications = reqItem.OtherDesc,
-                    Unit = reqItem.Unit,
-                    Quantity = Convert.ToInt32(reqItem.Qty.GetValueOrDefault()),
-                    UnitCost = reqItem.UnitCost,
-                    SortOrder = itemOrder
-                };
-
-                adminCart.ProcurementCartItems.Add(cartItem);
-
-                var subOrder = 1;
-                foreach (var reqSubItem in reqItem.RequestSubItems.OrderBy(x => x.ItemNoIndex))
-                {
-                    var cartSubItem = new ProcurementCartSubItem
+                    // Build the complete entity graph FIRST, before calling DbSet.Add().
+                    // EF6 discovers and marks the entire graph as Added when the root is added.
+                    // Adding children after DbSet.Add() on a HashSet<T> navigation property
+                    // may not reliably enter the Added state in the change tracker.
+                    var adminCart = new ProcurementCart
                     {
                         Id = Guid.NewGuid(),
-                        CartItemId = cartItem.Id,
-                        RequestSubItemId = reqSubItem.Id,
-                        ItemNo = string.Format("{0}.{1}", itemOrder, subOrder),
-                        Description = reqSubItem.Description,
-                        Unit = reqSubItem.Unit,
-                        Quantity = reqSubItem.Qty.GetValueOrDefault(),
-                        UnitCost = reqSubItem.UnitCost.GetValueOrDefault(),
-                        SortOrder = subOrder
+                        UserId = userId,
+                        DepartmentId = entity.DeptId,
+                        FiscalYear = fiscalYear,
+                        RequestId = entity.Id,
+                        IsRevision = false,
+                        RevisionNo = null,
+                        RevisionUser = "ADMIN_EDIT:" + userName,
+                        Status = StatusActive,
+                        ReviewComment = "[CART_MODE:ADMIN_EDIT][INITIALIZED]",
+                        InsertedBy = userName,
+                        InsertedDt = now,
+                        UpdatedBy = userName,
+                        UpdatedDt = now
                     };
-                    cartItem.ProcurementCartSubItems.Add(cartSubItem);
-                    subOrder++;
+
+                    var itemOrder = 1;
+                    foreach (var reqItem in entity.RequestItems.OrderBy(x => x.ItemNoIndex))
+                    {
+                        var cartItem = new ProcurementCartItem
+                        {
+                            Id = Guid.NewGuid(),
+                            CartId = adminCart.Id,
+                            PpmpItemId = reqItem.PpmpItemId.Value,
+                            RequestItemId = reqItem.Id,
+                            ItemNo = itemOrder.ToString(),
+                            Code = reqItem.PpmpCode,
+                            Description = reqItem.Description,
+                            TechnicalSpecifications = reqItem.OtherDesc,
+                            Unit = reqItem.Unit,
+                            Quantity = Convert.ToInt32(reqItem.Qty.GetValueOrDefault()),
+                            UnitCost = reqItem.UnitCost,
+                            SortOrder = itemOrder
+                        };
+
+                        var subOrder = 1;
+                        foreach (var reqSubItem in reqItem.RequestSubItems.OrderBy(x => x.ItemNoIndex))
+                        {
+                            var cartSubItem = new ProcurementCartSubItem
+                            {
+                                Id = Guid.NewGuid(),
+                                CartItemId = cartItem.Id,
+                                RequestSubItemId = reqSubItem.Id,
+                                ItemNo = string.Format("{0}.{1}", itemOrder, subOrder),
+                                Description = reqSubItem.Description,
+                                Unit = reqSubItem.Unit,
+                                Quantity = reqSubItem.Qty.GetValueOrDefault(),
+                                UnitCost = reqSubItem.UnitCost.GetValueOrDefault(),
+                                SortOrder = subOrder
+                            };
+                            cartItem.ProcurementCartSubItems.Add(cartSubItem);
+                            subOrder++;
+                        }
+
+                        adminCart.ProcurementCartItems.Add(cartItem);
+                        itemOrder++;
+                    }
+
+                    // Add the complete graph after all children are attached
+                    _db.ProcurementCarts.Add(adminCart);
+
+                    await _db.SaveChangesAsync();
+
+                    // Verify persisted item count matches source
+                    var persistedItemCount = await _db.ProcurementCartItems.CountAsync(x => x.CartId == adminCart.Id);
+                    if (persistedItemCount != sourceItemCount)
+                    {
+                        throw new InvalidOperationException(string.Format(
+                            "Admin Edit cart initialization failed. Expected {0} item(s), but {1} item(s) were persisted.",
+                            sourceItemCount, persistedItemCount));
+                    }
+
+                    // Verify persisted sub-item count if source has sub-items
+                    if (sourceSubItemCount > 0)
+                    {
+                        var persistedSubItemCount = await _db.ProcurementCartSubItems
+                            .CountAsync(x => x.ProcurementCartItem.CartId == adminCart.Id);
+                        if (persistedSubItemCount != sourceSubItemCount)
+                        {
+                            throw new InvalidOperationException(string.Format(
+                                "Admin Edit cart initialization failed. Expected {0} sub-item(s), but {1} sub-item(s) were persisted.",
+                                sourceSubItemCount, persistedSubItemCount));
+                        }
+                    }
+
+                    transaction.Commit();
+
+                    // Reload from DB to ensure the returned entity matches persisted state
+                    var persistedCart = await GetActiveCartEntityAsync(userId, CartModes.AdminEdit, requestId);
+                    return persistedCart ?? adminCart;
                 }
-
-                itemOrder++;
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
-
-            await _db.SaveChangesAsync();
-            return adminCart;
         }
 
         public async Task CompleteCartAsync(Guid cartId, string userName)
@@ -969,7 +1012,6 @@ namespace iLgs.Services.PurchaseRequest
                 await _db.SaveChangesAsync();
             }
         }
-
         public async Task<ProcurementCart> StartRevisionCartAsync(Guid requestId, string userId, string userName, Access access)
         {
             if (!access.IsAllowed || !access.AllowEdit)
@@ -977,8 +1019,10 @@ namespace iLgs.Services.PurchaseRequest
                 throw new InvalidOperationException("Revision access denied.");
             }
 
+            // Fix: Only resume an existing Revision cart if it actually has items.
+            // An empty stale cart must be abandoned and rebuilt from the source PR.
             var existingCart = await GetActiveCartEntityAsync(userId, CartModes.Revision, requestId);
-            if (existingCart != null)
+            if (existingCart != null && existingCart.ProcurementCartItems != null && existingCart.ProcurementCartItems.Any())
             {
                 return existingCart;
             }
@@ -1031,6 +1075,8 @@ namespace iLgs.Services.PurchaseRequest
                 .OrderByDescending(x => x.ChangedDt).ThenByDescending(x => x.Id)
                 .Select(x => x.Remarks).FirstOrDefaultAsync();
 
+            var sourceItemCount = entity.RequestItems.Count;
+            var sourceSubItemCount = entity.RequestItems.Sum(x => x.RequestSubItems.Count);
             var fiscalYear = entity.RequestItems.Select(x => x.PPMPItem.PPMP.ForYear).FirstOrDefault();
             var now = DateTime.Now;
 
@@ -1038,6 +1084,7 @@ namespace iLgs.Services.PurchaseRequest
             {
                 try
                 {
+                    // Abandon stale empty cart if present
                     if (existingCart != null && !existingCart.ProcurementCartItems.Any())
                     {
                         existingCart.Status = StatusAbandoned;
@@ -1045,6 +1092,7 @@ namespace iLgs.Services.PurchaseRequest
                         existingCart.UpdatedDt = now;
                     }
 
+                    // Build the complete entity graph FIRST, before calling DbSet.Add().
                     var revisionCart = new ProcurementCart
                     {
                         Id = Guid.NewGuid(),
@@ -1062,8 +1110,6 @@ namespace iLgs.Services.PurchaseRequest
                         UpdatedBy = userName,
                         UpdatedDt = now
                     };
-
-                    _db.ProcurementCarts.Add(revisionCart);
 
                     var itemOrder = 1;
                     foreach (var reqItem in entity.RequestItems.OrderBy(x => x.ItemNoIndex))
@@ -1084,8 +1130,6 @@ namespace iLgs.Services.PurchaseRequest
                             SortOrder = itemOrder
                         };
 
-                        revisionCart.ProcurementCartItems.Add(cartItem);
-
                         var subOrder = 1;
                         foreach (var reqSubItem in reqItem.RequestSubItems.OrderBy(x => x.ItemNoIndex))
                         {
@@ -1105,8 +1149,12 @@ namespace iLgs.Services.PurchaseRequest
                             subOrder++;
                         }
 
+                        revisionCart.ProcurementCartItems.Add(cartItem);
                         itemOrder++;
                     }
+
+                    // Add the complete graph after all children are attached
+                    _db.ProcurementCarts.Add(revisionCart);
 
                     if (isReturned)
                     {
@@ -1122,9 +1170,34 @@ namespace iLgs.Services.PurchaseRequest
                     }
 
                     await _db.SaveChangesAsync();
+
+                    // Verify persisted item count matches source
+                    var persistedItemCount = await _db.ProcurementCartItems.CountAsync(x => x.CartId == revisionCart.Id);
+                    if (persistedItemCount != sourceItemCount)
+                    {
+                        throw new InvalidOperationException(string.Format(
+                            "Revision cart initialization failed. Expected {0} item(s), but {1} item(s) were persisted.",
+                            sourceItemCount, persistedItemCount));
+                    }
+
+                    // Verify persisted sub-item count if source has sub-items
+                    if (sourceSubItemCount > 0)
+                    {
+                        var persistedSubItemCount = await _db.ProcurementCartSubItems
+                            .CountAsync(x => x.ProcurementCartItem.CartId == revisionCart.Id);
+                        if (persistedSubItemCount != sourceSubItemCount)
+                        {
+                            throw new InvalidOperationException(string.Format(
+                                "Revision cart initialization failed. Expected {0} sub-item(s), but {1} sub-item(s) were persisted.",
+                                sourceSubItemCount, persistedSubItemCount));
+                        }
+                    }
+
                     transaction.Commit();
 
-                    return revisionCart;
+                    // Reload from DB to ensure the returned entity matches persisted state
+                    var persistedCart = await GetActiveCartEntityAsync(userId, CartModes.Revision, requestId);
+                    return persistedCart ?? revisionCart;
                 }
                 catch
                 {

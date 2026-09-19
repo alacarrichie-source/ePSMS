@@ -1,4 +1,4 @@
-@model iLgs.Models.AnnualProcurementViewModel
+﻿@model iLgs.Models.AnnualProcurementViewModel
 
 @{
     ViewBag.Title = "Annual Procurement";
@@ -1244,6 +1244,11 @@
 
         }
 
+
+        /* Signal to the global _AppLayout.cshtml handler that this page
+           owns the .add-to-cart-form submission (supports Revision/AdminEdit).
+           The layout handler will skip when this flag is set. */
+        window.__annualCartHandlerRegistered = true;
 
         /* =====================================================
            AJAX ADD TO CART
