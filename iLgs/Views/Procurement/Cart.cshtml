@@ -233,10 +233,10 @@
 @section scripts {
     <script>
         var cartSubItemUrls = {
-            read: "@Url.Action("CartSubItemsRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
-            create: "@Url.Action("CreateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
-            update: "@Url.Action("UpdateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
-            destroy: "@Url.Action("RemoveCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId })",
+            read: "@Html.Raw(Url.Action("CartSubItemsRead", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))",
+            create: "@Html.Raw(Url.Action("CreateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))",
+            update: "@Html.Raw(Url.Action("UpdateCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))",
+            destroy: "@Html.Raw(Url.Action("RemoveCartSubItem", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId }))",
             units: "@Url.Action("GetUnits", "Getters")"
         };
 
@@ -546,7 +546,7 @@
         }
 
         function refreshCartSummary() {
-            $.get("@Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId })", function (result) {
+            $.get("@Html.Raw(Url.Action("CartSummary", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId }))", function (result) {
                 $("#cartEstimatedTotal").text(
                     kendo.toString(result.estimatedTotal, "c2")
                         .replace("$", "\u20B1")
@@ -678,7 +678,7 @@
         }
 
         function proceedToCheckout(e) {
-            window.location.href = "@Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId })";
+            window.location.href = "@Html.Raw(Url.Action("Checkout", "Procurement", new { mode = Model.CartMode, requestId = Model.RequestId, cartId = Model.CartId }))";
         }
 
         $(document).ready(function () {
